@@ -4,20 +4,21 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-<!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-release/openldap-&openldap-version;.tgz">
-<!ENTITY openldap-download-ftp "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-&openldap-version;.tgz">
-<!ENTITY openldap-size "2.0 MB">
-<!ENTITY openldap-buildsize "116 MB">
-<!ENTITY openldap-time "7.52 SBU">
-
+<!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-stable/openldap-stable-20040614.tgz">
+<!ENTITY openldap-download-ftp "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-stable/openldap-stable-20040614.tgz">
+<!ENTITY openldap-size "2.6 MB">
+<!ENTITY openldap-buildsize "70 MB">
+<!ENTITY openldap-time "6.02 SBU">
 ]>
 
 <sect1 id="openldap" xreflabel="OpenLDAP-&openldap-version;">
 <?dbhtml filename="openldap.html"?>
-<title>Open<acronym>LDAP</acronym>-&openldap-version;</title>
+<title><application>Open<acronym>LDAP</acronym></application>-&openldap-version;
+</title>
 
 <sect2>
-<title>Introduction to <application>Open<acronym>LDAP</acronym></application></title>
+<title>Introduction to <application>Open<acronym>LDAP</acronym></application>
+</title>
 
 <para>The <application>Open<acronym>LDAP</acronym></application> package
 provides an open source implementation of the Lightweight Directory
@@ -32,16 +33,19 @@ Access Protocol.</para>
 <listitem><para>Estimated build time: &openldap-time;</para></listitem></itemizedlist>
 </sect3>
 
-<sect3><title><application>Open<acronym>LDAP</acronym></application> dependencies</title>
+<sect3><title><application>Open<acronym>LDAP</acronym></application> 
+dependencies</title>
 <sect4><title>Required</title>
 <para><xref linkend="db"/>
 </para></sect4>
+<sect4><title>Recommended</title>
+<para><xref linkend="cyrus-sasl"/> and <xref linkend="openssl"/>
+</para></sect4>
 <sect4><title>Optional</title>
 <para>
-<xref linkend="openssl"/>,
-<xref linkend="gdbm"/>,
-<xref linkend="tcpwrappers"/>,
-<xref linkend="cyrus-sasl"/> and 
+<xref linkend="tcpwrappers"/>, 
+<xref linkend="gdbm"/>, 
+<ulink url="http://www.gnu.org/software/pth/">GNU Pth</ulink>, and 
 <xref linkend="heimdal"/> or
 <xref linkend="mitkrb"/>
 </para></sect4>
@@ -50,61 +54,131 @@ Access Protocol.</para>
 </sect2>
 
 <sect2>
-<title>Installation of <application>Open<acronym>LDAP</acronym></application></title>
+<title>Installation of <application>Open<acronym>LDAP</acronym></application>
+</title>
 
 <para>Install <application>Open<acronym>LDAP</acronym></application> by
 running the following commands:</para>
 
 <screen><userinput><command>./configure --prefix=/usr --libexecdir=/usr/sbin \
-    --sysconfdir=/etc --localstatedir=/var/lib \
-    --disable-debug --enable-ldbm &amp;&amp;
+    --sysconfdir=/etc --localstatedir=/srv/ldap \
+    --enable-ldbm --disable-debug &amp;&amp;
 make depend &amp;&amp;
 make &amp;&amp;
 make test &amp;&amp;
-make install</command></userinput></screen>
+make install &amp;&amp;
+chmod 755 /usr/lib/libl*-2.2.so.7.0.6</command></userinput></screen>
 
 </sect2>
 
 <sect2>
 <title>Command explanations</title>
 
-<para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration file directory to 
-avoid the default of <filename class="directory">/usr/etc</filename>.</para>
+<para><parameter>--libexecdir=/usr/sbin</parameter>: Puts the server 
+executables in <filename class="directory">/usr/sbin</filename> instead of 
+<filename class="directory">/usr/libexec</filename>.</para>
 
-<para><parameter>--libexecdir=/usr/sbin</parameter>: Puts the server executables in 
-<filename class="directory">/usr/sbin</filename> instead of <filename
-class="directory">/usr/libexec</filename>.</para>
+<para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration file 
+directory to avoid the default of 
+<filename class="directory">/usr/etc</filename>.</para>
+
+<para><parameter>--localstatedir=/srv/ldap</parameter>: Sets the directory
+to use for the <acronym>LDAP</acronym> directory database, replication logs and 
+run-time variable data.</para>
 
 <para><option>--enable-ldbm</option>: Build <command>slapd</command>
 with primary database back end using either <application>Berkeley
-DB</application> or
-<application><acronym>GNU</acronym> Database Manager</application>.</para> 
+DB</application> or <application><acronym>GNU</acronym> Database 
+Manager</application>.</para> 
 
-<para><option>--disable-debug</option>: Disable debugging code.</para>  
+<para><option>--disable-debug</option>: Disable debugging code.</para>
 
-<para><command>make test</command>: Validate correct build of the package.</para>  
+<para><command>make test</command>: Validate correct build of the package. If 
+you've enabled <application>tcp_wrappers</application>, ensure you add 
+127.0.0.1 to your <filename>/etc/hosts.allow</filename> file if you have a
+restrictive <filename>/etc/hosts.deny</filename> file.</para>
+
+<para><command>chmod 755 /usr/lib/libl*-2.2.so.7.0.6</command>: This command 
+adds the executable bit to the shared libraries.</para>
 
 </sect2>
 
 <sect2>
-<title>Configuring Open<acronym>LDAP</acronym></title>
+<title>Configuring <application>Open<acronym>LDAP</acronym></application>
+</title>
 
 <sect3><title>Config files</title>
 <para><filename>/etc/openldap/*</filename></para>
 </sect3>
 
 <sect3><title>Configuration Information</title>
+<para>Configuring the <command>slapd</command> and <command>slurpd</command> 
+servers can be complex. Securing the <acronym>LDAP</acronym> directory, 
+especially if you are storing non-public data such as password databases, 
+can also be a challenging task. You'll need to modify the 
+<filename>/etc/openldap/slapd.conf</filename> and 
+<filename>/etc/openldap/ldap.conf</filename> files to set up 
+<application>Open<acronym>LDAP</acronym></application> for your particular 
+needs.</para>
 
-<para>The only configuration needed for 
-<application>Open<acronym>LDAP</acronym></application> is 
-to run <command>ldconfig</command>. The <acronym>LDAP</acronym> server
-can be started by <command>/usr/sbin/slapd</command> as described in 
-the man page slapd(8). You can verify that <acronym>LDAP</acronym> is
-running with <command>ps aux</command> and you can verify access to the
-<acronym>LDAP</acronym> server with the following command:</para>
+<para>Resources to assist you with topics such as choosing a directory 
+configuration, backend and database definitions, access control settings, 
+running as a user other than root and setting a <command>chroot</command> 
+environment include:
+</para>
+
+<itemizedlist spacing='compact'>
+<listitem><para>The <command>slapd</command> man page</para></listitem>
+<listitem><para>The <filename>slapd.conf</filename> man page</para></listitem>
+<listitem><para>The <ulink 
+url="http://www.openldap.org/doc/admin22/">OpenLDAP 2.2 Administrator's
+Guide</ulink></para></listitem>
+<listitem><para>Documents located at 
+<ulink url="http://www.openldap.org/pub/"/></para></listitem>
+</itemizedlist></sect3>
+
+<sect3><title>Utilizing <application>GDBM</application></title>
+<para>To utilize <application>GDBM</application> as the database 
+backend, the <quote>database</quote> entry in 
+<filename>/etc/openldap/slapd.conf</filename> must be changed from 
+<quote>bdb</quote> to <quote>ldbm</quote>. You can use both by creating an 
+additional database section in <filename>/etc/openldap/slapd.conf</filename>.
+</para></sect3>
+
+<sect3><title><application>Mozilla</application> Address Directory</title>
+<para>By default, <acronym>LDAP</acronym>v2 support is disabled in the
+<filename>slapd.conf</filename> file. Once the database is properly
+set up and <application>Mozilla</application> is configured to use the
+directory, you must add <option>allow bind_v2</option> to the
+<filename>slapd.conf</filename> file.</para></sect3>
+
+<sect3><title>Init Script</title>
+<para>To automate the startup of the <acronym>LDAP</acronym> server at system 
+bootup, install the <filename>/etc/rc.d/init.d/openldap</filename> init script 
+included in the <xref linkend="intro-important-bootscripts"/> package using the 
+following command:</para>
+
+<screen><userinput><command>make install-openldap1</command></userinput></screen>
+
+<para><emphasis>Note:</emphasis> The init script you just installed only starts 
+the <command>slapd</command> daemon. If you wish to also start the 
+<command>slurpd</command> daemon at system startup, install a modified version 
+of the script using this command:</para>
+
+<screen><userinput><command>make install-openldap2</command></userinput></screen>
+</sect3>
+
+<sect3><title>Testing the Configuration</title>
+<para>Start the <acronym>LDAP</acronym> server using the init script:</para>
+
+<screen><userinput><command>/etc/rc.d/init.d/openldap start</command></userinput></screen>
+
+<para>Verify access to the <acronym>LDAP</acronym> server with the following 
+command:</para>
+
 <screen><userinput><command>ldapsearch -x -b '' -s base '(objectclass=*)' namingContexts</command></userinput></screen>
 
-<para>The correct result is:</para>
+<para>The expected result is:</para>
 <screen><computeroutput># extended LDIF
 #
 # LDAPv3
@@ -124,52 +198,13 @@ result: 0 Success
 # numResponses: 2
 # numEntries: 1</computeroutput></screen>
 
-<para>Kill the server with this command:</para>
-<screen><userinput><command>kill -INT `cat /var/lib/slapd.pid`</command></userinput></screen>
-
-<para>You are now ready to modify the 
-<filename>/etc/openldap/slapd.conf</filename> to be specific to your
-installation.</para>
-
-<para><emphasis>Utilizing <application>GDBM</application></emphasis></para>
-
-<para>To utilize <application>GDBM</application> as the database
-backend, the "database" entry in <filename>/etc/openldap/slapd.conf</filename>
-must be changed from "bdb" to "ldbm".  You can use both by creating an
-additional database section in <filename>/etc/openldap/slapd.conf</filename>.</para>
-
-<para><emphasis>Securing your <acronym>LDAP</acronym> server</emphasis></para>
-
-<para>Significant configuration is needed for
-<application>Open<acronym>LDAP</acronym></application> to utilize
-security features.  The <ulink
-url="http://www.openldap.org/doc/admin21/">OpenLDAP 2.1 Administrator's
-Guide</ulink> is a good place to start for access control settings,
-running as a user other than root and setting a chroot environment.</para>
-
-<para><emphasis>User Tools</emphasis></para>
-
-<para>Data can be added to the <acronym>LDAP</acronym> database via
-<command>ldapadd</command>. There are other programs that can use
-the database. For more information see the appropriate man page.</para>
-
-<para><emphasis><application>Mozilla</application> Address Directory</emphasis></para>
-
-<para>By default, LDAPv2 support is disabled in the
-<filename>slapd.conf</filename> file. Once the database is properly
-setup and <application>Mozilla</application> is configured to use the
-directory, you must add <option>allow bind_v2</option> to the
-<filename>slapd.conf</filename> file.</para>
-
-
 </sect3>
-
 </sect2>
 
 <sect2>
 <title>Contents</title>
 
-<para>The Open<acronym><acronym>LDAP</acronym></acronym> package contains
+<para>The Open<acronym>LDAP</acronym> package contains
 <command>ldapadd</command>,
 <command>ldapcompare</command>,
 <command>ldapdelete</command>,
@@ -181,55 +216,59 @@ directory, you must add <option>allow bind_v2</option> to the
 <command>slapadd</command>,
 <command>slapcat</command>,
 <command>slapd</command>,
+<command>slapdn</command>,
 <command>slapindex</command>,
 <command>slappasswd</command>,
+<command>slaptest</command>,
 <command>slurpd</command>,
-<filename class="libraryfile">liblber</filename> and
-<filename class="libraryfile">libldap</filename>.</para>
+<filename class="libraryfile">liblber</filename> and the 
+<filename class="libraryfile">libldap</filename> libraries.</para>
 
 </sect2>
 
 <sect2><title>Description</title>
 
 <sect3><title>ldapadd</title>
-<para><command>ldapadd</command> opens a connection to an <acronym>LDAP</acronym> server,
-binds and adds entries.</para></sect3>
+<para><command>ldapadd</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and adds entries.</para></sect3>
 
 <sect3><title>ldapcompare</title>
-<para><command>ldapcompare</command> opens a connection to an <acronym>LDAP</acronym>
-server, binds and performs a compare using specified
+<para><command>ldapcompare</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and performs a compare using specified
 parameters.</para></sect3>
 
 <sect3><title>ldapdelete</title>
-<para><command>ldapdelete</command> opens a connection to an <acronym>LDAP</acronym> server,
-binds and deletes one or more entries.</para></sect3>
+<para><command>ldapdelete</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and deletes one or more entries.</para>
+</sect3>
 
 <sect3><title>ldapmodify</title>
-<para><command>ldapmodify</command> opens a connection to an <acronym>LDAP</acronym>
-server, binds and modifies entries.</para></sect3>
+<para><command>ldapmodify</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and modifies entries.</para></sect3>
 
 <sect3><title>ldapmodrdn</title>
-<para><command>ldapmodrdn</command> opens a connection to an <acronym>LDAP</acronym>
-server, binds and modifies the <acronym>RDN</acronym> of
-entries.</para></sect3>
+<para><command>ldapmodrdn</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and modifies the 
+<acronym>RDN</acronym> of entries.</para></sect3>
 
 <sect3><title>ldappasswd</title>
 <para><command>ldappasswd</command> is a tool to set the password of an
 <acronym>LDAP</acronym> user.</para></sect3>
 
 <sect3><title>ldapsearch</title>
-<para><command>ldapsearch</command> opens a connection to an <acronym>LDAP</acronym>
-server, binds and performs a search using specified
+<para><command>ldapsearch</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and performs a search using specified
 parameters.</para></sect3>
 
 <sect3><title>ldapwhoami</title>
-<para><command>ldapwhoami</command> open a connection to an <acronym>LDAP</acronym> server,
-binds and performs a whoami operation.</para></sect3>
+<para><command>ldapwhoami</command> opens a connection to an 
+<acronym>LDAP</acronym> server, binds and displays whoami information.</para>
+</sect3>
 
 <sect3><title>slapadd</title>
 <para><command>slapadd</command> is used to add entries specified in
-<acronym>LDAP</acronym> Directory Interchange Format (<acronym>LDIF</acronym>) to a
-slapd database.</para></sect3>
+<acronym>LDAP</acronym> Directory Interchange Format (<acronym>LDIF</acronym>) 
+to an <acronym>LDAP</acronym> database.</para></sect3>
 
 <sect3><title>slapcat</title>
 <para><command>slapcat</command> is used to generate an <acronym>LDAP</acronym>
@@ -237,7 +276,12 @@ slapd database.</para></sect3>
 based upon the contents of a slapd database.</para></sect3>
 
 <sect3><title>slapd</title>
-<para><command>slapd</command> is the stand-alone <acronym>LDAP</acronym> server.</para></sect3>
+<para><command>slapd</command> is the stand-alone <acronym>LDAP</acronym> 
+server.</para></sect3>
+
+<sect3><title>slapdn</title>
+<para><command>slapdn</command> checks a list of string-represented 
+<acronym>DN</acronym>s based on schema syntax.</para></sect3>
 
 <sect3><title>slapindex</title>
 <para><command>slapindex</command> is used to regenerate slapd
@@ -247,13 +291,18 @@ indices based upon the current contents of a database.</para></sect3>
 <para><command>slappasswd</command> is an Open<acronym>LDAP</acronym> password
 utility.</para></sect3>
 
+<sect3><title>slaptest</title>
+<para><command>slaptest</command> checks the sanity of the 
+<filename>slapd.conf</filename> file.</para></sect3>
+
 <sect3><title>slurpd</title>
 <para><command>slurpd</command> is the stand-alone
 <acronym>LDAP</acronym> replication server.</para></sect3>
 
 <sect3><title>liblber and libldap</title>
-<para>These libraries support the <acronym>LDAP</acronym> programs and provide functionality for
-other programs interacting with <acronym>LDAP</acronym>.</para></sect3>
+<para>These libraries support the <acronym>LDAP</acronym> programs and provide 
+functionality for other programs interacting with <acronym>LDAP</acronym>.
+</para></sect3>
 
 </sect2>
 
