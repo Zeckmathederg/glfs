@@ -6,19 +6,21 @@
 
 <!ENTITY courier-download-http "http://prdownloads.sourceforge.net/courier/courier-&courier-version;.tar.bz2">
 <!ENTITY courier-download-ftp " ">
-<!ENTITY courier-size "4.2 MB">
-<!ENTITY courier-buildsize "114 MB">
-<!ENTITY courier-time "3.00 SBU">
+<!ENTITY courier-size "4.3 MB">
+<!ENTITY courier-buildsize "102 MB">
+<!ENTITY courier-time "2.62 SBU">
 
 ]>
 
-<sect1 id="courier" xreflabel="Courier-&courier-version;">
+<sect1 id="courier-package" xreflabel="Courier-&courier-version;">
 <sect1info>
 <othername>$LastChangedBy$</othername>
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="courier.html"?>
 <title>Courier-&courier-version;</title>
+<indexterm zone="courier-package">
+<primary sortas="a-courier-package">Courier MTA</primary></indexterm>
 
 <sect2>
 <title>Introduction to <application>Courier</application></title>
@@ -30,12 +32,6 @@ your domain or a mail relay agent. The <application>Courier</application>
 packages also includes a web-based email interface, <acronym>IMAP</acronym>,
 <acronym>IMAP</acronym>-<acronym>SSL</acronym>, <acronym>POP</acronym>3, and
 <acronym>POP</acronym>3-<acronym>SSL</acronym>.</para>
-
-<!--
-The configuration
-listed below will allow users with <acronym>PAM</acronym> and virtual-users in 
-a <application>My<acronym>SQL</acronym></application> Database access to email.</para>
--->
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
@@ -52,7 +48,7 @@ a <application>My<acronym>SQL</acronym></application> Database access to email.<
 
 <sect3><title><application>Courier</application> dependencies</title>
 <sect4><title>Required</title>
-<para><xref linkend="gdbm"/><!-- or <xref linkend="db"/> --></para>
+<para><xref linkend="gdbm"/></para>
 </sect4>
 <sect4><title>Optional</title>
 <para><xref linkend="mysql"/> or <xref linkend="postgresql"/>, 
@@ -64,6 +60,7 @@ a <application>My<acronym>SQL</acronym></application> Database access to email.<
 <xref linkend="ispell"/> or <xref linkend="aspell"/>,
 <xref linkend="gnupg"/>,
 <xref linkend="expect"/>, 
+<xref linkend="gs"/> or <xref linkend="espgs"/>, 
 <ulink url="http://netpbm.sourceforge.net/">Netpbm</ulink> and
 <ulink url="http://alpha.greenie.net/mgetty/">Mgetty+Sendfax</ulink>
 </para></sect4>
@@ -73,34 +70,37 @@ a <application>My<acronym>SQL</acronym></application> Database access to email.<
 
 <sect2>
 <title>Installation of <application>Courier</application></title>
+<note><para><application>Courier's</application> tarball must be extacted as an
+unpriveleged user or configure will fail.</para></note>
 
-<para> Before you compile the program, you need to create users and groups that 
-will be expected to be in place when the install script executes. Add the users 
-and groups with the following commands:</para>
+<para>After extracting the tarball, you'll need to <command>su</command> to 
+user 'root' in order to perform the next few steps.</para>
+ 
+<para> Before you compile the program, you need to create the courier user 
+and group that is expected to be in place when the install script executes.
+Add the courier user and group with the following commands:</para>
 
 <screen><userinput><command>groupadd courier &amp;&amp;
 useradd -c 'Courier Mail Server' -d /dev/null \
         -g courier -s /bin/false courier</command></userinput></screen>
 
-<para> You also need to create a bin user. If you already have a user
+<para>The install script also expects a bin user. If you already have a user
 named bin, this step can be safely ignored.</para>
 
 <screen><userinput><command>useradd -c 'bin' -d /dev/null -g bin -u 1 bin</command></userinput></screen>
 
-<para>This creates a
-<filename class="directory">/var/run/courier</filename> directory where
-all the <application>Courier</application> <acronym>MTA</acronym> pid
-files will exist. This will allow <filename>courierfilter.pid</filename>
-to be created. Without the <command>courierfilter</command> running, the
-<application>Courier</application> MTA will not work. Issue the
-following commands to create
-<filename class="directory">/var/run/courier</filename>:</para>
+<para><application>Courierfilter</application> requires the directory
+<filename class="directory">/var/run/courier</filename> to store
+all the <application>Courier</application> pid and lockfiles.  
+<filename class="directory">/var/lock/subsys</filename> also must exist
+for the master lock file for <application>Courier</application>. Issue
+the following commands to create these directories:</para>
 
-<screen><userinput><command>mkdir /var/run/courier &amp;&amp;
-chown courier:courier /var/run/courier</command></userinput></screen>
+<screen><userinput><command>install -d /var/run/courier -o courier -g courier -m755 &amp;&amp;
+install -d /var/lock/subsys -o root -g root -m755</command></userinput></screen>
 
-<para>Install <application>courier</application> by running the following 
-commands:</para>
+<para>Build <application>courier</application> as an unpriveledged user
+with the following commands:</para>
 
 <screen><userinput><command>./configure --prefix=/usr --libexecdir=/usr/lib/courier \
     --datadir=/usr/share/courier --sysconfdir=/etc/courier \
@@ -109,8 +109,12 @@ commands:</para>
     --with-mailgroup=courier \
     --with-paranoid-smtpext --disable-autorenamesent \
     --enable-workarounds-for-imap-client-bugs --with-db=gdbm &amp;&amp;
-make &amp;&amp;
-make install &amp;&amp;
+make</command></userinput></screen>
+
+<para><command>su</command> once again to user 'root' and install
+<application>courier</application> with the following commands:</para>
+
+<screen><userinput><command>make install &amp;&amp;
 make install-configure</command></userinput></screen>
 
 </sect2>
@@ -179,8 +183,9 @@ configure with this option and recompile.</para>
 <application><acronym>GDBM</acronym></application> or the
 <application>DB</application> database library.
 <application><acronym>GDBM</acronym></application> is used if both are
-present. This option forces the selection of the GDBM database
-library since support for DB is broken at the current state.</para>
+present. This option forces the selection of
+<application>GDBM</application> as courier is currently broken when used 
+with <application>DB</application>.</para>
 
 <!-- # Note - Courier will build fine with <xref linkend="db"/>, but all
 the database files will not be created correctly -->
@@ -197,33 +202,156 @@ saying that the <filename>mime.types</filename> file could not be found.</para>
     
 </sect2>
 
-<sect2>
+<sect2 id="courier-config">
 <title>Configuring <application>Courier</application></title>
-
-<sect3><title>Config files</title>
-<para><filename>/etc/courier/*</filename></para>
-</sect3>
+<indexterm zone="courier-package courier-config">
+<primary sortas="e-courier-config">/etc/courier/*</primary></indexterm>
 
 <sect3><title>Configuration Information</title>
 
-<para>Make the following changes in
-<filename>/etc/courier/authmysqlrc</filename> file if you are utilizing
-<application>My<acronym>SQL</acronym></application>:</para>
+<para>You will need to <command>su</command> to user 'root' for the 
+remainder of the configuration.</para>
 
-<screen><userinput>MYSQL_SERVER            localhost
-MYSQL_USERNAME          courier
-MYSQL_PASSWORD          <replaceable>[your choice]</replaceable> 
-MYSQL_SOCKET            /tmp/mysql.sock
-MYSQL_PORT              3306
-MYSQL_DATABASE          courier_mail
-MYSQL_USER_TABLE        users
-MYSQL_CLEAR_PWFIELD     clear
-DEFAULT DOMAIN          <replaceable>[your domain]</replaceable>
-MYSQL_QUOTA_FIELD       quota</userinput></screen>
+<para>You will need to create the following files with the contents
+specified.</para>
 
-<para>If you utilize <application>PAM</application>:</para>
+<para><filename>/etc/courier/defaultdomain</filename></para>
 
-<screen><userinput><command>cat &gt; /etc/pam.d/esmtp &lt;&lt; "EOF"</command>
+<screen><userinput><command>cat &gt; /etc/courier/defaultdomain &lt;&lt; "EOF"</command>
+<replaceable>[yourdomain]</replaceable>
+<command>EOF</command></userinput></screen>
+
+<para><filename>/etc/courier/me</filename></para>
+
+<screen><userinput><command>cat &gt; /etc/courier/me &lt;&lt; "EOF"</command>
+<replaceable>[servername.yourdomain]</replaceable>
+<command>EOF</command></userinput></screen>
+
+<para><filename>/etc/courier/locals</filename></para>
+
+<screen><userinput><command>cat &gt; /etc/courier/locals &lt;&lt; "EOF"</command>
+localhost
+<replaceable>[yourdomain]</replaceable>
+<command>EOF</command></userinput></screen>
+
+<para><filename>/etc/courier/esmtpacceptmailfor.dir/system</filename></para>
+
+<screen><userinput><command>cat
+&gt;/etc/courier/esmtpacceptmailfor.dir/system &lt;&lt; "EOF"</command>
+localhost
+<replaceable>[yourdomain]</replaceable>
+<command>EOF</command></userinput></screen>
+
+<para>You will also need to edit the aliases file and change the
+following entry.</para>
+
+<para><filename>/etc/courier/aliases/system</filename></para>
+
+<screen><userinput>postmaster: <replaceable>[your administrator email]</replaceable></userinput></screen>
+
+<para>If you want to deny access from some hosts from sending mail, you
+will need to edit the
+<filename>/etc/courier/smtpaccess/default</filename> file.</para>
+
+<para>If you wish to host mail for non local domains including virtual
+domains,
+you must add them to <filename>/etc/courier/hosteddomains</filename>.
+This
+file should exist wether you need a hosted domain list or not:</para>
+
+<para><screen><userinput>touch
+/etc/courier/hosteddomains</userinput></screen></para>
+
+<para>After the above steps are completed you will need to run the
+following commands:</para>
+
+<screen><userinput><command>makesmtpaccess &amp;&amp;
+makehosteddomains &amp;&amp;
+makealiases</command></userinput></screen>
+
+<para>For each user, you will need to create a
+<filename class="directory">Maildir</filename> directory:</para>
+
+<screen><userinput><command>cd /home/<replaceable>[username]</replaceable> &amp;&amp;
+maildirmake Maildir &amp;&amp;
+chown <replaceable>[username]</replaceable>.<replaceable>[username]</replaceable> Maildir -R</command></userinput></screen>
+
+<para>If you wish to use <acronym>SSL</acronym> with
+<application>Courier</application>, you should obtain certificates and
+store them in <filename>/usr/share/courier</filename>.  You can
+optionally create self-signed, test certificates with the following
+commands:</para>
+
+<screen><userinput><command>mkesmtpdcert &amp;&amp;
+mkimapdcert &amp;&amp;
+mkpop3dcert</command></userinput></screen>
+
+<para>All of courier's configuration files reside in the directory
+<filename class="directory">/etc/courier/</filename>.  For each service
+<acronym>SMTP</acronym>, <acronym>POP3</acronym> and
+<acronym>IMAP</acronym>, you will have a standard config file, and an 
+<acronym>SSL</acronym> config file.  For each service that you
+wish to utilize, you will need to edit the configuration file, and
+change the <replaceable>[DAEMON]</replaceable>START variable from 'NO' to
+'YES'.  For example, to use <acronym>SMTP</acronym> with
+<acronym>SSL</acronym>, you'll need to edit
+<filename>/etc/courier/esmtpd-ssl</filename> and change the value of
+'ESMTPDSSLSTART' to 'YES'.  Make the same change for each service 
+configuration that you wish to use with 
+<application>courier</application>.</para>
+
+<para>If you wish to use <acronym>LDAP</acronym>, an
+<acronym>LDAP</acronym> configuration file should be created:</para>
+
+<screen><userinput><command>echo "LDAPALIASDSTART=YES" > /etc/courier/ldapaliasd</command></userinput></screen>
+
+<para>Similarly, if you wish to use webmail, you should create the webmail
+configuration file:</para>
+
+<screen><userinput><command>echo "WEBMAILDSTART=YES" > /etc/courier/webmaild</command></userinput></screen>
+
+<para>You will also need to copy the <filename>webmail</filename> file from
+<filename>/usr/lib/courier/courier/webmail</filename> to your <filename>cgi-bin
+</filename> directory of your <application>Apache</application>
+server.</para>
+
+<screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webmail /srv/www/cgi-bin</command></userinput></screen>
+
+<para>You will then need to copy the images to a directory under your
+<filename>htdocs</filename> directory of your
+<application>Apache</application> server. The directory needs to be named 
+<filename>webmail</filename> or you need to specify it during the configure
+phase with <parameter>--enable-imageurl=<replaceable>[URL]</replaceable></parameter>.</para>
+
+<screen><userinput><command>cp -a /usr/share/courier/sqwebmail/images /srv/www/htdocs/webmail</command></userinput></screen>
+<para><emphasis>Setup for Web-based Email</emphasis></para>
+
+<para>If you wish to utilze the webadmin utility, you will need to copy the 
+<filename>webadmin</filename> file from
+<filename class="directory">/usr/lib/courier/courier/webmail</filename>
+to your <filename class="directory">cgi-bin</filename> directory of your 
+<application>Apache</application> server.</para>
+
+<screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webadmin /srv/www/cgi-bin</command></userinput></screen>
+
+<para><filename>/etc/courier/webadmin/password</filename></para>
+
+<screen><userinput><command>cat &gt; /etc/courier/webadmin/password &lt;&lt; "EOF"</command>
+<replaceable>[password]</replaceable>
+<command>EOF</command></userinput></screen>
+
+<para>If you are not using <acronym>SSL</acronym> on your <application>Apache
+</application> server, you will also need to add
+<filename>/etc/courier/webadmin/unsecureok</filename>, so you will be able
+to use your web based administration tool.</para>
+
+<screen><userinput><command>touch /etc/courier/webadmin/unsecureok</command></userinput></screen>
+
+<para>If you use <application>LinuxPAM</application> on your system, 
+you will need to create the <acronym>PAM</acronym> configuration files:</para>
+
+<screen><userinput><command>cat &gt; /etc/pam.d/esmtp &lt;&lt;
+"EOF"</command>
 # Begin /etc/pam.d/esmtp
 
 auth            required                pam_unix.so try_first_pass
@@ -260,20 +388,48 @@ session         required                pam_unix.so
 # End /etc/pam.d/webmail
 <command>EOF</command></userinput></screen>
 
-<para>Connect to the <application>My<acronym>SQL</acronym></application>
-database:</para>
+<para id="courier-init">Finaly, if you wish to start courier at boot, install 
+the <filename>/etc/rc.d/init.d/courier</filename> bootscript included in the
+<xref linkend="intro-important-bootscripts"/> package.</para>
+<indexterm zone="courier-package courier-init">
+<primary sortas="f-courier-init">courier</primary></indexterm>
+
+<screen><userinput><command>make install-courier</command></userinput></screen>
+
+</sect3>
+
+<!-- Begin virtual user setup * To be removed once added to the hint. -->
+
+<sect3>
+
+<title>Configuring for virtual users</title>
+
+<para>These instructions will configure <application>courier</application> 
+to lookup virtual users in a <application>MySQL</application> database.
+Begin by making the following changes to
+<filename>/etc/courier/authmysqlrc</filename>:</para>
+
+<screen><userinput>MYSQL_SERVER            localhost
+MYSQL_USERNAME          courier
+MYSQL_PASSWORD          <replaceable>[your choice]</replaceable>
+MYSQL_SOCKET            /tmp/mysql.sock
+MYSQL_PORT              3306
+MYSQL_DATABASE          courier_mail
+MYSQL_USER_TABLE        users
+MYSQL_CLEAR_PWFIELD     clear
+DEFAULT DOMAIN          <replaceable>[your domain]</replaceable>
+MYSQL_QUOTA_FIELD       quota</userinput></screen>
+
+<para>Connect to <application>MySQL</application>:</para>
 
 <screen><userinput><command>mysql -p</command></userinput></screen>
 
-<para>This command will create the database for authentication:</para>
+<para>Create the <filename>courier_mail</filename> database and setup
+the users table:</para>
 
 <screen><userinput><command>CREATE DATABASE courier_mail;
-USE courier_mail</command></userinput></screen>
-
-<para>This command will setup the table users for the courier_mail
-database:</para>
-
-<screen><userinput><command>CREATE TABLE users (
+USE courier_mail
+CREATE TABLE users (
 id                    char(128) DEFAULT '' NOT NULL,
 crypt                 char(128) DEFAULT '' NOT NULL,
 clear                 char(128) DEFAULT '' NOT NULL,
@@ -285,124 +441,17 @@ quota                 char(255) DEFAULT '' NOT NULL,
 KEY id (id(128))
 );</command></userinput></screen>
 
-<para>This will add the courier user that we specified earlier in the
-<filename>/etc/courier/authmysqlrc</filename> file:</para>
+<para>Grant all priveledges to the courier user created earlier:</para>
 
 <screen><userinput><command>GRANT ALL PRIVILEGES ON *.* TO courier@localhost \
     IDENTIFIED BY '<replaceable>[password]</replaceable>' WITH GRANT OPTION;
 QUIT</command></userinput></screen>
 
-<para><emphasis>General Settings for Mail</emphasis></para>
-
-<para>You will need to create the following files with the contents
-specified.</para>
-
-<para><filename>/etc/courier/defaultdomain</filename></para>
-
-<screen><userinput><command>cat &gt; /etc/courier/defaultdomain &lt;&lt; "EOF"</command>
-<replaceable>[yourdomain]</replaceable>
-<command>EOF</command></userinput></screen>
-
-<para><filename>/etc/courier/me</filename></para>
-
-<screen><userinput><command>cat &gt; /etc/courier/me &lt;&lt; "EOF"</command>
-<replaceable>[servername.yourdomain]</replaceable>
-<command>EOF</command></userinput></screen>
-
-<para><filename>/etc/courier/locals</filename></para>
-
-<screen><userinput><command>cat &gt; /etc/courier/locals &lt;&lt; "EOF"</command>
-localhost
-<replaceable>[yourdomain]</replaceable>
-<command>EOF</command></userinput></screen>
-
-<para><filename>/etc/courier/esmtpacceptmailfor.dir/system</filename></para>
-
-<screen><userinput><command>cat &gt;/etc/courier/esmtpacceptmailfor.dir/system &lt;&lt; "EOF"</command>
-localhost
-<replaceable>[yourdomain]</replaceable>
-<command>EOF</command></userinput></screen>
-
-<para>You will also need to edit the aliases file and change the
-following entry.</para>
-
-<para><filename>/etc/courier/aliases/system</filename></para>
-
-<screen><userinput>postmaster: <replaceable>[your administrator email]</replaceable></userinput></screen>
-
-<para>If you want to deny access from some hosts from sending mail, you
-will need to edit the
-<filename>/etc/courier/smtpaccess/default</filename> file.</para>
-
-<para>After the above steps are completed you will need to run the
-following commands:</para>
-
-<screen><userinput><command>makesmtpaccess &amp;&amp;
-makehosteddomains &amp;&amp;
-makealiases</command></userinput></screen>
-
-<para><emphasis><acronym>SMTP</acronym>/<acronym>SMTMP</acronym>-<acronym>SSL
-</acronym> Configuration</emphasis></para>
-
-<para>This section will enable the <acronym>SMTP</acronym> Server from Courier</para>
-
-<para><filename>/etc/courier/esmtpd</filename></para>
-
-<screen><userinput>ESMTPDSTART=YES</userinput></screen>
-
-<para><filename>/etc/courier/esmtpd-ssl</filename></para>
-
-<screen><userinput>ESMTPDSSLSTART=YES</userinput></screen>
-
-<para><emphasis><acronym>POP</acronym>3/<acronym>POP</acronym>3-<acronym>SSL
-</acronym> Configuration</emphasis></para>
-
-<para>This section will enable the <acronym>POP</acronym>3 Server from
-Courier</para>
-
-
-<para><filename>/etc/courier/pop3d</filename></para>
-
-<screen><userinput>POP3DSTART=YES</userinput></screen>
-
-<para><filename>/etc/courier/pop3d-ssl</filename></para>
-
-<screen><userinput>POP3DSLLSTART=YES</userinput></screen>
-
-<para><emphasis><acronym>IMAP</acronym>/<acronym>IMAP</acronym>-<acronym>SSL
-</acronym> Configuration</emphasis></para>
-
-<para>This section will enable the <acronym>IMAP</acronym> Server from
-Courier</para>
-
-<para><filename>/etc/courier/imapd</filename></para>
-
-
-<screen><userinput>IMAPDSTART=YES</userinput></screen>
-
-<para><filename>/etc/courierd/imapd-ssl</filename></para>
-
-<screen><userinput>IMAPDSSLSTART=YES</userinput></screen>
-
-<para><emphasis>Creating Mail directories for System Users</emphasis></para>
-
-
-<para>This section will explain how to create MailDirs for
-your system users.</para>
-
-<screen><userinput><command>cd /home/<replaceable>[username]</replaceable> &amp;&amp;
-maildirmake Maildir &amp;&amp;
-chown <replaceable>[username]</replaceable>.<replaceable>[username]</replaceable> Maildir -R</command></userinput></screen>
-
-<para><emphasis>Setup for Virtual users</emphasis></para>
-
-<para>This section will explain how to setup Maildir for your virtual
-users.</para>
-
+<para>Create a virtual mailman user and group:</para>
 <screen><userinput><command>groupadd -g 9000 vmailman &amp;&amp;
 useradd -c 'Virtual Mailman' -g vmailman -m -k /dev/null -u 9000 vmailman</command></userinput></screen>
 
-<para>Now to setup the Maildir for these virtual users.</para>
+<para>Create a mail directory for a new virtual user:</para>
 
 <screen><userinput><command>cd /home/vmailman &amp;&amp;
 mkdir <replaceable>[virtual_user]</replaceable> &amp;&amp;
@@ -410,13 +459,15 @@ cd <replaceable>[virtual_user]</replaceable> &amp;&amp;
 maildirmake Maildir &amp;&amp;
 chown vmailman.vmailman Maildir -R</command></userinput></screen>
 
-<para>Connect to the <application>My<acronym>SQL</acronym></application>
-database.</para>
+<para>Now, connect the the <application>MySQL</application> database as
+the courier user:</para>
 
 <screen><userinput><command>mysql -u courier -p</command></userinput></screen>
-    
-<para>To add the virtual user you need to enter at
-least one version of the password either clear text or encrypted.</para>
+
+<para>To add the virtual user you need to enter at least one version of the 
+password either clear text or encrypted.</para>
+
+<para>Add the first virtual user with the following commands:</para>
 
 <screen><userinput><command>USE courier_mail
 INSERT INTO users VALUES (
@@ -444,247 +495,477 @@ QUIT</command></userinput></screen>
 ''
 );</command></userinput></screen>
 
-<para><emphasis>Setup for Web-based Email</emphasis></para>
-
-<para>This section will explain how to setup Courier Web-based email
-system.</para>
-
-<para>You will need to copy the <filename>webmail</filename> file from
-<filename>/usr/lib/courier/courier/webmail</filename> to your <filename>cgi-bin
-</filename> directory of your <application>Apache</application>
-server.</para>
-
-<screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webmail /var/www/cgi-bin</command></userinput></screen>
-
-<para>You will then need to copy the images to a directory under your
-<filename>htdocs</filename> directory of your
-<application>Apache</application> server. The directory needs to be named 
-<filename>webmail</filename> or you need to specify it during the configure
-phase with <parameter>--enable-imageurl=<replaceable>[URL]</replaceable></parameter>.</para>
-
-<screen><userinput><command>cp -a /usr/share/courier/sqwebmail/images /var/www/htdocs/webmail</command></userinput></screen>
-<para><emphasis>Setup for Web-based Email</emphasis></para>
-
-<para>This section will explain how to setup Courier Web-based administration
-system.</para>
-
-<para>You will need to copy the <filename>webadmin</filename> file from
-<filename class="directory">/usr/lib/courier/courier/webmail</filename>
-to your <filename class="directory">cgi-bin</filename> directory of your 
-<application>Apache</application> server.</para>
-
-<screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webadmin /var/www/cgi-bin</command></userinput></screen>
-
-<para><filename>/etc/courier/webadmin/password</filename></para>
-
-<screen><userinput><command>cat &gt; /etc/courier/webadmin/password &lt;&lt; "EOF"</command>
-<replaceable>[password]</replaceable>
-<command>EOF</command></userinput></screen>
-
-<para>If you are not using <acronym>SSL</acronym> on your <application>Apache
-</application> server, you will need to add
-<filename>/etc/courier/webadmin/unsecureok</filename>, so you will be able
-to use your web based administration tool.</para>
-
-<screen><userinput><command>touch /etc/courier/webadmin/unsecureok</command></userinput></screen>
 </sect3>
 
-<sect3><title>Courier init.d script</title>
+<!-- End of Virtual user setup  -->
 
-<para>The startup script from the <application>Courier</application> package is 
-the easiest to use. It will automatically create missing data files, and 
-<acronym>SSL</acronym> certificates if they are missing. To install the 
-init.d file for <application>Courier</application>, you will need to use the 
-following commands:</para>
-
-<screen><userinput><command>cp /usr/src/courier-&courier-version;/courier.sysvinit /etc/rc.d/init.d/courier &amp;&amp;
-chmod 754 /etc/rc.d/init.d/courier</command></userinput></screen>
-
-<para>Create the symbolic links to this file in the relevant
-<filename>rc.d</filename> directory with the following commands:</para>
-
-<screen><userinput><command>cd /etc/rc.d/init.d &amp;&amp;
-ln -sf ../init.d/courier ../rc0.d/K25courier &amp;&amp;
-ln -sf ../init.d/courier ../rc1.d/K25courier &amp;&amp;
-ln -sf ../init.d/courier ../rc2.d/K25courier &amp;&amp;
-ln -sf ../init.d/courier ../rc3.d/S35courier &amp;&amp;
-ln -sf ../init.d/courier ../rc4.d/S35courier &amp;&amp;
-ln -sf ../init.d/courier ../rc5.d/S35courier &amp;&amp;
-ln -sf ../init.d/courier ../rc6.d/K25courier</command></userinput></screen>
-
-</sect3>
 </sect2>
 
 <sect2>
 <title>Contents</title>
 
-<para>The <application>Courier</application> package contains
-<command>addcr</command>,
-<command>authenumerate</command>,
-<command>cancelmsg</command>,
-<command>courier</command>,
-<command>courier-config</command>,
-<command>courieresmtpd</command>,
-<command>courierfilter</command>,
-<command>courierldapaliasd</command>,
-<command>courierlogger</command>,
-<command>couriermlm</command>,
-<command>couriertcpd</command>,
-<command>couriertls</command>,
-<command>deliverquota</command>,
-<command>dotforward</command>,
-<command>esmtpd</command>,
-<command>esmtpd-msa</command>,
-<command>esmtpd-ssl</command>,
-<command>filterctl</command>,
-<command>imapd</command>,
-<command>imapd</command>,
-<command>imapd-ssl</command>,
-<command>lockmail</command>,
-<command>mailbot</command>,
-<command>maildiracl</command>,
-<command>maildirkw</command>,
-<command>maildirmake</command>,
-<command>maildrop</command>,
-<command>makeacceptmailfor</command>,
-<command>makealiases</command>,
-<command>makedat</command>,
-<command>makehosteddomains</command>,
-<command>makemime</command>,
-<command>makepercentrelay</command>,
-<command>makesmtpaccess</command>,
-<command>makesmtpaccess-msa</command>,
-<command>makeuserdb</command>,
-<command>makeuucpneighbors</command>,
-<command>mimegpg</command>,
-<command>mkesmtpdcert</command>,
-<command>mkimapdcert</command>,
-<command>mkpop3dcert</command>,
-<command>pop3d</command>,
-<command>pop3d-ssl</command>,
-<command>preline</command>,
-<command>pw2userdb</command>,
-<command>reformail</command>,
-<command>reformime</command>,
-<command>rmail</command>,
-<command>sendmail</command>,
-<command>sharedindexinstall</command>,
-<command>sharedindexsplit</command>,
-<command>showconfig</command>,
-<command>showmodules</command>,
-<command>testmxlookup</command>,
-<command>userdb</command>,
-<command>userdbpw</command>,
-<command>vchkpw2userdb</command> and
-<command>webgpg</command>.</para>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Scripts</segtitle>
+<segtitle>Installed Directories</segtitle>
+<segtitle>Configuration Files</segtitle>
+<seglistitem>
+<seg>addcr, aliascreate, aliascombine, aliasexp, authenumerate, cancelmsg, 
+courier, courier-config, courierd, courierfax, courierfilter,
+courierldapaliasd, courierlogger, couriermlm, courierpop3d, courierpop3login, 
+couriertcpd, couriertls, deliverquota, dotforward, dupfilter, imapd,
+imaplogin, lockmail, mailbot, maildiracl, maildirkw, maildirmake, maildrop, 
+mailq, makedat, makedatprog, makemime, mimegpg, pcpd, perlfilter, preline, 
+reformail, reformime, rmail, sendmail, showmodules, sqwebmaild, submit, 
+submitmkdir, testmxlookup, userdbpw, webadmin and webmail</seg>
 
-</sect2>
+<seg>admin-*.pl, application-pdf.filter, application-postscript.filter, 
+authsystem.passwd, cleancache.pl, courierctl.start, couriermlm, 
+courierwebadmin, coverpage, dumpenv.pl, esmtpd, esmtpd-ssl, faxmail, 
+filterctl, htmldoc, image-gif.filter, image-jpeg.filter, image-png.filter, 
+imapd, imapd-ssl, init, ldapsearch, makeacceptmailfor, makealiases, makedat, 
+makehosteddomains, makepercentrelay, makesmtpaccess, makeuserdb, 
+makeuucpneighbors, mkesmtpdcert, mkimapdcert, mkpop3dcert, new_fax, 
+perlfilter-example.pl, perlfilter-wrapper.pl, pop3d, pop3d-ssl, pw2userdb, 
+rootcerts, sendit.sh, sharedindexsplit, sharedindexinstall, sqwebmail, 
+text-plain.filter, userdb, vchkpw2userdb, webadmin.pl, webgpg and 
+webmaild</seg>
 
-<sect2><title>Description</title>
+<seg>/etc/courier, /usr/lib/courier, /usr/share/courier and
+/var/lib/courier</seg>
 
-<sect3><title>cancelmsg</title>
-<para><command>cancelmsg</command> removes a message from the mail 
-queue.</para></sect3>
+<seg>/etc/courier/</seg>
 
-<sect3><title>courier</title>
-<para><command>courier</command> is a modular multi-protocol E-mail
-transport agent. The <command>courier</command> command is an
-administrative command, and most of its options are only available to
-the superuser.</para></sect3>
+</seglistitem>
+</segmentedlist>
 
-<sect3><title>courierfilter</title>
-<para><command>courierfilter</command> command installs or uninstalls
-global mail filters. Global mail filters are used to selectively block
-unwanted mail.</para></sect3>
+<variablelist>
+<bridgehead renderas="sect3">Short Descriptions</bridgehead>
+<?dbfo list-presentation="list"?>
 
-<sect3><title>couriermlm</title>
-<para><command>couriermlm</command> is the Courier mailing list 
-manager.</para></sect3>
+<varlistentry id="cancelmsg">
+<term><command>cancelmsg</command></term>
+<listitem><para>removes a message from the mail queue.</para>
+<indexterm zone="courier-package cancelmsg">
+<primary sortas="b-cancelmsg">cancelmsg</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>filterctl</title>
-<para><command>filterctl</command> command installs or uninstalls global
-mail filters. Global mail filters are used to selectively block unwanted
-mail.</para></sect3>
+<varlistentry id="courier">
+<term><command>courier</command></term>
+<listitem><para>administrative command used to control the courier
+scheduling engine.</para>
+<indexterm zone="courier-package courier">
+<primary sortas="b-courier">courier</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>lockmail</title>
-<para><command>lockmail</command> is a helper utility for working with mailbox 
-files.</para></sect3>
+<varlistentry id="courierfax">
+<term><command>courierfax</command></term>
+<listitem><para>sends email messages by fax.</para>
+<indexterm zone="courier-package courierfax">
+<primary sortas="b-courierfax">courierfax</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>mailbot</title>
-<para><command>mailbot</command> reads an E-mail message on standard input and 
-creates an E-mail message replying to the original message's 
-sender.</para></sect3>
+<varlistentry id="courierfilter">
+<term><command>courierfilter</command></term>
+<listitem><para>starts and stops all mail filters installed by
+<command>filterctl</command>.</para>
+<indexterm zone="courier-package courierfilter">
+<primary sortas="b-courierfilter">courierfilter</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>maildirkw</title>
-<para><command>maildirkw</command> modifies Courier-IMAP compatible maildir 
-message keywords.</para></sect3>
+<varlistentry id="courierldapaliasd">
+<term><command>courierldapaliasd</command></term>
+<listitem><para>supports mail address aliasing using an LDAP directory.</para>
+<indexterm zone="courier-package courierldapaliasd">
+<primary sortas="b-courierldapaliasd">courierldapaliasd</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>maildrop</title>
-<para><command>maildrop</command> is a replacement local mail delivery agent 
-that includes a mail filtering language.</para></sect3>
+<varlistentry id="courierlogger">
+<term><command>courierlogger</command></term>
+<listitem><para>captures error messages from other
+<application>courier</application> applications and forwards them to
+the system logger.</para>
+<indexterm zone="courier-package courierlogger">
+<primary sortas="b-courierlogger">courierlogger</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makeacceptmailfor</title>
-<para><command>makeacceptmailfor</command> Build a list of domains to accept 
-mail for from the 
-<filename>/etc/courier/esmtpacceptmailfor.dir</filename> 
-directory.</para></sect3>
+<varlistentry id="couriermlm">
+<term><command>couriermlm</command></term>
+<listitem><para>sets up, maintains, and manages mailing lists.</para>
+<indexterm zone="courier-package couriermlm">
+<primary sortas="b-couriermlm">couriermlm</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makealiases</title>
-<para><command>makealiases</command> Build a list of aliases from the 
-<filename>/etc/courier/aliases</filename>
-or <filename>/etc/courier/aliasdir</filename> directories.</para></sect3>
+<varlistentry id="courierperlfilter">
+<term><command>courierperlfilter</command></term>
+<listitem><para>a sample filter written in perl.</para>
+<indexterm zone="courier-package courierperlfilter">
+<primary sortas="b-courierperlfilter">courierperlfilter</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makehosteddomains</title>
-<para><command>makehostedomains</command> Build a database of hosted domains 
-from <filename>hosteddomains</filename>.</para></sect3>
+<varlistentry id="courierpop3d">
+<term><command>courierpop3d</command></term>
+<listitem><para>courier pop3 server.</para>
+<indexterm zone="courier-package courierpop3d">
+<primary sortas="b-courierpop3d">courierpop3d</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makepercentrelay</title>
-<para><command>makepercentrelay</command> Build a list of %-relayed
-domains from the <filename>percentrelay.dir</filename>
-directory.</para></sect3>
+<varlistentry id="courierpop3login">
+<term><command>courierpop3login</command></term>
+<listitem><para>reads the POP3 userid and password and passes them to the
+authentication modules.</para>
+<indexterm zone="courier-package courierpop3login">
+<primary sortas="b-courierpop3login">courierpop3login</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makesmtpaccess</title>
-<para><command>makesmtpaccess</command> Build ESMTP server access file
-from the <filename>/etc/courier/smtpaccess</filename>
-directory.</para></sect3>
+<varlistentry id="couriertcpd">
+<term><command>couriertcpd</command></term>
+<listitem><para>accepts incoming network connections, and runs other
+courier programs after establishing each network connection.</para>
+<indexterm zone="courier-package couriertcpd">
+<primary sortas="b-couriertcpd">couriertcpd</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makesmtpaccess-msa</title>
-<para><command>makesmtpaccess-msa</command> Build ESMTP server access
-file from the <filename>/etc/courier/smtpaccess</filename>
-directory. This esmtp list is for the MSA protocol.</para></sect3>
+<varlistentry id="couriertls">
+<term><command>couriertls</command></term>
+<listitem><para>used by applications to encrypt a network connection
+using SSL/TLS</para>
+<indexterm zone="courier-package couriertls">
+<primary sortas="b-couriertls">couriertls</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makeuucpneighbors</title>
-<para><command>makeuucpneighbors</command> Builds a list of
-<acronym>UUCP</acronym> recipients using 
-<filename>/etc/courier/uucpneighbors</filename>.</para></sect3>
+<varlistentry id="dotforward">
+<term><command>dotforward</command></term>
+<listitem><para>a compatibility module that reads forwarding
+instructions in $HOME/.forward.</para>
+<indexterm zone="courier-package dotforward">
+<primary sortas="b-dotforward">dotforward</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>reformail</title>
-<para><command>reformail</command> program reads a message on standard input, 
-reformats it in some way, and writes the message to standard 
-output.</para></sect3>
+<varlistentry id="dupfilter">
+<term><command>dupfilter</command></term>
+<listitem><para>a threaded filter that tries to block junk E-mail by
+attempting to detect multiple copies of the same message, which are
+rejected.</para>
+<indexterm zone="courier-package dupfilter">
+<primary sortas="b-dupfilter">dupfilter</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>reformime</title>
-<para><command>reformime</command> is a utility for reformatting MIME 
-messages.</para></sect3>
+<varlistentry id="esmtpd">
+<term><command>esmtpd</command></term>
+<listitem><para>a control script for courieresmtpd.</para>
+<indexterm zone="courier-package esmtpd">
+<primary sortas="b-esmtpd">esmtpd</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>sendmail</title>
-<para><command>sendmail</command> command reads an E-mail message and delivers 
-the message to its recipients. This sendmail command is part of the Courier 
-mail server, although it attempts to emulate the behavior of the original 
-sendmail MTA.</para></sect3>
+<varlistentry id="esmtpd-msa">
+<term><command>esmtpd-msa</command></term>
+<listitem><para>a control script for courieresmtpd, but adds message
+submission port 587 for the <acronym>MSA</acronym> protocol.</para>
+<indexterm zone="courier-package esmtpd-msa">
+<primary sortas="b-esmtpd-msa">esmtpd-msa</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>showconfig</title>
-<para><command>showconfig</command> Shows the current Courier 
-configuration.</para></sect3>
+<varlistentry id="filterctl">
+<term><command>filterctl</command></term>
+<listitem><para>installs or uninstalls global mail filters.</para>
+<indexterm zone="courier-package filterctl">
+<primary sortas="b-filterctl">filterctl</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>showmodules</title>
-<para><command>showmodules</command> Shows the current Courier 
-modules.</para></sect3>
+<varlistentry id="imapd">
+<term><command>imapd</command></term>
+<listitem><para>the Courier-IMAP server.</para>
+<indexterm zone="courier-package imapd">
+<primary sortas="b-imapd">imapd</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>testmxlookup</title>
-<para><command>testmxlookup</command> lists the names and IP addresses of 
-mail relays that receive mail for the domain.  This is useful in diagnosing 
-mail delivery problems.</para></sect3>
+<varlistentry id="lockmail">
+<term><command>lockmail</command></term>
+<listitem><para>a helper utility for locking  mailbox files.</para>
+<indexterm zone="courier-package lockmail">
+<primary sortas="b-lockmail">lockmail</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="mailbot">
+<term><command>mailbot</command></term>
+<listitem><para>a <acronym>MIME</acronym>-aware autoresponder utility.</para>
+<indexterm zone="courier-package mailbot">
+<primary sortas="b-mailbot">mailbot</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="maildiracl">
+<term><command>maildiracl</command></term>
+<listitem><para>manages access control lists.</para>
+<indexterm zone="courier-package maildiracl">
+<primary sortas="b-maildiracl">maildiracl</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="maildirkw">
+<term><command>maildirkw</command></term>
+<listitem><para>modifies Courier-IMAP compatible maildir message
+keywords.</para>
+<indexterm zone="courier-package maildirkw">
+<primary sortas="b-maildirkw">maildirkw</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="maildirmake">
+<term><command>maildirmake</command></term>
+<listitem><para>creates maildirs, and maildir folders.</para>
+<indexterm zone="courier-package maildirmake">
+<primary sortas="b-maildirmake">maildirmake</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="maildrop">
+<term><command>maildrop</command></term>
+<listitem><para>a replacement local mail delivery agent that includes a
+mail filtering language.</para>
+<indexterm zone="courier-package maildrop">
+<primary sortas="b-maildrop">maildrop</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="mailq-courier">
+<term><command>mailq</command></term>
+<listitem><para>displays a list of all messages that have not been
+delivered yet.</para>
+<indexterm zone="courier-package mailq-courier">
+<primary sortas="b-mailq">mailq</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makeacceptmailfor">
+<term><command>makeacceptmailfor</command></term>
+<listitem><para>builds a list of domains to accept mail for, from the
+<filename class="directory">/etc/courier/esmtpacceptmailfor.dir</filename> 
+directory.</para>
+<indexterm zone="courier-package makeacceptmailfor">
+<primary sortas="b-makeacceptmailfor">makeacceptmailfor</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makealiases">
+<term><command>makealiases</command></term>
+<listitem><para>builds an alias database from one or more plain text
+source files.</para>
+<indexterm zone="courier-package makealiases">
+<primary sortas="b-makealiases">makealiases</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makedat">
+<term><command>makedat</command></term>
+<listitem><para>a utility to create GDBM or DB files from plain text
+files.</para>
+<indexterm zone="courier-package makedat">
+<primary sortas="b-makedat">makedat</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makehosteddomains">
+<term><command>makehosteddomains</command></term>
+<listitem><para>rebuilds the contents of the hosteddomains database from the 
+contents of <filename>/tools/etc/courier/hosteddomains</filename>.</para>
+<indexterm zone="courier-package makehosteddomains">
+<primary sortas="b-makehosteddomains">makehosteddomains</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makemime">
+<term><command>makemime</command></term>
+<listitem><para>creates <acronym>MIME</acronym>-formatted messages from one 
+or more files.</para>
+<indexterm zone="courier-package makemime">
+<primary sortas="b-makemime">makemime</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makepercentrelay">
+<term><command>makepercentrelay</command></term>
+<listitem><para>builds a list of %-relayed domains from the 
+<filename class="directory">percentrelay.dir</filename> directory.</para>
+<indexterm zone="courier-package makepercentrelay">
+<primary sortas="b-makepercentrelay">makepercentrelay</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makesmtpaccess">
+<term><command>makesmtpaccess</command></term>
+<listitem><para>builds <acronym>ESMTP</acronym> server access file from the 
+<filename class="directory">/etc/courier/smtpaccess</filename> 
+directory.</para>
+<indexterm zone="courier-package makesmtpaccess">
+<primary sortas="b-makesmtpaccess">makesmtpaccess</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makesmtpaccess-msa">
+<term><command>makesmtpaccess-msa</command></term>
+<listitem><para>builds <acronym>ESMTP</acronym> server access file from the 
+<filename class="directory">/etc/courier/smtpaccess</filename> directory. 
+This esmtp list is for the <acronym>MSA</acronym> protocol.</para>
+<indexterm zone="courier-package makesmtpaccess-msa">
+<primary sortas="b-makesmtpaccess-msa">makesmtpaccess-msa</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="makeuserdb">
+<term><command>makeuserdb</command></term>
+<listitem><para>builds user/password db from the contents
+of <filename class="directory">/tools/etc/courier/userdb</filename>.</para>
+<indexterm zone="courier-package makeuserdb">
+<primary sortas="b-makeuserdb">makeuserdb</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="mimegpg">
+<term><command>mimegpg</command></term>
+<listitem><para>signs, encrypts, or decrypts <acronym>MIME</acronym>-formatted 
+email messages using <application>GnuPG</application>.</para>
+<indexterm zone="courier-package mimegpg">
+<primary sortas="b-mimegpg">mimegpg</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="mkesmtpdcert">
+<term><command>mkesmtpdcert</command></term>
+<listitem><para>creates a secure <acronym>SMTP</acronym> test 
+certificate.</para>
+<indexterm zone="courier-package mkesmtpdcert">
+<primary sortas="b-mkesmtpdcert">mkesmtpdcert</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="mkimapdcert">
+<term><command>mkimapdcert</command></term>
+<listitem><para>creates a secure <acronym>IMAP</acronym> test
+certificate.</para>
+<indexterm zone="courier-package mkimapdcert">
+<primary sortas="b-mkimapdcert">mkimapdcert</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="mkpop3dcert">
+<term><command>mkpop3dcert</command></term>
+<listitem><para>creates a secure <acronym>POP3</acronym> test
+certificate.</para>
+<indexterm zone="courier-package mkpop3dcert">
+<primary sortas="b-mkpop3dcert">mkpop3dcert</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="pop3d">
+<term><command>pop3d</command></term>
+<listitem><para>a wrapper script for <command>couriertcpd</command> to
+start and stop the <acronym>POP3</acronym> service.</para>
+<indexterm zone="courier-package pop3d">
+<primary sortas="b-pop3d">pop3d</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="pop3d-ssl">
+<term><command>pop3d-ssl</command></term>
+<listitem><para>a wrapper script for <command>couriertcpd</command> to
+start and stop the <acronym>POP3</acronym> over <acronym>SSL</acronym> 
+service.</para>
+<indexterm zone="courier-package pop3d-ssl">
+<primary sortas="b-pop3d-ssl">pop3d-ssl</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="preline">
+<term><command>preline</command></term>
+<listitem><para>prepends legacy mbox headers to mail messages.</para>
+<indexterm zone="courier-package preline">
+<primary sortas="b-preline">preline</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="reformail">
+<term><command>reformail</command></term>
+<listitem><para>reads a message on standard input, reformats it in some
+way, and writes the message to standard output.</para>
+<indexterm zone="courier-package reformail">
+<primary sortas="b-reformail">reformail</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="reformime">
+<term><command>reformime</command></term>
+<listitem><para>a utility for reformatting MIME messages.</para>
+<indexterm zone="courier-package reformime">
+<primary sortas="b-reformime">reformime</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="sendmail-courier">
+<term><command>sendmail</command></term>
+<listitem><para>reads an email message and delivers the message to it's
+recipients.</para>
+<indexterm zone="courier-package sendmail-courier">
+<primary sortas="b-sendmail">sendmail</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="submit">
+<term><command>submit</command></term>
+<listitem><para>submits messages to <application>Courier</application>for 
+processing.</para>
+<indexterm zone="courier-package submit">
+<primary sortas="b-submit">submit</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="testmxlookup">
+<term><command>testmxlookup</command></term>
+<listitem><para>lists the names and <acronym>IP</acronym> addresses of mail 
+relays that receive mail for the domain.</para>
+<indexterm zone="courier-package testmxlookup">
+<primary sortas="b-testmxlookup">testmxlookup</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="userdb">
+<term><command>userdb</command></term>
+<listitem><para>a script to individually manipulate entries in
+<filename>/tools/etc/courier/userdb.</filename></para>
+<indexterm zone="courier-package userdb">
+<primary sortas="b-userdb">userdb</primary></indexterm>
+</listitem>
+</varlistentry>
+
+<varlistentry id="userdbpw">
+<term><command>userdbpw</command></term>
+<listitem><para>reads a single line of text on standard input, encrypts
+it, and prints the encrypted result to standard output.</para>
+<indexterm zone="courier-package userdbpw">
+<primary sortas="b-userdbpw">userdbpw</primary></indexterm>
+</listitem>
+</varlistentry>
+</variablelist>
 
 </sect2>
 
