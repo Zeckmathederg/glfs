@@ -1,18 +1,134 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY iptables-download-http "http://www.iptables.org/files/iptables-&iptables-version;.tar.bz2">
+  <!ENTITY iptables-download-ftp  "ftp://ftp.netfilter.org/pub/iptables/iptables-&iptables-version;.tar.bz2">
+  <!ENTITY iptables-size          "183 KB">
+  <!ENTITY iptables-buildsize     "3.4 MB">
+  <!ENTITY iptables-time          "0.13 SBU">
+]>
+
 <sect1 id="postlfs-security-iptables">
 <?dbhtml filename="iptables.html"?>
 <title>iptables-&iptables-version;</title>
 
-<para>The next part of this chapter deals with firewalls.  The
-principle firewall tool for Linux, as of the 2.4 kernel series, is
+<para>The next part of this chapter deals with firewalls.  The principle
+firewall tool for Linux, as of the 2.4 kernel series, is
 <application>iptables</application>.  It replaces
 <application>ipchains</application> from the 2.2 series and
-<application>ipfwadm</application> from the
-2.0 series. You will need to install <application>iptables</application> if 
-you intend on using any form of a firewall.</para>
+<application>ipfwadm</application> from the 2.0 series. You will need to
+install <application>iptables</application> if you intend on using any form of
+a firewall.</para>
 
-&iptables-intro;
-&iptables-inst;
-&iptables-exp;
-&iptables-desc;
+<sect2>
+<title>Introduction to <application>iptables</application></title>
+
+<para>To use a firewall, as well as installing
+<application>iptables</application>, you will need
+to configure the relevant options into your kernel.  This is discussed
+in the next part of this chapter - <xref linkend="postlfs-security-fw-kernel"/>.</para>
+
+<para>If you intend to use <acronym>IP</acronym>v6 you might consider extending
+the kernel by running <command>make patch-o-matic</command> in the top-level
+directory of the sources of <application>iptables</application>.  If you are 
+going to do this, on a freshly untarred kernel, you need to run 
+<command>yes "" | make config &amp;&amp; make dep</command> first because 
+otherwise the patch-o-matic command is likely to fail while setting up
+some dependencies.</para>
+
+<para>If you are going to patch the kernel, you need to do it before you
+compile <application>iptables</application>, because during the compilation, 
+the kernel source tree is checked (if it is available at <filename
+class="directory">/usr/src/linux-<replaceable>[version]</replaceable>
+</filename>) to see which features are available.  Support will only be compiled
+into <application>iptables</application> for the features recognized at 
+compile-time.  Applying a kernel patch may result in errors, often because the 
+hooks for the patches have changed or because the runme script doesn't 
+recognize that a patch has already been incorporated.</para>
+
+<para>Note that for most people, patching the kernel is unnecessary.
+With the later 2.4.x kernels, most functionality is already available
+and those who need to patch it are generally those who need a specific
+feature; if you don't know why you need to patch the kernel, you're 
+unlikely to need to!</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink
+url="&iptables-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&iptables-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &iptables-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&iptables-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&iptables-time;</para></listitem></itemizedlist>
+</sect3>
+
+</sect2>
+
+
+<sect2>
+<title>Installation of <application>iptables</application></title>
+
+<para>Install <application>iptables</application> by running the following commands:</para>
+
+<screen><userinput><command>make PREFIX=/usr LIBDIR=/lib BINDIR=/sbin &amp;&amp;
+make PREFIX=/usr LIBDIR=/lib BINDIR=/sbin install</command></userinput></screen>
+
+</sect2>
+
+
+<sect2>
+<title>Command explanations</title>
+
+<para><parameter>PREFIX=/usr LIBDIR=/lib BINDIR=/sbin</parameter>: Compiles and installs 
+<application>iptables</application> libraries into <filename
+class="directory">/lib</filename>, binaries into <filename
+class="directory">/sbin</filename> and the remainder into the 
+<filename class="directory">/usr</filename> hierarchy instead of 
+<filename class="directory">/usr/local</filename>. Firewalls are
+generally set during the boot process and <filename
+class="directory">/usr</filename> may not be mounted at that time.</para>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>iptables</application> package contains <command>iptables</command>,
+<command>iptables-restore</command>, <command>iptables-save</command>,
+<command>ip6tables</command> and some libraries.</para>
+
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>iptables</title>
+<para><command>iptables</command> is used to set up, maintain, and inspect the 
+tables of <acronym>IP</acronym> packet filter rules in the Linux kernel.</para>
+</sect3>
+
+<sect3><title>iptables-restore, iptables-save</title>
+<para>These are used to save and to restore your elaborated set of chains and 
+rules. Until <application>iptables</application>-1.2.5, they were declared 
+experimental.</para>
+</sect3>
+
+<sect3 id="ip6tables" xreflabel="ip6tables"><title>ip6tables</title>
+<para>This is the same as <command>iptables</command> but for use with
+<acronym>IP</acronym>v6.  As of v1.2.5, it is not as complete as the standard 
+<acronym>IP</acronym>v4 version, especially with regard to some of the modules.</para>
+</sect3>
+
+<sect3><title>libip*.so</title>
+<para>These are various modules (implemented as dynamic libraries) which
+extend the core functionality of <command>iptables</command>.</para>
+</sect3>
+
+</sect2>
 
 </sect1>

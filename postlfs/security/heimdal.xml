@@ -1,11 +1,583 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY heimdal-download-http "http://ftp.vc-graz.ac.at/mirror/crypto/kerberos/heimdal/heimdal-&heimdal-version;.tar.gz">
+  <!ENTITY heimdal-download-ftp  "ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-&heimdal-version;.tar.gz">
+  <!ENTITY heimdal-size          "3.2 MB">
+  <!ENTITY heimdal-buildsize     "142 MB">
+  <!ENTITY heimdal-time          "2.55 SBU">
+]>
+
 <sect1 id="heimdal" xreflabel="Heimdal-&heimdal-version;">
 <?dbhtml filename="heimdal.html"?>
 <title>Heimdal-&heimdal-version;</title>
 
-&heimdal-intro;
-&heimdal-inst;
-&heimdal-exp;
-&heimdal-config;
-&heimdal-desc;
+<sect2>
+<title>Introduction to <application>Heimdal</application></title>
+
+<para> <application>Heimdal</application> is a free implementation of Kerberos
+5, that aims to be compatible with <acronym>MIT</acronym> krb5 and is backwards
+compatible with krb4. Kerberos is a network authentication protocol. Basically
+it preserves the integrity of passwords in any untrusted network (like the
+Internet). Kerberized applications work hand-in-hand with sites that support
+Kerberos to ensure that passwords cannot be stolen. A Kerberos installation
+will make changes to the authentication mechanisms on your network and will
+overwrite several programs and daemons from the Coreutils, Inetutils, Qpopper
+and Shadow packages.  </para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink url="&heimdal-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink url="&heimdal-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &heimdal-size;</para></listitem>
+<listitem><para>Estimated Disk space required: &heimdal-buildsize;</para></listitem>
+<listitem><para>Estimated build time: &heimdal-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Required patch: <ulink
+url="&patch-root;/heimdal-&heimdal-version;-fhs-compliance-1.patch"/></para>
+</listitem>
+<listitem><para>Required patch for cracklib: <ulink
+url="&patch-root;/heimdal-&heimdal-version;-cracklib-1.patch"/></para>
+</listitem>
+</itemizedlist>
+
+</sect3>
+
+<sect3><title><application>Heimdal</application> dependencies</title>
+<sect4><title>Required</title>
+<para>
+<xref linkend="openssl"/> and
+<xref linkend="db"/>
+</para></sect4>
+<sect4><title>Optional</title>
+<para>
+<xref linkend="readline"/>,
+<xref linkend="Linux_PAM"/>,
+<xref linkend="openldap"/>,
+X (<xref linkend="xorg"/> or <xref linkend="xfree86"/>),
+<xref linkend="cracklib"/> and
+<ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink>
+</para>
+
+<note><para>
+Some sort of time synchronization facility on your system (like <xref
+linkend="ntp"/>) is required since Kerberos won't authenticate if the
+time differential between a kerberized client and the
+<acronym>KDC</acronym> server is more than 5 minutes.</para></note> 
+</sect4>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application>Heimdal</application></title>
+
+<para>
+Before installing the package, you may want to preserve the
+<command>ftp</command> program from the Inetutils package. This is
+because using the Heimdal <command>ftp</command> program to connect to
+non kerberized ftp servers may not work properly. It will allow you to
+connect (letting you know that transmission of the password is clear
+text) but will have problems doing puts and gets.
+</para>
+
+<screen><userinput><command>mv /usr/bin/ftp /usr/bin/ftpn</command></userinput></screen>
+
+<para>
+If you wish the Heimdal package to link against the cracklib library,
+you must apply a patch:
+</para>
+
+<screen><userinput><command>patch -Np1 -i ../heimdal-&heimdal-version;-cracklib-1.patch</command></userinput></screen>
+
+<para>Install <application>Heimdal</application> by running the following commands:</para>
+
+<screen><userinput><command>patch -Np1 -i ../heimdal-&heimdal-version;-fhs-compliance-1.patch &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc/heimdal \
+    --datadir=/var/lib/heimdal --libexecdir=/usr/sbin \
+    --sharedstatedir=/usr/share --localstatedir=/var/lib/heimdal \
+    --enable-shared --with-openssl=/usr &amp;&amp;
+make &amp;&amp;
+make install &amp;&amp;
+mv /bin/login /bin/login.shadow &amp;&amp;
+mv /bin/su /bin/su.coreutils &amp;&amp;
+mv /usr/bin/{login,su} /bin &amp;&amp;
+ln -sf ../../bin/login /usr/bin &amp;&amp;
+mv /usr/lib/lib{otp.so.0,otp.so.0.1.4,kafs.so.0,kafs.so.0.4.0} /lib &amp;&amp;
+mv /usr/lib/lib{krb5.so.17,krb5.so.17.3.0,asn1.so.6,asn1.so.6.0.2} /lib &amp;&amp;
+mv /usr/lib/lib{roken.so.16,roken.so.16.0.3,crypto.so.0.9.7} /lib &amp;&amp;
+mv /usr/lib/lib{com_err.so.2,com_err.so.2.1,db-4.1.so} /lib &amp;&amp;
+ln -sf ../../lib/lib{otp.so.0,otp.so.0.1.4,kafs.so.0,kafs.so.0.4.0} /usr/lib &amp;&amp;
+ln -sf ../../lib/lib{krb5.so.17,krb5.so.17.3.0,asn1.so.6,asn1.so.6.0.2} /usr/lib &amp;&amp;
+ln -sf ../../lib/lib{roken.so.16,roken.so.16.0.3,crypto.so.0.9.7} /usr/lib &amp;&amp;
+ln -sf ../../lib/lib{com_err.so.2,com_err.so.2.1,db-4.1.so} /usr/lib &amp;&amp;
+ldconfig</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Command explanations</title>
+
+<para><parameter>--libexecdir=/usr/sbin</parameter>:
+This switch puts the daemon programs into <filename
+class="directory">/usr/sbin</filename>.
+</para>
+
+<note><para>
+If you want to preserve all your existing Inetutils package daemons,
+install the Heimdal daemons into <filename
+class="directory">/usr/sbin/heimdal</filename> (or wherever you want).
+Since these programs will be called from <command>(x)inetd</command> or
+<command>rc</command> scripts, it really doesn't matter where they live,
+as long as they are correctly specified in the
+<filename>/etc/(x)inetd.conf</filename> file and <command>rc</command>
+scripts. If you choose something other than <filename
+class="directory">/usr/sbin</filename>, you may want to move some of the
+user programs (such as <command>kadmin</command>) to <filename
+class="directory">/usr/sbin</filename> manually.
+</para></note>
+
+<para>
+<screen><command>mv /bin/login /bin/login.shadow
+mv /bin/su /bin/su.coreutils
+mv /usr/bin/{login,su} /bin
+ln -sf ../../bin/login /usr/bin</command></screen>
+The <command>login</command> and <command>su</command> programs
+installed by Heimdal belong in the <filename
+class="directory">/bin</filename> directory. The
+<command>login</command> program is symlinked because Heimdal is expecting
+to find it in <filename class="directory">/usr/bin</filename>. We
+preserve the old executables before the move to keep things sane should
+breaks occur.
+</para>
+
+<para>
+<screen><command>mv /usr/lib/lib{otp.so.0,otp.so.0.1.4,kafs.so.0,kafs.so.0.4.0} /lib
+mv /usr/lib/lib{krb5.so.17,krb5.so.17.3.0,asn1.so.6,asn1.so.6.0.2} /lib
+mv /usr/lib/lib{roken.so.16,roken.so.16.0.3,crypto.so.0.9.7} /lib
+mv /usr/lib/lib{com_err.so.2,com_err.so.2.1,db-4.1.so} /lib
+ln -sf ../../lib/lib{otp.so.0,otp.so.0.1.4,kafs.so.0,kafs.so.0.4.0} /usr/lib
+ln -sf ../../lib/lib{krb5.so.17,krb5.so.17.3.0,asn1.so.6,asn1.so.6.0.2} /usr/lib
+ln -sf ../../lib/lib{roken.so.16,roken.so.16.0.3,crypto.so.0.9.7} /usr/lib
+ln -sf ../../lib/lib{com_err.so.2,com_err.so.2.1,db-4.1.so} /usr/lib</command></screen>
+The <command>login</command> and <command>su</command> programs
+installed by Heimdal link against Heimdal libraries as well as crypto
+and db libraries. We move these libraries to <filename
+class="directory">/lib</filename> to be <acronym>FHS</acronym>
+compliant and in case when <filename
+class="directory">/usr</filename> is located on a separate partition which
+may not always be mounted.
+</para>
+
+</sect2>
+
+<sect2>
+<title>Configuring Heimdal</title>
+
+<sect3><title>Config files</title>
+<para><filename>/etc/heimdal/*</filename></para>
+</sect3>
+
+<sect3><title>Configuration Information</title>
+
+<sect4><title>Master KDC Server Configuration</title>
+
+<para>
+Create the Kerberos configuration file with the following command:
+</para>
+
+<screen><userinput><command>install -d /etc/heimdal &amp;&amp;
+cat &gt; /etc/heimdal/krb5.conf &lt;&lt; "EOF"</command>
+# Begin /etc/heimdal/krb5.conf
+        
+[libdefaults]
+    default_realm = <replaceable>[LFS.ORG]</replaceable>
+    encrypt = true
+
+[realms]
+    <replaceable>[LFS.ORG]</replaceable> = {
+        kdc = <replaceable>[belgarath.lfs.org]</replaceable>
+        admin_server = <replaceable>[belgarath.lfs.org]</replaceable>
+        kpasswd_server = <replaceable>[belgarath.lfs.org]</replaceable>
+    }
+
+[domain_realm]
+    .<replaceable>[lfs.org]</replaceable> = <replaceable>[LFS.ORG]</replaceable>
+
+[logging]
+    kdc = FILE:/var/log/kdc.log
+    admin_server = FILE:/var/log/kadmin.log
+    default = FILE:/var/log/krb.log
+
+# End /etc/heimdal/krb5.conf
+<command>EOF</command></userinput></screen>
+
+<para>
+You will need to substitute your domain and proper hostname for the
+occurances of the belgarath and lfs.org names.
+</para>
+
+<para>
+<userinput>default_realm</userinput> should be the name of your domain changed to ALL CAPS.
+This isn't required, but both Heimdal and <acronym>MIT</acronym>
+recommend it.
+</para>
+
+<para>
+<userinput>encrypt = true</userinput> provides encryption of all traffic between kerberized
+clients and servers. It's not necessary and can be left off. If you
+leave it off, you can encrypt all traffic from the client to the server
+using a switch on the client program instead.
+</para>
+
+<para>
+The <userinput>[realms]</userinput> parameters tell the client programs where to look for the
+<acronym>KDC</acronym> authentication services.
+</para>
+
+<para>
+The <userinput>[domain_realm]</userinput> section maps a domain to a realm.
+</para>
+
+<para>
+Store the master password in a key file using the following commands:
+</para>
+
+<screen><userinput><command>install -d -m 755 /var/lib/heimdal &amp;&amp;
+kstash</command></userinput></screen>
+
+<para>
+Create the <acronym>KDC</acronym> database:
+</para>
+
+<screen><userinput><command>kadmin -l</command></userinput></screen>
+
+<para>
+Choose the defaults for now. You can go in later and change the
+defaults, should you feel the need. At the
+<userinput>kadmin&gt;</userinput> prompt, issue the following statement:
+</para>
+
+<screen><userinput><command>init <replaceable>[LFS.ORG]</replaceable></command></userinput></screen>
+
+<para>
+Now we need to populate the database with principles (users). For now,
+just use your regular login name or root. 
+</para>
+
+<screen><userinput><command>add <replaceable>[loginname]</replaceable></command></userinput></screen>
+
+<para>
+The <acronym>KDC</acronym> server and any machine running kerberized
+server daemons must have a host key installed:
+</para>
+
+<screen><userinput><command>add --random-key host/<replaceable>[belgarath.lfs.org]</replaceable></command></userinput></screen>
+
+<para>
+After choosing the defaults when prompted, you will have to export the
+data to a keytab file:
+</para>
+
+<screen><userinput><command>ext host/<replaceable>[belgarath.lfs.org]</replaceable></command></userinput></screen>
+
+<para>
+This should have created two files in
+<filename class="directory">/etc/heimdal</filename>;
+<filename>krb5.keytab</filename> (Kerberos 5) and
+<filename>srvtab</filename> (Kerberos 4). Both files should have 600
+(root rw only) permissions. Keeping the keytab files from public access
+is crucial to the overall security of the Kerberos installation.
+</para>
+
+<para>
+Eventually, you'll want to add server daemon principles to the database
+and extract them to the keytab file. You do this in the same way you
+created the host principles. Below is an example:
+</para>
+
+<screen><userinput><command>add --random-key ftp/<replaceable>[belgarath.lfs.org]</replaceable></command></userinput></screen>
+
+<para>
+(choose the defaults)
+</para>
+
+<screen><userinput><command>ext ftp/<replaceable>[belgarath.lfs.org]</replaceable></command></userinput></screen>
+
+<para>
+Exit the <command>kadmin</command> program (use <command>quit</command>
+or <command>exit</command>) and return back to the shell prompt. Start
+the <acronym>KDC</acronym> daemon manually, just to test out the 
+installation:
+</para>
+
+<screen><userinput><command>/usr/sbin/kdc &amp;</command></userinput></screen>
+
+<para>
+Attempt to get a <acronym>TGT</acronym> (ticket granting ticket) with the 
+following command:
+</para>
+
+<screen><userinput><command>kinit <replaceable>[loginname]</replaceable></command></userinput></screen>
+
+<para>
+You will be prompted for the password you created. After you get your
+ticket, you should list it with the following command:
+</para>
+
+<screen><userinput><command>klist</command></userinput></screen>
+
+<para>
+Information about the ticket should be displayed on the screen.
+</para>
+
+<para>
+To test the functionality of the keytab file, issue the following
+command:
+</para>
+
+<screen><userinput><command>ktutil list</command></userinput></screen>
+
+<para>
+This should dump a list of the host principals, along with the encryption
+methods used to access the principals.
+</para>
+
+<para>
+At this point, if everything has been successful so far, you can feel
+fairly confident in the installation and configuration of the package.
+</para>
+
+<para>Install the <filename>/etc/rc.d/init.d/heimdal</filename> init script
+included in the <xref linkend="intro-important-bootscripts"/>
+package.</para>
+
+<screen><userinput><command>make install-heimdal</command></userinput></screen>
+
+</sect4>
+
+<sect4><title>Using Kerberized Client Programs</title>
+
+<para>
+To use the kerberized client programs (<command>telnet</command>,
+<command>ftp</command>, <command>rsh</command>,
+<command>rxterm</command>, <command>rxtelnet</command>,
+<command>rcp</command>, <command>xnlock</command>), you first must get
+a <acronym>TGT</acronym>. Use the <command>kinit</command> program to
+get the ticket. After you've acquired the ticket, you can use the
+kerberized programs to connect to any kerberized server on the network.
+You will not be prompted for authentication until your ticket expires
+(default is one day), unless you specify a different user as a command
+line argument to the program.
+</para>
+
+<para>
+The kerberized programs will connect to non kerberized daemons, warning
+you that authentication is not encrypted. As mentioned earlier, only the
+<command>ftp</command> program gives any trouble connecting to non
+kerberized daemons.
+</para>
+
+<para>
+For additional information consult <ulink
+url="http://www.linuxfromscratch.org/hints/downloads/files/heimdal.txt">the
+Heimdal hint</ulink> on which the above instructions are based.
+</para>
+
+</sect4>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>Heimdal</application> package contains
+<command>afslog</command>,
+<command>dump_log</command>,
+<command>ftp</command>,
+<command>ftpd</command>,
+<command>hprop</command>,
+<command>hpropd</command>,
+<command>ipropd-master</command>,
+<command>ipropd-slave</command>,
+<command>kadmin</command>,
+<command>kadmind</command>,
+<command>kauth</command>,
+<command>kdc</command>,
+<command>kdestroy</command>,
+<command>kf</command>,
+<command>kfd</command>,
+<command>kgetcred</command>,
+<command>kinit</command>,
+<command>klist</command>,
+<command>kpasswd</command>,
+<command>kpasswdd</command>,
+<command>krb5-config</command>,
+<command>kstash</command>,
+<command>ktutil</command>,
+<command>kx</command>,
+<command>kxd</command>,
+<command>login</command>,
+<command>mk_cmds</command>,
+<command>otp</command>,
+<command>otpprint</command>,
+<command>pagsh</command>,
+<command>pfrom</command>,
+<command>popper</command>,
+<command>push</command>,
+<command>rcp</command>,
+<command>replay_log</command>,
+<command>rsh</command>,
+<command>rshd</command>,
+<command>rxtelnet</command>,
+<command>rxterm</command>,
+<command>string2key</command>,
+<command>su</command>,
+<command>telnet</command>,
+<command>telnetd</command>,
+<command>tenletxr</command>,
+<command>truncate_log</command>,
+<command>verify_krb5_conf</command>,
+<command>xnlock</command>,
+<filename class="libraryfile">libasn1</filename>,
+<filename class="libraryfile">libeditline</filename>,
+<filename class="libraryfile">libgssapi</filename>,
+<filename class="libraryfile">libhdb</filename>,
+<filename class="libraryfile">libkadm5clnt</filename>,
+<filename class="libraryfile">libkadm5srv</filename>,
+<filename class="libraryfile">libkafs</filename>,
+<filename class="libraryfile">libkrb5</filename>,
+<filename class="libraryfile">libotp</filename>,
+<filename class="libraryfile">libroken</filename>,
+<filename class="libraryfile">libsl</filename> and
+<filename class="libraryfile">libss</filename>.
+
+</para>
+
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>afslog</title>
+<para><command>afslog</command> obtains AFS tokens for a number of
+cells.</para></sect3>
+
+<sect3><title>hprop</title>
+<para><command>hprop</command> takes a principal database in a specified
+format and converts it into a stream of Heimdal database
+records.</para></sect3>
+
+<sect3><title>hpropd</title>
+<para><command>hpropd</command> receives a database sent by
+<command>hprop</command> and writes it as a local
+database.</para></sect3>
+
+<sect3><title>kadmin</title>
+<para><command>kadmin</command> is an utility used to make modifications
+to the Kerberos database.</para></sect3>
+
+<sect3><title>kadmind</title>
+<para><command>kadmind</command> is a server for administrative access
+to Kerberos database.</para></sect3>
+
+<sect3><title>kauth, kinit</title>
+<para><command>kauth</command> and <command>kinit</command> are used to
+authenticate to the Kerberos server as principal and acquire a ticket
+granting ticket that can later be used to obtain tickets for other
+services.</para></sect3>
+
+<sect3><title>kdc</title>
+<para><command>kdc</command> is a Kerberos 5 server.</para></sect3>
+
+<sect3><title>kdestroy</title>
+<para><command>kdestroy</command> removes the current set of
+tickets.</para></sect3>
+
+<sect3><title>kf</title>
+<para><command>kf</command> is a program which forwards tickets to a
+remote host through an authenticated and encrypted
+stream.</para></sect3>
+
+<sect3><title>kfd</title>
+<para><command>kfd</command> receives forwarded tickets.</para></sect3>
+
+<sect3><title>kgetcred</title>
+<para><command>kgetcred</command> obtains a ticket for a
+service.</para></sect3>
+
+<sect3><title>klist</title>
+<para><command>klist</command> reads and displays the current tickets in
+the credential cache.</para></sect3>
+
+<sect3><title>kpasswd</title>
+<para><command>kpasswd</command> is a program for changing Kerberos 5
+passwords.</para></sect3>
+
+<sect3><title>kpasswdd</title>
+<para><command>kpasswdd</command> is a Kerberos 5 password changing
+server.</para></sect3>
+
+<sect3><title>krb5-config</title>
+<para><command>krb5-config</command> gives information on how to link
+programs against Heimdal libraries.</para></sect3>
+
+<sect3><title>kstash</title>
+<para><command>kstash</command> stores the <acronym>KDC</acronym> master
+password in a file.</para></sect3>
+
+<sect3><title>ktutil</title>
+<para><command>ktutil</command> is a program for managing Kerberos
+keytabs.</para></sect3>
+
+<sect3><title>kx</title>
+<para><command>kx</command> is a program which securely forwards X
+connections.</para></sect3>
+
+<sect3><title>kxd</title>
+<para><command>kxd</command> is the daemon for
+<command>kx</command>.</para></sect3>
+
+<sect3><title>otp</title>
+<para><command>otp</command> manages one-time passwords.</para></sect3>
+
+<sect3><title>otpprint</title>
+<para><command>otpprint</command> prints lists of one-time
+passwords.</para></sect3>
+
+<sect3><title>rxtelnet</title>
+<para><command>rxtelnet</command> program starts an
+<command>xterm</command> window with a telnet to given host and forwards
+X connections.</para></sect3>
+
+<sect3><title>rxterm</title>
+<para><command>rxterm</command> starts a secure remote
+<command>xterm</command>.</para></sect3>
+
+<sect3><title>string2key</title>
+<para><command>string2key</command> maps a password into a
+key.</para></sect3>
+
+<sect3><title>tenletxr</title>
+<para><command>tenletxr</command> forwards X connections
+backwards.</para></sect3>
+
+<sect3><title>verify_krb5_conf</title>
+<para><command>verify_krb5_conf</command> checks
+<filename>krb5.conf</filename> file for obvious errors.</para></sect3>
+
+<sect3><title>xnlock</title>
+<para><command>xnlock</command> is a program that acts as a secure screen
+saver for workstations running X.</para></sect3>
+
+</sect2>
 
 </sect1>
