@@ -5,9 +5,9 @@
 
   <!ENTITY docbook-xsl-download-http "http://prdownloads.sourceforge.net/docbook/docbook-xsl-&docbook-xsl-version;.tar.bz2">
   <!ENTITY docbook-xsl-download-ftp  " ">
-  <!ENTITY docbook-xsl-md5sum        "deb1864e3e190465dcc26145d2667a84">
-  <!ENTITY docbook-xsl-size          "975 KB">
-  <!ENTITY docbook-xsl-buildsize     "25 MB">
+  <!ENTITY docbook-xsl-md5sum        "f4985efbc0f3411af8106928f8752fc5">
+  <!ENTITY docbook-xsl-size          "967 KB">
+  <!ENTITY docbook-xsl-buildsize     "26.4 MB">
   <!ENTITY docbook-xsl-time          "0.01 SBU">
 ]>
 
@@ -19,6 +19,9 @@ xreflabel="DocBook XSL Stylesheets-&docbook-xsl-version;">
 </sect1info>
 <?dbhtml filename="docbook-xsl.html"?>
 <title>DocBook XSL Stylesheets-&docbook-xsl-version;</title>
+<indexterm zone="docbook-xsl">
+<primary sortas="a-DocBook-XSL-Stylesheets">DocBook XSL 
+Stylesheets</primary></indexterm>
 
 <sect2>
 <title>Introduction to <application>DocBook <acronym>XSL</acronym> 
@@ -56,33 +59,53 @@ Stylesheets</application> dependencies</title>
 Stylesheets</application></title>
 
 <para>Install <application>DocBook <acronym>XSL</acronym> 
-Stylesheets</application> by running the following commands:</para>
+Stylesheets</application> by running the following commands as the root 
+user:</para>
 
-<screen><userinput><command>install -d /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
+<screen><userinput role='root'><command>install -v -d -m755 /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
+install -v -d -m755 /etc/xml &amp;&amp;
 chown -R root:root . &amp;&amp;
-cp -af INSTALL VERSION common eclipse extensions fo html htmlhelp \
+cp -v -af INSTALL VERSION common eclipse extensions fo html htmlhelp \
     images javahelp lib manpages params profiling template xhtml \
     /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
-install -d /usr/share/doc/xml &amp;&amp;
-cp -af doc/* /usr/share/doc/xml &amp;&amp;
+install -v -d -m755 /usr/share/doc/xml &amp;&amp;
+cp -v -af doc/* /usr/share/doc/xml &amp;&amp;
 cd /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
-sh INSTALL &amp;&amp;
-if [ ! -f /etc/xml/catalog ]; then mkdir -p /etc/xml; xmlcatalog \
-    --noout --create /etc/xml/catalog; fi &amp;&amp;
-if [ ! -e /etc/xml/docbook ]; then xmlcatalog --noout --create \
-    /etc/xml/docbook; fi &amp;&amp;
+sh INSTALL</command></userinput></screen>
+
+<para>Create (or append to) and populate the <acronym>XML</acronym> catalog 
+files using the following commands as the root user:</para>
+
+<screen><userinput role='root'><command>if [ ! -f /etc/xml/catalog ]; then
+    xmlcatalog --noout --create /etc/xml/catalog
+fi &amp;&amp;
+if [ ! -f /etc/xml/docbook ]; then
+    xmlcatalog --noout --create /etc/xml/docbook
+fi &amp;&amp;
 xmlcatalog --noout --add "rewriteSystem" \
     "http://docbook.sourceforge.net/release/xsl/&docbook-xsl-version;" \
-    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
+    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" \
+    /etc/xml/catalog &amp;&amp;
 xmlcatalog --noout --add "rewriteURI" \
     "http://docbook.sourceforge.net/release/xsl/&docbook-xsl-version;" \
-    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
+    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" \
+    /etc/xml/catalog &amp;&amp;
+xmlcatalog --noout --add "rewriteSystem" \
+    "http://docbook.sourceforge.net/release/xsl/current" \
+    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" \
+    /etc/xml/catalog &amp;&amp;
+xmlcatalog --noout --add "rewriteURI" \
+    "http://docbook.sourceforge.net/release/xsl/current" \
+    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" \
+    /etc/xml/catalog &amp;&amp;
 xmlcatalog --noout --add "delegateSystem" \
     "http://docbook.sourceforge.net/release/xsl/" \
-    "file:///etc/xml/docbook" /etc/xml/catalog &amp;&amp;
+    "file:///etc/xml/docbook" \
+    /etc/xml/catalog &amp;&amp;
 xmlcatalog --noout --add "delegateURI" \
     "http://docbook.sourceforge.net/release/xsl/" \
-    "file:///etc/xml/docbook" /etc/xml/catalog</command></userinput></screen>
+    "file:///etc/xml/docbook" \
+    /etc/xml/catalog</command></userinput></screen>
 
 </sect2>
 
@@ -93,7 +116,6 @@ xmlcatalog --noout --add "delegateURI" \
 catalog for the <acronym>XSL</acronym> files.</para>
 
 </sect2>
-
 
 <sect2>
 <title>Configuring <application>DocBook <acronym>XSL</acronym> 
@@ -118,19 +140,25 @@ xsl-stylesheets-&docbook-xsl-version;/catalog.xml /etc/xml/catalog"
 
 <para>The above installation script creates the files and updates the
 catalog. Some project stylesheets reference specific versions of
-<acronym>XSL</acronym> stylesheets, like <acronym>BLFS</acronym>, which
-needs the following additional commands.  These commands can also serve
+<acronym>XSL</acronym> stylesheets, like <acronym>BLFS</acronym>-6.0, which 
+needs the 1.67.2 version.  The following commands can also serve
 as an example for using a single <acronym>XSL</acronym> version to support 
-any hard coded versions, as needed.</para>
+any hard coded versions, as needed. Ensure you modify the 
+<command>for</command> command below to only include the stylesheet versions 
+you desire (remove references to stylesheet versions you have installed, or 
+plan to install). Issue the following commands as the root user:</para>
 
-<screen><userinput><command>xmlcatalog --noout --add "rewriteSystem" \
-    "http://docbook.sourceforge.net/release/xsl/1.65.1" \
+<screen><userinput><command>for XSLVERSION in 1.61.3 1.65.1 1.66.1 1.67.0 1.67.2 1.68.0
+do
+  xmlcatalog --noout --add "rewriteSystem" \
+    "http://docbook.sourceforge.net/release/xsl/$XSLVERSION" \
     "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" \
-    /etc/xml/catalog &amp;&amp;
-xmlcatalog --noout --add "rewriteURI" \
-    "http://docbook.sourceforge.net/release/xsl/1.65.1" \
+    /etc/xml/catalog
+  xmlcatalog --noout --add "rewriteURI" \
+    "http://docbook.sourceforge.net/release/xsl/$XSLVERSION" \
     "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" \
-    /etc/xml/catalog</command></userinput></screen>
+    /etc/xml/catalog
+done</command></userinput></screen>
 
 <para>Alternatively, other versions can be installed in their own
 versioned directories and catalog entries made in the following
@@ -145,27 +173,35 @@ xmlcatalog --noout --add "rewriteURI" \
     "/usr/share/xml/docbook/xsl-stylesheets-<replaceable>[version]</replaceable>" \
     /etc/xml/catalog</command></userinput></screen>
 
-<!-- The following is very specific to LFS 6.0, the first sentence for
+<!-- 
+The following is very specific to LFS 6.0, the first sentence for
 make and the remainder for 'make pdf', If it stays, it needs to be removed 
-after BLFS 6.0-->
+after BLFS 6.0
 
 <para>For <acronym>LFS</acronym> 6.0, version 1.65.1 of this package should be
 installed.  In addition, you need to make a symbolic link as described in the
 <filename>INSTALL</filename> file of <acronym>LFS</acronym> 6.0.</para>
 <screen><userinput><command>cd /usr/share/xml/docbook/ &amp;&amp;
 ln -s xsl-stylesheets-1.65.1 xsl-stylesheets-current</command></userinput></screen>
-
+ -->
 </sect3>
 
 </sect2>
 
 <sect2>
 <title>Contents</title>
+
 <segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
 <segtitle>Installed Files</segtitle>
 <segtitle>Installed Directories</segtitle>
-<seglistitem><seg><acronym>XSL</acronym>
-style sheets for <acronym>HTML</acronym> and <acronym>FO</acronym></seg>
+
+<seglistitem>
+<seg>None</seg>
+<seg>None</seg>
+<seg><acronym>XSL</acronym> style sheets for <acronym>HTML</acronym> and 
+<acronym>FO</acronym></seg>
 <seg>/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; and
 /usr/share/doc/xml</seg>
 </seglistitem>
