@@ -175,104 +175,11 @@ At this point, if everything has been successful so far, you can feel
 fairly confident in the installation and configuration of the package.
 </para>
 
-<!--
 <para>Install <filename>/etc/rc.d/init.d/heimdal</filename> init script
 included in the <xref linkend="intro-important-bootscripts"/>
 package.</para>
 
 <screen><userinput><command>make install-heimdal</command></userinput></screen>
--->
-
-<para>
-To automate the running of Kerberos server and 
-<command>kpasswdd</command> daemon, use the following command to create
-the init.d script:
-</para>
-
-<screen><userinput><command>cat &gt;etc/rc.d/init.d/heimdal &lt;&lt; "EOF"</command>
-#!/bin/sh
-# Begin $rc_base/init.d/heimdal
-
-# Based on sysklogd script from LFS-3.1 and earlier.
-# Rewritten by Gerard Beekmans  - gerard@linuxfromscratch.org
-# Heimdal bootscript submitted by Randy McMurchy &lt;LFS-User_at_mcmurchy_dot_com&gt;
-
-. /etc/sysconfig/rc
-. $rc_functions
-
-case "$1" in
-        start)  
-                echo "Starting KDC Server Daemon..."
-                if test -f "/var/run/kdc.pid"
-                then
-                        print_status warning running
-                else
-                        /usr/sbin/kdc &amp;
-                        sleep 1
-                        if test -f "/var/run/kdc.pid"
-                        then
-                                print_status success
-                        else
-                                print_status failure
-                        fi
-                fi
-                echo "Starting KDC kpasswdd Daemon..."
-                if test -f "/var/run/kpasswdd.pid"
-                then
-                        print_status warning running
-                else
-                        /usr/sbin/kpasswdd &amp;
-                        sleep 1
-                        if test -f "/var/run/kpasswdd.pid"
-                        then
-                                print_status success
-                        else
-                                print_status failure
-                        fi
-                fi
-                ;;
-
-        stop)   
-                echo "Stopping KDC kpasswdd Daemon..."
-                killproc /usr/sbin/kpasswdd
-                echo "Stopping KDC Server Daemon..."
-                killproc /usr/sbin/kdc
-                ;;
-
-        restart)
-                $0 stop
-                sleep 1
-                $0 start
-                ;;
-
-        status)
-                statusproc /usr/sbin/kdc
-                statusproc /usr/sbin/kpasswdd
-                ;;
-
-        *)
-                echo "Usage: $0 {start|stop|restart|status}"
-                exit 1
-                ;;
-esac
-
-# End $rc_base/init.d/heimdal
-<command>EOF
-chmod 754 /etc/rc.d/init.d/heimdal</command></userinput></screen>
-
-<para>
-Create the symbolic links to this file in the relevant <filename
-class="directory">rc.d</filename> directory with the following commands:
-</para>
-
-<screen><userinput><command>cd /etc/rc.d/init.d &amp;&amp;
-ln -sf ../init.d/heimdal ../rc0.d/K42heimdal &amp;&amp;
-ln -sf ../init.d/heimdal ../rc1.d/K42heimdal &amp;&amp;
-ln -sf ../init.d/heimdal ../rc2.d/K42heimdal &amp;&amp;
-ln -sf ../init.d/heimdal ../rc3.d/S28heimdal &amp;&amp;
-ln -sf ../init.d/heimdal ../rc4.d/S28heimdal &amp;&amp;
-ln -sf ../init.d/heimdal ../rc5.d/S28heimdal &amp;&amp;
-ln -sf ../init.d/heimdal ../rc6.d/K42heimdal</command></userinput></screen>
 
 </sect4>
 
