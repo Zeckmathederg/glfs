@@ -10,13 +10,15 @@
   <!ENTITY ffmpeg-time          "0.87 SBU">
 ]>
 
-<sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
+<sect1 id="ffmpeg-package" xreflabel="FFmpeg-&ffmpeg-version;">
 <sect1info>
 <othername>$LastChangedBy$</othername>
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="ffmpeg.html"?>
 <title>FFmpeg-&ffmpeg-version;</title>
+<indexterm zone="ffmpeg-package">
+<primary sortas="a-FFmpeg">FFmpeg</primary></indexterm>
 
 <sect2>
 <title>Introduction to <application>FFmpeg</application></title>
@@ -70,11 +72,16 @@ commands:</para>
 source tree for information about optimizing the build.</para></note>
 
 <!-- <screen><userinput><command>patch -Np1 -i ../ffmpeg-&ffmpeg-version;-gcc34-1.patch &amp;&amp; -->
-<screen><userinput><command>./configure --prefix=/usr \
-    --enable-shared --enable-pthreads &amp;&amp;
+<screen><userinput><command>./configure --prefix=/usr --enable-shared \
+    --enable-pthreads --disable-ffplay &amp;&amp;
 make &amp;&amp;
-make -C doc {ffmpeg,ffserver,ffplay}.1 &amp;&amp;
-make install</command></userinput></screen>
+make -C doc {ffmpeg,ffserver,ffplay}.1</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>make install &amp;&amp;
+install -v -d -m755 /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
+install -v -m644 doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</command></userinput></screen>
 
 </sect2>
 
@@ -89,13 +96,14 @@ libraries.</para>
 <para><parameter>--enable-pthreads</parameter>: This switch enables the 
 build to link against the Posix threads library.</para>
 
+<para><option>--disable-ffplay</option>: Only installs the server part.
+<command>ffplay</command> requires <application>X</application> for 
+building. Remove this option if <application>X</application> is 
+installed.</para>
+
 <para><option>--enable-<replaceable>[codec]</replaceable></option>: Review
 the available options and codecs using the 
 <command>./configure --help</command> command.</para>
-
-<para><option>--disable-ffplay</option>: Only installs the server part.
-<command>ffplay</command> requires <application>X</application> for 
-building.</para>
 
 <para><command>make -C doc {ffmpeg,ffserver,ffplay}.1</command>: This builds 
 the man pages which are installed by <command>make install</command>.</para>
@@ -109,15 +117,22 @@ known to break the build.</para></note>
 <sect2>
 <title>Configuring <application>FFmpeg</application></title>
 
-<sect3><title>Config files</title>
+<sect3 id="ffmpeg-config"><title>Config files</title>
 
 <para><filename>/etc/ffserver.conf</filename> and 
 <filename>~/.ffmpeg/ffserver-config</filename></para>
 
+<indexterm zone="ffmpeg-package ffmpeg-config">
+<primary 
+sortas="e-AA.ffmpeg-ffserver-config">~/.ffmpeg/ffserver-config</primary>
+</indexterm>
+<indexterm zone="ffmpeg-package ffmpeg-config">
+<primary sortas="e-etc-ffserver.conf">/etc/ffserver.conf</primary>
+</indexterm>
+
 <para>You'll find a sample ffserver configuration file at
 <ulink url="http://ffmpeg.sourceforge.net/sample.html"/> (also 
 <filename>doc/ffserver.conf</filename> in the source tree).</para>
-
 </sect3>
 
 </sect2>
@@ -125,38 +140,70 @@ known to break the build.</para></note>
 <sect2>
 <title>Contents</title>
 
-<para>The <application>FFmpeg</application> package contains 
-<command>ffmpeg</command>, 
-<command>ffserver</command>, 
-<command>ffplay</command>, 
-<filename class="libraryfile">libavcodec</filename>, 
-<filename class="libraryfile">libavformat</filename> and 
-video hook modules.</para>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
+<seglistitem>
+<seg>ffmpeg, ffserver and optionally, ffplay</seg>
+<seg>libavcodec.so, libavformat.so and video hook modules</seg>
+<seg>/usr/include/ffmpeg, /usr/lib/vhook and 
+/usr/share/doc/ffmpeg-&ffmpeg-version;</seg>
+</seglistitem>
+</segmentedlist>
 
-</sect2>
+<variablelist>
+<bridgehead renderas="sect3">Short Descriptions</bridgehead>
+<?dbfo list-presentation="list"?>
 
-<sect2><title>Description</title>
+<varlistentry id="ffmpeg">
+<term><command>ffmpeg</command></term>
+<listitem><para>is a command-line tool to convert video files, network streams 
+and input from a <acronym>TV</acronym> card to several video formats.</para>
+<indexterm zone="ffmpeg-package ffmpeg">
+<primary sortas="b-ffmpeg">ffmpeg</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>ffmpeg</title>
-<para><command>ffmpeg</command> is a command-line tool to convert video files, 
-network streams and input from a TV card to several video formats.</para>
-</sect3>
+<varlistentry id="ffplay">
+<term><command>ffplay</command></term>
+<listitem><para>is a very simple and portable media player using the 
+<filename>ffmpeg</filename> libraries and the <acronym>SDL</acronym> 
+library.</para>
+<indexterm zone="ffmpeg-package ffplay">
+<primary sortas="b-ffplay">ffplay</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>ffserver</title>
-<para><command>ffserver</command> is a streaming server for everything
-that <command>ffmpeg</command> could use as input (files, streams, TV card 
-input, webcam, etc.).</para></sect3>
+<varlistentry id="ffserver">
+<term><command>ffserver</command></term>
+<listitem><para>is a streaming server for everything that 
+<command>ffmpeg</command> could use as input (files, streams, TV card input, 
+webcam, etc.).</para>
+<indexterm zone="ffmpeg-package ffserver">
+<primary sortas="b-ffserver">ffserver</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>ffplay</title>
-<para><command>ffplay</command> is a very simple and portable media 
-player using the <filename>ffmpeg</filename> libraries and the 
-<acronym>SDL</acronym> library.</para></sect3>
+<varlistentry id="libavcodec">
+<term><filename class='libraryfile'>libavcodec.so</filename></term>
+<listitem><para>is a library containing the <application>FFmpeg</application> 
+codecs (both encoding and decoding).</para>
+<indexterm zone="ffmpeg-package libavcodec">
+<primary sortas="c-libavcodec">libavcodec.so</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>libavcodec/libavformat</title>
-<para><filename class="libraryfile">libavcodec</filename> and 
-<filename class="libraryfile">libavformats</filename> are libraries for 
-encoding/decoding video streams and putting them into files or network 
-packets.</para></sect3>
+<varlistentry id="libavformat">
+<term><filename class='libraryfile'>libavformat.so</filename></term>
+<listitem><para>is a library containing the file formats handling (mux and 
+demux code for several formats) used by <command>ffplay</command> as well as 
+allowing the generation of  audio or video streams.</para>
+<indexterm zone="ffmpeg-package libavformat">
+<primary sortas="c-libavformat">libavformat.so</primary></indexterm>
+</listitem>
+</varlistentry>
+</variablelist>
 
 </sect2>
 
