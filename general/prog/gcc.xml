@@ -1,11 +1,301 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY gcc-download-http  "http://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
+  <!ENTITY gcc-download-ftp   "ftp://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
+  <!ENTITY gcc-size           "23 MB">
+  <!ENTITY gcc-buildsize      "889 MB">
+  <!ENTITY gcc-time           "29.3 SBU">
+  
+  <!ENTITY gnat-download-http " ">
+  <!ENTITY gnat-download-ftp  "ftp://cs.nyu.edu/pub/gnat/3.15p/gnat-3.15p-i686-pc-redhat71-gnu-bin.tar.gz">
+  <!ENTITY gnat-size          "13.2 MB">
+  <!ENTITY gnat-buildsize     "48.9 MB">
+  <!ENTITY gnat-time          "0.01 SBU">
+]>
+
 <sect1 id="gcc" xreflabel="GCC-&gcc-version;">
 <?dbhtml filename="gcc.html" ?>
 <title>GCC-&gcc-version;</title>
 
-&gcc-intro;
-&gcc-inst;
-&gcc-exp;
-&gcc-desc;
+<sect2>
+<title>Introduction to <application><acronym>GCC</acronym></application></title>
+                                                                               
+<para>The  <application><acronym>GCC</acronym></application> package
+contains <acronym>GNU</acronym> compilers. This is useful for
+compiling programs written in <application>Ada</application>,
+<application>C</application>, <application>C++</application>,
+<application>Fortran</application>, <application>Java</application> and
+<application>Objective C</application>.</para>
+                                                                               
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink
+url="&gcc-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&gcc-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &gcc-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&gcc-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&gcc-time;</para></listitem></itemizedlist>
+</sect3>
+<sect3><title>Additional Downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Required patch: <ulink url="&patch-root;/gcc-&gcc-version;-no_fixincludes-1.patch"/></para></listitem>
+</itemizedlist></sect3>
+                                                                               
+</sect2>
+
+<sect2>
+<title>Installation of <application><acronym>GCC</acronym></application></title>
+                                                                               
+<para>If you plan to compile Ada, you will need to install
+<application><acronym>GNAT</acronym></application> temporarily to
+satisfy the circular dependency when you recompile
+<application><acronym>
+GCC</acronym></application> to include
+<application>Ada</application>.</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink
+url="&gnat-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&gnat-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &gnat-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&gnat-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&gnat-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title><application><acronym>GNAT</acronym></application> dependencies</title>
+<sect4><title>Required</title>
+<para><xref linkend="tcsh"/></para></sect4>
+</sect3>
+
+</sect2>
+                                                                               
+<sect2>
+<title>Installation of <application><acronym>GNAT</acronym></application></title>
+
+<para>Install <application><acronym>GNAT</acronym></application> by running the 
+following commands:</para>
+
+<screen><userinput><command>./doconfig</command></userinput></screen>
+
+<para>The above script will ask you how and where you would like to install
+<application><acronym>GNAT</acronym></application>. To avoid conflicts with the 
+system <command>gcc</command>, the package will be installed in a separate 
+directory, that can later be removed from the system.</para>
+
+<para>In response to the questions asked by the
+<command>doconfig</command> script, enter
+<userinput>3</userinput> in response to the first question
+and <userinput>/opt/gnat</userinput> in response to the
+second question.</para>
+
+<para>To finish the install, run:</para>
+<screen><userinput><command>./doinstall</command></userinput></screen>
+
+<para>The <application><acronym>GNAT</acronym></application> compiler can be 
+invoked by executing the <command>gcc</command> binary installed by the above 
+script.</para>
+
+</sect2>
+
+                                                                               
+<sect2><title>Return to Installation of <application><acronym>GCC</acronym></application></title>
+                                                                               
+<para>Patch the source files with the following command:</para>
+<screen><userinput><command>patch -Np1 -i ../gcc-&gcc-version;-no_fixincludes-1.patch &amp;&amp;
+sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in</command></userinput></screen>
+                                                                               
+<para>Install <application><acronym>GCC</acronym></application> by running the
+following commands:</para>
+                                                                               
+<screen><userinput><command>PATH_HOLD=$PATH &amp;&amp;
+export PATH=/opt/gnat/bin:$PATH &amp;&amp;
+cd gcc/ada &amp;&amp;
+touch treeprs.ads [es]info.h nmake.ad[bs] &amp;&amp;
+cd ../.. &amp;&amp;
+mkdir ../gcc-build &amp;&amp;
+cd ../gcc-build &amp;&amp;
+CC=/usr/bin/gcc ../gcc-&gcc-version;/configure --prefix=/usr --enable-shared \
+    --enable-languages=c,c++,objc,f77,ada,java --enable-threads=posix \
+    --enable-__cxa_atexit --enable-clocale=gnu &amp;&amp;
+make bootstrap &amp;&amp;
+make -C gcc gnatlib_and_tools &amp;&amp;
+make -k check &amp;&amp;
+make install &amp;&amp;
+ln -sf ../usr/bin/cpp /lib &amp;&amp;
+ln -sf gcc /usr/bin/cc &amp;&amp;
+ln -sf g77 /usr/bin/f77 &amp;&amp;
+export PATH=$PATH_HOLD</command></userinput></screen>
+                                                                               
+<para>You may remove the <application><acronym>GNAT</acronym></application>
+installation:</para>
+<screen><userinput><command>rm -rf /opt/gnat</command></userinput></screen>
+                                                                               
+</sect2>
+
+<sect2>
+<title>Command explanations</title>
+                                                                               
+<para><command>PATH_HOLD=$PATH</command>: This command
+stores your current path before it's modified so that it can be restored after
+installation.</para>
+                                                                               
+<para><command>export PATH=/opt/gnat/bin:$PATH</command>: This
+command allows the build to find
+<application><acronym>GNAT</acronym></application>'s
+<application>Ada</application> compiler to build
+<application>Ada</application>.</para>
+                                                                               
+<para><command>touch treeprs.ads [es]info.h nmake.ad[bs]</command>:
+This command creates necessary files for the
+<application>Ada</application> build. This step
+may be skipped if you don't want to compile the
+<application>Ada</application> front end.</para>
+                                                                               
+<para><parameter>CC=/usr/bin/gcc</parameter>: This command works around the
+new <envar>PATH</envar> which puts <application><acronym>GNAT</acronym>
+</application>'s <command>gcc</command> as the primary compiler.</para>
+                                                                               
+<para><parameter>--enable-languages=c,c++,objc,f77,ada,java</parameter>: This command builds all available languages in the
+<application><acronym>GCC</acronym></application> package.
+You may modify this command to remove unwanted languages.</para>
+                                                                               
+<para><parameter>--enable-shared --enable-threads=posix
+--enable-__cxa_atexit</parameter>: These commands are required to build
+the <application>C++</application> libraries to published standards.</para>
+                                                                               
+<para><parameter>--enable-clocale=gnu</parameter>: This command is a
+failsafe for incomplete locale data.</para>
+                                                                               
+<para><command>make gnatlib_and tools</command>: This command
+completes the <application>Ada</application> build process. Skip this step if
+you have not enabled <application>Ada</application> as one of the languages.
+</para>
+                                                                               
+</sect2>
+
+<sect2>
+<title>Contents</title>
+                                                                               
+<para>The <application><acronym>GCC</acronym></application> package contains
+<command>c++</command>,
+<command>c++filt</command>, <command>cpp</command>,
+<command>g++</command>, <command>g77</command>,
+<command>gcc</command>, <command>gccbug</command>,
+<command>gcov</command>, <command>glob</command>,
+<command>gnat</command>, <command>gnatbind</command>,
+<command>gnatbl</command>, <command>gnatchop</command>,
+<command>gnatfind</command>, <command>gnatkr</command>,
+<command>gnatlink</command>, <command>gnatls</command>,
+<command>gnatmake</command>, <command>gnatprep</command>,
+<command>gnatpsta</command>, <command>gnatpsys</command>,
+<command>gnatxref</command> and
+<application><acronym>GCC</acronym></application> libraries.</para>
+                                                                               
+</sect2>
+                                                                               
+<sect2><title>Description</title>
+                                                                               
+<para>The programs and libraries whose descriptions are missing here
+have been described in the <acronym>LFS</acronym>
+<acronym>GCC</acronym>-&gcc-version; page.</para>
+                                                                               
+<sect3><title>g77</title>
+<para><command>g77</command> is the <application>Fortran</application> compiler                                                                               
+invoked by <command>gcc</command>.</para></sect3>
+                                                                               
+<sect3><title>add2line</title>
+<para><command>add2line</command> converts the <acronym>ASCII</acronym> form of                                                                               
+the 2-line orbital elements in a file to binary form and appends them to the
+orbdata files. </para></sect3>
+                                                                               
+<sect3><title>gcov</title>
+<para><command>gcov</command> is a test coverage program.</para></sect3>
+                                                                               
+<sect3><title>gdb</title>
+<para><command>gdb</command> is the
+<application><acronym>GNAT</acronym></application> debugger.</para></sect3>
+                                                                               
+<sect3><title>gnatbind</title>
+<para><command>gnatbind</command> is used to bind compiled objects.</para>
+</sect3>
+                                                                               
+<sect3><title>gnatbl</title>
+<para><command>gnatbl</command> is the <application>Ada</application> linker.
+</para></sect3>
+                                                                               
+<sect3><title>gnatchop</title>
+<para><command>gnatchop</command> is useful for renaming files to meet the
+standard <application>Ada</application> default file naming conventions.</para></sect3>
+                                                                               
+<sect3><title>gnatelim</title>
+<para><command>gnatelim</command> is used to detect and eliminate unused
+subprograms in an <application>Ada</application> partition.</para></sect3>
+                                                                               
+<sect3><title>gnatfind</title>
+<para><command>gnatfind</command> is the <application><acronym>GNAT</acronym>
+</application> definition/use finder.</para></sect3>
+                                                                               
+<sect3><title>gnatgcc</title>
+<para><command>gnatgcc</command> is the compiler.</para></sect3>
+                                                                               
+<sect3><title>gnathtml.pl</title>
+<para><command>gnathtml.pl</command> converts
+<application>Ada</application> source files to <acronym>HTML</acronym> for
+viewing in Web browsers.</para></sect3>
+                                                                               
+<sect3><title>gnatkr</title>
+<para><command>gnatkr</command> is used to determine the crunched name for a
+given file, when crunched to a specified maximum length.</para></sect3>
+                                                                               
+<sect3><title>gnatlink</title>
+<para><command>gnatlink</command> is used to link programs and build an
+executable file.</para></sect3>
+                                                                               
+<sect3><title>gnatls</title>
+<para><command>gnatls</command> is the compiled unit browser.</para></sect3>
+                                                                               
+<sect3><title>gnatemake</title>
+<para><command>gnatmake</command> is an automatic make facility.</para></sect3>                                                                               
+<sect3><title>gnatmem</title>
+<para><command>gnatmem</command> is the <application><acronym>GNAT</acronym>
+</application> utility that monitors dynamic allocation and
+deallocation activity in a program.</para></sect3>
+                                                                               
+<sect3><title>gnatprep</title>
+<para><command>gnatprep</command> is the
+<application><acronym>GNAT</acronym></application> external preprocessor.</para>
+</sect3>
+                                                                               
+<sect3><title>gnatpsta</title>
+<para><command>gnatpsta</command> determines the values of all the relevant
+parameters in Standard and outputs to stdout.</para></sect3>
+                                                                               
+<sect3><title>gnatpsys</title>
+<para><command>gnatpsys</command> determines the values of all the relevant
+parameters in System and outputs to stdout.</para></sect3>
+
+<sect3><title>gnatstub</title>
+<para><command>gnatstub</command> is a generator of body stubs.</para></sect3>
+                                                                               
+<sect3><title>gnatxref</title>
+<para><command>gnatxref</command> is the <application><acronym>GNAT</acronym></application> cross-referencer.</para></sect3>
+                                                                               
+<sect3><title>gvd</title>
+<para><command>gvd</command> is the <acronym>GNU</acronym> Visual Debugger.
+</para></sect3>
+                                                                               
+</sect2>
 
 </sect1>
 

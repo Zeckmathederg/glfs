@@ -1,11 +1,176 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+
+<!ENTITY openssl-download-http "http://www.openssl.org/source/openssl-&openssl-version;.tar.gz">
+<!ENTITY openssl-download-ftp "ftp://ftp.openssl.org/source/openssl-&openssl-version;.tar.gz">
+<!ENTITY openssl-size "2.7 MB">
+<!ENTITY openssl-buildsize "25 MB">
+<!ENTITY openssl-time "1.16 SBU">
+
+]>
+
+
 <sect1 id="openssl" xreflabel="OpenSSL-&openssl-version;">
 <?dbhtml filename="openssl.html"?>
 <title>OpenSSL-&openssl-version;</title>
 
-&openssl-intro;
-&openssl-inst;
-&openssl-exp;
-&openssl-config;
-&openssl-desc;
+
+<sect2>
+<title>Introduction to <application>OpenSSL</application></title>
+                                                                                
+<para>The <application>OpenSSL</application> package contains management tools
+and libraries relating to cryptography.  These are useful for providing
+cryptography functions to other packages, notably <application>OpenSSH
+</application> and web browsers (for accessing secure https sites).</para>
+                                                                                
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink url="&openssl-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink url="&openssl-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &openssl-size;</para></listitem>
+<listitem><para>Estimated Disk space required: &openssl-buildsize;</para></listitem>
+<listitem><para>Estimated build time: &openssl-time;</para></listitem></itemizedlist>
+</sect3>
+</sect2>
+
+<sect2>
+<title>Installation of <application>OpenSSL</application></title>
+                                                                                
+<para>Install <application>OpenSSL</application> by running the following commands:</para>
+
+<screen><userinput><command>sed 's/^passwd/openssl-passwd/' doc/apps/passwd.pod \
+    > doc/apps/openssl-passwd.pod &amp;&amp;
+rm doc/apps/passwd.pod &amp;&amp;
+mv doc/crypto/{,openssl_}threads.pod &amp;&amp;
+sed -i -e 's/-m486/-march=i486/' Configure &amp;&amp;
+./config --openssldir=/etc/ssl --prefix=/usr shared &amp;&amp;
+make MANDIR=/usr/share/man &amp;&amp;
+make MANDIR=/usr/share/man install &amp;&amp;
+cp -r certs /etc/ssl &amp;&amp;
+rmdir /etc/ssl/lib</command></userinput></screen>
+                                                                                
+</sect2>
+
+<sect2>
+<title>Command explanations</title>
+                                                                                
+<para><option>no-rc5 no-idea</option>: When added to the
+<command>./config</command> command, this will eliminate the building of those
+encryption methods. Patent licenses may be needed for you to utilize either of
+those methods in your projects.</para>
+                                                                                
+<para><command>rm doc/apps/passwd.pod</command>: This command prevents
+<application>Open<acronym>SSL</acronym></application> from installing its
+passwd man page over an existing man page with the same name.</para>
+                                                                                
+<para><command>mv doc/crypto/{,openssl_}threads.pod</command>: This
+commands prevents <application>Open<acronym>SSL</acronym></application> from
+overwriting an existing man page from <application>Perl</application>.</para>
+                                                                                
+<para><command>sed -i -e 's/-m486/-march=i486/' Configure</command>:
+<application>GCC</application> issues a warning on every
+compilation because the <command>Configure</command>
+command uses deprecated <parameter>-m486</parameter> instead of
+<parameter>-march=i486</parameter>.</para>
+
+<para><screen><command>make MANDIR=/usr/share/man
+make MANDIR=/usr/share/man install</command></screen> These
+commands install <application>OpenSSL</application> with the man pages
+in <filename class='directory'>/usr/share/man</filename> instead of the
+default which is <filename class='directory'>/etc/ssl/man</filename>.</para>
+                                                                                
+<para><command>cp -r certs /etc/ssl</command>: The certificates
+must be copied manually since the install script
+skips this step.</para>
+                                                                                
+<para><command>rmdir /etc/ssl/lib</command>: This is simply a tidy-up command.
+For some reason, the <application>openssl</application> install routine creates
+the <filename class='directory'>/etc/ssl/lib</filename> directory even though
+the libraries have been installed in
+<filename class='directory'>/usr/lib</filename>.  We remove it to keep things
+nice and tidy!</para>
+                                                                                
+</sect2>
+
+<sect2>
+<title>Configuring <application>OpenSSL</application></title>
+                                                                                
+<sect3><title>Config files</title>
+<para><filename>/etc/ssl/openssl.cnf</filename></para>
+</sect3>
+                                                                                
+<sect3><title>Configuration Information</title>
+                                                                                
+<para>Most people who just want to use
+<application>openssl</application> for providing functions
+to other programs such as <application>OpenSSH</application> and web browsers won't need to worry
+about configuring <application>OpenSSL</application>.  Configuring
+<application>OpenSSL</application> is an advanced topic and
+so those who do would normally be expected to either know how to do it
+or to be able to find out how to do it.</para>
+</sect3>
+                                                                                
+</sect2>
+
+<sect2>
+<title>Contents</title>
+                                                                                
+<para>The <application>Open<acronym>SSL</acronym></application> package contains <command>
+c_rehash</command>, <command>openssl</command>, <filename
+class='libraryfile'>libcrypto</filename> libraries and <filename
+class='libraryfile'>libssl</filename> libraries.</para>
+                                                                                
+</sect2>
+                                                                                
+<sect2><title>Description</title>
+                                                                                
+<sect3><title>c_rehash</title>
+                                                                                
+<para><command>c_rehash</command> is a <application>Perl</application> script
+that scans all files in a directory and adds symbolic links to their hash
+values.</para>
+                                                                                
+</sect3>
+
+<sect3><title>openssl</title>
+                                                                                
+<para>The <command>openssl</command> program is a command-line tool for using
+the various cryptography functions of
+<application>Open<acronym>SSL</acronym></application>'s
+crypto library from the shell. It can be used for various functions which are
+documented in <command>man 1 openssl</command>.</para>
+                                                                                
+</sect3>
+                                                                                
+<sect3><title>libcrypto</title>
+                                                                                
+<para>The <application>Open<acronym>SSL</acronym></application> crypto library implements a wide
+range of cryptographic  algorithms used in various Internet standards. The
+services provided by  this library are used by the
+<application>Open<acronym>SSL</acronym>
+</application> implementations of <acronym>SSL</acronym>, <acronym>TLS
+</acronym> and <acronym>S/MIME</acronym>, and they have also been used to
+implement <application>Open<acronym>SSH</acronym></application>,
+<application>Open<acronym>PGP</acronym>
+</application>, and other cryptographic standards.</para>
+                                                                                
+</sect3>
+                                                                                
+<sect3><title>libssl</title>
+                                                                                
+<para>The <application>Open<acronym>SSL</acronym></application> <acronym>SSL</acronym> library
+implements the Secure Sockets Layer (<acronym>SSL</acronym> v2/v3) and
+Transport Layer Security (<acronym>TLS</acronym> v1) protocols. It provides a
+rich <acronym>API</acronym>, documentation on which can be found by running
+<command>man 3 ssl</command>.</para>
+                                                                                
+</sect3>
+                                                                                
+</sect2>
 
 </sect1>
+
