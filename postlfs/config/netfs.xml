@@ -46,7 +46,7 @@ case "$1" in
                                                                                 
                 # Check to see if anything was listed from above
                 # (see if anything is actually needs to be unmounted)
-                if [ x$NETMOUNTS != x ]
+                if [ x"$NETMOUNTS" != x ]
                 then
                         # There is something mounted
                         # terminate the echo -n above
@@ -66,9 +66,31 @@ case "$1" in
                                 fuser -km $NETMOUNTS &gt; /dev/null
                         fi
                                                                                 
-                        # unmount our list
-                        umount $NETMOUNTS
-                        evaluate_retval
+                        # We now need to unmount all network filesystems.
+			# We will do this with two umount commands to allow
+			# for broken behavior of smbmount, and also to make
+			# certain that netmounts without the _netdev option
+			# will still get unmounted.
+                        umount -a -O _netdev
+                        # save the retval
+			if [ $? != 0 ]
+			then
+				NERRVAL=1
+			fi
+
+			# Now catch the rest of the network filesystems
+			# by fstype.  This list can be extended later as
+			# more network filesystems are supported by mount.
+			umount -a -t coda,ncpfs,nfs,smbfs
+			if [ $? == 0]
+			then
+				[ -z $NERRVAL ]
+				evaluate_retval
+			else
+				# make certain that we return an error
+				/bin/false		
+				evaluate_retval
+			fi
                 else
                         # There is nothing mounted
                         echo "No network volumes mounted!"
