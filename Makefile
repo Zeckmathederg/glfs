@@ -6,6 +6,8 @@ OUTPUTDIR = $(HOME)/public_html/blfs-book
 INSTALL = install
 JADE = openjade
 DOCBOOK = /usr/share/sgml/docbook/dsssl-stylesheets-1.78
+BASEDIR= $(HOME)/public_html/blfs-book-xsl/
+TEXBASEDIR= $(HOME)/public_html/blfs-book-tex
 
 SRCDIR = $(PWD)
 
@@ -14,18 +16,24 @@ all: index.xml
 		echo "Envar OUTPUTDIR is not set!" ; \
 		exit 1 ; \
 		fi
-	@echo "Generating HTML Version of BLFS Book..."
+	@echo "Generating HTML Version of BLFS Book with $(JADE)..."
 	@echo "  OUTPUTDIR = $(OUTPUTDIR)"
 	@$(INSTALL) -d $(OUTPUTDIR)
 	@cd $(OUTPUTDIR) && $(INSTALL) -d introduction postlfs general \
 		connect basicnet server content x kde gnome xsoft \
 		multimedia pst preface appendices other
-	@cd $(OUTPUTDIR) && $(JADE) -t sgml -d $(DOCBOOK)/html/lfs.dsl \
+	@cd $(OUTPUTDIR) && $(JADE) -t sgml -d $(DOCBOOK)/html/blfs.dsl \
 		$(DOCBOOK)/dtds/decls/xml.dcl $(SRCDIR)/index.xml
 
-BASEDIR=~/blfs-book/
 
 blfs:
+	@if [ -z $(BASEDIR) ]; then \
+		echo "Envar BASEDIR is not set!" ; \
+		exit 1 ; \
+		fi
+	@echo "Generating XHTML Version of BLFS Book with xsltproc..."
+	@echo "  BASEDIR = $(BASEDIR)"
+	@$(INSTALL) -d $(BASEDIR)
 	xsltproc --xinclude --nonet -stringparam base.dir $(BASEDIR) \
 	  stylesheets/blfs-chunked.xsl index.xml
 
@@ -45,8 +53,25 @@ blfs:
 	  index.html 
 
 pdf:
-	xsltproc --xinclude --nonet --output lfs.fo
+	xsltproc --xinclude --nonet --output blfs.fo
 	stylesheets/blfs-pdf.xsl \
 	  index.xml
-	fop.sh lfs.fo lfs.pdf
+	fop.sh blfs.fo blfs.pdf
 
+tex:
+	@if [ -z $(TEXBASEDIR) ]; then \
+                echo "Envar TEXBASEDIR is not set!" ; \
+                exit 1 ; \
+                fi
+	@echo "Generating TeX Version of BLFS Book with xsltproc..."
+	@echo "  TEXBASEDIR = $(TEXBASEDIR)"
+	@$(INSTALL) -d $(TEXBASEDIR)
+
+# Using profiles in book source to exclude parts of the book from TeX
+# i.e. Changelog
+	xsltproc --nonet --output $(TEXBASEDIR)/index.xml \
+	--stringparam "profile.role" "book" \
+	http://docbook.sourceforge.net/release/xsl/current/profiling/profile.xsl \
+	index.xml
+	@cd $(TEXBASEDIR) && xsltproc --nonet -o blfs-book.tex \
+	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
