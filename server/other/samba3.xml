@@ -6,10 +6,9 @@
 
 <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/samba-&samba3-version;.tar.gz">
 <!ENTITY samba3-download-ftp "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-<!ENTITY samba3-size "14.4 MB">
-<!ENTITY samba3-buildsize "123 MB">
-<!ENTITY samba3-time "10.5 SBU">
-
+<!ENTITY samba3-size "15.0 MB">
+<!ENTITY samba3-buildsize "136 MB">
+<!ENTITY samba3-time "2.04 SBU">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -25,38 +24,45 @@
 
 <para>The <application>Samba</application> package provides file and print 
 services to <acronym>SMB</acronym>/<acronym>CIFS</acronym> clients and
-Windows networking to Linux clients.</para>
+Windows networking to Linux clients. <application>Samba</application> can also 
+be configured as a Windows NT 4.0 Domain Controller replacement 
+(with caveats working with NT <acronym>PDC</acronym>'s and 
+<acronym>BDC</acronym>'s), a file/print server acting as a member of a 
+Windows NT 4.0 or Active Directory domain and a NetBIOS (rfc1001/1002) 
+nameserver (which amongst other things provides 
+<acronym>LAN</acronym> browsing support).</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
 <listitem><para>Download (HTTP): <ulink url="&samba3-download-http;"/></para></listitem>
 <listitem><para>Download (FTP): <ulink url="&samba3-download-ftp;"/></para></listitem>
 <listitem><para>Download size: &samba3-size;</para></listitem>
-<listitem><para>Estimated Disk space required: &samba3-buildsize;</para></listitem>
+<listitem><para>Estimated disk space required: &samba3-buildsize;</para></listitem>
 <listitem><para>Estimated build time: &samba3-time;</para></listitem></itemizedlist>
 </sect3>
 
-<sect3><title>Additional downloads</title>
+<!-- <sect3><title>Additional downloads</title>
 <itemizedlist spacing='compact'>
 <listitem><para>Maintainer Recommended Patch: <ulink 
 url="&patch-root;/samba-&samba3-version;-maintainer-1.patch"/></para></listitem>
 </itemizedlist>
-</sect3>
+</sect3> -->
 
 <sect3>
 <title><application>Samba</application> dependencies</title>
 <sect4>
 <title>Optional</title>
-<para>
+<para><xref linkend="popt"/>, 
 <xref linkend="Linux_PAM"/>,
 <xref linkend="openldap"/>,
 <xref linkend="cups"/>,
 <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
 <xref linkend="libxml2"/>,
 <xref linkend="mysql"/> or <xref linkend="postgresql"/>,
-<xref linkend="Python"/>, and
-<ulink url="http://valgrind.kde.org/">Valgrind</ulink>
-</para>
+<xref linkend="Python"/>, 
+<xref linkend="xinetd"/>, 
+<ulink url="http://valgrind.kde.org/">Valgrind</ulink> and 
+<xref linkend="stunnel"/> (used to encrypt access to SWAT)</para>
 </sect4>
 </sect3>
 
@@ -68,8 +74,7 @@ url="&patch-root;/samba-&samba3-version;-maintainer-1.patch"/></para></listitem>
 <para>Install <application>Samba</application> by running the following 
 commands:</para>
 
-<screen><userinput><command>patch -Np1 -i ../samba-&samba3-version;-maintainer-1.patch &amp;&amp;
-cd source &amp;&amp;
+<screen><userinput><command>cd source &amp;&amp;
 install -d /var/cache/samba &amp;&amp;
 ./configure \
     --prefix=/usr \
@@ -80,10 +85,15 @@ install -d /var/cache/samba &amp;&amp;
     --with-smbmount &amp;&amp;
 make &amp;&amp;
 make install &amp;&amp;
+chmod 644 /usr/include/libsmbclient.h &amp;&amp;
 install -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
 ln -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
 ln -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
-cp ../examples/smb.conf.default /etc/samba</command></userinput></screen>
+cp ../examples/smb.conf.default /etc/samba &amp;&amp;
+install -m644 ../docs/*.pdf /usr/share/samba
+if [ -f nsswitch/pam_winbind.so ]; then 
+    install -m755 nsswitch/pam_winbind.so /lib/security
+fi</command></userinput></screen>
 
 <note><para>You may want to run <command>configure</command> with the
 <parameter>--help</parameter> parameter.  There may be other parameters 
@@ -92,17 +102,19 @@ needed to take advantage of the optional dependencies.</para></note>
 </sect2>
 
 <sect2>
-<title>Installation command explanations</title>
+<title>Command explanations</title>
 
 <para><command>install -d /var/cache/samba</command>: This directory is 
 needed for proper operation of the <command>smbd</command> and 
 <command>nmbd</command> daemons.</para>
 
 <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration
-file directory to avoid the default of <filename class="directory">/usr/etc</filename>.</para>
+file directory to avoid the default of 
+<filename class="directory">/usr/etc</filename>.</para>
 
 <para><parameter>--localstatedir=/var</parameter>: Sets the variable
-data directory to avoid the default of <filename class="directory">/usr/var</filename>.</para>
+data directory to avoid the default of 
+<filename class="directory">/usr/var</filename>.</para>
 
 <para><option>--with-fhs</option>: Assigns all other file paths in a manner 
 compliant with the Filesystem Hierarchy Standard 
@@ -112,6 +124,13 @@ compliant with the Filesystem Hierarchy Standard
 binary for use by the <command>mount</command> command so that mounting remote 
 <acronym>SMB</acronym> (Windows) shares becomes no more complex than mounting 
 remote <acronym>NFS</acronym> shares.</para>
+
+<para><option>--with-pam</option>: Use this parameter to link 
+<application>Linux-<acronym>PAM</acronym></application> into the build. This 
+also builds the <filename class='libraryfile'>pam_winbind.so</filename> 
+<application><acronym>PAM</acronym></application> module. You can find 
+instructions on how to configure and use the module by running 
+<command>man winbindd</command>.</para>
 
 <para><command>install -m755 nsswitch/libnss_win{s,bind}.so /lib</command>:
 The nss libraries are not installed by default.  If you intend to use
@@ -133,41 +152,79 @@ work unless edited for your site, and renamed
 <sect2>
 <title>Configuring <application>Samba</application></title>
 
-<para>Because of the various uses for <application>Samba</application>, 
-complete configuration is well beyond the scope of the BLFS book.  
-In fact, many complete books have been written on this topic alone.  
-The included documentation, a popular book published by O'Reilly, 
-can be viewed by pointing your web browser to
-<ulink url="file:///usr/share/samba/swat/using_samba/toc.html" />.
-</para>
+<sect3><title>Configuration overview and available documentation</title>
 
-<para>The built in <acronym>SWAT</acronym> (Samba Web Administration Tool) 
-utility can be used for basic configuration, however, before 
-using <acronym>SWAT</acronym> you must add an entry to
-<filename>/etc/services</filename> and make changes to your
-<command>inetd</command>/<command>xinetd</command> 
+<para>Due to the complexity and the many various uses for 
+<application>Samba</application>, complete configuration is well beyond the 
+scope of the BLFS book. Advanced configurations including setting up Primary 
+and Backup Domain Controllers are advanced topics and cannot be adequately 
+covered in BLFS (it should be noted, however, that a 
+<application>Samba</application> BDC cannot be used as a fallback for a 
+<application>Windows</application> <acronym>PDC</acronym>, and conversely, a 
+<application>Windows</application> <acronym>BDC</acronym> cannot be used as a 
+fallback for a <application>Samba</application> <acronym>PDC</acronym>). Many 
+complete books have been written on these topics alone.</para>
+
+<para>There is quite a bit of documentation available which covers many of 
+these advanced configurations. Point your web browser to the links below to 
+view some of the documentation included with the 
+<application>Samba</application> package:</para>
+
+<itemizedlist spacing='compact'>
+<listitem><para>Using Samba, 2nd Edition; a popular book published by O'Reilly 
+<ulink url="file:///usr/share/samba/swat/using_samba/toc.html"/></para>
+</listitem>
+
+<listitem><para>The Official Samba HOWTO and Reference Guide 
+<ulink url="file:///usr/share/samba/swat/help/Samba-HOWTO-Collection/index.html"/></para>
+</listitem>
+
+<listitem><para>Samba-3 by Example 
+<ulink url="file:///usr/share/samba/swat/help/Samba-Guide/index.html"/></para>
+</listitem>
+
+<listitem><para>The Samba-3 man Pages
+<ulink url="file:///usr/share/samba/swat/help/samba.7.html"/></para>
+</listitem>
+</itemizedlist>
+</sect3>
+
+<sect3><title>Configuring SWAT</title>
+
+<para>The built in <acronym>SWAT</acronym> 
+(<application>Samba</application> Web Administration Tool) utility can be used 
+for basic configuration of the <application>Samba</application> installation,  
+but because it may be inconvenient, undesireable or perhaps even impossible 
+to gain access to the console, BLFS recommends setting up access to 
+<acronym>SWAT</acronym> using <application>Stunnel</application>.</para>
+
+<para>First you must add entries to <filename>/etc/services</filename> and 
+modify the <command>inetd</command>/<command>xinetd</command> 
 configuration.</para> 
 
-<para>Add the swat entry to <filename>/etc/services</filename> with the 
-following command: </para>
+<para>Add swat and swat_tunnel entries to 
+<filename>/etc/services</filename> with the following commands:</para>
 
-<screen><userinput><command>echo "swat            901/tcp" &gt;&gt; /etc/services</command></userinput></screen>
+<screen><userinput><command>echo "swat            901/tcp" &gt;&gt; /etc/services &amp;&amp;
+echo "swat_tunnel     902/tcp" &gt;&gt; /etc/services</command></userinput></screen>
 
 <para>If <command>inetd</command> is used, the following command will add the 
-swat entry to <filename>/etc/inetd.conf</filename>: </para>
+swat_tunnel entry to <filename>/etc/inetd.conf</filename>: </para>
 
-<screen><userinput><command>echo "swat stream tcp nowait.400 root /usr/sbin/swat swat" \
+<screen><userinput><command>echo "swat_tunnel stream tcp nowait.400 root /usr/sbin/swat swat" \
     &gt;&gt; /etc/inetd.conf</command></userinput></screen>
 <para>Issue a <command>killall -HUP inetd</command> to reread the
 changed <filename>inetd.conf</filename> file.</para>
 
 <para>If <command>xinetd</command> is used, the following command will 
-add the swat entry to <filename>/etc/xinetd.conf</filename>: </para>
+add the swat_tunnel entry to <filename>/etc/xinetd.conf</filename> (you may 
+need to modify or remove the <quote>only_from</quote> line to include the
+desired host[s]):</para>
 
 <screen><userinput><command>cat &gt;&gt; /etc/xinetd.conf &lt;&lt; "EOF"</command>
-service swat
+service swat_tunnel
 {
-    port            = 901
+    port            = 902
     socket_type     = stream
     wait            = no
     only_from       = 127.0.0.1
@@ -180,8 +237,45 @@ service swat
 <para>Issue a <command>killall -HUP xinetd</command> to reread the
 changed <filename>xinetd.conf</filename> file.</para>
 
-<para><acronym>SWAT</acronym> can be launched by pointing your web
-browser to <ulink url="http://localhost:901"/>.</para>
+<para>Next, you must add an entry for the swat service to the 
+<filename>/etc/stunnel/stunnel.conf</filename> file:</para>
+
+<screen><userinput><command>cat &gt;&gt; /etc/stunnel/stunnel.conf &lt;&lt; "EOF"</command>
+[swat]
+accept  = 901
+connect = 902
+
+<command>EOF</command></userinput></screen>
+
+<para>Restart the <command>stunnel</command> daemon using the following 
+command:</para>
+
+<screen><userinput><command>/etc/rc.d/init.d/stunnel restart</command></userinput></screen>
+
+<para><acronym>SWAT</acronym> can be launched by pointing your web browser to 
+<userinput>https://<replaceable>[CA_DN_field]</replaceable>:901</userinput>. 
+Substitute the hostname listed in the <acronym>DN</acronym> field of the 
+<acronym>CA</acronym> certificate used with 
+<application>Stunnel</application> for 
+<replaceable>[CA_DN_field]</replaceable>.</para>
+
+<note><para>If you linked 
+<application>Linux-<acronym>PAM</acronym></application> into the 
+<application>Samba</application> build, you'll need to create an 
+<filename>/etc/pam.d/samba</filename> file.</para></note>
+</sect3>
+
+<sect3><title>Printing to <acronym>SMB</acronym> clients</title>
+
+<para>If you use <application><acronym>CUPS</acronym></application> for print 
+services, and you wish to print to a printer attached to an 
+<acronym>SMB</acronym> client, you need to create an <acronym>SMB</acronym> 
+backend device. To create the device, issue the following command:</para>
+
+<screen><userinput><command>ln -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</command></userinput></screen>
+</sect3>
+
+<sect3><title>Installing bootscripts</title>
 
 <para>For your convenience, boot scripts have been provided for
 <application>Samba</application>.  There are two included in the
@@ -200,6 +294,7 @@ command:</para>
 <para>If you also need the <filename>winbind</filename> script:</para>
 
 <screen><userinput><command>make install-winbind</command></userinput></screen>
+</sect3>
 
 </sect2>
 
@@ -207,28 +302,45 @@ command:</para>
 <title>Contents</title>
 
 <para>The <application>Samba</application> package contains
+<command>findsmb</command>, 
 <command>make_smbcodepage</command>,
 <command>make_unicodemap</command>,
 <command>mount.smbfs</command>,
 <command>net</command>,
 <command>nmbd</command>,
 <command>nmblookup</command>,
+<command>ntlm_auth</command>, 
+<command>pdbedit</command>, 
+<command>profiles</command>, 
 <command>rpcclient</command>,
 <command>smbcacls</command>,
 <command>smbclient</command>,
 <command>smbcontrol</command>,
+<command>smbcquotas</command>, 
 <command>smbd</command>,
+<command>smbmnt</command>, 
+<command>smbmount</command>, 
 <command>smbpasswd</command>,
 <command>smbspool</command>,
 <command>smbstatus</command>,
+<command>smbtar</command>, 
+<command>smbtree</command>, 
+<command>smbumount</command>, 
 <command>swat</command>,
+<command>tdbbackup</command>, 
+<command>tdbdump</command>, 
 <command>testparm</command>,
 <command>testprns</command>,
 <command>wbinfo</command> and
-<command>winbindd.</command></para></sect2>
+<command>winbindd</command>.</para>
+
+</sect2>
 
 <sect2>
 <title>Description</title>
+<sect3><title>findsmb</title>
+<para><command>findsmb</command> lists information about machines that respond 
+to <acronym>SMB</acronym> name queries on a subnet.</para></sect3>
 <sect3><title>make_smbcodepage</title>
 <para><command>make_smbcodepage</command> converts text descriptions of code 
 pages to binary code page files and vice versa.</para></sect3>
@@ -237,17 +349,29 @@ pages to binary code page files and vice versa.</para></sect3>
 binary, for use in mapping characters to 16 bit Unicode.</para></sect3>
 <sect3><title>mount.smbfs</title>
 <para><command>mount.smbfs</command> provides <command>/bin/mount</command> 
-with a way to mount remote Windows (or Samba) fileshares.</para></sect3>
+with a way to mount remote Windows (or 
+<application>Samba</application>) fileshares.</para></sect3>
 <sect3><title>net</title>
-<para><command>net</command> is a tool for administration of Samba and remote
-CIFS servers, similar to the net utility for DOS/Windows.</para></sect3>
+<para><command>net</command> is a tool for administration of 
+<application>Samba</application> and remote <acronym>CIFS</acronym> servers, 
+similar to the net utility for <acronym>DOS</acronym>/Windows.</para></sect3>
 <sect3><title>nmbd</title>
-<para><command>nmbd</command> is the Samba Net<acronym>BIOS</acronym> name 
-server.</para></sect3>
+<para><command>nmbd</command> is the <application>Samba</application> 
+Net<acronym>BIOS</acronym> name server.</para></sect3>
 <sect3><title>nmblookup</title>
 <para><command>nmblookup</command> is used to query
 Net<acronym>BIOS</acronym> names and map them to <acronym>IP</acronym>
 addresses.</para></sect3>
+<sect3><title>ntlm_auth</title>
+<para><command>ntlm_auth</command> is a tool to allow external access to 
+Winbind's <acronym>NTLM</acronym> authentication function.</para></sect3>
+<sect3><title>pdbedit</title>
+<para><command>pdbedit</command> is a tool used to manage the 
+<acronym>SAM</acronym> database.</para></sect3>
+<sect3><title>profiles</title>
+<para><command>profiles</command> is a utility that reports and changes 
+<acronym>SID</acronym>s in Windows registry files. It currently only supports 
+NT.</para></sect3>
 <sect3><title>rpcclient</title>
 <para><command>rpcclient</command> is used to execute
 MS-<acronym>RPC</acronym> client side functions.</para></sect3>
@@ -258,24 +382,56 @@ lists.</para></sect3>
 <para><command>smbclient</command> is a <acronym>SMB</acronym>/<acronym>CIFS
 </acronym> access utility, similar to <acronym>FTP</acronym>.</para></sect3>
 <sect3><title>smbcontrol</title>
-<para><command>smbcontrol</command> is used to control running <command>smbd</command>,
-<command>nmbd</command> and <command>winbindd</command>
-daemons.</para></sect3>
+<para><command>smbcontrol</command> is used to control running 
+<command>smbd</command>, <command>nmbd</command> and 
+<command>winbindd</command> daemons.</para></sect3>
+<sect3><title>smbcquotas</title>
+<para><command>smbcquotas</command> is used to manipulate NT quotas on 
+<acronym>SMB</acronym> file shares.</para></sect3>
 <sect3><title>smbd</title>
 <para><command>smbd</command> is the main
 <application>Samba</application> daemon.</para></sect3>
+<sect3><title>smbmnt</title>
+<para><command>smbmnt</command> is a helper application used by the 
+<command>smbmount</command> program to do the actual mounting of 
+<acronym>SMB</acronym> shares. It can be installed setuid root if you want 
+normal users to be able to mount their <acronym>SMB</acronym> 
+shares.</para></sect3>
+<sect3><title>smbmount</title>
+<para><command>smbmount</command>, usually invoked as 
+<command>mount.smbfs</command> by the <command>mount</command> command when 
+using the <quote>-t smbfs</quote> option, mounts a Linux <acronym>SMB</acronym> 
+filesystem.</para></sect3>
 <sect3><title>smbpasswd</title>
-<para><command>smbpasswd</command> changes a user's <application>Samba
-</application> password.</para></sect3>
+<para><command>smbpasswd</command> changes a user's 
+<application>Samba</application> password.</para></sect3>
 <sect3><title>smbspool</title>
-<para><command>smbspool</command> sends a print job to an <acronym>SMB
-</acronym> printer.</para></sect3>
+<para><command>smbspool</command> sends a print job to an 
+<acronym>SMB</acronym> printer.</para></sect3>
 <sect3><title>smbstatus</title>
 <para><command>smbstatus</command> reports current
 <application>Samba</application> connections.</para></sect3>
+<sect3><title>smbtar</title>
+<para><command>smbtar</command> is a shell script used for backing up 
+<acronym>SMB</acronym>/<acronym>CIFS</acronym> shares directly to Linux tape 
+drives or a file.</para></sect3>
+<sect3><title>smbtree</title>
+<para><command>smbtree</command> is a text-based <acronym>SMB</acronym> 
+network browser.</para></sect3>
+<sect3><title>smbumount</title>
+<para><command>smbumount</command> is used by normal users to unmount 
+<acronym>SMB</acronym> filesystems, provided that it is setuid 
+root.</para></sect3>
 <sect3><title>swat</title>
-<para><command>swat</command> is the Samba Web Administration Tool.</para>
-</sect3>
+<para><command>swat</command> is the 
+<application>Samba</application> Web Administration Tool.</para></sect3>
+<sect3><title>tdbbackup</title>
+<para><command>tdbbackup</command> is a tool for backing up or validating the 
+integrity of <application>Samba</application> <filename>.tdb</filename> 
+files.</para></sect3>
+<sect3><title>tdbdump</title>
+<para><command>tdbdump</command> is a tool used to print the contents of a 
+<application>Samba</application> <filename>.tdb</filename> file.</para></sect3>
 <sect3><title>testparm</title>
 <para><command>testparm</command> checks an <filename>smb.conf</filename> file 
 for proper syntax.</para></sect3>
@@ -286,6 +442,7 @@ for proper syntax.</para></sect3>
 daemon.</para></sect3>
 <sect3><title>winbindd</title>
 <para><command>winbindd</command> resolves names from NT servers.</para></sect3>
+
 </sect2>
 
 </sect1>
