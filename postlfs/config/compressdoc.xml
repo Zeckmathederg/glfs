@@ -12,7 +12,7 @@ to go is to use the script below.
 
 <screen><userinput><command>cat &gt; /usr/bin/compressdoc &lt;&lt; "EOF"</command>
 #!/bin/bash
-# VERSION: 20031009.1920
+# VERSION: 20031029.0025
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -28,6 +28,9 @@ to go is to use the script below.
 # TODO:
 #        - choose a default compress method to be based on the available
 #          tool : gzip or bzip2;
+#        - offer an option to automagically choose the best compression method
+#          on a per page basis (eg. check which ofgzip/bzip2/whatever is the
+#          most effective, page per page);
 #        - when a MANPATH env var exists, use this instead of /etc/man.conf
 #          (useful for users to (de)compress their man pages;
 #        - offer an option to restore a previous backup;
@@ -132,7 +135,7 @@ function check_unique ()
 
   # Look for, and keep, the most recent one
   LATEST=`(cd "$DIR"; ls -1rt "${BASENAME}" "${GZ_FILE}" "${BZ_FILE}" 2&gt;/dev/null | tail -1)`
-  for i in "${BASENAME}" "${GZ_FILE}".gz "${BZ_FILE}".bz2; do
+  for i in "${BASENAME}" "${GZ_FILE}" "${BZ_FILE}"; do
     [ "$LATEST" != "$i" ] &amp;&amp; rm -f "$DIR"/"$i"
   done
 
@@ -325,6 +328,9 @@ for DIR in $MAN_DIR; do
     # Also fixes the case when multiple version of the page are present, which
     # are either compressed or not.
     if [ ! -L "$FILE" -a ! -e "$FILE" ]; then continue; fi
+
+    # Do not compress whatis files
+    if [ "$FILE" = "whatis" ]; then continue; fi
 
     if [ -d "$FILE" ]; then
       cd "${MEM_DIR}"  # Go back to where we ran "$0", in case "$0"=="./compressdoc" ...
