@@ -4,10 +4,10 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY db-3.3-download-http " ">
-  <!ENTITY db-3.3-download-ftp  "ftp://ftp.pu.edu.tw/Unix/Database/BerkeleyDB/db-&db-3.3-version;.tar.gz">
+  <!ENTITY db-3.3-download-http "http://fresh.t-systems-sfr.com/unix/src/misc/db-&db-3.3-version;.tar.gz">
+  <!ENTITY db-3.3-download-ftp  "ftp://sleepycat1.inetu.net/releases/db-&db-3.3-version;.tar.gz">
   <!ENTITY db-3.3-size          "2.3 MB">
-  <!ENTITY db-3.3-buildsize     "20.3 MB">
+  <!ENTITY db-3.3-buildsize     "27.5 MB">
   <!ENTITY db-3.3-time          "0.80 SBU">
 ]>
 
@@ -37,31 +37,29 @@ url="&db-3.3-download-ftp;"/></para></listitem>
 <sect3><title>Additional downloads</title>
 <itemizedlist spacing='compact'>
 <listitem><para>Required Patch: <ulink
-url="http://www.sleepycat.com/webforms/patchdl.php?src=patch.3.3.11.1"/></para></listitem>
+url="http://www.sleepycat.com/update/&db-3.3-version;/patch.&db-3.3-version;.1"/></para></listitem>
 <listitem><para>Recommended Patch: <ulink
-url="http://www.sleepycat.com/webforms/patchdl.php?src=patch.3.3.11.2"/></para></listitem>
+url="http://www.sleepycat.com/update/&db-3.3-version;/patch.&db-3.3-version;.2"/></para></listitem>
 </itemizedlist></sect3>
-
 
 </sect2>
 
 <sect2>
 <title>Installation of <application>Berkeley DB</application></title>
 
-<para>See: <ulink url="http://www.sleepycat.com/download/patching.shtml"/> 
-for instructions on installing the patches.
-</para>
-
 <para>Install <application>Berkeley DB</application> by running the following commands:
 </para>
 
-<screen><userinput><command>cd build_unix &amp;&amp;
+<screen><userinput><command>patch -Np0 -i ../patch.&db-3.3-version;.1 &amp;&amp;
+patch -Np0 -i ../patch.&db-3.3-version;.2 &amp;&amp;
+cd build_unix &amp;&amp;
 ../dist/configure --prefix=/opt/db-3.3 --enable-compat185 &amp;&amp;
 make &amp;&amp;
 make docdir=/opt/db-3.3/doc/Berkeley-DB install &amp;&amp;
 cd /opt/db-3.3/lib/ &amp;&amp;
-rm -f libdb.so &amp;&amp;
+mv libdb.so .. &amp;&amp;
 for i in $(ls); do mv $i /usr/lib; ln -sf /usr/lib/$i; done &amp;&amp;
+mv ../libdb.so . &amp;&amp;
 cd /opt/db-3.3/include/ &amp;&amp;
 sed -i 's/^DB185/DB/' db_185.h &amp;&amp;
 ln -nsf /opt/db-3.3/include /usr/include/db3</command></userinput></screen>
@@ -71,7 +69,21 @@ ln -nsf /opt/db-3.3/include /usr/include/db3</command></userinput></screen>
 <sect2>
 <title>Command explanations</title>
 
-<para><command>sed 's/^DB185/DB/' /usr/include/db_185.h > /usr/include/db_185.h.new</command>: Change the DB185 database pointer to DB.</para>
+<para><parameter>docdir=/opt/db-3.3/doc/Berkeley-DB</parameter>: Installs the 
+documentation in the <filename class="directory">/opt/db-3.3</filename> 
+hierarchy.</para>
+
+<para><command>mv libdb.so ..</command> and <command>mv ../libdb.so 
+.</command>: Avoids moving <filename>libdb.so</filename> to  
+<filename class="directory">/usr/lib</filename>.</para>
+
+<para><command>for i in ...; do ...; ln ...; done</command>: Moves the DB 
+libraries to <filename class="directory">/usr/lib</filename> and creates 
+symlinks to these libraries in 
+<filename class="directory">/opt/db-3.3/lib</filename>.</para>
+
+<para><command>sed -i 's/^DB185/DB/' db_185.h</command>: Change the DB185 
+database pointer to DB.</para>
 
 </sect2>
 
@@ -87,8 +99,9 @@ ln -nsf /opt/db-3.3/include /usr/include/db3</command></userinput></screen>
 <command>db_printlog</command>,
 <command>db_recover</command>,
 <command>db_stat</command>,
-<command>db_upgrade</command> and
-<command>db_verify</command>.
+<command>db_upgrade</command>,
+<command>db_verify</command> and the 
+<filename class="library">libdb-3</filename> libraries.
 
 </para>
 
@@ -99,7 +112,6 @@ ln -nsf /opt/db-3.3/include /usr/include/db3</command></userinput></screen>
 <sect3><title>db_archive</title>
 <para><command>db_archive</command> prints the pathnames of log files that are 
 no longer in use.</para></sect3>
-
 
 <sect3><title>db_checkpoint</title>
 <para><command>db_checkpoint</command> is a daemon process used to monitor and 
@@ -120,7 +132,6 @@ files created with <command>db_dump</command>.</para></sect3>
 <sect3><title>db_printlog</title>
 <para><command>db_printlog</command> converts database log files to human 
 readable text.</para></sect3>
-
 
 <sect3><title>db_recover</title>
 <para><command>db_recover</command> is used to restore a database to a 
