@@ -10,9 +10,9 @@ ideas like recursively calling <command>gzip</command> on them. A better way
 to go is to use the script below.
 </para>
 
-<screen><userinput><command>cat &gt; /usr/bin/compressdoc &lt;&lt; "EOF"</command>
+<screen><userinput><command>cat &gt; /usr/sbin/compressdoc &lt;&lt; "EOF"</command>
 #!/bin/bash
-# VERSION: 20031029.0025
+# VERSION: 20040320.0026
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -24,6 +24,8 @@ to go is to use the script below.
 # to allow for changing hard-links into soft- ones, to specify the
 # compression level, to parse the man.conf for all occurrences of MANPATH,
 # to allow for a backup, to allow to keep the newest version of a page.
+# Modified 20040330 by Tushar Teredesai to replace $0 by the name of the script.
+#   (Note: It is assumed that the script is in the user's PATH)
 #
 # TODO:
 #        - choose a default compress method to be based on the available
@@ -42,7 +44,7 @@ function help ()
   if [ -n "$1" ]; then
     echo "Unknown option : $1"
   fi
-  ( echo "Usage: $0 &lt;comp_method&gt; [options] [dirs]" &amp;&amp; \
+  ( echo "Usage: $MY_NAME &lt;comp_method&gt; [options] [dirs]" &amp;&amp; \
   cat &lt;&lt; EOT
 Where comp_method is one of :
   --gzip, --gz, -g
@@ -144,6 +146,9 @@ function check_unique ()
   # If the file was not the latest, return 1
   return 1
 }
+
+# Name of the script
+MY_NAME=`basename $0`
 
 # OK, parse the command-line for arguments, and initialize to some sensible
 # state, that is : don't change links state, parse /etc/man.conf, be most
@@ -338,7 +343,7 @@ for DIR in $MAN_DIR; do
       echo "-&gt; Entering ${DIR}/${FILE}..." &gt; $DEST_FD0
       # I need not pass --conf, as I specify the directory to work on
       # But I need exit in case of error
-      "$0" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} ${VERBOSE_OPT} ${FORCE_OPT} "${DIR}/${FILE}" || exit 1
+      "$MY_NAME" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} ${VERBOSE_OPT} ${FORCE_OPT} "${DIR}/${FILE}" || exit 1
       echo "&lt;- Leaving ${DIR}/${FILE}." &gt; $DEST_FD1
       cd "$DIR"  # Needed for the next iteration of the loop
 
@@ -449,11 +454,11 @@ for DIR in $MAN_DIR; do
   done # for FILE
 done # for DIR
 <command>EOF
-chmod 755 /usr/bin/compressdoc</command></userinput></screen>
+chmod 755 /usr/sbin/compressdoc</command></userinput></screen>
 
 <para>Now, as root, you can issue a 
-<command>/usr/bin/compressdoc --bz2</command> to compress all your system man 
-pages. You can also run <command>/usr/bin/compressdoc --help</command> to get 
+<command>compressdoc --bz2</command> to compress all your system man 
+pages. You can also run <command>compressdoc --help</command> to get 
 a comprehensive help about what the script is able to do.</para>
 
 <para> Don't forget that a few programs, like the <application>X</application> 
