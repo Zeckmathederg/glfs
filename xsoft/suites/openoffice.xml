@@ -5,10 +5,10 @@
   %general-entities;
 
   <!ENTITY openoffice-download-http "http://download.openoffice.org/&openoffice-version;/source.html">
-  <!ENTITY openoffice-download-ftp  " ">
-  <!ENTITY openoffice-size          "189 MB">
-  <!ENTITY openoffice-buildsize     "5.0 GB">
-  <!ENTITY openoffice-time          " ">
+  <!ENTITY openoffice-download-ftp  "ftp://ftp.ussg.iu.edu/pub/openoffice/stable/1.1.2/OOo_&openoffice-version;_source.tar.gz">
+  <!ENTITY openoffice-size          "221 MB">
+  <!ENTITY openoffice-buildsize     "5.8 GB">
+  <!ENTITY openoffice-time          "81 SBU">
 ]>
 
 <sect1 id="openoffice" xreflabel="OpenOffice-&openoffice-version;">
@@ -23,44 +23,58 @@ Open Source sibling of <application>StarOffice</application>.</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP): <ulink
+<listitem><para>Download Mirrors (HTTP): <ulink
 url="&openoffice-download-http;"/></para></listitem>
 <listitem><para>Download (FTP): <ulink
 url="&openoffice-download-ftp;"/></para></listitem>
-<listitem><para>Download size: &openoffice-size;</para></listitem>
+<listitem><para>Download size: &openoffice-size; 
+(additional 11-13 MB for localized help content file)</para></listitem>
 <listitem><para>Estimated Disk space required:
-&openoffice-buildsize;</para></listitem>
+&openoffice-buildsize; (more if using localized help content)</para></listitem>
 <listitem><para>Estimated build time:
-&openoffice-time;</para></listitem>
+&openoffice-time; (longer if using localized help content)</para></listitem>
 </itemizedlist>
 </sect3>
 
 <sect3><title>Additional downloads</title>
 <itemizedlist spacing='compact'>
-<listitem><para>General Polygon Clipper Library (Optional if <xref linkend="libart_lgpl"/> is used): <ulink
-url="ftp://ftp.cs.man.ac.uk/pub/toby/gpc/gpc231.tar.Z"/></para></listitem>
 <listitem><para>Required patch (Executable <command>test</command> is in
 <filename class="directory">/bin</filename>,
 not in <filename class="directory">/usr/bin</filename>): <ulink
 url="&patch-root;/openoffice-&openoffice-version;-test_bin_loc-1.patch"/></para></listitem>
-<listitem><para>Required patch if <xref linkend="Linux_PAM"/> is not installed: <ulink
+<listitem><para>Required patch if Linux-<acronym>PAM</acronym>-&Linux_PAM-version; 
+is not installed: <ulink
 url="&patch-root;/openoffice-&openoffice-version;-no_pam-1.patch"/></para></listitem>
-<listitem><para>Required patch if compiling with <acronym>JDK</acronym> 1.4.2: <ulink
-url="&patch-root;/openoffice-&openoffice-version;-jdk_1.4.2_fix-1.patch"/></para></listitem>
+<listitem><para>Required patch if compiling with 
+<acronym>JDK</acronym>-&j2sdk-src-version;: <ulink
+url="&patch-root;/openoffice-&openoffice-version;-jdk_&j2sdk-src-version;_fix-1.patch"/></para></listitem>
 <listitem><para>Recommended patch: <ulink
 url="&patch-root;/openoffice-&openoffice-version;-domainname-1.patch"/></para></listitem>
-<listitem><para>The source <acronym>TAR</acronym> ball only contains English language help. A localized help
-content file may be available at <ulink
-url="http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/helpcontent/"/>.</para></listitem></itemizedlist>
+<listitem><para>General Polygon Clipper Library (Optional if 
+libart_lgpl-&libart_lgpl-version; is used): <ulink
+url="ftp://ftp.cs.man.ac.uk/pub/toby/gpc/gpc231.tar.Z"/></para></listitem>
+<listitem><para>The source <acronym>TAR</acronym> ball only contains English 
+language help. A localized help content file may be available at: <ulink
+url="http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/helpcontent/"/>.</para></listitem>
+</itemizedlist>
 </sect3>
 
 <sect3><title><application>OpenOffice</application> dependencies</title>
 <sect4><title>Required</title>
 <para>X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>),
 <xref linkend="zip"/>, <xref linkend="unzip"/>, <xref linkend="tcsh"/>,
-<xref linkend="which"/></para></sect4>
+<xref linkend="which"/> and <ulink 
+url="http://ftp.tuniv.szczecin.pl/pub/Linux/alpha-gnu/bison/bison-1.875a.tar.bz2">Bison-1.875a
+</ulink></para>
+
+<para><emphasis>Note:</emphasis> Bison-1.875a is an update to the 
+<acronym>LFS</acronym> version of 1.875. Run <command>bison --version</command> 
+to find out what your system has.</para>
+</sect4>
+
 <sect4><title>Recommended</title>
 <para><xref linkend="j2sdk"/></para></sect4>
+
 <sect4><title>Optional</title>
 <para><xref linkend="Linux_PAM"/>,
 <xref linkend="libart_lgpl"/>,
@@ -73,30 +87,32 @@ url="http://ant.apache.org/">Apache Ant</ulink></para></sect4>
 <sect2>
 <title>Installation of <application>OpenOffice</application></title>
 
-<para>Apply the downloaded patches and optionally copy the gpc files.</para>
+<para>Apply the downloaded patches and, optionally, untar and move the gpc 
+files:</para>
 
 <screen><userinput><command>mv ../gpc231/* external/gpc &amp;&amp;
 for p in ../openoffice-&openoffice-version;-*.patch
-do patch -Np1 -i $p
-done</command></userinput></screen>
+  do patch -Np1 -i $p
+  done</command></userinput></screen>
 
 <para>If you want to optimize the build, edit
 <filename>solenv/inc/unxlngi4.mk</filename> and add the desired optimization
 flags to the <envar>CFLAGSOPT</envar> variable. Some users have reported 
-problems with -fomit-frame-pointer. The best option is to not use any custom 
-optimizations. The following command removes an incorrect -mcpu option in the 
-above file.</para>
+problems with <parameter>-fomit-frame-pointer</parameter>. The best option is 
+to not use any custom optimizations. The following command removes an incorrect 
+<parameter>-mcpu</parameter> option in the above file.</para>
 
 <screen><userinput><command>sed -i "s:\-mcpu=pentiumpro::" \
-solenv/inc/unxlngi4.mk</command></userinput></screen>
+    solenv/inc/unxlngi4.mk</command></userinput></screen>
 
 <para>Configure <application>OpenOffice</application> using the following 
 commands. You may build install sets for only specific languages based on your 
 preferences. If a particular component is not available in the language of your 
 choice, the default will be English. The following option compiles all 
-available languages. If you restrict the languages, be sure to add ENUS to the 
-list; otherwise the build fails. Also, the build fails when the environment 
-variable <envar>LANG</envar> is set. Unset it before compiling.</para>
+available languages. If you restrict the languages, be sure to add 
+<parameter>ENUS</parameter> to the list; otherwise the build fails. Also, the 
+build fails when the environment variable <envar>LANG</envar> is set. Unset it 
+before compiling.</para>
 
 <screen><userinput><command>cd config_office/ &amp;&amp;
 ./configure --with-lang=ALL \
@@ -105,24 +121,24 @@ variable <envar>LANG</envar> is set. Unset it before compiling.</para>
 cd ..</command></userinput></screen>
 
 <para>Compile <application>OpenOffice</application> using the following
-commands.</para>
+commands:</para>
 
-<note><para><application>OpenOffice</application> fails to compile if the 
-umask is set to something exotic. Set umask to 022 if you normally set it to 
+<note><para><application>OpenOffice</application> fails to compile if 
+<command>umask</command> is set to something exotic. Set 
+<command>umask 0022</command> if you normally set it to 
 something else.</para></note>
 
 <screen><userinput><command>./bootstrap &amp;&amp;
 bash -c "source LinuxIntelEnv.Set.sh; dmake"</command></userinput></screen>
 
-<para>If you have downloaded localized help content zip files, you will need
-to unzip them to the appropriate directory as mentioned below and then recreate
-the installation set.</para>
+<para>If you have downloaded localized help content <filename>tgz</filename> 
+files, you will need to untar them to the appropriate directory as shown 
+below and then recreate the installation set.</para>
 
 <screen><userinput><command>cd solver/645/unxlngi4.pro/pck &amp;&amp;
 for i in $(ls ../../../../../helpcontent_*_unix.tgz)
-do
-tar -xvzf $i
-done &amp;&amp;
+  do tar -xvzf $i
+  done &amp;&amp;
 cd ../../../../instsetoo &amp;&amp;
 rm -rf unxlngi4.pro &amp;&amp;
 cd .. &amp;&amp;
@@ -133,15 +149,16 @@ commands to install the English language set. To install a localized version,
 replace the 01 with the international telephone country code for your country.
 Note that when installing, <application>OpenOffice</application> needs an
 <application>X</application> display, even though there is no visible
-<application>X</application> window. You can use
-<application>Xvfb</application> if you are compiling on a console.</para>
+<application>X</application> window. You can use <command>Xvfb</command> if 
+you are compiling on a console.</para>
 
 <screen><userinput><command>cd instsetoo/unxlngi4.pro/01/normal &amp;&amp;
 sed -i "s:^oo_home=.*:oo_home=openoffice:" install &amp;&amp;
 ./install --prefix=/opt &amp;&amp;
-for appl in swriter scalc sdraw simpress smath soffice spadmin
-do ln -sf /opt/openoffice/program/$appl /usr/bin/$appl
-done</command></userinput></screen>
+for appl in sagenda scalc sdraw sfax simpress slabel sletter \
+    smaster smath smemo soffice spadmin svcard sweb swriter
+  do ln -sf /opt/openoffice/program/$appl /usr/bin/$appl
+  done</command></userinput></screen>
 
 </sect2>
 
@@ -161,7 +178,8 @@ available languages.</para>
 <para><parameter>--with-libart</parameter>: Use libart instead of gpc for 
 polygon clipping.</para>
 
-<para><parameter>--with-libsn</parameter>: Use startup-notification.</para>
+<para><parameter>--with-libsn</parameter>: Use 
+<application>startup-notification</application>.</para>
 
 <para><parameter>--disable-java</parameter>: Do not build components that need 
 java.</para>
@@ -170,7 +188,7 @@ java.</para>
 clipping capability.</para>
 
 <para><parameter>--without-fonts</parameter>: Do not install Bitstream Vera 
-fonts since they are already bundled with X.</para>
+fonts since they are already bundled with <application>X</application>.</para>
 
 <para><command>./bootstrap</command>: Create packages required to bootstrap 
 the build.</para>
@@ -180,7 +198,7 @@ the build.</para>
 <para><command>sed -i "s:^oo_home=...</command>: Remove version specific
 installation directory.</para>
 
-<para><command>for appl in swriter scalc sdraw simpress smath soffice;
+<para><command>for appl in sagenda scalc sdraw sfax ...; 
 do ...</command>: Create links so that the package can be started from the 
 command-line without changes to the existing path.</para>
 
@@ -190,20 +208,23 @@ command-line without changes to the existing path.</para>
 <title>Contents</title>
 
 <para>The <application>OpenOffice</application> package contains
-<command>swriter</command>,
-<command>simpress</command>, <command>scalc</command>,
-<command>sdraw</command>, <command>smath</command>,
-and <command>spadmin</command>.</para>
+<command>sagenda</command>, <command>scalc</command>, 
+<command>sdraw</command>, <command>sfax</command>, 
+<command>simpress</command>, <command>slabel</command>, 
+<command>sletter</command>, <command>smaster</command>, 
+<command>smath</command>, <command>smemo</command>, 
+<command>soffice</command>, <command>spadmin</command>, 
+<command>svcard</command>, <command>sweb</command>,
+<command>swriter</command>, <application>OpenOffice</application> 
+libraries and support utilities.</para>
 
 </sect2>
 
 <sect2><title>Description</title>
 
-<sect3><title>swriter</title>
-<para>Word processing application.</para></sect3>
-
-<sect3><title>simpress</title>
-<para>Presentation application.</para></sect3>
+<sect3><title>sagenda</title>
+<para>Create an agenda template and start 
+<command>swriter</command>.</para></sect3>
 
 <sect3><title>scalc</title>
 <para>Spreadsheet application.</para></sect3>
@@ -211,12 +232,47 @@ and <command>spadmin</command>.</para>
 <sect3><title>sdraw</title>
 <para>Drawing application.</para></sect3>
 
+<sect3><title>sfax</title>
+<para>Create a fax template and start 
+<command>swriter</command>.</para></sect3>
+
+<sect3><title>simpress</title>
+<para>Presentation application.</para></sect3>
+
+<sect3><title>slabel</title>
+<para>Create a label template and start
+<command>swriter</command>.</para></sect3>
+
+<sect3><title>sletter</title>
+<para>Create a letter template and start
+<command>swriter</command>.</para></sect3>
+
+<sect3><title>smaster</title>
+<para>Creates a new master document.</para></sect3>
+
 <sect3><title>smath</title>
 <para>Mathematical formula editor.</para></sect3>
 
+<sect3><title>smemo</title>
+<para>Create a memo template and start
+<command>swriter</command>.</para></sect3>
+
+<sect3><title>soffice</title>
+<para>Opens a base window with access to all 
+<application>OpenOffice</application> applications.</para></sect3>
+
 <sect3><title>spadmin</title>
-<para>OpenOffice Printer Configuration. You may need to run this if
-you are having any printing problems.</para></sect3>
+<para><application>OpenOffice</application> Printer Configuration. You may 
+need to run this if you are having any printing problems.</para></sect3>
+
+<sect3><title>svcard</title>
+<para>Business card application.</para></sect3>
+
+<sect3><title>sweb</title>
+<para>An <acronym>HTML</acronym> editor.</para></sect3>
+
+<sect3><title>swriter</title>
+<para>Word processing application.</para></sect3>
 
 </sect2>
 
