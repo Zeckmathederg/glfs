@@ -3,9 +3,9 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY docbook-xsl-download-http "http://prdownloads.sourceforge.net/docbook/docbook-xsl-&docbook-xsl-version;.tar.gz">
-  <!ENTITY docbook-xsl-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/docbook-xsl-&docbook-xsl-version;.tar.gz">
-  <!ENTITY docbook-xsl-size          "1.5 MB">
+  <!ENTITY docbook-xsl-download-http "http://prdownloads.sourceforge.net/docbook/docbook-xsl-&docbook-xsl-version;.tar.bz2">
+  <!ENTITY docbook-xsl-download-ftp  " ">
+  <!ENTITY docbook-xsl-size          "975 KB">
   <!ENTITY docbook-xsl-buildsize     "25 MB">
   <!ENTITY docbook-xsl-time          "0.01 SBU">
 ]>
@@ -57,11 +57,13 @@ Stylesheets</application> by running the following commands:</para>
 
 <screen><userinput><command>install -d /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
 chown -R root:root . &amp;&amp;
-cp -af VERSION common eclipse extensions fo html htmlhelp images javahelp lib \
-    manpages params profiling template tools xhtml \
+cp -af VERSION common eclipse extensions fo html htmlhelp images \
+    javahelp lib manpages params profiling template xhtml \
     /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
 install -d /usr/share/doc/xml &amp;&amp;
 cp -af doc/* /usr/share/doc/xml &amp;&amp;
+cd /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version; &amp;&amp;
+sh INSTALL &amp;&amp;
 if [ ! -f /etc/xml/catalog ]; then mkdir -p /etc/xml; xmlcatalog --noout \
     --create /etc/xml/catalog; fi &amp;&amp;
 if [ ! -e /etc/xml/docbook ]; then xmlcatalog --noout --create \
@@ -72,24 +74,15 @@ xmlcatalog --noout --add "rewriteSystem" \
 xmlcatalog --noout --add "rewriteURI" \
     "http://docbook.sourceforge.net/release/xsl/&docbook-xsl-version;" \
     "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
-xmlcatalog --noout --add "rewriteSystem" \
-    "http://docbook.sourceforge.net/release/xsl/current" \
-    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
-xmlcatalog --noout --add "rewriteURI" \
-    "http://docbook.sourceforge.net/release/xsl/current" \
-    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
-xmlcatalog --noout --add "rewriteSystem" \
-    "http://docbook.sourceforge.net/release/xsl/1.65.1" \
-    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
-xmlcatalog --noout --add "rewriteURI" \
-    "http://docbook.sourceforge.net/release/xsl/1.65.1" \
-    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;" /etc/xml/catalog &amp;&amp;
 xmlcatalog --noout --add "delegateSystem" \
     "http://docbook.sourceforge.net/release/xsl/" \
     "file:///etc/xml/docbook" /etc/xml/catalog &amp;&amp;
 xmlcatalog --noout --add "delegateURI" \
     "http://docbook.sourceforge.net/release/xsl/" \
-    "file:///etc/xml/docbook" /etc/xml/catalog</command></userinput></screen>
+    "file:///etc/xml/docbook" /etc/xml/catalog &amp;&amp;
+echo \
+'export XML_CATALOG_FILES="/usr/share/xml/docbook/xsl-stylesheets&docbook-xsl-version;/catalog.xml /etc/xml/catalog"' \
+ >> /etc/profile</command></userinput></screen>
 
 </sect2>
 
@@ -104,7 +97,32 @@ Stylesheets</application></title>
 <sect3><title>Configuration Information</title>
 
 <para>The above installation script creates the files and updates the
-catalog.</para>
+catalog. Some project stylesheets reference specific versions of
+<acronym>XSL</acronym> stylesheets, like <acronym>BLFS</acronym>, which
+needs the following additional commands.  These commands can also serve
+as an example for using a single <acronym>XSL</acronym> version to support 
+any hard coded versions, as needed.</para>
+<screen><userinput><command>xmlcatalog --noout --add "rewriteSystem" \
+    "http://docbook.sourceforge.net/release/xsl/1.65.1" \
+    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;"
+/etc/xml/catalog &amp;&amp;
+xmlcatalog --noout --add "rewriteURI" \
+    "http://docbook.sourceforge.net/release/xsl/1.65.1" \
+    "/usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;"
+/etc/xml/catalog</command></userinput></screen>
+<para>Alternatively, other versions can be installed in their own
+versioned directories and catalog entries made in the following
+form:</para>
+<screen><userinput><command>xmlcatalog --noout --add "rewriteSystem" \
+    "http://docbook.sourceforge.net/release/xsl/<replaceable>[version]</replaceable>" \
+    "/usr/share/xml/docbook/xsl-stylesheets-<replaceable>[version]</replaceable>"
+/etc/xml/catalog &amp;&amp;
+xmlcatalog --noout --add "rewriteURI" \
+    "http://docbook.sourceforge.net/release/xsl/<replaceable>[version]</replaceable>" \
+    "/usr/share/xml/docbook/xsl-stylesheets-<replaceable>[version]</replaceable>"
+/etc/xml/catalog</command></userinput></screen>
+<para>This method guarantees output as intended by the project.</para>
+
 </sect3>
 
 </sect2>
