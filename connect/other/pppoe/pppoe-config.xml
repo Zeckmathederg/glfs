@@ -2,12 +2,84 @@
 <title>Configuring RP-PPPoE</title>
 
 <sect3><title>Config files</title>
-<para><filename>files to be determined</filename></para></sect3>
+<para><filename>/etc/ppp/pppoe.conf, 
+/etc/ppp/firewall-standalone, 
+/etc/ppp/firewall-masq, 
+/etc/ppp/pppoe-server-options, 
+/etc/resolv.conf, 
+/etc/ppp/pap-seecrets, 
+/etc/ppp/chap-secrets</filename></para></sect3>
 
 <sect3><title>Configuration Information</title>
 
-<para>To re-configure RP-PPPoE after installation, you should run the
-<filename>adsl-config</filename> script.</para>
+<para>To configure RP-PPPoE after installation, you should run the
+<filename>adsl-setup</filename> script.</para>
+
+<para>When configuring your connection, you will need to have your 
+ISPs nameserver information availible , as well as your username and 
+password.  You will also be asked wether you want to configure a
+dial-on-demand or a constant connection.  If your service provider does
+not charge by the minute, it is usually good to have a bootscript handle 
+the connection for you.  You can, of course, choose not to install the 
+following script, and start your connection manually with the 
+<filename>adsl-start</filename> script.</para>
+
+<para>Use the following commands to create the 
+<emphasis>optional</emphasis> <filename>adsl</filename> bootscript:</para>
+
+<para><screen><userinput>cat &gt; /etc/rc.d/init.d/adsl &lt;&lt; "EOF"
+#!/bin/bash
+# Begin $rc_base/init.d/adsl
+
+# Based on sysklogd script from LFS-3.1 and earlier.
+# Rewritten by Gerard Beekmans  - gerard@linuxfromscratch.org
+# adsl script written by DJ Lucas  - dj@lucasit.com
+
+source /etc/sysconfig/rc
+source $rc_functions
+
+case "$1" in
+        start)
+                echo "Bringing up the ADSL interface..."
+                /usr/sbin/adsl-start
+                evaluate_retval
+                ;;
+
+        stop)
+                echo "Bringing down the ADSL interface..."
+                /usr/sbin/adsl-stop
+                evaluate_retval
+                ;;
+
+        restart)
+                $0 stop
+                sleep 1
+                $0 start
+                ;;
+
+        status)
+                /usr/sbin/adsl-status
+                ;;
+
+        *)
+                echo "Usage: $0 {start|stop|restart|status}"
+                exit 1
+                ;;
+esac
+
+# End $rc_base/init.d/adsl
+EOF
+chmod 755 /etc/rc.d/init.d/adsl</userinput></screen></para>
+
+<para>Now create the necessary symlinks:</para>
+
+<para><screen><userinput>ln -sf ../init.d/adsl /etc/rc.d/rc0.d/K49adsl &amp;&amp;
+ln -sf ../init.d/adsl /etc/rc.d/rc1.d/K49adsl &amp;&amp;
+ln -sf ../init.d/adsl /etc/rc.d/rc2.d/K49adsl &amp;&amp;
+ln -sf ../init.d/adsl /etc/rc.d/rc3.d/S24adsl &amp;&amp;
+ln -sf ../init.d/adsl /etc/rc.d/rc4.d/S24adsl &amp;&amp;
+ln -sf ../init.d/adsl /etc/rc.d/rc5.d/S24adsl &amp;&amp;
+ln -sf ../init.d/adsl /etc/rc.d/rc6.d/K49adsl</userinput></screen></para>
 
 </sect3>
 
