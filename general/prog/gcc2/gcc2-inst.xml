@@ -1,11 +1,11 @@
 <sect2>
 <title>Installation of gcc</title>
 
-<para>Apply the two patches, one to fix compilation and the other to stop the
-fixincludes script from executing.</para>
+<para>Apply the patches:</para>
 
-<para><screen><userinput>patch -Np1 -i ../gcc-&gcc2-version;-1.patch &amp;&amp;
-patch -Np1 -i ../gcc-&gcc2-version;-no-fixinc.patch</userinput></screen></para>
+<para><screen><userinput>patch -Np1 -i ../gcc-&gcc2-version;-2.patch &amp;&amp;
+patch -Np1 -i ../gcc-&gcc2-version;-no-fixinc.patch &amp;&amp;
+patch -Np1 -i ../gcc-&gcc2-version;-returntype-fix.patch</userinput></screen></para>
 
 <para>The gcc development team recommends building in a separate directory.</para>
 
@@ -15,27 +15,24 @@ cd ../gcc-build</userinput></screen></para>
 <para>Configure gcc to build the C and C++ compilers and enable the related C++
 options.</para>
 <para><screen><userinput>../gcc-&gcc2-version;/configure \
---prefix=/opt/gcc2 \
+--prefix=/opt/gcc-&gcc2-version; \
 --enable-shared --enable-languages=c,c++ \
 --enable-threads=posix</userinput></screen></para>
 
-<para>Compile and install gcc and remove unneeded directories (adjust the
-machine triplet to match your architecture).</para>
+<para>Compile and install gcc:</para>
 <para><screen><userinput>make bootstrap &amp;&amp;
-make install &amp;&amp;
-ln -sf gcc /opt/gcc2/bin/cc &amp;&amp;
-rm -rf /opt/gcc2/{i686-pc-linux-gnu,info,man}</userinput></screen></para>
+make install</userinput></screen></para>
 
 <para>Make note of the library that is installed.</para>
-<para><screen><userinput>L=`find /opt/gcc2/lib -name "*libstdc++*.so" -type f` &amp;&amp;
+<para><screen><userinput>L=`find /opt/gcc-&gcc2-version;/lib -name "*libstdc++*.so" -type f` &amp;&amp;
 IL=`basename $L`</userinput></screen></para>
 
 <para>Move the C++ libraries to the standard lib directory to avoid having to
-add <filename>/opt/gcc2/lib</filename> to
+add <filename>/opt/gcc-&gcc2-version;/lib</filename> to
 <filename>/etc/ld.so.conf</filename>.</para>
 
-<para><screen><userinput>for i in /opt/gcc2/lib/*.so*; do mv -f $i /usr/lib;
-ln -sf /usr/lib/`basename $i` /opt/gcc2/lib; done</userinput></screen></para>
+<para><screen><userinput>for i in /opt/gcc-&gcc2-version;/lib/*.so*; do mv -f $i /usr/lib;
+ln -sf /usr/lib/`basename $i` /opt/gcc-&gcc2-version;/lib; done</userinput></screen></para>
 
 <para>Create symlinks required by commercial and precompiled packages.</para>
 <para><screen><userinput>ln -sf $IL /usr/lib/libstdc++-libc6.1-1.so.2 &amp;&amp;
