@@ -1,10 +1,9 @@
 <sect2>
 <title>Installation of <application>OpenOffice</application></title>
 
-<para>Apply the downloaded patches and copy gpc files.</para>
+<para>Apply the downloaded patches and optionally copy the gpc files.</para>
 
 <screen><userinput><command>mv ../gpc231/* external/gpc &amp;&amp;
-rm -rf ../gpc231 &amp;&amp;
 for p in ../openoffice-&openoffice-version;-*.patch
 do patch -Np1 -i $p
 done</command></userinput></screen>
@@ -15,11 +14,8 @@ flags to <envar>CFLAGSOPT</envar> variable. Some users have reported problems wi
 -fomit-frame-pointer. The best option is to not use any custom optimizations.
 The following command removes an incorrect -mcpu option in the above file.</para>
 
-<screen><userinput><command>cd solenv/inc &amp;&amp;
-cp unxlngi4.mk unxlngi4.mk.orig &amp;&amp;
-sed -e "s:\-mcpu=pentiumpro::" \
-unxlngi4.mk.orig &gt; unxlngi4.mk &amp;&amp;
-cd ../..</command></userinput></screen>
+<screen><userinput><command>sed -i "s:\-mcpu=pentiumpro::" \
+solenv/inc/unxlngi4.mk</command></userinput></screen>
 
 <para>Configure openoffice using the following commands. You may build install
 sets for only specific languages based on your preferences.
@@ -32,7 +28,9 @@ the environment variable <envar>LANG</envar> is
 set, unset it before compiling.</para>
 
 <screen><userinput><command>cd config_office/ &amp;&amp;
-./configure --with-lang=ALL &amp;&amp;
+./configure --with-lang=ALL \
+--with-dict=ALL \
+--enable-libsn --with-system-zlib &amp;&amp;
 cd ..</command></userinput></screen>
 
 <para>Compile <application>OpenOffice</application> using the following
@@ -66,8 +64,7 @@ is no visible <application>X</application> window. You
 can use <application>Xvfb</application> if you are compiling on a console.</para>
 
 <screen><userinput><command>cd instsetoo/unxlngi4.pro/01/normal &amp;&amp;
-cp install install.orig &amp;&amp;
-sed -e "s:^oo_home=.*:oo_home=openoffice:" install.orig > install &amp;&amp;
+sed -i "s:^oo_home=.*:oo_home=openoffice:" install &amp;&amp;
 ./install --prefix=/opt &amp;&amp;
 for appl in swriter scalc sdraw simpress smath soffice spadmin
 do ln -sf /opt/openoffice/program/$appl /usr/bin/$appl
