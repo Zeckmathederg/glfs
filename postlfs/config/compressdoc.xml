@@ -11,9 +11,8 @@ to go is to use the script below.
 </para>
 
 <screen><userinput><command>cat &gt; /usr/bin/compressdoc &lt;&lt; "EOF"</command>
-
 #!/bin/bash
-# VERSION: 20031004.0245
+# VERSION: 20031009.1920
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -128,14 +127,12 @@ function check_unique ()
   DIR=$1
   BASENAME=`basename "${2}" .bz2`
   BASENAME=`basename "${BASENAME}" .gz`
-  LIST=
-  [ -f "$DIR"/"${BASENAME}" -o -L "$DIR"/"${BASENAME}" ] &amp;&amp; LIST="${LIST} ${BASENAME}"
-  [ -f "$DIR"/"${BASENAME}".gz -o -L "$DIR"/"${BASENAME}".gz ] &amp;&amp; LIST="${LIST} ${BASENAME}.gz"
-  [ -f "$DIR"/"${BASENAME}".bz2 -o -L "$DIR"/"${BASENAME}".bz2 ] &amp;&amp; LIST="${LIST} ${BASENAME}.bz2"
+  GZ_FILE="$BASENAME".bz2
+  BZ_FILE="$BASENAME".bz2
 
   # Look for, and keep, the most recent one
-  LATEST=`(cd "$DIR"; ls -1rt $LIST | tail -1)`
-  for i in $LIST; do
+  LATEST=`(cd "$DIR"; ls -1rt "${BASENAME}" "${GZ_FILE}" "${BZ_FILE}" 2&gt;/dev/null | tail -1)`
+  for i in "${BASENAME}" "${GZ_FILE}".gz "${BZ_FILE}".bz2; do
     [ "$LATEST" != "$i" ] &amp;&amp; rm -f "$DIR"/"$i"
   done
 
@@ -343,12 +340,13 @@ for DIR in $MAN_DIR; do
       if ! check_unique "$DIR" "$FILE"; then continue; fi
 
       # Check if the file is already compressed with the specified method
-      BASE_FILE=`basename \`basename "$FILE" .bz2\` .gz`
+      BASE_FILE=`basename "$FILE" .gz`
+      BASE_FILE=`basename "$FILE" .bz2`
       if [ "${FILE}" = "${BASE_FILE}${COMP_SUF}" -a "foo${FORCE_OPT}" = "foo" ]; then continue; fi
 
       # If we have a symlink
       if [ -h "$FILE" ]; then
-        case $FILE in
+        case "$FILE" in
           *.bz2)
             EXT=bz2 ;;
           *.gz)
@@ -358,12 +356,12 @@ for DIR in $MAN_DIR; do
         esac
 
         if [ ! "$EXT" = "none" ]; then
-          LINK=`ls -l $FILE | cut -d "&gt;" -f2 | tr -d " " | sed s/\.$EXT$//`
+          LINK=`ls -l "$FILE" | cut -d "&gt;" -f2 | tr -d " " | sed s/\.$EXT$//`
           NEWNAME=`echo "$FILE" | sed s/\.$EXT$//`
           mv "$FILE" "$NEWNAME"
           FILE="$NEWNAME"
         else
-          LINK=`ls -l $FILE | cut -d "&gt;" -f2 | tr -d " "`
+          LINK=`ls -l "$FILE" | cut -d "&gt;" -f2 | tr -d " "`
         fi
 
         if [ "$LN_OPT" = "-H" ]; then
@@ -393,7 +391,7 @@ for DIR in $MAN_DIR; do
         # Now take care of the file that has no hard-link
         # We do decompress first to re-compress with the selected
         # compression ratio later on...
-        case $FILE in
+        case "$FILE" in
           *.bz2)
             bunzip2 $FILE
             FILE=`basename "$FILE" .bz2`
@@ -422,7 +420,7 @@ for DIR in $MAN_DIR; do
         # If the file had hard-links, recreate those (either hard or soft)
         if [ -n "$HLINKS" ]; then
           for i in $HLINKS; do
-            NEWFILE=`echo $i | sed s/\.gz$// | sed s/\.bz2$//`
+            NEWFILE=`echo "$i" | sed s/\.gz$// | sed s/\.bz2$//`
             if [ "$LN_OPT" = "-S" ]; then
               # Make this hard-link a soft- one
               ln -s "${FILE}$COMP_SUF" "${NEWFILE}$COMP_SUF"
@@ -438,7 +436,7 @@ for DIR in $MAN_DIR; do
         # There is a problem when we get neither a symlink nor a plain file
         # Obviously, we shall never ever come here... :-(
         echo "Whaooo... \"${DIR}/${FILE}\" is neither a symlink nor a plain file. Please check:"
-        ls -l ${DIR}/${FILE}
+        ls -l "${DIR}/${FILE}"
         exit 1
       fi
     fi
