@@ -1,33 +1,73 @@
 <sect2>
 <title>Installation of j2sdk</title>
 
-<para>Before installing j2sdk, you need to 
-download <filename>libstdc++-libc6.1-1.so.2.bz2</filename> 
-from <ulink url="&ffile-root;"/> and decompress it
-to your source directory.</para>
+<para>Both versions will be installed in parallel. You may choose to keep either
+or both.</para>
 
-<para>Install j2sdk by running the following commands:</para>
+<para>Install the binary version of the jdk by running the following commands:</para>
 
-<para><screen><userinput>mkdir java &amp;&amp;
-mv j2sdk*.bin java &amp;&amp;
-cd java &amp;&amp;
-chmod 711 j2sdk*.bin &amp;&amp;
-./j2sdk*.bin &amp;&amp;
-mv j2sdk*.bin .. &amp;&amp;
-cp ../libstdc++-libc6.1-1.so.2 j2sdk&j2sdk-version;/jre/lib/i386</userinput></screen></para>
+<para><screen><userinput>
+VERSION=&j2sdk-bin-version &amp;&amp;
+MV=`echo $VERSION | cut -d "_" -f 1,1` &amp;&amp;
+V=`echo ${VERSION} | sed -e "s/\./_/g"` &amp;&amp;
+T=`grep -a tail j2sdk-${V}-linux-i?86.bin | cut -f 2 -d " "` &amp;&amp;
+tail $T j2sdk-${V}-linux-i?86.bin > install.sfx.$$ &amp;&amp;
+chmod +x install.sfx.$$ &amp;&amp;
+./install.sfx.$$ &amp;&amp;
+cd j2sdk${VERSION} &amp;&amp;
+install -d /opt/j2sdk/j2sdk-precompiled-${MV} &amp;&amp;
+mv * /opt/j2sdk/j2sdk-precompiled-${MV}
+</userinput></screen></para>
 
-<para>Test the installation with the following commands:</para>
+<para>The binary version is now installed.</para>
 
-<para><screen><userinput>export JAVA_HOME=$PWD/j2sdk&j2sdk-version; &amp;&amp;
-j2sdk&j2sdk-version;/jre/bin/java -version</userinput></screen></para>
+<para>If you don't want to compile the source, skip ahead to the configuration
+section.</para>
 
-<para>If you get a version line, a description of the runtime
-environment and a desrciption of the client VM (virtual machine), you are ready
-to go.</para>
+<para>Add the recently compiled JDK to the path.</para>
+<screen><userinput>export JAVA_HOME=/opt/j2sdk/j2sdk-precompiled-${MV} &amp;&amp;
+export PATH=$PATH:${JAVA_HOME}/bin</userinput></screen>
 
-<para>If you are not going to compile java from scratch, move the java
-tree to <filename>/opt</filename>:</para>
+<para>Unzip and patch the source:</para>
 
-<para><screen><userinput>mv j2sdk&j2sdk-version; /opt/java</userinput></screen></para>
+<para><screen><userinput>
+VERSION=&j2sdk-src-version &amp;&amp;
+V=`echo $VERSION | sed -e "s/\./_/g"` &amp;&amp;
+unzip j2sdk-${V}-src-scsl.zip &amp;&amp;
+unzip j2sdk-${V}-mozilla_headers-unix.zip &amp;&amp;
+patch -Np1 -i j2sdk-${VERSION}-fix-intl-files.patch &amp;&amp;
+patch -Np1 -i j2sdk-${VERSION}-link-missing-libs.patch &amp;&amp;
+patch -Np1 -i j2sdk-${VERSION}-remove-fixed-paths.patch &amp;&amp;
+patch -Np1 -i j2sdk-${VERSION}-syntax-fixes.patch &amp;&amp;
+patch -Np1 -i j2sdk-${VERSION}-use-included-motif.patch
+</userinput></screen></para>
+
+<para>Set some vars which affect the build:</para>
+<para><screen><userinput>
+export ALT_BOOTDIR="$JAVA_HOME" &amp;&amp;
+unset JAVA_HOME &amp;&amp;
+unset CLASSPATH &amp;&amp;
+unset CFLAGS &amp;&amp;
+unset CXXFLAGS &amp;&amp;
+unset LDFLAGS &amp;&amp;
+export ALT_DEVTOOLS_PATH="/usr/bin" &amp;&amp;
+export BUILD_NUMBER="blfs-`date +%s`" &amp;&amp;
+export DEV_ONLY=true &amp;&amp;
+export ALT_MOZILLA_PATH=$PWD &amp;&amp;
+export INSANE=true &amp;&amp;
+export MAKE_VERBOSE=true &amp;&amp;
+export ALT_CACERTS_FILE=${ALT_BOOTDIR}/jre/lib/security/cacerts
+</userinput></screen></para>
+
+<para>Make and Install j2sdk with the following commands:</para>
+
+<para><screen><userinput>
+cd control/make &amp;&amp;
+make &amp;&amp;
+cd ../.. &amp;&amp;
+cd control/build/linux-i?86 &amp;&amp;
+cp -a j2sdk-image /opt/java/j2sdk-&j2sdk-src-version; &amp;&amp;
+</userinput></screen></para>
+
 </sect2>
 
