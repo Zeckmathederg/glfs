@@ -48,6 +48,12 @@
                     <xsl:text>Scripts</xsl:text>
                 </xsl:when>
                 <xsl:when test="$divtitle = 'E'">
+                    <xsl:text>Configuration Files</xsl:text>
+                </xsl:when>
+                <xsl:when test="$divtitle = 'F'">
+                  <xsl:text>Bootscripts</xsl:text>
+                </xsl:when>
+                <xsl:when test="$divtitle = 'G'">
                     <xsl:text>Others</xsl:text>
                 </xsl:when>
                 <xsl:otherwise>

@@ -1,8 +1,5 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
 
-<!-- Version 0.9 - Manuel Canales Esparcia <macana@lfs-es.org> -->
-<!-- Updates by Bruce Dubbs <bdubbs@linuxfromscratch.org> -->
-
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
@@ -16,7 +13,7 @@
     </head>
   </xsl:template>
 
-  	<!-- Header Navigation-->
+    <!-- Header Navigation-->
   <xsl:template name="header.navigation">
     <xsl:param name="prev" select="/foo"/>
     <xsl:param name="next" select="/foo"/>
@@ -29,59 +26,117 @@
       <div class="navheader">
         <xsl:if test="$home != .">
           <div class="headertitles">
-            <p>
-              <xsl:apply-templates select="$home" mode="object.title.markup"/>
-              <xsl:text> &#8211; </xsl:text> <!-- ndash -->
+            <h4>
+              <xsl:text>Beyond Linux From Scratch - </xsl:text>
               <xsl:apply-templates select="$home" mode="object.subtitle.markup"/>
-            </p>
+            </h4>
             <xsl:if test="$up != $home">
-              <p><b>
+              <h3>
                 <xsl:apply-templates select="$up" mode="object.title.markup"/>
-              </b></p>
+              </h3>
             </xsl:if>
           </div>
         </xsl:if>
-        <div class="headerlinks">
-          <div class='prev'>
-            <xsl:if test="count($prev)&gt;0 and $prev != $home">
+        <ul class="headerlinks">
+          <xsl:if test="count($prev)&gt;0 and $prev != $home">
+            <li class="prev">
               <a accesskey="p">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
                     <xsl:with-param name="object" select="$prev"/>
                   </xsl:call-template>
                 </xsl:attribute>
-                <xsl:text>Prev</xsl:text>
+                <xsl:attribute name="title">
+                  <xsl:value-of select="$prev/title"/>
+                </xsl:attribute>
+                <xsl:call-template name="navig.content">
+                  <xsl:with-param name="direction" select="'prev'"/>
+                </xsl:call-template>
               </a>
-            </xsl:if>
-          <xsl:text>&#160;</xsl:text></div>  <!-- nbsp -->
-          <div class='next'><xsl:text>&#160;</xsl:text>
-            <xsl:if test="count($next)&gt;0">
+              <p>
+                <xsl:value-of select="$prev/title"/>
+              </p>
+            </li>
+          </xsl:if>
+          <xsl:if test="count($next)&gt;0">
+            <li class="next">
               <a accesskey="n">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
                     <xsl:with-param name="object" select="$next"/>
                   </xsl:call-template>
                 </xsl:attribute>
-                <xsl:text>Next</xsl:text>
+                <xsl:attribute name="title">
+                  <xsl:choose>
+                    <xsl:when test="local-name($next)='index'">
+                      <xsl:call-template name="gentext">
+                        <xsl:with-param name="key">Index</xsl:with-param>
+                      </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:value-of select="$next/title"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:attribute>
+                <xsl:call-template name="navig.content">
+                  <xsl:with-param name="direction" select="'next'"/>
+                </xsl:call-template>
               </a>
-            </xsl:if>
-          </div>
-          <div class='home'>
+              <p>
+                <xsl:choose>
+                  <xsl:when test="local-name($next)='index'">
+                    <xsl:call-template name="gentext">
+                      <xsl:with-param name="key">Index</xsl:with-param>
+                    </xsl:call-template>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:value-of select="$next/title"/>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </p>
+            </li>
+          </xsl:if>
+            <li class="up">
+              <xsl:if test="count($up)&gt;0 and $up != $home">
+                <a accesskey="u">
+                  <xsl:attribute name="href">
+                    <xsl:call-template name="href.target">
+                      <xsl:with-param name="object" select="$up"/>
+                    </xsl:call-template>
+                  </xsl:attribute>
+                  <xsl:attribute name="title">
+                    <xsl:apply-templates select="$up" mode="object.title.markup"/>
+                  </xsl:attribute>
+                  <xsl:call-template name="navig.content">
+                    <xsl:with-param name="direction" select="'up'"/>
+                  </xsl:call-template>
+                </a>
+              </xsl:if>
+              <xsl:text>.</xsl:text>
+            </li>
+          <li class="home">
             <a accesskey="h">
               <xsl:attribute name="href">
                 <xsl:call-template name="href.target">
                   <xsl:with-param name="object" select="$home"/>
                 </xsl:call-template>
               </xsl:attribute>
-              <xsl:text>Home</xsl:text>
+                <xsl:attribute name="title">
+                  <xsl:value-of select="$home/bookinfo/title"/>
+                  <xsl:text> - </xsl:text>
+                  <xsl:value-of select="$home/bookinfo/subtitle"/>
+                </xsl:attribute>
+                <xsl:call-template name="navig.content">
+                  <xsl:with-param name="direction" select="'home'"/>
+                </xsl:call-template>
             </a>
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
     </xsl:if>
   </xsl:template>
 
-  	<!-- Footer Navigation-->
+    <!-- Footer Navigation-->
   <xsl:template name="footer.navigation">
     <xsl:param name="prev" select="/foo"/>
     <xsl:param name="next" select="/foo"/>
@@ -92,59 +147,104 @@
             or count($next) &gt; 0 or generate-id($home) != generate-id(.)"/>
     <xsl:if test="$row">
       <div class="navfooter">
-          <div class='prev'>
-            <xsl:if test="count($prev)&gt;0 and $prev != $home">
+        <ul>
+          <xsl:if test="count($prev)&gt;0 and $prev != $home">
+            <li class="prev">
               <a accesskey="p">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
                     <xsl:with-param name="object" select="$prev"/>
                   </xsl:call-template>
                 </xsl:attribute>
-                <xsl:text>Prev</xsl:text>
-              </a><br/>
-              <!-- <xsl:text> </xsl:text> -->
-              <xsl:apply-templates select="$prev" mode="object.title.markup"/>
-            </xsl:if>
-            <xsl:text>&#160;</xsl:text>
-          </div> <!-- nbsp -->
-          <div class='next'><xsl:text>&#160;</xsl:text>
+                <xsl:attribute name="title">
+                  <xsl:value-of select="$prev/title"/>
+                </xsl:attribute>
+                <xsl:call-template name="navig.content">
+                  <xsl:with-param name="direction" select="'prev'"/>
+                </xsl:call-template>
+              </a>
+              <p>
+                <xsl:value-of select="$prev/title"/>
+              </p>
+            </li>
+          </xsl:if>
           <xsl:if test="count($next)&gt;0">
+            <li class="next">
               <a accesskey="n">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
                     <xsl:with-param name="object" select="$next"/>
                   </xsl:call-template>
                 </xsl:attribute>
-                <xsl:text>Next</xsl:text>
-              </a><br/>
-              <!-- <xsl:text> </xsl:text> -->
-              <xsl:apply-templates select="$next" mode="object.title.markup"/>
-            </xsl:if>
-          </div>
-          <xsl:if test="count($up)&gt;0 and $up != $home">
-            <div class='up'>
-              <a accesskey="u">
-                <xsl:attribute name="href">
-                  <xsl:call-template name="href.target">
-                    <xsl:with-param name="object" select="$up"/>
-                  </xsl:call-template>
+                <xsl:attribute name="title">
+                  <xsl:choose>
+                    <xsl:when test="local-name($next)='index'">
+                      <xsl:call-template name="gentext">
+                        <xsl:with-param name="key">Index</xsl:with-param>
+                      </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:value-of select="$next/title"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </xsl:attribute>
-                <xsl:text>Up</xsl:text>
+                <xsl:call-template name="navig.content">
+                  <xsl:with-param name="direction" select="'next'"/>
+                </xsl:call-template>
               </a>
-            </div>
+              <p>
+                <xsl:choose>
+                  <xsl:when test="local-name($next)='index'">
+                    <xsl:call-template name="gentext">
+                      <xsl:with-param name="key">Index</xsl:with-param>
+                    </xsl:call-template>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:value-of select="$next/title"/>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </p>
+            </li>
           </xsl:if>
-          <div class='home'>
-            <xsl:if  test="$home != .">
-              <a accesskey="h">
-                <xsl:attribute name="href">
-                  <xsl:call-template name="href.target">
-                    <xsl:with-param name="object" select="$home"/>
+            <li class="up">
+              <xsl:if test="count($up)&gt;0 and $up != $home">
+                <a accesskey="u">
+                  <xsl:attribute name="href">
+                    <xsl:call-template name="href.target">
+                      <xsl:with-param name="object" select="$up"/>
+                    </xsl:call-template>
+                  </xsl:attribute>
+                  <xsl:attribute name="title">
+                    <xsl:apply-templates select="$up" mode="object.title.markup"/>
+                  </xsl:attribute>
+                  <xsl:call-template name="navig.content">
+                    <xsl:with-param name="direction" select="'up'"/>
                   </xsl:call-template>
-                </xsl:attribute>
-                <xsl:text>Home</xsl:text>
-              </a>
-            </xsl:if>
-          </div>
+                </a>
+              </xsl:if>
+              <xsl:text>.</xsl:text>
+            </li>
+            <li class="home">
+              <xsl:if  test="$home != .">
+                <a accesskey="h">
+                  <xsl:attribute name="href">
+                    <xsl:call-template name="href.target">
+                      <xsl:with-param name="object" select="$home"/>
+                    </xsl:call-template>
+                  </xsl:attribute>
+                  <xsl:attribute name="title">
+                    <xsl:value-of select="$home/bookinfo/title"/>
+                    <xsl:text> - </xsl:text>
+                    <xsl:value-of select="$home/bookinfo/subtitle"/>
+                  </xsl:attribute>
+                  <xsl:call-template name="navig.content">
+                    <xsl:with-param name="direction" select="'home'"/>
+                  </xsl:call-template>
+                </a>
+              </xsl:if>
+              <xsl:text>.</xsl:text>
+            </li>
+        </ul>
       </div>
     </xsl:if>
   </xsl:template>

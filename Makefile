@@ -33,9 +33,13 @@ blfs:
 	  mkdir -p $(BASEDIR)images; \
 	fi;
 	cp images/*.png $(BASEDIR)/images
-	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@g" index.html legalnotice.html
-	cd $(BASEDIR); sed -i -e "s@../images@images@g" index.html legalnotice.html
+	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@g" *.html
+	cd $(BASEDIR); sed -i -e "s@../images@images@g" *.html
 	sh goTidy $(BASEDIR)/  
+
+nochunks:
+	@echo "Generating nochunks version of BLFS..."
+
 
 pdf:
 	xsltproc --xinclude --nonet --output blfs.fo \
