@@ -2,26 +2,28 @@
 <title>Configuring <application>Courier</application></title>
 
 <sect3><title>Config files</title>
-<para><filename>/etc/courier/authmysqlrc</filename></para>
+<para><filename>/etc/courier/*</filename></para>
 </sect3>
 
 <sect3><title>Configuration Information</title>
 
-<para>Make the following changes in this file if you are utilizing
+<para>Make the following changes in
+<filename>/etc/courier/authmysqlrc</filename> file if you are utilizing
 <application>My<acronym>SQL</acronym></application>:</para>
+
 <screen><userinput>MYSQL_SERVER            localhost
 MYSQL_USERNAME          courier
-MYSQL_PASSWORD          (your choice) 
+MYSQL_PASSWORD          <replaceable>[your choice]</replaceable> 
 MYSQL_SOCKET            /tmp/mysql.sock
 MYSQL_PORT              3306
-MYSQL_DATABASE          courier-mail
+MYSQL_DATABASE          courier_mail
 MYSQL_USER_TABLE        users
 MYSQL_CLEAR_PWFIELD     clear
-DEFAULT DOMAIN          (your domain)
+DEFAULT DOMAIN          <replaceable>[your domain]</replaceable>
 MYSQL_QUOTA_FIELD       quota</userinput></screen>
 
-
 <para>If you utilize <application>PAM</application>:</para>
+
 <screen><userinput><command>cat &gt; /etc/pam.d/esmtp &lt;&lt; "EOF</command>
 # Begin /etc/pam.d/esmtp
 
@@ -59,34 +61,36 @@ session         required                pam_unix.so
 # End /etc/pam.d/webmail
 <command>EOF</command></userinput></screen>
 
-<para>This command will create the mysql database for authentication:</para>
-
-<screen><userinput><command>mysqladmin -uroot -p<replaceable>[password]</replaceable> create courier-mail</command></userinput></screen>
-
-<para>This command will setup the table users for the courier-mail
+<para>Connect to the <application>My<acronym>SQL</acronym></application>
 database:</para>
 
-<screen><userinput><command>mysql -uroot -p<replaceable>[password]</replaceable> courier-mail
+<screen><userinput><command>mysql -p</command></userinput></screen>
 
-        CREATE TABLE users (
-        id                    char(128) DEFAULT '' NOT NULL,
-        crypt                 char(128) DEFAULT '' NOT NULL,
-        clear                 char(128) DEFAULT '' NOT NULL,
-        name                  char(128) DEFAULT '' NOT NULL,
-        uid                   int(10) unsigned DEFAULT '65534' NOT NULL,
-        gid                   int(10) unsigned DEFAULT '65534' NOT NULL,
-        home                  char(255) DEFAULT '' NOT NULL,
-        quota                 char(255) DEFAULT '' NOT NULL,
-        KEY id (id(128))
-        );</command></userinput></screen>
+<para>This command will create the database for authentication:</para>
+
+<screen><userinput><command>CREATE DATABASE courier_mail;
+USE courier_mail</command></userinput></screen>
+
+<para>This command will setup the table users for the courier_mail
+database:</para>
+
+<screen><userinput><command>CREATE TABLE users (
+id                    char(128) DEFAULT '' NOT NULL,
+crypt                 char(128) DEFAULT '' NOT NULL,
+clear                 char(128) DEFAULT '' NOT NULL,
+name                  char(128) DEFAULT '' NOT NULL,
+uid                   int(10) unsigned DEFAULT '65534' NOT NULL,
+gid                   int(10) unsigned DEFAULT '65534' NOT NULL,
+home                  char(255) DEFAULT '' NOT NULL,
+quota                 char(255) DEFAULT '' NOT NULL,
+KEY id (id(128))
+);</command></userinput></screen>
 
 <para>This will add the courier user that we specified earlier in the
-authmysql file:</para>
+<filename>/etc/courier/authmysqlrc</filename> file:</para>
 
-<screen><userinput><command>mysql -uroot -p<replaceable>[password]</replaceable> mysql
-
-grant all privileges on *.* to courier@localhost identified by '<replaceable>[password]</replaceable>' with grant option;</command></userinput></screen>
-
+<screen><userinput><command>GRANT ALL PRIVILEGES ON *.* TO courier@localhost IDENTIFIED BY '<replaceable>[password]</replaceable>' WITH GRANT OPTION;
+QUIT</command></userinput></screen>
 
 <para><emphasis>General Settings for Mail</emphasis></para>
 
@@ -132,8 +136,8 @@ will need to edit the <filename>/etc/courier/smtpaccess/default</filename>.</par
 <para>After the above steps are completed you will need to run the
 following commands:</para>
 
-<screen><userinput><command>makesmtpaccess
-makehosteddomains
+<screen><userinput><command>makesmtpaccess &amp;&amp;
+makehosteddomains &amp;&amp;
 makealiases</command></userinput></screen>
 
 <para><emphasis><acronym>SMTP</acronym>/<acronym>SMTMP</acronym>-<acronym>SSL
@@ -185,8 +189,8 @@ Courier</para>
 <para>This section will explain on how to create MailDirs for
 your system users.</para>
 
-<screen><userinput><command>cd /home/<replaceable>[username]</replaceable>
-maildirmake Maildir
+<screen><userinput><command>cd /home/<replaceable>[username]</replaceable> &amp;&amp;
+maildirmake Maildir &amp;&amp;
 chown <replaceable>[username]</replaceable>.<replaceable>[username]</replaceable> Maildir -R</command></userinput></screen>
 
 <para><emphasis>Setup for Virtual users</emphasis></para>
@@ -194,38 +198,56 @@ chown <replaceable>[username]</replaceable>.<replaceable>[username]</replaceable
 <para>This section will explain how to setup Maildir for your virtual
 users.</para>
 
-<screen><userinput><command>echo "vmailman:x:9000:9000:Virtual Mailman:/home/vmailman:/bin/bash" &gt;&gt; /etc/passwd
-echo "vmailman:x:9000:" &gt;&gt; /etc/group</command></userinput></screen>
+<screen><userinput><command>groupadd -g 9000 vmailman &amp;&amp;
+useradd -c 'Virtual Mailman' -g vmailman -m -k /dev/null -u 9000 vmailman</command></userinput></screen>
 
-<para>Now to setup the maildir for these virtual users.</para>
+<para>Now to setup the Maildir for these virtual users.</para>
 
-<screen><userinput><command>cd /home/vmailman
-mkdir <replaceable>[virtual_user]</replaceable>
-cd <replaceable>[virtual_user]</replaceable>
-maildirmake Maildir
+<screen><userinput><command>cd /home/vmailman &amp;&amp;
+mkdir <replaceable>[virtual_user]</replaceable> &amp;&amp;
+cd <replaceable>[virtual_user]</replaceable> &amp;&amp;
+maildirmake Maildir &amp;&amp;
 chown vmailman.vmailman Maildir -R</command></userinput></screen>
 
-<para>Add the virtual user to the <application>My<acronym>SQL</acronym></application> database. You need to enter at
-least on version of the password either clear text or encrypted.</para>
+<para>Connect to the <application>My<acronym>SQL</acronym></application>
+database.</para>
 
-<screen><userinput><command>mysql -ucourier -p<replaceable>[password]</replaceable> courier-mail
+<screen><userinput><command>mysql -u courier -p</command></userinput></screen>
+    
+<para>To add the virtual user you need to enter at
+least one version of the password either clear text or encrypted.</para>
 
-insert into users values('<replaceable>[virtual_users]</replaceable>@<replaceable>[domain.com]</replaceable>,
-'<replaceable>[encrypted password or blank]</replaceable>','<replaceable>[clear text password or blank]</replaceable>',
-'<replaceable>[User's Name]</replaceable>',9000,9000,'<replaceable>[location of Maildir]</replaceable>','<replaceable>[Quota in Bytes']</replaceable>);</command></userinput></screen>
+<screen><userinput><command>INSERT INTO users VALUES (
+'<replaceable>[virtual_users]</replaceable>@<replaceable>[domain.com]</replaceable>,
+'<replaceable>[encrypted password or blank]</replaceable>',
+'<replaceable>[clear text password or blank]</replaceable>',
+'<replaceable>[User's Name]</replaceable>',
+9000,
+9000,
+'<replaceable>[location of Maildir]</replaceable>',
+'<replaceable>[Quota in Bytes']</replaceable>
+);</command></userinput></screen>
 
-<para>example</para>
+<para>For example:</para>
 
-<screen><userinput>insert into users values ('blfsuser@linuxfromscratch.org','
-','password','BLFS User',9000,9000,'/home/vmailman/blfsuser','');</userinput></screen>
+<screen><userinput><command>INSERT INTO users VALUES (
+'blfsuser@linuxfromscratch.org',
+'',
+'password',
+'BLFS User',
+9000,
+9000,
+'/home/vmailman/blfsuser',
+''
+);</command></userinput></screen>
 
 <para><emphasis>Setup for Web-based Email</emphasis></para>
 
 <para>This section will explain how to setup Courier Web-based email
 system.</para>
 
-<para>You will need to copy the file webmail from
-<filename>/usr/lib/courier/courier/webmail/webmail</filename> to your <filename>cgi-bin
+<para>You will need to copy the <filename>webmail</filename> file from
+<filename>/usr/lib/courier/courier/webmail</filename> to your <filename>cgi-bin
 </filename> directory of your <application>Apache</application>
 server.</para>
 
@@ -235,7 +257,7 @@ server.</para>
 <filename>htdocs</filename> directory of your
 <application>Apache</application> server. The directory needs to be named 
 <filename>webmail</filename> or you need to specify it during the configure
-phase with <command>--enable-imageurl=/url</command>.</para>
+phase with <parameter>--enable-imageurl=<replaceable>[URL]</replaceable></parameter>.</para>
 
 <screen><userinput><command>cp -a /usr/share/courier/sqwebmail/images /var/www/htdocs/webmail</command></userinput></screen>
 <para><emphasis>Setup for Web-based Email</emphasis></para>
@@ -243,9 +265,9 @@ phase with <command>--enable-imageurl=/url</command>.</para>
 <para>This section will explain how to setup Courier Web-based administration
 system.</para>
 
-<para>You will need to copy the file <filename>webadmin</filename> from
-<filename class="directory">/usr/lib/courier/webmail/webadmin</filename>
-to your <filename class="directory">cgi-bin </filename> directory of your 
+<para>You will need to copy the <filename>webadmin</filename> file from
+<filename class="directory">/usr/lib/courier/courier/webmail</filename>
+to your <filename class="directory">cgi-bin</filename> directory of your 
 <application>Apache</application> server.</para>
 
 <screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webadmin /var/www/cgi-bin</command></userinput></screen>
