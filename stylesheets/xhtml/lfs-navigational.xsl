@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
 
 <!-- Version 0.9 - Manuel Canales Esparcia <macana@lfs-es.org> -->
+<!-- Updates by Bruce Dubbs <bdubbs@linuxfromscratch.org> -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns="http://www.w3.org/1999/xhtml"
@@ -30,7 +31,7 @@
           <div class="headertitles">
             <p>
               <xsl:apply-templates select="$home" mode="object.title.markup"/>
-              <xsl:text> - </xsl:text>
+              <xsl:text> &#8211; </xsl:text> <!-- ndash -->
               <xsl:apply-templates select="$home" mode="object.subtitle.markup"/>
             </p>
             <xsl:if test="$up != $home">
@@ -41,8 +42,8 @@
           </div>
         </xsl:if>
         <div class="headerlinks">
-          <xsl:if test="count($prev)&gt;0 and $prev != $home">
-            <div class='prev'>
+          <div class='prev'>
+            <xsl:if test="count($prev)&gt;0 and $prev != $home">
               <a accesskey="p">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
@@ -51,10 +52,10 @@
                 </xsl:attribute>
                 <xsl:text>Prev</xsl:text>
               </a>
-            </div>
-          </xsl:if>
-          <xsl:if test="count($next)&gt;0">
-            <div class='next'>
+            </xsl:if>
+          <xsl:text>&#160;</xsl:text></div>  <!-- nbsp -->
+          <div class='next'><xsl:text>&#160;</xsl:text>
+            <xsl:if test="count($next)&gt;0">
               <a accesskey="n">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
@@ -63,8 +64,8 @@
                 </xsl:attribute>
                 <xsl:text>Next</xsl:text>
               </a>
-            </div>
-          </xsl:if>
+            </xsl:if>
+          </div>
           <div class='home'>
             <a accesskey="h">
               <xsl:attribute name="href">
@@ -91,8 +92,8 @@
             or count($next) &gt; 0 or generate-id($home) != generate-id(.)"/>
     <xsl:if test="$row">
       <div class="navfooter">
-          <xsl:if test="count($prev)&gt;0 and $prev != $home">
-            <div class='prev'>
+          <div class='prev'>
+            <xsl:if test="count($prev)&gt;0 and $prev != $home">
               <a accesskey="p">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
@@ -103,10 +104,11 @@
               </a><br/>
               <!-- <xsl:text> </xsl:text> -->
               <xsl:apply-templates select="$prev" mode="object.title.markup"/>
-            </div>
-          </xsl:if>
+            </xsl:if>
+            <xsl:text>&#160;</xsl:text>
+          </div> <!-- nbsp -->
+          <div class='next'><xsl:text>&#160;</xsl:text>
           <xsl:if test="count($next)&gt;0">
-            <div class='next'>
               <a accesskey="n">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
@@ -117,8 +119,8 @@
               </a><br/>
               <!-- <xsl:text> </xsl:text> -->
               <xsl:apply-templates select="$next" mode="object.title.markup"/>
-            </div>
-          </xsl:if>
+            </xsl:if>
+          </div>
           <xsl:if test="count($up)&gt;0 and $up != $home">
             <div class='up'>
               <a accesskey="u">
@@ -131,8 +133,8 @@
               </a>
             </div>
           </xsl:if>
-          <xsl:if  test="$home != .">
-            <div class='home'>
+          <div class='home'>
+            <xsl:if  test="$home != .">
               <a accesskey="h">
                 <xsl:attribute name="href">
                   <xsl:call-template name="href.target">
@@ -141,8 +143,8 @@
                 </xsl:attribute>
                 <xsl:text>Home</xsl:text>
               </a>
-            </div>
-          </xsl:if>
+            </xsl:if>
+          </div>
       </div>
     </xsl:if>
   </xsl:template>
