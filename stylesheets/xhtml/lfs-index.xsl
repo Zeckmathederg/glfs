@@ -170,7 +170,7 @@
               <xsl:with-param name="object" select="$target2[1]"/>
             </xsl:call-template>
           </xsl:attribute>
-          <xsl:text>description</xsl:text>
+          <xsl:text>description </xsl:text>
         </a>
       </xsl:when>
       <xsl:otherwise>
