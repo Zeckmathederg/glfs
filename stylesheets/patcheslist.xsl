@@ -18,7 +18,7 @@
     <xsl:text> &amp;&amp;&#x0a;&#x0a;</xsl:text>
     <xsl:text>  rm -f *.patch &amp;&amp;&#x0a;&#x0a;</xsl:text>
     <xsl:apply-templates/>
-    <xsl:text>&#x0a;  chgrp blfswww *.patch &amp;&amp;&#x0a;</xsl:text>
+    <xsl:text>&#x0a;  chgrp lfswww *.patch &amp;&amp;&#x0a;</xsl:text>
     <xsl:text>&#x0a;  exit</xsl:text>
   </xsl:template>
 
