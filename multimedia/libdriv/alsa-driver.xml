@@ -1,0 +1,175 @@
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+ 
+  <!ENTITY alsa-driver-download-http "&alsa-download-http;/driver/alsa-driver-&alsa-driver-version;.tar.bz2">
+  <!ENTITY alsa-driver-download-ftp  "&alsa-download-ftp;/driver/alsa-driver-&alsa-driver-version;.tar.bz2">
+  <!ENTITY alsa-driver-size          "1.7 MB">
+  <!ENTITY alsa-driver-buildsize     "32 MB (for all drivers)">
+  <!ENTITY alsa-driver-time          "1.26 SBU (for all drivers)">
+]>
+
+<sect1 id="alsa-driver" xreflabel="ALSA Driver-&alsa-driver-version;">
+<?dbhtml filename="alsa-driver.html"?>
+<title>ALSA Driver-&alsa-driver-version;</title>
+
+<sect2>
+<title>Introduction to <application><acronym>ALSA</acronym> Driver</application>
+</title>
+
+<para>The <application><acronym>ALSA</acronym> Driver</application> package 
+contains the <acronym>ALSA</acronym> sound drivers. These are
+the next generation of sound drivers for Linux.</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink url="&alsa-driver-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink url="&alsa-driver-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &alsa-driver-size;</para></listitem>
+<listitem><para>Estimated Disk space required: &alsa-driver-buildsize;</para></listitem>
+<listitem><para>Estimated build time: &alsa-driver-time;</para></listitem></itemizedlist>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application><acronym>ALSA</acronym> Driver</application></title>
+
+<para>Before installing the <application><acronym>ALSA</acronym></application> 
+drivers, note that in your 
+kernel configuration you should have <userinput>Sound Card Support
+(CONFIG_SOUND)</userinput> enabled but <emphasis>nothing</emphasis> else in
+the Sound menu (with the possible exception of TV Card Mixer support.)  In
+particular, you should <emphasis>not</emphasis> have <userinput>OSS Sound
+Modules</userinput> enabled as this will cause problems when loading the
+<application><acronym>ALSA</acronym></application> driver modules.</para>
+
+<note><para>Because <application><acronym>ALSA</acronym></application> drivers 
+are kernel modules, they must be compiled with the same compiler used to 
+compile the kernel.</para></note>
+
+<para>Install <application><acronym>ALSA</acronym> Driver</application> using 
+the following commands:</para>
+
+<screen><userinput><command>CC=/opt/gcc-2.95.3/bin/gcc ./configure \
+    --with-moddir=/lib/modules/`uname -r`/kernel/drivers/sound \
+    --with-kernel=/lib/modules/`uname -r`/build \
+    --with-sequencer=yes \
+    --with-oss=yes \
+    --with-isapnp=no \
+    --with-cards=all &amp;&amp;
+make &amp;&amp;
+make install</command></userinput></screen>
+
+<para>If this is the first time you have installed the
+<application><acronym>ALSA</acronym></application> drivers, you
+will need to create the <filename class="directory">/dev</filename> entries
+using the script provided in the
+<application><acronym>ALSA</acronym> Driver</application> source
+tree:</para>
+<screen><userinput><command>./snddevices</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Command explanations</title>
+
+<para><parameter>--with-sequencer=yes</parameter>: This tells the <application>
+<acronym>ALSA</acronym> Driver</application> package to build the sequencer 
+modules. Most people want 
+them so you will usually want to leave it set to yes.</para>
+
+<para><parameter>--with-oss=yes</parameter>: This tells the package to
+build the <acronym>OSS</acronym>/Free emulation modules. Again, most people 
+want this so it's probably best to stick with yes.</para>
+
+<para><parameter>--with-isapnp=no</parameter>: Most sound cards these days
+are <acronym>PCI</acronym> and <acronym>ISA</acronym> Plug and Play 
+support isn't needed. If you are using an <acronym>ISA</acronym> PnP sound card, 
+it's best to say yes here. If your card is <acronym>ISA</acronym>, but
+not PnP, it is safer to stay with 'no'.</para>
+
+<para><parameter>--with-cards=all</parameter>: You can tell the script just
+to build the drivers for your particular sound card here. For full information
+on which drivers are available, see <command>./configure
+--help</command>. If you aren't sure which chipset your sound card uses,
+look at the file <filename>CARDS-STATUS</filename> in the
+<application><acronym>ALSA</acronym> Driver</application> source
+tree. The default specified here will build all drivers.</para>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application><acronym>ALSA</acronym> Driver</application></title>
+
+<sect3><title>Config files</title>
+
+<para><filename>/etc/modules.conf</filename></para>
+
+</sect3>
+
+<sect3><title>Configuration Information</title>
+
+<para>To configure the <acronym>ALSA</acronym> drivers, you need to add some 
+lines to <filename>/etc/modules.conf</filename>:</para>
+
+<screen><userinput><command>cat &gt;&gt; /etc/modules.conf &lt;&lt; "EOF"
+alias char-major-14 soundcore
+alias char-major-116 snd
+
+alias snd-card-0 snd-<replaceable>[soundcard-name]</replaceable>
+
+alias sound-slot-0 snd-card-0
+
+alias sound-service-0-0 snd-mixer-oss
+alias sound-service-0-1 snd-seq-oss
+alias sound-service-0-3 snd-pcm-oss
+alias sound-service-0-8 snd-seq-midi
+EOF</command></userinput></screen>
+
+<para><replaceable>[soundcard-name]</replaceable> needs to be replaced with the 
+driver relevant to your sound card.  If you have more than one sound card, you 
+can add additional sections by repeating the above, changing the first 0 to 
+1 and so on.</para>
+
+<para>After editing <filename>/etc/modules.conf</filename> you need to run
+<command>depmod</command>.  If the drivers you have compiled are for the
+version of the kernel you are currently running, simply run:</para>
+
+<screen><userinput><command>depmod</command></userinput></screen>  
+
+<para>If you are compiling  drivers for a different kernel version than those 
+you are running, you will need to use a line similar to:</para>
+
+<screen><userinput><command>depmod -a 2.4.22 -F /boot/System.map-2.4.22</command></userinput></screen>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application><acronym>ALSA</acronym> Driver</application> package 
+contains the <acronym>ALSA</acronym> sound card drivers and include files.
+</para>
+
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title><acronym>ALSA</acronym> sound card drivers</title>
+<para>These are kernel modules which provide audio and <acronym>MIDI</acronym> 
+functionality to the operating system.</para></sect3>
+
+<sect3><title>include files</title>
+<para>These are installed in <filename class="directory">/usr/include/sound
+</filename> and are required to compile certain packages such as
+<application><acronym>ALSA</acronym> Libraries</application>.
+</para></sect3>
+
+</sect2>
+
+</sect1>
+
