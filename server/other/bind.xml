@@ -11,13 +11,16 @@
 <!ENTITY bind-time "1.87 SBU (additional 4.14 SBU to run the complete test suite)">
 ]>
 
-<sect1 id="bind" xreflabel="BIND-&bind-version;">
+<sect1 id="bind" xreflabel="BIND-&bind-version;p1">
 <sect1info>
 <othername>$LastChangedBy$</othername>
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="bind.html"?>
-<title><acronym>BIND</acronym>-&bind-version;</title>
+<title><acronym>BIND</acronym>-&bind-version;p1</title>
+<indexterm zone="bind">
+<primary sortas="a-BIND">BIND</primary>
+</indexterm>
 
 <sect2>
 <title>Introduction to 
@@ -40,6 +43,14 @@ are only interested in the utilities, refer to the
 &bind-buildsize;</para></listitem>
 <listitem><para>Estimated build time: 
 &bind-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para><ulink 
+url="ftp://ftp.isc.org/isc/bind9/9.3.0/&bind-version;-patch1"/></para>
+</listitem>
+</itemizedlist>
 </sect3>
 
 <sect3><title><application><acronym>BIND</acronym></application> 
@@ -69,11 +80,15 @@ dependencies</title>
 <para>Install <application><acronym>BIND</acronym></application> by
 running the following commands:</para>
 
-<screen><userinput><command>sed -i -e "s/dsssl-stylesheets/&amp;-1.78/g" configure &amp;&amp;
+<screen><userinput><command>patch -Np1 -i ../&bind-version;-patch1 &amp;&amp;
+sed -i -e "s/dsssl-stylesheets/&amp;-1.78/g" configure &amp;&amp;
 ./configure --prefix=/usr --sysconfdir=/etc \
     --enable-threads --with-libtool &amp;&amp;
-make &amp;&amp;
-make install &amp;&amp;
+make</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>make install &amp;&amp;
 chmod 755 \
     /usr/lib/{lib{bind9,isc{,cc,cfg},lwres}.so.?.?.?,libdns.so.20.0.0} &amp;&amp;
 mv /usr/share/man/man8/named.conf.5 /usr/share/man/man5 &amp;&amp;
@@ -92,9 +107,10 @@ install -m644 \
 <para>In order to run the complete test suite before installing the 
 package, you need to set up some dummy interfaces (requires 
 <command>ifconfig</command>). Issue the following commands to run the 
-complete suite of tests:</para>
+complete suite of tests (you will have to be the root user to issue the
+<command>ifconfig</command> commands):</para>
 
-<screen><userinput><command>bin/tests/system/ifconfig.sh up &amp;&amp;
+<screen><userinput role='root'><command>bin/tests/system/ifconfig.sh up &amp;&amp;
 make check &gt;check.log 2&gt;&amp;1 &amp;&amp;
 bin/tests/system/ifconfig.sh down</command></userinput></screen>
 
@@ -107,6 +123,11 @@ successfully:</para>
 
 <sect2>
 <title>Command explanations</title>
+
+<para><command>patch -Np1 -i ../&bind-version;-patch1</command>: There's a 
+vulnerability in the <acronym>DNS</acronym><acronym>SEC</acronym> code. See 
+<ulink url="http://www.kb.cert.org/vuls/id/938617"/>. The patch fixes the
+bug.</para>
 
 <para><command>sed -i -e ... configure</command>: This command forces 
 <command>configure</command> to look for the <acronym>DSSSL</acronym> 
@@ -134,9 +155,24 @@ commands.</para>
 <title>Configuring
 <application><acronym>BIND</acronym></application></title>
 
-<sect3><title>Config files</title>
-<para><filename>named.conf</filename>, <filename>root.hints</filename>, 
-<filename>127.0.0</filename>, <filename>rndc.conf</filename></para>
+<sect3 id="bind-config"><title>Config files</title>
+<para><filename>named.conf</filename>, 
+<filename>root.hints</filename>, 
+<filename>127.0.0</filename>, 
+<filename>rndc.conf</filename> and 
+<filename>resolv.conf</filename></para>
+<indexterm zone="bind bind-config">
+<primary sortas="e-etc-named.conf">/etc/named.conf</primary></indexterm>
+<indexterm zone="bind bind-config">
+<primary sortas="e-etc-rndc.conf">/etc/rndc.conf</primary></indexterm>
+<indexterm zone="bind bind-config">
+<primary sortas="e-etc-resolv.conf">/etc/resolv.conf</primary></indexterm>
+<indexterm zone="bind bind-config">
+<primary sortas="e-etc-namedb-root.hints">/etc/namedb/root.hints</primary>
+</indexterm>
+<indexterm zone="bind bind-config">
+<primary sortas="e-etc-namedb-pz-127.0.0.0">/etc/namedb/pz/127.0.0.0</primary>
+</indexterm>
 </sect3>
 
 <sect3><title>Configuration Information</title>
@@ -149,13 +185,13 @@ directory.</para>
 
 <para>Create the unprivileged user and group named:</para>
 
-<screen><userinput><command>groupadd named &amp;&amp;
+<screen><userinput role='root'><command>groupadd named &amp;&amp;
 useradd -m -c "BIND Owner" -g named -s /bin/false named</command></userinput></screen>
 
 <para>Set up some files, directories and devices needed by 
 <application><acronym>BIND</acronym></application>:</para>
 
-<screen><userinput><command>cd /home/named &amp;&amp;
+<screen><userinput role='root'><command>cd /home/named &amp;&amp;
 mkdir -p dev etc/namedb/slave var/run &amp;&amp;
 mknod /home/named/dev/null c 1 3 &amp;&amp;
 mknod /home/named/dev/random c 1 8 &amp;&amp;
@@ -167,13 +203,13 @@ cp /etc/localtime /home/named/etc</command></userinput></screen>
 and <filename>rdnc.conf</filename> files using the 
 <command>rndc-confgen</command> command:</para>
 
-<screen><userinput><command>rndc-confgen -b 512 | grep -m 1 "secret" | cut -d '"' -f 2</command></userinput></screen>
+<screen><userinput role='root'><command>rndc-confgen -b 512 | grep -m 1 "secret" | cut -d '"' -f 2</command></userinput></screen>
 
 <para>Create the <filename>named.conf</filename> file from which named 
 will read the location of zone files, root name servers and secure 
 <acronym>DNS</acronym> keys:</para>
 
-<screen><userinput><command>cat &gt; /home/named/etc/named.conf &lt;&lt; "EOF"</command>
+<screen><userinput role='root'><command>cat &gt; /home/named/etc/named.conf &lt;&lt; "EOF"</command>
  options {
      directory "/etc/namedb";
     pid-file "/var/run/named.pid";
@@ -240,7 +276,7 @@ logging {
 <para>Create the <filename>rndc.conf</filename> file with the following 
 commands:</para>
 
-<screen><userinput><command>cat &gt; /etc/rndc.conf &lt;&lt; "EOF"</command>
+<screen><userinput role='root'><command>cat &gt; /etc/rndc.conf &lt;&lt; "EOF"</command>
 key rndc_key {
 algorithm "hmac-md5";
     secret
@@ -258,7 +294,7 @@ utility.</para>
 
 <para>Create a zone file with the following contents:</para>
 
-<screen><userinput><command>cat &gt; /home/named/etc/namedb/pz/127.0.0 &lt;&lt; "EOF"</command>
+<screen><userinput role='root'><command>cat &gt; /home/named/etc/namedb/pz/127.0.0 &lt;&lt; "EOF"</command>
 $TTL 3D
 @      IN      SOA     ns.local.domain. hostmaster.local.domain. (
                         1       ; Serial
@@ -319,7 +355,7 @@ name server with the following commands:</para>
 <note><para>Replace <replaceable>[yourdomain.com]</replaceable> with your own 
 valid domain name.</para></note>
 
-<screen><userinput><command>cp /etc/resolv.conf /etc/resolv.conf.bak &amp;&amp;
+<screen><userinput role='root'><command>cp /etc/resolv.conf /etc/resolv.conf.bak &amp;&amp;
 cat &gt; /etc/resolv.conf &lt;&lt; "EOF"</command>
 search <replaceable>[yourdomain.com]</replaceable>
 nameserver 127.0.0.1
@@ -328,18 +364,20 @@ nameserver 127.0.0.1
 <para>Set permissions on the <command>chroot</command> jail with the 
 following command:</para>
 
-<screen><userinput><command>chown -R named.named /home/named</command></userinput></screen>
+<screen><userinput role='root'><command>chown -R named.named /home/named</command></userinput></screen>
 
-<para>To start the <acronym>DNS</acronym> server at boot, install the 
+<para id="bind-init">To start the <acronym>DNS</acronym> server at boot, install the 
 <filename>/etc/rc.d/init.d/bind</filename> init script included in the 
 <xref linkend="intro-important-bootscripts"/> package.</para>
+<indexterm zone="bind bind-init">
+<primary sortas="f-bind">bind</primary></indexterm>
 
-<screen><userinput><command>make install-bind</command></userinput></screen>
+<screen><userinput role='root'><command>make install-bind</command></userinput></screen>
 
 <para>Now start <application><acronym>BIND</acronym></application> with
 the new boot script:</para>
 
-<screen><userinput><command>/etc/rc.d/init.d/bind start</command></userinput></screen>
+<screen><userinput role='root'><command>/etc/rc.d/init.d/bind start</command></userinput></screen>
 
 </sect3>
 
@@ -370,76 +408,126 @@ further configuration options.</para>
 <sect2>
 <title>Contents</title>
 
-<para>The <application><acronym>BIND</acronym></application> package contains 
-<command>dig</command>, 
-<command>dnssec-keygen</command>, 
-<command>dnssec-signzone</command>, 
-<command>host</command>, 
-<command>isc-config.sh</command>, 
-<command>lwresd</command>, 
-<command>named</command>, 
-<command>named-checkconf</command>, 
-<command>named-checkzone</command>, 
-<command>nslookup</command>, 
-<command>nsupdate</command>, 
-<command>rndc</command>, 
-<command>rndc-confgen</command>, 
-<filename class='libraryfile'>libbind9</filename>, 
-<filename class='libraryfile'>libdns</filename>, 
-<filename class='libraryfile'>libisc</filename>, 
-<filename class='libraryfile'>libisccc</filename>, 
-<filename class='libraryfile'>libisccfg</filename> and 
-<filename class='libraryfile'>liblwres</filename>.</para>
-</sect2>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
 
-<sect2><title>Description</title>
+<seglistitem>
+<seg>dig, dnssec-keygen, dnssec-signzone, host, isc-config.sh, lwresd, 
+named, named-checkconf, named-checkzone, nslookup, nsupdate, rndc and 
+rndc-confgen</seg>
+<seg>libbind9.[so,a], libdns.[so,a], libisc.[so,a], libisccc.[so,a], 
+libisccfg.[so,a] and liblwres.[so,a]</seg>
+<seg>/home/named, /usr/include/bind9, /usr/include/dns, /usr/include/dst, 
+/usr/include/isc, /usr/include/isccc, /usr/include/isccfg, /usr/include/lwres 
+and /usr/share/doc/bind-&bind-version;</seg>
+</seglistitem>
+</segmentedlist>
 
-<sect3><title>dig</title>
-<para><command>dig</command> interrogates <acronym>DNS</acronym>
-servers.</para></sect3>
+<variablelist>
+<bridgehead renderas="sect3">Short Descriptions</bridgehead>
+<?dbfo list-presentation="list"?>
 
-<sect3><title>dnssec-keygen</title>
-<para><command>dnssec-keygen</command> is a key generator for secure
-<acronym>DNS</acronym>.</para></sect3>
+<varlistentry id="dig">
+<term><command>dig</command></term>
+<listitem><para>interrogates <acronym>DNS</acronym> servers.</para>
+<indexterm zone="bind dig">
+<primary sortas="b-dig">dig</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>dnssec-signzone</title>
-<para><command>dnssec-signzone</command> generates signed versions of
-zone files.</para></sect3>
+<varlistentry id="dnssec-keygen">
+<term><command>dnssec-keygen</command></term>
+<listitem><para>is a key generator for secure <acronym>DNS</acronym>.</para>
+<indexterm zone="bind dnssec-keygen">
+<primary sortas="b-dnssec-keygen">dnssec-keygen</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>host</title>
-<para><command>host</command> is a utility for <acronym>DNS</acronym>
-lookups.</para></sect3>
+<varlistentry id="dnssec-signzone">
+<term><command>dnssec-signzone</command></term>
+<listitem><para>generates signed versions of zone files.</para>
+<indexterm zone="bind dnssec-signzone">
+<primary sortas="b-dnssec-signzone">dnssec-signzone</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>lwresd</title>
-<para><command>lwresd</command> is a caching-only name server for local
-process use.</para></sect3>
+<varlistentry id="host">
+<term><command>host</command></term>
+<listitem><para>is a utility for <acronym>DNS</acronym> lookups.</para>
+<indexterm zone="bind host">
+<primary sortas="b-host">host</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>named</title>
-<para><command>named</command> is the name server daemon.</para></sect3>
+<varlistentry id="lwresd">
+<term><command>lwresd</command></term>
+<listitem><para>is a caching-only name server for local process use.</para>
+<indexterm zone="bind lwresd">
+<primary sortas="b-lwresd">lwresd</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>named-checkconf</title>
-<para><command>named-checkconf</command> checks the syntax of
-<filename>named.conf</filename> files.</para></sect3>
+<varlistentry id="named">
+<term><command>named</command></term>
+<listitem><para>is the name server daemon.</para>
+<indexterm zone="bind named">
+<primary sortas="b-named">named</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>named-checkzone</title>
-<para><command>named-checkzone</command> checks zone file
-validity.</para></sect3>
+<varlistentry id="named-checkconf">
+<term><command>named-checkconf</command></term>
+<listitem><para>checks the syntax of <filename>named.conf</filename> 
+files.</para>
+<indexterm zone="bind named-checkconf">
+<primary sortas="b-named-checkconf">named-checkconf</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>nslookup</title>
-<para><command>nslookup</command> is a program used to query Internet
-domain nameservers.</para></sect3>
+<varlistentry id="named-checkzone">
+<term><command>named-checkzone</command></term>
+<listitem><para>checks zone file validity.</para>
+<indexterm zone="bind named-checkzone">
+<primary sortas="b-named-checkzone">named-checkzone</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>nsupdate</title>
-<para><command>nsupdate</command> is used to submit
-<acronym>DNS</acronym> update requests.</para></sect3>
+<varlistentry id="nslookup">
+<term><command>nslookup</command></term>
+<listitem><para>is a program used to query Internet domain nameservers.</para>
+<indexterm zone="bind nslookup">
+<primary sortas="b-nslookup">nslookup</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>rndc</title>
-<para><command>rndc</command> controls the operation of
-<application><acronym>BIND</acronym></application>.</para></sect3>
+<varlistentry id="nsupdate">
+<term><command>nsupdate</command></term>
+<listitem><para>is used to submit <acronym>DNS</acronym> update 
+requests.</para>
+<indexterm zone="bind nsupdate">
+<primary sortas="b-nsupdate">nsupdate</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>rndc-confgen</title>
-<para><command>rndc-confgen</command> generates
-<filename>rndc.conf</filename> files.</para></sect3>
+<varlistentry id="rndc">
+<term><command>rndc</command></term>
+<listitem><para>controls the operation of 
+<application><acronym>BIND</acronym></application>.</para>
+<indexterm zone="bind rndc">
+<primary sortas="b-rndc">rndc</primary>
+</indexterm></listitem>
+</varlistentry>
+
+<varlistentry id="rndc-confgen">
+<term><command>rndc-confgen</command></term>
+<listitem><para>generates <filename>rndc.conf</filename> files.</para>
+<indexterm zone="bind rndc-confgen">
+<primary sortas="b-rndc-confgen">rndc-confgen</primary>
+</indexterm></listitem>
+</varlistentry>
+</variablelist>
 
 </sect2>
 
