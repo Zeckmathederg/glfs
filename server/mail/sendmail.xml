@@ -65,9 +65,9 @@ Transport Agent (<acronym>MTA</acronym>).</para>
 
 <para>Before building <application>Sendmail</application>, create the users, 
 groups and directories that <application>Sendmail</application> requires 
-with the following commands:</para>
+with the following commands issued as the root user:</para>
 
-<screen><userinput><command>groupadd smmsp &amp;&amp;
+<screen><userinput role='root'><command>groupadd smmsp &amp;&amp;
 groupadd mail &amp;&amp;
 useradd -c "Sendmail Daemon" -g smmsp -G mail smmsp &amp;&amp;
 chmod 1777 /var/mail &amp;&amp;
@@ -87,21 +87,24 @@ cd sendmail &amp;&amp;
 sh Build &amp;&amp;
 cd ../cf/cf &amp;&amp;
 cp generic-linux.mc sendmail.mc &amp;&amp;
-sh Build sendmail.cf &amp;&amp;
-mkdir /etc/mail &amp;&amp;
+sh Build sendmail.cf</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>install -v -d -m755 /etc/mail &amp;&amp;
 sh Build install-cf &amp;&amp;
 cd ../../ &amp;&amp;
 sh Build install &amp;&amp;
-cp -R cf/* /etc/mail &amp;&amp;
-cp cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
+cp -v -R cf/* /etc/mail &amp;&amp;
+cp -v cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
 for manpage in sendmail editmap mailstats makemap praliases smrsh 
 do
-    install -m444 $manpage/$manpage.8   /usr/share/man/man8
+    install -v -m444 $manpage/$manpage.8 /usr/share/man/man8
 done &amp;&amp;
-install -m444 sendmail/aliases.5    /usr/share/man/man5 &amp;&amp;
-install -m444 sendmail/mailq.1      /usr/share/man/man1 &amp;&amp;
-install -m444 sendmail/newaliases.1 /usr/share/man/man1 &amp;&amp;
-install -m444 vacation/vacation.1   /usr/share/man/man1</command></userinput></screen>
+install -v -m444 sendmail/aliases.5    /usr/share/man/man5 &amp;&amp;
+install -v -m444 sendmail/mailq.1      /usr/share/man/man1 &amp;&amp;
+install -v -m444 sendmail/newaliases.1 /usr/share/man/man1 &amp;&amp;
+install -v -m444 vacation/vacation.1   /usr/share/man/man1</command></userinput></screen>
 
 <para><emphasis>Note:</emphasis> See the source tree 
 <filename>sendmail/README</filename> file for information on linking optional 
@@ -121,9 +124,13 @@ Operations Guide with the following commands:</para>
 
 <screen><userinput><command>cd doc/op &amp;&amp;
 sed -i -e 's/groff/GROFF_NO_SGR=1 groff/' Makefile &amp;&amp;
-make op.txt op.pdf &amp;&amp;
-install -d -m 755 /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
-install -m 644 op.ps op.txt op.pdf /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
+make op.txt op.pdf</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>install -v -d -m755 /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
+install -v -m644 op.ps op.txt op.pdf \
+    /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
 cd ../../</command></userinput></screen>
 
 <para><emphasis>Note:</emphasis> remove <filename>op.pdf</filename> from the
@@ -164,9 +171,9 @@ pages <command>man</command> can display properly.</para>
 
 <para>Create the <filename>/etc/mail/local-host-names</filename> and 
 <filename>/etc/mail/aliases</filename> files using the following 
-commands:</para>
+commands as the root user:</para>
 
-<screen><userinput><command>echo $(hostname) > /etc/mail/local-host-names
+<screen><userinput role='root'><command>echo $(hostname) > /etc/mail/local-host-names
 cat &gt; /etc/mail/aliases &lt;&lt; "EOF"</command>
 postmaster: root
 MAILER-DAEMON: root
@@ -194,7 +201,7 @@ can be found in <filename>/etc/mail/README</filename>.</para>
 <indexterm zone="sendmail sendmail-init">
 <primary sortas="f-sendmail-init">sendmail</primary></indexterm>
 
-<screen><userinput><command>make install-sendmail</command></userinput></screen>
+<screen><userinput role='root'><command>make install-sendmail</command></userinput></screen>
 
 <note><para>The -qNm option to <command>sendmail</command>, where N is number 
 of minutes, controls how often <application>Sendmail</application> will process 
@@ -210,10 +217,12 @@ handling more mail may want to set it higher.</para></note>
 
 <segmentedlist>
 <segtitle>Installed Programs</segtitle>
-<segtitle>Installed Directory</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
 <seglistitem>
 <seg>editmap, hoststat, mailstats, mailq, makemap, newaliases, praliases, 
 purgestat, sendmail, smrsh and vacation</seg>
+<seg>None</seg>
 <seg>/etc/mail and /usr/share/doc/sendmail-&sendmail-version;</seg>
 </seglistitem>
 </segmentedlist>
