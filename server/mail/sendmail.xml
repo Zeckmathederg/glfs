@@ -6,18 +6,20 @@
 
 <!ENTITY sendmail-download-ftp "ftp://ftp.sendmail.org/pub/sendmail/sendmail.&sendmail-version;.tar.gz">
 <!ENTITY sendmail-download-http "http://www.sendmail.org/ftp/sendmail.&sendmail-version;.tar.gz">
-<!ENTITY sendmail-size "2.0 MB">
-<!ENTITY sendmail-buildsize "18.2 MB">
-<!ENTITY sendmail-time "0.43 SBU">
+<!ENTITY sendmail-size "1.9 MB">
+<!ENTITY sendmail-buildsize "18.6 MB">
+<!ENTITY sendmail-time "0.34 SBU">
 ]>
 
-<sect1 id="sendmail" xreflabel="Sendmail-&sendmail-version;">
+<sect1 id="sendmail-package" xreflabel="Sendmail-&sendmail-version;">
 <sect1info>
 <othername>$LastChangedBy$</othername>
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="sendmail.html"?>
 <title>Sendmail-&sendmail-version;</title>
+<indexterm zone="sendmail-package">
+<primary sortas="a-sendmail-package">Sendmail</primary></indexterm>
 
 <sect2>
 <title>Introduction to <application>Sendmail</application></title>
@@ -27,11 +29,15 @@ Transport Agent (<acronym>MTA</acronym>).</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP): <ulink url="&sendmail-download-http;"/></para></listitem>
-<listitem><para>Download (FTP): <ulink url="&sendmail-download-ftp;"/></para></listitem>
+<listitem><para>Download (HTTP): 
+<ulink url="&sendmail-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): 
+<ulink url="&sendmail-download-ftp;"/></para></listitem>
 <listitem><para>Download size: &sendmail-size;</para></listitem>
-<listitem><para>Estimated Disk space required: &sendmail-buildsize;</para></listitem>
-<listitem><para>Estimated build time: &sendmail-time;</para></listitem></itemizedlist>
+<listitem><para>Estimated disk space required: 
+&sendmail-buildsize;</para></listitem>
+<listitem><para>Estimated build time: 
+&sendmail-time;</para></listitem></itemizedlist>
 </sect3>
 
 <sect3><title><application>Sendmail</application> dependencies</title>
@@ -41,8 +47,10 @@ Transport Agent (<acronym>MTA</acronym>).</para>
 </para></sect4>
 
 <sect4><title>Optional</title>
-<para><xref linkend="openssl"/>, <xref linkend="openldap"/>, 
-<xref linkend="tcpwrappers"/>, <xref linkend="pcre"/>, 
+<para><xref linkend="openssl"/>, 
+<xref linkend="openldap"/>, 
+<xref linkend="tcpwrappers"/>, 
+<xref linkend="pcre"/>, 
 <xref linkend="cyrus-sasl"/>, 
 <ulink url="http://www-dev.cites.uiuc.edu/ph/nph/">nph</ulink>, and 
 <xref linkend="gs"/> or <xref linkend="espgs"/> (for creating 
@@ -61,7 +69,7 @@ with the following commands:</para>
 
 <screen><userinput><command>groupadd smmsp &amp;&amp;
 groupadd mail &amp;&amp;
-useradd -g smmsp -G mail smmsp &amp;&amp;
+useradd -c "Sendmail Daemon" -g smmsp -G mail smmsp &amp;&amp;
 chmod 1777 /tmp &amp;&amp;
 chmod 1777 /var/mail &amp;&amp;
 mkdir /var/spool/mqueue</command></userinput></screen>
@@ -69,13 +77,13 @@ mkdir /var/spool/mqueue</command></userinput></screen>
 <para>Install <application>Sendmail</application> with the following 
 commands:</para>
 
-<screen><userinput><command>cat &gt; devtools/Site/site.config.m4 &lt;&lt; "EOF"
+<screen><userinput><command>cat &gt; devtools/Site/site.config.m4 &lt;&lt; "EOF"</command>
 define(`confMANGRP',`root')
 define(`confMANOWN',`root')
 define(`confSBINGRP',`root')
 define(`confUBINGRP',`root')
 define(`confUBINOWN',`root')
-EOF
+<command>EOF
 cd sendmail &amp;&amp;
 sh Build &amp;&amp;
 cd ../cf/cf &amp;&amp;
@@ -85,14 +93,16 @@ sh Build sendmail.cf &amp;&amp;
 sh Build install-cf &amp;&amp;
 cd ../../ &amp;&amp;
 sh Build install &amp;&amp;
+cp -R cf/* /etc/mail &amp;&amp;
+cp cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
 for manpage in sendmail editmap mailstats makemap praliases smrsh 
 do
-install -o root -g root -m444 $manpage/$manpage.8   /usr/share/man/man8
+    install -m444 $manpage/$manpage.8   /usr/share/man/man8
 done &amp;&amp;
-install -o root -g root -m444 sendmail/aliases.5    /usr/share/man/man5 &amp;&amp;
-install -o root -g root -m444 sendmail/mailq.1      /usr/share/man/man1 &amp;&amp;
-install -o root -g root -m444 sendmail/newaliases.1 /usr/share/man/man1 &amp;&amp;
-install -o root -g root -m444 vacation/vacation.1   /usr/share/man/man1</command></userinput></screen>
+install -m444 sendmail/aliases.5    /usr/share/man/man5 &amp;&amp;
+install -m444 sendmail/mailq.1      /usr/share/man/man1 &amp;&amp;
+install -m444 sendmail/newaliases.1 /usr/share/man/man1 &amp;&amp;
+install -m444 vacation/vacation.1   /usr/share/man/man1</command></userinput></screen>
 
 <para><emphasis>Note:</emphasis> See the source tree 
 <filename>sendmail/README</filename> file for information on linking optional 
@@ -104,8 +114,8 @@ Operations Guide with the following commands:</para>
 <screen><userinput><command>cd doc/op &amp;&amp;
 sed -i -e 's/groff/GROFF_NO_SGR=1 groff/' Makefile &amp;&amp;
 make op.txt op.pdf &amp;&amp;
-install -d -m 755 /usr/share/doc/sendmail/&sendmail-version; &amp;&amp;
-install -m 644 op.ps op.txt op.pdf /usr/share/doc/sendmail/&sendmail-version; &amp;&amp;
+install -d -m 755 /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
+install -m 644 op.ps op.txt op.pdf /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
 cd ../../</command></userinput></screen>
 
 <para><emphasis>Note:</emphasis> remove <filename>op.pdf</filename> from the
@@ -120,21 +130,15 @@ have <application>Ghostscript</application> installed.</para>
 <para><command>cat &gt; devtools/Site/site.config.m4 &lt;&lt; "EOF"</command>: 
 This creates a configuration file changing some of the default settings.</para>
 
-<screen><userinput><command>sh Build
-sh Build sendmail.cf
-sh Build install-cf
-sh Build install</command></userinput></screen>
+<para><command>sh Build; sh Build sendmail.cf; sh Build install-cf; 
+sh Build install</command>: <application>Sendmail</application> uses an 
+<application>m4</application> based build script to create the various 
+<filename>Makefile</filename>'s. These commands build and install the 
+package.</para>
 
-<para><application>Sendmail</application> uses an <application>m4</application> 
-based build script to create the various <filename>Makefile</filename>'s. These 
-commands build and install the package.</para>
-
-<screen><userinput><command>for manpage in...;do...;done:
-install ...
-install ...</command></userinput></screen>
-
-<para> The man pages are installed already formatted and <command>man</command> 
-displays them somewhat garbled. These commands replace the formatted pages with
+<para><command>for manpage in...;do...;done; install ...</command>: The man 
+pages are installed already formatted and <command>man</command> displays them 
+somewhat garbled. These commands replace the formatted pages with
 pages <command>man</command> can display properly.</para>
 
 </sect2>
@@ -143,18 +147,23 @@ pages <command>man</command> can display properly.</para>
 <title>Configuring <application>Sendmail</application></title>
 
 <sect3><title>Config files</title>
-<para><filename>/etc/mail/*</filename></para>
+<para><filename id="etc-mail-files">/etc/mail/*</filename></para>
+<indexterm zone="sendmail-package etc-mail-files">
+<primary sortas="e-etc-mail-files">/etc/mail/*</primary></indexterm>
 </sect3>
 
-<sect3><title>Configuration Commands</title>
+<sect3><title>Configuration information</title>
 
-<screen><userinput><command>echo `hostname` > /etc/mail/local-host-names
-cat &gt; /etc/mail/aliases &lt;&lt; "EOF"
+<para>Create the <filename>/etc/mail/local-host-names</filename> and 
+<filename>/etc/mail/aliases</filename> files using the following 
+commands:</para>
+
+<screen><userinput><command>echo $(hostname) > /etc/mail/local-host-names
+cat &gt; /etc/mail/aliases &lt;&lt; "EOF"</command>
 postmaster: root
 MAILER-DAEMON: root
-EOF
-cp -R cf/* /etc/mail &amp;&amp;
-cp cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
+
+<command>EOF
 newaliases -v</command></userinput></screen>
 
 <para><application>Sendmail</application>'s primary configuration file, 
@@ -170,10 +179,12 @@ as follows:</para>
 <para>A full explanation of the files to modify, and the available parameters 
 can be found in <filename>/etc/mail/README</filename>.</para>
 
-<para>To automate the running of <application>Sendmail</application> at 
-startup, install the <filename>/etc/rc.d/init.d/sendmail</filename>
-init script included in the 
+<para id="sendmail-init">To automate the running of 
+<application>Sendmail</application> at startup, install the 
+<filename>/etc/rc.d/init.d/sendmail</filename> init script included in the 
 <xref linkend="intro-important-bootscripts"/> package.</para>
+<indexterm zone="sendmail-package sendmail-init">
+<primary sortas="f-sendmail-init">sendmail</primary></indexterm>
 
 <screen><userinput><command>make install-sendmail</command></userinput></screen>
 
@@ -189,65 +200,116 @@ handling more mail may want to set it higher.</para></note>
 <sect2>
 <title>Contents</title>
 
-<para>The <application>Sendmail</application> package contains
-<command>hoststat</command>,
-<command>purgestat</command>,
-<command>smrsh</command>,
-<command>editmap</command>,
-<command>makemap</command>,
-<command>mailq</command>,
-<command>newaliases</command>,
-<command>sendmail</command>,
-<command>vacation</command>,
-<command>praliases</command> and
-<command>mailstats</command>.
-</para>
-</sect2>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Directory</segtitle>
+<seglistitem>
+<seg>editmap, hoststat, mailstats, mailq, makemap, newaliases, praliases, 
+purgestat, sendmail, smrsh and vacation</seg>
+<seg>/etc/mail and /usr/share/doc/sendmail-&sendmail-version;</seg>
+</seglistitem>
+</segmentedlist>
 
-<sect2><title>Description</title>
+<variablelist>
+<bridgehead renderas="sect3">Short Descriptions</bridgehead>
+<?dbfo list-presentation="list"?>
 
-<sect3><title>hoststat</title>
-<para><command>hoststat</command> prints <application>Sendmail</application>'s 
-persistent host status.</para></sect3>
+<varlistentry id="editmap">
+<term><command>editmap</command></term>
+<listitem><para>queries and edits <application>Sendmail</application> map 
+files.</para>
+<indexterm zone="sendmail-package editmap">
+<primary sortas="b-editmap">editmap</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>purgestat</title>
-<para><command>purgestat</command> causes <application>Sendmail</application> 
-to clear (purge) all its host-status information.</para></sect3>
+<varlistentry id="hoststat">
+<term><command>hoststat</command></term>
+<listitem><para>prints <application>Sendmail</application>'s persistent host 
+status.</para>
+<indexterm zone="sendmail-package hoststat">
+<primary sortas="b-hoststat">hoststat</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>smrsh</title>
-<para><command>smrsh</command> is a restricted shell for 
-<application>Sendmail</application>.</para></sect3>
+<varlistentry id="mailstats">
+<term><command>mailstats</command></term>
+<listitem><para>displays <application>Sendmail</application> statistics.</para>
+<indexterm zone="sendmail-package mailstats">
+<primary sortas="b-mailstats">mailstats</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>editmap</title>
-<para><command>editmap</command> queries and edits 
-<application>Sendmail</application> map files.</para></sect3>
+<varlistentry id="mailq">
+<term><command>mailq</command></term>
+<listitem><para>prints a summary of outbound mail messages waiting for 
+delivery.</para>
+<indexterm zone="sendmail-package mailq">
+<primary sortas="b-mailq">mailq</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>makemap</title>
-<para><command>makemap</command> creates 
-<application>Sendmail</application> map files.</para></sect3>
+<varlistentry id="makemap">
+<term><command>makemap</command></term>
+<listitem><para>creates <application>Sendmail</application> map files.</para>
+<indexterm zone="sendmail-package makemap">
+<primary sortas="b-makemap">makemap</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>mailq</title>
-<para><command>mailq</command> prints a summary of outbound mail messages 
-waiting for delivery.</para></sect3>
+<varlistentry id="newaliases">
+<term><command>newaliases</command></term>
+<listitem><para>rebuilds <filename>/etc/mail/aliases.db</filename> from the 
+contents of <filename>/etc/mail/aliases</filename>.</para>
+<indexterm zone="sendmail-package newaliases">
+<primary sortas="b-newaliases">newaliases</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>newaliases</title>
-<para><command>newaliases</command> rebuilds 
-<filename>/etc/mail/aliases.db</filename>.</para></sect3>
+<varlistentry id="praliases">
+<term><command>praliases</command></term>
+<listitem><para>displays current <application>Sendmail</application> 
+aliases.</para>
+<indexterm zone="sendmail-package praliases">
+<primary sortas="b-praliases">praliases</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>sendmail</title>
-<para><command>sendmail</command> is the <application>Sendmail</application> 
-mail transport agent.</para></sect3>
+<varlistentry id="purgestat">
+<term><command>purgestat</command></term>
+<listitem><para> causes <application>Sendmail</application> to clear (purge) 
+all its host-status information.</para>
+<indexterm zone="sendmail-package purgestat">
+<primary sortas="b-purgestat">purgestat</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>vacation</title>
-<para><command>vacation</command> is an email auto responder.</para></sect3>
+<varlistentry id="sendmail">
+<term><command>sendmail</command></term>
+<listitem><para>is the <application>Sendmail</application> mail transport 
+agent.</para>
+<indexterm zone="sendmail-package sendmail">
+<primary sortas="b-sendmail">sendmail</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>praliases</title>
-<para><command>praliases</command> displays current 
-<application>Sendmail</application> aliases.</para></sect3>
+<varlistentry id="smrsh">
+<term><command>smrsh</command></term>
+<listitem><para>is a restricted shell for 
+<application>Sendmail</application>.</para>
+<indexterm zone="sendmail-package smrsh">
+<primary sortas="b-smrsh">smrsh</primary></indexterm>
+</listitem>
+</varlistentry>
 
-<sect3><title>mailstats</title>
-<para><command>mailstats</command> displays 
-<application>Sendmail</application> statistics.</para></sect3>
+<varlistentry id="vacation">
+<term><command>vacation</command></term>
+<listitem><para>is an email auto responder.</para>
+<indexterm zone="sendmail-package vacation">
+<primary sortas="b-vacation">vacation</primary></indexterm>
+</listitem>
+</varlistentry>
+</variablelist>
 
 </sect2>
 
