@@ -6,9 +6,9 @@
 
 <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/samba-&samba3-version;.tar.gz">
 <!ENTITY samba3-download-ftp "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-<!ENTITY samba3-size "15.0 MB">
-<!ENTITY samba3-buildsize "136 MB">
-<!ENTITY samba3-time "2.04 SBU">
+<!ENTITY samba3-size "15.1 MB">
+<!ENTITY samba3-buildsize "141 MB">
+<!ENTITY samba3-time "2.11 SBU">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -34,19 +34,17 @@ nameserver (which amongst other things provides
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP): <ulink url="&samba3-download-http;"/></para></listitem>
-<listitem><para>Download (FTP): <ulink url="&samba3-download-ftp;"/></para></listitem>
-<listitem><para>Download size: &samba3-size;</para></listitem>
-<listitem><para>Estimated disk space required: &samba3-buildsize;</para></listitem>
-<listitem><para>Estimated build time: &samba3-time;</para></listitem></itemizedlist>
+<listitem><para>Download (HTTP): 
+<ulink url="&samba3-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): 
+<ulink url="&samba3-download-ftp;"/></para></listitem>
+<listitem><para>Download size: 
+&samba3-size;</para></listitem>
+<listitem><para>Estimated disk space required: 
+&samba3-buildsize;</para></listitem>
+<listitem><para>Estimated build time: 
+&samba3-time;</para></listitem></itemizedlist>
 </sect3>
-
-<!-- <sect3><title>Additional downloads</title>
-<itemizedlist spacing='compact'>
-<listitem><para>Maintainer Recommended Patch: <ulink 
-url="&patch-root;/samba-&samba3-version;-maintainer-1.patch"/></para></listitem>
-</itemizedlist>
-</sect3> -->
 
 <sect3>
 <title><application>Samba</application> dependencies</title>
@@ -85,12 +83,15 @@ install -d /var/cache/samba &amp;&amp;
     --with-smbmount &amp;&amp;
 make &amp;&amp;
 make install &amp;&amp;
-chmod 644 /usr/include/libsmbclient.h &amp;&amp;
+mv /usr/lib/samba/libsmbclient.so /usr/lib &amp;&amp;
+ln -sf ../libsmbclient.so /usr/lib/samba &amp;&amp;
+chmod 644 /usr/include/libsmbclient.h \
+          /usr/lib/samba/libsmbclient.a &amp;&amp;
 install -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
 ln -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
 ln -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
 cp ../examples/smb.conf.default /etc/samba &amp;&amp;
-install -m644 ../docs/*.pdf /usr/share/samba
+install -m644 ../docs/*.pdf /usr/share/samba &amp;&amp;
 if [ -f nsswitch/pam_winbind.so ]; then 
     install -m755 nsswitch/pam_winbind.so /lib/security
 fi</command></userinput></screen>
@@ -131,6 +132,12 @@ also builds the <filename class='libraryfile'>pam_winbind.so</filename>
 <application><acronym>PAM</acronym></application> module. You can find 
 instructions on how to configure and use the module by running 
 <command>man winbindd</command>.</para>
+
+<para><command>mv /usr/lib/samba/libsmbclient.so ...; ln -sf 
+../libsmbclient.so ...</command>: The 
+<filename class='libraryfile'>libsmbclient.so</filename> library is needed 
+by other packages. This command moves it to a location where other packages 
+can find it.</para>
 
 <para><command>install -m755 nsswitch/libnss_win{s,bind}.so /lib</command>:
 The nss libraries are not installed by default.  If you intend to use
@@ -303,8 +310,6 @@ command:</para>
 
 <para>The <application>Samba</application> package contains
 <command>findsmb</command>, 
-<command>make_smbcodepage</command>,
-<command>make_unicodemap</command>,
 <command>mount.smbfs</command>,
 <command>net</command>,
 <command>nmbd</command>,
@@ -329,6 +334,7 @@ command:</para>
 <command>swat</command>,
 <command>tdbbackup</command>, 
 <command>tdbdump</command>, 
+<command>tdbtool</command>, 
 <command>testparm</command>,
 <command>testprns</command>,
 <command>wbinfo</command> and
@@ -341,12 +347,6 @@ command:</para>
 <sect3><title>findsmb</title>
 <para><command>findsmb</command> lists information about machines that respond 
 to <acronym>SMB</acronym> name queries on a subnet.</para></sect3>
-<sect3><title>make_smbcodepage</title>
-<para><command>make_smbcodepage</command> converts text descriptions of code 
-pages to binary code page files and vice versa.</para></sect3>
-<sect3><title>make_unicodemap</title>
-<para><command>make_unicodemap</command> converts text Unicode map files to 
-binary, for use in mapping characters to 16 bit Unicode.</para></sect3>
 <sect3><title>mount.smbfs</title>
 <para><command>mount.smbfs</command> provides <command>/bin/mount</command> 
 with a way to mount remote Windows (or 
@@ -432,6 +432,9 @@ files.</para></sect3>
 <sect3><title>tdbdump</title>
 <para><command>tdbdump</command> is a tool used to print the contents of a 
 <application>Samba</application> <filename>.tdb</filename> file.</para></sect3>
+<sect3><title>tdbtool</title>
+<para><command>tdbtool</command> is a tool which allows simple database 
+manipulation on the commandline.</para></sect3>
 <sect3><title>testparm</title>
 <para><command>testparm</command> checks an <filename>smb.conf</filename> file 
 for proper syntax.</para></sect3>
