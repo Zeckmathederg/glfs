@@ -12,140 +12,420 @@ to go is to use the script below.
 
 <screen><userinput><command>cat &gt; /usr/bin/compressdoc &lt;&lt; "EOF"</command>
 
-#!/bin/sh
+#!/bin/bash
+#
+# Compress (with bzip2 or gzip) all man pages in a hierarchy and
+# update symlinks - By Marc Heerdink &lt;marc@koelkast.net&gt;.
+# Modified to be able to gzip or bzip2 files as an option and to deal
+# with all symlinks properly by Mark Hymers # &lt;markh@linuxfromscratch.org&gt;
+#
+# Modified 20030925 by Yann E. Morin &lt;yann.morin.1998 @ # anciens.enib.fr&gt;
+# to accept compression/decompression, to correctly handle hard-links,
+# to allow for changing hard-links into soft- ones, to specify the
+# compression level, to parse the man.conf for all occurences of MANPATH,
+# to allow for a backup, to allow to keep the newest version of a page.
+#
+# TODO:
+#        - inverse the quiet option into a verbose one, so as to be silent
+#          by default;
+#        - choose a default compress method to be based on the available
+#          tool : gzip or bzip2;
+#        - when a MANPATH env var exists, use this instead of /etc/man.conf
+#          (usefull for users to (de)compress their man pages;
+#        - offer an option to restore a previous backup;
+#        - add other compression engines (compress, zip, etc?). Needed?
 
-function changefileext
+# Funny enough, this function prints some help.
+function help ()
 {
-    # prints the given filename with the new extension instead of
-    # the old one. ! - always prints an absolute filename even if
-    # the caller provides a relative one.
-    # parameters : 1 - file name
-    # 2 - old extension
-    # 3 - new extension (may be empty)
+  if [ -n "$1" ]; then
+    echo "Unknown option : $1"
+  fi
+  echo "Usage: $0 &lt;comp_method&gt; [options] [dirs]"
+  cat &lt;&lt; EOT
+  Where comp_method is one of :
 
-    echo `dirname $1`\/`basename $1 $2`$3
+  --gzip, --gz, -g
+  --bzip2, --bz2, -b
+                Compress using gzip or bzip2.
+
+  --decompress, -d
+                Decompress the man pages.
+
+  --backup      Specify a .tar backup shall be done for every directories.
+                In case a backup already exists, it is saved as .tar.old prior
+                to making the new backup. If an .tar.old backup exist, it is
+                removed prior to saving the backup.
+                In backup mode, no other action is performed.
+
+  And where options are :
+
+  -1 to -9, --fast, --best
+                The compression level, as accepted by gzip and bzip2. When not
+                specified, uses the default compression level for the given
+                method (-6 for gzip, and -9 for bzip2). Not used when in backup
+                or decompress modes.
+
+  -s            Change hard-links into soft-links. Use with _caution_ as the
+                first encountered file will be used as a reference. Not used
+                when in backup mode.
+
+  --conf=dir, --conf dir
+                Specify the location of man.conf. Defaults to /etc.
+
+  --quiet, -q   Quiet mode, only print the name of the directory being
+                processed. Add another -q flag to turn it absolutely silent.
+
+  --fake, -f    Fakes it. Print the actual parameters compman will use.
+
+  dirs          A list of space-separated _absolute_ pathname to the man
+                directories.
+                When empty, and only then, parse ${MAN_CONF}/man.conf for all
+                occurences of MANPATH.
+
+Note about compression
+  There has been a discussion on blfs-support about compression ratios of
+  both gzip and bzip2 on man pages, taking into account the hosting fs,
+  the architecture, etc... On the overall, the conclusion was that gzip
+  was much efficient on 'small' files, and bzip2 on 'big' files, small and
+  big being very dependent on the content of the files.
+
+  See the original thread begining at :
+http://archive.linuxfromscratch.org/mail-archives/blfs-support/2003/04/0424.html
+
+  On my system (x86, ext3), man pages were 35564kiB before compression. gzip -9
+  compressed them down to 20372kiB (57.28%), bzip2 -9 got down to 19812kiB
+  (55.71%). That is a 1.57% gain in space. YMMV.
+
+  What was not taken into consideration was the decompression speed. But does
+  it make sense to? You gain fast access with uncompressed man pages, or you
+  gain space at the expense of a slight overhead in time. Well, my P4-2.5GHz
+  does not even let me notice this... :-)
+EOT
 }
 
-# check that the command line is right, if not print a relevant message.
+# This function checks that the path is absolute
+#  $1 : the path to check
+#  $2 : path to man.conf if $1 was extracted from it
+function check_path ()
+{
+  echo checking path $1
+  if [ -n "`echo $1 | cut -d '/' -f1`" ]; then
+    echo "Path \"$1\" is not absolute."
+    [ -n "$2" ] &amp;&amp; echo "Check your $2"
+    exit 1
+  fi
+}
 
-if [ ! -d $1 -o -z $1 ] || [ "$2" != "gz" -a "$2" != "bz2" ]
-then
-   echo "Usage : $0 /path/to/doc/dir gz/bz2"
-   echo "e.g. $0 /usr/info gz to compress info pages in gzip format"
-   echo "or   $0 /usr/X11R6/man bz2 to compact X man pages using bzip2."
-   exit 1
-fi
+# This function checks that the man page is unique amongst bzip2'd, gzip'd and
+# the uncompressed versions.
+#  $1 the directory in which the file resides
+#  $2 the file name for the man page
+function check_unique ()
+{
+  # NB. When there are hardlink to this file, these are
+  # _not_ deleted. In fact, if there are hardlinks, they
+  # all have the same date/time, thus making them ready
+  # for deletion later on.
 
-# set up a few variables.
+  # Build the list of all man page with the same name
+  BASENAME=`basename "${2}" .bz2`
+  BASENAME=`basename "${BASENAME}" .gz`
+  LIST=
+  [ -f "$DIR"/"${BASENAME}" ] &amp;&amp; LIST="${LIST} ${BASENAME}"
+  [ -f "$DIR"/"${BASENAME}".gz ] &amp;&amp; LIST="${LIST} ${BASENAME}.gz"
+  [ -f "$DIR"/"${BASENAME}".bz2 ] &amp;&amp; LIST="${LIST} ${BASENAME}.bz2"
 
-NEWEXT=.$2                        # NEWEXT = extension of newly compressed files
+  # Look for, and keep, the most recent one
+  LATEST=`(cd "$DIR"; ls -1rt $LIST)`
+  for i in $LIST; do
+    [ "$LATEST" != "$i" ] &amp;&amp; rm -f "$i"
+  done
 
-if [ "$NEWEXT" == ".bz2" ]
-then
-   OLDEXT=".gz" # OLDEXT = extensions of files to recompress
-   DECOMPRESS="gunzip -f"         # DECOMPRESS = command to decompress a file
-   COMPRESS="bzip2 -f9"           # COMPRESS = command to compress a file
-else
-   OLDEXT=".bz2"
-   DECOMPRESS="bunzip2 -f"
-   COMPRESS="gzip -f9"
-fi
+  # In case the specified file was the latest, return 0
+  [ "$LATEST" = "$1" ] &amp;&amp; return 0
+  # If the file was not the latest, return 1
+  return 1
+}
 
-# process all files not in the target format under the provided root directory.
-# I use cd instead of giving $1 as an argument to find because this causes
-# problems with symbolic links, e.g. /usr/man -> /usr/share/man.
-
-cd $1
-
-for f in `find  . \! -name "*$NEWEXT"`
-do
-   # the following test is needed because we have to update links ahead of
-   # ourselves, so $f is sometimes a nonexistent file or a link to one.
-
-   if [ -f $f -o -L $f ]
-   then
-       FILE=$f                                   # the file being processed
-       BASEFILE=`basename $FILE`                 # its basename (see HLINKS)
-       INODE=`find $FILE -printf %i`             # its inode number (see HLINKS)
-       NEWFILE=`changefileext $FILE $OLDEXT $NEWEXT`             # new file name
-
-       # HLINKS is the list of all hard links to the current file.
-
-       HLINKS=`find . \! -name $BASEFILE -inum $INODE`
-
-       if [ -L $FILE ]
-       then
-           # the current file is a symbolic link, so we change
-           # its name and the name of its target.
-
-           TARGET=`readlink $FILE`
-           rm -f $FILE
-           ln -sf `changefileext $TARGET $OLDEXT $NEWEXT` $NEWFILE
-       elif [ -f $FILE ]
-       then
-           # the current file is a regular file.
-
-           TEMPFILE=`changefileext $FILE $OLDEXT`
-
-# if there are several versions of a page (at worst, there can be
-# one uncompressed, one old-compressed and one new-compressed), then
-# we have to make sure that only the most recent file is kept, because
-# it most likely means the user installed several versions of a package.
-
-           # first, if we are dealing with an old-compressed file,
-           # expand it if it is more recent than the uncompressed
-           # file *and* the new-compressed file, else delete it.
-           # (works even if TEMPFILE and/or NEWFILE do not exist)
-
-           if [ "$FILE" != "$TEMPFILE" ]
-           then
-               if [ $FILE -nt $TEMPFILE -a $FILE -nt $NEWFILE ]
-               then
-                   $DECOMPRESS $FILE
-               else
-                   rm -f $FILE
-               fi
-               FILE=$TEMPFILE
-           fi
-
-           # now we are dealing with an uncompressed file that may
-           # exist or not (because of the above). If it is newer
-           # than both the new-compressed and the old-compressed
-           # files then it is compressed, else it is deleted.
-
-           if [ -f $FILE ]
-           then
-               if [ $FILE -nt $NEWFILE -a $FILE -nt $FILE$OLDEXT ]
-               then
-                   $COMPRESS $FILE
-               else
-                   rm -f $FILE
-               fi
-           fi
-       fi
-
-       # update the hard links to the current files,
-       # as the new inode number is now known.
-
-       for g in $HLINKS
-       do
-           rm -f $g
-           ln -f $NEWFILE `changefileext $g $OLDEXT $NEWEXT`
-       done
-   fi
+# OK, parse the command line for arguments, and initialize to some sensible
+# state, that is keep hardlinks, parse /etc/man.conf, be most verbose, and
+# search man.conf in /etc
+COMP_METHOD=
+COMP_SUF=
+COMP_LVL=
+LN_OPT=
+MAN_DIR=
+QUIET_OPT=
+QUIET_LVL=0
+BACKUP=no
+FAKE=no
+MAN_CONF=/etc
+while [ -n "$1" ]; do
+  case $1 in
+    --gzip|--gz|-g)
+      COMP_SUF=.gz
+      COMP_METHOD=$1
+      shift
+      ;;
+    --bzip2|--bz2|-b)
+      COMP_SUF=.bz2
+      COMP_METHOD=$1
+      shift
+      ;;
+    --decompress|-d)
+      COMP_SUF=
+      COMP_LVL=
+      COMP_METHOD=$1
+      shift
+      ;;
+    -[1-9]|--fast|--best)
+      COMP_LVL=$1
+      shift
+      ;;
+    --soft|-s)
+      LN_OPT=-s
+      shift
+      ;;
+    --conf=*)
+      MAN_CONF=`echo $1 | cut -d '=' -f2-`
+      shift
+      ;;
+    --conf)
+      MAN_CONF="$2"
+      shift 2
+      ;;
+    --quiet|-q)
+      let QUIET_LVL++
+      QUIET_OPT="$QUIET_OPT -q"
+      shift
+      ;;
+    --backup)
+      BACKUP=yes
+      shift
+      ;;
+    --fake|-f)
+      FAKE=yes
+      shift
+      ;;
+    --help|-h)
+      help
+      exit 0
+      ;;
+    /*)
+      MAN_DIR="${MAN_DIR} ${1}"
+      shift
+      ;;
+    -*)
+      help $1
+      exit 1
+      ;;
+    *)
+      check_path $1
+      # We shall never return in that case! None the less, do exit
+      exit 1
+      ;;
+  esac
 done
+
+# Redirections
+case $QUIET_LVL in
+  0)
+     DEST_FD0=/dev/stdout
+     DEST_FD1=/dev/stdout
+     ;;
+  1)
+     DEST_FD0=/dev/stdout
+     DEST_FD1=/dev/null
+     ;;
+  *)
+     #2 and above, be silent
+     DEST_FD0=/dev/null
+     DEST_FD1=/dev/null
+     ;;
+esac
+
+# Note: on my machine, 'man --path' gives /usr/share/man twice, once with a trailing '/', once without.
+if [ -z "$MAN_DIR" ]; then
+  MAN_DIR=`man --path -C "$MAN_CONF"/man.conf \
+            | sed 's/:/\\n/g' \
+            | while read foo; do dirname "$foo"/.; done \
+            | sort -u \
+            | while read bar; do echo -n "$bar "; done`
+fi
+
+# If no MANPATH in ${MAN_CONF}/man.conf, abort as well
+if [ -z "$MAN_DIR" ]; then
+  echo "No directory specified, and no directory found in \"${MAN_CONF}/man.conf\""
+  exit 1
+fi
+
+# Fake?
+if [ "$FAKE" != "no" ]; then
+  echo "Actual parameters used:"
+  echo -n "Compression.......: "
+  case $COMP_METHOD in
+    --bzip2|--bz2|-b) echo -n "bzip2";;
+    --gzip|__gz|-g) echo -n "gzip";;
+    --decompress|-d) echo -n "decompressing";;
+    *) echo -n "unknown";;
+  esac
+  echo " ($COMP_METHOD)"
+  echo "Compression level.: $COMP_LVL"
+  echo "Compression suffix: $COMP_SUF"
+  echo "man.conf is.......: ${MAN_CONF}/man.conf ($MAN_CONF)"
+  echo -n "Hard links........: "
+  [ "$LN_OPT" = "-s" -o "$LN_OPT" = "--soft" ] &amp;&amp; echo -n "Convert to symlinks" || echo -n "Keep hardlinks"
+  echo " ($LN_OPT)"
+  echo "Backup............: $BACKUP"
+  echo "Faking (yes!).....: $FAKE"
+  echo "Directories.......: $MAN_DIR"
+  echo "Silence level.....: $QUIET_LVL ($QUIET_OPT)"
+  exit 0
+fi
+
+# If no method was specified, print help
+if [ -z "${COMP_METHOD}" -a "${BACKUP}" = "no" ]; then
+  help
+  exit 1
+fi
+
+# In backup mode, do the backup sollely
+if [ "$BACKUP" = "yes" ]; then
+  for DIR in $MAN_DIR; do
+    cd "${DIR}/.."
+    DIR_NAME=`basename "${DIR}"`
+    echo "Backing up $DIR..." &gt; $DEST_FD0
+    [ -f "${DIR_NAME}.tar.old" ] &amp;&amp; rm -f "${DIR_NAME}.tar.old"
+    [ -f "${DIR_NAME}.tar" ] &amp;&amp; mv "${DIR_NAME}.tar" "${DIR_NAME}.tar.old"
+    tar cfv "${DIR_NAME}.tar" "${DIR_NAME}" &gt; $DEST_FD1
+  done
+  exit 0
+fi
+
+# I know MAN_DIR has only absolute path names
+# I need to take into account the localized man, so I'm going recursive
+for DIR in $MAN_DIR; do
+  cd "$DIR"
+  for FILE in *; do
+    if [ "foo$FILE" = "foo*" ]; then continue; fi
+    if [ -d "$FILE" ]; then
+      # We are going recursive to that directory
+      echo "-&gt; Entering ${DIR}/${FILE}..." &gt; $DEST_FD0
+      # I need not pass --conf, as I specify the directory to work on
+      # But I need exit in case of error
+      "$0" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} ${QUIET_OPT} "${DIR}/${FILE}" || exit 1
+      echo "&lt;- Leaving ${DIR}/${FILE}." &gt; $DEST_FD1
+    else # !dir
+      if check_unique "$DIR" "$FILE"; then continue; fi
+
+      # If we have a symlink
+      if [ -h "$FILE" ]; then
+        case $FILE in
+          *.bz2)
+            EXT=bz2 ;;
+          *.gz)
+            EXT=gz ;;
+          *)
+            EXT=none ;;
+        esac
+
+        if [ "$EXT" != "none" ]; then
+          LINK=`ls -l $FILE | cut -d "&gt;" -f2 | tr -d " " | sed s/\.$EXT$//`
+          NEWNAME=`echo "$FILE" | sed s/\.$EXT$//`
+          mv "$FILE" "$NEWNAME"
+          FILE="$NEWNAME"
+        else
+          LINK=`ls -l $FILE | cut -d "&gt;" -f2 | tr -d " "`
+        fi
+
+        rm -f "$FILE" &amp;&amp; ln -s "${LINK}$COMP_SUF" "${FILE}$COMP_SUF"
+        echo "Relinked $FILE" &gt; $DEST_FD1
+
+      # else if we have a plain file
+      elif [ -f "$FILE" ]; then
+        # Take care of hard-links: build the list of files hard-linked
+        # to the one we are {de,}compressing.
+        # NB. This is not optimum has the file will eventually be compressed
+        # as many times it has hard-links. But for now, that's the safe way.
+        inode=`ls -li "$FILE" | awk '{print $1}'`
+        HLINKS=`find . \! -name "$FILE" -inum $inode`
+
+        if [ -n "$HLINKS" ]; then
+          # We have hard-links! Remove them now.
+          for i in $HLINKS; do rm -f "$i"; done
+        fi
+
+        # Now take care of the file that has no hard-link
+        # We do decompress first to recompress with the selected
+        # compression ratio later on...
+        case $FILE in
+          *.bz2)
+            bunzip2 $FILE
+            FILE=`echo $FILE | sed s/\.bz2$//`
+          ;;
+          *.gz)
+            gunzip $FILE
+            FILE=`echo $FILE | sed s/\.gz$//`
+          ;;
+        esac
+
+        # Compress the file with the highest compression ratio, if needed
+        case $COMP_SUF in
+          *bz2)
+            bzip2 ${COMP_LVL} "$FILE" &amp;&amp; chmod 644 "${FILE}${COMP_SUF}"
+            echo "Compressed $FILE" &gt; $DEST_FD1
+            ;;
+          *gz)
+            gzip ${COMP_LVL} "$FILE" &amp;&amp; chmod 644 "${FILE}${COMP_SUF}"
+            echo "Compressed $FILE" &gt; $DEST_FD1
+            ;;
+          *)
+            echo "Uncompressed $FILE" &gt; $DEST_FD1
+            ;;
+        esac
+
+        # If the file had hard-links, recreate those (either hard or soft)
+        if [ -n "$HLINKS" ]; then
+          for i in $HLINKS; do
+            NEWFILE=`echo $i | sed s/\.gz$// | sed s/\.bz2$//`
+            ln ${LN_OPT} "${FILE}$COMP_SUF" "${NEWFILE}$COMP_SUF"
+            chmod 644 "${NEWFILE}$COMP_SUF" # Really work only for hard-links. Harmless for soft-links
+          done
+        fi
+
+      else
+        # There is a problem when we get neither a symlink nor a plain file
+        # Obviously, we shall never ever come here... :-(
+        echo "Whaooo... \"${DIR}/${FILE}\" is neither a symlink nor a plain file. Please check:"
+        ls -l ${DIR}/${FILE}
+        exit 1
+      fi
+    fi
+  done # for FILE
+done # for DIR
 
 <command>EOF
 chmod 755 /usr/bin/compressdoc</command></userinput></screen>
 
-<para>Now, as root, you can issue a
-<command>/usr/bin/compressdoc /usr/man bz2</command>
-to compress your system man pages. Similarly, you can run it on the
-<filename class="directory">/usr/info</filename> directory. Don't forget
-<filename class="directory">/usr/X11R6/man</filename> if you install the
-<application>X</application> Window system. A few other programs, like 
-<application>XEmacs</application>, also install their documentation in 
-nonstandard places.</para>
+<para>Now, as root, you can issue a 
+<command>/usr/bin/compressdoc --bz2</command> to compress all your system man 
+pages. You can also run <command>/usr/bin/compressdoc --help</command> to get 
+a comprehensive help about what the script is able to do.</para>
+
+<para> Don't forget that a few programs, like the <application>X</application> 
+Window system, <application>XEmacs</application>, also install their 
+documentation in nonstandard places (such as <filename class="directory"> 
+/usr/X11R6/man</filename>, etc...). Don't forget to add those locations in the 
+file <filename>/etc/man.conf</filename>, as a MANPATH=/path section. Example:
+<screen><userinput>
+    ...
+    MANPATH=/usr/share/man
+    MANPATH=/usr/local/man
+    MANPATH=/usr/X11R6/man
+    MANPATH=/opt/qt/doc/man
+    ...
+</userinput></screen></para>
 
 <para>Generally, package installation systems do not compress man/info pages, 
 which means you will need to run the script again if you want to keep the size 
