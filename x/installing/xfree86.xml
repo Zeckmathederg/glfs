@@ -74,18 +74,6 @@ location:</para>
 <listitem><para><filename>XFree86-4.4.0-src-7.tgz</filename></para></listitem> 
 </itemizedlist> 
 
-<!--
-<para>You should also download the patch files:</para>
-<itemizedlist spacing='compact'> 
-<listitem><para>
-  <ulink url="ftp://ftp.xfree86.org/pub/XFree86/4.3.0/fixes/4.3.0-4.3.0.1.diff.gz" />
-  </para></listitem>
-<listitem><para>
-  <ulink url="ftp://ftp.xfree86.org/pub/XFree86/4.3.0/fixes/fontfile.diff" />
-  </para></listitem>
-</itemizedlist>
--->
-
 <para>The first three packages are the <application>XFree86</application> 
 programs, the fourth and fifth are fonts, the sixth is normal documentation, 
 and the seventh is hardcopy documentation. There are also two packages 
@@ -153,29 +141,18 @@ Rendering Manager unless you have a Direct Rendering Infrastructure
 <ulink url="http://dri.sourceforge.net" /> in the Status section. Currently, 
 supported cards include those from 3dfx (Voodoo, Banshee), 3Dlabs, 
 ATI (Rage Pro, Rage 128, Radeon 7X00, Radeon 2), Intel (i810, i815), and 
-Matrox (G200, G400, G450). If you do enable <acronym>DRI</acronym> here, make 
-sure you select the video card(s) you want to support as a 
-<emphasis>module</emphasis>.</para>
+Matrox (G200, G400, G450).</para>
 
 <para>Additionally NVidia provides their own closed source binary drivers,
 which do not make use of <acronym>DRI</acronym>. If you intend to use these 
 drivers, do not enable <acronym>DRI</acronym>.</para>
 
-<para>If you made any changes to the kernel configuration, recompile the 
-kernel.</para>
-
-<para>Copy <filename>/usr/src/linux/arch/i386/boot/bzImage</filename> and
-<filename>/usr/src/linux/System.map</filename> to
-<filename>/boot</filename>, edit <filename>/etc/lilo.conf</filename>
-appropriately and run <filename>lilo</filename>. If you use 
-<filename>grub</filename>, edit <filename>/boot/grub/menu.lst</filename> 
-and add the new kernel to the boot menu.
-</para>
+<para>If you made any changes to the kernel configuration, recompile and
+install the new kernel.</para>
 
 <note><para>If you build <application>XFree86</application> in a 
 <command>chroot</command> environment, make sure the kernel version of the base 
-system and the target system are the same.  This is especially important if you 
-enabled <acronym>DRI</acronym> support as a module as instructed above.</para>
+system and the target system are the same.</para>
 </note>
 
 </sect3>
@@ -333,39 +310,11 @@ commands:</para>
 make install &amp;&amp;
 make install.man &amp;&amp;
 ln -sf ../X11R6/bin /usr/bin/X11 &amp;&amp;
-ln -sf ../X11R6/lib/{X11,libGL.so{,.1}} /usr/lib &amp;&amp;
-ln -sf ../X11R6/include/{X11,GL} /usr/include</command></userinput></screen>
+ln -sf ../X11R6/lib/X11 /usr/lib/X11 &amp;&amp;
+ln -sf ../X11R6/include/X11 /usr/include/X11</command></userinput></screen>
 
 </sect3>
 
-<sect3>
-<title>Updating Direct Rendering Infrastructure (<acronym>DRI</acronym>)</title>
-<para>If you have one of the supported <acronym>DRI</acronym> cards and
-have enabled <acronym>DRI</acronym> kernel modules as explained
-above, you now need to update the kernel modules to ensure they are compatible 
-with the current version of <application>XFree86</application>. To do this, 
-perform the following:</para>
-
-<screen><userinput><command>cd programs/Xserver/hw/xfree86/os-support/linux/drm/kernel &amp;&amp; 
-make -f Makefile.linux  &amp;&amp; 
-mkdir -p /lib/modules/`uname -r`/kernel/drivers/char/drm/  &amp;&amp; 
-cp gamma.o radeon.o sis.o r128.o i810.o i830.o mga.o tdfx.o \
-    /lib/modules/`uname -r`/kernel/drivers/char/drm/  &amp;&amp; 
-depmod -a</command></userinput></screen>
-
-<warning><para>If you recompile or upgrade your kernel, you will need to 
-re-copy the appropriate driver module(s) to the kernel module library and rerun 
-<command>depmod -a</command>.</para></warning>
-
-<note><para>If you created <acronym>AGP</acronym> support as a module when 
-compiling the kernel, you may have to add a line to 
-<filename>/etc/modules.conf</filename> to ensure the agpgart module is loaded. 
-For instance, the <acronym>AGP</acronym> version of the Radeon video card will 
-use the <filename>radeon.o</filename> driver.  It will need to have the line 
-<screen>below radeon agpgart</screen> in <filename>/etc/modules.conf</filename> 
-to enable <acronym>DRI</acronym> support.</para></note>
-
-</sect3>
 </sect2>
 
 <sect2>
@@ -403,25 +352,13 @@ generated files and only rebuilds those files or programs that are out
 of date.</para></note>
 
 <para><screen><command>ln -sf ../X11R6/bin /usr/bin/X11
-ln -sf ../X11R6/lib/{X11,libGL.so{,.1}} /usr/lib
-ln -sf ../X11R6/include/{X11,GL} /usr/include</command></screen>
+ln -sf ../X11R6/lib/X11 /usr/lib/X11
+ln -sf ../X11R6/include/X11 /usr/include/X11</command></screen>
 These commands are present to enable other (broken) packages to build
 against <application>XFree86</application>, even though the Filesystem 
 Hierarchy Standard says: "In general, software must not be installed or 
 managed via the above symbolic links. They are intended for utilization by 
 users only."</para>
-
-<!-- <para><command>make -f Makefile.linux</command>: This builds the
-<application>XFree86</application> compatible kernel modules using the same 
-compiler used to compile the kernel.</para> -->
-
-<para><command>cp gamma.o radeon.o sis.o r128.o i810.o i830.o mga.o tdfx.o
-/lib/modules/`uname -r`/kernel/drivers/char/drm/</command>: Put the kernel
-module(s) where the kernel can find them. You only need to copy the driver you 
-need to support your video card.</para>
-
-<para><command>depmod -a</command>: Update the modules.dep file for module
-management.</para>
 
 </sect2>
 
@@ -433,22 +370,11 @@ management.</para>
 Run: </para>
 <screen><userinput><command>ldconfig</command></userinput></screen>
 
-<para>Ensure <filename class='directory'>/usr/X11R6/bin</filename> is added to 
-your <envar>PATH</envar> environment variable. Instructions for doing this are 
+<para>Ensure <filename class="directory">/usr/X11R6/bin</filename> 
+and <filename class="directory">/usr/X11R6/lib/pkgconfig</filename>
+are added to your <envar>PATH</envar> and <envar>PKG_CONFIG_PATH</envar>
+environment variables, respectively. Instructions for doing this are 
 described in the section "<xref linkend='postlfs-config-profile'/>."</para>
- 
-<para>Expand the <envar>PKG_CONFIG_PATH</envar> so that other packages
-can find <application>X</application> libraries. Procedures for this are also
-described in the section "<xref linkend='postlfs-config-profile'/>."</para>
-
-<para>Run:</para>
-<screen><userinput><command>source ~/.bash_profile</command></userinput></screen>
-
-<para>Set up your mouse:
-<screen><userinput><command>ln -s psaux /dev/mouse</command></userinput></screen>
-
-Adjust the symbolic link as necessary for other types of mice.  For instance, 
-a serial mouse on the first serial port would be linked to ttyS0.</para>
 
 <para>Create the <filename>XF86Config</filename> file with:
 <screen><userinput><command>cd ~
@@ -468,14 +394,19 @@ You may want to put 100dpi fonts ahead of 75dpi fonts if your system normally
 comes up closer to 100 dots per inch.  You may want to remove some font 
 directories completely.</para></listitem>
 
+<listitem><para>Section "Module". If you are going to install NVidia
+drivers remove the "dri" line.</para></listitem>
+ 
+<listitem><para>Sections "InputDevice". Specify the
+<parameter>Device</parameter> parameter to "/dev/input/mice" and
+<parameter>Protocol</parameter> to "auto" to set up your mouse. You may
+also want to change the keyboard autorepeat rate by adding
+<parameter>Option "Autorepeat" "250 30"</parameter>.</para></listitem>
+
 <listitem><para>Section "Monitor".  Specify the 
 <parameter>VertRefresh</parameter> and <parameter>HorizSync</parameter> values 
 if the system does not automatically detect the monitor and its values.</para>
 </listitem>
-
-<listitem><para>Section "InputDevice".  You may want to change the keyboard 
-autorepeat rate by adding <parameter>Option "Autorepeat" "250 30"</parameter>.
-</para></listitem>
 
 <listitem><para>Section "Device".  You may want to set some of the options 
 available for your selected video driver.  A description of the driver
