@@ -44,7 +44,7 @@
     </xsl:attribute>
   </xsl:template>
 
-    <!-- External URLs in italic font -->
+    <!-- External URLs in class='url' -->
   <xsl:template match="ulink" name="ulink">
     <a>
       <xsl:if test="@id">
@@ -53,7 +53,7 @@
         </xsl:attribute>
       </xsl:if>
       <xsl:attribute name="href"><xsl:value-of select="@url"/></xsl:attribute>
-       <strong>
+       <span class='url'>
         <xsl:choose>
           <xsl:when test="count(child::node())=0">
             <xsl:value-of select="@url"/>
@@ -62,7 +62,7 @@
             <xsl:apply-templates/>
           </xsl:otherwise>
         </xsl:choose>
-      </strong>
+      </span>
     </a>
   </xsl:template>
   
