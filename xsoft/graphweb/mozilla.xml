@@ -4,14 +4,13 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mozilla-download-http "http://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/src/mozilla-source-&mozilla-version;.tar.bz2">
-  <!ENTITY mozilla-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/src/mozilla-source-&mozilla-version;.tar.bz2">
-  <!ENTITY mozilla-md5sum        "15cb68da1d58f055f871b77ff655df77">
-  <!ENTITY mozilla-size          "29 MB">
-  <!ENTITY mozilla-buildsize     "619 MB">
-  <!ENTITY mozilla-time          "13.46 SBU">
-
-  <!ENTITY enigmail-version      "0.89.5">
+  <!ENTITY mozilla-download-http "http://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/source/mozilla-source-&mozilla-version;.tar.bz2">
+  <!ENTITY mozilla-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/source/mozilla-source-&mozilla-version;.tar.bz2">
+  <!ENTITY mozilla-md5sum        "e5994f3e801cd834966367c6a12f8aeb">
+  <!ENTITY mozilla-size          "30 MB">
+  <!ENTITY mozilla-buildsize     "625 MB">
+  <!ENTITY mozilla-time          "13.72 SBU">
+  <!ENTITY enigmail-version      "0.90.0">
   <!ENTITY ipc-version           "1.1.2">
 ]>
 
@@ -22,6 +21,9 @@
 </sect1info>
 <?dbhtml filename="mozilla.html" ?>
 <title>Mozilla-&mozilla-version;</title>
+<indexterm zone="mozilla">
+<primary sortas="a-Mozilla">Mozilla</primary>
+</indexterm>
 
 <sect2>
 <title>Introduction to <application>Mozilla</application></title>
@@ -88,19 +90,20 @@ url="http://downloads.mozdev.org/enigmail/src/ipc-&ipc-version;.tar.gz"/>
 </sect4>
 
 <sect4><title>Recommended</title>
-<para><xref linkend="gnupg"/> (for the Enigmail extension)</para>
+<para><xref linkend="gnupg"/> (for the <application>Enigmail</application> 
+extension)</para>
 </sect4>
 
 <sect4><title>Optional</title>
-<para><xref linkend="libjpeg"/>,
-<xref linkend="unzip"/>,
-<xref linkend="gnome-vfs"/>,
-<xref linkend="libart_lgpl"/>,
-<xref linkend="heimdal"/> or <xref linkend="mitkrb"/>
-(for the GSSAPI libraries),
-<xref linkend="doxygen"/>,
-<ulink url="http://xprint.mozdev.org/">Xprint</ulink>,
-<ulink url="http://perens.com/FreeSoftware/">Electric Fence</ulink> and
+<para><xref linkend="libjpeg"/>, 
+<xref linkend="unzip"/>, 
+<xref linkend="gnome-vfs"/>, 
+<xref linkend="libart_lgpl"/>, 
+<xref linkend="heimdal"/> or <xref linkend="mitkrb"/> 
+(for the GSSAPI libraries), 
+<xref linkend="doxygen"/>, 
+<ulink url="http://xprint.mozdev.org/">Xprint</ulink>, 
+<ulink url="http://perens.com/FreeSoftware/">Electric Fence</ulink> and 
 <ulink url="http://cairographics.org/">Cairo</ulink></para>
 </sect4>
 </sect3>
@@ -139,6 +142,10 @@ export BUILD_OFFICIAL="1" &amp;&amp;
             --disable-installer &amp;&amp;
 make</command></userinput></screen>
 
+<para>You should add the <option>--with-system-jpeg</option> switch to the 
+<command>configure</command> script if you have 
+<application>libjpeg</application> installed.</para>
+
 <para>If you're building the <application>Mozilla</application> mail and news 
 clients and plan to install the <application>Enigmail</application> 
 extension, execute the following steps:</para>
@@ -149,10 +156,11 @@ build/autoconf/make-makefile extensions/ipc extensions/enigmail &amp;&amp;
 make -C extensions/ipc &amp;&amp;
 make -C extensions/enigmail</command></userinput></screen>
 
-<para>Install <application>Mozilla</application> as follows:</para>
+<para>Install <application>Mozilla</application> (as the root user) as 
+follows:</para>
 
-<screen><userinput><command>make install &amp;&amp;
-install -d /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
+<screen><userinput role='root'><command>make install &amp;&amp;
+install -d -m755 /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
 cp -Lf dist/private/nss/*.h dist/public/nss/*.h \
    /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
 ln -nsf mozilla-&mozilla-version; /usr/include/mozilla &amp;&amp;
@@ -163,9 +171,9 @@ fi &amp;&amp;
 ln -nsf mozilla-&mozilla-version; /usr/lib/mozilla</command></userinput></screen>
 
 <para>If you're installing the <application>Enigmail</application> extension, 
-issue the following commands:</para>
+issue the following commands as the root user:</para>
 
-<screen><userinput><command>make -C extensions/ipc install &amp;&amp;
+<screen><userinput role='root'><command>make -C extensions/ipc install &amp;&amp;
 make -C extensions/enigmail install</command></userinput></screen>
 
 <para>Some libraries, including the Netscape Portable Runtime 
@@ -173,9 +181,9 @@ make -C extensions/enigmail install</command></userinput></screen>
 (<acronym>NSS</acronym>) libraries, installed by 
 <application>Mozilla</application> are also needed by other packages. These 
 libraries should be in <filename>/usr/lib</filename> so that other packages 
-can link against them. Move them as follows:</para>
+can link against them. As the root user, move them as follows:</para>
 
-<screen><userinput><command>for i in \
+<screen><userinput role='root'><command>for i in \
     lib{nspr4,plc4,plds4,nss3,smime3,softokn3,ssl3}.so libsoftokn3.chk
 do
    mv /usr/lib/mozilla-&mozilla-version;/$i /usr/lib/
@@ -188,7 +196,7 @@ These steps should be preformed by the root user each time a
 users to run <command>mozilla</command>. Enable multi-user operation by 
 executing the following:</para>
 
-<screen><userinput><command>cd /usr/lib/mozilla-&mozilla-version; &amp;&amp;
+<screen><userinput role='root'><command>cd /usr/lib/mozilla-&mozilla-version; &amp;&amp;
 export LD_LIBRARY_PATH="$PWD" &amp;&amp;
 export MOZILLA_FIVE_HOME="$PWD" &amp;&amp;
 ./regxpcom &amp;&amp;
@@ -314,7 +322,7 @@ then make a symlink to the <command>mozilla</command> script from
 <para>Many applications look for <command>netscape</command> when they need to 
 open a browser. You may make the following symlink for convenience.</para>
 
-<screen><userinput><command>ln -sf mozilla /usr/bin/netscape</command></userinput></screen>
+<screen><userinput role='root'><command>ln -sf mozilla /usr/bin/netscape</command></userinput></screen>
 
 <para>For installing various <application>Mozilla</application> plugins, refer 
 to <ulink url="http://plugindoc.mozdev.org/linux.html">Mozdev's PluginDoc 
