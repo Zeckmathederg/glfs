@@ -1,10 +1,134 @@
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+  
+  <!ENTITY tex-download-ftp      "ftp://tug.ctan.org/tex-archive/systems/unix/teTeX/current/distrib/tetex-src-&tex-version;.tar.gz">
+  <!ENTITY texmf-download-ftp    "ftp://tug.ctan.org/tex-archive/systems/unix/teTeX/current/distrib/tetex-texmf-&tex-version;.tar.gz">
+  <!ENTITY texmfsrc-download-ftp "ftp://tug.ctan.org/tex-archive/systems/unix/teTeX/current/distrib/tetex-texmfsrc-&tex-version;.tar.gz">
+  <!ENTITY tex-size              "52 MB">
+  <!ENTITY tex-buildsize         "175 MB">
+  <!ENTITY tex-time              "2.97 SBU">
+]>
+
 <sect1 id="pst-typesetting-tex" xreflabel="TeX-&tex-version;">
 <?dbhtml filename="tex.html"?>
 <title>TeX-&tex-version;</title>
 
-&tex-intro;
-&tex-inst;
-&tex-exp;
-&tex-desc;
+<sect2>
+<title>Introduction to <application>TeX</application></title>
+
+<para><application>TeX</application> is a typesetting package, able to create 
+documents in a variety of formats.  The optional texmfsrc
+<acronym>TAR</acronym> ball contains source code for packages that are 
+contained in the texmf <acronym>TAR</acronym> ball, including
+the docstrip sources.</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (FTP): <ulink
+url="&tex-download-ftp;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&texmf-download-ftp;"/></para></listitem>
+<listitem><para>Optional Download (FTP): <ulink
+url="&texmfsrc-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &tex-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&tex-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&tex-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title>Additional Downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Recommended Patch: <ulink url="&patch-root;/tetex-src-2.0.2-remove-readlink-1.patch"/></para></listitem>
+</itemizedlist></sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application>TeX</application></title>
+
+<para><application>TeX</application> is installed from the source
+directory (usually <filename class="directory">/usr/src</filename>) and untarring
+instructions are included below instead of the usual assumption that you
+have already untarred the package. The source directory should contain
+the two required packages and the optional package, if desired.</para>
+
+<para>Install <application>TeX</application> by running the following commands:</para>
+
+<screen><userinput><command>mkdir -p /usr/share/texmf &amp;&amp;
+tar zxvf tetex-src-&tex-version;.tar.gz &amp;&amp;
+cd tetex-src-&tex-version; &amp;&amp;
+gzip -dc ../tetex-texmf-&tex-version;.tar.gz \
+      | (umask 0; cd /usr/share/texmf; tar xvf -)</command></userinput></screen>
+
+<para>If the optional texmf source code <acronym>TAR</acronym> ball was downloaded, untar
+it now:</para>
+<screen><userinput><command>gzip -dc ../tetex-texmfsrc-&tex-version;.tar.gz \
+      | (umask 0; cd /usr/share/texmf; tar xvf -)</command></userinput></screen>
+
+<screen><userinput><command>patch -Np1 -i ../tetex-src-2.0.2-remove-readlink-1.patch &amp;&amp;
+./configure --with-x=no --prefix=/usr \
+    --without-texinfo   --with-system-ncurses --with-system-zlib \
+    --exec-prefix=/usr --bindir=/usr/bin &amp;&amp;
+make world &amp;&amp;
+texconfig dvips paper letter &amp;&amp;
+texconfig font rw</command></userinput></screen>
+
+<note><para>
+The paper size may be changed to a4, as is used in most countries.
+</para></note>
+
+</sect2>
+
+<sect2>
+<title>Installation command explanations</title>
+
+<para><screen><command>gzip -dc ../tetex-texmf-&tex-version;.tar.gz \
+        | (umask 0; cd /usr/share/texmf; tar xvf -)</command></screen>
+Untar the <application>TeX</application> fonts and macro libraries.</para>
+
+<para><parameter>--with-x=no</parameter>: This switch will avoid any
+<application>XFree86</application> dependencies.
+<application>TeX</application> can be compiled with
+<application>XFree86</application> support, notably for
+<command>xdvi</command>.  If this is desired, remove this
+configure option.</para>
+
+<para><parameter>--exec-prefix=/usr --bindir=/usr/bin</parameter>: This switch
+will ensure that <application>TeX</application> binaries will be installed in
+<filename class="directory">/usr/bin</filename>.</para>
+
+<para><option>--without-texinfo</option>: A default
+<acronym>LFS</acronym> installation already has the
+<application>texinfo</application> package
+installed; this switch will avoid overwriting it with the included
+<application>texinfo</application>
+package.</para> 
+
+<para><option>--with-system-ncurses</option>: This switch specifies using the
+already installed <filename class="libraryfile">libncurses</filename> library.</para>
+
+<para><option>--with-system-zlib</option>: <acronym>LFS</acronym>
+Systems starting with version 4.0 have zlib installed as part of the
+base operating system; this switch avoids building it here.</para> 
+
+<para><command>texconfig dvips paper letter</command>: This command sets the 
+default paper size for <application>TeX</application>.</para>
+
+<para><command>texconfig font rw</command>: This command specifies writable 
+fonts.</para>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>TeX</application> package contains 125 separate binaries. 
+Please refer to <ulink url="file:///usr/share/texmf/doc/index.html"/> 
+for details, as well as a tour of the expansive
+<application>TeX</application> documentation.</para>
+</sect2>
 
 </sect1>
