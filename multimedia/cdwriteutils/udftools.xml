@@ -1,11 +1,155 @@
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+ 
+  <!ENTITY udftools-download-http "http://prdownloads.sourceforge.net/linux-udf/udftools-&udftools-version;.tar.gz">
+  <!ENTITY udftools-download-ftp  " ">
+  <!ENTITY udftools-size          "236 Kb">
+  <!ENTITY udftools-buildsize     "2.7 MB">
+  <!ENTITY udftools-time          " ">
+]>
+
 <sect1 id="udftools" xreflabel="UDFtools-&udftools-version;">
 <?dbhtml filename="udftools.html"?>
 <title>UDFtools-&udftools-version;</title>
 
-&udftools-intro;
-&udftools-kernel-inst;
-&udftools-inst;
-&udftools-desc;
+<sect2>
+<title>Introduction to <application><acronym>UDF</acronym>tools</application></title>
+
+<para>The <application><acronym>UDF</acronym>tools</application> package contains utilities
+for creating and mounting <acronym>CD</acronym>-<acronym>RW</acronym> disks with
+<acronym>UDF</acronym> file systems for both
+reading and writing. <acronym>UDF</acronym> files systems are used on
+both <acronym>CD</acronym>-<acronym>RW</acronym> media and
+on <acronym>DVD</acronym>.  For more details of the
+<acronym>UDF</acronym> file system standard see:
+<ulink url="http://www.osta.org"/> and <ulink
+url="http://www.ecma-international.org"/>.</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink url="&udftools-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink url="&udftools-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &udftools-size;</para></listitem>
+<listitem><para>Estimated Disk space required: &udftools-buildsize;</para></listitem>
+<listitem><para>Estimated build time: &udftools-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Required Patch: <ulink
+url="&patch-root;/linux-2.4.26-packet.patch"/></para></listitem>
+<listitem><para>Patches for other kernel versions:
+<ulink url="http://w1.894.telia.com/~u89404340/patches/packet/"/></para></listitem>
+</itemizedlist></sect3>
+
+
+</sect2>
+
+<sect2>
+<title>Installation of the kernel patch</title>
+
+<warning>
+<para>Note that this patch can permanently damage your
+<acronym>CD</acronym> drive if it is
+from one of the few mentioned at
+<ulink url="http://slashdot.org/article.pl?sid=03/10/25/1737244"/>. Do
+not apply the patch without first checking out the article.</para>
+</warning>
+
+<para>Install the kernel patch by running the following commands from
+the kernel source directory:</para>
+
+<screen><userinput><command>patch -Np1 -i ../linux-2.4.26-packet.patch</command></userinput></screen>
+
+<para>In the kernel configuration, check your setting with those listed
+here:</para>
+
+<screen>Block devices
+   Packet writing on CD/DVD media:       Y or M
+File Systems
+   UDF filesystems support (read only):  Y
+     UDF write support (DANGEROUS)       Y</screen>
+
+<para>If necessary, recompile the kernel with:</para>
+<screen><userinput><command>make CC=/opt/gcc-2.95.3/bin/gcc dep &amp;&amp;
+make CC=/opt/gcc-2.95.3/bin/gcc bzImage &amp;&amp;
+make CC=/opt/gcc-2.95.3/bin/gcc modules &amp;&amp;
+make CC=/opt/gcc-2.95.3/bin/gcc modules_install</command></userinput></screen>
+<para>
+Copy <filename>/usr/src/linux/arch/i386/boot/bzImage</filename> and
+<filename>/usr/src/linux/System.map</filename> to
+<filename class="directory">/boot</filename>. If you utilize
+<application>LILO</application>, edit <filename>/etc/lilo.conf</filename>
+appropriately and run <command>lilo</command>.
+</para>
+
+<para>If you built packet writer as a module, add the following to
+<filename>/etc/modules.conf</filename>:</para>
+<screen><userinput>alias block-major-97 pktcdvd</userinput></screen>
+
+<para>Finally, create the packet driver device nodes in <filename
+class="directory">/dev</filename>, add one node for every
+<acronym>CD</acronym>-<acronym>RW</acronym> drive you
+want to support:</para>
+<screen><userinput><command>mknod /dev/pktcdvd0 b 97 0
+mknod /dev/pktcdvd1 b 97 1</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application><acronym>UDF</acronym>tools</application></title>
+
+<para>Install <application><acronym>UDF</acronym>tools</application> by running the following commands:</para>
+
+<screen><userinput><command>./configure --prefix=/usr &amp;&amp;
+make &amp;&amp;
+make install</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application><acronym>UDF</acronym>tools</application> package contains <command>
+pktsetup</command>, <command>cdrwtool</command>, and
+<command>mkudffs</command>.</para>
+
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>pktsetup</title>
+<para><command>pktsetup</command> is used to establish and break down
+associations between the kernel packet driver and a physical drive.</para>
+<para>Example:
+<screen><command>pktsetup /dev/pktcdvd0 /dev/scd0
+mount /dev/pktcdvd0 /mnt/cdrom -t udf -o rw,noatime</command></screen>
+associates the physical device <filename>/dev/scd0</filename> with the
+kernel packet driver <filename>/dev/pktcdvd0</filename>, then mounts a
+<acronym>UDF</acronym> formatted <acronym>CD-RW</acronym> for read/write
+access.</para></sect3>
+
+<sect3><title>cdrwtool</title>
+<para><command>cdrwtool</command> provides facilities to manage
+<acronym>CD</acronym>-RW
+drives, including formatting new disks, setting the read and write
+speeds, etc. </para>
+<para>Example:
+<screen><command>cdrwtool -d /dev/scd0 -q</command></screen>
+prepares a new <acronym>CD</acronym>-<acronym>RW</acronym> for use and 
+formats it with a <acronym>UDF</acronym>
+file system.</para></sect3>
+
+<sect3><title>mkudffs</title>
+<para><command>mkudffs</command> is used to create new
+<acronym>UDF</acronym> file systems,
+it can be used on hard disks and <acronym>CD</acronym>-R as well as
+<acronym>CD</acronym>-<acronym>RW</acronym>.</para></sect3>
+ 
+
+</sect2>
 
 </sect1>
 
