@@ -1,11 +1,167 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+<!ENTITY sendmail-download-ftp "ftp://ftp.sendmail.org/pub/sendmail/sendmail.&sendmail-version;.tar.gz">
+<!ENTITY sendmail-download-http "http://www.sendmail.org/ftp/sendmail.&sendmail-version;.tar.gz">
+<!ENTITY sendmail-size "1.8 MB">
+<!ENTITY sendmail-buildsize "13 MB">
+<!ENTITY sendmail-time "0.43 SBU">
+
+]>
+
 <sect1 id="sendmail" xreflabel="Sendmail-&sendmail-version;">
 <?dbhtml filename="sendmail.html"?>
 <title>Sendmail-&sendmail-version;</title>
 
-&sendmail-intro;
-&sendmail-inst;
-&sendmail-config;
-&sendmail-desc;
+<sect2>
+<title>Introduction to <application>Sendmail</application></title>
+
+<para>The <application>Sendmail</application> package contains a Mail Transport Agent
+(<acronym>MTA</acronym>).</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink url="&sendmail-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink url="&sendmail-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &sendmail-size;</para></listitem>
+<listitem><para>Estimated Disk space required: &sendmail-buildsize;</para></listitem>
+<listitem><para>Estimated build time: &sendmail-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title><application>Sendmail</application> dependencies</title>
+<sect4><title>Required</title>
+<para><xref linkend="db"/> and <xref linkend="procmail"/>
+</para></sect4>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application>Sendmail</application></title>
+
+<para>Before building <application>Sendmail</application>, we need to create users, groups and
+directories that sendmail uses with the following commands:</para>
+
+<screen><userinput><command>groupadd smmsp &amp;&amp;
+groupadd mail &amp;&amp;
+useradd -g smmsp -G mail smmsp &amp;&amp;
+chmod 1777 /tmp &amp;&amp;
+chmod 1777 /var/mail &amp;&amp;
+mkdir /var/spool/mqueue</command></userinput></screen>
+
+<para>Install <application>Sendmail</application> with the following commands:</para>
+
+<screen><userinput><command>cat &gt; devtools/Site/site.config.m4 &lt;&lt; "EOF"
+define(`confMANGRP',`root')
+define(`confMANOWN',`root')
+define(`confSBINGRP',`root')
+define(`confUBINGRP',`root')
+define(`confUBINOWN',`root')
+EOF
+cd sendmail &amp;&amp;
+sh Build &amp;&amp;
+cd ../cf/cf &amp;&amp;
+cp generic-linux.mc sendmail.mc &amp;&amp;
+mkdir /etc/mail &amp;&amp;
+sh Build sendmail.mc &amp;&amp;
+sh Build install-cf &amp;&amp;
+cd ../../ &amp;&amp;
+sh Build install</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application>Sendmail</application></title>
+
+<sect3><title>Config files</title>
+<para><filename>/etc/mail/*</filename></para>
+</sect3>
+
+<sect3><title>Configuration Information</title>
+
+<screen><userinput><command>echo `hostname` > /etc/mail/local-host-names
+cat &gt; /etc/mail/aliases &lt;&lt; "EOF"
+postmaster: root
+MAILER-DAEMON: root
+EOF
+cp -R cf/* /etc/mail &amp;&amp;
+cp cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
+newaliases -v</command></userinput></screen>
+
+<para>To automate the running of Sendmail at startup, install the <filename>/etc/rc.d/init.d/sendmail</filename>
+init script included in the <xref linkend="intro-important-bootscripts"/> package.</para>
+                                                                                                                
+<screen><userinput><command>make install-sendmail</command></userinput></screen>
+
+<note><para>The -qNm option to <command>sendmail</command>, where N is number of minutes, controls
+how often Sendmail will process the mail queue. A default of 5
+minutes is used in the init script. Individual workstation users may want to set
+this as low as 1 minute, large installations handling more mail may
+want to set it higher.</para></note>
+
+</sect3>
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>Sendmail</application> package contains
+<command>mail.local</command>,
+<command>rmail</command>,
+<command>smrsh</command>,
+<command>editmap</command>,
+<command>makemap</command>,
+<command>mailq</command>,
+<command>newaliases</command>,
+<command>sendmail</command>,
+<command>vacation</command>,
+<command>praliases</command> and
+<command>mailstats</command>.
+</para>
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>mail.local</title>
+<para><command>mail.local</command> appends its standard input to a user's mail
+file.</para></sect3>
+
+<sect3><title>rmail</title>
+<para><command>rmail</command> interprets incoming mail received via
+<acronym>UUCP</acronym>.</para></sect3>
+
+<sect3><title>smrsh</title>
+<para><command>smrsh</command> is a restricted shell for Sendmail.</para></sect3>
+
+<sect3><title>editmap</title>
+<para><command>editmap</command> queries and edits Sendmail map files.</para></sect3>
+
+<sect3><title>makemap</title>
+<para><command>makemap</command> creates Sendmail map files.</para></sect3>
+
+<sect3><title>mailq</title>
+<para><command>mailq</command> prints a summary of waiting mail messages.</para></sect3>
+
+<sect3><title>newaliases</title>
+<para><command>newaliases</command> rebuilds <filename>/etc/mail/aliases.db</filename>.
+</para></sect3>
+
+<sect3><title>sendmail</title>
+<para><command>sendmail</command> is the Sendmail mail transport agent.</para></sect3>
+
+<sect3><title>vacation</title>
+<para><command>vacation</command> is an email auto responder.</para></sect3>
+
+<sect3><title>praliases</title>
+<para><command>praliases</command> displays current Sendmail aliases.</para></sect3>
+
+<sect3><title>mailstats</title>
+<para><command>mailstats</command> displays Sendmail statistics.</para></sect3>
+
+</sect2>
 
 </sect1>
 

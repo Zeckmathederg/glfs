@@ -1,12 +1,147 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+<!ENTITY dhcp-download-http "http://gd.tuwien.ac.at/infosys/servers/isc/dhcp/dhcp-&dhcp-version;.tar.gz">
+<!ENTITY dhcp-download-ftp "ftp://ftp.isc.org/isc/dhcp/dhcp-&dhcp-version;.tar.gz">
+<!ENTITY dhcp-size "852 KB">
+<!ENTITY dhcp-buildsize "29.6 MB">
+<!ENTITY dhcp-time "0.23 SBU">
+
+]>
+
 <sect1 id="dhcp" xreflabel="DHCP-&dhcp-version;">
 <?dbhtml filename="dhcp.html"?>
 <title><acronym>DHCP</acronym>-&dhcp-version;</title>
 
-&dhcp-intro;
-&dhcp-inst;
-&dhcp-exp;
-&dhcp-config;
-&dhcp-desc;
+<sect2>
+<title>Introduction to <application><acronym>DHCP</acronym></application></title>
+
+<para>The <application><acronym>DHCP</acronym></application> package contains 
+both the client and server programs for <acronym>DHCP</acronym>.
+<command>dhclient</command> (the client) is useful for connecting your computer 
+to a network which uses <acronym>DHCP</acronym> to assign network addresses. 
+<command>dhcpd</command> (the server) is useful for assigning network addresses 
+on your private network.</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink
+url="&dhcp-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&dhcp-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &dhcp-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&dhcp-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&dhcp-time;</para></listitem></itemizedlist>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application><acronym>DHCP</acronym></application></title>
+
+<note><para>You must have Packet Socket support compiled in the kernel and 
+Socket Filtering either compiled in or as a kernel module.</para></note>
+                                                                                
+<para>Install <application><acronym>DHCP</acronym></application> by running the following commands:</para>
+
+<screen><userinput><command>./configure &amp;&amp;
+make &amp;&amp;
+make LIBDIR=/usr/lib INCDIR=/usr/include install</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Command explanations</title>
+
+<para><parameter>LIBDIR=/usr/lib INCDIR=/usr/include</parameter>: This
+command installs the library and include files in <filename
+class="directory">/usr</filename> instead of <filename
+class="directory">/usr/local</filename>.</para>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application><acronym>DHCP</acronym></application></title>
+
+<sect3><title>Config files</title>
+<para><filename>/etc/dhclient.conf</filename></para>
+</sect3>
+
+<sect3><title>Configuration Information</title>
+
+<para>Information on configuring the <acronym>DHCP</acronym> client can be 
+found in <xref linkend="connect-dhcp"/>.</para>
+
+<para>Note that you only need the <acronym>DHCP</acronym> server if 
+you want to issue <acronym>LAN</acronym> addresses over your network.  The 
+<acronym>DHCP</acronym> client doesn't need this script to be used.  Also note 
+that this script is coded for the <emphasis role="strong">eth1</emphasis> 
+interface, which may need to be modified for your hardware configuration.</para>
+
+<para>Install the <filename>/etc/rc.d/init.d/dhcp</filename>
+init script included in the <xref linkend="intro-important-bootscripts"/> package.</para>
+                                                                                                                
+<screen><userinput><command>make install-dhcp</command></userinput></screen>
+
+<para>The lease file must exist on startup.  The following command will
+satisfy that requirement:</para>
+
+<screen><userinput><command>touch /var/state/dhcp/dhcpd.leases</command></userinput></screen>
+
+<para>The following commands will create a base configuration file for a
+<acronym>DHCP</acronym> server.  There are several options that you may want to
+add (information that is passed back to the <acronym>DHCP</acronym> client) and 
+those are covered in the man pages for <filename>dhcp.conf</filename>.</para>
+
+<screen><userinput><command>cat &gt; /etc/dhcpd.conf &lt;&lt; "EOF"</command>
+default-lease-time 72000;
+max-lease-time 144000;
+ddns-update-style ad-hoc;
+
+subnet <replaceable>[192.168.5.0]</replaceable> netmask <replaceable>[255.255.255.0]</replaceable> {
+  range <replaceable>[192.168.5.10] [192.168.5.240]</replaceable>;
+  option broadcast-address <replaceable>[195.168.5.255]</replaceable>;
+  option routers <replaceable>[192.168.5.1]</replaceable>;
+}
+<command>EOF</command></userinput></screen>
+
+<para>All addresses should be changed to meet your circumstance.</para>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application><acronym>DHCP</acronym></application> package contains 
+<command>dhclient</command>, <command>dhcpd</command> and <command>dhcrelay</command>.</para>
+
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>dhclient</title>
+<para><command>dhclient</command> is the implementation of the
+<acronym>DHCP</acronym> client.</para></sect3>
+
+<sect3><title>dhcpd</title>
+<para><command>dhcpd</command> implements Dynamic Host Configuration Protocol 
+(<acronym>DHCP</acronym>) and Internet Bootstrap Protocol
+(<acronym>BOOTP</acronym>) requests for network addresses.</para></sect3>
+
+<sect3><title>dhcrelay</title>
+<para><command>dhcrelay</command> provides a means to accept <acronym>DHCP
+</acronym> and <acronym>BOOTP</acronym> requests on a subnet without a 
+<acronym>DHCP</acronym> server and relay them to a <acronym>DHCP</acronym> 
+server on another subnet.</para></sect3>
+
+</sect2>
 
 </sect1>
 

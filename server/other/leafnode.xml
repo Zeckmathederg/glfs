@@ -1,12 +1,186 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+<!ENTITY leafnode-download-http "http://prdownloads.sourceforge.net/leafnode/leafnode-&leafnode-version;.rel.tar.bz2">
+<!ENTITY leafnode-download-ftp " ">
+<!ENTITY leafnode-size "614 KB">
+<!ENTITY leafnode-buildsize "14 MB">
+<!ENTITY leafnode-time "0.11 SBU">
+
+]>
+
 <sect1 id="leafnode" xreflabel="Leafnode-&leafnode-version;">
 <?dbhtml filename="leafnode.html"?>
 <title>Leafnode-&leafnode-version;</title>
 
-&leafnode-intro;
-&leafnode-inst;
-&leafnode-exp;
-&leafnode-config;
-&leafnode-desc;
+<sect2>
+<title>Introduction to <application>Leafnode</application></title>
+
+<para><application>Leafnode</application> is an <acronym>NNTP</acronym>
+server designed for small sites to provide a local USENET spool.</para>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink url="&leafnode-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink url="&leafnode-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &leafnode-size;</para></listitem>
+<listitem><para>Estimated Disk space required: &leafnode-buildsize;</para></listitem>
+<listitem><para>Estimated build time: &leafnode-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title><application>Leafnode</application> dependencies</title>
+<sect4><title>Required</title>
+<para><xref linkend="pcre"/> and <xref linkend="tcpwrappers"/>
+</para></sect4>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application>Leafnode</application></title>
+
+<para>Create the group and user news, if not present:</para>
+
+<screen><userinput><command>groupadd news &amp;&amp;
+useradd -g news news</command></userinput></screen>
+
+<para>Install <application>Leafnode</application> by running the following 
+commands:</para>
+
+<screen><userinput><command>./configure --prefix=/usr --localstatedir=/var \
+    --sysconfdir=/etc/news --with-lockfile=/var/lock/fetchnews.lck &amp;&amp;
+make &amp;&amp;
+make install &amp;&amp;
+ldconfig &amp;&amp;
+make update</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Installation command explanations</title>
+
+<para><parameter>--localstatedir=/var</parameter>: Change the default
+spool directory of <filename class="directory">/usr/var</filename>.</para>
+
+<para><parameter>--sysconfdir=/etc/news</parameter>: leafnode reads its
+configuration data from a file called <filename>config</filename> which
+will be created in <filename class="directory">/etc/news</filename> to
+avoid any potential conflict with other packages.</para>
+
+<para><command>make update</command>: Create an initial
+<filename>/etc/news/config.example</filename> file, which must be
+renamed to <filename>/etc/news/config</filename>.</para>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application>Leafnode</application></title>
+
+<sect3><title>Config files</title>
+<para><filename>/etc/news/config</filename>,
+<filename>/etc/inetd.conf</filename> or
+<filename>/etc/xinetd.conf</filename></para>
+
+<para><application>Leafnode</application> may be configured to use
+<command>inetd</command> by adding an entry
+to the <filename>/etc/inetd.conf</filename> file with the following
+command:</para>
+
+<screen><userinput><command>echo "nntp stream tcp nowait news /usr/sbin/tcpd /usr/sbin/leafnode" \
+&gt;&gt; /etc/inetd.conf</command></userinput></screen>
+
+<para>Issue a <command>killall -HUP inetd</command> to reread the
+changed <filename>inetd.conf</filename> file.</para>
+
+<para>Alternatively, <application>Leafnode</application> may be configured to 
+use <command>xinetd</command> by adding an entry to the <filename>
+/etc/xinetd.conf</filename> file with the following command:</para>
+
+<screen><userinput><command>cat &gt;&gt; /etc/xinetd.conf &lt;&lt; "EOF" </command>
+        service nntp
+        {
+           flags           = NAMEINARGS NOLIBWRAP
+           socket_type     = stream
+           protocol        = tcp
+           wait            = no
+           user            = news
+           server          = /usr/sbin/tcpd
+           server_args     = /usr/sbin/leafnode
+           instances       = 7
+           per_source      = 3
+        }
+<command>EOF</command></userinput></screen>
+
+<para>Issue a <command>killall -HUP xinetd</command> to reread the
+changed <filename>xinetd.conf</filename> file.</para>
+
+<para>The <filename>/etc/news/config</filename> file must be
+edited to reflect the name of the upstream <acronym>NNTP</acronym>
+provider. Copy the
+example configuration file to <filename>/etc/news/config</filename>
+and save the original for reference: </para>
+
+<screen><userinput><command>cp /etc/news/config.example /etc/news/config
+</command></userinput></screen>
+
+<para>Change the
+<screen><userinput>server = </userinput></screen>
+entry to reflect your news provider.</para>
+
+<para>The <envar>NNTPSERVER</envar> environment variable must be set to 
+127.0.0.1 to prevent news clients from reading news from the upstream feed, 
+so add the following to <filename>/etc/profile</filename> or
+<filename>$HOME/.bash_profile</filename>:</para>
+
+<screen><userinput><command>export NNTPSERVER=127.0.0.1</command></userinput></screen>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>Leafnode</application> package contains
+<command>leafnode-version</command>,
+<command>leafnode</command>,
+<command>applyfilter</command>,
+<command>texpire</command>,
+<command>checkgroups</command>,
+<command>fetchnews</command> and
+<command>newsq.</command></para></sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>leafnode-version</title>
+<para><command>leafnode-version</command> prints the leafnode
+version.</para></sect3>
+
+<sect3><title>leafnode</title>
+<para><command>leafnode</command> is the <acronym>NNTP</acronym> server daemon.</para></sect3>
+
+<sect3><title>applyfilter</title>
+<para><command>applyfilter</command> filters newsgroup articles according to regular
+expressions.</para></sect3>
+
+<sect3><title>texpire</title>
+<para><command>texpire</command> expires old articles and unread groups.</para></sect3>
+
+<sect3><title>checkgroups</title>
+<para><command>checkgroups</command> inserts newsgroup titles into the newsgroup
+database.</para></sect3>
+
+<sect3><title>fetchnews</title>
+<para><command>fetchnews</command> sends posted articles to and retrieves new articles
+from an upstream news server.</para></sect3>
+
+<sect3><title>newsq</title>
+<para><command>newsq</command> shows articles waiting to be sent upstream.</para></sect3>
+
+</sect2>
 
 </sect1>
 
