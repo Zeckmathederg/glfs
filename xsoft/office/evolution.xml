@@ -6,9 +6,13 @@
 
   <!ENTITY evolution-download-http "http://ftp.gnome.org/pub/GNOME/sources/evolution/1.4/evolution-&evolution-version;.tar.bz2">
   <!ENTITY evolution-download-ftp  "ftp://ftp.gnome.org/pub/GNOME/sources/evolution/1.4/evolution-&evolution-version;.tar.bz2">
-  <!ENTITY evolution-size          "12 MB">
-  <!ENTITY evolution-buildsize     "387 MB">
-  <!ENTITY evolution-time          "10.84 SBU">
+  <!ENTITY evolution-size          "14 MB">
+  <!ENTITY evolution-buildsize     "290 MB">
+  <!ENTITY evolution-time          "6.34 SBU">
+  <!ENTITY db3117-download         "http://ftp2.nchu.edu.tw/UNIX/Database/BerkeleyDB/db-3.1.17.tar.gz">
+  <!ENTITY db3117-size             "1.95 MB">
+  <!ENTITY db3117-buildsize        "28.2 MB">
+  <!ENTITY db3117-time             "0.22 SBU">
 ]>
 
 <sect1 id="evolution" xreflabel="Evolution-&evolution-version;">
@@ -39,21 +43,48 @@ url="&evolution-download-ftp;"/></para></listitem>
 </sect3>
 
 <sect3><title>Additional downloads</title>
+<para><emphasis>Packages</emphasis></para>
 <itemizedlist spacing='compact'>
-<listitem><para>Required application: <ulink
-url="http://ftp2.nchu.edu.tw/UNIX/Database/BerkeleyDB/db-3.1.17.tar.gz"/></para></listitem>
-</itemizedlist></sect3>
+<listitem><para>Required Application: <ulink 
+url="&db3117-download;"/></para></listitem>
+<listitem><para>Download size: &db3117-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&db3117-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&db3117-time;</para></listitem></itemizedlist>
+
+<para><emphasis>Patches</emphasis></para>
+<itemizedlist spacing='compact'>
+<listitem><para>Required Patch: <ulink 
+url="&patch-root;/evolution-&evolution-version;-gcc34-2.patch"/></para>
+</listitem></itemizedlist>
+</sect3>
 
 <sect3><title><application>Evolution</application> dependencies</title>
 <sect4><title>Required</title>
-<para>
-<xref linkend="openssl"/>,
-<xref linkend="libsoup"/>,
-<xref linkend="gal"/> and
-<xref linkend="gtkhtml"/>
-</para></sect4>
+<para><xref linkend="openssl"/>, 
+<xref linkend="libsoup"/>, 
+<xref linkend="gal"/> and 
+<xref linkend="gtkhtml"/></para>
+</sect4>
+
 <sect4><title>Optional</title>
-<para><xref linkend="openldap"/> and <xref linkend="gtk-doc"/></para></sect4>
+<para><xref linkend="openldap"/>, 
+<xref linkend="sendmail"/> (or other 
+<ulink url="../server/mail.html">MTA</ulink> that links to 
+<command>/usr/sbin/sendmail</command>), 
+<xref linkend="kdebase"/>, 
+<xref linkend="heimdal"/> or <xref linkend="mitkrb"/>, 
+<ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink>, 
+<xref linkend="gtk-doc"/>, 
+<xref linkend="docbook-utils"/>, 
+<ulink 
+url="http://ftp.gnome.org/pub/GNOME/sources/gnome-pilot/2.0/">GNOME-Pilot</ulink> and 
+<ulink 
+url="http://ftp.gnome.org/pub/GNOME/sources/gnome-pilot-conduits/2.0/">GNOME-Pilot-conduits</ulink>
+</para>
+</sect4>
+
 </sect3>
 
 </sect2>
@@ -63,11 +94,11 @@ url="http://ftp2.nchu.edu.tw/UNIX/Database/BerkeleyDB/db-3.1.17.tar.gz"/></para>
 
 <note><para><application>Evolution</application> requires
 <application>Berkeley DB</application>-3.1.17. The details on 
-"why" are in the <filename>README</filename> file distibuted with the
-<application>Evolution</application> source code. <application>Evolution
-</application> links to the library statically, hence this book installs 
-the <application>Berkeley DB</application>-3.1.17 in <filename
-class="directory">/opt</filename>, which can be removed once 
+<quote>why</quote> are in the <filename>README</filename> file distibuted with 
+the <application>Evolution</application> source code. 
+<application>Evolution</application> links to the library statically, hence 
+this book installs the <application>Berkeley DB</application>-3.1.17 in 
+<filename class="directory">/opt</filename>, which can be removed once 
 <application>Evolution</application> is installed.</para></note>
 
 <para>Install <application>Berkeley DB</application>-3.1.17 by
@@ -81,13 +112,15 @@ make install</command></userinput></screen>
 <para>Install <application>Evolution</application> by running the following 
 commands:</para>
 
-<screen><userinput><command>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
-    --with-db3=/opt/db-3.1.17 --enable-openssl &amp;&amp;
+<screen><userinput><command>patch -Np1 -i ../evolution-&evolution-version;-gcc34-2.patch &amp;&amp;
+./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
+    --localstatedir=/var/lib --with-db3=/opt/db-3.1.17 \
+    --enable-openssl=yes &amp;&amp;
 make &amp;&amp;
 make install</command></userinput></screen>
 
-<para>Optionally, you may remove <application>Berkeley
-DB</application>-3.1.17 installed above with this command:</para>
+<para>Optionally, you may remove <application>Berkeley DB</application>-3.1.17 
+installed above with this command:</para>
 
 <screen><userinput><command>rm -rf /opt/db-3.1.17</command></userinput></screen>
 
@@ -100,20 +133,20 @@ DB</application>-3.1.17 installed above with this command:</para>
 database files.</para>
 
 <para><parameter>--prefix=/opt/db-3.1.17</parameter>: This
-version of the Berkeley Database should not be installed in <filename
-class="directory">/usr</filename>, as it is only needed for the building
-of <application>Evolution</application>.</para>
+version of the Berkeley Database should not be installed in 
+<filename class="directory">/usr</filename>, as it is only needed for the 
+building of <application>Evolution</application>.</para>
 
 <para><parameter>--with-db3=/opt/db-3.1.17</parameter>: Specify
 the location where db-3.1.17 is installed.</para>
 
-<para><parameter>--enable-openssl</parameter>: This flag will compile
-<acronym>SSL</acronym> support into
-<application>Evolution</application>.</para>
+<para><parameter>--enable-openssl=yes</parameter>: This switch will compile
+<acronym>SSL</acronym> support into <application>Evolution</application>.
+</para>
 
-<para><parameter>--with-openldap</parameter>: This flag will compile
-<acronym>LDAP</acronym> support into
-<application>Evolution</application>.</para>
+<para><option>--with-openldap</option>: This flag will compile
+<acronym>LDAP</acronym> support into <application>Evolution</application>.
+</para>
 
 </sect2>
 
@@ -124,9 +157,9 @@ the location where db-3.1.17 is installed.</para>
 <command>evolution</command>.</para>
 </sect2>
 
+<sect2>
+<title>Description</title>
 
-
-<sect2><title>Description</title>
 <sect3><title>evolution</title>
 <para><command>evolution</command> contains an email, calendar and
 address book suite.</para></sect3>
