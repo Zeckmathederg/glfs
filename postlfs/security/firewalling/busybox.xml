@@ -21,14 +21,14 @@ simple and should still be acceptable from a security standpoint.
 Just add the following lines <emphasis>before</emphasis> the logging-rules 
 into the script.
 
-<screen>iptables -A INPUT	-i ! ppp+				-j ACCEPT
-iptables -A OUTPUT	-o ! ppp+				-j ACCEPT</screen></para>
+<screen>iptables -A INPUT  -i ! ppp+  -j ACCEPT
+iptables -A OUTPUT -o ! ppp+  -j ACCEPT</screen></para>
 
 <para>If your daemons have to access the web themselves, like squid would need
 to, you could open OUTPUT generally and restrict INPUT.
 
-<screen>iptables -A INPUT	-m state --state ESTABLISHED,RELATED	-j ACCEPT
-iptables -A OUTPUT						-j ACCEPT</screen></para>
+<screen>iptables -A INPUT -m state --state ESTABLISHED,RELATED	-j ACCEPT
+iptables -A OUTPUT                                      -j ACCEPT</screen></para>
 
 <para>However, it is generally not advisable to leave OUTPUT unrestricted: you lose 
 any control on trojans who'd like to "call home", and a bit of redundancy in case 
@@ -39,26 +39,23 @@ world.</para>
 on all ports except those that it's absolutely necessary to have open.
 Which ports you have to open depends on your needs: mostly you will find them 
 by looking for failed accesses in your log-files.</para>
-
-<orderedlist numeration="arabic" spacing="compact">
+<itemizedlist spacing="compact">
+<!-- <orderedlist numeration="arabic" spacing="compact"> -->
 <title>Have a look at the following examples:</title>
 
-<listitem><para>Squid is caching the web:</para>
-<para><screen>iptables -A OUTPUT	-p tcp --dport 80			-j ACCEPT
-iptables -A INPUT	-p tcp --sport 80	-m state --state ESTABLISHED \
-&nbsp;&nbsp;&nbsp;-j ACCEPT</screen></para></listitem>
+<listitem><para>Squid is caching the web:
+<screen>iptables -A OUTPUT -p tcp --dport 80                              -j ACCEPT
+iptables -A INPUT  -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT</screen></para></listitem>
 
 <listitem><para>Your caching name server (e.g., dnscache) does its
-lookups via udp:</para>
-<para><screen>iptables -A OUTPUT	-p udp --dport 53			-j ACCEPT
-iptables -A INPUT	-p udp --sport 53	-m state --state ESTABLISHED \
-&nbsp;&nbsp;&nbsp;-j ACCEPT</screen></para></listitem>
+lookups via udp:
+<screen>iptables -A OUTPUT -p udp --dport 53                              -j ACCEPT
+iptables -A INPUT  -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT</screen></para></listitem>
 
 <listitem><para>Alternatively, if you want to be able to ping your box to ensure
-it's still alive:</para>
-<para><screen>iptables -A INPUT	-p icmp	-m icmp --icmp-type echo-request	\
-&nbsp;&nbsp;&nbsp;-j ACCEPT
-iptables -A OUTPUT	-p icmp	-m icmp --icmp-type echo-reply	-j ACCEPT</screen></para></listitem>
+it's still alive:
+<screen>iptables -A INPUT  -p icmp -m icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT</screen></para></listitem>
 
 <listitem><para><anchor id='postlfs-security-fw-BB-4' xreflabel="example no. 4"/>If you are 
 frequently accessing ftp-servers or enjoy chatting you might notice certain 
@@ -68,45 +65,44 @@ Although there's really no harm in this, having an identd running is not
 recommended because some implementations are known to be vulnerable.</para>
 
 <para>To avoid these delays you could reject the requests 
-with a 'tcp-reset':</para>
+with a 'tcp-reset':
 
-<para><screen>iptables -A INPUT	-p tcp --dport 113			-j REJECT \
-&nbsp;&nbsp;&nbsp;--reject-with tcp-reset
-iptables -A OUTPUT	-p tcp --sport 113	-m state --state RELATED \
-&nbsp;&nbsp;&nbsp;-j ACCEPT</screen></para></listitem>
+<screen>iptables -A INPUT  -p tcp --dport 113 -j REJECT --reject-with tcp-reset
+iptables -A OUTPUT -p tcp --sport 113 -m state --state RELATED -j ACCEPT</screen></para></listitem>
 
 <listitem><para>To log and drop invalid packets, mostly harmless packets
-that came in after netfilter's timeout, sometimes scans:</para>
+that came in after netfilter's timeout, sometimes scans:
 
-<para><screen>iptables -I INPUT 1	-p tcp	-m state --state INVALID	-j LOG \ 
-&nbsp;&nbsp;&nbsp;--log-prefix "FIREWALL:INVALID"
-iptables -I INPUT 2	-p tcp	-m state --state INVALID	-j DROP</screen></para></listitem>
+<screen>iptables -I INPUT 1 -p tcp -m state --state INVALID -j LOG --log-prefix \ 
+"FIREWALL:INVALID"
+iptables -I INPUT 2 -p tcp -m state --state INVALID -j DROP</screen></para></listitem>
 
 <listitem><para>Anything coming from the outside should not have a
-private address, this is a common attack called IP-spoofing:</para>
+private address, this is a common attack called IP-spoofing:
 
-<para><screen>iptables -t nat -A PREROUTING	-i ppp+	-s 10.0.0.0/8		-j DROP
-iptables -t nat -A PREROUTING	-i ppp+	-s 172.16.0.0/12	-j DROP
-iptables -t nat -A PREROUTING	-i ppp+	-s 192.168.0.0/16	-j DROP</screen></para></listitem>
+<screen>iptables -t nat -A PREROUTING -i ppp+ -s 10.0.0.0/8     -j DROP
+iptables -t nat -A PREROUTING -i ppp+ -s 172.16.0.0/12	-j DROP
+iptables -t nat -A PREROUTING -i ppp+ -s 192.168.0.0/16	-j
+DROP</screen></para></listitem>
 
 <listitem><para>To simplify debugging and be fair to anyone who'd like to 
 access a service you have disabled, purposely or by mistake, you should REJECT 
 those packets that are dropped.</para>
 
 <para>Obviously this must be done directly after logging as the very
-last lines before the packets are dropped by policy:</para>
+last lines before the packets are dropped by policy:
 
-<para><screen>iptables -A INPUT						-j REJECT
-iptables -A OUTPUT		-p icmp --icmp-type 3		-j ACCEPT</screen></para></listitem>
-
-</orderedlist>
+<screen>iptables -A INPUT                        -j REJECT
+iptables -A OUTPUT -p icmp --icmp-type 3 -j ACCEPT</screen></para></listitem>
+</itemizedlist>
+<!--</orderedlist>-->
 
 <para>These are only examples to show you some of the capabilities of the new 
 firewalling-code in Linux-Kernel 2.4. Have a look at the man page of
 iptables.
 There you will find more of them. The port-numbers you'll need for this
-can be found in /etc/services, in case you didn't find them via "try'n'error" 
-in your logfile.</para>
+can be found in <filename>/etc/services</filename>, in case you didn't
+find them by trial and error in your logfile.</para>
 
 <para>If you add any of your offered or accessed services such as the above,
 maybe even in FORWARD and for intranet-communication, and delete the
