@@ -12,8 +12,197 @@
 
 <sect2>
 <title>Running a Subversion Server</title>
+<para>This section will describe how to set up, administer and secure
+a <application>Subversion</application> server.  Since 
+<application>Subversion</application> is intended to replace 
+<acronym>CVS</acronym>, it may surprise you how very different the setup
+of a <application>Subversion</application> repository is compared to a
+<acronym>CVS</acronym> repository.</para>
 
-<para>To be done...</para>
+<sect3><title><application>Subversion server</application> dependencies</title>
+<sect4><title>Required</title>
+<para><xref linkend="subversion"/> and <xref linkend="openssh"/></para></sect4>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Setting up a <application>Subversion</application> server.</title>
+                                                                               
+<para>A <application>Subversion</application> server will be set up using 
+OpenSSH as the remote access method.</para>
+
+<para>Configuration of the <application>Subversion</application> server 
+consists of the following steps:</para>
+                                                                                
+<sect3><title>1.  Setup users, groups, and permissions</title>
+<para>You'll need to be user root for the initial portion of
+configuration.  Create the svn user and group with the following 
+commands:</para>
+
+<screen><userinput><command>groupadd svn &amp;&amp;
+useradd -c "SVN Owner" -d /home/svn -m -g svn -s /bin/false svn</command></userinput></screen>
+
+<para>If you plan to have multiple repositories, you should have a 
+group dedicated to each repository for ease of administration.  Create
+the svntest group for our test repository and add the svn user to that
+group with the following commands:</para>
+
+<screen><userinput><command>groupadd svntest &amp;&amp;
+usermod -G svntest svn</command></userinput></screen>
+
+<para>Additionally you should set umask '002' while working with a
+repository so that all new files will be writable by owner and group.
+We'll make this mandatory by writing a wrapper script for
+<command>svn</command> and <command>svnserve</command>:</para>
+
+<screen><userinput><command>mv /usr/bin/svn /usr/bin/svn.orig &amp;&amp;
+mv /usr/bin/svnserve /usr/bin/svnserve.orig &amp;&amp;
+cat &gt;&gt; /usr/bin/svn &lt;&lt; "EOF" &amp;&amp;</command>
+#!/bin/sh
+umask 002
+/usr/bin/svn.orig "$@"
+<command>EOF
+cat &gt;&gt; /usr/bin/svnserve &lt;&lt; "EOF" &amp;&amp;</command>
+#!/bin/sh
+umask 002
+/usr/bin/svnserve.orig "$@"
+<command>EOF
+chmod 0755 /usr/bin/svn{,serve}</command></userinput></screen>
+
+<note>If you use <application>apache</application> for working with 
+the repository over the web, even for anonymous access, you should wrap 
+<application>apache</application> in a similar script.</note>
+
+</sect3>
+
+<sect3><title>2.  Create a <application>Subversion</application>
+repository.</title>
+<para>Create a new <application>Subversion</application> repository with
+the following commands:</para>
+<screen><userinput><command>install -d -m0755 /srv &amp;&amp;
+install -d -m0755 -o svn -g svn /srv/svn/repositories &amp;&amp;
+svnadmin create /srv/svn/repositories/svntest</command></userinput></screen>
+
+<para>Now that the repository is created, we need to populate it with
+something useful.  You'll need to have a predefined directory layout 
+setup exactly as you want your repository to look.  For example, here 
+is a sample BLFS layout setup with a root of <filename>svntest/</filename>.
+You'll need to setup a directory tree similar to the following:</para>
+
+<screen>          svntest/            # The name of the repository
+             trunk/           # Contains the existing source tree
+                BOOK/
+                bootscripts/
+                edguide/
+                patches/
+                scripts/
+             branches/        # Needed for additional branches
+             tags/            # Needed for tagging release points</screen>
+
+<para>Once you've created your directory layout as above, you are ready to 
+do the initial import:</para>
+
+<screen><userinput><command>svn import -m "Initial import." \
+    <replaceable>[/path/to/source/tree]</replaceable> \
+    file:///srv/svn/repositories/svntest</command></userinput></screen>
+
+<para>Now go ahead and change owner and group information on the
+repository, add your normal user to the svn and svntest groups:</para>
+
+<screen><userinput><command>chown -R svn:svntest /srv/svn/repositories/svntest &amp;&amp;
+chmod -R g+w /srv/svn/repositories/svntest &amp;&amp;
+chmod g+s /srv/svn/repositories/svntest/db &amp;&amp;
+usermod -G svn,svntest,<replaceable>[insert existing groups]</replaceable> <replaceable>[username]</replaceable></command></userinput></screen>
+
+<para>svntest is the group assigned to the svntest repository.  As
+mentioned earlier, this eases administration of multiple repositories.
+Going forward, you'll need to add your regular user, and any additional
+users that you wish to have write access to the repository, to the svn and
+svntest groups.</para>
+         
+<para>In addition, you'll notice that the new repository's
+<filename>db</filename> directory is set-groupID.  If the reasoning is 
+not immediately obvious, when using any external authentication method 
+(such as ssh), the sticky bit is set so that all new files will be owned
+by the user, but group of svntest.  Anyone in the svntest group can 
+create files, but still give the entire group write access to those 
+files.  This avoids locking out other users from the repository.</para>
+
+<para>Now, go ahead and return to your normal user account, and take a look at 
+your new repository using svnlook:</para>
+
+<screen><userinput><command>svnlook tree /srv/svn/repositories/svntest/</command></userinput></screen>
+
+<note>You may need to logout and back in again to refresh your group
+memberships.  'su <replaceable>[username]</replaceable>' should work
+around this as well. </note>
+
+</sect3>
+
+<sect3><title>3.  Configure the server</title>
+
+<para>These instructions will configure the server to use only ssh 
+for write permission, and provide anonymous read-only permission.  There
+are several other ways to provide access to the repository.  These
+additional configurations are best explained at 
+<ulink url="http://svnbook.red-bean.com/" />.</para>
+
+<para>Access configuration needs to be done for each repository.  Create 
+the <filename>svnserve.conf</filename> file for the svntest repository 
+using the following commands:</para>
+
+<screen><userinput><command>cp /srv/svn/repositories/svntest/conf/svnserve.conf \
+    /srv/svn/repositories/svntest/conf/svnserve.conf.default &amp;&amp;
+cat &gt; /srv/svn/repositories/svntest/conf/svnserve.conf &lt;&lt; "EOF"</command>
+[general]
+anon-access = read
+auth-access = write
+<command>EOF</command></userinput></screen>
+
+<para>There is not a lot to the configuration file at all.  You'll notice 
+that only the general section is required.  Take a look at the
+<filename>svnserve.conf.default</filename> for information on using
+<command>svnserve</command>'s built-in authentication method.</para>
+
+</sect3>
+
+<sect3><title>4.  Starting the server</title>
+<para>There are a couple of ways to start <command>svnserve</command>.  The
+most common way is to start it as an <application>inetd</application> or 
+<application>xinetd</application> process.  Alternately, you can use a
+bootscript to start the service at startup.</para>
+
+<para>If you use <application>inetd</application>, add a line to your
+<filename>/etc/inetd.conf</filename> using the following commands:</para>
+
+<screen><userinput><command>cat &gt;&gt; /etc/inetd.conf &lt;&lt; "EOF"</command>
+svn stream tcp nowait svn /usr/bin/svnserve svnserve -i
+<command>EOF</command></userinput></screen>
+
+<para>If you use <application>xinetd</application>, add the following
+lines to <filename>/etc/xinetd.conf</filename> file:</para>
+
+<screen><userinput><command>cat &gt;&gt; /etc/xinetd.conf &lt;&lt; "EOF"</command>
+service svn
+{
+        port                    = 3690
+        socket_type             = stream
+        protocol                = tcp
+        wait                    = no
+        user                    = svn
+        server                  = /usr/bin/svnserve
+        server_args             = -i -r /srv/svn/repositories
+}
+<command>EOF</command></userinput></screen>
+
+<para>Finally, if you wish to simply start the sever in daemon mode at
+startup, install the svn bootscript included in the 
+<xref linkend="intro-important-bootscripts"/> package.</para>
+
+<screen><userinput><command>make install-svn</command></userinput></screen>
+
+</sect3>
 
 </sect2>
 
