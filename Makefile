@@ -1,8 +1,8 @@
 # Makefile for BLFS Book generation.
 # By Tushar Teredesai <tushar@linuxfromscratch.org>
 # 2004-01-31
-# $LastChangedBy$
-# $Date$
+# $LastChangedBy: bdubbs $
+# $Date: 2004-08-07 15:59:36 -0600 (Sat, 07 Aug 2004) $
 # Adjust these to suit your installation
 OUTPUTDIR = $(HOME)/public_html/blfs-book
 INSTALL = install
