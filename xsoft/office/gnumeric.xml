@@ -4,11 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gnumeric-download-http "http://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.2/gnumeric-&gnumeric-version;.tar.bz2">
-  <!ENTITY gnumeric-download-ftp  "ftp://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.2/gnumeric-&gnumeric-version;.tar.bz2">
-  <!ENTITY gnumeric-size          "14.3 MB">
-  <!ENTITY gnumeric-buildsize     "185 MB">
-  <!ENTITY gnumeric-time          "1.97 SBU">
+  <!ENTITY gnumeric-download-http "http://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.4/gnumeric-&gnumeric-version;.tar.bz2">
+  <!ENTITY gnumeric-download-ftp  "ftp://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.4/gnumeric-&gnumeric-version;.tar.bz2">
+  <!ENTITY gnumeric-md5sum        "bc60b5c342908e969b320ab833e6b151">
+  <!ENTITY gnumeric-size          "16.8 MB">
+  <!ENTITY gnumeric-buildsize     "206 MB">
+  <!ENTITY gnumeric-time          "2.46 SBU">
 ]>
 
 <sect1 id="gnumeric" xreflabel="Gnumeric-&gnumeric-version;">
@@ -17,7 +18,7 @@
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="gnumeric.html" ?>
-<title>Gnumeric-&gnumeric-version;</title>
+<title><application>Gnumeric</application>-&gnumeric-version;</title>
 
 <sect2>
 <title>Introduction to <application>Gnumeric</application></title>
@@ -31,8 +32,9 @@ program. This is useful for financial analysis.</para>
 url="&gnumeric-download-http;"/></para></listitem>
 <listitem><para>Download (FTP): <ulink
 url="&gnumeric-download-ftp;"/></para></listitem>
+<listitem><para>Download MD5 sum: &gnumeric-md5sum;</para></listitem>
 <listitem><para>Download size: &gnumeric-size;</para></listitem>
-<listitem><para>Estimated Disk space required:
+<listitem><para>Estimated disk space required:
 &gnumeric-buildsize;</para></listitem>
 <listitem><para>Estimated build time:
 &gnumeric-time;</para></listitem></itemizedlist>
@@ -41,17 +43,16 @@ url="&gnumeric-download-ftp;"/></para></listitem>
 <sect3><title><application>Gnumeric</application> dependencies</title>
 
 <sect4><title>Required</title>
-<para><xref linkend="libgnomeprintui"/> 
-and <xref linkend="libgsf"/></para>
+<para><xref linkend="libgnomeprintui"/> and <xref linkend="libgsf"/></para>
 </sect4>
 
 <sect4><title>Optional</title>
 <para><xref linkend="Python"/>, 
-<xref linkend="docbook-utils"/>, 
-<ulink url="http://www.pygtk.org/">PyGTK</ulink> and 
+<ulink url="http://www.pygtk.org/">PyGTK</ulink>, 
 <ulink url="http://www.gnome-db.org/download.php">libgnomedb</ulink> 
-(requires <ulink url="http://www.gnome-db.org/download.php">libgda</ulink>)
-</para>
+(requires <ulink url="http://www.gnome-db.org/download.php">libgda</ulink>), 
+<ulink url="http://pxlib.sourceforge.net/">pxlib</ulink> and
+<ulink url="http://www.frodol.dds.nl/psiconv/index.html">Psiconv</ulink></para>
 </sect4>
 </sect3>
 
@@ -63,10 +64,12 @@ and <xref linkend="libgsf"/></para>
 <para>Install <application>Gnumeric</application> by running the following 
 commands:</para>
 
-<screen><userinput><command>./configure --prefix=/usr --libexecdir=/usr/sbin \
-   --localstatedir=/var/lib  --sysconfdir=/etc &amp;&amp;
+<screen><userinput><command>./configure --prefix=$GNOME_PREFIX \
+    --localstatedir=/var/lib --sysconfdir=/etc/gnome &amp;&amp;
 make &amp;&amp;
-make install</command></userinput></screen>
+make install &amp;&amp;
+ln -s $GNOME_PREFIX/share/gnome/help/gnumeric \
+      $GNOME_PREFIX/share/gnumeric/1.4.1/doc</command></userinput></screen>
 
 </sect2>
 
@@ -75,16 +78,18 @@ make install</command></userinput></screen>
 
 <para><parameter>--localstatedir=/var/lib</parameter>: This switch puts 
 <application>ScrollKeeper</application> files in 
-<filename class="directory">/var/lib/scrollkeeper</filename> 
-instead of <filename class="directory">/usr/var/scrollkeeper</filename>.</para>
+<filename class="directory">/var/lib/scrollkeeper</filename> instead of 
+<filename class="directory">$GNOME_PREFIX/var/scrollkeeper</filename>.</para>
 
-<para><parameter>--sysconfdir=/etc</parameter>: This switch puts configuration 
-files in <filename class="directory">/etc</filename> instead of
-<filename class="directory">/usr/etc</filename>.</para>
+<para><parameter>--sysconfdir=/etc/gnome</parameter>: This switch puts 
+configuration files in <filename class="directory">/etc/gnome</filename> 
+instead of <filename class="directory">$GNOME_PREFIX/etc</filename>.</para>
 
-<para><parameter>--libexecdir=/usr/sbin</parameter>: This switch puts libexec 
-files in <filename class="directory">/usr/sbin</filename> instead of
-<filename class="directory">/usr/libexec</filename>.</para>
+<para><command>ln -s ...</command>: There's a <ulink 
+url="http://bugzilla.gnome.org/show_bug.cgi?id=161404">bug</ulink> in the 
+program that calls <application>Yelp</application> from the main menu 
+causing the help function to be unavailable. Creating this symlink allows 
+<application>Yelp</application> to find the help files.</para> 
 
 </sect2>
 
@@ -92,14 +97,14 @@ files in <filename class="directory">/usr/sbin</filename> instead of
 <title>Contents</title>
 
 <para>The <application>Gnumeric</application> package contains 
-<command>gnumeric</command>, 
-<command>ssconvert</command>, 
-<command>gnumeric-component</command> and numerous filters, plugins and 
+<command>gnumeric</command> (a symlink to <command>gnumeric-1.4.1</command>), 
+<command>ssconvert</command> and numerous filters, plugins and 
 <application><acronym>GNOME</acronym></application> components.</para>
 
 </sect2>
 
-<sect2><title>Description</title>
+<sect2>
+<title>Description</title>
 
 <sect3><title>gnumeric</title>
 <para><command>gnumeric</command> is
@@ -109,12 +114,6 @@ application.</para></sect3>
 <sect3><title>ssconvert</title>
 <para><command>ssconvert</command> is a command line utility to convert 
 spreadsheet files between various spreadsheet file formats.</para></sect3>
-
-<sect3><title>gnumeric-component</title>
-<para><command>gnumeric-component</command> is a command line utility to 
-enable, disable or modify the various 
-<application><acronym>GNOME</acronym></application> components available
-to <application>Gnumeric</application>.</para></sect3>
 
 </sect2>
 
