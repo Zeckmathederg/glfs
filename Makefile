@@ -1,6 +1,8 @@
 # Makefile for BLFS Book generation.
 # By Tushar Teredesai <tushar@linuxfromscratch.org>
 # 2004-01-31
+# $LastChangedBy$
+# $Date$
 # Adjust these to suit your installation
 OUTPUTDIR = $(HOME)/public_html/blfs-book
 INSTALL = install
@@ -12,21 +14,6 @@ TEXBASEDIR= $(HOME)/public_html/blfs-book-tex/
 SRCDIR = $(PWD)
 
 all: blfs
-
-blfs-old: index.xml
-	@if [ -z $(OUTPUTDIR) ]; then \
-		echo "Envar OUTPUTDIR is not set!" ; \
-		exit 1 ; \
-		fi
-	@echo "Generating HTML Version of BLFS Book with $(JADE)..."
-	@echo "  OUTPUTDIR = $(OUTPUTDIR)"
-	@$(INSTALL) -d $(OUTPUTDIR)
-	@cd $(OUTPUTDIR) && $(INSTALL) -d introduction postlfs general \
-		connect basicnet server content x kde gnome xsoft \
-		multimedia pst preface appendices other
-	@cd $(OUTPUTDIR) && $(JADE) -t sgml -D $(DOCBOOK)/html \
-		-d $(SRCDIR)/blfs.dsl $(DOCBOOK)/dtds/decls/xml.dcl \
-		$(SRCDIR)/index.xml
 
 blfs:
 	@if [ -z $(BASEDIR) ]; then \
@@ -46,10 +33,8 @@ blfs:
 	  mkdir -p $(BASEDIR)images; \
 	fi;
 	cp images/*.png $(BASEDIR)/images
-	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@" \
-	  index.html 
-	cd $(BASEDIR); sed -i -e "s@../images@images@g" \
-	  index.html 
+	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@" index.html 
+	cd $(BASEDIR); sed -i -e "s@../images@images@g" index.html 
 	sh goTidy $(BASEDIR)/  
 
 pdf:
@@ -90,3 +75,13 @@ tex:
 
 validate:
 	xmllint --noout --nonet --xinclude --postvalid index.xml
+
+blfs-patch-list: 
+	@echo "Generating blfs-patch-list..."
+	xsltproc --xinclude --nonet \
+             --output blfs-patch-list stylesheets/patcheslist.xsl index.xml
+	sed -e "s|^.*/||" blfs-patch-list > blfs-patches
+	sort blfs-patches > blfs-patch-list
+	rm blfs-patches
+
+.PHONY : blfs-patch-list
