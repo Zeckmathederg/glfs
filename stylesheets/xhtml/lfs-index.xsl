@@ -30,7 +30,23 @@
         <xsl:call-template name="gentext">
           <xsl:with-param name="key" select="$index-title"/>
         </xsl:call-template>
-			</h1>
+		</h1>
+      <!-- Temporary addition until index is done -->
+        <div class="note">
+        <div class="admonhead">
+          <img alt="[Note]" src="../images/note.png" />
+          <h3 class="admontitle">
+            Note
+          </h3>
+        </div>
+        <div class="admonbody">
+          <p>
+            At this time, the index is incomplete.  Additional entries
+            will be added as time permits.
+          </p>
+        </div>
+      </div>    
+      <!-- End temporary addition -->
     </div>
   </xsl:template>
 
