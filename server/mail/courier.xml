@@ -71,23 +71,21 @@ packages also includes a web-based email interface, <acronym>IMAP</acronym>,
 <sect2>
 <title>Installation of <application>Courier</application></title>
 <note><para><application>Courier's</application> tarball must be extacted as an
-unpriveleged user or configure will fail.</para></note>
-
-<para>After extracting the tarball, you'll need to <command>su</command> to 
-user 'root' in order to perform the next few steps.</para>
+unpriveleged user or the configure script will fail.</para></note>
  
-<para> Before you compile the program, you need to create the courier user 
+<para>Before you compile the program, you need to create the courier user 
 and group that is expected to be in place when the install script executes.
-Add the courier user and group with the following commands:</para>
+As the root user, add the courier user and group with the following 
+commands:</para>
 
-<screen><userinput><command>groupadd courier &amp;&amp;
+<screen><userinput role="root"><command>groupadd courier &amp;&amp;
 useradd -c 'Courier Mail Server' -d /dev/null \
         -g courier -s /bin/false courier</command></userinput></screen>
 
 <para>The install script also expects a bin user. If you already have a user
 named bin, this step can be safely ignored.</para>
 
-<screen><userinput><command>useradd -c 'bin' -d /dev/null -g bin -u 1 bin</command></userinput></screen>
+<screen><userinput role="root"><command>useradd -c 'bin' -d /dev/null -g bin -u 1 bin</command></userinput></screen>
 
 <para><application>Courierfilter</application> requires the directory
 <filename class="directory">/var/run/courier</filename> to store
@@ -96,10 +94,10 @@ all the <application>Courier</application> pid and lockfiles.
 for the master lock file for <application>Courier</application>. Issue
 the following commands to create these directories:</para>
 
-<screen><userinput><command>install -d /var/run/courier -o courier -g courier -m755 &amp;&amp;
+<screen><userinput role="root"><command>install -d /var/run/courier -o courier -g courier -m755 &amp;&amp;
 install -d /var/lock/subsys -o root -g root -m755</command></userinput></screen>
 
-<para>Build <application>courier</application> as an unpriveledged user
+<para>Build <application>Courier</application> as an unpriveledged user
 with the following commands:</para>
 
 <screen><userinput><command>./configure --prefix=/usr --libexecdir=/usr/lib/courier \
@@ -111,10 +109,10 @@ with the following commands:</para>
     --enable-workarounds-for-imap-client-bugs --with-db=gdbm &amp;&amp;
 make</command></userinput></screen>
 
-<para><command>su</command> once again to user 'root' and install
-<application>courier</application> with the following commands:</para>
+<para>Once again, become the root user and install 
+<application>Courier</application> with the following commands:</para>
 
-<screen><userinput><command>make install &amp;&amp;
+<screen><userinput role="root"><command>make install &amp;&amp;
 make install-configure</command></userinput></screen>
 
 </sect2>
@@ -202,50 +200,49 @@ saying that the <filename>mime.types</filename> file could not be found.</para>
     
 </sect2>
 
-<sect2 id="courier-config">
+<sect2 id="etc-courier-star">
 <title>Configuring <application>Courier</application></title>
-<indexterm zone="courier-package courier-config">
-<primary sortas="e-courier-config">/etc/courier/*</primary></indexterm>
+<indexterm zone="courier-package etc-courier-star">
+<primary sortas="e-etc-courier-star">/etc/courier/*</primary></indexterm>
+
+<sect3><title>Configuration Files</title>
+<para><filename>/etc/courier/*</filename></para>
+</sect3>
 
 <sect3><title>Configuration Information</title>
 
-<para>You will need to <command>su</command> to user 'root' for the 
-remainder of the configuration.</para>
-
-<para>You will need to create the following files with the contents
-specified.</para>
+<para>While still as root, you will need to create the following files with 
+the contents specified.</para>
 
 <para><filename>/etc/courier/defaultdomain</filename></para>
 
-<screen><userinput><command>cat &gt; /etc/courier/defaultdomain &lt;&lt; "EOF"</command>
+<screen><userinput role="root"><command>cat &gt; /etc/courier/defaultdomain &lt;&lt; "EOF"</command>
 <replaceable>[yourdomain]</replaceable>
 <command>EOF</command></userinput></screen>
 
 <para><filename>/etc/courier/me</filename></para>
 
-<screen><userinput><command>cat &gt; /etc/courier/me &lt;&lt; "EOF"</command>
+<screen><userinput role="root"><command>cat &gt; /etc/courier/me &lt;&lt; "EOF"</command>
 <replaceable>[servername.yourdomain]</replaceable>
 <command>EOF</command></userinput></screen>
 
 <para><filename>/etc/courier/locals</filename></para>
 
-<screen><userinput><command>cat &gt; /etc/courier/locals &lt;&lt; "EOF"</command>
+<screen><userinput role="root"><command>cat &gt; /etc/courier/locals &lt;&lt; "EOF"</command>
 localhost
 <replaceable>[yourdomain]</replaceable>
 <command>EOF</command></userinput></screen>
 
 <para><filename>/etc/courier/esmtpacceptmailfor.dir/system</filename></para>
 
-<screen><userinput><command>cat
-&gt;/etc/courier/esmtpacceptmailfor.dir/system &lt;&lt; "EOF"</command>
+<screen><userinput role="root"><command>cat &gt; /etc/courier/esmtpacceptmailfor.dir/system &lt;&lt; "EOF"</command>
 localhost
 <replaceable>[yourdomain]</replaceable>
 <command>EOF</command></userinput></screen>
 
-<para>You will also need to edit the aliases file and change the
+<para>You will also need to edit the 
+<filename>/etc/courier/aliases/system</filename> file and change the
 following entry.</para>
-
-<para><filename>/etc/courier/aliases/system</filename></para>
 
 <screen><userinput>postmaster: <replaceable>[your administrator email]</replaceable></userinput></screen>
 
@@ -254,25 +251,23 @@ will need to edit the
 <filename>/etc/courier/smtpaccess/default</filename> file.</para>
 
 <para>If you wish to host mail for non local domains including virtual
-domains,
-you must add them to <filename>/etc/courier/hosteddomains</filename>.
-This
-file should exist wether you need a hosted domain list or not:</para>
+domains, you must add them to 
+<filename>/etc/courier/hosteddomains</filename>. This file should exist 
+wether you need a hosted domain list or not:</para>
 
-<para><screen><userinput>touch
-/etc/courier/hosteddomains</userinput></screen></para>
+<screen><userinput role="root"><command>touch /etc/courier/hosteddomains</command></userinput></screen>
 
 <para>After the above steps are completed you will need to run the
 following commands:</para>
 
-<screen><userinput><command>makesmtpaccess &amp;&amp;
+<screen><userinput role="root"><command>makesmtpaccess &amp;&amp;
 makehosteddomains &amp;&amp;
 makealiases</command></userinput></screen>
 
 <para>For each user, you will need to create a
 <filename class="directory">Maildir</filename> directory:</para>
 
-<screen><userinput><command>cd /home/<replaceable>[username]</replaceable> &amp;&amp;
+<screen><userinput role="root"><command>cd /home/<replaceable>[username]</replaceable> &amp;&amp;
 maildirmake Maildir &amp;&amp;
 chown <replaceable>[username]</replaceable>.<replaceable>[username]</replaceable> Maildir -R</command></userinput></screen>
 
@@ -282,7 +277,7 @@ store them in <filename>/usr/share/courier</filename>.  You can
 optionally create self-signed, test certificates with the following
 commands:</para>
 
-<screen><userinput><command>mkesmtpdcert &amp;&amp;
+<screen><userinput role="root"><command>mkesmtpdcert &amp;&amp;
 mkimapdcert &amp;&amp;
 mkpop3dcert</command></userinput></screen>
 
@@ -298,24 +293,24 @@ change the <replaceable>[DAEMON]</replaceable>START variable from 'NO' to
 <filename>/etc/courier/esmtpd-ssl</filename> and change the value of
 'ESMTPDSSLSTART' to 'YES'.  Make the same change for each service 
 configuration that you wish to use with 
-<application>courier</application>.</para>
+<application>Courier</application>.</para>
 
 <para>If you wish to use <acronym>LDAP</acronym>, an
 <acronym>LDAP</acronym> configuration file should be created:</para>
 
-<screen><userinput><command>echo "LDAPALIASDSTART=YES" > /etc/courier/ldapaliasd</command></userinput></screen>
+<screen><userinput role="root"><command>echo "LDAPALIASDSTART=YES" > /etc/courier/ldapaliasd</command></userinput></screen>
 
 <para>Similarly, if you wish to use webmail, you should create the webmail
 configuration file:</para>
 
-<screen><userinput><command>echo "WEBMAILDSTART=YES" > /etc/courier/webmaild</command></userinput></screen>
+<screen><userinput role="root"><command>echo "WEBMAILDSTART=YES" > /etc/courier/webmaild</command></userinput></screen>
 
 <para>You will also need to copy the <filename>webmail</filename> file from
 <filename>/usr/lib/courier/courier/webmail</filename> to your <filename>cgi-bin
 </filename> directory of your <application>Apache</application>
 server.</para>
 
-<screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webmail /srv/www/cgi-bin</command></userinput></screen>
+<screen><userinput role="root"><command>cp -a /usr/lib/courier/courier/webmail/webmail /srv/www/cgi-bin</command></userinput></screen>
 
 <para>You will then need to copy the images to a directory under your
 <filename>htdocs</filename> directory of your
@@ -323,8 +318,7 @@ server.</para>
 <filename>webmail</filename> or you need to specify it during the configure
 phase with <parameter>--enable-imageurl=<replaceable>[URL]</replaceable></parameter>.</para>
 
-<screen><userinput><command>cp -a /usr/share/courier/sqwebmail/images /srv/www/htdocs/webmail</command></userinput></screen>
-<para><emphasis>Setup for Web-based Email</emphasis></para>
+<screen><userinput role="root"><command>cp -a /usr/share/courier/sqwebmail/images /srv/www/htdocs/webmail</command></userinput></screen>
 
 <para>If you wish to utilze the webadmin utility, you will need to copy the 
 <filename>webadmin</filename> file from
@@ -332,11 +326,12 @@ phase with <parameter>--enable-imageurl=<replaceable>[URL]</replaceable></parame
 to your <filename class="directory">cgi-bin</filename> directory of your 
 <application>Apache</application> server.</para>
 
-<screen><userinput><command>cp -a /usr/lib/courier/courier/webmail/webadmin /srv/www/cgi-bin</command></userinput></screen>
+<screen><userinput role="root"><command>cp -a /usr/lib/courier/courier/webmail/webadmin /srv/www/cgi-bin</command></userinput></screen>
 
-<para><filename>/etc/courier/webadmin/password</filename></para>
+<para>You also need to put the password into the file 
+<filename>/etc/courier/webadmin/password</filename>:</para>
 
-<screen><userinput><command>cat &gt; /etc/courier/webadmin/password &lt;&lt; "EOF"</command>
+<screen><userinput role="root"><command>cat &gt; /etc/courier/webadmin/password &lt;&lt; "EOF"</command>
 <replaceable>[password]</replaceable>
 <command>EOF</command></userinput></screen>
 
@@ -345,13 +340,12 @@ to your <filename class="directory">cgi-bin</filename> directory of your
 <filename>/etc/courier/webadmin/unsecureok</filename>, so you will be able
 to use your web based administration tool.</para>
 
-<screen><userinput><command>touch /etc/courier/webadmin/unsecureok</command></userinput></screen>
+<screen><userinput role="root"><command>touch /etc/courier/webadmin/unsecureok</command></userinput></screen>
 
 <para>If you use <application>LinuxPAM</application> on your system, 
 you will need to create the <acronym>PAM</acronym> configuration files:</para>
 
-<screen><userinput><command>cat &gt; /etc/pam.d/esmtp &lt;&lt;
-"EOF"</command>
+<screen><userinput role="root"><command>cat &gt; /etc/pam.d/esmtp &lt;&lt; "EOF"</command>
 # Begin /etc/pam.d/esmtp
 
 auth            required                pam_unix.so try_first_pass
@@ -388,13 +382,13 @@ session         required                pam_unix.so
 # End /etc/pam.d/webmail
 <command>EOF</command></userinput></screen>
 
-<para id="courier-init">Finaly, if you wish to start courier at boot, install 
+<para id="courier-init">Finally, if you wish to start courier at boot, install 
 the <filename>/etc/rc.d/init.d/courier</filename> bootscript included in the
 <xref linkend="intro-important-bootscripts"/> package.</para>
 <indexterm zone="courier-package courier-init">
 <primary sortas="f-courier-init">courier</primary></indexterm>
 
-<screen><userinput><command>make install-courier</command></userinput></screen>
+<screen><userinput role="root"><command>make install-courier</command></userinput></screen>
 
 </sect3>
 
@@ -404,7 +398,7 @@ the <filename>/etc/rc.d/init.d/courier</filename> bootscript included in the
 
 <title>Configuring for virtual users</title>
 
-<para>These instructions will configure <application>courier</application> 
+<para>These instructions will configure <application>Courier</application> 
 to lookup virtual users in a <application>MySQL</application> database.
 Begin by making the following changes to
 <filename>/etc/courier/authmysqlrc</filename>:</para>
@@ -422,12 +416,12 @@ MYSQL_QUOTA_FIELD       quota</userinput></screen>
 
 <para>Connect to <application>MySQL</application>:</para>
 
-<screen><userinput><command>mysql -p</command></userinput></screen>
+<screen><userinput role="root"><command>mysql -p</command></userinput></screen>
 
 <para>Create the <filename>courier_mail</filename> database and setup
 the users table:</para>
 
-<screen><userinput><command>CREATE DATABASE courier_mail;
+<screen><userinput role="root"><command>CREATE DATABASE courier_mail;
 USE courier_mail
 CREATE TABLE users (
 id                    char(128) DEFAULT '' NOT NULL,
@@ -443,17 +437,17 @@ KEY id (id(128))
 
 <para>Grant all priveledges to the courier user created earlier:</para>
 
-<screen><userinput><command>GRANT ALL PRIVILEGES ON *.* TO courier@localhost \
+<screen><userinput role="root"><command>GRANT ALL PRIVILEGES ON *.* TO courier@localhost \
     IDENTIFIED BY '<replaceable>[password]</replaceable>' WITH GRANT OPTION;
 QUIT</command></userinput></screen>
 
 <para>Create a virtual mailman user and group:</para>
-<screen><userinput><command>groupadd -g 9000 vmailman &amp;&amp;
+<screen><userinput role="root"><command>groupadd -g 9000 vmailman &amp;&amp;
 useradd -c 'Virtual Mailman' -g vmailman -m -k /dev/null -u 9000 vmailman</command></userinput></screen>
 
 <para>Create a mail directory for a new virtual user:</para>
 
-<screen><userinput><command>cd /home/vmailman &amp;&amp;
+<screen><userinput role="root"><command>cd /home/vmailman &amp;&amp;
 mkdir <replaceable>[virtual_user]</replaceable> &amp;&amp;
 cd <replaceable>[virtual_user]</replaceable> &amp;&amp;
 maildirmake Maildir &amp;&amp;
@@ -462,14 +456,14 @@ chown vmailman.vmailman Maildir -R</command></userinput></screen>
 <para>Now, connect the the <application>MySQL</application> database as
 the courier user:</para>
 
-<screen><userinput><command>mysql -u courier -p</command></userinput></screen>
+<screen><userinput role="root"><command>mysql -u courier -p</command></userinput></screen>
 
 <para>To add the virtual user you need to enter at least one version of the 
 password either clear text or encrypted.</para>
 
 <para>Add the first virtual user with the following commands:</para>
 
-<screen><userinput><command>USE courier_mail
+<screen><userinput role="root"><command>USE courier_mail
 INSERT INTO users VALUES (
 '<replaceable>[virtual_users]</replaceable>@<replaceable>[domain.com]</replaceable>,
 '<replaceable>[encrypted password or blank]</replaceable>',
@@ -484,7 +478,7 @@ QUIT</command></userinput></screen>
 
 <para>For example:</para>
 
-<screen><userinput><command>INSERT INTO users VALUES (
+<screen><userinput role="root"><command>INSERT INTO users VALUES (
 'blfsuser@linuxfromscratch.org',
 '',
 'password',
@@ -506,35 +500,22 @@ QUIT</command></userinput></screen>
 
 <segmentedlist>
 <segtitle>Installed Programs</segtitle>
-<segtitle>Installed Scripts</segtitle>
 <segtitle>Installed Directories</segtitle>
-<segtitle>Configuration Files</segtitle>
 <seglistitem>
-<seg>addcr, aliascreate, aliascombine, aliasexp, authenumerate, cancelmsg, 
-courier, courier-config, courierd, courierfax, courierfilter,
-courierldapaliasd, courierlogger, couriermlm, courierpop3d, courierpop3login, 
-couriertcpd, couriertls, deliverquota, dotforward, dupfilter, imapd,
-imaplogin, lockmail, mailbot, maildiracl, maildirkw, maildirmake, maildrop, 
-mailq, makedat, makedatprog, makemime, mimegpg, pcpd, perlfilter, preline, 
-reformail, reformime, rmail, sendmail, showmodules, sqwebmaild, submit, 
-submitmkdir, testmxlookup, userdbpw, webadmin and webmail</seg>
-
-<seg>admin-*.pl, application-pdf.filter, application-postscript.filter, 
-authsystem.passwd, cleancache.pl, courierctl.start, couriermlm, 
-courierwebadmin, coverpage, dumpenv.pl, esmtpd, esmtpd-ssl, faxmail, 
-filterctl, htmldoc, image-gif.filter, image-jpeg.filter, image-png.filter, 
-imapd, imapd-ssl, init, ldapsearch, makeacceptmailfor, makealiases, makedat, 
-makehosteddomains, makepercentrelay, makesmtpaccess, makeuserdb, 
-makeuucpneighbors, mkesmtpdcert, mkimapdcert, mkpop3dcert, new_fax, 
-perlfilter-example.pl, perlfilter-wrapper.pl, pop3d, pop3d-ssl, pw2userdb, 
-rootcerts, sendit.sh, sharedindexsplit, sharedindexinstall, sqwebmail, 
-text-plain.filter, userdb, vchkpw2userdb, webadmin.pl, webgpg and 
-webmaild</seg>
+<seg>addcr, authenumerate, cancelmsg, courier, courier-config,
+courieresmtpd, courierfilter, courierlogger, couriermlm, couriertcpd,
+couriertls, deliverquota, dotforward, esmtpd, esmtpd-msa, esmtpd-ssl,
+filterctl, imapd, imapd-ssl, lockmail, mailbot, maildiracl, maildirkw,
+maildirmake, maildrop, mailq, makeacceptmailfor, makealiases, makedat,
+makehosteddomains, makemime, makepercentrelay, makesmtpaccess,
+makesmtpaccess-msa, makeuserdb, makeuucpneighbors, mimegpg,
+mkesmtpdcert, mkimapdcert, mkpop3dcert, pop3d, pop3d-ssl, preline,
+pw2userdb, reformail, reformime, rmail, sendmail, sharedindexinstall,
+sharedindexsplit, showconfig, showmodules, testmxlookup, userdb,
+userdbpw, vchkpw2userdb, webgpg, webmaild</seg>
 
 <seg>/etc/courier, /usr/lib/courier, /usr/share/courier and
 /var/lib/courier</seg>
-
-<seg>/etc/courier/</seg>
 
 </seglistitem>
 </segmentedlist>
@@ -588,7 +569,7 @@ scheduling engine.</para>
 <varlistentry id="courierlogger">
 <term><command>courierlogger</command></term>
 <listitem><para>captures error messages from other
-<application>courier</application> applications and forwards them to
+<application>Courier</application> applications and forwards them to
 the system logger.</para>
 <indexterm zone="courier-package courierlogger">
 <primary sortas="b-courierlogger">courierlogger</primary></indexterm>
