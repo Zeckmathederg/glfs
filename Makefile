@@ -75,3 +75,5 @@ tex:
 	@cd $(TEXBASEDIR) && xsltproc --nonet -o blfs-book.tex \
 	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
 
+validate:
+	xmllint --noout --nonet index.xml
