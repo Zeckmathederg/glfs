@@ -53,7 +53,7 @@ blfs:
 	  index.html 
 
 pdf:
-	xsltproc --xinclude --nonet --output blfs.fo
+	xsltproc --xinclude --nonet --output blfs.fo \
 	stylesheets/blfs-pdf.xsl \
 	  index.xml
 	fop.sh blfs.fo blfs.pdf
