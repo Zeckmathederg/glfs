@@ -80,7 +80,7 @@ tex:
 	@echo "  TEXBASEDIR = $(TEXBASEDIR)"
 	@$(INSTALL) -d $(TEXBASEDIR)
 # Using profiles in book source to exclude parts of the book from TeX
-# i.e. Changelog
+# i.e., Changelog
 	xsltproc --nonet --output $(TEXBASEDIR)index.xml \
 	--stringparam "profile.role" "book" \
 	http://docbook.sourceforge.net/release/xsl/current/profiling/profile.xsl \
@@ -89,4 +89,4 @@ tex:
 	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
 
 validate:
-	xmllint --noout --nonet index.xml
+	xmllint --noout --valid index.xml
