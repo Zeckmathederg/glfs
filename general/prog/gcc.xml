@@ -13,9 +13,13 @@
 
   <!ENTITY gnat-download-http " ">
   <!ENTITY gnat-download-ftp  "ftp://cs.nyu.edu/pub/gnat/3.15p/gnat-3.15p-i686-pc-redhat71-gnu-bin.tar.gz">
+  <!ENTITY gnat-md5sum        "57c060cd1ccef8b1ae9165b11d98780a">
   <!ENTITY gnat-size          "13.5 MB">
   <!ENTITY gnat-buildsize     "48 MB">
   <!ENTITY gnat-time          "0.01 SBU">
+
+  <!ENTITY gcc-testsuite-url    "http://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-testsuite-&gcc-version;.tar.bz2">
+  <!ENTITY gcc-testsuite-md5sum "641f45606e17db4a3079cb7364a9e295">
 ]>
 
 <sect1 id="gcc" xreflabel="GCC-&gcc-version;">
@@ -54,13 +58,12 @@ url="&gcc-download-ftp;"/></para></listitem>
 
 <sect3><title>Additional Downloads</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Required Patch: <ulink 
+<listitem><para>Required patch: <ulink 
 url="&patch-root;/gcc-&gcc-version;-no_fixincludes-1.patch"/></para></listitem>
-<listitem><para>Required Patch: <ulink 
+<listitem><para>Required patch: <ulink 
 url="&patch-root;/gcc-&gcc-version;-linkonce-1.patch"/></para></listitem>
-<listitem><para>Test Suite: <ulink 
-url="http://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-testsuite-&gcc-version;.tar.bz2"/></para>
-</listitem>
+<listitem><para>Test suite: <ulink url="&gcc-testsuite-url;"/></para></listitem>
+<listitem><para>Test suite MD5 sum: &gcc-testsuite-md5sum;</para></listitem>
 </itemizedlist></sect3>
 
 <sect3><title><application><acronym>GCC</acronym></application> 
@@ -69,7 +72,8 @@ Dependencies</title>
 <itemizedlist spacing='compact'>
 <listitem><para><xref linkend="dejagnu"/></para></listitem>
 </itemizedlist>
-</sect4></sect3>
+</sect4>
+</sect3>
 
 </sect2>
 
@@ -88,6 +92,7 @@ satisfy the circular dependency when you recompile
 url="&gnat-download-http;"/></para></listitem>
 <listitem><para>Download (FTP): <ulink
 url="&gnat-download-ftp;"/></para></listitem>
+<listitem><para>Download MD5 sum: &gnat-md5sum;</para></listitem>
 <listitem><para>Download size: &gnat-size;</para></listitem>
 <listitem><para>Estimated disk space required:
 &gnat-buildsize;</para></listitem>
@@ -161,14 +166,15 @@ test result produced by an <acronym>LFS</acronym>-6.0 system at
 <ulink url="http://linuxfromscratch.org/~randy/gcc341_test.txt"/>. You 
 may also want to refer to the information found in the 
 <application><acronym>GCC</acronym></application>-Pass 2 section of Chapter 5 
-in the <acronym>LFS</acronym> book.</para></important>
+in the <acronym>LFS</acronym> book 
+(<ulink url="&lfs-root;/chapter05/gcc-pass2.html"/>).</para></important>
 
 <note><para>Some of the <application>Java</application> programs installed by 
 the <application><acronym>GCC</acronym></application> package conflict (have 
 the same names) with programs from the <xref linkend="j2sdk"/> package. If 
 you're installing the <application>Java</application> language from the 
 <application><acronym>GCC</acronym></application> package but you wish to 
-use the programs from the <application>JDK</application> as the defaults, 
+use the programs from the <application>J2SDK</application> as the defaults, 
 ensure <filename class='directory'>$JAVA_HOME/bin</filename> is listed before 
 <filename class='directory'>/usr/bin</filename> in your <envar>PATH</envar> 
 variable.</para></note>
@@ -179,8 +185,8 @@ sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in &amp;&amp;
 mkdir ../gcc-build &amp;&amp;
 cd ../gcc-build &amp;&amp;
 ../gcc-&gcc-version;/configure --prefix=/usr --libexecdir=/usr/lib \
-    --enable-shared --enable-languages=c,c++,objc,f77,ada,java \
-    --enable-threads=posix --enable-__cxa_atexit --enable-clocale=gnu &amp;&amp;
+    --enable-shared --enable-threads=posix --enable-__cxa_atexit \
+    --enable-clocale=gnu --enable-languages=c,c++,objc,f77,ada,java &amp;&amp;
 make bootstrap &amp;&amp;
 make -C gcc gnatlib-shared &amp;&amp;
 make -C gcc gnattools &amp;&amp;
@@ -193,7 +199,8 @@ make -k check &amp;&amp;
 ln -v -sf ../usr/bin/cpp /lib &amp;&amp;
 ln -v -sf gcc /usr/bin/cc &amp;&amp;
 ln -v -sf g77 /usr/bin/f77 &amp;&amp;
-chown -v -R root:root /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/include</command></userinput></screen>
+chown -v -R root:root /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/include &amp;&amp;
+chown -v -R root:root /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/ada{lib,include}</command></userinput></screen>
 
 <para>You may remove the <application><acronym>GNAT</acronym></application>
 installation and restore your old <envar>PATH</envar>:</para>
@@ -215,16 +222,16 @@ by <application>Binutils</application> is used instead.</para>
 <application><acronym>GCC</acronym></application> documentation recommends 
 building the package in a dedicated build directory.</para>
 
-<para><parameter>--enable-languages=c,c++,objc,f77,ada,java</parameter>: 
-This command identifies which languages to build. You may modify this command 
-to remove undesired languages.</para>
-
 <para><parameter>--enable-shared --enable-threads=posix
 --enable-__cxa_atexit</parameter>: These commands are required to build
 the <application>C++</application> libraries to published standards.</para>
 
 <para><parameter>--enable-clocale=gnu</parameter>: This command is a
 failsafe for incomplete locale data.</para>
+
+<para><parameter>--enable-languages=c,c++,objc,f77,ada,java</parameter>: 
+This command identifies which languages to build. You may modify this command 
+to remove undesired languages.</para>
 
 <para><command>make -C gcc gnatlib-shared</command>: This command builds the 
 Ada shared and static libraries. Skip this step if you have not enabled 
@@ -251,12 +258,13 @@ link to the C PreProcessor as some packages expect it to be installed in the
 These links are created as some packages refer to the C and Fortran compilers 
 using an alternate name.</para> 
 
-<para><command>chown -R root:root 
-/usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/include</command>: 
+<para><command>chown -R root:root /usr/lib/gcc/i686-pc-linux-gnu/...</command>: 
 If the package is built by a user other than root, the ownership of the 
-installed <filename class='directory'>include</filename> directory (and its 
-contents) will be incorrect. This command changes the ownership to 
-root:root.</para>
+installed <filename class='directory'>include</filename> and 
+<filename class='directory'>adalib</filename> directories (and their 
+contents) will be incorrect. These commands change the ownership to 
+root:root. Omit the command changing the Ada directories if you did not 
+include Ada as one of the installed languages.</para>
 
 </sect2>
 
