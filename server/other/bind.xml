@@ -6,9 +6,9 @@
 
 <!ENTITY bind-download-http "http://gd.tuwien.ac.at/infosys/servers/isc/bind9/&bind-version;/bind-&bind-version;.tar.gz">
 <!ENTITY bind-download-ftp "ftp://ftp.isc.org/isc/bind9/&bind-version;/bind-&bind-version;.tar.gz">
-<!ENTITY bind-size "4.4 MB">
-<!ENTITY bind-buildsize "88 MB">
-<!ENTITY bind-time "0.89 SBU">
+<!ENTITY bind-size "4.6 MB">
+<!ENTITY bind-buildsize "138 MB">
+<!ENTITY bind-time "0.67 SBU">
 
 ]>
 
@@ -71,18 +71,17 @@ make install</command></userinput></screen>
 
 <sect3><title>Configuration Information</title>
 
-<para>We will configure
-<application><acronym>BIND</acronym></application> to run in a chroot
-jail as an unprivileged user (named). This configuration is more secure
-in that a <acronym>DNS</acronym> compromise can only affect a few files
-in the named user's <envar>HOME</envar> directory.</para> 
+<para><application><acronym>BIND</acronym></application> will configured
+to run in a chroot jail as an unprivileged user (named). This configuration 
+is more secure in that a <acronym>DNS</acronym> compromise can only affect 
+a few files in the named user's <envar>HOME</envar> directory.</para> 
 
-<para>First we create the unprivileged user and group named:</para>
+<para>Create the unprivileged user and group named:</para>
 
 <screen><userinput><command>groupadd named &amp;&amp;
 useradd -m -g named -s /bin/false named</command></userinput></screen>
 
-<para>Then we set up some files, directories and devices needed by
+<para>Set up some files, directories and devices needed by
 <application><acronym>BIND</acronym></application>:</para>
 
 <screen><userinput><command>cd /home/named &amp;&amp;
@@ -92,6 +91,12 @@ mknod /home/named/dev/random c 1 8 &amp;&amp;
 chmod 666 /home/named/dev/{null,random} &amp;&amp;
 mkdir /home/named/etc/namedb/pz &amp;&amp;
 cp /etc/localtime /home/named/etc</command></userinput></screen>
+
+<para>Then, generate a key for use in the <filename>named.conf</filename> 
+and <filename>rdnc.conf</filename> files using the 
+<command>rndc-confgen</command> command:</para>
+
+<screen><userinput><command>rndc-confgen -b 512 | grep -m 1 "secret" | cut -d '"' -f 2</command></userinput></screen>
 
 <para>Create the <filename>named.conf</filename> file from which named
 will read the location of zone files, root name servers and secure
@@ -109,7 +114,7 @@ will read the location of zone files, root name servers and secure
  };
  key "rndc_key" {
      algorithm hmac-md5;
-     secret "<replaceable>[c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K]</replaceable>";
+     secret "<replaceable>[Insert secret from rndc-confgen's output here]</replaceable>";
  };
  zone "." {
      type hint;
@@ -120,6 +125,24 @@ will read the location of zone files, root name servers and secure
      file "pz/127.0.0";
  };
 <command>EOF</command></userinput></screen>
+
+<para>Create the <filename>rndc.conf</filename> with the following commands:</para>
+                                                                                                                     
+<screen><userinput><command>cat &gt; /etc/rndc.conf &lt;&lt; "EOF"</command>
+key rndc_key {
+algorithm "hmac-md5";
+    secret
+    "<replaceable>[Insert secret from rndc-confgen's output here]</replaceable>";
+    };
+options {
+    default-server localhost;
+    default-key    rndc_key;
+};
+<command>EOF</command></userinput></screen>
+                                                                                                                     
+<para>The <filename>rndc.conf</filename> file contains information for
+controlling named operations with the <command>rndc</command>
+utility.</para>
 
 <para>Create a zone file with the following contents:</para>
 
@@ -175,24 +198,6 @@ servers. This file must be updated periodically with the
 <command>dig</command> utility.
 Consult the <ulink url="http://www.bind9.net/Bv9ARM.html"><application><acronym>BIND</acronym></application> 9 Administrator Reference Manual</ulink> for
 details.</para>
-
-<para>Create the <filename>rndc.conf</filename> with the following commands:</para>
-
-<screen><userinput><command>cat &gt; /etc/rndc.conf &lt;&lt; "EOF"</command>
-key rndc_key {
-algorithm "hmac-md5";
-    secret
-    "<replaceable>[c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K]</replaceable>";
-    };
-options {
-    default-server localhost;
-    default-key    rndc_key;
-};
-<command>EOF</command></userinput></screen>
-
-<para>The <filename>rndc.conf</filename> file contains information for
-controlling named operations with the <command>rndc</command>
-utility.</para>
 
 <para>Create or modify <filename>resolv.conf</filename> to use the new
 name server with the following commands:</para>
