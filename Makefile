@@ -11,7 +11,7 @@ TEXBASEDIR= $(HOME)/public_html/blfs-book-tex
 
 SRCDIR = $(PWD)
 
-all: blfs-old
+all: blfs
 
 blfs-old: index.xml
 	@if [ -z $(OUTPUTDIR) ]; then \
