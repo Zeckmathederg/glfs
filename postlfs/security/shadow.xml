@@ -64,10 +64,12 @@ commands:</para>
 LIBS="-lpam -lpam_misc" ./configure --libdir=/usr/lib \
     --enable-shared --with-libpam --without-libcrack &amp;&amp;
 echo '#define HAVE_SETLOCALE 1' >> config.h &amp;&amp;
+sed -i '/extern char/d' libmisc/xmalloc.c &amp;&amp;
 make &amp;&amp;
 make install &amp;&amp;
 mv /bin/sg /usr/bin &amp;&amp;
 mv /bin/vigr /usr/sbin &amp;&amp;
+mv /usr/bin/passwd /bin &amp;&amp;
 rm /bin/groups &amp;&amp;
 mv /usr/lib/lib{misc,shadow}.so.0* /lib &amp;&amp;
 ln -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so &amp;&amp;
@@ -83,6 +85,10 @@ ln -sf ../../lib/libmisc.so.0 /usr/lib/libmisc.so</command></userinput></screen>
 <filename class='libraryfile'>libcrack</filename>. This is desired as
 <application>Linux-<acronym>PAM</acronym></application> already contains 
 <filename class='libraryfile'>libcrack</filename>.</para>
+
+<para><command>sed -i '/extern char/d' libmisc/xmalloc.c</command>: This
+fixes a compilation problem when using <application>GCC</application>-3.4.x.
+</para>
 
 <!--  Leftover from older instructions????
 <para><command>cp debian/securetty /etc/securetty</command>: This
@@ -180,6 +186,18 @@ password    required        pam_permit.so
 # End /etc/pam.d/chage
 <command>EOF</command></userinput></screen>
 
+<note><para>If you've installed <application>cracklib</application>, replace 
+<filename>/etc/pam.d/passwd</filename> with the following:</para></note>
+<screen><userinput><command>cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"</command> 
+# Begin /etc/pam.d/passwd
+
+password    required    pam_cracklib.so     \
+    retry=3  difok=8  minlen=5  dcredit=3  ocredit=3  ucredit=2  lcredit=2
+password    required    pam_unix.so     md5 shadow use_authtok
+
+# End /etc/pam.d/passwd
+<command>EOF</command></userinput></screen>
+
 <para>Currently, <filename>/etc/pam.d/other</filename> is configured to
 allow anyone with an account on the machine to use programs
 that do not specifically have a configuration file of their own. After
@@ -214,7 +232,13 @@ CONSOLE_GROUPS
 ENVIRON_FILE</screen>
 
 <para>This stops <command>login</command> from performing these functions, as 
-they will now be performed by <acronym>PAM</acronym> modules.</para>
+they will now be performed by <acronym>PAM</acronym> modules. Additionally, 
+add a '#' to the beginning of the following lines if you've installed 
+<application>cracklib</application>:</para>
+<screen>OBSCURE_CHECKS_ENAB
+CRACKLIB_DICTPATH
+PASS_CHANGE_TRIES
+PASS_ALWAYS_WARN</screen>
 
 </sect3>
 
