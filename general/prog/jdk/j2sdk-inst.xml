@@ -6,13 +6,17 @@ either or both.</para>
 
 <para>Installation of the precompiled <acronym>JDK</acronym> is easy, change 
 the executable bit for the downloaded file, change to the directory where you 
-want it installed and execute the downloaded file.</para>
+want it installed and execute the downloaded file. The following (slightly
+cryptic version) allows automatic installation.</para>
 
 <screen><userinput><command>VERSION=&j2sdk-bin-version; &amp;&amp;
 MV=`echo $VERSION | cut -d "_" -f 1,1` &amp;&amp;
 V=`echo ${VERSION} | sed -e "s/\./_/g"` &amp;&amp;
+sed -i "s:^PATH=.*::" j2sdk-${V}-linux-i?86.bin &amp;&amp;
 chmod +x j2sdk-${V}-linux-i?86.bin &amp;&amp;
-./j2sdk-${V}-linux-i?86.bin &amp;&amp;
+mkdir -p bin &amp;&amp;
+ln -sf /bin/true bin/more &amp;&amp;
+yes | PATH=$PWD/bin:$PATH ./j2sdk-${V}-linux-i?86.bin &amp;&amp;
 cd j2sdk${VERSION} &amp;&amp;
 install -d /opt/j2sdk/j2sdk-precompiled-${MV} &amp;&amp;
 mv * /opt/j2sdk/j2sdk-precompiled-${MV}</command></userinput></screen>
@@ -27,21 +31,24 @@ section.</para>
 <screen><userinput><command>export JAVA_HOME=/opt/j2sdk/j2sdk-precompiled-${MV} &amp;&amp;
 export PATH=$PATH:${JAVA_HOME}/bin</command></userinput></screen>
 
-<para>Unzip and patch the source:</para>
+<para>Unzip the source:</para>
 
 <screen><userinput><command>VERSION=&j2sdk-src-version; &amp;&amp;
 V=`echo $VERSION | sed -e "s/\./_/g"` &amp;&amp;
 unzip j2sdk-${V}-src-scsl.zip &amp;&amp;
 unzip j2sdk-${V}-mozilla_headers-unix.zip &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-gcc33-1.patch &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-fix-intl-files.patch &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-link-missing-libs.patch &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-remove-fixed-paths.patch &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-syntax-fixes.patch &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-motif-mkmsgcat.patch &amp;&amp;
-patch -Np1 -i j2sdk-${VERSION}-use-included-motif.patch</command></userinput></screen>
+unzip j2sdk-${V}-bin-scsl.zip</command></userinput></screen>
 
-<para>Set some variables which affect the build:</para>
+<para>Apply all the patches downloaded above.</para>
+
+<screen><userinput><command>for PATCH in fix-inline-asm-1 gcc3-1 motif-mkmsgcat \
+             remove-debug-image remove-fixed-paths-1 \
+             static_cxx
+do
+   patch -Np1 -i j2sdk-1.4.2-$PATCH.patch &amp;&amp;
+done</command></userinput></screen>
+
+<para>Set/unset some variables which affect the build:</para>
 <screen><userinput><command>export ALT_BOOTDIR="$JAVA_HOME" &amp;&amp;
 unset JAVA_HOME &amp;&amp;
 unset CLASSPATH
@@ -55,6 +62,10 @@ export ALT_MOZILLA_PATH=$PWD &amp;&amp;
 export INSANE=true &amp;&amp;
 export MAKE_VERBOSE=true &amp;&amp;
 export ALT_CACERTS_FILE=${ALT_BOOTDIR}/jre/lib/security/cacerts</command></userinput></screen>
+
+<warning><para>Setting CFLAGS/CXXFLAGS/LDFLAGS is guaranteed to make the build fail.
+If you are interested in optimizing the build, set OTHER_CFLAGS/OTHER_CXXFLAGS/OTHER_LDFLAGS
+instead.</para></warning>
 
 <para>Additionally, if you would like to make in parallel, add the following 
 (adjust <envar>MAKE_PARALLEL</envar> to your liking):</para>
