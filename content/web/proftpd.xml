@@ -14,72 +14,99 @@
 
 <sect1 id="proftpd" xreflabel="ProFTPD-&proftpd-version;">
 <sect1info>
-<othername>$LastChangedBy$</othername>
-<date>$Date$</date>
+  <othername>$LastChangedBy$</othername>
+  <date>$Date$</date>
 </sect1info>
+
 <?dbhtml filename="proftpd.html"?>
-<title><application>Pro<acronym>FTP</acronym>D</application>-&proftpd-version;
-</title>
+<title><application>Pro<acronym>FTP</acronym>D</application>-&proftpd-version;</title>
+
+<indexterm zone="proftpd">
+  <primary sortas="a-proftpd">Proftpd</primary>
+</indexterm>
 
 <sect2>
-<title>Introduction to 
-<application>Pro<acronym>FTP</acronym>D</application></title>
+<title>Introduction to <application>Pro<acronym>FTP</acronym>D</application></title>
 
 <para>The <application>Pro<acronym>FTP</acronym>D</application> package 
 contains a secure and highly configurable <acronym>FTP</acronym> daemon. This 
 is useful for serving large file archives over a network.</para>
 
-<sect3><title>Package information</title>
+<sect3>
+<title>Package information</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP): 
-<ulink url="&proftpd-download-http;"/></para></listitem>
-<listitem><para>Download (FTP): 
-<ulink url="&proftpd-download-ftp;"/></para></listitem>
-<listitem><para>Download MD5 sum: &proftpd-md5sum;</para></listitem>
-<listitem><para>Download size: &proftpd-size;</para></listitem>
-<listitem><para>Estimated disk space required: 
-&proftpd-buildsize;</para></listitem>
-<listitem><para>Estimated build time: 
-&proftpd-time;</para></listitem></itemizedlist>
+  <listitem><para>Download (HTTP): <ulink url="&proftpd-download-http;"/></para></listitem>
+  <listitem><para>Download (FTP): <ulink url="&proftpd-download-ftp;"/></para></listitem>
+  <listitem><para>Download MD5 sum: &proftpd-md5sum;</para></listitem>
+  <listitem><para>Download size: &proftpd-size;</para></listitem>
+  <listitem><para>Estimated disk space required: &proftpd-buildsize;</para></listitem>
+  <listitem><para>Estimated build time: &proftpd-time;</para></listitem>
+</itemizedlist>
 </sect3>
 
-<sect3><title><application>Pro<acronym>FTP</acronym>D</application> 
-dependencies</title>
-<sect4><title>Optional</title>
+<sect3>
+<title><application>Pro<acronym>FTP</acronym>D</application> dependencies</title>
+
+<sect4>
+<title>Optional</title>
+
 <para><xref linkend="Linux_PAM"/></para>
+
 </sect4>
 </sect3>
 
 </sect2>
 
 <sect2>
-<title>Installation of 
-<application>Pro<acronym>FTP</acronym>D</application></title>
+<title>Installation of <application>Pro<acronym>FTP</acronym>D</application></title>
 
-<para>For security reasons, running 
-<application>Pro<acronym>FTP</acronym>D</application> as an unprivileged user 
-and group using its own login shell is encouraged.</para>
+<para>For security reasons, you should install
+<application>Pro<acronym>FTP</acronym>D</application> using an unprivileged user
+and group.  As the root user:</para>
 
 <screen><userinput><command>groupadd proftpd &amp;&amp;
-ln -s false /usr/lib/proftpd/proftpdshell &amp;&amp;
-echo /usr/lib/proftpd/proftpdshell &gt;&gt; /etc/shells &amp;&amp;
 useradd -c proftpd -d /home/ftp -g proftpd \
-        -s /usr/lib/proftpd/proftpdshell proftpd</command>
-</userinput></screen>
+        -s /usr/lib/proftpd/proftpdshell proftpd &amp;&amp;
+install -d -m775 -o proftpd -g proftpd /usr/lib/proftpd &amp;&amp;
+ln -s /bin/false /usr/lib/proftpd/proftpdshell &amp;&amp;
+echo /usr/lib/proftpd/proftpdshell &gt;&gt; /etc/shells</command></userinput></screen>
 
-<para>Install <application>Pro<acronym>FTP</acronym>D</application> by running 
+<para>Install <application>Pro<acronym>FTP</acronym>D</application> as a regular user by running 
 the following commands:</para>
 
 <screen><userinput><command>install_user=proftpd install_group=proftpd \
     ./configure --prefix=/usr --sysconfdir=/etc \
     --localstatedir=/var/run &amp;&amp;
-make &amp;&amp;
-make install </command></userinput></screen>
+make</command></userinput></screen>
+
+<para>Now, again as the root user:</para>
+ 
+<screen><userinput role='root'><command>make install</command></userinput></screen>
 
 </sect2>
 
 <sect2>
 <title>Command explanations</title>
+
+<para><command>install -d -m775 -o proftpd -g proftpd /usr/lib/proftpd</command>: 
+Create the home directory for <application>Pro<acronym>FTP</acronym>D</application>.</para>
+
+<para><command>ln -s /bin/false /usr/lib/proftpd/proftpdshell</command>:
+Set the default shell as a link to a invalid shell.</para> 
+
+<para><command>echo /usr/lib/proftpd/proftpdshell &gt;&gt; /etc/shells</command>:
+Fake a valid shell for compatability purposes.</para>
+
+<note><para>The above three commands can be ommitted if the following directive is 
+placed in the configuration file:
+
+<screen>RequireValidShell off</screen>
+
+By default, proftpd will require that users logging in have valid shells. 
+The RequireValidShell directive turns off this requirement.  This is only
+recommended if you are setting up your <acronym>FTP</acronym> server exclusively 
+for anonymous downloads.
+</para></note>
 
 <para><parameter>install_user=proftpd install_group=proftpd</parameter>:
 Specify the user and group identity for 
@@ -98,7 +125,14 @@ This uses <filename class="directory">/var/run</filename> instead of
 <sect2>
 <title>Configuring <application>Pro<acronym>FTP</acronym>D</application></title>
 
-<sect3><title>proftpd init.d script</title>
+<sect3 id='proftpd-init'>
+<title>proftpd init.d script</title>
+
+<indexterm zone="proftpd proftpd-init">
+  <primary sortas="f-proftpd">proftpd</primary>
+</indexterm>
+
+
 <para>Install the <filename>/etc/rc.d/init.d/proftpd</filename> init script 
 included in the <xref linkend="intro-important-bootscripts"/> package.</para>
 
@@ -106,7 +140,13 @@ included in the <xref linkend="intro-important-bootscripts"/> package.</para>
 
 </sect3>
 
-<sect3><title>Config files</title>
+<sect3 id='proftpd-config'>
+<title>Config files</title>
+
+<indexterm zone="proftpd proftpd-config">
+   <primary sortas="e-etc-proftpd">/etc/proftpd.conf</primary>
+</indexterm>
+
 <para><filename>/etc/proftpd.conf</filename></para>
 </sect3>
 
@@ -175,35 +215,73 @@ Group                           proftpd
 <sect2>
 <title>Contents</title>
 
-<para>The <application>Pro<acronym>FTP</acronym>D</application> package contains
-<command>ftpcount</command>, <command>ftpshut</command>,
-<command>ftptop</command>, <command>ftpwho</command> and
-<command>proftpd</command>.</para>
+<segmentedlist>
+  <segtitle>Installed Programs</segtitle>
+  <segtitle>Installed Libraries</segtitle>
+  <segtitle>Installed Directory</segtitle>
+ 
+  <seglistitem>
+    <seg>ftpcount, ftpdctl, ftptop, ftpwho, ftpshut, proftpd</seg>
+    <seg>None</seg>
+    <seg>/var/run/proftpd</seg>
+  </seglistitem>
+</segmentedlist>
+ 
+<variablelist>
+  <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+  <?dbfo list-presentation="list"?>
 
-</sect2>
+<varlistentry id="proftpd-prog">
+  <term><command>proftpd</command></term>
+  <listitem>
+    <para>is the <acronym>FTP</acronym> daemon.</para>
+    <indexterm zone="proftpd proftpd-prog">
+      <primary sortas="b-proftpd">proftpd</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
 
-<sect2><title>Description</title>
+<varlistentry id="ftpcount">
+  <term><command>ftpcount</command></term>
+  <listitem>
+    <para>shows the current number of connections.</para>
+    <indexterm zone="proftpd ftpcount">
+      <primary sortas="b-ftpcount">ftpcount</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
 
-<sect3><title>ftpcount</title>
-<para><command>ftpcount</command> shows the current number of 
-connections.</para></sect3>
+<varlistentry id="ftpshut">
+  <term><command>ftpshut</command></term>
+  <listitem>
+    <para>shuts down all <application>proftpd</application> servers at a given time.</para>
+    <indexterm zone="proftpd ftpshut">
+      <primary sortas="b-ftpshut">ftpshut</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
 
-<sect3><title>ftpshut</title>
-<para><command>ftpshut</command> shuts down all <command>proftpd</command> 
-servers at a given time.</para></sect3>
+<varlistentry id="ftptop">
+  <term><command>ftptop</command></term>
+  <listitem>
+    <para>displays running status on connections.</para>
+    <indexterm zone="proftpd ftptop">
+      <primary sortas="b-ftptop">ftptop</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
 
-<sect3><title>ftptop</title>
-<para><command>ftptop</command> displays running status on 
-connections.</para></sect3>
+<varlistentry id="ftpwho">
+  <term><command>ftpwho</command></term>
+  <listitem>
+    <para>shows current process information for each session.</para>
+    <indexterm zone="proftpd ftpwho">
+      <primary sortas="b-ftpwho">ftpwho</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
 
-<sect3><title>ftpwho</title>
-<para><command>ftpwho</command> shows current process information for
-each session.</para></sect3>
-
-<sect3><title>proftpd</title>
-<para><command>proftpd</command> is the <acronym>FTP</acronym> 
-daemon.</para></sect3>
-
+</variablelist>
 </sect2>
 
 </sect1>
