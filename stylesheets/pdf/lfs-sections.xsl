@@ -19,8 +19,8 @@
   </xsl:attribute-set>
 
     <!-- Sections numbering -->
-  <xsl:param name="section.autolabel" select="1"/>
-  <xsl:param name="section.label.includes.component.label" select="1"/>
+  <xsl:param name="section.autolabel" select="0"/>
+  <xsl:param name="section.label.includes.component.label" select="0"/>
 
     <!-- Skip numeraration for sections with empty title -->
   <xsl:template match="sect2|sect3|sect4|sect5" mode="label.markup">

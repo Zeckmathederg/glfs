@@ -14,8 +14,7 @@
           <xsl:otherwise>left</xsl:otherwise>
         </xsl:choose>
       </xsl:attribute>
-      <xsl:value-of select="/book/bookinfo/title"/>
-      <xsl:text> - </xsl:text>
+      <xsl:text>Beyond Linux From Scratch - </xsl:text>
       <xsl:value-of select="/book/bookinfo/subtitle"/>
     </fo:block>
   </xsl:template>

@@ -32,7 +32,7 @@
   </xsl:template>
 
     <!-- Show URLs in italic font -->
-  <xsl:template match="ulink" name="ulink">
+  <!--<xsl:template match="ulink" name="ulink">
     <fo:inline font-style="italic">
       <fo:basic-link xsl:use-attribute-sets="xref.properties">
         <xsl:attribute name="external-destination">
@@ -54,9 +54,9 @@
     </fo:inline>
     <xsl:if test="count(child::node()) != 0
                   and string(.) != @url
-                  and $ulink.show != 0">
+                  and $ulink.show != 0">-->
       <!-- yes, show the URI -->
-      <xsl:choose>
+    <!--  <xsl:choose>
         <xsl:when test="$ulink.footnotes != 0 and not(ancestor::footnote)">
           <xsl:text>&#xA0;</xsl:text>
           <fo:footnote>
@@ -84,7 +84,7 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:if>
-  </xsl:template>
+  </xsl:template>-->
 
     <!-- Split URLs (obsolete, keeped as reference) -->
   <!--<xsl:template name="hyphenate-url">
