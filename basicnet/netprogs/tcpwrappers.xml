@@ -1,14 +1,120 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY tcpwrappers-download-http "http://files.ichilton.co.uk/nfs/tcp_wrappers_&tcpwrappers-version;.tar.gz">
+  <!ENTITY tcpwrappers-download-ftp  "ftp://ftp.porcupine.org/pub/security/tcp_wrappers_7.6.tar.gz">
+  <!ENTITY tcpwrappers-size          "100 KB">
+  <!ENTITY tcpwrappers-buildsize     "720 KB">
+  <!ENTITY tcpwrappers-time          "0.16 SBU">
+]>
+
 <sect1 id="tcpwrappers" xreflabel="tcpwrappers-&tcpwrappers-version;">
 <?dbhtml filename="tcpwrappers.html"?>
 <title>tcpwrappers-&tcpwrappers-version;</title>
 
-&tcpwrappers-intro;
-&tcpwrappers-inst;
-<!-- 
-&tcpwrappers-exp;
--->
-&tcpwrappers-config;
-&tcpwrappers-desc;
+<sect2>
+<title>Introduction to <application>tcpwrappers</application></title>
+
+<para>The <application>tcpwrappers</application> package provides daemon 
+wrapper programs that report the name of the client requesting network services and the requested service.</para> 
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink
+url="&tcpwrappers-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&tcpwrappers-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &tcpwrappers-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&tcpwrappers-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&tcpwrappers-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Required patch (Fixes some build issues and adds building of a shared library):
+<ulink url="&patch-root;/tcp_wrappers-7.6-shared-lib-plus-plus.patch"/></para></listitem>
+</itemizedlist>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application>tcpwrappers</application></title>
+
+<para>Install <application>tcpwrappers</application> with the following 
+commands:</para>
+
+<screen><userinput><command>patch -Np1 -i ../tcp_wrappers-7.6-shared-lib-plus-plus.patch &amp;&amp;
+make REAL_DAEMON_DIR=/usr/sbin STYLE=-DPROCESS_OPTIONS linux &amp;&amp;
+make install</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application>tcpwrappers</application></title>
+
+<sect3><title>Config files</title>
+<para><filename>/etc/hosts.allow</filename>,
+<filename>/etc/hosts.deny</filename></para>
+
+<para>File protections: the wrapper, all files used by the wrapper,
+and all directories in the path leading to those files, should be
+accessible but not writable for unprivileged users (mode 755 or mode
+555). Do not install the wrapper set-uid.</para>
+
+<para>Then perform the following edits on the
+<filename>/etc/inetd.conf</filename> configuration file:</para>
+<screen><userinput>finger stream tcp nowait nobody /usr/sbin/in.fingerd in.fingerd</userinput></screen>
+<para>becomes:</para>
+<screen><userinput>finger stream tcp nowait nobody /usr/sbin/tcpd in.fingerd</userinput></screen>
+
+<note><para>The finger server is used as an example here.</para></note>
+
+<para>Similar changes must be made if xinetd is used, with the emphasis being 
+on calling <command>/usr/sbin/tcpd</command> instead of calling the service 
+daemon directly, and passing the name of the service daemon to tcpd.</para>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>tcpwrappers</application> package contains <command>
+tcpd</command>, <command>tcpdchk</command>, <command>tcpdmatch</command>,
+<command>try-from</command> and <command>safe_finger</command>.</para>
+</sect2>
+
+<sect2><title>Description</title>
+
+<sect3><title>tcpd</title>
+<para><command>tcpd</command> is the main access control daemon for all 
+Internet services, which <command>inetd</command> or
+<command>xinetd</command> will run instead of running the
+requested service daemon.</para></sect3>
+
+<sect3><title>tcpdchk</title>
+<para><command>tcpdchk</command> is a tool to examine a tcpd wrapper 
+configuration and report problems with it.</para></sect3>
+
+<sect3><title>tcpdmatch</title>
+<para><command>tcpdmatch</command> is used to predict how the tcp wrapper 
+would handle a specific request for a service.</para></sect3>
+
+<sect3><title>try-from</title>
+<para><command>try-from</command> can be called via a remote shell command to 
+find out if the host name and address are properly recognized.</para></sect3>
+
+<sect3><title>safe_finger</title>
+<para><command>safe_finger</command> is a wrapper for the <command>finger
+</command> utility, to provide automatic reverse name lookups.</para></sect3>
+
+</sect2>
 
 </sect1>
 
