@@ -9,15 +9,15 @@
   <xsl:template match="screen">
     <xsl:choose>
     		<!-- Temporally hack -->
-      <xsl:when test="child::* = userinput">
+<!-- Broke userinput   <xsl:when test="child::* = userinput">
         <pre class="{name(.)}">
-          <kbd class="command">
+           <kbd class="command">
             <xsl:value-of select="."/>
           </kbd>
         </pre>
-      </xsl:when>
+      </xsl:when> -->
       <!-- This should be fixed in the XML code -->
-      <!--
+      
       <xsl:when test="contains(text() , 'SBU')">
         <p class="sbu">
           <tt>
@@ -27,7 +27,7 @@
           </tt>
         </p>
       </xsl:when>
-      -->
+     
       <xsl:otherwise>
         <pre class="{name(.)}">
           <xsl:apply-templates/>

@@ -15,7 +15,7 @@ Based on the original lfs-chunked.xsl created by Matthew Burgess -->
   <xsl:include href="xhtml/lfs-admon.xsl"/>
   <xsl:include href="xhtml/lfs-index.xsl"/>
   <xsl:include href="xhtml/lfs-legalnotice.xsl"/>
-  <xsl:include href="xhtml/lfs-mixed.xsl"/>
+  <xsl:include href="xhtml/lfs-mixed.xsl"/> 
   <xsl:include href="xhtml/lfs-navigational.xsl"/>
   <xsl:include href="xhtml/lfs-titles.xsl"/>
   <xsl:include href="xhtml/lfs-toc.xsl"/>
@@ -34,5 +34,9 @@ Based on the original lfs-chunked.xsl created by Matthew Burgess -->
   <xsl:template name='user.head.content'>
      <link rel='stylesheet' href="../stylesheets/blfs-print.css" type="text/css" media='print'/>
   </xsl:template> 
+
+<xsl:template match="userinput">
+  <xsl:call-template name="inline.monoseq"/>
+</xsl:template>
 
 </xsl:stylesheet>
