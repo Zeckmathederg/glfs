@@ -6,10 +6,10 @@
 
 <!ENTITY openssh-download-http "http://sunsite.ualberta.ca/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
 <!ENTITY openssh-download-ftp "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
-<!ENTITY openssh-md5sum "8e1774d0b52aff08f817f3987442a16e">
-<!ENTITY openssh-size "854 KB">
-<!ENTITY openssh-buildsize "13.3 MB">
-<!ENTITY openssh-time "0.40 SBU">
+<!ENTITY openssh-md5sum "7b36f28fc16e1b7f4ba3c1dca191ac92">
+<!ENTITY openssh-size "889 KB">
+<!ENTITY openssh-buildsize "14.5 MB">
+<!ENTITY openssh-time "0.42 SBU">
 ]>
 
 <sect1 id="openssh" xreflabel="OpenSSH-&openssh-version;">
@@ -19,6 +19,8 @@
 </sect1info>
 <?dbhtml filename="openssh.html"?>
 <title>Open<acronym>SSH</acronym>-&openssh-version;</title>
+<indexterm zone="openssh">
+<primary sortas="a-OpenSSH">OpenSSH</primary></indexterm>
 
 <sect2>
 <title>Introduction to 
@@ -55,8 +57,9 @@ dependencies</title>
 X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>), 
 <xref linkend="mitkrb"/> or <xref linkend="heimdal"/>, 
 <xref linkend="j2sdk"/>, 
-<xref linkend="net-tools"/> and 
-<ulink url="http://www.opensc.org/">OpenSC</ulink></para>
+<xref linkend="net-tools"/>, 
+<ulink url="http://www.opensc.org/">OpenSC</ulink> and 
+<ulink url="http://sourceforge.net/projects/libedit/">libedit</ulink></para>
 </sect4>
 </sect3>
 
@@ -73,10 +76,10 @@ The second process communicates with the network. Additional installation
 steps are necessary to set up the proper environment, which are performed 
 by the following commands:</para>
 
-<screen><userinput><command>mkdir /var/empty &amp;&amp;
-chown root:sys /var/empty &amp;&amp;
+<screen><userinput><command>install -v -d -m700 /var/lib/sshd &amp;&amp;
+chown root:sys /var/lib/sshd &amp;&amp;
 groupadd sshd &amp;&amp;
-useradd -c 'sshd privsep' -d /var/empty -g sshd -s /bin/false sshd</command></userinput></screen>
+useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd -s /bin/false sshd</command></userinput></screen>
 
 <para><application>OpenSSH</application> is very sensitive to changes in the
 linked <application>OpenSSL</application> libraries. If you recompile
@@ -91,9 +94,31 @@ library, execute the following command:</para>
 the following commands:</para>
 
 <screen><userinput><command>./configure --prefix=/usr --sysconfdir=/etc/ssh \
-    --libexecdir=/usr/sbin --with-md5-passwords &amp;&amp;
-make &amp;&amp;
-make install</command></userinput></screen>
+    --libexecdir=/usr/sbin --with-md5-passwords \
+    --with-privsep-path=/var/lib/sshd</command></userinput></screen>
+
+<para>If you use <application>Heimdal</application> as your Kerberos5 
+implementation and you linked the <application>Heimdal</application> libraries 
+into the build using the <option>--with-kerberos5</option> parameter, you'll 
+need to modify the <filename>Makefile</filename> or the build will fail. Use 
+the following command:</para>
+
+<screen><userinput><command>sed -i -e "s/lkrb5 -ldes/lkrb5/" Makefile</command></userinput></screen>
+
+<para>Continue the build:</para>
+
+<screen><userinput><command>make</command></userinput></screen>
+
+<para>If you linked <application>tcp_wrappers</application> into the build 
+using the <option>--with-tcp-wrappers</option> parameter, ensure you add 
+127.0.0.1 to the sshd line in <filename>/etc/hosts.allow</filename> if you 
+have a restrictive <filename>/etc/hosts.deny</filename> file, or the testsuite 
+will fail. To run the testsuite, issue: <command>make -k 
+tests</command>.</para>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>make install</command></userinput></screen>
 
 </sect2>
 
@@ -101,7 +126,7 @@ make install</command></userinput></screen>
 <title>Command explanations</title>
 
 <para><parameter>--sysconfdir=/etc/ssh</parameter>: This prevents the 
-configuration files from going to 
+configuration files from being installed in 
 <filename class="directory">/usr/etc</filename>.</para>
 
 <para><parameter>--with-md5-passwords</parameter>: This is required
@@ -111,42 +136,49 @@ your <acronym>SSH</acronym> server when you installed the Shadow Password
 Suite or if you access a <acronym>SSH</acronym> server that authenticates by 
 user passwords encrypted with md5. </para>
 
-<para><parameter>--libexecdir=/usr/sbin</parameter>:
-<application>Open<acronym>SSH</acronym></application> installs programs called 
-by programs in <filename class="directory">/usr/libexec</filename>.
-<command>sftp-server</command> is a <command>sshd</command>
-utility and <command>ssh-askpass</command> is a <command>ssh-add</command> 
-utility that is installed as a link to <command>X11-ssh-askpass</command>. 
-Both of these should go in <filename class="directory">/usr/sbin</filename> 
-not <filename class="directory">/usr/libexec</filename>.</para>
+<para><parameter>--libexecdir=/usr/sbin</parameter>: This parameter 
+changes the installation path of some programs to 
+<filename class="directory">/usr/sbin</filename> instead of 
+<filename class="directory">/usr/libexec</filename>.</para>
 
 </sect2>
 
 <sect2>
 <title>Configuring <application>Open<acronym>SSH</acronym></application></title>
 
-<sect3><title>Config files</title>
+<sect3 id="openssh-config"><title>Config files</title>
 
-<para><filename>/etc/ssh/ssh_config</filename> and 
-<filename>/etc/ssh/sshd_config </filename></para>
+<para><filename>~/.ssh/*, /etc/ssh/ssh_config</filename> and 
+<filename>/etc/ssh/sshd_config</filename></para>
+<indexterm zone="openssh openssh-config">
+<primary sortas="e-AA.ssh">~/.ssh/*</primary></indexterm>
+<indexterm zone="openssh openssh-config">
+<primary sortas="e-etc-ssh-ssh_config">/etc/ssh/ssh_config</primary>
+</indexterm>
+<indexterm zone="openssh openssh-config">
+<primary sortas="e-etc-ssh-sshd_config">/etc/ssh/sshd_config</primary>
+</indexterm>
 
-<para>There are no required changes to either of these files. However,  
-you may wish to view them to make changes for appropriate security to
-your system. One recomended change is that you disable root login via
-ssh. Execute the following command to disable root login via ssh:</para>
+<para>There are no required changes to any of these files. However,  
+you may wish to view the <filename class='directory'>/etc/ssh/</filename> to 
+make changes for appropriate security of your system. One recomended change 
+is that you disable root login via <command>ssh</command>. Execute the 
+following command to disable root login via <command>ssh</command>:</para>
 
 <screen><userinput><command>echo "PermitRootLogin no" >> /etc/ssh/sshd_config</command></userinput></screen>
 
 <para>Additional configuration information can be found in the man pages for
 <command>sshd</command>, <command>ssh</command> and 
-<command>ssh-agent</command></para>
+<command>ssh-agent</command>.</para>
 </sect3>
 
-<sect3><title>sshd init.d script</title>
+<sect3 id="openssh-init"><title>sshd init.d script</title>
 
 <para>To start the <acronym>SSH</acronym> server at system boot, install the 
 <filename>/etc/rc.d/init.d/sshd</filename> init script included in the 
 <xref linkend="intro-important-bootscripts"/> package.</para>
+<indexterm zone="openssh openssh-init">
+<primary sortas="f-sshd">sshd</primary></indexterm>
 
 <screen><userinput><command>make install-sshd</command></userinput></screen>
 </sect3>
@@ -156,47 +188,119 @@ ssh. Execute the following command to disable root login via ssh:</para>
 <sect2>
 <title>Contents</title>
 
-<para>The <application>Open<acronym>SSH</acronym></application> package 
-contains <command>ssh</command>, <command>sshd</command>, 
-<command>ssh-agent</command>, <command>ssh-add</command>, 
-<command>sftp</command>, <command>scp</command>, 
-<command>ssh-keygen</command>, <command>sftp-server</command> and 
-<command>ssh-keyscan</command>.</para>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
 
-</sect2>
+<seglistitem>
+<seg>scp, sftp, sftp-server, slogin, ssh, sshd, ssh-add, ssh-agent, 
+ssh-keygen, ssh-keyscan and ssh-keysign</seg>
+<seg>None</seg>
+<seg>/etc/ssh and /var/lib/sshd</seg>
+</seglistitem>
+</segmentedlist>
 
-<sect2><title>Description</title>
+<variablelist>
+<bridgehead renderas="sect3">Short Descriptions</bridgehead>
+<?dbfo list-presentation="list"?>
 
-<sect3><title>ssh</title>
-<para>The basic <command>rlogin</command>/<command>rsh</command>-like 
-client program.</para></sect3>
+<varlistentry id="scp">
+<term><command>scp</command></term>
+<listitem><para>is a file copy program that acts like <command>rcp</command> 
+except it uses an encrypted protocol.</para>
+<indexterm zone="openssh scp">
+<primary sortas="b-scp">scp</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>sshd</title>
-<para>The daemon that listens for <command>ssh</command> login 
-requests.</para></sect3>
+<varlistentry id="sftp">
+<term><command>sftp</command></term>
+<listitem><para>is an <acronym>FTP</acronym>-like program that works over 
+<acronym>SSH</acronym>1 and <acronym>SSH</acronym>2 protocols.</para>
+<indexterm zone="openssh sftp">
+<primary sortas="b-sftp">sftp</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>ssh-agent</title>
-<para>An authentication agent that can store private keys.</para></sect3>
+<varlistentry id="sftp-server">
+<term><command>sftp-server</command></term>
+<listitem><para>is an <acronym>SFTP</acronym> server subsystem.</para>
+<indexterm zone="openssh sftp-server">
+<primary sortas="b-sftp-server">sftp-server</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>ssh-add</title>
-<para>Tool which adds keys to the <command>ssh-agent</command>.</para></sect3>
+<varlistentry id="slogin">
+<term><command>slogin</command></term>
+<listitem><para>is a symlink to <command>ssh</command>.</para>
+<indexterm zone="openssh slogin">
+<primary sortas="g-slogin">slogin</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>sftp</title>
-<para><acronym>FTP</acronym>-like program that works over
-<acronym>SSH</acronym>1 and <acronym>SSH</acronym>2 protocols.</para></sect3>
+<varlistentry id="ssh">
+<term><command>ssh</command></term>
+<listitem><para>is an <command>rlogin</command>/<command>rsh</command>-like 
+client program except it uses an encrypted protocol.</para>
+<indexterm zone="openssh ssh">
+<primary sortas="b-ssh">ssh</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>scp</title>
-<para>File copy program that acts like <command>rcp</command>.</para></sect3>
+<varlistentry id="sshd">
+<term><command>sshd</command></term>
+<listitem><para>is a daemon that listens for <command>ssh</command> login 
+requests.</para>
+<indexterm zone="openssh sshd">
+<primary sortas="b-sshd">sshd</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>ssh-keygen</title>
-<para>Key generation tool.</para></sect3>
+<varlistentry id="ssh-add">
+<term><command>ssh-add</command></term>
+<listitem><para>is a tool which adds keys to the 
+<command>ssh-agent</command>.</para>
+<indexterm zone="openssh ssh-add">
+<primary sortas="b-ssh-add">ssh-add</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>sftp-server</title>
-<para><acronym>SFTP</acronym> server subsystem.</para></sect3>
+<varlistentry id="ssh-agent">
+<term><command>ssh-agent</command></term>
+<listitem><para>is an authentication agent that can store private keys.</para>
+<indexterm zone="openssh ssh-agent">
+<primary sortas="b-ssh-agent">ssh-agent</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>ssh-keyscan</title>
-<para>Utility for gathering public host keys from a number of 
-hosts.</para></sect3>
+<varlistentry id="ssh-keygen">
+<term><command>ssh-keygen</command></term>
+<listitem><para>is a key generation tool.</para>
+<indexterm zone="openssh ssh-keygen">
+<primary sortas="b-ssh-keygen">ssh-keygen</primary>
+</indexterm></listitem>
+</varlistentry>
+
+<varlistentry id="ssh-keyscan">
+<term><command>ssh-keyscan</command></term>
+<listitem><para>is a utility for gathering public host keys from a number of 
+hosts.</para>
+<indexterm zone="openssh ssh-keyscan">
+<primary sortas="b-ssh-keyscan">ssh-keyscan</primary>
+</indexterm></listitem>
+</varlistentry>
+
+<varlistentry id="ssh-keysign">
+<term><command>ssh-keysign</command></term>
+<listitem><para>is used by <command>ssh</command> to access the local host 
+keys and generate the digital signature required during hostbased 
+authentication with <acronym>SSH</acronym> protocol version 2.</para>
+<indexterm zone="openssh ssh-keysign">
+<primary sortas="b-ssh-keysign">ssh-keysign</primary>
+</indexterm></listitem>
+</varlistentry>
+</variablelist>
 
 </sect2>
 
