@@ -21,7 +21,7 @@ Based on the original lfs-chunked.xsl created by Matthew Burgess -->
   <xsl:include href="xhtml/lfs-toc.xsl"/>
 
   	<!-- The CSS Stylesheet -->
-  <xsl:param name="html.stylesheet" select="'../stylesheets/lfs.css'"/>
+  <xsl:param name="html.stylesheet" select="'../stylesheets/blfs.css'"/>
 
   	<!-- Dropping some unwanted style attributes -->
   <xsl:param name="ulink.target" select="''"></xsl:param>
