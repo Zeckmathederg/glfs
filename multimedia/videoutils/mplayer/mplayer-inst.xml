@@ -2,27 +2,68 @@
 <title>Installation of MPlayer</title>
 
 <para>The extra downloads should be located in you source directory with
-the bzip files decompressed while the zip file should remain
-compressed.</para>
+the bzip files decompressed.</para>
 
 <para>Install MPlayer by running the following commands:</para>
 
 <para><screen><userinput>install -d /usr/lib/win32 &amp;&amp;
 tar -xvf ../w32codec.tar -C /usr/lib/win32 &amp;&amp;
+tar -xvf ../qt5dlls.tar -C /usr/lib/win32 &amp;&amp;
+tar -xvf ../qt6dlls.tar -C /usr/lib/win32 &amp;&amp;
+tar -xvf ../qtextras.tar -C /usr/lib/win32 &amp;&amp;
+tar -xvf ../rp9codecs.tar -C /usr/lib/win32 &amp;&amp;
 unset CFLAGS &amp;&amp;
-./configure --prefix=/usr --confdir=/etc/mplayer &amp;&amp;
+./configure --prefix=/usr --confdir=/etc/mplayer --enable-largefiles \
+--enable-gui --enable-menu --enable-new-conf --enable-qtx-codecs \
+--enable-vorbis --with-reallibdir=/usr/lib/win32/re9codecs \
+--enable-freetype --enable-shared-pp &amp;&amp;
 make &amp;&amp;
 make install &amp;&amp;
-unzip ../mp-arial-iso-8859-1.zip -d /usr/share/mplayer/font</userinput></screen></para>
+</userinput></screen></para>
 
 <para> Each user of MPlayer should complete the install by running the
 following commands:</para>
 <para><screen><userinput>
 mkdir ~/.mplayer &amp;&amp;
 cp etc/codecs.conf ~/.mplayer &amp;&amp;
-cp etc/example.conf ~/.mplayer/example.conf &amp;&amp;
-ln -sf /usr/share/mplayer/font/iso-8859-1/arial-14 ~/.mplayer/font
+cp etc/example.conf ~/.mplayer/example.conf
 </userinput></screen></para>
+
+<sect3>
+<title>Installing the prerendered Fonts</title>
+
+<para>If freetype is in use, the only advantage of prerendered fonts is
+that they are faster. Install them like this:</para>
+
+<para><screen><userinput>install -d /usr/share/mplayer/font &amp;&amp;
+tar -xvf ../font-arial-iso-8859-1.tar -C /usr/share/mplayer/font &amp;&amp;
+for i in /usr/share/mplayer/font/font-arial-&lt;size&gt;*
+do ln -s $i /usr/share/mplayer/font; done</userinput></screen></para>
+
+<para>Replace <userinput>&lt;size&gt;</userinput> with either 14, 18, 24
+or 28.</para>
+
+</sect3>
+
+<sect3>
+<title>Installation for DVD playback</title>
+<para>If you want DVD playback with MPlayer, you need to make a link
+from your DVD drive to <filename>/dev/dvd</filename>:</para>
+<para><screen><userinput>ln -s /dev/&lt;dvd drive&gt; /dev/dvd
+</userinput></screen></para>
+<para>replace <userinput>&lt;dvd drive&gt;</userinput> with whatever
+device is appropriate, for example <filename>/dev/hdc</filename>. if
+you don't know which device to choose, type:</para>
+<para><screen><userinput>dmesg | grep DVD</userinput></screen></para>
+<para>It should result in an output like:</para>
+<para><screen><userinput>hdc: Pioneer DVD-ROM ATAPIModel DVD-114 0110,
+ATAPI CD/DVD-ROM drive</userinput></screen></para>
+<para>If you have SCSI-Emulation activated for the drives, you'll need
+to get the right SCSI-device. Every CD/DVD-ROM drive is mapped in the
+same order as in IDE to the devices named
+<filename>/dev/scd0</filename>,
+<filename>/dev/scd1</filename> and so on.</para>
+</sect3>
 
 </sect2>
 
