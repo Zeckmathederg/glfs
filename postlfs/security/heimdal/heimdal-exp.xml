@@ -9,7 +9,7 @@ class="directory">/usr/sbin</filename>.
 <note><para>
 If you want to preserve all your existing Inetutils package daemons,
 install the Heimdal daemons into <filename
-    class="directory">/usr/sbin/heimdal</filename> (or wherever you want).
+class="directory">/usr/sbin/heimdal</filename> (or wherever you want).
 Since these programs will be called from <command>(x)inetd</command> or
 <command>rc</command> scripts, it really doesn't matter where they live,
 as long as they are correctly specified in the
@@ -20,12 +20,36 @@ user programs (such as <command>kadmin</command>) to <filename
 class="directory">/usr/sbin</filename> manually.
 </para></note>
 
-<para><command>cp /usr/bin/login /bin &amp;&amp; mv /usr/bin/su /bin</command>:
+<para>
+<screen><command>mv /bin/login /bin/login.shadow
+mv /bin/su /bin/su.coreutils
+cp /usr/bin/login /bin
+mv /usr/bin/su /bin</command></screen>
 The <command>login</command> and <command>su</command> programs
 installed by Heimdal belong in <filename
 class="directory">/bin</filename> directory. The
 <command>login</command> program is copied because Heimdal is expecting
-to find it in <filename class="directory">/usr/bin</filename>.
+to find it in <filename class="directory">/usr/bin</filename>. We
+preserve the old executables before the move to keep things sane should
+breaks occur.
+</para>
+
+<para>
+<screen><command>mv /usr/lib/lib{otp.so.0,otp.so.0.1.4,kafs.so.0,kafs.so.0.4.0} /usr/lib
+mv /usr/lib/lib{krb5.so.17,krb5.so.17.3.0,asn1.so.6,asn1.so.6.0.2} /usr/lib
+mv /usr/lib/lib{roken.so.16,roken.so.16.0.3,crypto.so.0.9.7} /usr/lib
+mv /usr/lib/lib{com_err.so.1,com_err.so.1.1.1,db-4.1.so} /usr/lib
+ln -sf ../../lib/lib{otp.so.0,otp.so.0.1.4,kafs.so.0,kafs.so.0.4.0} /usr/lib
+ln -sf ../../lib/lib{krb5.so.17,krb5.so.17.3.0,asn1.so.6,asn1.so.6.0.2} /usr/lib
+ln -sf ../../lib/lib{roken.so.16,roken.so.16.0.3,crypto.so.0.9.7} /usr/lib
+ln -sf ../../lib/lib{com_err.so.1,com_err.so.1.1.1,db-4.1.so} /usr/lib</command></screen>
+The <command>login</command> and <command>su</command> programs
+installed by Heimdal link against Heimdal libraries as well as crypto
+and db libraries. We move these libraries to <filename
+class="directory">/lib</filename> to be <acronym>FHS</acronym>
+compliant and in case when the <filename
+class="directory">/usr</filename> is located on separate partition which
+may not be always mounted.
 </para>
 
 </sect2>
