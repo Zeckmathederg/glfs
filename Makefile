@@ -45,8 +45,7 @@ blfs:
 	if [ ! -e $(BASEDIR)images ]; then \
 	  mkdir -p $(BASEDIR)images; \
 	fi;
-	cp /usr/share/xml/docbook/xsl-stylesheets-1.65.1/images/*.png \
-	  $(BASEDIR)images
+	cp images/*.png $(BASEDIR)/images
 	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@" \
 	  index.html 
 	cd $(BASEDIR); sed -i -e "s@../images@images@g" \
@@ -56,7 +55,14 @@ pdf:
 	xsltproc --xinclude --nonet --output blfs.fo \
 	stylesheets/blfs-pdf.xsl \
 	  index.xml
+	sed -i -e "s/inherit/all/" blfs.fo
 	fop.sh blfs.fo blfs.pdf
+
+print:
+	xsltproc --xinclude --nonet --output blfs-print.fo \
+	stylesheets/blfs-print.xsl index.xml
+	sed -i -e "s/inherit/all/" blfs-print.fo
+	fop.sh blfs-print.fo blfs-print.pdf
 
 tex:
 	@if [ -z $(TEXBASEDIR) ]; then \
@@ -73,7 +79,7 @@ tex:
 	http://docbook.sourceforge.net/release/xsl/current/profiling/profile.xsl \
 	index.xml
 	@cd $(TEXBASEDIR) && xsltproc --nonet -o blfs-book.tex \
-	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
+	$(SRCDIR)/stylesheets/lfs-tex.xsl index.xml
 
 validate:
 	xmllint --noout --nonet index.xml

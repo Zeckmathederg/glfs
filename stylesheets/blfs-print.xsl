@@ -13,47 +13,45 @@ Based on the original lfs-pdf.xsl created by Matthew Burgess -->
   <xsl:param name="draft.mode" select="'no'"/>
 
   	<!-- Including our others customized templates -->
-  <xsl:include href="pdf/lfs-index.xsl"/>
-  <xsl:include href="pdf/lfs-pagesetup.xsl"/>
+  <xsl:include href="print/lfs-index.xsl"/>
+  <xsl:include href="print/lfs-pagesetup.xsl"/>
 
   	<!-- Probably want to make the paper size configurable -->
   <xsl:param name="paper.type" select="'letter'"/>
 
-		<!-- Don't hyphenate -->
-  <xsl:param name="hyphenate">false</xsl:param>
-  <xsl:param name="alignment">left</xsl:param>
+  	<!-- Printing Style -->
+  <xsl:param name="double.sided" select="1"/>
+  <xsl:param name="hyphenate">true</xsl:param>
+  <xsl:param name="alignment">justify</xsl:param>
+  
+  	<!-- Hyphenate links -->
+  <xsl:param name="ulink.hyphenate" select="' '"></xsl:param>
 
   	<!-- Font size -->
   <xsl:param name="body.font.master">8</xsl:param>
   <xsl:param name="body.font.size">10pt</xsl:param>
 
-  	<!-- Graphics in admonitions -->
-	<xsl:param name="admon.graphics" select="1"/>
-
-		<!-- Shade screen -->
-	<xsl:param name="shade.verbatim" select="1"/>
-
-  	<!-- TOC generation -->
+  	<!-- TOC stuff -->
   <xsl:param name="generate.toc">
     book      toc
     part      nop
   </xsl:param>
   <xsl:param name="toc.section.depth">1</xsl:param>
-  <xsl:param name="generate.section.toc.level" select="-1"/>
-  <xsl:param name="toc.indent.width" select="18"/>
+  <xsl:param name="generate.section.toc.level" select="-1"></xsl:param>
+  <xsl:param name="toc.indent.width" select="18"></xsl:param>
 
-  <!-- Page number in Xref-->
+  	<!-- Page number in Xref-->
   <xsl:param name="insert.xref.page.number">yes</xsl:param>
 	<xsl:template match="*" mode="page.citation">
   	<xsl:param name="id" select="'???'"/>
   	<fo:inline keep-together.within-line="always">
-  		<xsl:text>[p.</xsl:text>
+  		<xsl:text>[p</xsl:text>
       <fo:page-number-citation ref-id="{$id}"/>
   		<xsl:text>]</xsl:text>
   	</fo:inline>
 	</xsl:template>
 
-  <!-- Prevent duplicate e-mails in the Acknowledgments pages-->
+  	<!-- Prevent duplicate e-mails in the Acknowledgments pages-->
   <xsl:param name="ulink.show" select="0"/>
 
 </xsl:stylesheet>
