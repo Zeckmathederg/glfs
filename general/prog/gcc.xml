@@ -6,20 +6,19 @@
 
   <!ENTITY gcc-download-http  "http://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
   <!ENTITY gcc-download-ftp   "ftp://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
-  <!ENTITY gcc-md5sum         "31b459062499f9f68d451db9cbf3205c">
-  <!ENTITY gcc-size           "27.2 MB">
-  <!ENTITY gcc-buildsize      "1.53 GB">
-  <!ENTITY gcc-time           "48.94 SBU">
+  <!ENTITY gcc-md5sum         "e744b30c834360fccac41eb7269a3011">
+  <!ENTITY gcc-size           "27.4 MB">
+  <!ENTITY gcc-buildsize      "1.62 GB">
+  <!ENTITY gcc-time           "45.50 SBU (build and install all compilers)">
 
   <!ENTITY gnat-download-http " ">
   <!ENTITY gnat-download-ftp  "ftp://cs.nyu.edu/pub/gnat/3.15p/gnat-3.15p-i686-pc-redhat71-gnu-bin.tar.gz">
   <!ENTITY gnat-md5sum        "57c060cd1ccef8b1ae9165b11d98780a">
-  <!ENTITY gnat-size          "13.5 MB">
-  <!ENTITY gnat-buildsize     "48 MB">
+  <!ENTITY gnat-size          "13.4 MB">
   <!ENTITY gnat-time          "0.01 SBU">
 
   <!ENTITY gcc-testsuite-url    "http://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-testsuite-&gcc-version;.tar.bz2">
-  <!ENTITY gcc-testsuite-md5sum "641f45606e17db4a3079cb7364a9e295">
+  <!ENTITY gcc-testsuite-md5sum "b4fff6ce0a038021b9e507917abb9a07">
 ]>
 
 <sect1 id="gcc" xreflabel="GCC-&gcc-version;">
@@ -94,8 +93,6 @@ url="&gnat-download-http;"/></para></listitem>
 url="&gnat-download-ftp;"/></para></listitem>
 <listitem><para>Download MD5 sum: &gnat-md5sum;</para></listitem>
 <listitem><para>Download size: &gnat-size;</para></listitem>
-<listitem><para>Estimated disk space required:
-&gnat-buildsize;</para></listitem>
 <listitem><para>Estimated build time:
 &gnat-time;</para></listitem></itemizedlist>
 </sect3>
@@ -135,6 +132,12 @@ and <userinput>/opt/gnat</userinput> in response to the second question.</para>
 invoked by executing the <command>gcc</command> binary installed by the above 
 script.</para>
 
+<para>You may now remove the <application><acronym>GNAT</acronym></application> 
+source directory:</para>
+
+<screen><userinput><command>cd .. &amp;&amp;
+rm -rf gnat-3.15p-i686-pc-linux-gnu-bin</command></userinput></screen>
+
 <para>Prepare to compile <application>GCC</application> by placing the 
 <application>GNAT</application> <command>gcc</command> at the beginning of 
 the <envar>PATH</envar> variable by using the following commands:</para>
@@ -162,8 +165,8 @@ beginning the build.</para>
 you're confident the build was successful. You can compare your test results 
 with those found at <ulink 
 url="http://gcc.gnu.org/ml/gcc-testresults/"/>. There's also an i686 platform 
-test result produced by an <acronym>LFS</acronym>-6.0 system at 
-<ulink url="http://linuxfromscratch.org/~randy/gcc341_test.txt"/>. You 
+test result produced by an <acronym>LFS</acronym>-SVN-20050316 system at 
+<ulink url="http://linuxfromscratch.org/~randy/gcc343_test.txt"/>. You 
 may also want to refer to the information found in the 
 <application><acronym>GCC</acronym></application>-Pass 2 section of Chapter 5 
 in the <acronym>LFS</acronym> book 
@@ -177,7 +180,8 @@ you're installing the <application>Java</application> language from the
 use the programs from the <application>J2SDK</application> as the defaults, 
 ensure <filename class='directory'>$JAVA_HOME/bin</filename> is listed before 
 <filename class='directory'>/usr/bin</filename> in your <envar>PATH</envar> 
-variable.</para></note>
+variable after the <application><acronym>GCC</acronym></application> 
+installation is complete.</para></note>
 
 <screen><userinput><command>patch -Np1 -i ../gcc-&gcc-version;-no_fixincludes-1.patch &amp;&amp;
 patch -Np1 -i ../gcc-&gcc-version;-linkonce-1.patch &amp;&amp;
@@ -191,7 +195,7 @@ make bootstrap &amp;&amp;
 make -C gcc gnatlib-shared &amp;&amp;
 make -C gcc gnattools &amp;&amp;
 make -k check &amp;&amp;
-../gcc-3.4.1/contrib/test_summary</command></userinput></screen>
+../gcc-&gcc-version;/contrib/test_summary</command></userinput></screen>
 
 <para>Now, as the root user:</para>
 
@@ -202,11 +206,16 @@ ln -v -sf g77 /usr/bin/f77 &amp;&amp;
 chown -v -R root:root /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/include &amp;&amp;
 chown -v -R root:root /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/ada{lib,include}</command></userinput></screen>
 
-<para>You may remove the <application><acronym>GNAT</acronym></application>
-installation and restore your old <envar>PATH</envar>:</para>
+<para>As the root user, remove the 
+<application><acronym>GNAT</acronym></application> installation:</para>
 
-<screen><userinput><command>rm -rf /opt/gnat &amp;&amp;
-export PATH=$PATH_HOLD</command></userinput></screen>
+<screen><userinput role='root'><command>rm -rf /opt/gnat</command></userinput></screen>
+
+<para>Now, as the unprivileged user, restore your old 
+<envar>PATH</envar>:</para>
+
+<screen><userinput><command>export PATH=$PATH_HOLD &amp;&amp;
+unset PATH_HOLD</command></userinput></screen>
 
 </sect2>
 
@@ -244,8 +253,8 @@ Ada development tools and binaries. Skip this step if you have not enabled
 <para><command>make -k check</command>: This command runs the test suite 
 without stopping should any errors be encountered.</para>
 
-<para><command>../gcc-3.4.1/contrib/test_summary</command>: This command will 
-produce a summary of the test suite results. You can append 
+<para><command>../gcc-&gcc-version;/contrib/test_summary</command>: This 
+command will produce a summary of the test suite results. You can append 
 <command>| grep -A7 Summ</command> to the command to produce an even more
 condensed version of the summary. You may also wish to redirect the output to 
 a file for review and comparison later on.</para>
@@ -281,7 +290,7 @@ include Ada as one of the installed languages.</para>
 gij, gnat, gnatbind, gnatbl, gnatchop, gnatclean, gnatfind, gnatkr, gnatlink, 
 gnatls, gnatmake, gnatname, gnatprep, gnatxref, gpr2make, gprcmd, grepjar, 
 jar, jcf-dump, jv-convert, jv-scan, rmic, rmiregistry and architecture 
-specific names for c++, g++, gcc{,-3.4.1}, gcj and gcjh</seg>
+specific names for c++, g++, gcc,gcc-&gcc-version;, gcj and gcjh</seg>
 <seg>lib-org-w3c-dom.[so,a], lib-org-xml-sax.[so,a], libffi-2.00-beta.so, 
 libffi.[so,a], libfrtbegin.a, libg2c.[so,a], libgcc_s.so, libgcj.[so,a], 
 libobjc.[so,a], libstdc++.[so.6,a], libsupc++.a and numerous other run-time 
@@ -542,7 +551,6 @@ source files.</para>
 <primary sortas="b-rmiregistry">rmiregistry</primary>
 </indexterm></listitem>
 </varlistentry>
-
 </variablelist>
 
 </sect2>
