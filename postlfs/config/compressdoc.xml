@@ -10,45 +10,45 @@ ideas like recursively calling gzip on them. A better way to go is to use the
 script below.
 </para>
 
-<screen><userinput><command>cat &gt; /usr/bin/comprdoc &lt;&lt; "EOF"</command>
+<screen><userinput><command>cat &gt; /usr/bin/compressdoc &lt;&lt; "EOF"</command>
 
 #!/bin/sh
 
 function changefileext
 {
- # prints the given filename with the new extension instead of
- # the old one. ! - always prints an absolute filename even if
- # the caller provides a relative one.
- # parameters : 1 - file name
- # 2 - old extension
- # 3 - new extension (may be empty)
+    # prints the given filename with the new extension instead of
+    # the old one. ! - always prints an absolute filename even if
+    # the caller provides a relative one.
+    # parameters : 1 - file name
+    # 2 - old extension
+    # 3 - new extension (may be empty)
 
- echo `dirname $1`\/`basename $1 $2`$3
+    echo `dirname $1`\/`basename $1 $2`$3
 }
 
 # check that the command line is right, if not print a relevant message.
 
 if [ ! -d $1 -o -z $1 ] || [ "$2" != "gz" -a "$2" != "bz2" ]
 then
- echo "Usage : $0 /path/to/doc/dir gz/bz2"
- echo "e.g. $0 /usr/info gz to compress info pages in gzip format"
- echo "or   $0 /usr/X11R6/man bz2 to compact X man pages using bzip2."
- exit 1
+   echo "Usage : $0 /path/to/doc/dir gz/bz2"
+   echo "e.g. $0 /usr/info gz to compress info pages in gzip format"
+   echo "or   $0 /usr/X11R6/man bz2 to compact X man pages using bzip2."
+   exit 1
 fi
 
 # set up a few variables.
 
-NEWEXT=.$2 # NEWEXT = extension of newly compressed files
+NEWEXT=.$2            # NEWEXT = extension of newly compressed files
 
 if [ "$NEWEXT" == ".bz2" ]
 then
- OLDEXT=".gz" # OLDEXT = extensions of files to recompress
- DECOMPRESS="gunzip -f" # DECOMPRESS = command to decompress a file
- COMPRESS="bzip2 -f9" # COMPRESS = command to compress a file
+   OLDEXT=".gz" # OLDEXT = extensions of files to recompress
+   DECOMPRESS="gunzip -f" # DECOMPRESS = command to decompress a file
+   COMPRESS="bzip2 -f9" # COMPRESS = command to compress a file
 else
- OLDEXT=".bz2"
- DECOMPRESS="bunzip2 -f"
- COMPRESS="gzip -f9"
+   OLDEXT=".bz2"
+   DECOMPRESS="bunzip2 -f"
+   COMPRESS="gzip -f9"
 fi
 
 # process all files not in the target format under the provided root directory.
@@ -59,89 +59,87 @@ cd $1
 
 for f in `find  . \! -name "*$NEWEXT"`
 do
- # the following test is needed because we have to update links ahead of
- # ourselves, so $f is sometimes a nonexistent file or a link to one.
+   # the following test is needed because we have to update links ahead of
+   # ourselves, so $f is sometimes a nonexistent file or a link to one.
 
- if [ -f $f -o -L $f ]
- then
- FILE=$f # the file being processed
- BASEFILE=`basename $FILE` # its basename (see HLINKS)
- INODE=`find $FILE -printf %i` # its inode number (see HLINKS)
- NEWFILE=`changefileext $FILE $OLDEXT $NEWEXT` # new file name
+   if [ -f $f -o -L $f ]
+   then
+       FILE=$f # the file being processed
+       BASEFILE=`basename $FILE` # its basename (see HLINKS)
+       INODE=`find $FILE -printf %i` # its inode number (see HLINKS)
+       NEWFILE=`changefileext $FILE $OLDEXT $NEWEXT` # new file name
 
- # HLINKS is the list of all hard links to the current file.
+       # HLINKS is the list of all hard links to the current file.
 
- HLINKS=`find . \! -name $BASEFILE -inum $INODE`
+       HLINKS=`find . \! -name $BASEFILE -inum $INODE`
 
- if [ -L $FILE ]
- then
- # the current file is a symbolic link, so we change
- # its name and the name of its target.
+       if [ -L $FILE ]
+       then
+           # the current file is a symbolic link, so we change
+           # its name and the name of its target.
 
- TARGET=`readlink $FILE`
- rm -f $FILE
- ln -sf `changefileext $TARGET $OLDEXT $NEWEXT` $NEWFILE
- elif [ -f $FILE ]
- then
- # the current file is a regular file.
+           TARGET=`readlink $FILE`
+           rm -f $FILE
+           ln -sf `changefileext $TARGET $OLDEXT $NEWEXT` $NEWFILE
+       elif [ -f $FILE ]
+       then
+           # the current file is a regular file.
 
- TEMPFILE=`changefileext $FILE $OLDEXT`
+           TEMPFILE=`changefileext $FILE $OLDEXT`
 
 # if there are several versions of a page (at worst, there can be
 # one uncompressed, one old-compressed and one new-compressed), then
 # we have to make sure that only the most recent file is kept, because
 # it most likely means the user installed several versions of a package.
 
- # first, if we are dealing with an old-compressed file,
- # expand it if it is more recent than the uncompressed
- # file *and* the new-compressed file, else delete it.
- # (works even if TEMPFILE and/or NEWFILE do not exist)
+           # first, if we are dealing with an old-compressed file,
+           # expand it if it is more recent than the uncompressed
+           # file *and* the new-compressed file, else delete it.
+           # (works even if TEMPFILE and/or NEWFILE do not exist)
 
- if [ "$FILE" != "$TEMPFILE" ]
- then
- if [ $FILE -nt $TEMPFILE -a \
-      $FILE -nt $NEWFILE ]
- then
- $DECOMPRESS $FILE
- else
- rm -f $FILE
- fi
- FILE=$TEMPFILE
- fi
+           if [ "$FILE" != "$TEMPFILE" ]
+           then
+               if [ $FILE -nt $TEMPFILE -a $FILE -nt $NEWFILE ]
+               then
+                   $DECOMPRESS $FILE
+               else
+                   rm -f $FILE
+               fi
+               FILE=$TEMPFILE
+           fi
 
- # now we are dealing with an uncompressed file that may
- # exist or not (because of the above). If it is newer
- # than both the new-compressed and the old-compressed
- # files then it is compressed, else it is deleted.
+           # now we are dealing with an uncompressed file that may
+           # exist or not (because of the above). If it is newer
+           # than both the new-compressed and the old-compressed
+           # files then it is compressed, else it is deleted.
 
- if [ -f $FILE ]
- then
- if [ $FILE -nt $NEWFILE -a \
-      $FILE -nt $FILE$OLDEXT ]
- then
- $COMPRESS $FILE
- else
- rm -f $FILE
- fi
- fi
- fi
+           if [ -f $FILE ]
+           then
+               if [ $FILE -nt $NEWFILE -a $FILE -nt $FILE$OLDEXT ]
+               then
+                   $COMPRESS $FILE
+               else
+                   rm -f $FILE
+               fi
+           fi
+       fi
 
- # update the hard links to the current files,
- # as the new inode number is now known.
+       # update the hard links to the current files,
+       # as the new inode number is now known.
 
- for g in $HLINKS
- do
- rm -f $g
- ln -f $NEWFILE `changefileext $g $OLDEXT $NEWEXT`
- done
- fi
+       for g in $HLINKS
+       do
+           rm -f $g
+           ln -f $NEWFILE `changefileext $g $OLDEXT $NEWEXT`
+       done
+   fi
 done
 
 <command>EOF
 chmod 755 /usr/bin/comprdoc</command></userinput></screen>
 
 <para>Now, as root, you can issue a
-<userinput><command>/usr/bin/comprdoc /usr/man bz2</command></userinput>
+<userinput><command>/usr/bin/compressdoc /usr/man bz2</command></userinput>
 to compress your system man pages. Similarly, you can run it on the
 <filename class="directory">/usr/info</filename> directory. Don't forget
 <filename class="directory">/usr/X11R6/man</filename> if you install the
@@ -149,12 +147,12 @@ to compress your system man pages. Similarly, you can run it on the
 <application>XEmacs</application>, also install their documentation in 
 nonstandard places.</para>
 
-<para>Generally, package installation systems do not compress the man/info
-pages, which means you will need to run the script again if you want to keep
-the size of your documentation as small as possible. Also, note that upgrading
-a package is safe: when you have several versions of a page (for example, a
-compressed and an uncompressed file), the script always keeps the most recent
-and deletes the others.</para>
+<para>Generally, package installation systems do not compress man/info pages, 
+which means you will need to run the script again if you want to keep the size 
+of your documentation as small as possible. Also, note that running the script
+after upgrading a package is safe: when you have several versions of a page 
+(for example, one compressed and one uncompressed), the most recent one is kept
+and the others deleted.</para>
 
 </sect1>
 
