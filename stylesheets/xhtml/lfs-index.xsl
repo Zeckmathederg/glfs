@@ -99,7 +99,7 @@
     	<strong class="item">
       	<xsl:value-of select="primary"/>
         <xsl:text>: </xsl:text>
-			</strong>
+			</strong><div class='indexref'>
       <xsl:for-each select="$refs[generate-id() = generate-id(key('primary-section',
       				concat($key, &#34; &#34;, generate-id((ancestor-or-self::book |ancestor-or-self::part
               |ancestor-or-self::chapter |ancestor-or-self::appendix |ancestor-or-self::preface
@@ -120,7 +120,7 @@
           </xsl:apply-templates>
      		</ul>
     	</xsl:if>
-    </li>
+    </div></li>
   </xsl:template>
 
   <xsl:template match="indexterm" mode="index-secondary">
@@ -171,7 +171,7 @@
             </xsl:call-template>
           </xsl:attribute>
           <xsl:text>description </xsl:text>
-        </a>
+        </a><br />
       </xsl:when>
       <xsl:otherwise>
         <xsl:variable name="zone" select="$zones"/>
