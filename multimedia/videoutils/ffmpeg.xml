@@ -5,9 +5,9 @@
 
   <!ENTITY ffmpeg-download-http "http://prdownloads.sourceforge.net/ffmpeg/ffmpeg-&ffmpeg-version;.tar.gz">
   <!ENTITY ffmpeg-download-ftp  " ">
-  <!ENTITY ffmpeg-size          "1.3 MB">
-  <!ENTITY ffmpeg-buildsize     "31 MB">
-  <!ENTITY ffmpeg-time          "0.89 SBU">
+  <!ENTITY ffmpeg-size          "1.6 MB">
+  <!ENTITY ffmpeg-buildsize     "49 MB">
+  <!ENTITY ffmpeg-time          "0.87 SBU">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -22,31 +22,40 @@
 <title>Introduction to <application>FFmpeg</application></title>
 
 <para><application>FFmpeg</application> is a solution to record, convert and 
-stream audio and video. Due to heavy development, not all of these functions 
-will work.</para>
+stream audio and video. It is a very fast video and audio converter and it can 
+also acquire from a live audio/video source. Designed to be intuitive, the 
+command-line interface (<command>ffmpeg</command>) tries to figure out all the 
+parameters, when possible. <application>FFmpeg</application> can also convert 
+from any sample rate to any other, and resize video on the fly with a high 
+quality polyphase filter. <application>FFmpeg</application> can use a 
+video4linux compatible video source and any Open Sound System audio 
+source.</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
 <listitem><para>Download (HTTP): <ulink url="&ffmpeg-download-http;"/></para></listitem>
 <listitem><para>Download (FTP): <ulink url="&ffmpeg-download-ftp;"/></para></listitem>
 <listitem><para>Download size: &ffmpeg-size;</para></listitem>
-<listitem><para>Estimated Disk space required: &ffmpeg-buildsize;</para></listitem>
+<listitem><para>Estimated disk space required: &ffmpeg-buildsize;</para></listitem>
 <listitem><para>Estimated build time: &ffmpeg-time;</para></listitem></itemizedlist>
 </sect3>
 
-<sect3><title>Additional downloads</title>
+<!-- <sect3><title>Additional downloads</title>
 <itemizedlist spacing='compact'>
 <listitem><para>Required Patch: <ulink 
 url="&patch-root;/ffmpeg-&ffmpeg-version;-gcc34-1.patch"/></para>
 </listitem></itemizedlist>
-</sect3>
+</sect3> -->
 
 <sect3><title><application>FFmpeg</application> dependencies</title>
 <sect4><title>Optional</title>
-<para><xref linkend="libvorbis"/>, <xref linkend="lame"/>, 
-<xref linkend="liba52"/>, <xref linkend="imlib2"/>, 
+<para><xref linkend="libvorbis"/>, 
+<xref linkend="lame"/>, 
+<xref linkend="liba52"/>, 
+<xref linkend="imlib2"/>, 
 X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>), 
-<xref linkend="SDL"/>, <xref linkend="freetype2"/>, 
+<xref linkend="SDL"/>, 
+<xref linkend="freetype2"/>, 
 <ulink url="http://www.audiocoding.com/modules/mydownloads/">FAAC</ulink> and 
 <ulink url="http://www.audiocoding.com/modules/mydownloads/">FAAD</ulink></para>
 </sect4>
@@ -60,12 +69,14 @@ X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>),
 <para>Install <application>FFmpeg</application> by running the following 
 commands:</para>
 
-<note><para>The package maintainers recommend compiling without any
-optimizations.</para></note>
+<note><para>Review the <filename>doc/optimization.txt</filename> file in the 
+source tree for information about optimizing the build.</para></note>
 
-<screen><userinput><command>patch -Np1 -i ../ffmpeg-&ffmpeg-version;-gcc34-1.patch &amp;&amp;
-./configure --prefix=/usr --enable-shared &amp;&amp;
+<!-- <screen><userinput><command>patch -Np1 -i ../ffmpeg-&ffmpeg-version;-gcc34-1.patch &amp;&amp; -->
+<screen><userinput><command>./configure --prefix=/usr \
+    --enable-shared --enable-pthreads &amp;&amp;
 make &amp;&amp;
+make -C doc {ffmpeg,ffserver,ffplay}.1 &amp;&amp;
 make install</command></userinput></screen>
 
 </sect2>
@@ -78,15 +89,19 @@ build the <filename class="libraryfile">libavcodec</filename> and
 <filename class="libraryfile">libavformat</filename> shared 
 libraries.</para>
 
-<para><option>--enable-mp3lame</option>: Link against
-<filename class="libraryfile">libmp3lame</filename>.</para>
+<para><parameter>--enable-pthreads</parameter>: This switch enables the 
+build to link against the Posix threads library.</para>
 
-<para><option>--enable-vorbis</option>: Link against
-<filename class="libraryfile">libvorbis</filename>.</para>
+<para><option>--enable-<replaceable>[codec]</replaceable></option>: Review
+the available options and codecs using the 
+<command>./configure --help</command> command.</para>
 
 <para><option>--disable-ffplay</option>: Only installs the server part.
 <command>ffplay</command> requires <application>X</application> for 
 building.</para>
+
+<para><command>make -C doc {ffmpeg,ffserver,ffplay}.1</command>: This builds 
+the man pages which are installed by <command>make install</command>.</para>
 
 <note><para>Linking the <application>liba52</application> library using the 
 <option>--enable-a52</option> parameter to <command>configure</command> is 
@@ -99,10 +114,12 @@ known to break the build.</para></note>
 
 <sect3><title>Config files</title>
 
-<para><filename>~/.ffmpeg/ffserver-config</filename></para>
+<para><filename>/etc/ffserver.conf</filename> and 
+<filename>~/.ffmpeg/ffserver-config</filename></para>
 
 <para>You'll find a sample ffserver configuration file at
-<ulink url="http://ffmpeg.sourceforge.net/sample.html"/></para>
+<ulink url="http://ffmpeg.sourceforge.net/sample.html"/> (also 
+<filename>doc/ffserver.conf</filename> in the source tree).</para>
 
 </sect3>
 
@@ -112,10 +129,12 @@ known to break the build.</para></note>
 <title>Contents</title>
 
 <para>The <application>FFmpeg</application> package contains 
-<command>ffmpeg</command>, <command>ffserver</command>, 
+<command>ffmpeg</command>, 
+<command>ffserver</command>, 
 <command>ffplay</command>, 
-<filename class="libraryfile">libavcodec</filename> and 
-<filename class="libraryfile">libavformat</filename>.</para>
+<filename class="libraryfile">libavcodec</filename>, 
+<filename class="libraryfile">libavformat</filename> and 
+video hook modules.</para>
 
 </sect2>
 
@@ -140,8 +159,7 @@ player using the <filename>ffmpeg</filename> libraries and the
 <para><filename class="libraryfile">libavcodec</filename> and 
 <filename class="libraryfile">libavformats</filename> are libraries for 
 encoding/decoding video streams and putting them into files or network 
-packets. Since they're well documented, you can easily include them in your 
-software, like some other packages already do.</para></sect3>
+packets.</para></sect3>
 
 </sect2>
 
