@@ -6,10 +6,10 @@
 
   <!ENTITY mysql-download-http "http://mysql.he.net/Downloads/MySQL-4.1/mysql-&mysql-version;.tar.gz">
   <!ENTITY mysql-download-ftp  "ftp://mirror.mcs.anl.gov/pub/mysql/Downloads/MySQL-4.1/mysql-&mysql-version;.tar.gz">
-  <!ENTITY mysql-md5           "2886edbe5cc826727fbb79a79d41145c">
-  <!ENTITY mysql-size          "22 MB">
-  <!ENTITY mysql-buildsize     "117 MB">
-  <!ENTITY mysql-time          "4.65 SBU">
+  <!ENTITY mysql-md5           "6a4a6a5b3d0a42a9a271b2b8867bde82">
+  <!ENTITY mysql-size          "22.5 MB">
+  <!ENTITY mysql-buildsize     "207 MB">
+  <!ENTITY mysql-time          "3.83 SBU">
 ]>
 
 <sect1 id="mysql" xreflabel="MySQL-&mysql-version;">
@@ -19,6 +19,8 @@
 </sect1info>
 <?dbhtml filename="mysql.html"?>
 <title>MySQL-&mysql-version;</title>
+<indexterm zone="mysql">
+<primary sortas="a-MySQL">MySQL</primary></indexterm>
 
 <sect2>
 <title>Introduction to <application>My<acronym>SQL</acronym></application>
@@ -46,16 +48,15 @@ client programs and libraries.</para>
 <sect3><title><application>My<acronym>SQL</acronym></application> dependencies
 </title>
 <sect4><title>Optional</title>
-<para>
-<xref linkend="openssl"/>,
+<para><xref linkend="openssl"/>,
 <xref linkend="tcpwrappers"/>,
 <ulink url="http://sourceforge.net/projects/libedit/">libedit</ulink> 
 (as an alternative to readline), 
 <xref linkend="ORBit"/> (detected only if <xref linkend="which"/> is 
 installed), 
 <xref linkend="doxygen"/> and
-<xref linkend="tex"/>
-</para></sect4>
+<xref linkend="tex"/></para>
+</sect4>
 </sect3>
 
 </sect2>
@@ -68,7 +69,7 @@ installed),
 and group is strongly encouraged:</para>
 
 <screen><userinput><command>groupadd mysql &amp;&amp;
-useradd -c mysql -d /dev/null -g mysql -s /bin/false mysql</command></userinput></screen>
+useradd -c "MySQL Server" -d /dev/null -g mysql -s /bin/false mysql</command></userinput></screen>
 
 <para>Build and install <application>My<acronym>SQL</acronym></application> by 
 running the following commands:</para>
@@ -79,10 +80,17 @@ running the following commands:</para>
     --enable-local-infile --with-named-thread-libs=-lpthread \
     --with-unix-socket-path=/var/run/mysql/mysql.sock \
     --without-debug --without-bench --without-readline &amp;&amp;
-make testdir=/usr/lib/mysql/mysql-test &amp;&amp;
-make testdir=/usr/lib/mysql/mysql-test install &amp;&amp;
+make testdir=/usr/lib/mysql/mysql-test</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>make testdir=/usr/lib/mysql/mysql-test install &amp;&amp;
+install -v -d -m755 /usr/share/mysql/Docs/Images &amp;&amp;
+install -v -m644 Docs/manual{,_toc}.html \
+                 Docs/manual.txt /usr/share/mysql/Docs &amp;&amp;
+install -v -m644 Docs/Images/*.{jpg,gif} /usr/share/mysql/Docs/Images &amp;&amp;
 cd /usr/lib &amp;&amp;
-ln -sf mysql/libmysqlclient{,_r}.so* .</command></userinput></screen>
+ln -v -sf mysql/libmysqlclient{,_r}.so* .</command></userinput></screen>
 
 </sect2>
 
@@ -107,9 +115,9 @@ assembler versions of some string functions.</para>
 <para><parameter>--enable-local-infile</parameter>: This switch enables the
 LOAD DATA INFILE <acronym>SQL</acronym> statement.</para>
 
-<para><parameter>CPPFLAGS="-D_GNU_SOURCE" --with-named-thread-libs=-lpthread</parameter>:
-This environment variable and configure switch enable building on
-<acronym>NPTL</acronym> systems.</para>
+<para><parameter>CPPFLAGS="-D_GNU_SOURCE" 
+--with-named-thread-libs=-lpthread</parameter>: This environment variable and 
+configure switch enable building on <acronym>NPTL</acronym> systems.</para>
 
 <para><parameter>--with-unix-socket-path=/var/run/mysql</parameter>:
 This switch puts the unix-domain socket into <filename
@@ -143,10 +151,14 @@ to <application>My<acronym>SQL</acronym></application>.</para>
 <sect2>
 <title>Configuring <application>My<acronym>SQL</acronym></application></title>
 
-<sect3>
+<sect3 id="mysql-config">
 <title>Config files</title>
 
 <para><filename>/etc/my.cnf</filename>, <filename>~/.my.cnf</filename></para>
+<indexterm zone="mysql mysql-config">
+<primary sortas="e-AA.my.cnf">~/.my.cnf</primary></indexterm>
+<indexterm zone="mysql mysql-config">
+<primary sortas="e-etc-my.cnf">/etc/my.cnf</primary></indexterm>
 
 </sect3>
 
@@ -155,38 +167,43 @@ to <application>My<acronym>SQL</acronym></application>.</para>
 
 <para>There are several default configuration files available in
 <filename class="directory">/usr/share/mysql</filename> which you can
-use.  Create <filename>/etc/my.cnf</filename> using the following
-command:</para>
+use. Create <filename>/etc/my.cnf</filename> using the following
+command as the root user:</para>
 
-<screen><userinput><command>cp /usr/share/mysql/my-medium.cnf /etc/my.cnf</command></userinput></screen>
+<screen><userinput role='root'><command>install -v -m644 /usr/share/mysql/my-medium.cnf /etc/my.cnf</command></userinput></screen>
 
 <para>You can now install a database and change the ownership to the
-unprivileged user and group.</para>
+unprivileged user and group (perform as the root user):</para>
 
-<screen><userinput><command>mysql_install_db --user=mysql</command></userinput></screen>
+<screen><userinput role='root'><command>mysql_install_db --user=mysql &amp;&amp;
+chgrp -v mysql /srv/mysql{,/test,/mysql}</command></userinput></screen>
 
 <para>Further configuration requires that the 
-<application>My<acronym>SQL</acronym></application> server be running:</para>
+<application>My<acronym>SQL</acronym></application> server be running. Start 
+the server using the following commands as the root user:</para>
 
-<screen><userinput><command>install -o mysql -d /var/run/mysql &amp;&amp;
+<screen><userinput role='root'><command>install -v -m750 -o mysql -g mysql -d /var/run/mysql &amp;&amp;
 mysqld_safe --user=mysql 2&gt;&amp;1 &gt;/dev/null &amp;</command></userinput></screen>
 
 <para>A default installation does not setup a password for the administrator, 
-so use the following command to set one. Replace 
+so use the following command as the root user to set one. Replace 
 <replaceable>[new-password]</replaceable> with your own.</para>
 
-<screen><userinput><command>mysqladmin -u root password <replaceable>[new-password]</replaceable></command></userinput></screen>
+<screen><userinput role='root'><command>mysqladmin -u root password <replaceable>[new-password]</replaceable></command></userinput></screen>
 
 <para>Configuration of the server is now finished. Shut the server down
-using the following command:</para>
+using the following command as the root user:</para>
 
-<screen><userinput><command>mysqladmin -p shutdown</command></userinput></screen>
+<screen><userinput role='root'><command>mysqladmin -p shutdown</command></userinput></screen>
 
-<para>Install the <filename>/etc/rc.d/init.d/mysql</filename>
+<para id="mysql-init">Install the <filename>/etc/rc.d/init.d/mysql</filename> 
 init script included in the <xref linkend="intro-important-bootscripts"/> 
-package.</para>
+package as the root user to start the <application>MySQL</application> server 
+during system boot-up.</para>
+<indexterm zone="mysql mysql-init">
+<primary sortas="f-mysql">mysql</primary></indexterm>
 
-<screen><userinput><command>make install-mysql</command></userinput></screen>
+<screen><userinput role='root'><command>make install-mysql</command></userinput></screen>
 
 </sect3>
 
@@ -195,79 +212,40 @@ package.</para>
 <sect2>
 <title>Contents</title>
 
-<para>The <application>My<acronym>SQL</acronym></application> package contains 
-<command>client_test</command>,
-<command>comp_err</command>, <command>
-isamchk</command>, <command>
-isamlog</command>, <command>
-make_win_binary_distribution</command>, <command>
-make_win_src_distribution</command>, <command>
-msql2mysql</command>, <command>
-my_print_defaults</command>, <command>
-myisam_ftdump</command>, <command>
-myisamchk</command>, <command>
-myisamlog</command>, <command>
-myisampack</command>, <command>
-mysql</command>, <command>
-mysql_config</command>, <command>
-mysql_convert_table_format</command>, <command>
-mysql_create_system_tables</command>, <command>
-mysql_explain_log</command>, <command>
-mysql_find_rows</command>, <command>
-mysql_fix_extensions</command>, <command>
-mysql_fix_privilege_tables</command>, <command>
-mysql_install_db</command>, <command>
-mysql_secure_installation</command>, <command>
-mysql_setpermission</command>, <command>
-mysql_tableinfo</command>, <command>
-mysql_tzinfo_to_sql</command>, <command>
-mysql_waitpid</command>, <command>
-mysql_zap</command>, <command>
-mysqlacess</command>,<command>
-mysqladmin</command>, <command>
-mysqlbinlog</command>, <command>
-mysqlbug</command>, <command>
-mysqlcheck</command>, <command>
-mysqld</command>, <command>
-mysqld_multi</command>, <command>
-mysqld_safe</command>, <command>
-mysqldump</command>, <command>
-mysqldumpslow</command>, <command>
-mysqlhotcopy</command>, <command>
-mysqlimport</command>, <command>
-mysqlmanager</command>, <command>
-mysqlmanager-pwgen</command>, <command>
-mysqlmanagerc</command>, <command>
-mysqlshow</command>, <command>
-mysqltest</command>, <command>
-pack_isam</command>, <command>
-perror</command>, <command>
-replace</command>, <command>
-resolve_stack_dump</command>, <command>
-resolveip</command>, <filename class="libraryfile">
-libdbug</filename>, <filename class="libraryfile">
-libheap</filename>, <filename class="libraryfile">
-libmerge</filename>, <filename class="libraryfile">
-libmyisam</filename>, <filename class="libraryfile">
-libmyisammrg</filename>, <filename class="libraryfile">
-libmysqlclient</filename>, <filename class="libraryfile">
-libmysqlclient_r</filename>, <filename class="libraryfile">
-libmystrings</filename>, <filename class="libraryfile">
-libmysys</filename>, <filename class="libraryfile">
-libnisam</filename> and <filename class="libraryfile">
-libvio</filename>.</para>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
 
-</sect2>
+<seglistitem>
+<seg>comp_err, isamchk, isamlog, make_win_binary_distribution, 
+make_win_src_distribution, msql2mysql, my_print_defaults, myisam_ftdump, 
+myisamchk, myisamlog, myisampack, mysql, mysql_client_test, mysql_config, 
+mysql_convert_table_format, mysql_create_system_tables, mysql_explain_log, 
+mysql_find_rows, mysql_fix_extensions, mysql_fix_privilege_tables, 
+mysql_install_db, mysql_secure_installation, mysql_setpermission, 
+mysql_tableinfo, mysql_tzinfo_to_sql, mysql_waitpid, mysql_zap, mysqlaccess, 
+mysqladmin, mysqlbinlog, mysqlbug, mysqlcheck, mysqld, mysqld_multi, 
+mysqld_safe, mysqldump, mysqldumpslow, mysqlhotcopy, mysqlimport, 
+mysqlmanager, mysqlmanager-pwgen, mysqlmanagerc, mysqlshow, mysqltest, 
+pack_isam, perror, replace, resolve_stack_dump and resolveip</seg>
+<seg>libdbug.a, libheap.a, libmerge.a, libmyisam.a, libmyisammrg.a, 
+libmysqlclient.[so,a], libmysqlclient_r.[so,a], libmystrings.a, libmysys.a, 
+libnisam.a and libvio.a</seg>
+<seg>/srv/mysql, /usr/include/mysql, /usr/lib/mysql, /usr/share/mysql and 
+/var/run/mysql</seg>
+</seglistitem>
+</segmentedlist>
 
-<sect2><title>Description</title>
-
-<para>A package listing would be several pages long. Consult the 
-<application>My<acronym>SQL</acronym></application> documentation for full 
-details instead.</para>
+<sect3><title>Short description</title>
+<para>Descriptions of all the programs and libraries would be several pages 
+long. Instead, consult the <application>My<acronym>SQL</acronym></application> 
+documentation for full details.</para>
 
 <para>Certain <application>My<acronym>SQL</acronym></application> support 
 programs may require the <application>Perl</application> DBI modules to be 
 installed to function properly.</para>
+</sect3>
 
 </sect2>
 
