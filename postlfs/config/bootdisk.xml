@@ -66,18 +66,10 @@ floppy and the ram image</para>
 /dev/fd0        /               ext2    defaults</screen></para>
 
 <para>Next, we will install <ulink url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink> onto the image.  Busybox incorporates many of the *nix functions into a single small executable file.</para>
-<screen><userinput>
-tar -xzvf busybox-0.60.4.tar.gz
-cd busybox-0.60.4
-make &amp;&amp;
-make PREFIX=/mnt/loop1 install
-</userinput></screen>
-
-
-<screen><userinput>
-cp -ax /var/utmp /mnt/loop1/var
-mkdir /mnt/loop1/var/log
-</userinput></screen>
+<screen><userinput>make &amp;&amp;
+make PREFIX=/mnt/loop1 install &amp;&amp;
+cp -ax /var/utmp /mnt/loop1/var &amp;&amp;
+mkdir /mnt/loop1/var/log</userinput></screen>
 <para>
 Also, keeping in mind your space limitations, copy any other binaries and libraries you 
 need to the image.  Use the <userinput>ldd</userinput> command to 
@@ -88,31 +80,24 @@ Now, since I use devfs to create devices on the fly and free up precious
 inodes on the floppy, we'll also install devfsd to facilitate the
 devices that busybox expects to find.</para>
 
-<screen><userinput>
-mv GNUmakefile Makefile
-make
-make PREFIX=/mnt/loop1 install
-cp /lib/libc.so.6 /lib/ld-linux.so.2 /lib/libdl.so.2 /tmp
-strip --strip-deb /tmp/ld-linux.so.2 /tmp/libc.so.6 /tmp/libdl.so.2
-mv /tmp/ld-linux.so.2 /tmp/libc.so.6 /tmp/libdl.so.2 /mnt/loop1/lib/	
-</userinput></screen>
+<screen><userinput>mv GNUmakefile Makefile &amp;&amp;
+make &amp;&amp;
+make PREFIX=/mnt/loop1 install &amp;&amp;
+cp /lib/libc.so.6 /lib/ld-linux.so.2 /lib/libdl.so.2 /tmp &amp;/&amp;
+strip --strip-deb /tmp/ld-linux.so.2 /tmp/libc.so.6 /tmp/libdl.so.2 &amp;&amp;
+mv /tmp/ld-linux.so.2 /tmp/libc.so.6 /tmp/libdl.so.2 /mnt/loop1/lib/</userinput></screen>
 <para>
 We will also need to set up an rc script to handle the devfsd startup.
 Put this in <filename>/mnt/loop1/etc/init.d/rcS</filename></para>
-<screen>
-#!/bin/sh
+<screen>#!/bin/sh
 mount -t devfs devfs /dev
-/sbin/devfsd /dev
-</screen>
+/sbin/devfsd /dev</screen>
 
 <para>
 Next create your compressed root filesystem.  We use -9 with gzip to
 make the smallest possible compressed image.</para>
-<screen><userinput>
-umount /mnt/loop1 &amp;&amp; dd if=/tmp/rfloppy bs=1k | gzip -v9 > rootfs.gz
-</userinput></screen>  
-<screen><userinput>ls -l rootfs.gz</userinput> to make sure it will fit on the diskette.
-</screen>
+<screen><userinput>umount /mnt/loop1 &amp;&amp; dd if=/tmp/rfloppy bs=1k | gzip -v9 > rootfs.gz</userinput></screen>  
+<screen><userinput>ls -l rootfs.gz</userinput> to make sure it will fit on the diskette.</screen>
 <para>
 make a custom kernel that is optimized for size.  Include only those features
 you will need to rescue your system.  no sense in building in support for things
