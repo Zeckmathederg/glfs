@@ -1,20 +1,26 @@
 <sect2>
 <title>Configuring fcron</title>
 
-<sect3><title>make install script</title>
+<sect3><title>Config files</title>
 
-<para>After the files are installed, the make install script enters into a
-configuration routine.  The first test will be for a group named fcron.  If
-it does not exist, you will be given the command line that the script proposes
-to run and a prompt for a 'y' or 'n'.  This is repeated to create a user named
-fcron and to install a script in the init.d directory with the appropriate
-symbolic links in runlevels 2, 3, 4, and 5.  The final configuration step is to
-stop any current fcron processes and start the new fcron.  A yes here will stop
-current fcron processes and will start the new fcron.  The following
-commands will overwrite the fcron script with one based upon the BLFS
-template:</para>
+<para><filename>/etc/fcron.conf</filename>,
+<filename>/etc/fcron.allow</filename>,
+<filename>/etc/fcron.deny</filename></para>
 
-<para><screen><userinput>cat &gt; /etc/rc.d/init.d/fcron &lt;&lt; "EOF"</userinput>
+</sect3>
+
+<sect3><title>Configuration Information</title>
+
+<para>There are no required changes in any of the config files.
+Configuration information can be found in the man page for
+<filename>fcron.conf</filename>.</para>
+
+<para>Fcron scripts are written using fcrontab. Refer to the man page
+for fcrontab for proper parameters for your situation.</para>
+
+<para>Create the boot script with the following:</para>
+
+<screen><userinput><command>cat &gt; /etc/rc.d/init.d/fcron &lt;&lt; "EOF"
 #!/bin/sh
 # Begin $rc_base/init.d/fcron
 
@@ -52,24 +58,21 @@ case "$1" in
 esac
 
 # End $rc_base/init.d/fcron
-<userinput>EOF
-chmod 755 /etc/rc.d/init.d/fcron &amp;&amp;
-mv /etc/rc.d/rc0.d/K60fcron /etc/rc.d/rc0.d/K08fcron &amp;&amp;
-mv /etc/rc.d/rc6.d/K60fcron /etc/rc.d/rc6.d/K08fcron</userinput></screen></para>
+EOF
+chmod 755 /etc/rc.d/init.d/fcron</command></userinput></screen>
+
+<para>Create the symbolic links to this file in the relevant
+<filename class="directory">rc.d</filename> directory
+with the following commands:</para>
+
+<screen><userinput><command>cd /etc/rc.d/init.d &amp;&amp;
+ln -sf ../init.d/fcron ../rc0.d/K08fcron &amp;&amp;
+ln -sf ../init.d/fcron ../rc2.d/S40fcron &amp;&amp;
+ln -sf ../init.d/fcron ../rc3.d/S40fcron &amp;&amp;
+ln -sf ../init.d/fcron ../rc4.d/S40fcron &amp;&amp;
+ln -sf ../init.d/fcron ../rc5.d/S40fcron &amp;&amp;
+ln -sf ../init.d/fcron ../rc6.d/K08fcron</command></userinput></screen>
+
 </sect3>
 
-<sect3><title>Config files</title>
-
-<para><filename>/etc/fcron.conf</filename>,
-<filename>/etc/fcron.allow</filename>,
-<filename>/etc/fcron.deny</filename></para>
-
-<para>There are no required changes in any of these files.
-Configuration information can be found in the man page for
-<filename>fcron.conf</filename>.</para>
-
-<para>fcron scripts are written using fcrontab.  Refer to the man page
-for fcrontab for proper parameters for your situation.</para></sect3>
-
 </sect2>
-
