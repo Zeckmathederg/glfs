@@ -7,7 +7,7 @@ INSTALL = install
 JADE = openjade
 DOCBOOK = /usr/share/sgml/docbook/dsssl-stylesheets-1.78
 BASEDIR= $(HOME)/public_html/blfs-book-xsl/
-TEXBASEDIR= $(HOME)/public_html/blfs-book-tex
+TEXBASEDIR= $(HOME)/public_html/blfs-book-tex/
 
 SRCDIR = $(PWD)
 
@@ -56,13 +56,19 @@ pdf:
 	stylesheets/blfs-pdf.xsl \
 	  index.xml
 	sed -i -e "s/inherit/all/" blfs.fo
-	fop.sh blfs.fo blfs.pdf
+	/opt/fop/fop.sh blfs.fo blfs.pdf
+	$(INSTALL) -d $(BASEDIR)pdf
+	rm blfs.fo
+	mv blfs.pdf $(BASEDIR)pdf
 
 print:
 	xsltproc --xinclude --nonet --output blfs-print.fo \
 	stylesheets/blfs-print.xsl index.xml
 	sed -i -e "s/inherit/all/" blfs-print.fo
-	fop.sh blfs-print.fo blfs-print.pdf
+	/opt/fop/fop.sh blfs-print.fo blfs-print.pdf
+	$(INSTALL) -d $(BASEDIR)print
+	rm blfs-print.fo
+	mv blfs-print.pdf $(BASEDIR)print
 
 tex:
 	@if [ -z $(TEXBASEDIR) ]; then \
@@ -74,12 +80,12 @@ tex:
 	@$(INSTALL) -d $(TEXBASEDIR)
 # Using profiles in book source to exclude parts of the book from TeX
 # i.e. Changelog
-	xsltproc --nonet --output $(TEXBASEDIR)/index.xml \
+	xsltproc --nonet --output $(TEXBASEDIR)index.xml \
 	--stringparam "profile.role" "book" \
 	http://docbook.sourceforge.net/release/xsl/current/profiling/profile.xsl \
 	index.xml
 	@cd $(TEXBASEDIR) && xsltproc --nonet -o blfs-book.tex \
-	$(SRCDIR)/stylesheets/lfs-tex.xsl index.xml
+	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
 
 validate:
 	xmllint --noout --nonet index.xml
