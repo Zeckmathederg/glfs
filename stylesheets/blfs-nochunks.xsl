@@ -25,7 +25,8 @@
   <xsl:param name="ulink.target" select="''"></xsl:param>
   <xsl:param name="css.decoration" select="0"></xsl:param>
 
-    <!-- To drop the remainig dot when title is empty (from lfs-titles.xsl)-->
+    <!-- To drop the remainig dot when title is empty (from lfs-titles.xsl)
+    Commented out until can do section numbering
   <xsl:template name="sect2.titlepage">
     <xsl:choose>
       <xsl:when test="string-length(title) = 0"/>
@@ -42,7 +43,7 @@
         </div>
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:template>
+  </xsl:template>-->
 
     <!-- Added the role param for proper punctuation in xref calls
             (from lfs-titles.xsl). -->
