@@ -79,7 +79,7 @@
     </li>
   </xsl:template>
 
-    <!--Adding the h* tags and dropping redundats links-->
+    <!--Adding the h* tags -->
   <xsl:template name="toc.line">
     <xsl:param name="toc-context" select="."/>
     <xsl:param name="depth" select="1"/>
@@ -97,26 +97,40 @@
       </xsl:when>
       <xsl:when test="local-name(.) = 'chapter' or local-name(.) = 'preface'">
         <h4>
-          <xsl:variable name="label">
-            <xsl:apply-templates select="." mode="label.markup"/>
-          </xsl:variable>
-          <xsl:copy-of select="$label"/>
-          <xsl:if test="$label != ''">
-            <xsl:value-of select="$autotoc.label.separator"/>
-          </xsl:if>
-          <xsl:apply-templates select="." mode="titleabbrev.markup"/>
+          <a>
+            <xsl:attribute name="href">
+              <xsl:call-template name="href.target">
+                <xsl:with-param name="context" select="$toc-context"/>
+              </xsl:call-template>
+            </xsl:attribute>
+            <xsl:variable name="label">
+              <xsl:apply-templates select="." mode="label.markup"/>
+            </xsl:variable>
+            <xsl:copy-of select="$label"/>
+            <xsl:if test="$label != ''">
+              <xsl:value-of select="$autotoc.label.separator"/>
+            </xsl:if>
+            <xsl:apply-templates select="." mode="titleabbrev.markup"/>
+          </a>
         </h4>
       </xsl:when>
       <xsl:when test="local-name(.) = 'part'">
         <h3>
-          <xsl:variable name="label">
-            <xsl:apply-templates select="." mode="label.markup"/>
-          </xsl:variable>
-          <xsl:copy-of select="$label"/>
-          <xsl:if test="$label != ''">
-            <xsl:value-of select="$autotoc.label.separator"/>
-          </xsl:if>
-          <xsl:apply-templates select="." mode="titleabbrev.markup"/>
+          <a>
+            <xsl:attribute name="href">
+              <xsl:call-template name="href.target">
+                <xsl:with-param name="context" select="$toc-context"/>
+              </xsl:call-template>
+            </xsl:attribute>
+            <xsl:variable name="label">
+              <xsl:apply-templates select="." mode="label.markup"/>
+            </xsl:variable>
+            <xsl:copy-of select="$label"/>
+            <xsl:if test="$label != ''">
+              <xsl:value-of select="$autotoc.label.separator"/>
+            </xsl:if>
+            <xsl:apply-templates select="." mode="titleabbrev.markup"/>
+          </a>
         </h3>
       </xsl:when>
       <xsl:otherwise>
