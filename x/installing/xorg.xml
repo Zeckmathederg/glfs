@@ -4,9 +4,9 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY xorg-download-http "http://freedesktop.org/~xorg/X11R6.7.0/src/">
+  <!ENTITY xorg-download-http "http://freedesktop.org/~xorg/X11R&xorg-version;/src-single/X11R&xorg-version;-src.tar.bz2">
   <!ENTITY xorg-download-ftp  " ">
-  <!ENTITY xorg-size          "70.3 MB">
+  <!ENTITY xorg-size          "41 MB">
   <!ENTITY xorg-buildsize     "645 MB">
   <!ENTITY xorg-time          "17.1 SBU">
 ]>
@@ -27,7 +27,7 @@
 the <application>X</application> Window System: <application>Xorg</application> 
 and <application>XFree86</application>. These packages are quite similar. In 
 fact, the base system of <application>Xorg</application> is 
-<application>XFree86</application>-RC2. The primary difference as of this 
+<application>XFree86</application>-4.4.0RC2. The primary difference as of this 
 writing is the license provisions of the packages.  For someone building a 
 package for their own use, these issues are not significant.  Most large 
 commercial distributions have decided to use the  
@@ -79,8 +79,10 @@ interface (<acronym>API</acronym>).</para>
  
 <sect3><title>Download Instructions</title>
  
-<para>There are several files that need to be fetched from the download 
+<para>As an alternative to downloading the entire source tree in a single
+file, there are several files that need to be fetched from the download 
 location:</para>
+
 <itemizedlist spacing='compact'>
 <listitem><para><filename>X11R6.7.0-src1.tar.gz</filename></para></listitem>
 <listitem><para><filename>X11R6.7.0-src2.tar.gz</filename></para></listitem>
@@ -97,12 +99,12 @@ programs, the third contains the <application>X</application> server, the
 fourth and fifth are fonts, the sixth is normal documentation, and the seventh
 is hardcopy documentation.</para> 
  
-<para>To check your downloads for integrity, download the 
+<para>To check your file for integrity, download the 
 <filename>md5sums</filename> file. Then:</para>
  
 <screen><userinput><command>md5sum -c md5sums</command></userinput></screen>
  
-<para>All seven packages should give an OK status.</para>
+<para>The package (or all seven packages) should give an OK status.</para>
 </sect3>
 </sect2>
 
@@ -131,26 +133,17 @@ package.</para>
 Rendering Manager unless you have a Direct Rendering Infrastructure
 (<acronym>DRI</acronym>) supported video card.  A complete list of 
 <acronym>DRI</acronym> supported video cards can be found at 
-<ulink url="http://dri.sourceforge.net" /> in the Status section.
+<ulink url="http://dri.sourceforge.net" /> in the "Status" section.
 Currently, supported cards include those from 3dfx (Voodoo, Banshee), 3Dlabs,
 ATI (Rage Pro, Rage 128, Radeon 7X00, Radeon 2), Intel (i810, i815), and 
-Matrox (G200, G400, G450). If you do enable <acronym>DRI</acronym> here, make 
-sure you select the video card(s) you want to support as a 
-<emphasis>module</emphasis>.</para>
+Matrox (G200, G400, G450).</para>
  
 <para>Additionally NVidia provides their own closed source binary drivers,
 which do not make use of <acronym>DRI</acronym>. If you intend to use these 
 drivers, do not enable <acronym>DRI</acronym>.</para>
  
-<para>If you made any changes to the kernel configuration, recompile the 
-kernel.</para>
- 
-<para>Copy the <filename>arch/i386/boot/bzImage</filename> and 
-<filename>System.map</filename> from the kernel build directory to 
-<filename class='directory'>/boot</filename>. Edit 
-<filename>/boot/grub/menu.lst</filename> and add the new kernel to the boot 
-menu. (If you use lilo, edit <filename>/etc/lilo.conf</filename> and run 
-<command>lilo</command>.)</para>
+<para>If you made any changes to the kernel configuration, recompile and
+install the new kernel.</para>
  
 <note><para>If you build <application>Xorg</application> in a 
 <command>chroot</command> environment, make sure the kernel version of the base 
@@ -205,11 +198,11 @@ script.  Ensure the comments delimited by <userinput>/*</userinput> ...
 /* #define DefaultGcc2AxpOpt  -O2 -mcpu=ev6 */
 /* #define DefaultGcc2PpcOpt  -O2 -mcpu=750 */
 
-#define HasFreetype2             YES
-#define HasFontconfig            YES
-#define HasExpat                 YES
-#define HasLibpng                YES
-#define HasZlib                  YES
+#define HasFreetype2            YES
+#define HasFontconfig           YES
+#define HasExpat                YES
+#define HasLibpng               YES
+#define HasZlib                 YES
 
 /*
  * Which drivers to build.  When building a static server, each of these
@@ -238,6 +231,9 @@ script.  Ensure the comments delimited by <userinput>/*</userinput> ...
 
 #define XInputDrivers           mouse keyboard
 
+/* Disable everything Xprint related until we get it figured out. */
+
+#define BuildXprint             NO
 
 /* End Xorg host.def file */
 <command>EOF</command></userinput></screen>
@@ -260,34 +256,6 @@ ln -sf ../X11R6/bin /usr/bin/X11 &amp;&amp;
 ln -sf ../X11R6/lib/X11 /usr/lib/X11 &amp;&amp;
 ln -sf ../X11R6/include/X11 /usr/include/X11</command></userinput></screen>
  
-</sect3>
-
-<sect3>
-<title>Updating Direct Rendering Infrastructure (<acronym>DRI</acronym>)</title>
-<para>If you have one of the supported <acronym>DRI</acronym> cards and
-have enabled <acronym>DRI</acronym> kernel modules as explained
-above, you now need to update the kernel modules to ensure they are compatible 
-with the current version of <application>Xorg</application>. To do this, 
-perform the following:</para>
- 
-<screen><userinput><command>cd programs/Xserver/hw/xfree86/os-support/linux/drm/kernel &amp;&amp;
-make -f Makefile.linux  &amp;&amp;
-mkdir -p /lib/modules/`uname -r`/kernel/drivers/char/drm/  &amp;&amp;
-cp gamma.o radeon.o sis.o r128.o i810.o i830.o mga.o tdfx.o \
-    /lib/modules/`uname -r`/kernel/drivers/char/drm/  &amp;&amp;
-depmod -a</command></userinput></screen>
- 
-<warning><para>If you recompile or upgrade your kernel, you will need to 
-re-copy the appropriate driver module(s) to the kernel module library and rerun 
-the <command>depmod -a</command> command.</para></warning>
- 
-<note><para>If you created <acronym>AGP</acronym> support as a module when 
-compiling the kernel, you may have to add a line to 
-<filename>/etc/modules.conf</filename> to ensure the agpgart module is loaded. 
-For instance, the <acronym>AGP</acronym> version of the Radeon video card will 
-use the <filename>radeon.o</filename> driver. It will need to have the line 
-<screen>below radeon agpgart</screen> in <filename>/etc/modules.conf</filename> 
-to enable <acronym>DRI</acronym> support.</para></note>
 </sect3>
 </sect2>
 
@@ -332,18 +300,6 @@ These commands are present to enable other (broken) packages to build against
 says: "In general, software must not be installed or managed via the above
 symbolic links. They are intended for utilization by users only."</para>
  
-<!-- <para><command>make  CC=/opt/gcc-2.95.3/bin/gcc -f Makefile.linux</command>: 
-This builds the <application>Xorg</application> compatible kernel modules using 
-the same compiler used to compile the kernel.</para> -->
- 
-<para><command>cp gamma.o radeon.o sis.o r128.o i810.o i830.o mga.o tdfx.o
-/lib/modules/`uname -r`/kernel/drivers/char/drm/</command>: Put the kernel
-module(s) where the kernel can find them. You only need to copy the driver you
-need to support your video card.</para>
- 
-<para><command>depmod -a</command>: Update the modules.dep file for module
-management.</para>
-
 </sect2>
 
 <sect2>
@@ -354,19 +310,11 @@ management.</para>
 Run:</para> 
 <screen><userinput><command>ldconfig</command></userinput></screen>
  
-<para>Ensure <filename class='directory'>/usr/X11R6/bin</filename> is added to 
-your <envar>PATH</envar> environment variable. Instructions for doing this are 
+<para>Ensure <filename class="directory">/usr/X11R6/bin</filename> 
+and <filename class="directory">/usr/X11R6/lib/pkgconfig</filename>
+are added to your <envar>PATH</envar> and <envar>PKG_CONFIG_PATH</envar>
+environment variables. Instructions for doing this are 
 described in the section "<xref linkend='postlfs-config-profile'/>."</para>
- 
-<para>Expand the <envar>PKG_CONFIG_PATH</envar> so that other packages
-can find <application>X</application> libraries. Procedures for this are also
-described in the section "<xref linkend='postlfs-config-profile'/>."</para>
-
-<para>Set up your mouse:
-<screen><userinput><command>ln -s psaux /dev/mouse</command></userinput></screen>
- 
-Adjust the symbolic link as necessary for other types of mice.  For instance,
-a serial mouse on the first serial port would be linked to ttyS0.</para>
  
 <para>Create the <filename>xorg.conf</filename> file with:
 <screen><userinput><command>cd ~
@@ -376,24 +324,26 @@ command will create a file, <filename>xorg.conf.new</filename> in your home
 directory.</para>
  
 <para>Edit <filename>xorg.conf.new</filename> to suit your system.  The details 
-of the file are located in the man page <command>man xorg.conf</command>. Some 
+of the file are located in the xorg.conf man page. Some 
 things you may want to do are:</para>
  
 <itemizedlist>
- 
+
 <listitem><para>Section "Files". Change the order of the font paths searched.
 You may want to put 100dpi fonts ahead of 75dpi fonts if your system normally
 comes up closer to 100 dots per inch.  You may want to remove some font
 directories completely.</para></listitem>
  
+<listitem><para>Sections "InputDevice". Specify the
+<parameter>Device</parameter> parameter to "/dev/input/mice" and
+<parameter>Protocol</parameter> to "auto" to set up your mouse. You may
+also want to change the keyboard autorepeat rate by adding
+<parameter>Option "Autorepeat" "250 30"</parameter>.</para></listitem>
+ 
 <listitem><para>Section "Monitor".  Specify the 
 <parameter>VertRefresh</parameter> and <parameter>HorizSync</parameter> values 
 if the system does not automatically detect the monitor and its values.</para>
 </listitem>
- 
-<listitem><para>Section "InputDevice".  You may want to change the keyboard
-autorepeat rate by adding <parameter>Option "Autorepeat" "250 30"</parameter>.
-</para></listitem>
  
 <listitem><para>Section "Device".  You may want to set some of the options
 available for your selected video driver.  A description of the driver
