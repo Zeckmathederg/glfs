@@ -48,7 +48,7 @@
                 </xsl:when>
                 <xsl:when test="$divtitle = 'D'">
                   <xsl:call-template name="gentext">
-                    <xsl:with-param name="key">Scripts</xsl:with-param>
+                    <xsl:with-param name="key">Kernel Configuration</xsl:with-param>
                   </xsl:call-template>
                 </xsl:when>
                 <xsl:when test="$divtitle = 'E'">

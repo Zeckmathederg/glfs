@@ -53,7 +53,7 @@
               	<xsl:text>Libraries</xsl:text>
              </xsl:when>
              <xsl:when test="$divtitle = 'D'">
-              	<xsl:text>Scripts</xsl:text>
+              	<xsl:text>Kernel Configuration</xsl:text>
              </xsl:when>
              <xsl:when test="$divtitle = 'E'">
               	<xsl:text>Configuration Files</xsl:text>
