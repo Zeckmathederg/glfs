@@ -22,3 +22,31 @@ all: index.xml
 		multimedia pst preface appendices other
 	@cd $(OUTPUTDIR) && $(JADE) -t sgml -d $(DOCBOOK)/html/lfs.dsl \
 		$(DOCBOOK)/dtds/decls/xml.dcl $(SRCDIR)/index.xml
+
+BASEDIR=~/blfs-book/
+
+blfs:
+	xsltproc --xinclude --nonet -stringparam base.dir $(BASEDIR) \
+	  stylesheets/blfs-chunked.xsl index.xml
+
+	if [ ! -e $(BASEDIR)stylesheets ]; then \
+	  mkdir -p $(BASEDIR)stylesheets; \
+	fi;
+	cp stylesheets/blfs.css $(BASEDIR)stylesheets
+
+	if [ ! -e $(BASEDIR)images ]; then \
+	  mkdir -p $(BASEDIR)images; \
+	fi;
+	cp /usr/share/xml/docbook/xsl-stylesheets-1.65.1/images/*.png \
+	  $(BASEDIR)images
+	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@" \
+	  index.html 
+	cd $(BASEDIR); sed -i -e "s@../images@images@g" \
+	  index.html 
+
+pdf:
+	xsltproc --xinclude --nonet --output lfs.fo
+	stylesheets/blfs-pdf.xsl \
+	  index.xml
+	fop.sh lfs.fo lfs.pdf
+
