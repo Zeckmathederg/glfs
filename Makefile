@@ -41,7 +41,7 @@ blfs:
 	if [ ! -e $(BASEDIR)stylesheets ]; then \
 	  mkdir -p $(BASEDIR)stylesheets; \
 	fi;
-	cp stylesheets/blfs.css $(BASEDIR)stylesheets
+	cp stylesheets/*.css $(BASEDIR)stylesheets
 	if [ ! -e $(BASEDIR)images ]; then \
 	  mkdir -p $(BASEDIR)images; \
 	fi;
@@ -50,6 +50,7 @@ blfs:
 	  index.html 
 	cd $(BASEDIR); sed -i -e "s@../images@images@g" \
 	  index.html 
+	sh goTidy $(BASEDIR)/  
 
 pdf:
 	xsltproc --xinclude --nonet --output blfs.fo \

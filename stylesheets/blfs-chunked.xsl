@@ -27,7 +27,12 @@ Based on the original lfs-chunked.xsl created by Matthew Burgess -->
   <xsl:param name="ulink.target" select="''"></xsl:param>
   <xsl:param name="css.decoration" select="0"></xsl:param>
   
-  	<!-- No XML declaration -->
-	<xsl:param name="chunker.output.omit-xml-declaration" select="'yes'"/>
+    <!-- No XML declaration -->
+  <xsl:param name="chunker.output.omit-xml-declaration" select="'yes'"/>
+  
+    <!-- Insert a stylesheet for printing -->
+  <xsl:template name='user.head.content'>
+     <link rel='stylesheet' href="../stylesheets/blfs-print.css" type="text/css" media='print'/>
+  </xsl:template> 
 
 </xsl:stylesheet>
