@@ -1,14 +1,142 @@
 <sect2>
 <title>Configuring nfs-utils</title>
 
-<sect3><title>Config files</title>
-<para><userinput>List of config files</userinput></para>
+<sect3><title>Server Configutation</title>
+
+<para><filename>/etc/exports</filename> contains the exported directories on NFS servers.
+Refer to the exports manual page for the syntax of this file. Also refer to the
+NFS HowTo available at <ulink url="http://nfs.sourceforge.net/nfs-howto/"/> on how to
+configure the servers and clients in a secure manner. For example, for sharing the
+<filename>/home</filename> directory over the local network, the following line may
+be added:</para>
+
+<screen><userinput>/home 192.168.0.0/255.255.0.0(rw)</userinput></screen>
+
+<para>Create the nfs-server script to start the server at boot:</para>
+
+<screen><userinput><command>cat &gt; /etc/rc.d/init.d/nfs-server</command>
+#!/bin/sh
+# Begin $rc_base/init.d/nfs-server
+                                                                                                                
+# Based on sysklogd script from LFS-3.1 and earlier.
+# Rewritten by Gerard Beekmans  - gerard@linuxfromscratch.org
+                                                                                                                
+. /etc/sysconfig/rc
+. $rc_functions
+                                                                                                                
+case "$1" in
+    start)
+            echo "Starting NFS Server..."
+            loadproc /usr/sbin/rpc.mountd
+            loadproc /usr/sbin/rpc.nfsd 8
+            loadproc /usr/sbin/rpc.statd
+            ;;
+                                                                                                                
+    stop)
+            echo "Stopping NFS Server..."
+            killproc /usr/sbin/rpc.nfsd
+            killproc /usr/sbin/rpc.mountd
+            ;;
+                                                                                                                
+    reload)
+            echo "Reloading NFS Server..."
+            /usr/sbin/exportfs -ra
+            ;;
+                                                                                                                
+    restart)
+            $0 stop
+            sleep 1
+            $0 start
+            ;;
+                                                                                                                
+    status)
+            statusproc /usr/sbin/rpc.mountd
+            statusproc /usr/sbin/rpc.nfsd
+            ;;
+                                                                                                                
+    *)
+            echo "Usage: $0 {start|stop|reload|restart|status}"
+            exit 1
+            ;;
+esac
+                                                                                                                
+# End $rc_base/init.d/nfs-server
+<command>EOF
+chmod 755 /etc/rc.d/init.d/nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc0.d/K48nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc1.d/K48nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc2.d/K48nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc3.d/S24nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc4.d/S24nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc5.d/S24nfs-server &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-server /etc/rc.d/rc6.d/K48nfs-server</command></userinput></screen>
+
 </sect3>
 
-<sect3><title>Configuration Information</title>
+<sect3><title>Client Configutation</title>
 
-<para><userinput>USERINPUT GOES HERE</userinput> Blah blah blah about config.
-</para>
+<para><filename>/etc/fstab</filename> contains the directories that are to be mounted
+on the client. Alternately the partitions can be mounted by using the
+<command>mount</command> command with the proper options. To mount the <filename>/home</filename>
+partition, add the following to the <filename>/etc/fstab</filename>:</para>
+
+<screen><userinput>&lt;server-name&gt;:/home /home nfs rw 0 0</userinput></screen>
+
+<para>Create the nfs-client script to mount the partitions at boot:</para>
+
+<screen><userinput><command>cat &gt; /etc/rc.d/init.d/nfs-client</command>
+#!/bin/sh
+# Begin $rc_base/init.d/nfs-client
+                                                                                                                
+# Based on sysklogd script from LFS-3.1 and earlier.
+# Rewritten by Gerard Beekmans  - gerard@linuxfromscratch.org
+                                                                                                                
+. /etc/sysconfig/rc
+. $rc_functions
+                                                                                                                
+case "$1" in
+    start)
+            echo "Mounting NFS Partitions..."
+            loadproc /usr/sbin/rpc.statd
+            loadproc /usr/sbin/rpc.lockd
+            mount -a -t nfs
+            ;;
+                                                                                                                
+    stop)
+            echo "Unmounting NFS Partitions..."
+            umount -a -t nfs
+            killproc /usr/sbin/rpc.lockd
+            killproc /usr/sbin/rpc.statd
+            ;;
+                                                                                                                
+    restart)
+            $0 stop
+            sleep 1
+            $0 start
+            ;;
+                                                                                                                
+    status)
+            statusproc /usr/sbin/rpc.statd
+            statusproc /usr/sbin/rpc.lockd
+            ;;
+                                                                                                                
+    *)
+            echo "Usage: $0 {start|stop|restart|status}"
+            exit 1
+            ;;
+esac
+                                                                                                                
+# End $rc_base/init.d/nfs-client
+<command>EOF
+chmod 755 /etc/rc.d/init.d/nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc0.d/K48nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc1.d/K48nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc2.d/K48nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc3.d/S24nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc4.d/S24nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc5.d/S24nfs-client &amp;&amp;
+ln -s /etc/rc.d/init.d/nfs-client /etc/rc.d/rc6.d/K48nfs-client</command></userinput></screen>
+
 </sect3>
 
 </sect2>
