@@ -4,11 +4,15 @@
                 version="1.0">
 
   <!-- We use XHTML -->
-  <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/chunk.xsl"/>
+  <xsl:import href="http://docbook.sourceforge.net/release/xsl/1.65.1/xhtml/chunk.xsl"/>
   <xsl:param name="chunker.output.encoding" select="'ISO-8859-1'"/>
 
   <!-- The CSS Stylesheet -->
   <xsl:param name="html.stylesheet" select="'../stylesheets/blfs.css'"/>
+
+  <!-- Include our customised templates -->
+  <xsl:include href="xhtml/blfs-toc.xsl"/>
+  <xsl:include href="xhtml/blfs-index.xsl"/>
 
   <!-- Use graphics in admonitions -->
   <xsl:param name="admon.graphics" select="1"/>
