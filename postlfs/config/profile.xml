@@ -4,7 +4,7 @@
 
 <para>The shell program <filename>/bin/bash</filename> (hereafter
 referred to as just "the shell") uses a collection of startup files to
-help create an environment to run in.  Each file has a specific use and
+help create an environment.  Each file has a specific use and
 may affect login and interactive environments differently.  The files in
 the <filename class="directory">/etc</filename> directory generally provide global
 settings. If an equivalent file exists in your home directory it may
@@ -12,47 +12,49 @@ override the global settings.
 </para>
 
 <para>An interactive login shell is started after a successful login, using
-<filename>/bin/login</filename>, by reading the
-<filename>/etc/passwd</filename> file.  An
-interactive non-login shell is started at the command-line (e.g.
-<prompt>[prompt]$</prompt><command>/bin/bash</command>).  A non-interactive 
-shell is usually present when a shell script is running.  It is non-interactive
-because it is processing a script and not waiting for user input between
-commands.</para>
+<filename>/bin/login</filename>, by reading the <filename>/etc/passwd</filename> 
+file.  This shell invocation normally reads <filename>/etc/profile</filename> 
+and its private equivalent <filename>~/.bash_profile</filename> upon startup.</para>
+
+<para>An interactive non-login shell is normally started at the command-line
+(e.g.  <prompt>[prompt]$</prompt><command>/bin/bash</command>) or by the
+<command>/bin/su</command> command.  An interactive non-login shell is also
+started with a terminal program such as <command>xterm</command> or
+<command>konsole</command> from within a graphical environment. This type of
+shell invocation normally copies the parent environment and then reads the
+user's <filename>~/.bashrc</filename> file for additional startup configuration
+instructions.</para>
+
+<para>A non-interactive shell is usually present when a shell script is
+running.  It is non-interactive because it is processing a script and not
+waiting for user input between commands. For these shell invocatinos, only
+the environment inherited form the parent shell is used.</para>
+
+<para> The file <filename>~/.bash_logout</filename> is not used for an
+invocation of the shell.  It is read and executed when a user exits from an
+interactive login shell.</para>
+
+<para>To the standard files, we also add <filename>/etc/bashrc</filename>
+which is called from the user's <filename>~/.bashrc</filename> for 
+system wide initialization of non-login shells.</para>
 
 <para>For more information see <command>info bash</command> -- 
 <emphasis role="strong">Nodes: Bash Startup Files and Interactive
 Shells.</emphasis></para>
 
-<para>The following files are used to make sure that the correct
-environment is established for each of the ways the shell can be invoked:
-<filename>/etc/profile</filename> and its private equivalent
-<filename>~/.bash_profile</filename>, and
-<filename>/etc/bashrc</filename> (unofficial) and its private equivalent
-<filename>~/.bashrc</filename>.
-</para>
+<sect2>
+<title><filename>/etc/profile</filename></title>
 
-<para>
-The file <filename>~/.bash_logout</filename> is not used for an
-invocation of the shell.  It is read by the shell when a user logs out
-of the system.</para>
+<para>Here is a base <filename>/etc/profile</filename>. This file starts by
+setting up some helper functions and some basic parameters.  It specifies some
+<filename>bash</filename> history parameters and, for security purposes,
+disables keeping a permanent history file for the root user.  It also sets a
+default user prompt.  It then calls small, single purpose scripts in the
+<filename class='directory'>/etc/profile.d</filename> directory to provide most
+initialization.  </para>
 
-<para>The files <filename>/etc/profile</filename> and
-<filename>~/.bash_profile</filename> are read when the shell is invoked
-as an interactive login shell.  The file <filename>~/.bashrc</filename>
-is read when the shell is invoked as an interactive non-login
-shell and it reads <filename>/etc/bashrc</filename> if it exists</para> 
-
-<para>Also useful are the <filename>/etc/dircolors</filename> and
-<filename>~/.dircolors</filename> files called from
-<filename>/etc/profile</filename>. They control colorized output of
-things like <command>ls --color</command>.
-</para>
-
-<para>Here is a base <filename>/etc/profile</filename>.  Comments in the
-file should explain everything you need.  For more information on the
-escape sequences you can use for your prompt (e.g.  the
-<envar>PS1</envar> environment variable) see <command>info
+<para>For more information on the escape sequences you can use for your prompt
+(e.g.  the <envar>PS1</envar> environment variable) see <command>info
 bash</command> -- <emphasis role="strong">Node: Printing a
 Prompt.</emphasis></para>
 
@@ -60,66 +62,217 @@ Prompt.</emphasis></para>
 # Begin /etc/profile
 # Written for Beyond Linux From Scratch
 # by James Robertson &lt;jameswrobertson@earthlink.net&gt;
-
+# modifications by Dagmar d'Surreal &lt;rivyqntzne@pbzpnfg.arg&gt;
+ 
 # System wide environment variables and startup programs.
-
+ 
 # System wide aliases and functions should go in /etc/bashrc.  Personal
 # environment variables and startup programs should go into
 # ~/.bash_profile.  Personal aliases and functions should go into
 # ~/.bashrc.
-
-# Function to help us manage paths
-pathman () {
-	if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
-		if [ "$2" = "last" ] ; then
-			PATH=$PATH:$1
-		else
-			PATH=$1:$PATH
-		fi
-	fi
+ 
+# Functions to help us manage paths.  Second argument is the name of the
+# path variable to be modified (default: PATH)
+pathremove () {
+        local IFS=':'
+        local NEWPATH
+        local DIR
+        local PATHVARIABLE=${2:-PATH}
+        for DIR in ${!PATHVARIABLE} ; do
+                if [ "$DIR" != "$1" ] ; then
+                  NEWPATH=${NEWPATH:+$NEWPATH:}$DIR
+                fi
+        done
+        export $PATHVARIABLE="$NEWPATH"
 }
-
-# Add to the standard path.
-if [ $(id -u) = 0 ] ; then
-	if [ -d "/usr/local/sbin" ] ; then
-		pathman /usr/local/sbin last
-	fi
+ 
+pathprepend () {
+        pathremove $1 $2
+        local PATHVARIABLE=${2:-PATH}
+        export $PATHVARIABLE="$1${!PATHVARIABLE:+:${!PATHVARIABLE}}"
+}
+ 
+pathappend () {
+        pathremove $1 $2
+        local PATHVARIABLE=${2:-PATH}
+        export $PATHVARIABLE="${!PATHVARIABLE:+${!PATHVARIABLE}:}$1"
+}
+ 
+if [ $EUID -eq 0 ] ; then
+        unset HISTFILE
 fi
-
-if [ $(id -u) != 0 ] ; then
-	if [ -d "/usr/local/bin" ] ; then
-		pathman /usr/local/bin last
-	fi
-fi
-
-if [ -d "/usr/X11R6/bin" ] ; then
-	pathman /usr/X11R6/bin last
-fi
-
+ 
 # Setup some environment variables.
-HISTSIZE=1000
-HISTIGNORE="&amp;:[bf]g:exit"
-PS1="[\u@\h \w]\\$ "
-
-# Setup the INPUTRC environment variable.
-if [ -z "$INPUTRC" -a ! -f "$HOME/.inputrc" ] ; then
-	INPUTRC=/etc/inputrc
-fi
-
-# Setup for /bin/ls to support color, the alias is in /etc/bashrc.
-if [ -f "/etc/dircolors" ] ; then
-	eval $(dircolors -b /etc/dircolors)
-
-	if [ -f "$HOME/.dircolors" ] ; then
-		eval $(dircolors -b $HOME/.dircolors)
-	fi
-fi
-
-export PATH HISTSIZE HISTIGNORE PS1 LS_COLORS INPUTRC
+export HISTSIZE=1000
+export HISTIGNORE="&amp;:[bf]g:exit"
+#export PS1="[\u@\h \w]\\$ "
+export PS1='\u@\h:\w\$ '
+ 
+for script in /etc/profile.d/*.sh ; do
+        if [ -x $script ] ; then
+                . $script
+        fi
+done
+ 
+# Now to clean up after ourselves
+unset pathremove pathprepend pathappend 
 
 # End /etc/profile
 <command>EOF</command></userinput></screen>
 
+<para>Now create the <filename class='directory'>/etc/profile.d</filename> directory.</para>
+
+<screen><userinput><command>install --directory --mode=0755 --owner=root --group=root /etc/profile.d</command></userinput></screen>
+
+<sect3>
+<title><filename>/etc/profile.d/dircolors.sh</filename></title>
+
+<para>This script uses the <filename>~/.dircolors</filename> and
+<filename>/etc/dircolors</filename> files to control the colors of file names in a
+directory listing. They control colorized output of things like <command>ls
+--color</command>.  The explaination of how to initialize these files is at the
+end of this section.  </para>
+
+
+<screen><userinput><command>cat &gt; /etc/profile.d/dircolors.sh &lt;&lt; "EOF"</command>
+# Setup for /bin/ls to support color, the alias is in /etc/bashrc.
+if [ -f "/etc/dircolors" ] ; then
+        eval $(dircolors -b /etc/dircolors)
+ 
+        if [ -f "$HOME/.dircolors" ] ; then
+                eval $(dircolors -b $HOME/.dircolors)
+        fi
+fi
+alias ls='ls --color=auto'
+<command>EOF</command></userinput></screen>
+</sect3>
+
+
+<sect3>
+<title><filename>/etc/profile.d/extrapaths.sh</filename></title>
+
+<para>This script adds several useful paths to the <envar>PATH</envar> and
+<envar>PKG_CONFIG_PATH</envar> environment variables.  If you want, you can uncomment
+the last section to put a dot at the end of your path. This will allow executables in the 
+current working directoty to be executed without specifiying a ./, however
+you are warned that this is generally considered a security hazard.</para>
+ 
+<screen><userinput><command>cat &gt; /etc/profile.d/extrapaths.sh &lt;&lt; "EOF"</command>
+if [ -d /usr/local/lib/pkgconfig ] ; then
+        pathappend /usr/local/lib/pkgconfig PKG_CONFIG_PATH
+fi
+if [ -d /usr/local/bin ]; then
+        pathprepend /usr/local/bin
+fi
+if [ -d /usr/local/sbin -a $EUID -eq 0 ]; then
+        pathprepend /usr/local/sbin
+fi
+for directory in $(find /opt/*/lib/pkgconfig -type d); do
+        pathappend $directory PKG_CONFIG_PATH
+done
+for directory in $(find /opt/*/bin -type d); do
+        pathappend $directory
+done
+if [ -d ~/bin ]; then
+        pathprepend ~/bin
+fi
+#if [ $EUID -gt 99 ]; then
+#        pathappend .
+#fi
+<command>EOF</command></userinput></screen>
+</sect3>
+
+<sect3>
+<title><filename>/etc/profile.d/readline.sh</filename></title>
+
+<para>This script sets up the default <filename>inputrc</filename> configuration file.
+If the user does not have individual settings, it uses the global file.</para>
+
+<screen><userinput><command>cat &gt; /etc/profile.d/readline.sh &lt;&lt; "EOF"</command>
+# Setup the INPUTRC environment variable.
+if [ -z "$INPUTRC" -a ! -f "$HOME/.inputrc" ] ; then
+        INPUTRC=/etc/inputrc
+fi
+export INPUTRC
+<command>EOF</command></userinput></screen>
+</sect3>
+
+<sect3>
+<title><filename>/etc/profile.d/tinker-term.sh</filename></title>
+
+<para>Some applications need a specific <envar>TERM</envar> setting to support color.</para>
+
+<screen><userinput><command>cat &gt; /etc/profile.d/tinker-term.sh &lt;&lt; "EOF"</command>
+# This will tinker with the value of TERM in order to convince certain apps
+# that we can, indeed, display color in their window.
+ 
+if [ -n "$COLORTERM" ]; then
+  export TERM=xterm-color
+fi
+ 
+if [ "$TERM" = "xterm" ]; then
+  export TERM=xterm-color
+fi
+<command>EOF</command></userinput></screen>
+</sect3>
+
+<sect3>
+<title><filename>/etc/profile.d/umask.sh</filename></title>
+ 
+<para>Setting the <command>umask</command> value is important for security. Here
+we turn off the default group write permissions for system users and when the
+user name and group name are not the same.</para>
+
+<screen><userinput><command>cat &gt; /etc/profile.d/umask.sh &lt;&lt; "EOF"</command>
+# By default we want the umask to get set.
+if [ "$(id -gn)" = "$(id -un)" -a $EUID -gt 99 ] ; then
+  umask 002
+else
+  umask 022
+fi
+<command>EOF</command></userinput></screen>
+</sect3>
+
+<sect3>
+<title><filename>/etc/profile.d/X.sh</filename></title>
+
+<para>If <application>X</application> is installed, we also update the <envar>PATH</envar>
+and <envar>PKG_CONFIG_PATH</envar> variables.</para>
+
+<screen><userinput><command>cat &gt; /etc/profile.d/X.sh &lt;&lt; "EOF"</command>
+if [ -x /usr/X11R6/bin/X ]; then
+        pathappend /usr/X11R6/bin
+fi
+if [ -d /usr/X11R6/lib/pkgconfig ] ; then
+        pathappend /usr/X11R6/lib/pkgconfig PKG_CONFIG_PATH
+fi
+<command>EOF</command></userinput></screen>
+</sect3>
+
+<sect3>
+<title><filename>/etc/profile.d/xterm-titlebars.sh</filename></title>
+ 
+<para>This script shows an example of a different way of setting the prompt.  The normal
+variable, <envar>PS1</envar>, is supplemented by <envar>PROMPT_COMMAND</envar>.
+If set, the value of <envar>PROMPT_COMMAND</envar> is executed as a command prior to 
+issuing each primary prompt. </para>
+ 
+<screen><userinput><command>cat &gt; /etc/profile.d/xterm-titlebars.sh &lt;&lt; "EOF"</command>
+# The substring match ensures this will work for "xterm" and "xterm-xfree86".
+if [ "${TERM:0:5}" = "xterm" ]; then
+  PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME} : ${PWD}\007"'
+  export PROMPT_COMMAND
+fi
+<command>EOF</command></userinput></screen>
+
+<para>Other initialization can easily be added to the <filename>profile</filename>
+by adding additional scripts to the 
+<filename class='directory'>/etc/profile.d</filename> directory.</para>
+</sect3>
+</sect2>
+
+<sect2>
+<title><filename>/etc/bashrc</filename></title>
 <para>Here is a base <filename>/etc/bashrc</filename>.  Comments in the
 file should explain everything you need.</para>
 
@@ -135,41 +288,38 @@ file should explain everything you need.</para>
 # should go into ~/.bash_profile.  Personal aliases and functions should
 # go into ~/.bashrc
 
-# By default we want the umask to get set.
-# Even for non-interactive and non-login shells.
-if [ "$(id -gn)" = "$(id -un)" -a $(id -u) -gt 99 ] ; then
-	umask 002
-else
-	umask 022
-fi
-
 # Provides a colored /bin/ls command.  Used in conjunction with code in
 # /etc/profile.
+
 alias ls='ls --color=auto'
 
-# Provides prompt for non-interactive shells, specifically shells started
-# in the xfree environment. [Review archive thread titled PS1
-# Environment Variable for a great case study behind this script
-# addendum.]
+# Provides prompt for non-login shells, specifically shells started
+# in the <application>X</application> environment. [Review the LFS archive thread titled
+# PS1 Environment Variable for a great case study behind this script addendum.]
+
 export PS1="[\u@\h \w]\\$ "
 
 # End /etc/bashrc
 <command>EOF</command></userinput></screen>
+</sect2>
 
-<para>Here is a base <filename>~/.bash_profile</filename>.  Comments in
-the file should explain everything you need.  If you want each new user
-to have this file automatically provided, just change the output of the
-next command to <filename>/etc/skel/.bash_profile</filename> and check the
+
+<sect2>
+<title><filename>~/.bash_profile</filename></title>
+
+<para>Here is a base <filename>~/.bash_profile</filename>.  If you want each
+new user to have this file automatically, just change the output of
+the command to <filename>/etc/skel/.bash_profile</filename> and check the
 permissions after the command is run. You can then copy
-<filename>/etc/skel/.bash_profile</filename> to the home directories of
-already existing users, including root, and set the owner and group
-appropriately. 
+<filename>/etc/skel/.bash_profile</filename> to the home directories of already
+existing users, including root, and set the owner and group appropriately.
 </para>
 
 <screen><userinput><command>cat &gt; ~/.bash_profile &lt;&lt; "EOF"</command>
 # Begin ~/.bash_profile
 # Written for Beyond Linux From Scratch
 # by James Robertson &lt;jameswrobertson@earthlink.net&gt;
+# updated by Bruce Dubbs &lt;bdubbs@linuxfromscratch.org&gt;
 
 # Personal environment variables and startup programs.
 
@@ -177,24 +327,41 @@ appropriately.
 # environment variables and startup programs are in /etc/profile.
 # System wide aliases and functions are in /etc/bashrc.
 
+append () {
+  # First remove the directory
+  local IFS=':'
+  local NEWPATH
+  for DIR in $PATH; do
+     if [ "$DIR" != "$1" ]; then
+       NEWPATH = ${NEWPATH:+$NEWPATH:}$DIR
+     fi     
+  done
+  
+  # Then append the directory
+  export PATH=$NEWPATH:$1
+}
+
 if [ -f "$HOME/.bashrc" ] ; then
 	source $HOME/.bashrc
 fi
 
 if [ -d "$HOME/bin" ] ; then
-	pathman $HOME/bin last
+  append $HOME/bin	
 fi
 
-export PATH 
+unset append
 
 # End ~/.bash_profile
 <command>EOF</command></userinput></screen>
+</sect2>
+ 
+<sect2>
+<title><filename>~/.bashrc</filename></title>
 
-<para>Here is a base <filename>~/.bashrc</filename>.  Comments in the
-file should explain everything you need.  The comments and
+<para>Here is a base <filename>~/.bashrc</filename>.  The comments and
 instructions for using <filename class="directory">/etc/skel</filename> for
-<filename>.bash_profile</filename> above also apply here. Only the
-target file names are different.</para>
+<filename>.bash_profile</filename> above also apply here. Only the target file
+names are different.</para>
 
 <screen><userinput><command>cat &gt; ~/.bashrc &lt;&lt; "EOF"</command>
 # Begin ~/.bashrc
@@ -214,12 +381,16 @@ fi
 
 # End ~/.bashrc
 <command>EOF</command></userinput></screen>
+</sect2>
+ 
+ 
+<sect2>
+<title><filename>~/.bash_logout</filename></title>
 
-<para>Here is a base <filename>~/.bash_logout</filename>.  Comments in
-the file should explain everything you need.  You will notice that the
-base <filename>~/.bash_logout</filename> does not include a
-<userinput>clear</userinput> command.  This is because the clear is
-handled in the <filename>/etc/issue</filename> file.</para>
+<para>This is an empty <filename>~/.bash_logout</filename> that can be used as
+a template.  You will notice that the base <filename>~/.bash_logout</filename>
+does not include a <userinput>clear</userinput> command.  This is because the
+clear is handled in the <filename>/etc/issue</filename> file.</para>
 
 <screen><userinput><command>cat &gt; ~/.bash_logout &lt;&lt; "EOF"</command>
 # Begin ~/.bash_logout
@@ -230,24 +401,30 @@ handled in the <filename>/etc/issue</filename> file.</para>
 
 # End ~/.bash_logout
 <command>EOF</command></userinput></screen>
+</sect2>
+ 
+ 
+<sect2>
+<title><filename>/etc/dircolors</filename></title>
 
-<para>
-If you want to use the <filename>dircolors</filename> capability
-then run the following command. The <filename class="directory">/etc/skel</filename> setup
-steps seen above also can be used here to provide a
-<filename>.dircolors</filename> file when a new user is set up. As
-before, just change the output file name on the following command and
-assure the permissions, owner and group are correct on the files created
-and/or copied.
+<para> If you want to use the <filename>dircolors</filename> capability then
+run the following command. The <filename class="directory">/etc/skel</filename>
+setup steps seen above also can be used here to provide a
+<filename>.dircolors</filename> file when a new user is set up. As before, just
+change the output file name on the following command and assure the
+permissions, owner and group are correct on the files created and/or copied.
 </para>
 
-<para>
-<userinput><command>dircolors -p > /etc/dircolors</command></userinput>
-</para>
+<screen><userinput><command>dircolors -p > /etc/dircolors</command></userinput></screen>
 
-<para>Ian Macdonald has written an excellent collection of tips and
+<para>If you wish to customize the colors used for different file types, you can
+edit the <filename>/etc/dircolors</filename> file.  The instructions for setting 
+the colors are embedded in the file.</para>
+
+
+<para>Finally, Ian Macdonald has written an excellent collection of tips and
 tricks to enhance your shell environment.  You can read it online at
 <ulink
 url="http://www.caliban.org/bash/index.shtml">http://www.caliban.org/bash/index.shtml</ulink></para>
-
+</sect2>
 </sect1>
