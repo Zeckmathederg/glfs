@@ -25,66 +25,25 @@ connection for you.  You can, of course, choose not to install the
 following script, and start your connection manually with the 
 <command>adsl-start</command> script.</para>
 
-<para>Use the following commands to create the 
-<emphasis>optional</emphasis> <filename>adsl</filename> bootscript:</para>
+<para><emphasis>Optionaly</emphasis> install the 
+<filename>/etc/sysconfig/network-devices/services/pppoe</filename> service 
+script included with the <xref linkend="intro-important-bootscripts"/> 
+package.</para>
 
-<screen><userinput><command>cat &gt; /etc/rc.d/init.d/adsl &lt;&lt; "EOF"</command>
-#!/bin/sh
-# Begin $rc_base/init.d/adsl
+<screen><userinput><command>make install-service-pppoe</command></userinput></screen>
 
-# Based on sysklogd script from LFS-3.1 and earlier.
-# Rewritten by Gerard Beekmans  - gerard@linuxfromscratch.org
-# adsl script written by DJ Lucas  - dj@lucasit.com
+<para>Now create the config file for use with the <filename>pppoe</filename> 
+service script:</para>
 
-. /etc/sysconfig/rc
-. $rc_functions
-
-case "$1" in
-        start)
-                echo "Bringing up the ADSL interface..."
-                /usr/sbin/adsl-start
-                evaluate_retval
-                ;;
-
-        stop)
-                echo "Bringing down the ADSL interface..."
-                /usr/sbin/adsl-stop
-                evaluate_retval
-                ;;
-
-        restart)
-                $0 stop
-                sleep 1
-                $0 start
-                ;;
-
-        status)
-                /usr/sbin/adsl-status
-                ;;
-
-        *)
-                echo "Usage: $0 {start|stop|restart|status}"
-                exit 1
-                ;;
-esac
-
-# End $rc_base/init.d/adsl
-<command>EOF
-chmod 755 /etc/rc.d/init.d/adsl</command></userinput></screen>
-
-<para>Now create the necessary symlinks:</para>
-<screen><userinput><command>ln -sf ../init.d/adsl /etc/rc.d/rc0.d/K49adsl &amp;&amp;
-ln -sf ../init.d/adsl /etc/rc.d/rc1.d/K49adsl &amp;&amp;
-ln -sf ../init.d/adsl /etc/rc.d/rc2.d/K49adsl &amp;&amp;
-ln -sf ../init.d/adsl /etc/rc.d/rc3.d/S24adsl &amp;&amp;
-ln -sf ../init.d/adsl /etc/rc.d/rc4.d/S24adsl &amp;&amp;
-ln -sf ../init.d/adsl /etc/rc.d/rc5.d/S24adsl &amp;&amp;
-ln -sf ../init.d/adsl /etc/rc.d/rc6.d/K49adsl</command></userinput></screen>
+<screen><userinput><command>cat &gt; /etc/sysconfig/network-devices/ifconfig.pppoe &lt;&lt; "EOF"</command>
+ONBOOT=yes
+SERVICE=pppoe
+<command>EOF</command></userinput></screen>
 
 <para>Also, If you had previously configured the network interface that will now
 use <acronym>PPPoE</acronym>, you should remove the interface configuration
 files for that interface:
-<filename>/etc/sysconfig/network-devices/if{up,down,config}-ehtx
+<filename>/etc/sysconfig/network-devices/ifconfig.eth&lt;X&gt;
 </filename>.</para>
 
 </sect3>
