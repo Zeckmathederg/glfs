@@ -88,7 +88,7 @@
     <!-- The separator -->
   <xsl:template match="indexterm" mode="reference">
     <xsl:param name="scope" select="."/>
-    <xsl:text>:   </xsl:text>
+    <xsl:text>,&#160;</xsl:text>
       <xsl:call-template name="reference">
         <xsl:with-param name="zones" select="normalize-space(@zone)"/>
         <xsl:with-param name="scope" select="$scope"/>
@@ -115,12 +115,13 @@
             <xsl:with-param name="object" select="$target2[1]"/>
           </xsl:call-template>
         </xsl:variable>
+        <!-- No package page number
         <fo:basic-link internal-destination="{$id}">
           <xsl:apply-templates select="$target" mode="page.citation">
             <xsl:with-param name="id" select="$id"/>
           </xsl:apply-templates>
         </fo:basic-link>
-          <xsl:text> ,  </xsl:text>
+          <xsl:text>, </xsl:text>-->
         <fo:basic-link internal-destination="{$id2}">
           <xsl:apply-templates select="$target2" mode="page.citation">
             <xsl:with-param name="id" select="$id2"/>
