@@ -10,7 +10,7 @@ JADE = openjade
 DOCBOOK = /usr/share/sgml/docbook/dsssl-stylesheets-1.78
 BASEDIR= $(HOME)/public_html/blfs-book-xsl/
 TEXBASEDIR= $(HOME)/public_html/blfs-book-tex/
-
+NOCHUNKS_OUTPUT=BLFS-BOOK.html
 SRCDIR = $(PWD)
 
 all: blfs
@@ -39,7 +39,14 @@ blfs:
 
 nochunks:
 	@echo "Generating nochunks version of BLFS..."
-
+	xsltproc --xinclude --nonet -stringparam profile.condition html \
+        --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
+          stylesheets/blfs-nochunks.xsl index.xml
+ 
+	tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
+ 
+	sed -i -e "s@text/html@application/xhtml+xml@g"  \
+          $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
 pdf:
 	xsltproc --xinclude --nonet --output blfs.fo \
