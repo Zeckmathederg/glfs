@@ -9,17 +9,23 @@ useradd -c mysql -d /dev/null -g mysql -s /bin/false mysql</command></userinput>
 
 <para>Build and install <application>My<acronym>SQL</acronym></application> by running the following commands:</para>
 
-<screen><userinput><command>cp configure configure.old &amp;&amp;
-sed -e "s%mysql-test/Makefile%%" -e "s% mysql-test%%" configure.old &gt; configure &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput><command>./configure --prefix=/usr \
             --sysconfdir=/etc \
             --libexecdir=/usr/sbin \
             --localstatedir=/var/lib/mysql \
             --enable-thread-safe-client \
             --enable-local-infile \
+            --enable-assembler \
             --without-debug \
             --without-bench &amp;&amp;
-make &amp;&amp;
-make install</command></userinput></screen>
+make testdir=/usr/lib/mysql/mysql-test &amp;&amp;
+make testdir=/usr/lib/mysql/mysql-test install</command></userinput></screen>
+
+<para>Packages that depend on <application>MySQL</application> need the shared
+libraries available at run-time. Move these libraries to <filename>/usr/lib</filename>.</para>
+
+<screen><userinput><command>mv /usr/lib/mysql/libmysqlclient{,_r}.so* /usr/lib &amp;&amp;
+ln -sf ../libmysqlclient.so /usr/lib/mysql/libmysqlclient.so &amp;&amp;
+ln -sf ../libmysqlclient_r.so /usr/lib/mysql/libmysqlclient_r.so</command></userinput></screen>
 
 </sect2>
