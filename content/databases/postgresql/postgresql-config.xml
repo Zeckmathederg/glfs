@@ -1,0 +1,78 @@
+<sect2>
+<title>Configuring <application>Postgre<acronym>SQL</acronym></application></title>
+
+<sect3>
+<title>Config files</title>
+
+<para><filename>$PGDATA/pg_ident.con</filename>, <filename>$PGDATA/pg_hba.conf</filename>, <filename>$PGDATA/postgresql.conf</filename></para>
+
+<para>The <envar>PGDATA</envar> environment variable is used to distinguish database
+clusters from one another by setting it to the value of the directory
+which contains the cluster desired. The three configuration files
+exist in every <filename class="directory">PGDATA/</filename> directory. 
+Details on the format of the files and the options that can be set in 
+each can be found in <ulink
+url="file:///usr/share/doc/postgresql/html/index.html"/>.</para>
+
+<para>Create the boot script with the following: </para>
+
+<screen><userinput><command>cat &gt; /etc/rc.d/init.d/postgresql &lt;&lt; "EOF"</command>
+#!/bin/bash
+# Begin $rc_base/init.d/postgresql
+
+# Based on sysklogd script from LFS-3.1 and earlier.
+# Rewritten by Gerard Beekmans  - gerard@linuxfromscratch.org
+
+source /etc/sysconfig/rc
+source $rc_functions
+
+case "$1" in
+        start)
+                echo "Starting PostgreSQL daemon..."
+		su - postgres -c '/usr/bin/pg_ctl start -W -D /var/pgsql/data \
+                               -l /var/pgsql/data/logfile -o "-i" '
+                evaluate_retval
+                ;;
+
+        stop)
+                echo "Stopping PostgreSQL daemon..."
+                /usr/bin/pg_ctl stop -m smart -D /var/pgsql/data
+		evaluate_retval
+                ;;
+
+        restart)
+                $0 stop
+                sleep 1
+                $0 start
+                ;;
+
+        status)
+                /usr/bin/pg_ctl status -D /var/pgsql/data
+                ;;
+
+        *)
+                echo "Usage: $0 {start|stop|restart|status}"
+                exit 1
+                ;;
+esac
+
+# End $rc_base/init.d/
+<command>EOF
+chmod 755 /etc/rc.d/init.d/postgresql</command></userinput></screen>
+
+<para>Create the symbolic links to this file in the relevant
+<filename class="directory">rc.d</filename> directory
+with the following commands:</para>
+
+<screen><userinput><command>cd /etc/rc.d/init.d &amp;&amp;
+ln -sf ../init.d/postgresql ../rc0.d/K26postgresql &amp;&amp;
+ln -sf ../init.d/postgresql ../rc1.d/K26postgresql &amp;&amp;
+ln -sf ../init.d/postgresql ../rc2.d/K26postgresql &amp;&amp;
+ln -sf ../init.d/postgresql ../rc3.d/S34postgresql &amp;&amp;
+ln -sf ../init.d/postgresql ../rc4.d/S34postgresql &amp;&amp;
+ln -sf ../init.d/postgresql ../rc5.d/S34postgresql &amp;&amp;
+ln -sf ../init.d/postgresql ../rc6.d/K26postgresql</command></userinput></screen>
+
+</sect3>
+
+</sect2>
