@@ -53,7 +53,7 @@ pdf:
 	stylesheets/blfs-pdf.xsl \
 	  index.xml
 	sed -i -e "s/inherit/all/" blfs.fo
-	/opt/fop/fop.sh blfs.fo blfs.pdf
+	fop.sh blfs.fo blfs.pdf
 	$(INSTALL) -d $(BASEDIR)pdf
 	rm blfs.fo
 	mv blfs.pdf $(BASEDIR)pdf
