@@ -62,7 +62,7 @@ print:
 	xsltproc --xinclude --nonet --output blfs-print.fo \
 	stylesheets/blfs-print.xsl index.xml
 	sed -i -e "s/inherit/all/" blfs-print.fo
-	/opt/fop/fop.sh blfs-print.fo blfs-print.pdf
+	fop.sh blfs-print.fo blfs-print.pdf
 	$(INSTALL) -d $(BASEDIR)print
 	rm blfs-print.fo
 	mv blfs-print.pdf $(BASEDIR)print
