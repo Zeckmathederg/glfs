@@ -8,7 +8,7 @@
   <!ENTITY vsftpd-download-ftp  "ftp://vsftpd.beasts.org/users/cevans/vsftpd-&vsftpd-version;.tar.gz">
   <!ENTITY vsftpd-size          "148 KB">
   <!ENTITY vsftpd-buildsize     "492 KB">
-  <!ENTITY vsftpd-time          "0.0 SBU">
+  <!ENTITY vsftpd-time          "0.01 SBU">
 ]>
 
 <sect1 id="vsftpd" xreflabel="vsFTPD-&vsftpd-version;">
@@ -17,28 +17,35 @@
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="vsftpd.html"?>
-<title>vsFTPD-&vsftpd-version;</title>
+<title><application>vs<acronym>FTP</acronym>D</application>-&vsftpd-version;</title>
 
 <sect2>
-<title>Introduction to vsFTPD</title>
+<title>Introduction to 
+<application>vs<acronym>FTP</acronym>D</application></title>
 
-<para>The <application>vsFTPD</application> package contains a very secure and
-very small FTP daemon. This is useful for serving files over a network.</para>
+<para>The <application>vs<acronym>FTP</acronym>D</application> package 
+contains a very secure and very small <acronym>FTP</acronym> daemon. This is 
+useful for serving files over a network.</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP):<ulink url="&vsftpd-download-http;"/></para></listitem>
-<listitem><para>Download (FTP): <ulink url="&vsftpd-download-ftp;"/></para></listitem>
+<listitem><para>Download (HTTP): 
+<ulink url="&vsftpd-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): 
+<ulink url="&vsftpd-download-ftp;"/></para></listitem>
 <listitem><para>Download size: &vsftpd-size;</para></listitem>
-<listitem><para>Estimated Disk space required: &vsftpd-buildsize;</para></listitem>
-<listitem><para>Estimated build time: &vsftpd-time;</para></listitem></itemizedlist>
+<listitem><para>Estimated disk space required: 
+&vsftpd-buildsize;</para></listitem>
+<listitem><para>Estimated build time: 
+&vsftpd-time;</para></listitem></itemizedlist>
 </sect3>
 
 <sect3><title><application>vsFTPD</application> dependencies</title>
 <sect4><title>Optional</title>
 <para><xref linkend="Linux_PAM"/>,
 <xref linkend="openssl"/>, and
-<xref linkend="tcpwrappers"/></para></sect4>
+<xref linkend="tcpwrappers"/></para>
+</sect4>
 </sect3>
 
 </sect2>
@@ -46,26 +53,27 @@ very small FTP daemon. This is useful for serving files over a network.</para>
 <sect2>
 <title>Installation of <application>vsFTPD</application></title>
 
-<para>For security reasons, running <application>vsFTPD</application> as an
-unprivileged user and group is encouraged. Also, we need a user to map
-anonymous users to.</para>
+<para>For security reasons, running 
+<application>vs<acronym>FTP</acronym>D</application> as an unprivileged user 
+and group is encouraged. Also, a user to map anonymous users to should be
+created.</para>
 
 <screen><userinput><command>install -d -m 0755 /var/ftp/empty &amp;&amp;
 install -d -m 0755 /home/ftp &amp;&amp;
 groupadd vsftpd &amp;&amp;
-useradd -d /dev/null -g vsftpd -s /bin/false vsftpd &amp;&amp;
+useradd -d /dev/null -c "vsFTPD User" -g vsftpd -s /bin/false vsftpd &amp;&amp;
 groupadd ftp &amp;&amp;
 useradd -c anonymous_user -d /home/ftp -g ftp -s /bin/false ftp</command>
 </userinput></screen>
 
-<para>Install <application>vsFTPD</application> by running the following commands:</para>
+<para>Install <application>vs<acronym>FTP</acronym>D</application> by running 
+the following commands:</para>
 
 <screen><userinput><command>make &amp;&amp;
 install -m 755 vsftpd /usr/sbin/vsftpd &amp;&amp;
 install -m 644 vsftpd.8 /usr/share/man/man8 &amp;&amp;
 install -m 644 vsftpd.conf.5 /usr/share/man/man5 &amp;&amp;
-install -m 644 vsftpd.conf /etc
-</command></userinput></screen>
+install -m 644 vsftpd.conf /etc</command></userinput></screen>
 
 </sect2>
 
@@ -73,57 +81,69 @@ install -m 644 vsftpd.conf /etc
 <title>Command explanations</title>
 
 <para><parameter>install -d [...]</parameter>: This creates the directory that
-anonymous users will use (/home/ftp) and the directory the daemon will chroot
-into (/var/ftp/empty).</para>
+anonymous users will use (<filename class='directory'>/home/ftp</filename>) 
+and the directory the daemon will chroot into 
+(<filename class='directory'>/var/ftp/empty</filename>).</para>
 
 <note><para><filename class="directory">/home/ftp</filename> should not be
 owned by the user vsftpd, or the user ftp.</para></note>
 
 <para><parameter>echo "#define VSF_BUILD_TCPWRAPPERS" >>builddefs.h</parameter>:
-Use this prior to make to add support for tcpwrappers.</para>
+Use this prior to <command>make</command> to add support for 
+<application>tcpwrappers</application>.</para>
 
 <para><parameter>echo "#define VSF_BUILD_SSL" >>builddefs.h</parameter>:
-Use this prior to make to add support for SSL.</para>
+Use this prior to <command>make</command> to add support for 
+<acronym>SSL</acronym>.</para>
 
 <para><parameter>install -m [...]</parameter>:
-The Makefile hardwires /usr/local (if it exists). We want the files in /usr.</para>
+The <filename>Makefile</filename> hardwires 
+<filename class='directory'>/usr/local</filename> (if it exists). These 
+commands install the files in 
+<filename class='directory'>/usr</filename>.</para>
 
 </sect2>
 
 <sect2>
-<title>Configuring <application>vsFTPD</application></title>
+<title>Configuring <application>vs<acronym>FTP</acronym>D</application></title>
 
 <sect3><title>vsftpd init.d script</title>
 <para>Install the <filename>/etc/rc.d/init.d/vsftpd</filename>
-init script included in the <xref linkend="intro-important-bootscripts"/> package.</para>
-                                                                                                                
+init script included in the 
+<xref linkend="intro-important-bootscripts"/> package.</para>
+
 <screen><userinput><command>make install-vsftpd</command></userinput></screen>
 
 </sect3>
 
 <sect3><title>Config files</title>
+<para><filename>/etc/vsftpd.conf</filename></para>
+</sect3>
 
-<para><filename>/etc/vsftpd.conf</filename></para> <para>vsFTPD comes with a
-basic anonymous-only configuration file that was copied to /etc above. We will
-modify this file because it is now recommended to run vsFTPD in standalone mode
-as opposed to inetd/xinetd mode. Also, we need to specify the priviledge
-separation user we created above. Finally, we need to specify the chroot
-directory.  <command>man vsftpd.conf</command> will give you all the
-details.</para>
+<sect3><title>Configuration information</title>
+<para><application>vs<acronym>FTP</acronym>D</application> comes with a basic 
+anonymous-only configuration file that was copied to 
+<filename class='directory'>/etc</filename> above. This file should be modified 
+because it is now recommended to run <command>vsftpd</command> in standalone 
+mode as opposed to <command>inetd</command>/<command>xinetd</command> mode. 
+Also, you should specify the privilege separation user created above. Finally, 
+you should specify the <command>chroot</command> directory. 
+<command>man vsftpd.conf</command> will give you all the details.</para>
 
 <screen><userinput><command>cat &gt;&gt; /etc/vsftpd.conf &lt;&lt; "EOF"</command>
 background=YES
 listen=YES
 nopriv_user=vsftpd
 secure_chroot_dir=/var/ftp/empty
-<command>EOF</command></userinput></screen></sect3>
+<command>EOF</command></userinput></screen>
+</sect3>
 
 </sect2>
 
 <sect2>
 <title>Contents</title>
 
-<para>The <application>vsFTPD</application> package contains
+<para>The <application>vs<acronym>FTP</acronym>D</application> package contains 
 <command>vsftpd</command>.</para>
 
 </sect2>
@@ -131,7 +151,8 @@ secure_chroot_dir=/var/ftp/empty
 <sect2><title>Description</title>
 
 <sect3><title>vsftpd</title>
-<para><command>vsftpd</command> is the daemon itself.</para></sect3>
+<para><command>vsftpd</command> is the <acronym>FTP</acronym> 
+daemon.</para></sect3>
 
 </sect2>
 
