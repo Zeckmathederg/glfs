@@ -1,0 +1,67 @@
+<sect2>
+<title>Configuring <application>NTP</application></title>
+
+<sect3><title>Config files</title>
+<para><filename>/etc/ntp.conf</filename></para>
+</sect3>
+
+<sect3><title>Configuration Information</title>
+
+<para>The following configuration file defines various <acronym>NTP</acronym>
+servers to use with the primary server designated with the prefer tag. It also
+creates a drift file where <command>ntpd</command> stores the frequency
+offset. Since the documentation included with the package is sparse, visit the NTP website at
+<ulink url="http://www.ntp.org/"/> for more information.</para>
+
+<screen><userinput>server time-a.nist.gov prefer
+server time-b.nist.gov
+server tick.usno.navy.mil
+driftfile /var/cache/ntp.drift</userinput></screen>
+</sect3>
+
+<sect3><title>Synchronizing the time</title>
+
+<para>There are two options. Option one is to use run <command>ntpd</command>
+continiously and allow it to synchronize the time in a gradual manner. The other
+option is to run <command>ntpd</command> periodically (using cron)
+and update the time each time <command>ntpd</command> is scheduled.</para>
+
+<para>If you choose Option one, then create the bootscript
+<filename>/etc/rc.d/init.d/ntp</filename> and put the start and
+stop symlinks:</para>
+<screen><userinput>#!/bin/bash
+# Begin $rc_base/init.d/ntp
+source /etc/sysconfig/rc
+source $rc_functions
+case "$1" in
+        start)
+                echo "Starting ntpd..."
+                loadproc ntpd
+                ;;
+        stop)
+                echo "Stopping ntpd..."
+                killproc ntpd
+                ;;
+        restart)
+                $0 stop
+                sleep 1
+                $0 start
+                ;;
+        status)
+                statusproc ntpd
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart|status}"
+                exit 1
+                ;;
+esac
+# End $rc_base/init.d/ntp</userinput></screen>
+
+<para>If you prefer to start ntpd periodically, add the following command to
+the root's <filename>crontab</filename>:</para>
+<screen><userinput>ntpd -q</userinput></screen>
+
+</sect3>
+
+</sect2>
+
