@@ -6,10 +6,10 @@
 
 <!ENTITY openssl-download-http "http://www.openssl.org/source/openssl-&openssl-version;.tar.gz">
 <!ENTITY openssl-download-ftp "ftp://ftp.openssl.org/source/openssl-&openssl-version;.tar.gz">
-<!ENTITY openssl-md5sum "a8777164bca38d84e5eb2b1535223474">
+<!ENTITY openssl-md5sum "b2d37d7eb8a5a5040d834105d5ae1a50">
 <!ENTITY openssl-size "3.0 MB">
-<!ENTITY openssl-buildsize "36.5 MB">
-<!ENTITY openssl-time "0.99 SBU">
+<!ENTITY openssl-buildsize "35 MB">
+<!ENTITY openssl-time "1.00 SBU">
 ]>
 
 <sect1 id="openssl" xreflabel="OpenSSL-&openssl-version;">
@@ -46,6 +46,12 @@ accessing <acronym>HTTPS</acronym> sites).</para>
 &openssl-time;</para></listitem></itemizedlist>
 </sect3>
 
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Required patch: <ulink 
+url="&patch-root;/openssl-&openssl-version;-fix_manpages-1.patch"/></para></listitem>
+</itemizedlist></sect3>
+
 <sect3><title><application>Open<acronym>SSL</acronym></application> 
 dependencies</title>
 <sect4><title>Optional</title>
@@ -63,13 +69,11 @@ if you run the test suite during the build)</para>
 <para>Install <application>Open<acronym>SSL</acronym></application> by running 
 the following commands:</para>
 
-<screen><userinput><command>sed 's/^passwd/openssl-passwd/' doc/apps/passwd.pod \
-    > doc/apps/openssl-passwd.pod &amp;&amp;
-rm doc/apps/passwd.pod &amp;&amp;
-mv doc/crypto/{,openssl_}threads.pod &amp;&amp;
+<screen><userinput><command>patch -Np1 -i ../openssl-&openssl-version;-fix_manpages-1.patch &amp;&amp;
 ./config --openssldir=/etc/ssl --prefix=/usr shared &amp;&amp;
-sed -i 's%SHLIBDIRS= fips crypto ssl%SHLIBDIRS= crypto ssl%g' Makefile &amp;&amp;
 make MANDIR=/usr/share/man</command></userinput></screen>
+
+<para>To test the results, issue: <command>make test</command>.</para>
 
 <para>Now, as the root user:</para>
 
@@ -85,18 +89,6 @@ cp -r certs /etc/ssl</command></userinput></screen>
 <command>./config</command> command, this will eliminate the building of those
 encryption methods. Patent licenses may be needed for you to utilize either of
 those methods in your projects.</para>
-
-<para><command>rm doc/apps/passwd.pod</command>: This command prevents
-<application>Open<acronym>SSL</acronym></application> from installing its
-passwd man page over an existing man page with the same name.</para>
-
-<para><command>mv doc/crypto/{,openssl_}threads.pod</command>: This
-commands prevents <application>Open<acronym>SSL</acronym></application> from
-overwriting an existing man page from <application>Perl</application>.</para>
-
-<para><command>sed -i 's%SHLIBDIRS= fips crypto ssl%SHLIBDIRS= crypto ssl%g' 
-Makefile</command>: This command prevents installation of the non-existent 
-<filename class="libraryfile">libfips</filename> library.</para>
 
 <para><command>make MANDIR=/usr/share/man; make MANDIR=/usr/share/man 
 install</command>: These commands install 
