@@ -1,12 +1,320 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY mozilla-download-http "http://ftp.mozilla.org/pub/mozilla/releases/mozilla&mozilla-version;/src/mozilla-source-&mozilla-version;.tar.bz2">
+  <!ENTITY mozilla-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/src/mozilla-source-&mozilla-version;.tar.bz2">
+  <!ENTITY mozilla-size          "39 MB">
+  <!ENTITY mozilla-buildsize     "550 MB">
+  <!ENTITY mozilla-time          "22.64 SBU">
+
+  <!ENTITY enigmail-version      "0.83.6">
+  <!ENTITY ipc-version           "1.0.5">
+]>
+
 <sect1 id="mozilla" xreflabel="Mozilla-&mozilla-version;">
 <?dbhtml filename="mozilla.html" ?>
 <title>Mozilla-&mozilla-version;</title>
 
-&mozilla-intro;
-&mozilla-inst;
-&mozilla-exp;
-&mozilla-config;
-&mozilla-desc;
+<sect2>
+<title>Introduction to <application>Mozilla</application></title>
+
+<para><application>Mozilla</application> is a browser suite, the Open Source 
+sibling of <application>Netscape</application>. It includes the browser, 
+composer, mail client, a calendar client and an <acronym>IRC</acronym> client.</para>
+
+<para>The Mozilla project also hosts two subprojects that aim to satisfy the needs
+of users who don't need the complete browser suite or like to have separate applications
+for browsing and e-mail. These subprojects are
+<ulink url="http://www.mozilla.org/products/firefox/">Mozilla Firefox</ulink>,
+(a stand-alone browser based on the Mozilla source code) and
+<ulink url="http://www.mozilla.org/projects/thunderbird/">Mozilla Thunderbird</ulink>,
+(a stand-alone mail client based on the Mozilla source code). The build instructions
+for these two applications are discussed in separate sections:</para>
+
+<itemizedlist>
+<listitem><para><xref linkend="firefox"/></para></listitem>
+<listitem><para><xref linkend="thunderbird"/></para></listitem>
+</itemizedlist>
+
+<sect3><title>Package information</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Download (HTTP): <ulink
+url="&mozilla-download-http;"/></para></listitem>
+<listitem><para>Download (FTP): <ulink
+url="&mozilla-download-ftp;"/></para></listitem>
+<listitem><para>Download size: &mozilla-size;</para></listitem>
+<listitem><para>Estimated Disk space required:
+&mozilla-buildsize;</para></listitem>
+<listitem><para>Estimated build time:
+&mozilla-time;</para></listitem></itemizedlist>
+</sect3>
+
+<sect3><title><application>Mozilla</application> dependencies</title>
+<sect4><title>Required</title>
+<para><xref linkend="zip"/>, <xref linkend="GTK2"/>, 
+<xref linkend="libIDL"/>, <xref linkend="libmng"/> and
+<xref linkend="which"/>
+</para></sect4>
+<sect4><title>Recommended</title>
+<para><xref linkend="gnupg"/> (for Enigmail extension)
+</para></sect4>
+</sect3>
+
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para><ulink url="http://enigmail.mozdev.org/">Enigmail Extension
+(Version &enigmail-version;)</ulink>
+(Useful only if Mozilla Mail is built)
+<!-- <ulink
+url="http://downloads.mozdev.org/enigmail/src/enigmail-&enigmail-version;.tar.gz"/>
+-->
+</para></listitem>
+<listitem><para><ulink url="http://enigmail.mozdev.org/">Inter Process
+Communicaton Extension (Version &ipc-version;)</ulink>
+(Needed for Enigmail)
+<!--
+<ulink
+url="http://downloads.mozdev.org/enigmail/src/ipc-&ipc-version;.tar.gz"/>
+-->
+</para></listitem>
+</itemizedlist>
+</sect3>
+
+</sect2>
+
+<sect2>
+<title>Installation of <application>Mozilla</application></title>
+
+<!--
+<note>
+<para>According to the financial institutions, the following hack makes your
+browser insecure. You have been warned. Many sites use an MS-IE specific tag 
+(autocomplete=off) to prevent autocomplete from working in some forms. This 
+tag is now supported in <application>Mozilla</application> to appease the financial institutions. As per 
+the requirements of the financial institutions, they will not even accept a 
+solution where this a preference option. However our opinion is that it should 
+be in the hands of the user. To enable autocomplete to bypass
+this restriction, we need to make a slight modification in the code.</para>
+
+<para>Open the file <filename>extensions/wallet/src/wallet.cpp</filename> in
+the <application>Mozilla</application> source tree and search for the line:
+<screen>#define WALLET_DONT_CACHE_ALL_PASSWORDS</screen>
+Then delete or comment out the line.  Now, if anyone tells you MS-IE is user
+friendly, give them this example!</para>
+</note>
+-->
+
+<warning><para>Do not install Mozilla, Mozilla Firefox and Mozilla Thunderbird
+with a single prefix since they install identically named files. The BLFS Book
+installs Mozilla in <filename>/usr</filename> while Mozilla Firefox and Mozilla
+Thunderbird are installed in <filename>/opt</filename>.</para></warning>
+
+<para>If you plan to install Enigmail, extract the ipc and enigmail tarballs
+in the <filename class="directory">extensions</filename> directory.</para>
+
+<para>Compile <application>Mozilla</application> by running the following 
+commands:</para>
+
+<screen><userinput><command>export MOZILLA_OFFICIAL="1" &amp;&amp;
+export BUILD_OFFICIAL="1" &amp;&amp;
+./configure --prefix=/usr \
+            --with-default-mozilla-five-home=/usr/lib/mozilla \
+            --enable-default-toolkit=gtk2 \
+            --with-x --with-system-zlib \
+            --with-system-jpeg --with-system-png --with-system-mng \
+            --enable-xft --enable-crypto \
+            --disable-accessibility \
+            --disable-tests --disable-debug \
+            --disable-logging --enable-reorder \
+            --enable-strip --disable-pedantic \
+            --enable-cpp-rtti --enable-extensions=all &amp;&amp;
+make</command></userinput></screen>
+
+<para>If installing Enigmail, execute the following steps:</para>
+
+<screen><userinput><command>build/autoconf/make-makefile extensions/ipc extensions/enigmail &amp;&amp;
+make -C extensions/ipc &amp;&amp;
+make -C extensions/enigmail</command></userinput></screen>
+
+<para>Install <application>Mozilla</application> as follows:</para>
+
+<screen><userinput><command>make install &amp;&amp;
+install -d /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
+cp -Lf dist/private/nss/*.h dist/public/nss/*.h \
+   /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
+ln -nsf mozilla-&mozilla-version; /usr/include/mozilla &amp;&amp;
+ln -nsf mozilla-&mozilla-version; /usr/lib/mozilla</command></userinput></screen>
+
+<para>Some libraries installed by mozilla are also needed by other packages. These
+libraries should be in <filename>/usr/lib</filename> so that other packages can
+link against them. Move them as follows:</para>
+
+<screen><userinput><command>for i in lib{nspr4,plc4,plds4,nss3,smime3,softokn3,ssl3}.so libsoftokn3.chk
+do
+   mv /usr/lib/mozilla-&mozilla-version;/$i /usr/lib/
+   ln -sf ../$i /usr/lib/mozilla-&mozilla-version;/
+done</command></userinput></screen>
+
+<para>Install Enigmail as follows:</para>
+
+<screen><userinput><command>make -C extensions/ipc install &amp;&amp;
+make -C extensions/enigmail install</command></userinput></screen>
+
+<para>To enable multi-user operation, execute the following:</para>
+
+<screen><userinput><command>cd /usr/lib/mozilla-&mozilla-version; &amp;&amp;
+export LD_LIBRARY_PATH="/usr/lib/mozilla-&mozilla-version;" &amp;&amp;
+export MOZILLA_FIVE_HOME="/usr/lib/mozilla-&mozilla-version;" &amp;&amp;
+./regxpcom &amp;&amp;
+./regchrome &amp;&amp;
+touch `find /usr/lib/mozilla-&mozilla-version; -name *.rdf`</command></userinput></screen>
+
+</sect2>
+
+<sect2>
+<title>Optional Extra Switches</title>
+
+<para>Each of these switches can be added to the configure line in order to
+have the described effect on the <application>Mozilla</application> compile.</para>
+
+<para><option>--enable-elf-dynstr-gc</option>: Removes un-referenced
+strings from <acronym>ELF</acronym> shared objects generated during the build. 
+Note that this option breaks the build on alpha.</para>
+
+<para><option>--disable-mailnews</option>: Disable the mail and news
+clients.</para>
+
+<para><option>--disable-ldap</option>: Disable <acronym>LDAP</acronym> 
+support, recommended if mail is disabled.</para>
+
+<para><option>--enable-calendar</option>: Build the calendar client.</para>
+
+<para><option>--enable-xterm-updates</option>: This option is
+for enabling the <command>xterm</command> title with the current command when 
+compiling.</para>
+
+<para><option>--enable-plaintext-editor-only</option>: Disable support
+for <acronym>HTML</acronym> editing. Do not use this switch if you are building 
+the mail-news component.</para>
+
+</sect2>
+
+<sect2>
+<title>Command explanations</title>
+
+<para><screen><command>export MOZILLA_OFFICIAL="1" &amp;&amp;
+export BUILD_OFFICIAL="1"</command></screen>
+Set some variables that affect what and how the package is built. The first two exports
+specify a distribution is being built.</para>
+
+<!--
+<para> The last export specifies that we
+are ok with the <acronym>LGPL</acronym> versioned libart.</para>
+-->
+
+<para><parameter>--prefix=/usr</parameter>: Previously mozilla did
+not support the make install option. Hence, the package was installed in 
+<filename>/opt</filename>. The package now supports "make install" and follows 
+the <acronym>FHS</acronym> guidelines for installation. Therefore the book now 
+recommends installation in a system wide prefix such as <filename>/usr
+</filename>.</para>
+
+<para><screen><option>--enable-toolkit-gtk2</option></screen>Use gtk2
+toolkit.</para>
+
+<para><screen><option>--with-system-zlib --with-system-jpeg \
+--with-system-png --with-system-mng</option></screen>
+Use the system versions for these packages.</para>
+
+<para><option>--enable-xft</option>: Enable the Xft support. You need 
+<application>fontconfig</application> or the latest <application>XFree86
+</application> version to enable xft.</para>
+
+<para><option>--enable-crypto</option>: Enable the Personal
+Security Manager to enable <acronym>SSL</acronym> connections.</para>
+
+<para><screen><option>--disable-jsd --disable-accessibility \
+--disable-tests --disable-debug \
+--disable-dtd-debug \
+--disable-logging --enable-reorder \
+--enable-strip \
+--enable-cpp-rtti</option></screen>
+Various options that affect what components are built and some optimization
+options. You can pick and choose from these options.  More information on them 
+can be found in the <application>Mozilla</application> <command>configure
+</command> script help. Not all options are used in the instructions given 
+above.</para>
+
+<para><option>--enable-extensions=...</option>: Enables extensions.  If you 
+want, you can disable all extensions other than the browser by changing this 
+switch to <parameter>--enable-extensions="default,-venkman,-inspector,-irc"</parameter>.
+For a short description of the various extensions available with the mozilla
+source, see
+<ulink url="http://linuxfromscratch.org/~tushar/downloads/mozilla-extensions.txt"/>.</para>
+
+<para><screen><command>install -d /usr/include/mozilla-&mozilla-version;/nss
+cp -Lf dist/private/nss/*.h dist/public/nss/*.h \
+   /usr/include/mozilla-&mozilla-version;/nss</command></screen>
+Copy the nss headers that are not copied by make install.</para>
+
+<!--
+<para><userinput>install -d /usr/lib/mozilla-&mozilla-version;/openoffice</userinput> :
+Make a directory to store static libraries that openoffice needs during compilation.
+These libraries are not installed by default.</para>
+-->
+
+<para><command>ln -nsf mozilla-&mozilla-version; ...</command>:
+<application>Mozilla</application> installs headers and libraries in version 
+specific directories. This command makes symbolic links so that applications that 
+depend on <application>Mozilla</application> (such as <application>OpenOffice
+</application>, <application>Galeon</application>, etc.) don't need to know 
+which version of <application>Mozilla</application> is installed.</para>
+
+<para><screen><command>export LD_LIBRARY_PATH="/usr/lib/mozilla-&mozilla-version;" &amp;&amp;
+export MOZILLA_FIVE_HOME="/usr/lib/mozilla-&mozilla-version;" &amp;&amp;
+./regxpcom &amp;&amp;
+./regchrome &amp;&amp;
+touch `find /usr/lib/mozilla-${VERSION} -name *.rdf`</command>
+</screen>
+Create the required component registries to enable multi-user installs. These
+steps should be preformed by the root user each time a mozilla add-on is
+installed. This will allow normal users to run mozilla.</para>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application>Mozilla</application></title>
+
+<para>No specific configuration is required as long as the <command>mozilla
+</command> binary is in the path for the user. If <application>Mozilla</application>
+is installed in a non-standard location, then make a symlink to the 
+<command>mozilla</command> binary from <filename class="directory">/usr/bin</filename>.
+The same thing applies for <application>Mozilla Firefox</application> and
+<application>Mozilla Thunderbird</application>.</para>
+
+<para>Many applications look for <command>netscape</command> when they need to 
+open a browser. You may make the following symlink for convenience.</para>
+
+<screen><userinput><command>ln -sf mozilla /usr/bin/netscape</command></userinput></screen>
+
+<para>For installing various <application>Mozilla</application> plugins, refer 
+to <ulink url="http://plugindoc.mozdev.org/linux.html">Mozdev's PluginDoc Project</ulink></para>
+
+</sect2>
+
+<sect2>
+<title>Contents</title>
+
+<para>The <application>Mozilla</application> package contains
+<command>mozilla</command>. The various components such as composer and mail-news can be accessed 
+from the menu after <command>mozilla</command> starts or via command-line 
+switches to the <command>mozilla</command> binary.
+</para>
+
+</sect2>
 
 </sect1>
 
