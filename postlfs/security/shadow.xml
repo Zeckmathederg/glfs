@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY shadow-download-http " ">
-  <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/old/shadow-&shadow-version;.tar.bz2">
-  <!ENTITY shadow-md5sum        "3a3d17d3d7c630b602baf66ae7434c61">
-  <!ENTITY shadow-size          "814 KB">
-  <!ENTITY shadow-buildsize     "14.1 MB">
-  <!ENTITY shadow-time          "0.42 SBU">
+  <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2">
+  <!ENTITY shadow-md5sum        "89ebec0d1c0d861a5bd5c4c63e5cb0cc">
+  <!ENTITY shadow-size          "1.0 MB">
+  <!ENTITY shadow-buildsize     "13.2 MB">
+  <!ENTITY shadow-time          "0.31 SBU">
 ]>
 
 <sect1 id="shadow" xreflabel="Shadow-&shadow-version;">
@@ -21,28 +21,6 @@
 <title>Shadow-&shadow-version;</title>
 <indexterm zone="shadow">
 <primary sortas="a-Shadow">Shadow</primary></indexterm>
-
-<!--
-<sect2>
-<title>Configuring shadow</title>
-
-<para>Shadow's Configuration File</para>
-
-<para><userinput>/etc/login.defs</userinput></para>
-
-<para>Enabling <acronym>MD</acronym>5 Passwords</para>
-
-<para>To enable <acronym>MD</acronym>5 Passwords, modify the line in the
-<filename>login.defs</filename> file that reads:
-<screen><userinput>#MD5_CRYPT_ENAB no</userinput></screen>
-to read:
-<screen><userinput>MD5_CRYPT_ENAB yes</userinput></screen>
-Passwords created after this change will be encrypted using
-<acronym>MD</acronym>5 (Message-Digest Algorithm) instead of using 
-<acronym>DES</acronym> encryption.
-</para>
-</sect2>
--->
 
 <sect2>
 <title>Introduction to <application>Shadow</application></title>
@@ -72,16 +50,18 @@ this will allow programs like <command>login</command> and
 
 <sect3><title>Additional downloads</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Patch to fix linking against PAM:
-<ulink url="&patch-root;/shadow-&shadow-version;-pam-1.patch"/></para>
+<listitem><para>Patch to fix a bug in the <command>lastlog</command> program: 
+<ulink url="&patch-root;/shadow-&shadow-version;-fix_lastlog-1.patch"/></para>
 </listitem>
 </itemizedlist>
 </sect3>
 
 <sect3><title><application>Shadow</application> dependencies</title>
 <sect4><title>Required</title>
-<para><xref linkend="Linux_PAM"/></para></sect4>
+<para><xref linkend="Linux_PAM"/></para>
+</sect4>
 </sect3>
+
 </sect2>
 
 <sect2>
@@ -90,23 +70,20 @@ this will allow programs like <command>login</command> and
 <para>Reinstall <application>Shadow</application> by running the following 
 commands:</para>
 
-<screen><userinput><command>patch -Np1 -i ../shadow-&shadow-version;-pam-1.patch &amp;&amp;
-LIBS="-lpam -lpam_misc" ./configure --libdir=/usr/lib \
-    --enable-shared --with-libpam --without-libcrack &amp;&amp;
-echo '#define HAVE_SETLOCALE 1' >> config.h &amp;&amp;
-sed -i '/extern char/d' libmisc/xmalloc.c &amp;&amp;
+<screen><userinput><command>patch -Np1 -i ../shadow-&shadow-version;-fix_lastlog-1.patch &amp;&amp;
+./configure --libdir=/usr/lib --enable-shared \
+    --with-libpam --without-libcrack &amp;&amp;
+sed -i 's/groups$(EXEEXT) //' src/Makefile &amp;&amp;
+sed -i '/groups/d' man/Makefile &amp;&amp;
 make</command></userinput></screen>
 
 <para>Now, as the root user:</para>
 
 <screen><userinput role='root'><command>make install &amp;&amp;
-mv /bin/sg /usr/bin &amp;&amp;
-mv /bin/vigr /usr/sbin &amp;&amp;
-mv /usr/bin/passwd /bin &amp;&amp;
-rm /bin/groups &amp;&amp;
-mv /usr/lib/lib{misc,shadow}.so.0* /lib &amp;&amp;
-ln -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so &amp;&amp;
-ln -sf ../../lib/libmisc.so.0 /usr/lib/libmisc.so</command></userinput></screen>
+mv -v /usr/bin/passwd /bin &amp;&amp;
+mv -v /lib/libshadow.*a /usr/lib &amp;&amp;
+rm -v /lib/libshadow.so &amp;&amp;
+ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</command></userinput></screen>
 
 </sect2>
 
@@ -119,9 +96,10 @@ ln -sf ../../lib/libmisc.so.0 /usr/lib/libmisc.so</command></userinput></screen>
 <application>Linux-<acronym>PAM</acronym></application> already contains 
 <filename class='libraryfile'>libcrack</filename>.</para>
 
-<para><command>sed -i '/extern char/d' libmisc/xmalloc.c</command>: This
-fixes a compilation problem when using <application>GCC</application>-3.4.x.
-</para>
+<para><command>sed -i ...</command>: These commands are used to suppress the 
+installation of the <command>groups</command> program as the version from the 
+<application>Coreutils</application> package installed during 
+<acronym>LFS</acronym> is preferred.</para>
 
 </sect2>
 
@@ -130,13 +108,8 @@ fixes a compilation problem when using <application>GCC</application>-3.4.x.
 work with <application>Shadow</application></title>
 
 <sect3 id="pam.d"><title>Config files</title>
-<para><filename>/etc/pam.d/login</filename>,
-<filename>/etc/pam.d/passwd</filename>,
-<filename>/etc/pam.d/su</filename>,
-<filename>/etc/pam.d/shadow</filename>, 
-<filename>/etc/pam.d/useradd</filename>, and 
-<filename>/etc/pam.d/chage</filename> &ndash; 
-alternatively, <filename>/etc/pam.conf</filename></para>
+<para><filename>/etc/pam.d/*</filename>, or alternatively, 
+<filename>/etc/pam.conf</filename></para>
 <indexterm zone="shadow pam.d">
 <primary sortas="e-etc-pam.d">/etc/pam.d/*</primary></indexterm>
 <indexterm zone="shadow pam.d">
@@ -150,6 +123,8 @@ configuration files to <filename class="directory">/etc/pam.d/</filename> (or
 add them to <filename>/etc/pam.conf</filename> with the additional field for 
 the program).</para>
 
+<sect4><title>login (with <application>cracklib</application>)</title>
+
 <screen><userinput><command>cat &gt; /etc/pam.d/login &lt;&lt; "EOF"</command>
 # Begin /etc/pam.d/login
 
@@ -161,52 +136,83 @@ account     required       pam_access.so
 account     required       pam_unix.so
 session     required       pam_motd.so
 session     required       pam_limits.so
-session     optional       pam_mail.so     dir=/var/mail standard
+session     optional       pam_mail.so      dir=/var/mail standard
 session     optional       pam_lastlog.so
 session     required       pam_unix.so
+password    required       pam_cracklib.so  retry=3 difok=8 minlen=5 \
+                                            dcredit=3 ocredit=3 \
+                                            ucredit=2 lcredit=2
+password    required       pam_unix.so      md5 shadow use_authtok
 
 # End /etc/pam.d/login
-<command>EOF
-cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"</command>
+<command>EOF</command></userinput></screen>
+</sect4>
+
+<sect4><title>login (without <application>cracklib</application>)</title>
+
+<screen><userinput><command>cat &gt; /etc/pam.d/login &lt;&lt; "EOF"</command>
+# Begin /etc/pam.d/login
+
+auth        requisite      pam_securetty.so
+auth        requisite      pam_nologin.so
+auth        required       pam_env.so
+auth        required       pam_unix.so
+account     required       pam_access.so
+account     required       pam_unix.so
+session     required       pam_motd.so
+session     required       pam_limits.so
+session     optional       pam_mail.so      dir=/var/mail standard
+session     optional       pam_lastlog.so
+session     required       pam_unix.so
+password    required       pam_unix.so      md5 shadow
+
+# End /etc/pam.d/login
+<command>EOF</command></userinput></screen>
+</sect4>
+
+<sect4><title>passwd (with <application>cracklib</application>)</title>
+
+<screen><userinput><command>cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"</command>
 # Begin /etc/pam.d/passwd
 
-password    required       pam_unix.so     md5 shadow 
+password    required       pam_cracklib.so  retry=3 difok=8 minlen=5 \
+                                            dcredit=3  ocredit=3 \
+                                            ucredit=2  lcredit=2
+password    required       pam_unix.so      md5 shadow use_authtok
 
 # End /etc/pam.d/passwd
-<command>EOF
-cat &gt; /etc/pam.d/shadow &lt;&lt; "EOF"</command>
-# Begin /etc/pam.d/shadow
+<command>EOF</command></userinput></screen>
+</sect4>
 
-auth        sufficient      pam_rootok.so
-auth        required        pam_unix.so
-account     required        pam_unix.so
-session     required        pam_unix.so
-password    required        pam_permit.so
+<sect4><title>passwd (without <application>cracklib</application>)</title>
 
-# End /etc/pam.d/shadow
-<command>EOF
-cat &gt; /etc/pam.d/su &lt;&lt; "EOF"</command>
+<screen><userinput><command>cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"</command>
+# Begin /etc/pam.d/passwd
+
+password    required       pam_unix.so      md5 shadow
+
+# End /etc/pam.d/passwd
+<command>EOF</command></userinput></screen>
+</sect4>
+
+<sect4><title>su</title>
+
+<screen><userinput><command>cat &gt; /etc/pam.d/su &lt;&lt; "EOF"</command>
 # Begin /etc/pam.d/su
 
 auth        sufficient      pam_rootok.so
 auth        required        pam_unix.so
 account     required        pam_unix.so
+session     optional        pam_mail.so     dir=/var/mail standard
 session     required        pam_unix.so
 
 # End /etc/pam.d/su
-<command>EOF
-cat &gt; /etc/pam.d/useradd &lt;&lt; "EOF"</command>
-# Begin /etc/pam.d/useradd
+<command>EOF</command></userinput></screen>
+</sect4>
 
-auth        sufficient      pam_rootok.so
-auth        required        pam_unix.so
-account     required        pam_unix.so
-session     required        pam_unix.so
-password    required        pam_permit.so
+<sect4><title>chage</title>
 
-# End /etc/pam.d/useradd
-<command>EOF
-cat &gt; /etc/pam.d/chage &lt;&lt; "EOF"</command>
+<screen><userinput><command>cat &gt; /etc/pam.d/chage &lt;&lt; "EOF"</command>
 # Begin /etc/pam.d/chage
 
 auth        sufficient      pam_rootok.so
@@ -217,18 +223,20 @@ password    required        pam_permit.so
 
 # End /etc/pam.d/chage
 <command>EOF</command></userinput></screen>
+</sect4>
 
-<note><para>If you've installed <application>cracklib</application>, replace 
-<filename>/etc/pam.d/passwd</filename> with the following:</para></note>
-<screen><userinput><command>cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"</command> 
-# Begin /etc/pam.d/passwd
+<sect4><title>chpasswd, newusers, groupadd, groupdel, groupmod, useradd, 
+userdel and usermod</title>
 
-password    required    pam_cracklib.so     \
-    retry=3  difok=8  minlen=5  dcredit=3  ocredit=3  ucredit=2  lcredit=2
-password    required    pam_unix.so     md5 shadow use_authtok
+<screen><userinput><command>for PROGRAM in chpasswd newusers groupadd groupdel \
+               groupmod useradd userdel usermod
+do
+    cp /etc/pam.d/chage /etc/pam.d/$PROGRAM
+    sed -i -e "s/chage/$PROGRAM/" /etc/pam.d/$PROGRAM
+done</command></userinput></screen>
+</sect4>
 
-# End /etc/pam.d/passwd
-<command>EOF</command></userinput></screen>
+<sect4><title>other</title>
 
 <warning><para>At this point, you should do a simple test to see if
 <application>Shadow</application> is
@@ -237,16 +245,18 @@ to root.  If you do not see any errors, then all is well and you should
 proceed with the rest of the configuration.  If you did
 receive errors, stop now and double check the above configuration files
 manually.  If you cannot find, and fix the error, you should recompile 
-shadow replacing <envar>--with-libpam</envar> with
-<envar>--without-libpam</envar> in the above
+shadow replacing <parameter>--with-libpam</parameter> with
+<parameter>--without-libpam</parameter> in the above
 instructions.  If you fail to do this and the errors remain, you
 will be unable to log into your system.</para></warning>
 
 <para>Currently, <filename>/etc/pam.d/other</filename> is configured to
-allow anyone with an account on the machine to use programs
-that do not specifically have a configuration file of their own. After
-testing <application>Linux-<acronym>PAM</acronym></application> for proper 
-configuration, it can be changed to the following:</para>
+allow anyone with an account on the machine to use 
+<acronym>PAM</acronym>-aware programs without a configuration file for that 
+program. After testing <application>Linux-<acronym>PAM</acronym></application> 
+for proper configuration, install a more restrictive 
+<filename>other</filename> file so that program-specific configuration files 
+are required:</para>
 
 <screen><userinput><command>cat &gt; /etc/pam.d/other &lt;&lt; "EOF"</command>
 # Begin /etc/pam.d/other
@@ -260,29 +270,74 @@ password    required        pam_warn.so
 
 # End /etc/pam.d/other
 <command>EOF</command></userinput></screen>
+</sect4>
 
-<para>Finally, edit <filename>/etc/login.defs</filename> by adding '#'
-to the beginning of the following lines:</para>
-<screen>LASTLOG_ENAB
-MAIL_CHECK_ENAB
-PORTTIME_CHECKS_ENAB
-CONSOLE
-MOTD_FILE
-NOLOGINS_FILE
-PASS_MIN_LEN
-SU_WHEEL_ONLY
-MD5_CRYPT_ENAB
-CONSOLE_GROUPS
-ENVIRON_FILE</screen>
+<sect4 id="pam-access"><title>Configuring login access</title>
 
-<para>This stops <command>login</command> from performing these functions, as 
-they will now be performed by <acronym>PAM</acronym> modules. Additionally, 
-add a '#' to the beginning of the following lines if you've installed 
-<application>cracklib</application>:</para>
-<screen>OBSCURE_CHECKS_ENAB
-CRACKLIB_DICTPATH
-PASS_CHANGE_TRIES
-PASS_ALWAYS_WARN</screen>
+<para>Instead of using the <filename>/etc/login.access</filename> file for 
+controlling access to the system, 
+<application>Linux-<acronym>PAM</acronym></application> uses the 
+<filename class='libraryfile'>pam_access.so</filename> module along with the
+<filename>/etc/security/access.conf</filename> file. Rename the 
+<filename>/etc/login.access</filename> file using the following 
+command:</para>
+<indexterm zone="shadow pam-access"><primary 
+sortas="e-etc-security-access.conf">/etc/security/access.conf</primary>
+</indexterm>
+
+<screen><userinput><command>if [ -f /etc/login.access ]; then
+    mv -v /etc/login.access /etc/login.access.NOUSE
+fi</command></userinput></screen>
+</sect4>
+
+<sect4 id="pam-limits"><title>Configuring resource limits</title>
+
+<para>Instead of using the <filename>/etc/limits</filename> file for 
+limiting usage of system resources, 
+<application>Linux-<acronym>PAM</acronym></application> uses the 
+<filename class='libraryfile'>pam_limits.so</filename> module along with the
+<filename>/etc/security/limits.conf</filename> file. Rename the 
+<filename>/etc/limits</filename> file using the following 
+command:</para>
+<indexterm zone="shadow pam-limits"><primary 
+sortas="e-etc-security-limits.conf">/etc/security/limits.conf</primary>
+</indexterm>
+
+<screen><userinput><command>if [ -f /etc/limits ]; then
+    mv -v /etc/limits /etc/limits.NOUSE
+fi</command></userinput></screen>
+</sect4>
+
+<sect4 id="pam-login-defs"><title>Configuring /etc/login.defs</title>
+
+<para>The <command>login</command> program currently performs many functions 
+which <application>Linux-<acronym>PAM</acronym></application> modules should 
+now handle. The following command will comment out the appropriate lines in 
+<filename>/etc/login.defs</filename>, and stop <command>login</command> from 
+performing these functions:</para>
+<indexterm zone="shadow pam-login-defs"><primary 
+sortas="e-etc-login.defs">/etc/login.defs</primary>
+</indexterm>
+
+<screen><userinput><command>for FUNCTION in LASTLOG_ENAB MAIL_CHECK_ENAB \
+                PORTTIME_CHECKS_ENAB CONSOLE \
+                MOTD_FILE NOLOGINS_FILE PASS_MIN_LEN \
+                SU_WHEEL_ONLY MD5_CRYPT_ENAB \
+                CONSOLE_GROUPS ENVIRON_FILE
+do
+    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
+done</command></userinput></screen>
+
+<para>If you have <application>cracklib</application> installed, also comment 
+out four more lines using the following command:</para>
+
+<screen><userinput><command>for FUNCTION in OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
+                PASS_CHANGE_TRIES PASS_ALWAYS_WARN
+do
+    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
+done</command></userinput></screen>
+</sect4>
+
 </sect3>
 
 </sect2>
