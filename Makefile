@@ -11,7 +11,9 @@ TEXBASEDIR= $(HOME)/public_html/blfs-book-tex
 
 SRCDIR = $(PWD)
 
-all: index.xml
+all: blfs-old
+
+blfs-old: index.xml
 	@if [ -z $(OUTPUTDIR) ]; then \
 		echo "Envar OUTPUTDIR is not set!" ; \
 		exit 1 ; \
@@ -22,9 +24,9 @@ all: index.xml
 	@cd $(OUTPUTDIR) && $(INSTALL) -d introduction postlfs general \
 		connect basicnet server content x kde gnome xsoft \
 		multimedia pst preface appendices other
-	@cd $(OUTPUTDIR) && $(JADE) -t sgml -d $(DOCBOOK)/html/blfs.dsl \
-		$(DOCBOOK)/dtds/decls/xml.dcl $(SRCDIR)/index.xml
-
+	@cd $(OUTPUTDIR) && $(JADE) -t sgml -D $(DOCBOOK)/html \
+		-d $(SRCDIR)/blfs.dsl $(DOCBOOK)/dtds/decls/xml.dcl \
+		$(SRCDIR)/index.xml
 
 blfs:
 	@if [ -z $(BASEDIR) ]; then \
@@ -36,12 +38,10 @@ blfs:
 	@$(INSTALL) -d $(BASEDIR)
 	xsltproc --xinclude --nonet -stringparam base.dir $(BASEDIR) \
 	  stylesheets/blfs-chunked.xsl index.xml
-
 	if [ ! -e $(BASEDIR)stylesheets ]; then \
 	  mkdir -p $(BASEDIR)stylesheets; \
 	fi;
 	cp stylesheets/blfs.css $(BASEDIR)stylesheets
-
 	if [ ! -e $(BASEDIR)images ]; then \
 	  mkdir -p $(BASEDIR)images; \
 	fi;
@@ -66,7 +66,6 @@ tex:
 	@echo "Generating TeX Version of BLFS Book with xsltproc..."
 	@echo "  TEXBASEDIR = $(TEXBASEDIR)"
 	@$(INSTALL) -d $(TEXBASEDIR)
-
 # Using profiles in book source to exclude parts of the book from TeX
 # i.e. Changelog
 	xsltproc --nonet --output $(TEXBASEDIR)/index.xml \
@@ -75,3 +74,4 @@ tex:
 	index.xml
 	@cd $(TEXBASEDIR) && xsltproc --nonet -o blfs-book.tex \
 	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
+
