@@ -42,9 +42,9 @@
       <div class="indexdiv">
         <xsl:if test="contains(concat(&lowercase;, &uppercase;), $key)">
           <h2>
-          	<xsl:choose>
-            	<xsl:when test="$divtitle = 'A'">
-              	<xsl:text>Packages</xsl:text>
+             <xsl:choose>
+             <xsl:when test="$divtitle = 'A'">
+                <xsl:text>Packages</xsl:text>
              </xsl:when>
              <xsl:when test="$divtitle = 'B'">
               	<xsl:text>Programs</xsl:text>
@@ -55,12 +55,18 @@
              <xsl:when test="$divtitle = 'D'">
               	<xsl:text>Scripts</xsl:text>
              </xsl:when>
-              <xsl:when test="$divtitle = 'E'">
-                  <xsl:text>Others</xsl:text>
-              </xsl:when>
+             <xsl:when test="$divtitle = 'E'">
+              	<xsl:text>Configuration Files</xsl:text>
+             </xsl:when>
+             <xsl:when test="$divtitle = 'F'">
+                 <xsl:text>Bootscripts</xsl:text>
+             </xsl:when>
+             <xsl:when test="$divtitle = 'G'">
+                 <xsl:text>Others</xsl:text>
+             </xsl:when>
              <xsl:otherwise>
-          		<xsl:value-of select="$divtitle"/>
-						</xsl:otherwise>
+          	 <xsl:value-of select="$divtitle"/>
+             </xsl:otherwise>
            </xsl:choose>
           </h2>
         </xsl:if>
