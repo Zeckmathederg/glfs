@@ -94,16 +94,16 @@ recovery, the kernel image is only 481 blocks.  And there may be more to gain - 
 can actually name your image anything you like and just use its name
 instead in any commands that include "rescueimage".</para>
 
-<para>If you can not get your kernel down to the size needed to allow
+<para>If you can not get your rescueimage down to the size needed to allow
 all you need on the ramdisk image, don't fret.  You can always build a
 two diskette set, one boot and one root diskette.  The kernel will prompt
 you to insert the root file system diskette.  This will allow room for a
-compressed ramdisk image of 1440 blocks and a kernel of the same
+compressed ramdisk image of 1440 blocks and a rescueimage of the same
 size.</para>
 
-<para>The kernel size limits given above are likely to vary as
+<para>The rescueimage size limits given above are likely to vary as
 local system-specific configurations change.  Use them only as a
-guideline and not as gospel.  The size of the kernel image as shown by
+guideline and not as gospel.  The size of rescueimage as shown by
 <command>ls -sk</command> is only an approximation because of some
 "overhead".  On the system used to develop this version of these
 procedures, that command shows 488 blocks but the actual number of
@@ -123,7 +123,7 @@ are actually used.</para>
 <listitem><para>mount the file system</para></listitem>
 <listitem><para>add components to the file system</para></listitem>
 <listitem><para>make the compressed initrd</para></listitem>
-<listitem><para>join a kernel image and initrd onto a diskette</para></listitem>
+<listitem><para>join rescueimage and initrd onto a diskette</para></listitem>
 </itemizedlist>
 
 <para>The initial ramdisk will be automatically loaded at boot time if
@@ -237,7 +237,7 @@ anyway.</para>
 your host, you'll want to use something similar to this longer command,
 to minimize wasting space with unneeded inodes.</para>
 
-<para><emphasis>You must modify this to suit your kernel configuration and
+<para><emphasis>You must modify this to suit your rescueimage configuration and
 other needs.</emphasis>  For example, you may need
 <acronym>SCSI</acronym> devices and may not need
 frame buffer devices or the pseudo-terminal directory.  Also, the number
@@ -375,7 +375,7 @@ url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink></a
 package incorporates the core functions that provide a shell and many
 basic utilities.  A file system package, like <application><ulink
 url="http://freshmeat.net/projects/e2fsprogs/">e2fsprogs</ulink></application>, or
-a package for the file system you are using will provide a minimal
+a package for the file system you are using, will provide a minimal
 set of utilities for file system checking and reconstruction.  The whole
 package will not be installed, but only certain needed components.</para>
 
@@ -437,7 +437,7 @@ chmod 555 /mnt/loop1/sbin/{mke2f,e2fsck}
 <para><emphasis>Two useful utilities</emphasis></para>
 
 <para>There are two very useful utilities that any rescue disk should
-have to help in faster and more accurate recovery.  The first is a
+have, to help in faster and more accurate recovery.  The first is a
 partitioning utility.  The <command>sfdisk</command> program is
 used here because of its small size and great power.  Be warned though -
 it is not what is considered to be "user friendly".  But the
@@ -522,16 +522,17 @@ losetup -d /dev/loop1 &amp;&amp;  # Omit if mount's -o loop was used
 gzip -9 &lt; /tmp/rfloppy &gt; /tmp/rootfs.gz
 ls -l /tmp/rootfs.gz</command></userinput></screen>  
 
-<para><emphasis>Join a kernel image and initrd onto a diskette</emphasis></para>
+<para><emphasis>Join rescueimage and initrd onto a diskette</emphasis></para>
 
-<para>Now the kernel image and initial ramdisk image will be written to
+<para>Now the rescueimage and initial ramdisk image will be written to
 the boot diskette.  Before doing this, calculate the number of blocks
-needed for the kernel and for the initrd, individually, by dividing each
+needed for rescueimage and for <filename>/tmp/rootfs.gz</filename>
+(the initial ramdisk), individually, by dividing each
 size by 1024 and adding one if there is any remainder.  Add these two
 results together.  They must total 1,440 or fewer blocks.  If they total
 more than this, don't worry too much.  Changes to make a two-diskette
 set are presented later.  Of course, you could reexamine your choices and
-try to shrink either the kernel or the initial ramdisk image.</para>
+try to shrink either the rescueimage or the initial ramdisk image.</para>
 
 <para>To make a single-floppy rescue, using devfs, use the following
 commands. If you use the static <filename class="directory">/dev</filename> setup, use
@@ -571,25 +572,25 @@ automatic initialization is not needed.</para>
 <para>In this example the rescueimage (kernel) was 480+1 blocks in size.
 Make sure that this number, which may be different for you, matches your
 calculations from above.  You need to calculate a "magic number" now
-that will be inserted into the kernel image.  The value consists of three
+that will be inserted into rescueimage.  The value consists of three
 significant parts.  Two are discussed here.  The third is touched upon
 later.</para>
 
-<para>Bits 0 - 10 will contain the size of the kernel image, in blocks,
+<para>Bits 0 - 10 will contain the size of rescueimage, in blocks,
 that you calculated above, and which should match the results from the
 dd above. Bit 14 (the 15th bit, which is 2 to the 14th power, or 16,384)
 is a flag that, when set to 1, tells the kernel an initial ramdisk is to
 be loaded. So for the single-floppy rescue diskette, the two numbers
-16,384 and 481 (or whatever number is right for your kernel size) are
+16,384 and 481 (or whatever number is right for your rescueimage size) are
 added together to produce a decimal value, like 16865. This value is
-inserted into the proper place in the kernel image by the
+inserted into the proper place in rescueimage by the
 <command>rdev</command> command done next.</para>
 
-<para>Insert the "magic number" into the kernel image and then write the
-root file system right after the kernel on the floppy by executing the
+<para>Insert the "magic number" into rescueimage and then write the
+root file system right after rescueimage on the floppy by executing the
 following commands, with the proper numbers inserted. Notice that the
 <command>seek</command> parameter's number must be the size, in blocks,
-of your kernel image. If you use the static <filename class="directory">/dev</filename>
+of your rescueimage. If you use the static <filename class="directory">/dev</filename>
 setup, use <filename>/dev/fd0</filename> in the commands below, instead
 of <filename>/dev/floppy/0</filename>.</para>
 
@@ -597,7 +598,7 @@ of <filename>/dev/floppy/0</filename>.</para>
 dd if=/tmp/rootfs.gz of=/dev/floppy/0 bs=1k seek=<replaceable>481</replaceable></command></userinput></screen>
 
 <para>In this command, <command>seek</command> was used to position to
-the block following the end of the kernel (480+1) and begin writing the
+the block following the end of the rescueimage (480+1) and begin writing the
 root file system to the floppy.</para>
 </sect3>
 </sect2>
@@ -614,11 +615,11 @@ diskette that contains the initrd image and load it.</para>
 
 <para>Modify the above instructions as follows. First a different magic
 number is needed. The 15th bit (bit 14) still needs to be set, but the
-size of the kernel image, in blocks, is replaced with a zero.  The third
+size of the rescueimage, in blocks, is replaced with a zero.  The third
 component, which was not discussed above, is now used. This is the 16th
 bit (bit 15) of the "magic number". When set, it tells the kernel to ask
 the user to insert the "root" floppy. It then loads the initrd image
-from that diskette.  Because the size of the kernel image was replaced
+from that diskette.  Because the size of the rescueimage was replaced
 by zero, the kernel starts loading from the "zero'th" block (the first
 one) on the second diskette.</para>
 
@@ -626,7 +627,7 @@ one) on the second diskette.</para>
 32,768. So the new magic number is 32,768 + 16384, which is 49,152. This
 value tells the kernel to prompt for, and then load, an initial ramdisk
 image from the first block on the inserted floppy.  So your first
-modification is to the command to write the "magic number" to the kernel
+modification is to the command to write the "magic number" to the rescueimage
 image on the diskette.</para>
 
 <screen><userinput><command>rdev -r /dev/floppy/0 <replaceable>49152</replaceable></command></userinput></screen>

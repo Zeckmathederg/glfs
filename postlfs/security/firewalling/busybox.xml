@@ -19,16 +19,16 @@ that a firewall principally should be immune of. See the introduction to
 themselves, like internal-only samba- or name-servers, it's quite
 simple and should still be acceptable from a security standpoint.
 Just add the following lines <emphasis>before</emphasis> the logging-rules 
-into the script.
+into the script.</para>
 
 <screen>iptables -A INPUT  -i ! ppp+  -j ACCEPT
-iptables -A OUTPUT -o ! ppp+  -j ACCEPT</screen></para>
+iptables -A OUTPUT -o ! ppp+  -j ACCEPT</screen>
 
 <para>If your daemons have to access the web themselves, like squid would need
-to, you could open OUTPUT generally and restrict INPUT.
+to, you could open OUTPUT generally and restrict INPUT.</para>
 
 <screen>iptables -A INPUT -m state --state ESTABLISHED,RELATED	-j ACCEPT
-iptables -A OUTPUT                                      -j ACCEPT</screen></para>
+iptables -A OUTPUT                                      -j ACCEPT</screen>
 
 <para>However, it is generally not advisable to leave OUTPUT unrestricted: you lose 
 any control on trojans who'd like to "call home", and a bit of redundancy in case 
@@ -43,19 +43,19 @@ by looking for failed accesses in your log-files.</para>
 <!-- <orderedlist numeration="arabic" spacing="compact"> -->
 <title>Have a look at the following examples:</title>
 
-<listitem><para>Squid is caching the web:
+<listitem><para>Squid is caching the web:</para>
 <screen>iptables -A OUTPUT -p tcp --dport 80                              -j ACCEPT
-iptables -A INPUT  -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT</screen></para></listitem>
+iptables -A INPUT  -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT</screen></listitem>
 
 <listitem><para>Your caching name server (e.g., dnscache) does its
-lookups via udp:
+lookups via udp:</para>
 <screen>iptables -A OUTPUT -p udp --dport 53                              -j ACCEPT
-iptables -A INPUT  -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT</screen></para></listitem>
+iptables -A INPUT  -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT</screen></listitem>
 
 <listitem><para>Alternatively, if you want to be able to ping your box to ensure
-it's still alive:
+it's still alive:</para>
 <screen>iptables -A INPUT  -p icmp -m icmp --icmp-type echo-request -j ACCEPT
-iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT</screen></para></listitem>
+iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT</screen></listitem>
 
 <listitem><para><anchor id='postlfs-security-fw-BB-4' xreflabel="example no. 4"/>If you are 
 frequently accessing ftp-servers or enjoy chatting you might notice certain 
@@ -65,34 +65,34 @@ Although there's really no harm in this, having an identd running is not
 recommended because some implementations are known to be vulnerable.</para>
 
 <para>To avoid these delays you could reject the requests 
-with a 'tcp-reset':
+with a 'tcp-reset':</para>
 
 <screen>iptables -A INPUT  -p tcp --dport 113 -j REJECT --reject-with tcp-reset
-iptables -A OUTPUT -p tcp --sport 113 -m state --state RELATED -j ACCEPT</screen></para></listitem>
+iptables -A OUTPUT -p tcp --sport 113 -m state --state RELATED -j ACCEPT</screen></listitem>
 
 <listitem><para>To log and drop invalid packets, mostly harmless packets
-that came in after netfilter's timeout, sometimes scans:
+that came in after netfilter's timeout, sometimes scans:</para>
 
 <screen>iptables -I INPUT 1 -p tcp -m state --state INVALID -j LOG --log-prefix \ 
 "FIREWALL:INVALID"
-iptables -I INPUT 2 -p tcp -m state --state INVALID -j DROP</screen></para></listitem>
+iptables -I INPUT 2 -p tcp -m state --state INVALID -j DROP</screen></listitem>
 
 <listitem><para>Anything coming from the outside should not have a
-private address, this is a common attack called IP-spoofing:
+private address, this is a common attack called IP-spoofing:</para>
 
 <screen>iptables -t nat -A PREROUTING -i ppp+ -s 10.0.0.0/8     -j DROP
 iptables -t nat -A PREROUTING -i ppp+ -s 172.16.0.0/12	-j DROP
-iptables -t nat -A PREROUTING -i ppp+ -s 192.168.0.0/16	-j DROP</screen></para></listitem>
+iptables -t nat -A PREROUTING -i ppp+ -s 192.168.0.0/16	-j DROP</screen></listitem>
 
 <listitem><para>To simplify debugging and be fair to anyone who'd like to 
 access a service you have disabled, purposely or by mistake, you should REJECT 
 those packets that are dropped.</para>
 
 <para>Obviously this must be done directly after logging as the very
-last lines before the packets are dropped by policy:
+last lines before the packets are dropped by policy:</para>
 
 <screen>iptables -A INPUT                        -j REJECT
-iptables -A OUTPUT -p icmp --icmp-type 3 -j ACCEPT</screen></para></listitem>
+iptables -A OUTPUT -p icmp --icmp-type 3 -j ACCEPT</screen></listitem>
 </itemizedlist>
 <!--</orderedlist>-->
 
