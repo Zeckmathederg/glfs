@@ -13,11 +13,7 @@
 <sect2>
 <title>Running a Subversion Server</title>
 <para>This section will describe how to set up, administer and secure
-a <application>Subversion</application> server.  Since 
-<application>Subversion</application> is intended to replace 
-<acronym>CVS</acronym>, it may surprise you how very different the setup
-of a <application>Subversion</application> repository is compared to a
-<acronym>CVS</acronym> repository.</para>
+a <application>Subversion</application> server.</para>
 
 <sect3><title><application>Subversion server</application> dependencies</title>
 <sect4><title>Required</title>
@@ -29,8 +25,10 @@ of a <application>Subversion</application> repository is compared to a
 <sect2>
 <title>Setting up a <application>Subversion</application> server.</title>
                                                                                
-<para>A <application>Subversion</application> server will be set up using 
-OpenSSH as the remote access method.</para>
+<para>The following instructions will install a  
+<application>Subversion</application> server, which will be set up to
+use <application>OpenSSH</application> as the secure remote access method, with
+<command>svnserve</command> available for anonymous access.</para>
 
 <para>Configuration of the <application>Subversion</application> server 
 consists of the following steps:</para>
@@ -71,7 +69,7 @@ umask 002
 chmod 0755 /usr/bin/svn{,serve}</command></userinput></screen>
 
 <note><para>If you use <application>apache</application> for working with 
-the repository over the web, even for anonymous access, you should wrap 
+the repository over http, even for anonymous access, you should wrap 
 <application>apache</application> in a similar script.</para></note>
 
 </sect3>
@@ -108,7 +106,7 @@ do the initial import:</para>
     file:///srv/svn/repositories/svntest</command></userinput></screen>
 
 <para>Now go ahead and change owner and group information on the
-repository, add your normal user to the svn and svntest groups:</para>
+repository, and add your normal user to the svn and svntest groups:</para>
 
 <screen><userinput><command>chown -R svn:svntest /srv/svn/repositories/svntest &amp;&amp;
 chmod -R g+w /srv/svn/repositories/svntest &amp;&amp;
@@ -116,9 +114,10 @@ chmod g+s /srv/svn/repositories/svntest/db &amp;&amp;
 usermod -G svn,svntest,<replaceable>[insert existing groups]</replaceable> <replaceable>[username]</replaceable></command></userinput></screen>
 
 <para>svntest is the group assigned to the svntest repository.  As
-mentioned earlier, this eases administration of multiple repositories.
-Going forward, you'll need to add your regular user, and any additional
-users that you wish to have write access to the repository, to the svn and
+mentioned earlier, this eases administration of multiple repositories
+when using <application>OpenSSH</application> for authentication.  Going 
+forward, you'll need to add your regular user, and any additional users 
+that you wish to have write access to the repository, to the svn and 
 svntest groups.</para>
          
 <para>In addition, you'll notice that the new repository's
@@ -130,23 +129,23 @@ create files, but still give the entire group write access to those
 files.  This avoids locking out other users from the repository.</para>
 
 <para>Now, go ahead and return to your normal user account, and take a look at 
-your new repository using svnlook:</para>
+your new repository using <command>svnlook</command>:</para>
 
 <screen><userinput><command>svnlook tree /srv/svn/repositories/svntest/</command></userinput></screen>
 
 <note><para>You may need to logout and back in again to refresh your group
-memberships.  'su <replaceable>[username]</replaceable>' should work
-around this as well.</para></note>
+memberships.  '<command>su <replaceable>[username]</replaceable></command>' 
+should work around this as well.</para></note>
 
 </sect3>
 
 <sect3><title>3.  Configure the server</title>
 
-<para>These instructions will configure the server to use only ssh 
-for write permission, and provide anonymous read-only permission.  There
-are several other ways to provide access to the repository.  These
-additional configurations are best explained at 
-<ulink url="http://svnbook.red-bean.com/" />.</para>
+<para>As mentioned previously, these instructions will configure the 
+server to use only ssh for write access to the repository and to provide 
+anonymous access using <command>svnserve</command>.  There are several other 
+ways to provide access to the repository.  These additional configurations 
+are best explained at <ulink url="http://svnbook.red-bean.com/" />.</para>
 
 <para>Access configuration needs to be done for each repository.  Create 
 the <filename>svnserve.conf</filename> file for the svntest repository 
@@ -172,6 +171,11 @@ that only the general section is required.  Take a look at the
 most common way is to start it as an <application>inetd</application> or 
 <application>xinetd</application> process.  Alternately, you can use a
 bootscript to start the service at startup.</para>
+
+<note><para>If you do not wish to provide anonymous access to your svn
+repositories or use <command>svnserve</command>'s built-in
+authentication, you do not need to run 
+<command>svnserve</command>.</para></note>
 
 <para>If you use <application>inetd</application>, add a line to your
 <filename>/etc/inetd.conf</filename> using the following commands:</para>
