@@ -43,8 +43,7 @@ function help ()
   fi
   echo "Usage: $0 &lt;comp_method&gt; [options] [dirs]"
   cat &lt;&lt; EOT
-  Where comp_method is one of :
-
+Where comp_method is one of :
   --gzip, --gz, -g
   --bzip2, --bz2, -b
                 Compress using gzip or bzip2.
@@ -58,13 +57,17 @@ function help ()
                 removed prior to saving the backup.
                 In backup mode, no other action is performed.
 
-  And where options are :
-
+And where options are :
   -1 to -9, --fast, --best
                 The compression level, as accepted by gzip and bzip2. When not
                 specified, uses the default compression level for the given
                 method (-6 for gzip, and -9 for bzip2). Not used when in backup
                 or decompress modes.
+
+  --force, -F   Force (re-)compression, even if the previous one was the same
+                method. Usefull when changing the compression ratio. By default,
+                a page will not be re-compressed if it ends with the same suffix
+                as the method adds (.bz2 for bzip2, .gz for gzip).
 
   -s            Change hard-links into soft-links. Use with _caution_ as the
                 first encountered file will be used as a reference. Not used
@@ -73,8 +76,9 @@ function help ()
   --conf=dir, --conf dir
                 Specify the location of man.conf. Defaults to /etc.
 
-  --quiet, -q   Quiet mode, only print the name of the directory being
-                processed. Add another -q flag to turn it absolutely silent.
+  --verbose, -v Verbose mode, print the name of the directory being processed.
+                Double the flag to turn it even more verbose, and to print the
+                name of the file being processed.
 
   --fake, -f    Fakes it. Print the actual parameters compman will use.
 
@@ -90,8 +94,9 @@ Note about compression
   was much efficient on 'small' files, and bzip2 on 'big' files, small and
   big being very dependent on the content of the files.
 
-  See the original thread beginning at :
-http://archive.linuxfromscratch.org/mail-archives/blfs-support/2003/04/0424.html
+  See the original post from Mickael A. Peters, titled "Bootable Utility CD",
+  and dated 20030409.1816(+0200), and subsequent posts:
+  http://linuxfromscratch.org/pipermail/blfs-support/2003-April/038817.html
 
   On my system (x86, ext3), man pages were 35564kiB before compression. gzip -9
   compressed them down to 20372kiB (57.28%), bzip2 -9 got down to 19812kiB
@@ -104,60 +109,50 @@ http://archive.linuxfromscratch.org/mail-archives/blfs-support/2003/04/0424.html
 EOT
 }
 
-# This function checks that the path is absolute
-#  $1 : the path to check
-#  $2 : path to man.conf if $1 was extracted from it
-function check_path ()
-{
-  echo checking path $1
-  if [ -n "`echo $1 | cut -d '/' -f1`" ]; then
-    echo "Path \"$1\" is not absolute."
-    [ -n "$2" ] &amp;&amp; echo "Check your $2"
-    exit 1
-  fi
-}
-
 # This function checks that the man page is unique amongst bzip2'd, gzip'd and
-# the uncompressed versions.
+# uncompressed versions.
 #  $1 the directory in which the file resides
 #  $2 the file name for the man page
+# Returns 0 (true) if the file is the latest and must be taken care of, and 1
+# (false) if the file is not the latest (and has therefore been deleted).
 function check_unique ()
 {
-  # NB. When there are hardlink to this file, these are
-  # _not_ deleted. In fact, if there are hardlinks, they
+  # NB. When there are hard-links to this file, these are
+  # _not_ deleted. In fact, if there are hard-links, they
   # all have the same date/time, thus making them ready
   # for deletion later on.
 
-  # Build the list of all man page with the same name
+  # Build the list of all man pages with the same name
+  DIR=$1
   BASENAME=`basename "${2}" .bz2`
   BASENAME=`basename "${BASENAME}" .gz`
   LIST=
-  [ -f "$DIR"/"${BASENAME}" ] &amp;&amp; LIST="${LIST} ${BASENAME}"
-  [ -f "$DIR"/"${BASENAME}".gz ] &amp;&amp; LIST="${LIST} ${BASENAME}.gz"
-  [ -f "$DIR"/"${BASENAME}".bz2 ] &amp;&amp; LIST="${LIST} ${BASENAME}.bz2"
+  [ -f "$DIR"/"${BASENAME}" -o -L "$DIR"/"${BASENAME}" ] &amp;&amp; LIST="${LIST} ${BASENAME}"
+  [ -f "$DIR"/"${BASENAME}".gz -o -L "$DIR"/"${BASENAME}".gz ] &amp;&amp; LIST="${LIST} ${BASENAME}.gz"
+  [ -f "$DIR"/"${BASENAME}".bz2 -o -L "$DIR"/"${BASENAME}".bz2 ] &amp;&amp; LIST="${LIST} ${BASENAME}.bz2"
 
   # Look for, and keep, the most recent one
-  LATEST=`(cd "$DIR"; ls -1rt $LIST)`
+  LATEST=`(cd "$DIR"; ls -1rt $LIST | tail -1)`
   for i in $LIST; do
-    [ "$LATEST" != "$i" ] &amp;&amp; rm -f "$i"
+    [ "$LATEST" != "$i" ] &amp;&amp; rm -f "$DIR"/"$i"
   done
 
   # In case the specified file was the latest, return 0
-  [ "$LATEST" = "$1" ] &amp;&amp; return 0
+  [ "$LATEST" = "$2" ] &amp;&amp; return 0
   # If the file was not the latest, return 1
   return 1
 }
 
 # OK, parse the command line for arguments, and initialize to some sensible
-# state, that is keep hardlinks, parse /etc/man.conf, be most verbose, and
-# search man.conf in /etc
+# state, that is keep hardlinks, parse /etc/man.conf, be most silent, search
+# man.conf in /etc, and don't force (re-)compression.
 COMP_METHOD=
 COMP_SUF=
 COMP_LVL=
+FORCE_COMP=no
 LN_OPT=
 MAN_DIR=
-QUIET_OPT=
-QUIET_LVL=0
+VERBOSE_LVL=0
 BACKUP=no
 FAKE=no
 MAN_CONF=/etc
@@ -183,6 +178,10 @@ while [ -n "$1" ]; do
       COMP_LVL=$1
       shift
       ;;
+    --force|-F)
+      FORCE_COMP=yes
+      shift
+      ;;
     --soft|-s)
       LN_OPT=-s
       shift
@@ -195,9 +194,8 @@ while [ -n "$1" ]; do
       MAN_CONF="$2"
       shift 2
       ;;
-    --quiet|-q)
-      let QUIET_LVL++
-      QUIET_OPT="$QUIET_OPT -q"
+    --verbose|-v)
+      let VERBOSE_LVL++
       shift
       ;;
     --backup)
@@ -221,27 +219,31 @@ while [ -n "$1" ]; do
       exit 1
       ;;
     *)
-      check_path $1
-      # We shall never return in that case! None the less, do exit
+      echo "\"$1\" is not an absolute path name" 
       exit 1
       ;;
   esac
 done
 
 # Redirections
-case $QUIET_LVL in
+case $VERBOSE_LVL in
   0)
-     DEST_FD0=/dev/stdout
-     DEST_FD1=/dev/stdout
-     ;;
-  1)
-     DEST_FD0=/dev/stdout
-     DEST_FD1=/dev/null
-     ;;
-  *)
-     #2 and above, be silent
+     # O, be silent
      DEST_FD0=/dev/null
      DEST_FD1=/dev/null
+     VERBOSE_OPT=
+     ;;
+  1)
+     # 1, be a bit verbose
+     DEST_FD0=/dev/stdout
+     DEST_FD1=/dev/null
+     VERBOSE_OPT=-v
+     ;;
+  *)
+     # 2 and above, be most verbose
+     DEST_FD0=/dev/stdout
+     DEST_FD1=/dev/stdout
+     VERBOSE_OPT="-v -v"
      ;;
 esac
 
@@ -256,7 +258,7 @@ fi
 
 # If no MANPATH in ${MAN_CONF}/man.conf, abort as well
 if [ -z "$MAN_DIR" ]; then
-  echo "No directory specified, and no directory found in \"${MAN_CONF}/man.conf\""
+  echo "No directory specified, and no directory found with \`man --path'"
   exit 1
 fi
 
@@ -273,6 +275,7 @@ if [ "$FAKE" != "no" ]; then
   echo " ($COMP_METHOD)"
   echo "Compression level.: $COMP_LVL"
   echo "Compression suffix: $COMP_SUF"
+  echo "Force compression.: $FORCE_COMP"
   echo "man.conf is.......: ${MAN_CONF}/man.conf ($MAN_CONF)"
   echo -n "Hard links........: "
   [ "$LN_OPT" = "-s" -o "$LN_OPT" = "--soft" ] &amp;&amp; echo -n "Convert to symlinks" || echo -n "Keep hardlinks"
@@ -280,7 +283,7 @@ if [ "$FAKE" != "no" ]; then
   echo "Backup............: $BACKUP"
   echo "Faking (yes!).....: $FAKE"
   echo "Directories.......: $MAN_DIR"
-  echo "Silence level.....: $QUIET_LVL ($QUIET_OPT)"
+  echo "Silence level.....: $VERBOSE_LVL ($VERBOSE_OPT)"
   exit 0
 fi
 
@@ -308,16 +311,29 @@ fi
 for DIR in $MAN_DIR; do
   cd "$DIR"
   for FILE in *; do
+    # Fixes the case were the directory is empty
     if [ "foo$FILE" = "foo*" ]; then continue; fi
+
+    # Fixes the case when hard-links see their compression scheme change
+    # (from not compressed to compressed, or from bz2 to gz, or from gz to bz2)
+    # Also fixes the case when multiple version of the page are present, which
+    # are either compressed or not.
+    if [ ! -L "$FILE" -a ! -e "$FILE" ]; then continue; fi
+
     if [ -d "$FILE" ]; then
       # We are going recursive to that directory
       echo "-&gt; Entering ${DIR}/${FILE}..." &gt; $DEST_FD0
       # I need not pass --conf, as I specify the directory to work on
       # But I need exit in case of error
-      "$0" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} ${QUIET_OPT} "${DIR}/${FILE}" || exit 1
+      "$0" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} ${VERBOSE_OPT} "${DIR}/${FILE}" || exit 1
       echo "&lt;- Leaving ${DIR}/${FILE}." &gt; $DEST_FD1
+
     else # !dir
-      if check_unique "$DIR" "$FILE"; then continue; fi
+      if ! check_unique "$DIR" "$FILE"; then continue; fi
+
+      # Check if the file is already compressed with the specified method
+      BASE_FILE=`basename \`basename "$FILE" .bz2\` .gz`
+      if [ "${FILE}" = "${BASE_FILE}${COMP_SUF}" -a "${FORCE_COMP}" = "no" ]; then continue; fi
 
       # If we have a symlink
       if [ -h "$FILE" ]; then
@@ -330,7 +346,7 @@ for DIR in $MAN_DIR; do
             EXT=none ;;
         esac
 
-        if [ "$EXT" != "none" ]; then
+        if [ ! "$EXT" = "none" ]; then
           LINK=`ls -l $FILE | cut -d "&gt;" -f2 | tr -d " " | sed s/\.$EXT$//`
           NEWNAME=`echo "$FILE" | sed s/\.$EXT$//`
           mv "$FILE" "$NEWNAME"
@@ -362,11 +378,11 @@ for DIR in $MAN_DIR; do
         case $FILE in
           *.bz2)
             bunzip2 $FILE
-            FILE=`echo $FILE | sed s/\.bz2$//`
+            FILE=`basename "$FILE" .bz2`
           ;;
           *.gz)
             gunzip $FILE
-            FILE=`echo $FILE | sed s/\.gz$//`
+            FILE=`basename "$FILE" .gz`
           ;;
         esac
 
@@ -404,7 +420,6 @@ for DIR in $MAN_DIR; do
     fi
   done # for FILE
 done # for DIR
-
 <command>EOF
 chmod 755 /usr/bin/compressdoc</command></userinput></screen>
 
@@ -415,7 +430,7 @@ a comprehensive help about what the script is able to do.</para>
 
 <para> Don't forget that a few programs, like the <application>X</application> 
 Window system, <application>XEmacs</application>, also install their 
-documentation in nonstandard places (such as <filename class="directory"> 
+documentation in non standard places (such as <filename class="directory"> 
 /usr/X11R6/man</filename>, etc...). Don't forget to add those locations in the 
 file <filename>/etc/man.conf</filename>, as a
 <envar>MANPATH</envar>=<replaceable>/path</replaceable> section.</para>
