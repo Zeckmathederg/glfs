@@ -5,660 +5,77 @@
   %general-entities;
 ]>
 
-<sect1 id="postlfs-config-bootdisk" xreflabel="Creating a Custom Book Disk">
+<sect1 id="postlfs-config-bootdisk" xreflabel="Creating a Custom Boot Device">
 <sect1info>
 <othername>$LastChangedBy$</othername>
 <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="bootdisk.html"?>
-<title>Creating a Custom Boot Disk</title>
+<title>Creating a Custom Boot Device</title>
 
 <sect2>
-<title>Decent Rescue Boot Disk Needs</title>
+<title>Decent Rescue Boot Device Needs</title>
 <para>This section is really about creating a <emphasis>rescue</emphasis>
-diskette.  As the name <emphasis>rescue</emphasis> implies, the host
+device.  As the name <emphasis>rescue</emphasis> implies, the host
 system has a problem, often lost partition information or corrupted file
-systems, that prevents it from booting and/or operating normally.  For
+systems, that prevent it from booting and/or operating normally.  For
 this reason, you <emphasis>must not</emphasis> depend on resources from
 the host being "rescued".  To presume that any given partition or hard
 drive <emphasis>will</emphasis> be available is a risky presumption.</para>
 
-<para>Heeding the warning, the rescue disk created here has no
-dependency on the host system's resources, other than basic bootability
-and hardware soundness.  At a minimum, the most common sorts of failures
-requiring a rescue boot disk should be addressed by the contents of the
-boot disk.  This would include the common loss of partitioning (master
-boot record is lost or corrupted), file system corruption, and the need
-to allow creation and editing of files that may have been lost or
-corrupted, possibly as an effect of the other two problems.</para>
+<para>In a modern system, there are many devices that can be
+used as a rescue device: floppy, cdrom, usb drive, or even a network card.  
+Which one you use depends on your hardware and your BIOS.  In the past,
+we usually thought of rescue device as a floppy disk.  Today, many
+systems do not even have a floppy drive.</para>
 
-<para>Additional utilities should be available to search for text or
-files, copy, move and remove files, and many other normal operations
-that might be expected to be needed when reconstructing.</para>
+<para>Building a complete rescue device is a challenging task.  In many 
+ways, it is equivalent to building an entire <acronym>LFS</acronym> system.
+In addition, it would be a repitition of information already available.
+For these reasons, the procedures for a rescue device image are not
+presented here.</para>
 </sect2>
 
 <sect2>
-<title>This Minimal Decent Rescue Disk</title>
+<title>Creating a Rescue Floppy</title>
 
-<para>The intent here is to create a "rescue boot disk" that will support
-the common operations listed above.  These functions are provided by
-including selected executables from <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox
-</ulink></application> and <application><ulink
-url="http://freshmeat.net/projects/e2fsprogs/">e2fsprogs</ulink></application>.
-A basic editor and rudimentary disk partitioning utility may also be
-optionally included.</para>
+<para>The software of today's systems has grown large.  Linux 2.6 no longer
+supports booting directly from a floppy.  In spite of this, there are solutions
+available using older version of Linux.  One of the best is Tom's Root/Boot
+Disk available at <ulink url='http://www.toms.net/rb/'/>.  This will provide a
+minimal Linux system on a single floppy disk and provides the ability to
+customize the contents of your disk if necessary.</para>
 
-<para>This, however, is not the limit.  A minimal disk is described
-here, but you can add anything you can fit on the floppy.  Furthermore,
-if one floppy is not enough to meet your needs, you can make a
-multi-diskette rescue set that means, essentially, the sky is the limit.
-This is discussed below.  The number of other possible variations are
-just too numerous to mention here.</para>
 </sect2>
 
 <sect2>
-<title>Build the Rescue Boot Disk</title>
-<sect3>
-<title>Prerequisites</title>
-
-<para>You should have known-good floppy diskettes available.  Some
-people prefer to use the <command>fdformat</command> command to prepare
-these because it also does a verification. See the man page for more
-details.  Another good idea is to always prepare duplicates of the
-rescue diskette.  Media does deteriorate.</para>
-
-<para>These instructions presume a base <acronym>LFS</acronym> install
-using ext2/ext3 file systems.</para>
-
-<para>You need to have loopback device support enabled in your host's
-kernel to use this procedure.</para>
-
-<para>You should make a custom kernel that includes only those features
-needed to rescue your system, so it will have the least size.  No
-sense in building in support for things like <application>XFree86</application>,
-<application>DRI</application>, etc, as most rescues are performed from the
-command prompt.  Along the same lines, if you have <xref linkend="gcc2"/>, it 
-is known to produce smaller kernels.  So you might want to use that
-compiler for this kernel.  If you do so, don't overlook any loadable
-modules (which are not addressed here) you might need - they need to be
-compiled with the same compiler used to make the kernel.</para>
-
-<para>The rescue image must include support for the file system of your
-choice (we presume ext2/3 here), ramdisk and initial ramdisk (initrd).
-Disable everything that you can in the kernel configuration. You should
-keep support for the proc file system and tempfs file system enabled
-because of their general utility. The proc file system is needed for
-the <command>mount</command> to report properly.</para>
-
-<para>If you install <emphasis>only</emphasis> the minimal set of
-components shown in this document, you will need a kernel that is 643 or
-fewer blocks in size.  If you want the optional programs - a very basic
-editor, like <command>ed</command>, and rudimentary disk partitioning, like 
-<command>sfdisk</command> - the kernel will need to be 595 or fewer blocks in 
-size.  This should not be a major problem unless your needs are fairly 
-esoteric.  On the system used to develop this version of the procedures, using 
-only ext2 file systems and not using networking or <acronym>CD</acronym>s for 
-recovery, the kernel image is only 481 blocks.  And there may be more to gain - it has not been closely examined for additional gains.</para>
-
-<para>This kernel image will be called "rescueimage" hereinafter. You
-can actually name your image anything you like and just use its name
-instead in any commands that include "rescueimage".</para>
-
-<para>If you can not get your rescueimage down to the size needed to allow
-all you need on the ramdisk image, don't fret.  You can always build a
-two diskette set, one boot and one root diskette.  The kernel will prompt
-you to insert the root file system diskette.  This will allow room for a
-compressed ramdisk image of 1440 blocks and a rescueimage of the same
-size.</para>
-
-<para>The rescueimage size limits given above are likely to vary as
-local system-specific configurations change.  Use them only as a
-guideline and not as gospel.  The size of rescueimage as shown by
-<command>ls -sk</command> is only an approximation because of some
-"overhead".  On the system used to develop this version of these
-procedures, that command shows 488 blocks but the actual number of
-blocks written is only 480 and a fraction, which means that 481 blocks
-are actually used.</para>
-</sect3>
-
-<sect3>
-<title>Rescue Disk Build Process</title>
-
-<para>The basic process will be:</para>
-<itemizedlist>
-<listitem><para>make a mount point for a file system</para></listitem>
-<listitem><para>make an empty file to hold the file system</para></listitem>
-<listitem><para>bind the empty file to a loopback device</para></listitem>
-<listitem><para>make a 4MB file system</para></listitem>
-<listitem><para>mount the file system</para></listitem>
-<listitem><para>add components to the file system</para></listitem>
-<listitem><para>make the compressed initrd</para></listitem>
-<listitem><para>join rescueimage and initrd onto a diskette</para></listitem>
-</itemizedlist>
-
-<para>The initial ramdisk will be automatically loaded at boot time if
-setup is done correctly.</para>
-
-<para><emphasis>Make a mount point and an empty file to hold a file
-system</emphasis></para>
-
-<screen><userinput><command>mkdir -p /mnt/loop1
-dd if=/dev/zero of=/tmp/rfloppy bs=1k count=4096</command></userinput></screen>
-
-<para><emphasis>Command explanations</emphasis></para>
-
-<para><command>dd</command>: This is a generalized input-to-output copy
-utility that also has many transformation capabilities.</para>
-
-<para><parameter>if=/dev/zero</parameter>: This parameter assigns
-<command>dd</command>'s input file to a device that returns an infinite
-stream of zeroes.</para>
-
-<para><parameter>of=/tmp/rfloppy</parameter>: This parameter directs
-<command>dd</command>'s output to <filename>/tmp/rfloppy</filename>.</para>
-
-<para><parameter>bs=1k count=4096</parameter>: These parameters tell
-<command>dd</command> to read and write in "chunks" of 1024 bytes and
-process 4096 "chunks".</para>
-
-<para><emphasis>Bind the file to a loopback device, make a file system and mount it.</emphasis></para>
-
-<para>The reason these commands are used is that they work regardless of
-the version of <command>mount</command> (older ones don't have the
-<userinput>-o loop</userinput> option) or if <filename>/etc/mtab</filename>
-is symlinked to <filename class="directory">/proc</filename> (which causes mount to be
-unable to properly "unbind" a loop device, due to "lost" information).
-An alternate set of commands is provided, after these three commands,
-that you can use if you don't have either of these situations.</para>
-
-<screen><userinput><command>losetup /dev/loop1 /tmp/rfloppy
-mke2fs -m 0 -N 504 /dev/loop1
-mount -t ext2 /dev/loop1 /mnt/loop1</command></userinput></screen>
-
-<para><emphasis>Command explanations</emphasis></para>
-
-<para><command>losetup /dev/loop1 /tmp/rfloppy</command>: This
-command "binds" a loopback device to the empty file.</para>
-
-<para><command>mke2fs -m 0 -N 504 /dev/loop1</command>: This
-command makes an ext2 file system on the loopback device (which really
-means it is created in the file to which the loopback device is bound)
-and reserves no blocks.  The <userinput>-N 504</userinput> parameter causes 
-only 504 inodes to be allocated, leaving more space for other things needed 
-in the file system.</para>
-
-<para><command>mount -t ext2 /dev/loop1 /mnt/loop1</command>: This
-mounts the file system just created, just as if it were a real device,
-like a hard drive or diskette.  This allows all the normal system I/O
-commands to operate as if a real device were present.</para>
-
-<para>If your <command>mount</command> supports the
-<option>-o loop</option> option <emphasis>and</emphasis> your
-<filename>/etc/mtab</filename> is a real file, rather than a symlink to
-<filename class="directory">/proc</filename>, the three above commands can be replaced
-by these next two commands.</para>
-
-<screen><userinput><command>mke2fs -F -m 0 -N 504 /tmp/rfloppy
-mount -o loop /tmp/rfloppy /mnt/loop1</command></userinput></screen>
-
-<para><emphasis>Command explanations</emphasis></para>
-
-<para><command>mke2fs -F -m 0 -N 504 /tmp/rfloppy</command>: As before,
-a file system is made, with only 504 inodes and no reserved blocks, that
-will be bound to a loopback device.  The <userinput>-F</userinput> parameter
-just suppresses an irritating question issued when
-<command>mke2fs</command> realizes that you are not accessing a
-device.</para>
-
-<para><command>mount -o loop /tmp/rfloppy /mnt/loop1</command>: This
-command tells <command>mount</command> to bind the named file to a
-loopback device it automatically selects (the first available) and mount
-the device on <filename class="directory">/mnt/loop1</filename>.</para>
-
-<para><emphasis>Add components to the file system</emphasis></para>
-
-<para><emphasis>A cautionary note:</emphasis> if you are not running in a
-<command>chroot</command> environment, be sure that you do not accidentally
-omit the <filename class="directory">/mnt/loop1</filename> reference in the commands. If
-you do so, you might replace the equivalent components on your host with
-the components that are installed by these procedures.  Even if you are
-in a chroot environment, you may need to be careful if the environment
-is your freshly built <acronym>LFS</acronym> system which you intend to
-use as a host in the future.</para>
-
-<para>First, to have as much free space as possible, remove the
-<filename>lost+found</filename> directory, which is not needed because
-it is only used by <command>fsck</command>.  Since <command>fsck</command> 
-will never be run on this file system, it is unneeded.</para>
-
-<screen><userinput><command>rmdir /mnt/loop1/lost+found/</command></userinput></screen>
-
-<para>Now make a minimal set of directories.</para>
-
-<screen><userinput><command>mkdir /mnt/loop1/{dev,proc,etc,sbin,bin,lib,mnt,usr,var}</command></userinput></screen>
-
-<para>Add needed device files to the initrd image.  If you use devfs,
-the following command works well, as you only have the devices you use
-anyway.</para>
-
-<screen><userinput><command>cp -dpR /dev/* /mnt/loop1/dev</command></userinput></screen>
-
-<para>If you used <command>MAKEDEV</command> to create your devices on
-your host, you'll want to use something similar to this longer command,
-to minimize wasting space with unneeded inodes.</para>
-
-<para><emphasis>You must modify this to suit your rescueimage configuration and
-other needs.</emphasis>  For example, you may need
-<acronym>SCSI</acronym> devices and may not need
-frame buffer devices or the pseudo-terminal directory.  Also, the number
-of hard drives and partitions that you include should be the minimal
-that you need.  Extensive analysis has not been done on the list below,
-so there are more inodes and space to be gained by "fine tuning" this
-set.</para>
-
-<screen><userinput><command>mkdir /mnt/loop1/dev/pts
-cp -a \ 
-    /dev/null /dev/console \
-    /dev/fb[0-7] /dev/fd /dev/fd0 /dev/fd0h1440 /dev/full \
-    /dev/hda* /dev/hdb* /dev/hdc* /dev/hdd* /dev/initctl /dev/kmem \
-    /dev/loop[0-3] /dev/lp0 /dev/mem /dev/port \
-    /dev/psaux /dev/ram \
-    /dev/ram0 /dev/ram1 /dev/ram2 /dev/ram3 /dev/random /dev/rtc \
-    /dev/shm /dev/stderr /dev/stdin /dev/stdout /dev/tty \
-    /dev/tty[0-9] /dev/ttyS0 /dev/ttyS1 /dev/urandom /dev/zero \
-  /mnt/loop1/dev</command></userinput></screen>
-
-<para><emphasis>What is needed in the <filename class="directory">/etc</filename>
-directory</emphasis></para>
-
-<para>If you choose, you can copy all or selected parts of your
-<filename>/etc/passwd</filename> and <filename>/etc/group</filename>
-files.  But even if each is less than 1024 bytes, you will lose two
-inodes and two blocks of space on the initial ramdisk.  This only really
-matters because of trying to squeeze everything onto a 1.44MB
-diskette.  Every little bit helps.  The strategy taken here is to create
-these two files as part of the rescue boot and initialization process.
-The commands that make the two files will be embedded inside the
-<filename>rcS</filename> script that <filename>linuxrc</filename>
-(really <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox
-</ulink></application>) invokes after the initrd is
-loaded.  This way no more inodes or blocks are used on the
-diskette to carry these files.</para>
-
-<para>Some might like to copy their <filename class="directory">/etc/rc*</filename>
-directory into the ramdisk image, but this may have no value, other
-than archival use, in a worst-case recovery scenario.  If you want
-automatic initialization of the system after repair, they may have some
-value. But few people need or want this to happen. If the file system
-on the hard drives are corrupted, what good will mount scripts do? Some
-scripts may be useful, like access to a network to copy over backup data
-when the hard drive's file systems are usable again.  The point is that
-you should copy only the parts that you can use because space is at a
-premium on the diskette.</para>
-
-<para>Here, only the <filename>fstab</filename> will be included.  This
-is handy because it eases mounting of partitions that may be useful and
-also can be examined and used as a guide as to what is available and
-what may need reconstruction.  Because it may be larger than needed, you
-should edit it to remove any useless entries and minimize commentary.
-No other editing is needed because the boot scripts are not included and
-no automatic mounting will be done using the <filename>fstab</filename>.
-If you decide to include some boot scripts that might try to mount
-things, change the <filename>fstab</filename>'s entries to
-<command>noauto</command> in the options field so they don't cause an
-attempt to mount a potentially corrupt partition.  Copy it to
-<filename class="directory">/tmp</filename>, edit it as desired and then:</para>
-
-<screen><userinput><command>cp -a /tmp/fstab /mnt/loop1/etc</command></userinput></screen>
-
-<para>Now the initialization script will be added.  As mentioned above,
-<command>linuxrc</command> is symlinked to <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox
-</ulink></application>.
-After the kernel and initial ramdisk have been loaded, the kernel gives
-control to <command>linuxrc</command> (<application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox
-</ulink></application>).  It wants to run an <filename class="directory">/etc/init.d/rcS</filename>
-script to do any initial setup.</para>
-
-<para>If you use devfsd, you will need to set up the
-<filename>rcS</filename> script to handle the devfsd startup.  Put the
-following commands in <filename class="directory">/mnt/loop1/etc/init.d/rcS</filename>.
-You may also want to add some of the processes shown in the non-devfs
-version that follows.</para>
-
-<screen><userinput>#!/bin/sh
-mount -t devfs devfs /dev
-/sbin/devfsd /dev</userinput></screen>
-
-<para>If you don't use devfsd, but created a static <filename
-class="directory">/dev</filename> 
-directory using <command>MAKEDEV</command>, or any similar process, the
-<filename>rcS</filename> script will do slightly different things.
-Also, don't forget that it is creating the
-<filename>/etc/passwd</filename> and <filename>/etc/group</filename>
-files, thus saving space on the diskette.</para>
-
-<para>The script made next will mount <filename class="directory">/proc</filename>, turn
-on swap (no harm is done if it fails), make the
-<filename>/etc/passwd</filename> and <filename>/etc/group</filename>
-files, create a log directory and turn on swapping.  Create the script
-with:</para>
-
-<screen><userinput><command>mkdir -p /mnt/loop1/etc/init.d
-cat &gt;/mnt/loop1/etc/init.d/rcS &lt;&lt; EOD</command>
-#!/bin/sh
-mount -t proc proc /proc
-swapon -a
-
-echo "root:x:0:0:root:/root:/bin/bash" &gt; /etc/passwd
-
-<command>cat &gt; /etc/group &lt;&lt;EOF</command>
-root:x:0:
-bin:x:1:
-sys:x:2:
-kmem:x:3:
-tty:x:4:
-tape:x:5:
-daemon:x:6:
-floppy:x:7:
-disk:x:8:
-lp:x:9:
-dialout:x:10:
-audio:x:11:
-<command>EOF
-chmod 644 /etc/passwd /etc/group</command>
-
-mkdir /var/log
-
-<command>EOD
-chmod u+x /mnt/loop1/etc/init.d/rcS</command></userinput></screen>
-
-<para>Unless you add a lot to this script, which <emphasis>is</emphasis>
-encouraged, the above should be reasonably close to what you need.</para>
-
-<para><emphasis>Install packages</emphasis></para>
-
-<para>There are two packages that must be installed.  The <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink></application>
-package incorporates the core functions that provide a shell and many
-basic utilities.  A file system package, like <application><ulink
-url="http://freshmeat.net/projects/e2fsprogs/">e2fsprogs</ulink></application>, or
-a package for the file system you are using, will provide a minimal
-set of utilities for file system checking and reconstruction.  The whole
-package will not be installed, but only certain needed components.</para>
-
-<para>If you use devfsd, you will also need to install that software.</para>
-
-<para>Install <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink></application>
-into the initial ramdisk image.  Busybox incorporates many Unix utility
-program functions into a single small executable file.</para>
-
-<screen><userinput><command>make &amp;&amp;
-make PREFIX=/mnt/loop1 install &amp;&amp;
-&gt; /mnt/loop1/var/utmp</command></userinput></screen>
-
-<para>A <filename>var/utmp</filename> is made because <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink></application>
-needs it for the reboot command to work properly. If this file doesn't
-exist when <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink></application>
-is started, the reboot command will not work. This would be a bad thing
-for people that have no reset button available to them.</para>
-
-<para>If you use devfs to create devices on the fly and free up precious
-inodes on the floppy, you'll also install devfsd to facilitate the
-devices that <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox</ulink></application>
-expects to find. Use the following commands to do the install.</para>
-
-<screen><userinput><command>mv GNUmakefile Makefile &amp;&amp;
-make &amp;&amp;
-make PREFIX=/mnt/loop1 install</command></userinput></screen>
-
-<para><emphasis>Install part of <application>e2fsprogs</application></emphasis></para>
-
-<para>If you use the ext2 or ext3 (journaling) file system, you can use
-the commands below to install the minimal functionality that should
-allow you to get your hard drives usable again.  If you use ext3, keep in
-mind that it is a part of the <application>e2fsprogs</application>
-package and you can get the components, which are mostly hard links,
-from the same places shown below.  If you use some other file system,
-such as reiserfs, you should apply the <emphasis>principals</emphasis>
-you see here to install parts of that package instead.</para>
-
-<screen><userinput><command>LDFLAGS='-s'
-mkdir build &amp;&amp;
-cd build &amp;&amp;
-../configure --prefix=/mnt/loop1/usr --with-root-prefix="" \
-    --disable-swapfs --disable-debugfs \
-    --enable-dynamic-e2fsck --disable-nls --disable-evms \
-    --disable-rpath &amp;&amp;
-make LDFLAGS="$LDFLAGS" &amp;&amp;
-strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/sbin/mke2fs misc/mke2fs &amp;&amp;
-strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/sbin/e2fsck e2fsck/e2fsck &amp;&amp;
-chmod 555 /mnt/loop1/sbin/{mke2fs,e2fsck}
-</command></userinput></screen>
-
-<para><emphasis>Two useful utilities</emphasis></para>
-
-<para>There are two very useful utilities that any rescue disk should
-have, to help in faster and more accurate recovery.  The first is a
-partitioning utility.  The <command>sfdisk</command> program is
-used here because of its small size and great power.  Be warned though -
-it is not what is considered to be "user friendly".  But the
-<command>fdisk</command> and <command>cfdisk</command> programs are
-substantially larger or require more shared objects, like <application>ncurses
-</application>.</para>
-
-<para>The second utility is an editor.  Most graphical editors are
-inherently too large and also require additional shared objects.  For
-this reason, <command>ed</command> is used here.  It is small, requires
-no additional shared objects and is a regex-based editor that is the
-ancestor to almost all subsequent editors that support regex-based
-editing, whether graphical or not.  It is a "context editor" and offers
-powerful, but non-graphical, editing features. There are many other
-editors that may be suitable - feel free to use one of them instead.</para>
-
-<para>Read the <application>busybox</application>
-<filename>INSTALL</filename> and <filename>README</filename> files to
-see how to include a <command>vi</command> editor. It has not been
-investigated here yet, so it may or may not easily fit onto a single
-diskette image such as is made here.</para>
-
-<para>You can install these or not, but it is important for you to have
-some capability such as these offer.  Exactly how you would install the
-utilities you choose will have to be determined by you.</para>
-
-<para><command>Sfdisk</command> and <command>ed</command> are installed
-by, essentially, copying them from your host.  Strip is used, just to
-assure that they carry no "excess baggage", even though the base
-<acronym>LFS</acronym> install should have stripped them already.  Use
-the following commands:</para>
-
-<screen><userinput><command>strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/sbin/sfdisk /sbin/sfdisk
-strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/bin/ed /bin/ed
-chmod 555 /mnt/loop1/sbin/sfdisk /mnt/loop1/bin/ed</command></userinput></screen>
-
-<para>Also, keeping in mind your space limitations, copy any other
-binaries and libraries you need to the image.  Use the
-<command>ldd</command> command to see which libraries you will need to
-copy over for any executables.  Don't forget to also strip them
-<emphasis>before</emphasis> copying them to the ramdisk image or use the
-<command>strip</command>, as above, to "copy" them.</para>
-
-<para><emphasis>Set up the lib directory</emphasis></para>
-
-<para>Once you have installed all the utilities from above and any
-additional ones you want, use the <command>ldd</command> command, as
-mentioned above, on those that were not listed in this document.  If
-any additional libraries are needed, add them into the setup commands
-shown next.</para>
-
-<para>If you installed only those things shown above, the shared objects
-needed will be minimal.  You can add them to the ramdisk image with:</para>
-
-<screen><userinput><command>strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/lib/libc.so.6 /lib/libc-2.3.3.so &amp;&amp;
-strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/lib/ld-linux.so.2 /lib/ld-2.3.3.so &amp;&amp;
-strip -p --strip-unneeded --remove-section=.comment \
-    -o /mnt/loop1/lib/libdl.so.2 /lib/libdl-2.3.3.so &amp;&amp;
-chmod 555 /mnt/loop1/lib/{libc.so.6,ld-linux.so.2,libdl.so.2}</command></userinput></screen>  
-
-<para>Note that the above commands change the names of the libraries,
-eliminating the need for the usual symlinks. If you add any additional
-shared objects, be alert for similar opportunities and also the pitfalls
-that may be present.</para>
-
-<para><emphasis>Make the compressed initrd</emphasis></para>
-
-<para>Unmount the loopback file.  If you used <command>mount</command>'s
-<option>-o loop</option> option, the "bond" between the loop device
-and the file will be removed when the unmount is done.  Just omit the
-<command>losetup -d /dev/loop1</command> from the following
-sequence.  The <userinput>-9</userinput> parameter is used with
-<command>gzip</command> to make the smallest possible compressed image.  To 
-make sure it will fit on the diskette, list the file's size.</para>
-
-<screen><userinput><command>umount /mnt/loop1 &amp;&amp;
-losetup -d /dev/loop1 &amp;&amp;  # Omit if mount's -o loop was used
-gzip -9 &lt; /tmp/rfloppy &gt; /tmp/rootfs.gz
-ls -l /tmp/rootfs.gz</command></userinput></screen>  
-
-<para><emphasis>Join rescueimage and initrd onto a diskette</emphasis></para>
-
-<para>Now the rescueimage and initial ramdisk image will be written to
-the boot diskette.  Before doing this, calculate the number of blocks
-needed for rescueimage and for <filename>/tmp/rootfs.gz</filename>
-(the initial ramdisk), individually, by dividing each
-size by 1024 and adding one if there is any remainder.  Add these two
-results together.  They must total 1,440 or fewer blocks.  If they total
-more than this, don't worry too much.  Changes to make a two-diskette
-set are presented later.  Of course, you could reexamine your choices and
-try to shrink either the rescueimage or the initial ramdisk image.</para>
-
-<para>To make a single-floppy rescue, using devfs, use the following
-commands. If you use the static <filename class="directory">/dev</filename> setup, use
-<filename>/dev/fd0</filename> instead of the /dev/floppy/0.</para>
-
-<screen><userinput><command>dd if=rescueimage of=/dev/floppy/0 bs=1k
-rdev /dev/floppy/0 0,0
-rdev -R /dev/floppy/0 0</command></userinput></screen>
-
-<para><emphasis>Command explanations</emphasis></para>
-
-<para><command>rdev /dev/floppy/0 0,0</command>: sets the root file system
-the kernel will use when it boots. Because it loads an initrd, it will
-automatically set that as the root device, initially. So, the
-<option>0,0</option> gives it "no value", telling the kernel to not
-mount any other device. Some folks give <filename>/dev/fd0</filename> or
-something similar. But this has effect <emphasis>only</emphasis> when
-<command>linuxrc</command> (really <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox
-</ulink></application>) exits and the normal <command>init</command>
-processes get invoked. Since this is not being done here, and the floppy
-is <emphasis>not</emphasis> a valid file system, it would be useless
-here. A hard drive would be a better choice if you are looking to
-automatically bring the system up after repair. Since <application><ulink
-url="http://www.busybox.net/downloads/busybox-0.60.4.tar.bz2">busybox
-</ulink></application> provides the <command>reboot</command> command,
-automatic initialization is not needed.</para>
-
-<para>The <command>rdev -R /dev/floppy/0 0</command> will set the
-"root flags" to zero. They have no use in this application.</para>
-
-<para>The <command>dd</command> from above showed some results, like</para>
-
-<screen>        480+1 records in
-        480+1 records out</screen>
-
-<para>In this example the rescueimage (kernel) was 480+1 blocks in size.
-Make sure that this number, which may be different for you, matches your
-calculations from above.  You need to calculate a "magic number" now
-that will be inserted into rescueimage.  The value consists of three
-significant parts.  Two are discussed here.  The third is touched upon
-later.</para>
-
-<para>Bits 0 - 10 will contain the size of rescueimage, in blocks,
-that you calculated above, and which should match the results from the
-dd above. Bit 14 (the 15th bit, which is 2 to the 14th power, or 16,384)
-is a flag that, when set to 1, tells the kernel an initial ramdisk is to
-be loaded. So for the single-floppy rescue diskette, the two numbers
-16,384 and 481 (or whatever number is right for your rescueimage size) are
-added together to produce a decimal value, like 16865. This value is
-inserted into the proper place in rescueimage by the
-<command>rdev</command> command done next.</para>
-
-<para>Insert the "magic number" into rescueimage and then write the
-root file system right after rescueimage on the floppy by executing the
-following commands, with the proper numbers inserted. Notice that the
-<command>seek</command> parameter's number must be the size, in blocks,
-of your rescueimage. If you use the static <filename class="directory">/dev</filename>
-setup, use <filename>/dev/fd0</filename> in the commands below, instead
-of <filename>/dev/floppy/0</filename>.</para>
-
-<screen><userinput><command>rdev -r /dev/floppy/0 <replaceable>16865</replaceable>
-dd if=/tmp/rootfs.gz of=/dev/floppy/0 bs=1k seek=<replaceable>481</replaceable></command></userinput></screen>
-
-<para>In this command, <command>seek</command> was used to position to
-the block following the end of the rescueimage (480+1) and begin writing the
-root file system to the floppy.</para>
-</sect3>
+<title>Creating a Bootable CD-ROM</title>
+
+<para>There are several sources that can be used for a rescue CD-ROM.
+Just about any commercial distribution's installation CD-ROMs or
+DVDs will work.  These include RedHat, Mandrake, and SuSE.  One 
+very popular option is Knoppix.</para>
+
+<para>In addition, the LFS Community has developed its own Boot 
+CD-ROM available at <ulink url='ftp://ftp.linuxfromscratch.org/lfs-boot-cd'/>.
+A copy of this CD-ROM is available with the printed version of the Linux
+From Scratch book.  If you download the ISO image, use <xref linkend='cdrecord'/> to
+copy the image to a CD-ROM.</para>
+
+<para>In the future, the build instructions for this CD-ROM will be presented,
+but they are not available at this writing.</para>
 </sect2>
 
 <sect2>
-<title>A Two-diskette Rescue Setup</title>
+<title>Creating a Bootable USB Drive</title>
 
-<para>If you just can't live with a single-diskette rescue system, here
-is what to do to make a simple two-diskette system. Note that the
-endless possibilities presented by the availability of
-<command>linuxrc</command> and other components are not addressed
-here. Here you will just use the kernel's ability to prompt for a second
-diskette that contains the initrd image and load it.</para>
-
-<para>Modify the above instructions as follows. First a different magic
-number is needed. The 15th bit (bit 14) still needs to be set, but the
-size of the rescueimage, in blocks, is replaced with a zero.  The third
-component, which was not discussed above, is now used. This is the 16th
-bit (bit 15) of the "magic number". When set, it tells the kernel to ask
-the user to insert the "root" floppy. It then loads the initrd image
-from that diskette.  Because the size of the rescueimage was replaced
-by zero, the kernel starts loading from the "zero'th" block (the first
-one) on the second diskette.</para>
-
-<para>The 16th bit (bit 15) represents 2 raised to the 15th power, or
-32,768. So the new magic number is 32,768 + 16384, which is 49,152. This
-value tells the kernel to prompt for, and then load, an initial ramdisk
-image from the first block on the inserted floppy.  So your first
-modification is to the command to write the "magic number" to the rescueimage
-image on the diskette.</para>
-
-<screen><userinput><command>rdev -r /dev/floppy/0 <replaceable>49152</replaceable></command></userinput></screen>
-
-<para>Note that the initrd image is <emphasis>not</emphasis> copied to
-the diskette yet. Remove the boot diskette and insert another diskette
-that will hold your root file system. Run this modified command (don't
-forget to use <filename>/dev/fd0</filename> if you don't use devfs).
-Note that no <command>seek</command> parameter is used.</para>
-
-<screen><userinput><command>dd if=/tmp/rootfs.gz of=/dev/floppy/0 bs=1k</command></userinput></screen>
-
-<para>That's all there is to it. The possibilities from here are limited only
-by your imagination and tenacity in pursuing enhancements. And your
-willingness to research available documentation. A good starting point
-is the "Documentation" directory in your kernel source tree. More help
-may be gained at
-<ulink url="http://linuxfromscratch.org/hints/news.html"><acronym>LFS </acronym> Hints</ulink>
-(please use a mirror site that is suitable) and
-<ulink url="http://www.tldp.org">TLDP</ulink>.</para>
+<para>A USB Pen drive, sometimes called a Thumb drive, is recognized by Linux as
+a SCSI device.  Using one of these devices as a rescue device has the advantage
+that it is usually large enough to hold more than a minimal boot image.  You
+can save critical data to the drive as well as use it to diagnose and recover
+a damaged system.  Booting such a drive requires BIOS support, but building the
+system consists of formatting the drive, adding <application>grub</application>
+as well as the kernel and supporting files.</para>
 
 </sect2>
 </sect1>	
