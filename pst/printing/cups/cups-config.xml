@@ -1,0 +1,66 @@
+<sect2>
+<title>CUPS Configuration</title>
+
+<para>Configuration of CUPS is dependent on the type of printer and can be complex.  
+Generally, postscript printers are easier.  For detailed instructions on 
+configuration and use of CUPS, see <ulink url="http://www.cups.org/documentation.html"/>.
+The Software Administrators Manual and Software Users Manual are particularly
+useful.</para>
+
+<para>During the install, cups created the startup file 
+<filename>/etc/rc.d/init.d/cups</filename>.
+The file works, but you may want to change it to a more 
+conventional LFS startup file:</para>
+
+<para><screen><userinput>cat &gt; /etc/rc.d/inst.d/cups &lt;&lt; "EOF"
+
+#!/bin/sh
+# Begin $rc_base/init.d/cups
+
+# Start or stop the CUPS server based upon the first argument to the script.
+
+source /etc/sysconfig/rc
+source $rc_functions
+
+case $1 in
+    start)
+           echo "Starting CUPS Printserver..."
+           loadproc /usr/sbin/cupsd
+           ;;
+    stop)
+           echo "Stopping CUPS Printserver..."
+           killproc cupsd
+           ;;
+
+    reload)
+           echo "Reloading CUPS Printserver..."
+           reloadproc /usr/sbin/cupsd
+           ;;
+
+    restart)
+           $0 stop
+           sleep 1
+           $0 start
+           ;;
+
+    status)
+           statusproc cupsd
+           ;;
+
+    *)
+           echo "Usage: $0 {start|stop|reload|restart|status}"
+           exit 1
+           ;;
+esac
+
+# End $rc_base/init.d/cups startup script.
+EOF</userinput></screen></para>
+
+<para>The CUPS install also copies the initialization script to the 
+<filename>/etc/rc.d/rc{0,2,3,5}</filename> directories.  You may want 
+to delete those files and add symbolic links to 
+<filename>/etc/rc.d/init.d/cups</filename>.</para>
+
+
+
+</sect2>
