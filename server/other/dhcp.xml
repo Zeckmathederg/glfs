@@ -6,19 +6,23 @@
 
 <!ENTITY dhcp-download-http "http://gd.tuwien.ac.at/infosys/servers/isc/dhcp/dhcp-&dhcp-version;.tar.gz">
 <!ENTITY dhcp-download-ftp "ftp://ftp.isc.org/isc/dhcp/dhcp-&dhcp-version;.tar.gz">
-<!ENTITY dhcp-md5sum "44f72d16a12acc3fbe09703157aa42d2">
-<!ENTITY dhcp-size "852 KB">
-<!ENTITY dhcp-buildsize "29.6 MB">
-<!ENTITY dhcp-time "0.23 SBU">
+<!ENTITY dhcp-md5sum "04800a111521e7442749b2ce883f962b">
+<!ENTITY dhcp-size "834 KB">
+<!ENTITY dhcp-buildsize "29.7 MB">
+<!ENTITY dhcp-time "0.22 SBU">
 ]>
 
 <sect1 id="dhcp" xreflabel="DHCP-&dhcp-version;">
 <sect1info>
-<othername>$LastChangedBy$</othername>
-<date>$Date$</date>
+  <othername>$LastChangedBy$</othername>
+  <date>$Date$</date>
 </sect1info>
 <?dbhtml filename="dhcp.html"?>
 <title><acronym>DHCP</acronym>-&dhcp-version;</title>
+
+<indexterm zone="dhcp">
+  <primary sortas="a-dhcp">Dhcp</primary>
+</indexterm>
 
 <sect2>
 <title>Introduction to 
@@ -33,43 +37,51 @@ on your private network.</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP): <ulink
-url="&dhcp-download-http;"/></para></listitem>
-<listitem><para>Download (FTP): <ulink
-url="&dhcp-download-ftp;"/></para></listitem>
-<listitem><para>Download MD5 sum: &dhcp-md5sum;</para></listitem>
-<listitem><para>Download size: &dhcp-size;</para></listitem>
-<listitem><para>Estimated disk space required:
-&dhcp-buildsize;</para></listitem>
-<listitem><para>Estimated build time:
-&dhcp-time;</para></listitem></itemizedlist>
+  <listitem><para>Download (HTTP): <ulink url="&dhcp-download-http;"/></para></listitem>
+  <listitem><para>Download (FTP): <ulink url="&dhcp-download-ftp;"/></para></listitem>
+  <listitem><para>Download MD5 sum: &dhcp-md5sum;</para></listitem>
+  <listitem><para>Download size: &dhcp-size;</para></listitem>
+  <listitem><para>Estimated disk space required: &dhcp-buildsize;</para></listitem>
+  <listitem><para>Estimated build time: &dhcp-time;</para></listitem>
+</itemizedlist>
 </sect3>
 
-<sect3><title><application>dhcp</application> dependencies</title>
-<sect4><title>Required</title>
-<para><xref linkend="net-tools"/> (you may omit 
-<application>net-tools</application> by using the following patch to utilize 
-<application>iproute2</application>: <ulink 
-url="&patch-root;/dhcp-&dhcp-version;-iproute2-1.patch"/>)</para>
+<sect3>
+  <title><application>dhcp</application> dependencies</title>
+
+<sect4>
+  <title>Required</title>
+  <para><xref linkend="net-tools"/> (you may omit <application>net-tools</application> 
+         by using the following patch to utilize <application>iproute2</application>: 
+         <ulink url="&patch-root;/dhcp-&dhcp-version;-iproute2-1.patch"/>)
+  </para>
 </sect4>
 </sect3>
 
 </sect2>
 
-<sect2>
+<sect2 id='dhcp-kernel'>
 <title>Installation of 
 <application><acronym>DHCP</acronym></application></title>
 
-<note><para>You must have Packet Socket support compiled in the kernel and 
-Socket Filtering either compiled in or as a kernel module.</para></note>
+<note><para>You must have Packet Socket support (Device Drivers -&gt; 
+Networking Support -&gt; Networking Options -&gt; Packet Socket) compiled into 
+the kernel.</para></note>
+
+<indexterm zone="dhcp dhcp-kernel">
+  <primary sortas="d-dhcp">DHCP</primary>
+</indexterm>
 
 <para>Install <application><acronym>DHCP</acronym></application> by running 
 the following commands:</para>
 
 <screen><userinput><command>patch -Np1 -i ../dhcp-&dhcp-version;-iproute2-1.patch &amp;&amp;
 ./configure &amp;&amp;
-make &amp;&amp;
-make LIBDIR=/usr/lib INCDIR=/usr/include install</command></userinput></screen>
+make</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+ 
+<screen><userinput role='root'><command>make LIBDIR=/usr/lib INCDIR=/usr/include install</command></userinput></screen>
 
 </sect2>
 
@@ -83,14 +95,25 @@ command installs the library and include files in
 
 </sect2>
 
-<sect2>
+<sect2 id='dhcp-config'>
 <title>Configuring <application><acronym>DHCP</acronym></application></title>
 
-<sect3><title>Config files</title>
+ <indexterm zone="dhcp dhcp-config">
+    <primary sortas="e-etc-dhclient.conf">/etc/dhclient.conf</primary>
+ </indexterm>
+
+ <indexterm zone="dhcp dhcp-config">
+    <primary sortas="e-etc-dhcpd.conf">/etc/dhcpd.conf</primary>
+ </indexterm>
+
+
+<sect3>
+<title>Config files</title>
 <para><filename>/etc/dhclient.conf</filename></para>
 </sect3>
 
-<sect3><title>Configuration Information</title>
+<sect3 id='dhcp-init'>
+<title>Configuration Information</title>
 
 <para>Information on configuring the <acronym>DHCP</acronym> client can be 
 found in <xref linkend="connect-dhcp"/>.</para>
@@ -104,6 +127,10 @@ interface, which may need to be modified for your hardware configuration.</para>
 <para>Install the <filename>/etc/rc.d/init.d/dhcp</filename>
 init script included in the <xref linkend="intro-important-bootscripts"/> 
 package.</para>
+
+ <indexterm zone="dhcp dhcp-init">
+    <primary sortas="f-dhcp">dhcpd</primary>
+ </indexterm>
 
 <screen><userinput><command>make install-dhcp</command></userinput></screen>
 
@@ -124,7 +151,7 @@ ddns-update-style ad-hoc;
 
 subnet <replaceable>[192.168.5.0]</replaceable> netmask <replaceable>[255.255.255.0]</replaceable> {
   range <replaceable>[192.168.5.10] [192.168.5.240]</replaceable>;
-  option broadcast-address <replaceable>[195.168.5.255]</replaceable>;
+  option broadcast-address <replaceable>[192.168.5.255]</replaceable>;
   option routers <replaceable>[192.168.5.1]</replaceable>;
 }
 <command>EOF</command></userinput></screen>
@@ -138,30 +165,68 @@ subnet <replaceable>[192.168.5.0]</replaceable> netmask <replaceable>[255.255.25
 <sect2>
 <title>Contents</title>
 
-<para>The <application><acronym>DHCP</acronym></application> package contains 
-<command>dhclient</command>, <command>dhcpd</command> and 
-<command>dhcrelay</command>.</para>
+<segmentedlist>
+  <segtitle>Installed Programs</segtitle>
+  <segtitle>Installed Libraries</segtitle>
+  <segtitle>Installed Directories</segtitle>
+ 
+  <seglistitem>
+    <seg>dhcpd, dhcrelay, dhclient, dhclient-script, omshell</seg>
+    <seg>bdhcpctl.a, libomapi.a</seg>
+    <seg>/var/state/dhcp, /usr/include/omapip, /usr/include/isi-dhcp</seg>
+  </seglistitem>
+</segmentedlist>
+ 
+<variablelist>
+  <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+  <?dbfo list-presentation="list"?>
 
+<varlistentry id="dhclient">
+  <term><command>dhclient</command></term>
+  <listitem>
+    <para>is the implementation of the <acronym>DHCP</acronym> client.</para>
+    <indexterm zone="dhcp dhclient">
+      <primary sortas="b-dhclient">dhclient</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
+
+<varlistentry id="dhcpd">
+  <term><command>dhcpd</command></term>
+  <listitem>
+    <para>implements Dynamic Host Configuration Protocol (<acronym>DHCP</acronym>) 
+          and Internet Bootstrap Protocol (<acronym>BOOTP</acronym>) requests for 
+          network addresses.</para>
+    <indexterm zone="dhcp dhcpd">
+      <primary sortas="b-dhcpd">dhcpd</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
+
+<varlistentry id="dhcrelay">
+  <term><command>dhcrelay</command></term>
+  <listitem>
+    <para>provides a means to accept <acronym>DHCP</acronym> and <acronym>BOOTP</acronym> 
+          requests on a subnet without a <acronym>DHCP</acronym> server and relay them to 
+          a <acronym>DHCP</acronym> server on another subnet.</para>
+    <indexterm zone="dhcp dhcrelay">
+      <primary sortas="b-dhcrelay">dhcrelay</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
+
+<varlistentry id="omshell">
+  <term><command>omshell</command></term>
+  <listitem>
+    <para> provides an interactive way to connect to, query, and possibly change, 
+           the ISC DHCP Server's state via OMAPI, the Object Management API.</para>
+    <indexterm zone="dhcp omshell">
+      <primary sortas="b-omshell">omshell</primary>
+    </indexterm>
+  </listitem>
+</varlistentry>
+
+</variablelist> 
 </sect2>
-
-<sect2><title>Description</title>
-
-<sect3><title>dhclient</title>
-<para><command>dhclient</command> is the implementation of the
-<acronym>DHCP</acronym> client.</para></sect3>
-
-<sect3><title>dhcpd</title>
-<para><command>dhcpd</command> implements Dynamic Host Configuration Protocol 
-(<acronym>DHCP</acronym>) and Internet Bootstrap Protocol
-(<acronym>BOOTP</acronym>) requests for network addresses.</para></sect3>
-
-<sect3><title>dhcrelay</title>
-<para><command>dhcrelay</command> provides a means to accept <acronym>DHCP
-</acronym> and <acronym>BOOTP</acronym> requests on a subnet without a 
-<acronym>DHCP</acronym> server and relay them to a <acronym>DHCP</acronym> 
-server on another subnet.</para></sect3>
-
-</sect2>
-
 </sect1>
 
