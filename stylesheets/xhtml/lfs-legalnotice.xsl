@@ -7,9 +7,10 @@
                 version="1.0">
 
   	<!-- Generating the page -->
+
   <xsl:template match="legalnotice" mode="titlepage.mode">
     <xsl:variable name="id"><xsl:call-template name="object.id"/></xsl:variable>
-      <xsl:variable name="filename" select="concat($base.dir, 'prologue/legalnotice.html')"/>
+      <xsl:variable name="filename" select="concat($base.dir, 'legalnotice.html')"/>
     <xsl:variable name="title">
       <xsl:apply-templates select="." mode="title.markup"/>
     </xsl:variable>
@@ -52,7 +53,7 @@
     <p class="{name(.)}">
       <a>
         <xsl:attribute name="href">
-          <xsl:value-of select="'prologue/legalnotice.html'"/>
+          <xsl:value-of select="'legalnotice.html'"/>
         </xsl:attribute>
         <xsl:call-template name="gentext">
           <xsl:with-param name="key" select="'Copyright'"/>
