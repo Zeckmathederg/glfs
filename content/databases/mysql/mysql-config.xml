@@ -56,7 +56,7 @@ bye
 <para>Now that we are done with the configuration of the server, we can
 shut it down.</para>
 
-<screen><userinput><command>mysqladmin shutdown</command></userinput></screen>
+<screen><userinput><command>mysqladmin -p shutdown</command></userinput></screen>
 
 <para>To automate the running of <application>My<acronym>SQL</acronym></application>, use the following command to create
 the init.d script:</para>
@@ -71,16 +71,40 @@ the init.d script:</para>
 source /etc/sysconfig/rc
 source $rc_functions
 
+pid_file=/var/lib/mysql/`/bin/hostname`.pid
+
 case "$1" in
         start)
                 echo "Starting MySQL daemon..."
-                /usr/bin/mysqld_safe --user=mysql 2&gt;&amp;1 &gt;/dev/null &amp;
-                evaluate_retval
+                if test -s "$pid_file"
+                then print_status warning running
+                else
+                    /usr/bin/mysqld_safe --user=mysql 2>&1 >/dev/null &
+                    evaluate_retval
+                fi
                 ;;
 
         stop)
                 echo "Stopping MySQL daemon..."
-                killproc mysqld
+                if test -s "$pid_file"
+                then
+                    kill `cat $pid_file`
+                    sleep 1
+                    failure=0
+                    while [ -s $pid_file -a "$flags" != aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ]
+                    do
+                        [ -z "$flags" ]
+                        flags=a$flags
+                        sleep 1
+                    done
+                    if [ -s $pid_file ]
+                        then failure=1
+                    fi
+                    (exit $failure)
+                    evaluate_retval
+                else
+                    print_status warning not_running
+                fi
                 ;;
 
         restart)
