@@ -89,6 +89,4 @@ tex:
 	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
 
 validate:
-# --noent prevents resolving linkend (remove when xinclude fully
-# implemented)
-	xmllint --noout --nonet --noent --xinclude --postvalid index.xml
+	xmllint --noout --nonet --xinclude --postvalid index.xml
