@@ -79,10 +79,454 @@ make</command></userinput></screen>
 <para>Ensure the path to all daemons is 
 <filename class="directory">/usr/sbin</filename>, rather than the default path 
 of <filename class="directory">/usr/etc</filename>, and install the 
-<application>xinetd</application> configuration file by running the following
-command as the root user:</para>
+<application>xinetd</application> configuration files by running the following
+commands as the root user:</para>
 
-<screen><userinput role='root'><command>sed -e 's/etc/sbin/g' xinetd/sample.conf &gt; /etc/xinetd.conf</command>
+<screen><userinput role='root'><command>cat &gt; /etc/xinetd.conf &lt;&lt; "EOF"</command>
+# Begin /etc/xinetd
+# Configuration file for xinetd
+#
+
+defaults
+{
+      instances       = 60
+      log_type        = SYSLOG daemon
+      log_on_success  = HOST PID USERID
+      log_on_failure  = HOST USERID
+      cps             = 25 30
+}
+
+# All service files are stored in the /etc/xinetd.d directory
+#
+includedir /etc/xinetd.d
+# End /etc/xinetd
+<command>EOF</command></userinput></screen>
+<para>All of the following files have the statement, "disable = yes". To activate 
+any of the services, this statement will need to be changed to "disable = no".</para>
+
+<note><para>The following files are listed to demonstrate classic
+<application>xinetd</application> applications.  In many cases, these
+applications are not needed.  In some cases, the applications are 
+considered security risks.  For example, telnet, rlogin, rexec, and rsh
+transmit unencrypted usernames and passwords over the network and can be easily
+replaced with a more secure alternative: ssh.</para></note>
+
+<screen><userinput role='root'><command>install -d -m755 /etc/xinetd.d &amp;&amp;</command>
+<command>cat &gt; /etc/xinetd.d/login &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/login
+
+service login
+{
+   disable        = yes
+   socket_type    = stream
+   protocol       = tcp
+   wait           = no
+   user           = root
+   server         = /usr/sbin/in.rlogind
+   log_type       = SYSLOG local4 info
+}
+
+# End /etc/xinetd.d/login
+<command>EOF
+cat &gt; /etc/xinetd.d/shell &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/shell
+
+service shell
+{
+   disable        = yes
+   socket_type    = stream
+   wait           = no
+   user           = root
+   instances      = UNLIMITED
+   flags          = IDONLY
+   log_on_success += USERID
+   server         = /usr/sbin/in.rshd
+}
+
+# End /etc/xinetd.d/shell
+<command>EOF
+cat &gt; /etc/xinetd.d/exec &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/exec
+
+service exec
+{
+   disable        = yes
+   socket_type    = stream
+   wait           = no
+   user           = root
+   server         = /usr/sbin/in.rexecd
+}
+
+# End /etc/xinetd.d/exec
+<command>EOF
+cat &gt; /etc/xinetd.d/comsat &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/comsat
+
+service comsat
+{
+   disable        = yes
+   socket_type    = dgram
+   wait           = yes
+   user           = nobody
+   group          = tty
+   server         = /usr/sbin/in.comsat
+}
+
+# End /etc/xinetd.d/comsat
+<command>EOF
+cat &gt; /etc/xinetd.d/talk &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/talk
+
+service talk
+{
+   disable        = yes
+   socket_type    = dgram
+   wait           = yes
+   user           = root
+   server         = /usr/sbin/in.talkd
+}
+
+# End /etc/xinetd.d/talk
+<command>EOF
+cat &gt; /etc/xinetd.d/ntalk &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/ntalk
+
+service ntalk
+{
+   disable        = yes
+   socket_type    = dgram
+   wait           = yes
+   user           = root
+   server         = /usr/sbin/in.ntalkd
+}
+
+# End /etc/xinetd.d/ntalk
+<command>EOF
+cat &gt; /etc/xinetd.d/telnet &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/telnet
+
+service telnet
+{
+   disable        = yes
+   socket_type    = stream	
+   wait           = no
+   user           = root
+   server         = /usr/sbin/in.telnetd
+   bind           = 127.0.0.1
+   log_on_failure += USERID
+}
+
+service telnet
+{
+   disable        = yes
+   socket_type    = stream	
+   wait           = no
+   user           = root
+#  server         = /usr/sbin/in.telnetd
+   bind           = 192.231.139.175
+   redirect       = 128.138.202.20 23
+   log_on_failure += USERID
+}
+
+# End /etc/xinetd.d/telnet
+<command>EOF
+cat &gt; /etc/xinetd.d/ftp &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/ftp
+
+service ftp
+{
+   disable        = yes
+   socket_type    = stream
+   wait           = no
+   user           = root
+   server         = /usr/sbin/in.ftpd
+   server_args    = -l
+   instances      = 4
+   log_on_success += DURATION USERID
+   log_on_failure += USERID
+   access_times   = 2:00-8:59 12:00-23:59
+   nice           = 10
+}
+
+# End /etc/xinetd.d/ftp
+<command>EOF
+cat &gt; /etc/xinetd.d/tftp &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/tftp
+
+service tftp
+{
+   disable        = yes
+   socket_type    = dgram
+   wait           = yes
+   user           = root
+   server         = /usr/sbin/in.tftpd
+   server_args    = -s /tftpboot
+}
+
+# End /etc/xinetd.d/tftp
+<command>EOF
+cat &gt; /etc/xinetd.d/finger &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/finger
+
+service finger
+{
+   disable        = yes
+   socket_type    = stream
+   wait           = no
+   user           = nobody
+   server         = /usr/sbin/in.fingerd
+}
+
+# End /etc/xinetd.d/finger
+<command>EOF
+cat &gt; /etc/xinetd.d/systat &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/systat
+
+service systat
+{
+   disable           = yes
+   socket_type       = stream
+   wait              = no
+   user              = nobody
+   server            = /usr/bin/ps
+   server_args       = -auwwx
+   only_from         = 128.138.209.0
+   log_on_success    = HOST
+}
+
+# End /etc/xinetd.d/systat
+<command>EOF
+cat &gt; /etc/xinetd.d/netstat &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/netstat
+
+service netstat
+{
+   disable           = yes
+   socket_type       = stream
+   wait              = no
+   user              = nobody
+   server            = /usr/ucb/netstat
+   server_args       = -f inet
+   only_from         = 128.138.209.0
+   log_on_success    = HOST
+}
+
+# End /etc/xinetd.d/netstat
+<command>EOF
+cat &gt; /etc/xinetd.d/echo &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/echo
+
+service echo
+{
+   disable     = yes
+   type        = INTERNAL
+   id          = echo-stream
+   socket_type = stream
+   protocol    = tcp
+   user        = root
+   wait        = no
+}
+
+service echo
+{
+   disable     = yes
+   type        = INTERNAL
+   id          = echo-dgram
+   socket_type = dgram
+   protocol    = udp
+   user        = root
+   wait        = yes
+}
+
+# End /etc/xinetd.d/echo
+<command>EOF
+cat &gt; /etc/xinetd.d/chargen &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/chargen
+
+service chargen
+{
+   disable        = yes
+   type           = INTERNAL
+   id             = chargen-stream
+   socket_type    = stream
+   protocol       = tcp
+   user           = root
+   wait           = no
+}
+
+service chargen
+{
+   disable        = yes
+   type           = INTERNAL
+   id             = chargen-dgram
+   socket_type    = dgram
+   protocol       = udp
+   user           = root
+   wait           = yes
+}
+
+# End /etc/xinetd.d/chargen
+<command>EOF
+cat &gt; /etc/xinetd.d/daytime &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/daytime
+
+service daytime
+{
+   disable        = yes
+   type           = INTERNAL
+   id             = daytime-stream
+   socket_type    = stream
+   protocol       = tcp
+   user           = root
+   wait           = no
+}
+
+service daytime
+{
+   disable        = yes
+   type           = INTERNAL
+   id             = daytime-dgram
+   socket_type    = dgram
+   protocol       = udp
+   user           = root
+   wait           = yes
+}
+
+# End /etc/xinetd.d/daytime
+<command>EOF
+cat &gt; /etc/xinetd.d/time &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/time
+
+service time
+{
+   disable        = yes
+   type           = INTERNAL
+   id             = time-stream
+   socket_type    = stream
+   protocol       = tcp
+   user           = root
+   wait           = no
+}
+
+
+service time
+{
+   disable        = yes
+   type           = INTERNAL
+   id             = time-dgram
+   socket_type    = dgram
+   protocol       = udp
+   user           = root
+   wait           = yes
+}
+
+# End /etc/xinetd.d/time
+<command>EOF
+cat &gt; /etc/xinetd.d/rstatd &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/rstatd
+
+ervice rstatd
+{
+   disable     = yes
+   type        = RPC
+   flags       = INTERCEPT
+   rpc_version = 2-4
+   socket_type = dgram
+   protocol    = udp
+   server      = /usr/sbin/rpc.rstatd
+   wait        = yes
+   user        = root
+}
+
+# End /etc/xinetd.d/rstatd
+<command>EOF
+cat &gt; /etc/xinetd.d/rquotad &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/rquotad
+
+service rquotad
+{
+   disable     = yes
+   type        = RPC
+   rpc_version = 1
+   socket_type = dgram
+   protocol    = udp
+   wait        = yes
+   user        = root
+   server      = /usr/sbin/rpc.rstatd
+}
+
+# End /etc/xinetd.d/rquotad
+<command>EOF
+cat &gt; /etc/xinetd.d/rusersd &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/rusersd
+
+service rusersd
+{
+   disable     = yes
+   type        = RPC
+   rpc_version = 1-2
+   socket_type = dgram
+   protocol    = udp
+   wait        = yes
+   user        = root
+   server      = /usr/sbin/rpc.rusersd
+}
+
+# End /etc/xinetd.d/rusersd
+<command>EOF
+cat &gt; /etc/xinetd.d/sprayd &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/sprayd
+
+service sprayd
+{
+   disable      = yes
+   type         = RPC
+   rpc_version  = 1
+   socket_type  = dgram
+   protocol     = udp
+   wait         = yes
+   user         = root
+   server       = /usr/sbin/rpc.sprayd
+}
+
+# End /etc/xinetd.d/sprayd
+<command>EOF
+cat &gt; /etc/xinetd.d/walld &lt;&lt; "EOF" &amp;&amp;</command>
+# Begin /etc/xinetd.d/walld
+
+service walld
+{
+   disable      = yes
+   type         = RPC
+   rpc_version  = 1
+   socket_type  = dgram
+   protocol     = udp
+   wait         = yes
+   user         = nobody
+   group        = tty
+   server       = /usr/sbin/rpc.rwalld
+}
+
+# End /etc/xinetd.d/walld
+<command>EOF
+cat &gt; /etc/xinetd.d/irc &lt;&lt; "EOF"</command>
+# Begin /etc/xinetd.d/irc
+
+service irc
+{
+   disable      = yes
+   socket_type  = stream
+   wait         = no
+   user         = root
+   flags        = SENSOR
+   type         = INTERNAL
+   bind         = 192.168.1.30
+   deny_time    = 60
+}
+
+# End /etc/xinetd.d/irc
+<command>EOF</command>
+
 </userinput></screen>
 
 <para>The format of the <filename>/etc/xinetd.conf</filename> is
