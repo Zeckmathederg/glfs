@@ -89,4 +89,4 @@ tex:
 	$(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
 
 validate:
-	xmllint --noout --valid index.xml
+	xmllint --noout --nonet --xinclude --postvalid index.xml
