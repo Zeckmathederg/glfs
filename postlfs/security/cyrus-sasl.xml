@@ -7,8 +7,8 @@
   <!ENTITY cyrus-sasl-download-http "http://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-&cyrus-sasl-version;.tar.gz ">
   <!ENTITY cyrus-sasl-download-ftp  "ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-&cyrus-sasl-version;.tar.gz">
   <!ENTITY cyrus-sasl-size          "1.5 MB">
-  <!ENTITY cyrus-sasl-buildsize     "?? MB">
-  <!ENTITY cyrus-sasl-time          "?? SBU">
+  <!ENTITY cyrus-sasl-buildsize     "13.5 MB">
+  <!ENTITY cyrus-sasl-time          "0.25 SBU">
 ]>
 
 <sect1 id="cyrus-sasl" xreflabel="Cyrus SASL-&cyrus-sasl-version;">
@@ -25,7 +25,7 @@ authentication support to connection-based protocols. To use
 <acronym>SASL</acronym>, a protocol includes a command for identifying and 
 authenticating a user to a server and for optionally negotiating protection of 
 subsequent protocol interactions. If its use is negotiated, a security layer 
-is inserted between the protocol and the connection</para>
+is inserted between the protocol and the connection.</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing="compact">
@@ -48,7 +48,6 @@ dependencies</title>
 <ulink url="http://sqlite.org/">SQLite</ulink>
 </para>
 </sect4>
-
 </sect3>
 
 </sect2>
@@ -60,36 +59,74 @@ dependencies</title>
 <para>Install <application>Cyrus <acronym>SASL</acronym></application> by 
 running the following commands:</para>
 
-<!-- <screen><userinput><command>./configure &amp;&amp;
+<screen><userinput><command>./configure --prefix=/usr --sysconfdir=/etc \
+            --with-dbpath=/var/lib/sasl/sasldb2 \
+            --with-saslauthd=/var/run &amp;&amp;
 make &amp;&amp;
-make install</command></userinput></screen> -->
-
-<para>The remainder of the instructions will be completed soon.</para>
+make install &amp;&amp;
+install -m644 -oroot -groot saslauthd/saslauthd.mdoc \
+    /usr/share/man/man8/saslauthd.8 &amp;&amp;
+install -d -m755 /usr/share/doc/sasl &amp;&amp;
+install -m644 -oroot -groot doc/{*.{html,txt,fig},ONEWS,TODO} \
+    /usr/share/doc/sasl &amp;&amp;
+install -m644 -oroot -groot saslauthd/LDAP_SASLAUTHD \
+    /usr/share/doc/sasl &amp;&amp;
+install -d -m700 /var/lib/sasl</command></userinput></screen>
 
 </sect2>
 
-<!-- <sect2>
+<sect2>
 <title>Command explanations</title>
 
-<para><command>COMMAND</command>: This command does something.</para>
+<para><parameter>--with-dbpath=/var/lib/sasl/sasldb2</parameter>: This 
+parameter forces the <command>saslauthd</command> database to be created
+in <filename class='directory'>/var/lib/sasl</filename> instead of 
+<filename class='directory'>/etc</filename>.</para>
 
-<para><parameter>-SWITCH=PARAMETER</parameter>: This parameter does something.</para>
+<para><parameter>--with-saslauthd=/var/run</parameter>: This parameter forces 
+<command>saslauthd</command> to use the <acronym>FHS</acronym> compliant 
+directory <filename class='directory'>/var/run</filename> for variable run-time 
+data.</para>
 
-<para><option>-OPTION</option>: This option does something.</para>
+<para><command>install -m644 -oroot -groot ...</command>: These commands 
+install documentation which is not installed by the 
+<command>make install</command> command.</para>
+
+<para><command>install -d -m700 /var/lib/sasl</command>: This directory must 
+exist when starting <command>saslauthd</command>. If you're not going to be 
+running the daemon, you may omit the creation of this directory.
+</para>
 
 </sect2>
 
 <sect2>
 <title>Configuring <application>Cyrus <acronym>SASL</acronym></application></title>
 
-<sect3><title>Config files</title>
-<para><filename>List of config files</filename></para>
+<sect3><title>Config Files</title>
+<para><filename>/etc/saslauthd.conf</filename> (for <acronym>LDAP</acronym> 
+configuration) and <filename>/usr/lib/sasl2/Appname.conf</filename> (where 
+"Appname" is the application defined name of the application)</para>
 </sect3>
 
 <sect3><title>Configuration Information</title>
+<para>See <ulink url="file:///usr/share/doc/sasl/sysadmin.html"/> for 
+information on what to include in the application configuration files. See 
+<ulink url="file:///usr/share/doc/sasl/LDAP_SASLAUTHD"/> for configuring 
+<command>saslauthd</command> with <acronym>LDAP</acronym>.</para>
+</sect3>
 
-<para><userinput>USERINPUT GOES HERE</userinput> Blah blah blah about config.
-</para>
+<sect3><title>Init Script</title>
+<para>If you need to run the <command>saslauthd</command> daemon at system 
+startup, install the <filename>/etc/rc.d/init.d/cyrus-sasl</filename>
+init script included in the 
+<xref linkend="intro-important-bootscripts"/> package.</para>
+
+<screen><userinput><command>make install-cyrus-sasl</command></userinput></screen>
+
+<note><para>You'll need to modify the init script and replace the 
+<parameter><replaceable>[authmech]</replaceable></parameter> parameter to the 
+<parameter>-a</parameter> switch with your desired authentication mechanism.
+</para></note>
 </sect3>
 
 </sect2>
@@ -98,19 +135,31 @@ make install</command></userinput></screen> -->
 <title>Contents</title>
 
 <para>The <application>Cyrus <acronym>SASL</acronym></application> package 
-contains <command>LISTOFEXEC</command>, <filename>LISTOFFILES</filename>.</para>
+contains <command>saslauthd</command>, <command>sasldblistusers2</command>, 
+<command>saslpasswd2</command>, <application>Cyrus 
+<acronym>SASL</acronym></application> plugins, the 
+<filename class='libraryfile'>libsasl2</filename> library and optionally the 
+<filename class='libraryfile'>libjavasasl</filename> library and 
+<acronym>SASL</acronym> Java classes.</para>
 
 </sect2>
 
 <sect2><title>Description</title>
 
-<sect3><title>item1</title>
-<para><command>item1</command> does this</para></sect3>
+<sect3><title>saslauthd</title>
+<para><command>saslauthd</command> is the <acronym>SASL</acronym> 
+authentication server.</para></sect3>
 
-<sect3><title>item2</title>
-<para><filename>item2</filename> does that</para></sect3>
+<sect3><title>sasldblistusers2</title>
+<para><filename>sasldblistusers2</filename> is used to list the users in the 
+<acronym>SASL</acronym> password database.</para></sect3>
 
-</sect2> -->
+<sect3><title>saslpasswd2</title>
+<para><filename>saslpasswd2</filename> is used to set and delete a user's 
+<acronym>SASL</acronym> password and mechanism specific secrets in the 
+<acronym>SASL</acronym> password database.</para></sect3>
+
+</sect2>
 
 </sect1>
 
