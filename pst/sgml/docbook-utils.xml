@@ -19,7 +19,6 @@
 <?dbhtml filename="docbook-utils.html"?>
 <title>DocBook-utils-&docbook-utils-version;</title>
 
-
 <sect2>
 <title>Introduction to <application>DocBook-utils</application></title>
 
@@ -62,20 +61,33 @@ man and texinfo), and
 <sect2>
 <title>Installation of <application>DocBook-utils</application></title>
 
+<note><para>Earlier versions of the <acronym>BLFS</acronym>
+<application>OpenSP</application> instructions installed a catalog
+containing an SGMLDECL <filename>unicode.sd</filename> declaration
+into the system <acronym>SGML</acronym> catalogs. This declaration
+causes some of the <application>OpenJade</application> programs to
+fail occasionally. You'll need to remove these catalog definitions
+if they exist, or the package build will fail. The following command
+can determine if you need to remove these catalog definitions:</para>
+
+<screen><userinput><command>grep "OpenSP-1.5.1" /etc/sgml/catalog</command></userinput></screen>
+
+<para>If anything was returned, run the following command to remove
+the catalog definitions:</para>
+
+<screen><userinput><command>sed -i.orig \
+    -e "/CATALOG \/etc\/sgml\/OpenSP-1.5.1.cat/d" \
+    /etc/sgml/catalog \
+    /etc/sgml/sgml-docbook.cat</command></userinput></screen></note>
+
 <para>Install <application>DocBook-utils</application> by running the 
 following commands:</para>
 
-<screen><userinput><command>sed -i.orig -e "/CATALOG \/etc\/sgml\/OpenSP-1.5.1.cat/d" \
-    /etc/sgml/catalog &amp;&amp;
-sed -i.orig -e "/CATALOG \/etc\/sgml\/OpenSP-1.5.1.cat/d" \
-    /etc/sgml/sgml-docbook.cat &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+<screen><userinput><command>./configure --prefix=/usr &amp;&amp;
 make &amp;&amp;
-make install &amp;&amp;
-cp /etc/sgml/catalog.orig /etc/sgml/catalog &amp;&amp;
-cp /etc/sgml/sgml-docbook.cat.orig /etc/sgml/sgml-docbook.cat</command></userinput></screen>
+make install</command></userinput></screen>
 
-<para>Many packages will use an alternate name for the 
+<para>Many packages use an alternate name for the 
 <application>DocBook-utils</application> scripts. If you wish to create these 
 alternate names, use the following command:</para>
 
@@ -83,21 +95,6 @@ alternate names, use the following command:</para>
 do
     ln -s docbook2$doctype /usr/bin/db2$doctype
 done</command></userinput></screen>
-
-</sect2>
-
-<sect2>
-<title>Command explanations</title>
-
-<para><command>sed -i.orig -e ...</command>: These two <command>sed</command>'s 
-remove <application>OpenSP</application> catalog definitions from the
-<acronym>SGML</acronym> catalogs because the SGMLDECL unicode.sd declaration
-creates errors when <command>openjade</command> builds the 
-<application>DocBook-utils</application> documentation files. Backup copies of 
-the files are made and copied back to their original place after the build is 
-complete. Though these errors are harmless, and won't affect 
-<application>DocBook-utils</application> functionality after the build, the
-declarations are temporarily removed to provide a clean package build.</para>
 
 </sect2>
 
