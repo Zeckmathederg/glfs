@@ -46,36 +46,43 @@
           <h2>
              <xsl:choose>
              <xsl:when test="$divtitle = 'A'">
+                <a id="package-index" name="package-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Packages</xsl:with-param>
                 </xsl:call-template>
              </xsl:when>
              <xsl:when test="$divtitle = 'B'">
+                <a id="program-index" name="program-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Programs</xsl:with-param>
                 </xsl:call-template>
              </xsl:when>
              <xsl:when test="$divtitle = 'C'">
+                <a id="library-index" name="library-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Libraries</xsl:with-param>
                 </xsl:call-template>
              </xsl:when>
              <xsl:when test="$divtitle = 'D'">
+                <a id="kernel-config-index" name="kernel-config-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Kernel Configuration</xsl:with-param>
                 </xsl:call-template>
              </xsl:when>
              <xsl:when test="$divtitle = 'E'">
+                <a id="config-file-index" name="config-file-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Configuration Files</xsl:with-param>
                 </xsl:call-template>
              </xsl:when>
              <xsl:when test="$divtitle = 'F'">
+                <a id="bootscript-index" name="bootscript-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Bootscripts</xsl:with-param>
                 </xsl:call-template>
              </xsl:when>
              <xsl:when test="$divtitle = 'G'">
+                <a id="other-index" name="other-index"/>
                 <xsl:call-template name="gentext">
                   <xsl:with-param name="key">Others</xsl:with-param>
                 </xsl:call-template>
