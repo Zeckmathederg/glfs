@@ -3,7 +3,7 @@
 
 <para>The first thing to understand in installing any package written 
 by Daniel J. Bernstein, and 
-this includes Qmail, djbdns and ucspi-tcp in addition to daemontools, is 
+this includes qmail, djbdns and ucspi-tcp in addition to daemontools, is 
 that he is willing to completely disregard standards if his idea of the 
 correct thing to do differs from an particular standard. Professor 
 Bernstein is a standards body unto himself when it comes to his own 
@@ -21,19 +21,18 @@ packages two directory levels below this.</para>
 <para><userinput>package/compile: </userinput>This command actually 
 compiles the source and puts the binaries in a command directory.</para>
 
+<para>Since we are installing the binaries in /usr/sbin rather than creating 
+a non-standard /command directory, several paths have to be changed:</para>
 <para><screen><userinput>sed 's|command|usr/sbin|' boot.inittab &gt; boot.inittab~</userinput>
 <userinput>mv boot.inittab~ boot.inittab</userinput></screen></para>
-<para>These two commands are necessary to get the 
-binaries installed in /usr/sbin rather than 
-creating a non-standard /command directory and installing them there.
-</para>
+<para>In boot.inittab, /command/svscanboot is changed to /usr/sbin/svscanboot.</para>
 
-<para><screen><userinput>sed 's|/command:/usr/local/bin:/usr/local/sbin:||' svscanboot &gt; svscanboot~</userinput>
-<userinput>sed 's|/service|/etc/service|g' svscanboot~ &gt; svscanboot</userinput>
-<userinput>rm svscanboot~</userinput></screen></para>
-<para>This changes the svscanboot script so that it checks the 
-/etc/service directory for daemons to run instead of the default 
-/service directory.</para>
+<para><screen><userinput>sed -e 's|/command:/usr/local/bin:/usr/local/sbin:||' \</userinput>
+<userinput>    -e 's|command|usr/sbin|' \</userinput>
+<userinput>    -e 's|/service|/etc/service|g' svscanboot &gt; svscanboot~ &amp;&amp;</userinput></screen></para>
+<para>Here various paths are adjusted in the svscanboot script. In our setup svscan 
+will check the /etc/service directory instead of the /service directory for 
+daemons to run.</para>
 
 <para><userinput>cp * /usr/sbin: </userinput>We must manually copy the 
 binaries to the /usr/sbin directory.</para>
@@ -41,16 +40,17 @@ binaries to the /usr/sbin directory.</para>
 <para><screen><userinput>cat /etc/inittab boot.inittab &gt; /etc/inittab~</userinput>
 <userinput>mv -f /etc/inittab~ /etc/inittab</userinput></screen></para>
 
-<para>These commands append a line to /etc/inittab so that init will launch
-the svscan program.</para>
+<para>These commands append a line to /etc/inittab so that init will launch 
+the svscanboot script.</para>
+
+<para><userinput>mkdir /etc/service: </userinput>This command creates 
+the daemontools control directory, which - even if empty - needs to exist for 
+daemontools to run properly.</para>
 
 <para><userinput>telinit Q: </userinput>This command tells the init 
 process to re-read its configuration file (inittab) and act upon any 
-changes that have been made.</para>
+changes that have been made. The svscanboot script is started.</para>
 
-<para><userinput>mkdir /etc/service: </userinput>This command creates
-the daemontools control directory, which needs to exist, even if empty
-for daemontools to run properly.</para>
 
 </sect2>
 
