@@ -8,7 +8,7 @@
   <!ENTITY jadetex-download-ftp  " ">
   <!ENTITY jadetex-size          "103 KB">
   <!ENTITY jadetex-buildsize     "9.6 MB">
-  <!ENTITY jadetex-time          ".11 SBU">
+  <!ENTITY jadetex-time          "0.11 SBU">
 ]>
 
 <sect1 id="jadetex" xreflabel="JadeTeX-&jadetex-version;">
@@ -55,10 +55,10 @@ the <application>OpenJade</application> <acronym>DSSSL</acronym> processor.
 <sect2>
 <title>Installation of <application>JadeTeX</application></title>
 
-<para>Install <application>JadeTex</application> by running the following 
-commands:</para>
+<para>First, as the root user, make some required modifications to files 
+already installed on the system:</para>
 
-<screen><userinput><command>sed -i.orig -e "s/original texmf.cnf/modified texmf.cnf/" \
+<screen><userinput role='root'><command>sed -i.orig -e "s/original texmf.cnf/modified texmf.cnf/" \
    /usr/share/texmf/web2c/texmf.cnf</command></userinput></screen>
 
 <para>You'll need to make two modifications to 
@@ -66,12 +66,12 @@ commands:</para>
 following line under the section titled <quote>ConTeXt is a memory 
 hog...</quote>:</para>
 
-<screen><userinput>pool_size.context = 750000</userinput></screen>
+<screen><userinput role='root'>pool_size.context = 750000</userinput></screen>
 
 <para>Next, add <command>latex</command>, <command>jadetex</command> and 
 <command>pdfjadetex</command> settings using the following command:</para>
 
-<screen><userinput><command>cat &gt;&gt; /usr/share/texmf/web2c/texmf.cnf &lt;&lt; "EOF"</command>
+<screen><userinput role='root'><command>cat &gt;&gt; /usr/share/texmf/web2c/texmf.cnf &lt;&lt; "EOF"</command>
 
 % The following 3 sections added for JadeTeX
 
@@ -113,23 +113,24 @@ pool_size.pdfjadetex = 500000
 max_strings.pdfjadetex = 55000
 <command>EOF</command></userinput></screen>
 
-<para>Rebuild and install a new <filename>latex.fmt</filename> file using the 
-following commands:</para>
+<para>Build a new <filename>latex.fmt</filename> file using the following 
+commands:</para>
 
-<screen><userinput><command>cp -R /usr/share/texmf/tex/latex/config . &amp;&amp;
+<screen><userinput><command>cp -v -R /usr/share/texmf/tex/latex/config . &amp;&amp;
 cd config &amp;&amp;
 tex -ini -progname=latex latex.ini &amp;&amp;
-mv /usr/share/texmf/web2c/latex.fmt \
-   /usr/share/texmf/web2c/latex.fmt.orig &amp;&amp;
-install -m 644 latex.fmt /usr/share/texmf/web2c &amp;&amp;
 cd ..</command></userinput></screen>
 
-<para>Finally, build and install <application>JadeTex</application> using the 
-following commands:</para>
+<para>Now, as the root user, install the <filename>latex.fmt</filename> file, 
+then build and install <application>JadeTex</application> using the following 
+commands:</para>
 
-<screen><userinput><command>make install &amp;&amp;
-ln -sf tex /usr/bin/jadetex &amp;&amp;
-ln -sf pdftex /usr/bin/pdfjadetex &amp;&amp;
+<screen><userinput role='root'><command>mv /usr/share/texmf/web2c/latex.fmt \
+   /usr/share/texmf/web2c/latex.fmt.orig &amp;&amp;
+install -v -m644 config/latex.fmt /usr/share/texmf/web2c &amp;&amp;
+make install &amp;&amp;
+ln -v -sf tex /usr/bin/jadetex &amp;&amp;
+ln -v -sf pdftex /usr/bin/pdfjadetex &amp;&amp;
 mktexlsr</command></userinput></screen>
 
 </sect2>
@@ -142,7 +143,7 @@ This changes <filename>/usr/share/texmf/web2c/texmf.cnf</filename> so that if
 <application>TeX</application> is upgraded, this file won't get 
 overwritten.</para>
 
-<para><command>ln -sf tex ...; ln -sf pdftex ...; mktexlsr</command>: The 
+<para><command>ln -v -sf tex ...; ln -v -sf pdftex ...; mktexlsr</command>: The 
 <application>JadeTeX</application> programs are actually just symlinks to the 
 <application>TeX</application> programs. <command>mktexlsr</command> updates
 <application>TeX</application>'s <filename>ls-R</filename> database used by 
@@ -164,8 +165,8 @@ the <filename class='libraryfile'>libkpathsea</filename> library so that
 <sect3><title>Configuration Information</title>
 
 <para>If you need to modify the default <application>JadeTeX</application> 
-macro settings, see the <ulink 
-url="http://jadetex.sourceforge.net/#index-div-d18e397">
+macro settings, see the 
+<ulink url="http://jadetex.sourceforge.net/#index-div-d18e397">
 <application>JadeTeX</application> <acronym>FAQ</acronym></ulink>.</para>
 </sect3>
 
@@ -176,8 +177,12 @@ url="http://jadetex.sourceforge.net/#index-div-d18e397">
 
 <segmentedlist>
 <segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
 <seglistitem>
 <seg>jadetex and pdfjadetex</seg>
+<seg>None</seg>
+<seg>/usr/share/texmf/tex/jadetex</seg>
 </seglistitem>
 </segmentedlist>
 
