@@ -8,8 +8,8 @@
   <!ENTITY jadetex-download-ftp  " ">
   <!ENTITY jadetex-md5sum        "634dfc172fbf66a6976e2c2c60e2d198">
   <!ENTITY jadetex-size          "103 KB">
-  <!ENTITY jadetex-buildsize     "9.6 MB">
-  <!ENTITY jadetex-time          "0.11 SBU">
+  <!ENTITY jadetex-buildsize     "9.3 MB">
+  <!ENTITY jadetex-time          "0.04 SBU">
 ]>
 
 <sect1 id="jadetex" xreflabel="JadeTeX-&jadetex-version;">
@@ -45,6 +45,14 @@ the <application>OpenJade</application> <acronym>DSSSL</acronym> processor.
 &jadetex-time;</para></listitem></itemizedlist>
 </sect3>
 
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Recommended demo files: <ulink 
+url="http://anduin.linuxfromscratch.org/sources/BLFS/SVN/I-K/jadetex-3.13-demo.tar.bz2"/>
+</para></listitem>
+</itemizedlist>
+</sect3>
+
 <sect3><title><application>JadeTeX</application> dependencies</title>
 <sect4><title>Required</title>
 <para><xref linkend="tex"/> and 
@@ -57,23 +65,20 @@ the <application>OpenJade</application> <acronym>DSSSL</acronym> processor.
 <sect2>
 <title>Installation of <application>JadeTeX</application></title>
 
-<para>First, as the root user, make some required modifications to files 
-already installed on the system:</para>
+<para>If you downloaded the demo files tarball, unpack it along with the 
+source tarball. It will unpack as a 
+<filename class='directory'>demo</filename> directory in the root of the 
+source tree.</para>
+
+<para>First, as the root user, make some required modifications to the 
+<filename>texmf.cnf</filename> file already installed on the system by the 
+<application>TeX</application> package, then build a new 
+<filename>latex.fmt</filename> file using the following commands:</para>
 
 <screen><userinput role='root'><command>sed -i.orig -e "s/original texmf.cnf/modified texmf.cnf/" \
-   /usr/share/texmf/web2c/texmf.cnf</command></userinput></screen>
-
-<para>You'll need to make two modifications to 
-<filename>/usr/share/texmf/web2c/texmf.cnf</filename>. First, add the 
-following line under the section titled <quote>ConTeXt is a memory 
-hog...</quote>:</para>
-
-<screen><userinput role='root'>pool_size.context = 750000</userinput></screen>
-
-<para>Next, add <command>latex</command>, <command>jadetex</command> and 
-<command>pdfjadetex</command> settings using the following command:</para>
-
-<screen><userinput role='root'><command>cat &gt;&gt; /usr/share/texmf/web2c/texmf.cnf &lt;&lt; "EOF"</command>
+            -e "s/memory hog.../&amp;\npool_size.context = 750000/" \
+    $(kpsewhich texmf.cnf) &amp;&amp;
+cat &gt;&gt; $(kpsewhich texmf.cnf) &lt;&lt; "EOF"</command>
 
 % The following 3 sections added for JadeTeX
 
@@ -113,39 +118,77 @@ nest_size.pdfjadetex = 500
 save_size.pdfjadetex = 5000
 pool_size.pdfjadetex = 500000
 max_strings.pdfjadetex = 55000
-<command>EOF</command></userinput></screen>
 
-<para>Build a new <filename>latex.fmt</filename> file using the following 
+<command>EOF &amp;&amp;
+LATEX_FMT_DIR="$(kpsewhich -expand-var '$TEXMFSYSVAR')/web2c" &amp;&amp;
+mv -v $(kpsewhich latex.fmt) $(kpsewhich latex.fmt).orig &amp;&amp;
+mv -v $LATEX_FMT_DIR/latex.log $LATEX_FMT_DIR/latex.log.orig &amp;&amp;
+fmtutil-sys --byfmt latex</command></userinput></screen>
+
+<para>Install <application>JadeTex</application> using the following 
 commands:</para>
 
-<screen><userinput><command>cp -v -R /usr/share/texmf/tex/latex/config . &amp;&amp;
-cd config &amp;&amp;
-tex -ini -progname=latex latex.ini &amp;&amp;
-cd ..</command></userinput></screen>
+<screen><userinput><command>make</command></userinput></screen>
 
-<para>Now, as the root user, install the <filename>latex.fmt</filename> file, 
-then build and install <application>JadeTex</application> using the following 
-commands:</para>
+<para>Now, as the root user:</para>
 
-<screen><userinput role='root'><command>mv /usr/share/texmf/web2c/latex.fmt \
-   /usr/share/texmf/web2c/latex.fmt.orig &amp;&amp;
-install -v -m644 config/latex.fmt /usr/share/texmf/web2c &amp;&amp;
-make install &amp;&amp;
-ln -v -sf tex /usr/bin/jadetex &amp;&amp;
-ln -v -sf pdftex /usr/bin/pdfjadetex &amp;&amp;
-mktexlsr</command></userinput></screen>
+<screen><userinput role='root'><command>install -v -m755 -d \
+    $(kpsewhich -expand-var '$TEXMFLOCAL')/tex/jadetex/config &amp;&amp;
+install -v -m644 dsssl.def jadetex.ltx \
+    $(kpsewhich -expand-var '$TEXMFLOCAL')/tex/jadetex &amp;&amp;
+install -v -m644 {,pdf}jadetex.ini \
+    $(kpsewhich -expand-var '$TEXMFLOCAL')/tex/jadetex/config &amp;&amp;
+FMTUTIL_CNF="$(kpsewhich fmtutil.cnf)" &amp;&amp;
+mv $FMTUTIL_CNF $FMTUTIL_CNF.orig &amp;&amp;
+cat $FMTUTIL_CNF.orig - &gt;&gt; $FMTUTIL_CNF &lt;&lt; "EOF"</command>
+
+# JadeTeX formats:
+jadetex         etex            -               "&amp;latex"     jadetex.ini
+pdfjadetex      pdfetex         -               "&amp;pdflatex"  pdfjadetex.ini
+
+<command>EOF &amp;&amp;
+mv -v $(kpsewhich -expand-var '$TEXMFMAIN')/ls-R \
+      $(kpsewhich -expand-var '$TEXMFMAIN')/ls-R.orig &amp;&amp;
+mv -v $(kpsewhich -expand-var '$TEXMFSYSVAR')/ls-R \
+      $(kpsewhich -expand-var '$TEXMFSYSVAR')/ls-R.orig &amp;&amp;
+mktexlsr &amp;&amp;
+fmtutil-sys --byfmt jadetex &amp;&amp;
+fmtutil-sys --byfmt pdfjadetex &amp;&amp;
+mktexlsr &amp;&amp;
+ln -v -sf etex /usr/bin/jadetex &amp;&amp;
+ln -v -sf pdfetex /usr/bin/pdfjadetex</command></userinput></screen>
+
+<para>If you downloaded the demo files tarball, issue the following commands 
+as an unprivileged user to test the functionality of the new 
+<application>JadeTex</application> installation:</para>
+
+<screen><userinput><command>cd demo &amp;&amp;
+openjade -t tex -d demo.dsl demo.sgm &amp;&amp;
+jadetex demo.tex &amp;&amp;
+pdfjadetex demo.tex</command></userinput></screen>
+
+<para>The commands should complete without errors or warnings and create 
+<filename>demo.dvi</filename> and <filename>demo.pdf</filename> files.</para>
 
 </sect2>
 
 <sect2>
 <title>Command explanations</title>
 
-<para><command>sed -i -e "s/original texmf.cnf/modified texmf.cnf/"</command>: 
-This changes <filename>/usr/share/texmf/web2c/texmf.cnf</filename> so that if 
-<application>TeX</application> is upgraded, this file won't get 
-overwritten.</para>
+<para><command>sed -i -e ... -e ... $(kpsewhich texmf.cnf)</command>: 
+This command uses <command>kpsewhich</command> to locate the installed 
+ <filename>texmf.cnf</filename>. The first change is used to modify the
+header of the file so that if <application>TeX</application> is upgraded, 
+the file won't get overwritten. The next change adds a parameter to 
+increase ConTeXt's memory size to accommodate 
+<application>JadeTeX</application>.</para>
 
-<para><command>ln -v -sf tex ...; ln -v -sf pdftex ...; mktexlsr</command>: The 
+<para><command>fmtutil-sys ...</command>: These commands are used to build 
+the <filename>latex.fmt</filename>, <filename>jadetex.fmt</filename> and 
+<filename>pdfjadetex.fmt</filename> files. Additionally, the command 
+automagically places the files in the correct directory.</para>
+
+<para><command>mktexlsr; ln -v -sf tex ...; ln -v -sf pdftex ...</command>: The 
 <application>JadeTeX</application> programs are actually just symlinks to the 
 <application>TeX</application> programs. <command>mktexlsr</command> updates
 <application>TeX</application>'s <filename>ls-R</filename> database used by 
@@ -184,7 +227,7 @@ macro settings, see the
 <seglistitem>
 <seg>jadetex and pdfjadetex</seg>
 <seg>None</seg>
-<seg>/usr/share/texmf/tex/jadetex</seg>
+<seg>/usr/share/texmf-local</seg>
 </seglistitem>
 </segmentedlist>
 
