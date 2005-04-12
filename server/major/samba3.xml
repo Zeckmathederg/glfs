@@ -6,10 +6,10 @@
 
 <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/samba-&samba3-version;.tar.gz">
 <!ENTITY samba3-download-ftp "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-<!ENTITY samba3-md5sum "217e489646a474b4fb69d5802c14bc6e">
-<!ENTITY samba3-size "15.3 MB">
-<!ENTITY samba3-buildsize "143 MB">
-<!ENTITY samba3-time "2.12 SBU">
+<!ENTITY samba3-md5sum "262c9f8b2f2d6910f5b3472e215eddf6">
+<!ENTITY samba3-size "15.5 MB">
+<!ENTITY samba3-buildsize "230 MB">
+<!ENTITY samba3-time "3.07 SBU">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -78,7 +78,6 @@ nameserver (which amongst other things provides
 commands:</para>
 
 <screen><userinput><command>cd source &amp;&amp;
-install -d /var/cache/samba &amp;&amp;
 ./configure \
     --prefix=/usr \
     --sysconfdir=/etc \
@@ -90,19 +89,19 @@ make</command></userinput></screen>
 
 <para>Now, as the root user:</para>
 
-<screen><userinput role='root'><command>make install &amp;&amp;
-mv /usr/lib/samba/libsmbclient.so /usr/lib &amp;&amp;
-ln -sf ../libsmbclient.so /usr/lib/samba &amp;&amp;
-chmod 644 /usr/include/libsmbclient.h \
-          /usr/lib/samba/libsmbclient.a &amp;&amp;
-install -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
-ln -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
-ln -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
-cp ../examples/smb.conf.default /etc/samba &amp;&amp;
-install -m644 ../docs/*.pdf /usr/share/samba &amp;&amp;
+<screen><userinput role='root'><command>install -v -m755 -d /var/cache/samba &amp;&amp;
+make install &amp;&amp;
+mv -v /usr/lib/samba/libsmbclient.so /usr/lib &amp;&amp;
+ln -v -sf ../libsmbclient.so /usr/lib/samba &amp;&amp;
+chmod -v 644 /usr/include/libsmbclient.h &amp;&amp;
+install -v -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
+ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
+ln -v -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
 if [ -f nsswitch/pam_winbind.so ]; then 
-    install -m755 nsswitch/pam_winbind.so /lib/security
-fi</command></userinput></screen>
+    install -v -m755 nsswitch/pam_winbind.so /lib/security
+fi &amp;&amp;
+install -v -m644 ../examples/smb.conf.default /etc/samba &amp;&amp;
+install -v -m644 ../docs/*.pdf /usr/share/samba</command></userinput></screen>
 
 <note><para>You may want to run <command>configure</command> with the
 <parameter>--help</parameter> parameter.  There may be other parameters 
@@ -112,10 +111,6 @@ needed to take advantage of the optional dependencies.</para></note>
 
 <sect2>
 <title>Command explanations</title>
-
-<para><command>install -d /var/cache/samba</command>: This directory is 
-needed for proper operation of the <command>smbd</command> and 
-<command>nmbd</command> daemons.</para>
 
 <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration
 file directory to avoid the default of 
@@ -141,23 +136,28 @@ also builds the <filename class='libraryfile'>pam_winbind.so</filename>
 instructions on how to configure and use the module by running 
 <command>man winbindd</command>.</para>
 
-<para><command>mv /usr/lib/samba/libsmbclient.so ...; ln -sf 
+<para><command>install -v -d /var/cache/samba</command>: This directory is 
+needed for proper operation of the <command>smbd</command> and 
+<command>nmbd</command> daemons.</para>
+
+<para><command>mv -v /usr/lib/samba/libsmbclient.so ...; ln -v -sf 
 ../libsmbclient.so ...</command>: The 
 <filename class='libraryfile'>libsmbclient.so</filename> library is needed 
 by other packages. This command moves it to a location where other packages 
 can find it.</para>
 
-<para><command>install -m755 nsswitch/libnss_win{s,bind}.so /lib</command>:
+<para><command>install -v -m755 nsswitch/libnss_win{s,bind}.so /lib</command>: 
 The nss libraries are not installed by default.  If you intend to use
 winbindd for domain auth, and/or <acronym>WINS</acronym> name resolution, 
 you need these libraries.</para> 
 
-<para><command>ln -sf libnss_winbind.so /lib/libnss_winbind.so.2</command> 
+<para><command>ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2</command> 
 and <command>ln -sf libnss_wins.so /lib/libnss_wins.so.2</command>:
-These symlinks are required by glibc to use the nss libraries.</para>
+These symlinks are required by glibc to use the <acronym>NSS</acronym> 
+libraries.</para>
 
-<para><command>cp ../examples/smb.conf.default /etc/samba</command>:
-This copies a default <filename>smb.conf </filename>into
+<para><command>install -v -m644 ../examples/smb.conf.default 
+/etc/samba</command>: This copies a default <filename>smb.conf</filename> into 
 <filename>/etc/samba</filename>.  This sample configuration will not 
 work unless edited for your site, and renamed 
 <filename>smb.conf</filename>.</para>
@@ -219,8 +219,9 @@ url="file:///usr/share/samba/swat/help/Samba-HOWTO-Collection/index.html"/>
 (<application>Samba</application> Web Administration Tool) utility can be used 
 for basic configuration of the <application>Samba</application> installation,  
 but because it may be inconvenient, undesireable or perhaps even impossible 
-to gain access to the console, BLFS recommends setting up access to 
-<acronym>SWAT</acronym> using <application>Stunnel</application>.</para>
+to gain access to the console, <acronym>BLFS</acronym> recommends setting up 
+access to <acronym>SWAT</acronym> using 
+<application>Stunnel</application>.</para>
 <indexterm zone="samba3 samba3-swat-config">
 <primary sortas="g-SWAT">SWAT</primary></indexterm>
 
@@ -248,17 +249,19 @@ root user:</para>
 echo "swat_tunnel     902/tcp" &gt;&gt; /etc/services</command></userinput></screen>
 
 <para>If <command>inetd</command> is used, the following command will add the 
-swat_tunnel entry to <filename>/etc/inetd.conf</filename> (as user root):</para>
+swat_tunnel entry to <filename>/etc/inetd.conf</filename> (as user 
+root):</para>
 
 <screen><userinput role='root'><command>echo "swat_tunnel stream tcp nowait.400 root /usr/sbin/swat swat" \
     &gt;&gt; /etc/inetd.conf</command></userinput></screen>
 <para>Issue a <command>killall -HUP inetd</command> to reread the
 changed <filename>inetd.conf</filename> file.</para>
 
-<para>If you use <command>xinetd</command>, the following command will create the 
-<application>Samba</application> file as <filename>/etc/xinetd.d/swat_tunnel</filename>: 
-(you may need to modify or remove the 
-<quote>only_from</quote> line to include the desired host[s]):</para>
+<para>If you use <command>xinetd</command>, the following command will create 
+the <application>Samba</application> file as 
+<filename>/etc/xinetd.d/swat_tunnel</filename> (you may need to modify or 
+remove the <quote>only_from</quote> line to include the desired 
+host[s]):</para>
 
 <screen><userinput role='root'><command>cat &gt;&gt; /etc/xinetd.d/swat_tunnel &lt;&lt; "EOF"</command>
 # Begin /etc/xinetd.d/swat_tunnel
@@ -329,7 +332,7 @@ services, and you wish to print to a printer attached to an
 backend device. To create the device, issue the following command as the 
 root user:</para>
 
-<screen><userinput><command>ln -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</command></userinput></screen>
+<screen><userinput><command>ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</command></userinput></screen>
 </sect3>
 
 <sect3 id="samba3-init"><title>Installing bootscripts</title>
@@ -376,7 +379,7 @@ command issued as the root user:</para>
 rpcclient, smbcacls, smbclient, smbcontrol, smbcquotas, smbd, smbmnt, 
 smbmount, smbpasswd, smbspool, smbstatus, smbtar, smbtree, smbumount, swat, 
 tdbbackup, tdbdump, tdbtool, testparm, testprns, wbinfo and winbindd</seg>
-<seg>libnss_winbind.so, libnss_wins.so, libsmbclient.[so,a], the 
+<seg>libnss_winbind.so, libnss_wins.so, libsmbclient.so, the 
 pam_winbind.so <acronym>PAM</acronym> library and assorted character set, 
 filesystem and support modules.</seg>
 <seg>/etc/samba, /usr/lib/samba, /usr/share/samba, /var/cache/samba and 
@@ -660,7 +663,6 @@ syntax.</para>
 <primary sortas="b-winbindd">winbindd</primary>
 </indexterm></listitem>
 </varlistentry>
-
 </variablelist>
 
 </sect2>
