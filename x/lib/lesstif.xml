@@ -6,10 +6,10 @@
 
   <!ENTITY lesstif-download-http "http://prdownloads.sourceforge.net/lesstif/lesstif-&lesstif-version;.tar.bz2">
   <!ENTITY lesstif-download-ftp  " ">
-  <!ENTITY lesstif-md5sum        "20f38a06c863e0c51ca0c862ef039601">
+  <!ENTITY lesstif-md5sum        "3096ca456c0bc299d895974d307c82d8">
   <!ENTITY lesstif-size          "2.4 MB">
-  <!ENTITY lesstif-buildsize     "109.9 MB (includes building test suite)">
-  <!ENTITY lesstif-time          "2.94 SBU (includes building test suite)">
+  <!ENTITY lesstif-buildsize     "160 MB (includes building and running the test suite)">
+  <!ENTITY lesstif-time          "2.89 SBU (includes building the test suite)">
 ]>
 
 <sect1 id="lesstif" xreflabel="LessTif-&lesstif-version;">
@@ -19,12 +19,14 @@
 </sect1info>
 <?dbhtml filename="lesstif.html" ?>
 <title><application>LessTif</application>-&lesstif-version;</title>
+<indexterm zone="lesstif">
+<primary sortas="a-LessTif">LessTif</primary></indexterm>
 
 <sect2>
 <title>Introduction to <application>LessTif</application></title>
 
 <para>The <application>LessTif</application> package contains an Open
-Source version of <application>OSF/Motif(R)</application>.</para>
+Source version of <application>OSF/Motif®</application>.</para>
 
 <sect3><title>Package information</title>
 <itemizedlist spacing='compact'>
@@ -40,13 +42,21 @@ Source version of <application>OSF/Motif(R)</application>.</para>
 &lesstif-time;</para></listitem></itemizedlist>
 </sect3>
 
+<sect3><title>Additional downloads</title>
+<itemizedlist spacing='compact'>
+<listitem><para>Required patch: <ulink 
+url="&patch-root;/lesstif-&lesstif-version;-testsuite_fix-1.patch"/></para></listitem>
+</itemizedlist>
+</sect3>
+
 <sect3><title><application>LessTif</application> dependencies</title>
 <sect4><title>Required</title>
 <para>X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>)</para>
 </sect4>
 
 <sect4><title>Optional</title>
-<para><xref linkend="lynx"/> or <xref linkend="Links"/> and 
+<para><xref linkend="lynx"/> or <xref linkend="Links"/> (used to generate the 
+<filename>INSTALL</filename> documentation file) and 
 <ulink url="http://dmalloc.com">Dmalloc</ulink></para>
 </sect4>
 </sect3>
@@ -59,30 +69,32 @@ Source version of <application>OSF/Motif(R)</application>.</para>
 <para>Install <application>LessTif</application> by running the following 
 commands:</para>
 
-<screen><userinput><command>find -name Makefile.in | \
-    xargs sed -i 's@$(prefix)/LessTif@$(prefix)/share/LessTif@g' &amp;&amp;
-./configure --prefix=/usr \
-    --enable-build-21 \
-    --disable-debug \
-    --enable-production \
-    --disable-build-tests \
-    --with-xdnd &amp;&amp;
-make &amp;&amp;
-make install</command></userinput></screen>
+<screen><userinput><command>patch -Np1 -i ../lesstif-&lesstif-version;-testsuite_fix-1.patch &amp;&amp;
+./configure --prefix=/usr --disable-debug \
+    --enable-production --with-xdnd &amp;&amp;
+make rootdir=/usr/share/doc/lesstif-&lesstif-version;</command></userinput></screen>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>make rootdir=/usr/share/doc/lesstif-&lesstif-version; install &amp;&amp;
+mv -v /usr/X11R6/lib/X11/mwm /etc/X11 &amp;&amp;
+ln -v -s ../../../../etc/X11/mwm /usr/X11R6/lib/X11 &amp;&amp;
+ldconfig</command></userinput></screen>
 
 </sect2>
 
 <sect2>
 <title>Command explanations</title>
 
-<para><command>sed -i 's@$(prefix)/LessTif@$(prefix)/share/LessTif@g'</command>:
-This moves the location of the non-FHS compliant 
-<filename class="directory">/usr/LessTif</filename> directory to 
-<filename class="directory">/usr/share/LessTif</filename>.</para>
-
-<para><parameter>--enable-build-21</parameter>: Build the 
+<!-- Disabled these parameters as they are the default
+<para><parameter>-enable-build-21</parameter>: Build the 
 <application>Motif</application> 2.1 compatible version of the 
 <application>LessTif</application> libraries.</para>
+
+<para><parameter>-disable-build-tests</parameter>: Do not build the
+<filename class="directory">test/</filename> tree (see Testing
+<application>LessTif</application>).</para>
+ -->
 
 <para><parameter>--disable-debug</parameter>: Do not generate debugging 
 information.</para>
@@ -90,23 +102,23 @@ information.</para>
 <para><parameter>--enable-production</parameter>: Build the release version
 of the <application>LessTif</application> libraries.</para>
 
-<para><parameter>--disable-build-tests</parameter>: Do not build the
-<filename class="directory">test/</filename> tree (see Testing
-<application>LessTif</application>).</para>
-
 <para><parameter>--with-xdnd</parameter>: Enable <acronym>XDND</acronym> 
 <acronym>GNOME</acronym> compatibility support.</para>
 
-</sect2>
+<para><parameter>rootdir=/usr/share/doc/lesstif-&lesstif-version;</parameter>: 
+This installs the documentation into an appropriate directory instead of the 
+non-FHS compliant <filename class="directory">/usr/LessTif</filename> 
+directory.</para>
 
-<sect2>
-<title>Configuring <application>LessTif</application></title>
+<para><command>mv -v /usr/X11R6/lib/X11/mwm /etc/X11</command>: The 
+<filename class="directory">mwm</filename> configuration directory is moved 
+to its proper <acronym>FHS</acronym> location in 
+<filename class="directory">/etc/X11</filename>.</para>
 
-<sect3><title>Configuration Information</title>
-
-<xi:include xmlns:xi="http://www.w3.org/2003/XInclude" href="../../lib-config.xml"/>
-
-</sect3>
+<para><command>ln -v -s ../../../../etc/X11/mwm /usr/X11R6/lib/X11</command>: 
+A symlink required by some legacy applications is created pointing to the 
+<filename class="directory">mwm</filename> configuration directory moved in 
+the previous command.</para>
 
 </sect2>
 
@@ -114,58 +126,138 @@ of the <application>LessTif</application> libraries.</para>
 <title>Testing <application>LessTif</application></title>
 
 <para>It is advisable to test the installation of 
-<application>LessTif</application> with the test suite located in
-<filename class="directory">lesstif-&lesstif-version;/test</filename>. It is 
+<application>LessTif</application> using the included test suite. It is 
 not required to install any of the resulting binaries to validate the
-installation. The following commands executed from the source
-directory will suffice:</para>
+installation. Issue the following commands to build the test suite:</para>
 
 <screen><userinput><command>cd test &amp;&amp;
 ./configure &amp;&amp;
 make</command></userinput></screen>
+
+<para>To run the tests, issue the following commands:</para>
+
+<screen><userinput><command>cd Xm &amp;&amp;
+./testall *</command></userinput></screen>
+
+<para>You'll need to manually close three of the test windows. The first one 
+is from <command>test28</command> in the 
+<filename class='directory'>list</filename> directory. The second one is from 
+<command>test10</command> in the 
+<filename class='directory'>menushell</filename> directory. You should click 
+on the button in the window and choose <quote>exit</quote> (do it twice) to 
+finish the test. The third test is from <command>test24</command> in the 
+<filename class='directory'>scrolledwindow</filename> directory.</para>
+
+<para>As many as 100 tests are known to fail. The patch applied at the 
+beginning of the installation created a file used to compare known failures 
+to the failures from the test run. This file was created from an installation 
+using the current <acronym>LFS</acronym> book and should be a fairly accurate 
+representation of the failures you'll encounter. You could see some minor 
+variances, however.</para>
+
+</sect2>
+
+<sect2>
+<title>Configuring <application>LessTif</application></title>
+
+<sect3 id="lesstif-config"><title>Config files</title>
+<para><filename>/etc/X11/mwm/system.mwmrc</filename> and 
+<filename>~/.mwmrc</filename></para>
+<indexterm zone="lesstif lesstif-config">
+<primary sortas="e-AA.mwmrc">~/.mwmrc</primary></indexterm>
+<indexterm zone="lesstif lesstif-config">
+<primary sortas="e-etc-X11-mwm-system.mwmrc">/etc/X11/mwm/system.mwmrc</primary>
+</indexterm>
+</sect3>
+
+<sect3><title>Configuration information</title>
+<para>The config files are used to customize the behavior of the 
+<command>mwm</command> window manager. Information about customizing these 
+files can be found in the <filename>mwmrc(5)</filename> man page.</para>
+</sect3>
 
 </sect2>
 
 <sect2>
 <title>Contents</title>
 
-<para>The <application>LessTif</application> package contains
-<command>mxmkmf</command>, <command>mwm</command>, 
-<command>xmbind</command>, <command>uil</command> and 
-<application>LessTif</application> libraries.</para>
+<segmentedlist>
+<segtitle>Installed Programs</segtitle>
+<segtitle>Installed Libraries</segtitle>
+<segtitle>Installed Directories</segtitle>
 
-</sect2>
+<seglistitem>
+<seg>motif-config, mwm, mxmkmf, uil and xmbind</seg>
+<seg>libDtPrints.so, libMrm.so, libUil.so and libXm.so</seg>
+<seg>/etc/X11/mwm, /usr/include/Xm, /usr/include/Mrm, /usr/include/uil, 
+/usr/include/Dt, /usr/lib/LessTif and 
+/usr/share/doc/lesstif-&lesstif-version;</seg>
+</seglistitem>
+</segmentedlist>
 
-<sect2><title>Description</title>
+<variablelist>
+<bridgehead renderas="sect3">Short Descriptions</bridgehead>
+<?dbfo list-presentation="list"?>
 
-<sect3><title>mxmkmf</title>
-<para><command>mxmkmf</command> is the <application>LessTif</application> 
-version of <command>xmkmf</command> which creates a 
-<filename>Makefile</filename> from an <filename>Imakefile</filename></para>
-</sect3>
+<varlistentry id="motif-config">
+<term><command>motif-config</command></term>
+<listitem><para>is used to find out configuration information for packages 
+needing to link to the <application>LessTif</application> libraries.</para>
+<indexterm zone="lesstif motif-config">
+<primary sortas="b-motif-config">motif-config</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>mwm</title>
-<para><command>mwm</command> is a window manager that adheres largely to the 
+<varlistentry id="mwm">
+<term><command>mwm</command></term>
+<listitem><para>is a window manager that adheres largely to the 
 <application>Motif</application> <command>mwm</command> specification.</para>
-</sect3>
+<indexterm zone="lesstif mwm">
+<primary sortas="b-mwm">mwm</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>xmbind</title>
-<para><command>xmbind</command> configures the virtual key bindings of 
-<application>LessTif</application> applications</para>
-</sect3>
+<varlistentry id="mxmkmf">
+<term><command>mxmkmf</command></term>
+<listitem><para>is the <application>LessTif</application> version of 
+<command>xmkmf</command> which creates a 
+<filename>Makefile</filename> from an <filename>Imakefile</filename>.</para>
+<indexterm zone="lesstif mxmkmf">
+<primary sortas="b-mxmkmf">mxmkmf</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>uil</title>
-<para><command>uil</command> is a user interface language compiler which 
-translates a plain text description of the user interface of a 
-<application>Motif</application> application into a machine-readable form.
-</para>
-</sect3>
+<varlistentry id="uil">
+<term><command>uil</command></term>
+<listitem><para>is a user interface language compiler which translates a plain 
+text description of the user interface of a <application>Motif</application> 
+application into a machine-readable form.</para>
+<indexterm zone="lesstif uil">
+<primary sortas="b-uil">uil</primary>
+</indexterm></listitem>
+</varlistentry>
 
-<sect3><title>lesstif libraries</title>
-<para><application>LessTif</application> libraries are an
-<application><acronym>OSF</acronym>/Motif(R)</application> source code 
-compatible library for the <application>X</application> Window System.</para>
-</sect3>
+<varlistentry id="xmbind">
+<term><command>xmbind</command></term>
+<listitem><para> configures the virtual key bindings of 
+<application>LessTif</application> applications.</para>
+<indexterm zone="lesstif xmbind">
+<primary sortas="b-xmbind">xmbind</primary>
+</indexterm></listitem>
+</varlistentry>
+
+<varlistentry id="libXm">
+<term><filename class='libraryfile'>libXm.so</filename></term>
+<listitem><para>is an <application><acronym>OSF</acronym>/Motif®</application> 
+source code compatible library for the 
+<application>X</application> Window System. You can download an excellent 
+reference guide (mainly for programmers) for the Motif-2.1 specification 
+from <ulink url="http://unc.dl.sourceforge.net/lesstif/6B_book.pdf"/>.</para>
+<indexterm zone="lesstif libXm">
+<primary sortas="c-libXm">libXm.so</primary>
+</indexterm></listitem>
+</varlistentry>
+</variablelist>
 
 </sect2>
 
