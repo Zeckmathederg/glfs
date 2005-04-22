@@ -6,13 +6,13 @@
 
   <!ENTITY mozilla-download-http "http://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/source/mozilla-source-&mozilla-version;.tar.bz2">
   <!ENTITY mozilla-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/mozilla/releases/mozilla&mozilla-version;/source/mozilla-source-&mozilla-version;.tar.bz2">
-  <!ENTITY mozilla-md5sum        "e5994f3e801cd834966367c6a12f8aeb">
+  <!ENTITY mozilla-md5sum        "a16d3d98bb90d45c7bc04dae20d39e3e">
   <!ENTITY mozilla-size          "30 MB">
-  <!ENTITY mozilla-buildsize     "625 MB">
-  <!ENTITY mozilla-time          "13.72 SBU">
+  <!ENTITY mozilla-buildsize     "635 MB">
+  <!ENTITY mozilla-time          "12.6 SBU">
 
-  <!ENTITY mozilla-enigmail-version "0.90.1">
-  <!ENTITY mozilla-enigmail-md5sum  "61deeb21ec7df10de9ad790039063f41">
+  <!ENTITY mozilla-enigmail-version "0.91.0">
+  <!ENTITY mozilla-enigmail-md5sum  "4ab46132f41b4f1718cd4141742f824b">
   <!ENTITY mozilla-ipc-version      "1.1.2">
   <!ENTITY mozilla-ipc-md5sum       "4aa272b46c8cbf167dcd49a6d74cf526">
 ]>
@@ -59,12 +59,8 @@ in separate sections:</para>
 url="&mozilla-download-http;"/></para></listitem>
 <listitem><para>Download (FTP): <ulink
 url="&mozilla-download-ftp;"/></para></listitem>
-<listitem><para>Download MD5 sum (Mozilla): 
+<listitem><para>Download MD5 sum: 
 &mozilla-md5sum;</para></listitem>
-<listitem><para>Download MD5 sum (Enigmail): 
-&mozilla-enigmail-md5sum;</para></listitem>
-<listitem><para>Download MD5 sum (IPC): 
-&mozilla-ipc-md5sum;</para></listitem>
 <listitem><para>Download size: &mozilla-size;</para></listitem>
 <listitem><para>Estimated disk space required:
 &mozilla-buildsize;</para></listitem>
@@ -84,9 +80,13 @@ users to access the authentication and encryption features provided by the
 <listitem><para><ulink 
 url="http://downloads.mozdev.org/enigmail/src/enigmail-&mozilla-enigmail-version;.tar.gz"/>
 </para></listitem>
+<listitem><para>Download MD5 sum (Enigmail): 
+&mozilla-enigmail-md5sum;</para></listitem>
 <listitem><para><ulink 
 url="http://downloads.mozdev.org/enigmail/src/ipc-&mozilla-ipc-version;.tar.gz"/>
 </para></listitem>
+<listitem><para>Download MD5 sum (IPC): 
+&mozilla-ipc-md5sum;</para></listitem>
 </itemizedlist>
 </sect3>
 
@@ -105,10 +105,10 @@ extension)</para>
 <sect4><title>Optional</title>
 <para><xref linkend="libjpeg"/>, 
 <xref linkend="unzip"/>, 
-<xref linkend="gnome-vfs"/>, 
+<xref linkend="gnome-vfs"/> (to build the gnomevfs extension), 
 <xref linkend="libart_lgpl"/>, 
 <xref linkend="heimdal"/> or <xref linkend="mitkrb"/> 
-(for the GSSAPI libraries), 
+(for the GSSAPI libraries to build the negotiateauth extension), 
 <xref linkend="doxygen"/>, 
 <ulink url="http://xprint.mozdev.org/">Xprint</ulink>, 
 <ulink url="http://perens.com/FreeSoftware/">Electric Fence</ulink> and 
@@ -126,6 +126,7 @@ commands:</para>
 
 <screen><userinput><command>export MOZILLA_OFFICIAL="1" &amp;&amp;
 export BUILD_OFFICIAL="1" &amp;&amp;
+export MOZ_CO_PROJECT="suite" &amp;&amp;
 ./configure --prefix=/usr \
             --with-default-mozilla-five-home=/usr/lib/mozilla \
             --with-system-zlib \
@@ -168,15 +169,15 @@ make -C extensions/enigmail</command></userinput></screen>
 follows:</para>
 
 <screen><userinput role='root'><command>make install &amp;&amp;
-install -d -m755 /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
-cp -Lf dist/private/nss/*.h dist/public/nss/*.h \
+install -v -d -m755 /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
+cp -v -Lf dist/private/nss/*.h dist/public/nss/*.h \
    /usr/include/mozilla-&mozilla-version;/nss &amp;&amp;
-ln -nsf mozilla-&mozilla-version; /usr/include/mozilla &amp;&amp;
+ln -v -nsf mozilla-&mozilla-version; /usr/include/mozilla &amp;&amp;
 if [ -d /usr/lib/mozilla/plugins ]; then
-    mv /usr/lib/mozilla/plugins/* /usr/lib/mozilla-&mozilla-version;/plugins
-    rm -rf /usr/lib/mozilla
+    mv -v /usr/lib/mozilla/plugins/* /usr/lib/mozilla-&mozilla-version;/plugins
+    rm -v -rf /usr/lib/mozilla
 fi &amp;&amp;
-ln -nsf mozilla-&mozilla-version; /usr/lib/mozilla</command></userinput></screen>
+ln -v -nsf mozilla-&mozilla-version; /usr/lib/mozilla</command></userinput></screen>
 
 <para>If you're installing the <application>Enigmail</application> extension, 
 issue the following commands as the root user:</para>
@@ -194,8 +195,8 @@ can link against them. As the root user, move them as follows:</para>
 <screen><userinput role='root'><command>for i in \
     lib{nspr4,plc4,plds4,nss3,smime3,softokn3,ssl3}.so libsoftokn3.chk
 do
-   mv /usr/lib/mozilla-&mozilla-version;/$i /usr/lib/
-   ln -sf ../$i /usr/lib/mozilla-&mozilla-version;/
+   mv -v /usr/lib/mozilla-&mozilla-version;/$i /usr/lib/
+   ln -v -sf ../$i /usr/lib/mozilla-&mozilla-version;/
 done</command></userinput></screen>
 
 <para>Create the required component registries to enable multi-user installs. 
@@ -216,6 +217,12 @@ root user (or any user with write privileges) to create some necessary
 additional files in the <filename class='directory'>/usr</filename> 
 hierarchy.</para></note>
 
+<para>Lastly, unset the build variables from the unprivileged user's 
+environment:</para>
+
+<screen><userinput><command>unset MOZILLA_OFFICIAL &amp;&amp;
+unset BUILD_OFFICIAL &amp;&amp;
+unset MOZ_CO_PROJECT</command></userinput></screen>
 </sect2>
 
 <sect2>
@@ -331,12 +338,16 @@ then make a symlink to the <command>mozilla</command> script from
 open a browser. You may make the following symlink for convenience (as the 
 root user).</para>
 
-<screen><userinput role='root'><command>ln -sf mozilla /usr/bin/netscape</command></userinput></screen>
+<screen><userinput role='root'><command>ln -v -sf mozilla /usr/bin/netscape</command></userinput></screen>
 
 <para>For installing various <application>Mozilla</application> plugins, refer 
 to <ulink url="http://plugindoc.mozdev.org/linux.html">Mozdev's PluginDoc 
-Project</ulink>.</para>
+Project</ulink>. If you have <xref linkend="j2sdk"/> already installed, create 
+the following link as the root user to utilize the 
+<application>JAVA</application> plugin: </para>
 
+<screen><userinput role='root'><command>ln -v -s $JAVA_HOME/jre/plugin/i386/ns7/libjavaplugin_oji.so \
+    /usr/lib/mozilla-&mozilla-version;/plugins</command></userinput></screen>
 </sect2>
 
 <sect2>
