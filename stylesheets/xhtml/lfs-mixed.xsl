@@ -7,6 +7,11 @@
     <!-- screen -->
   <xsl:template match="screen">
     <xsl:choose>
+      <xsl:when test="@role = 'root'">
+        <pre class="root">
+            <xsl:apply-templates/>
+        </pre>
+      </xsl:when>
       <xsl:when test="child::* = userinput">
         <pre class="userinput">
             <xsl:apply-templates/>
