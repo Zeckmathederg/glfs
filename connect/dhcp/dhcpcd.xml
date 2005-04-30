@@ -13,132 +13,154 @@
 ]>
 
 <sect1 id="dhcpcd" xreflabel="dhcpcd-&dhcpcd-version;">
-<sect1info>
-<othername>$LastChangedBy$</othername>
-<date>$Date$</date>
-</sect1info>
-<?dbhtml filename="dhcpcd.html"?>
-<title>dhcpcd-&dhcpcd-version;</title>
-<indexterm zone="dhcpcd">
-<primary sortas="a-Dhcpcd">Dhcpcd</primary></indexterm>
+  <?dbhtml filename="dhcpcd.html"?>
+  
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+  
+  <title>Dhcpcd-&dhcpcd-version;</title>
+  
+  <indexterm zone="dhcpcd">
+    <primary sortas="a-Dhcpcd">Dhcpcd</primary>
+  </indexterm>
 
-<sect2>
-<title>Introduction to <application>dhcpcd</application></title>
+  <sect2 role="package">
+    <title>Introduction to Dhcpcd</title>
 
-<para>The <application>dhcpcd</application> package contains the
-<command>dhcpcd</command> client. This is useful for connecting your computer 
-to a network which uses <acronym>DHCP</acronym> to assign network 
-addresses.</para>
+    <para>The <application>dhcpcd</application> package contains the
+    <command>dhcpcd</command> client. This is useful for connecting your computer 
+    to a network which uses DHCP to assign network addresses.</para>
+    
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP): <ulink url="&dhcpcd-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download (FTP): <ulink url="&dhcpcd-download-ftp;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &dhcpcd-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &dhcpcd-size;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated disk space required: &dhcpcd-buildsize;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated build time: &dhcpcd-time;</para>
+      </listitem>
+    </itemizedlist>
+    
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para>Required Patch: 
+        <ulink url="&patch-root;/dhcpcd-&dhcpcd-version;-fhs-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+    
+  </sect2>
+  
+  <sect2 role="installation">
+    <title>Installation of Dhcpcd</title>
 
-<sect3><title>Package information</title>
-<itemizedlist spacing='compact'>
-<listitem><para>Download (HTTP): <ulink
-url="&dhcpcd-download-http;"/></para></listitem>
-<listitem><para>Download (FTP): <ulink
-url="&dhcpcd-download-ftp;"/></para></listitem>
-<listitem><para>Download MD5 sum: &dhcpcd-md5sum;</para></listitem>
-<listitem><para>Download size: &dhcpcd-size;</para></listitem>
-<listitem><para>Estimated disk space required:
-&dhcpcd-buildsize;</para></listitem>
-<listitem><para>Estimated build time:
-&dhcpcd-time;</para></listitem></itemizedlist>
-</sect3>
+    <para>Install <application>dhcpcd</application> by running the following 
+    commands:</para>
 
-<sect3><title>Additional downloads</title>
-<itemizedlist spacing='compact'>
-<listitem><para>Required Patch: 
-<ulink url="&patch-root;/dhcpcd-&dhcpcd-version;-fhs-1.patch"/></para>
-</listitem>
-</itemizedlist>
-</sect3>
-
-</sect2>
-
-<sect2>
-<title>Installation of <application>dhcpcd</application></title>
-
-<para>Install <application>dhcpcd</application> by running the following 
-commands:</para>
-
-<screen><userinput><command>patch -Np1 -i ../dhcpcd-&dhcpcd-version;-fhs-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../dhcpcd-&dhcpcd-version;-fhs-1.patch &amp;&amp;
 ./configure --prefix="" --sysconfdir=/var/lib \
---mandir=/usr/share/man &amp;&amp;
-make</command></userinput></screen>
+    --mandir=/usr/share/man &amp;&amp;
+make</userinput></screen>
+    
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    
+<screen role="root"><userinput>make install</userinput></screen>
+    
+  </sect2>
+  
+  <sect2 role="commands">
+    <title>Command Explanations</title>
 
-<para>Now, as the root user:</para>
+    <para><command>patch -Np1 -i ../dhcpcd-&dhcpcd-version;-fhs-1.patch</command>: 
+    <application>dhcpcd</application> unpatched puts all configuration 
+    and temporary files in <filename class='directory'>/etc/dhcpc</filename>. This 
+    becomes very annoying when <application>dhcpcd</application> tells you it's 
+    running and it's not. You look in 
+    <filename class="directory">/var/run</filename> for the 
+    <filename>PID</filename> file, but it's not there, the 
+    <filename>PID</filename> file that needs deleting is in
+    <filename class="directory">/etc/dhcpc</filename>. This patch brings this 
+    program into FHS compliance, but more importantly, puts 
+    files where you expect them to be.</para>
+    
+    <para><parameter>--prefix=""</parameter>: There may be a good reason for
+    abandoning the normal BLFS convention of using
+    <parameter>--prefix=/usr</parameter> here.  If you are installing 
+    DHCP, it is likely that it is 
+    required during the boot process and 
+    <filename class="directory">/usr</filename> may be network mounted, in which 
+    case <command>dhcpcd</command> wouldn't be available due to being on the 
+    network! Therefore, depending on your situation, you may want it to be 
+    installed in <filename class="directory">/sbin</filename> or 
+    <filename class="directory">/usr/sbin</filename>. This command installs to 
+    <filename class="directory">/sbin</filename>.</para>
+    
+    <para><parameter>--sysconfdir=/var/lib</parameter>: This command installs
+    configuration files in the <filename class="directory">/var/lib</filename>
+    directory.</para>
+    
+    <para><parameter>--mandir=/usr/share/man</parameter>: This command installs 
+    the man pages to the <filename class="directory">/usr/share/man</filename>
+    directory.</para>
+    
+  </sect2>
+  
+  <sect2 role="configuration">
+    <title>Configuring Dhcpcd</title>
 
-<screen><userinput role='root'><command>make install</command></userinput></screen>
+    <sect3 id="dhcpcd-config">
+      <title>Config Files</title>
+      
+      <para><filename>/var/lib/dhcpc/*</filename></para>
+      
+      <indexterm zone="dhcpcd dhcpcd-config">
+        <primary sortas="e-var-lib-dhcpc">/var/lib/dhcpc/*</primary>
+      </indexterm>
+    
+    </sect3>
 
-</sect2>
+    <sect3 id="dhcpcd-init">
+      <title>Configuration Information</title>
 
-<sect2>
-<title>Command explanations</title>
+      <para>To configure <command>dhcpcd</command>, you need to first install
+      the network service script,
+      <filename>/etc/sysconfig/network-devices/services/dhcpcd</filename>
+      included in the <xref linkend="intro-important-bootscripts"/> package 
+      (as user <systemitem class="username">root</systemitem>):</para>
+      
+      <indexterm zone="dhcpcd dhcpcd-init">
+        <primary sortas="f-dhcpcd">dhcpcd (service script)</primary>
+      </indexterm>
 
-<para><command>patch -Np1 -i ../dhcpcd-&dhcpcd-version;-fhs-1.patch</command>: 
-<application>dhcpcd</application> unpatched puts all configuration 
-and temporary files in <filename class='directory'>/etc/dhcpc</filename>. This 
-becomes very annoying when <application>dhcpcd</application> tells you it's 
-running and it's not. You look in 
-<filename class="directory">/var/run</filename> for the 
-<filename>PID</filename> file, but it's not there, the 
-<filename>PID</filename> file that needs deleting is in
-<filename class="directory">/etc/dhcpc</filename>. This patch brings this 
-program into <acronym>FHS</acronym> compliance, but more importantly, puts 
-files where you expect them to be.</para>
+<screen role='root'><userinput>make install-service-dhcpcd</userinput></screen>
 
-<para><parameter>--prefix=""</parameter>: There may be a good reason for
-abandoning the normal <acronym>BLFS</acronym> convention of using
-<parameter>--prefix=/usr</parameter> here.  If you are installing 
-<acronym>DHCP</acronym>, it is likely that it is 
-required during the boot process and 
-<filename class="directory">/usr</filename> may be network mounted, in which 
-case <command>dhcpcd</command> wouldn't be available due to being on the 
-network! Therefore, depending on your situation, you may want it to be 
-installed in <filename class="directory">/sbin</filename> or 
-<filename class="directory">/usr/sbin</filename>. This command installs to 
-<filename class="directory">/sbin</filename>.</para>
+      <para id="dhcpcd-config2">Finally, as the <systemitem 
+      class="username">root</systemitem> user create the
+      <filename>/etc/sysconfig/network-devices/ifconfig.eth0/dhcpcd</filename> 
+      configuration file using the following commands.  Adjust appropriately 
+      for additional interfaces:</para>
+      
+      <indexterm zone="dhcpcd dhcpcd-config2">
+        <primary sortas="e-etc-sysconfig-dhcpcd">/etc/sysconfig/.../dhcpcd</primary>
+      </indexterm>
 
-<para><parameter>--sysconfdir=/var/lib</parameter>: This command installs
-configuration files in the <filename class="directory">/var/lib</filename>
-directory.</para>
-
-<para><parameter>--mandir=/usr/share/man</parameter>: This command installs 
-the man pages to the <filename class="directory">/usr/share/man</filename>
-directory.</para>
-
-</sect2>
-
-<sect2>
-<title>Configuring <application>dhcpcd</application></title>
-
-<sect3 id="dhcpcd-config"><title>Config files</title>
-<para><filename>/var/lib/dhcpc/*</filename></para>
-<indexterm zone="dhcpcd dhcpcd-config">
-<primary sortas="e-var-lib-dhcpc">/var/lib/dhcpc/*</primary></indexterm>
-</sect3>
-
-<sect3 id="dhcpcd-init"><title>Configuration Information</title>
-
-<para>To configure <command>dhcpcd</command>, you need to first install
-the network service script,
-<filename>/etc/sysconfig/network-devices/services/dhcpcd</filename>
-included in the <xref linkend="intro-important-bootscripts"/> package 
-(as user root).</para>
-<indexterm zone="dhcpcd dhcpcd-init">
-<primary sortas="f-dhcpcd">dhcpcd (service script)</primary></indexterm>
-
-<screen><userinput role='root'><command>make install-service-dhcpcd</command></userinput></screen>
-
-<para id="dhcpcd-config2">Finally, as the root user create the
-<filename>/etc/sysconfig/network-devices/ifconfig.eth0/dhcpcd</filename> 
-configuration file using the following commands.  Adjust appropriately 
-for additional interfaces.</para>
-<indexterm zone="dhcpcd dhcpcd-config2">
-<primary sortas="e-etc-sysconfig-dhcpcd">/etc/sysconfig/.../dhcpcd</primary></indexterm>
-
-<screen><userinput role='root'><command>install -d /etc/sysconfig/network-devices/ifconfig.eth0 &amp;&amp;
-cat &gt; /etc/sysconfig/network-devices/ifconfig.eth0/dhcpcd &lt;&lt; "EOF"</command>
-ONBOOT="yes"
+<screen role='root'><userinput>install -d /etc/sysconfig/network-devices/ifconfig.eth0 &amp;&amp;
+cat &gt; /etc/sysconfig/network-devices/ifconfig.eth0/dhcpcd &lt;&lt; "EOF"
+<literal>ONBOOT="yes"
 SERVICE="dhcpcd"
 DHCP_START="<replaceable>[insert appropriate start options here]</replaceable>"
 DHCP_STOP="-k <replaceable>[insert additional stop options here]</replaceable>"
@@ -149,62 +171,74 @@ PRINTIP="no"
 
 # Set PRINTALL="yes" to print the DHCP assigned values for 
 # IP, SM, DG, and 1st NS. This requires PRINTIP="yes".
-PRINTALL="no"
-<command>EOF</command></userinput></screen>
+PRINTALL="no"</literal>
+EOF</userinput></screen>
 
-<para>For more information on the appropriate <envar>DHCP_START</envar> and 
-<envar>DHCP_STOP</envar> values, examine the man page for 
-<command>dhcpcd</command>.</para>
+      <para>For more information on the appropriate <envar>DHCP_START</envar> and 
+      <envar>DHCP_STOP</envar> values, examine the man page for 
+      <command>dhcpcd</command>.</para>
+      
+      <note>
+        <para id="dhcpcd-config3">The default behavior of 
+        <command>dhcpcd</command> is to overwrite (after making backup copies) 
+        <filename>/etc/resolv.conf</filename>, <filename>/etc/yp.conf</filename> and 
+        <filename>/etc/ntp.conf</filename> with new files containing information from 
+        the DHCP server. If this is undesirable, review the 
+        <command>dhcpcd</command> man page for switches to add to the 
+        <envar>DHCP_START</envar> value.</para>
+      </note>
+      
+      <indexterm zone="dhcpcd dhcpcd-config3">
+        <primary sortas="e-etc-resolv.conf">/etc/resolv.conf</primary>
+      </indexterm>
+      
+      <indexterm zone="dhcpcd dhcpcd-config3">
+        <primary sortas="e-etc-yp.conf">/etc/yp.conf</primary>
+      </indexterm>
+      
+      <indexterm zone="dhcpcd dhcpcd-config3">
+        <primary sortas="e-etc-ntp.conf">/etc/ntp.conf</primary>
+      </indexterm>
+      
+    </sect3>
+    
+  </sect2>
+  
+  <sect2 role="content">
+    <title>Contents</title>
 
-<note><para id="dhcpcd-config3">The default behavior of 
-<command>dhcpcd</command> is to overwrite (after making backup copies) 
-<filename>/etc/resolv.conf</filename>, <filename>/etc/yp.conf</filename> and 
-<filename>/etc/ntp.conf</filename> with new files containing information from 
-the <acronym>DHCP</acronym> server. If this is undesirable, review the 
-<command>dhcpcd</command> man page for switches to add to the 
-<envar>DHCP_START</envar> value.</para></note>
-<indexterm zone="dhcpcd dhcpcd-config3">
-<primary sortas="e-etc-resolv.conf">/etc/resolv.conf</primary></indexterm>
-<indexterm zone="dhcpcd dhcpcd-config3">
-<primary sortas="e-etc-yp.conf">/etc/yp.conf</primary></indexterm>
-<indexterm zone="dhcpcd dhcpcd-config3">
-<primary sortas="e-etc-ntp.conf">/etc/ntp.conf</primary></indexterm>
+    <segmentedlist>
+      <segtitle>Installed Program</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+      
+      <seglistitem>
+        <seg>dhcpcd</seg>
+        <seg>None</seg>
+        <seg>/var/lib/dhcpc</seg>
+      </seglistitem>
+    </segmentedlist>
+    
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+      
+      <varlistentry id="dhcpcd-prog">
+        <term><command>dhcpcd</command></term>
+        <listitem>
+          <para>is an implementation of the DHCP client 
+          specified in RFC2131 and RFC1541 
+          (depending on which options are specified).</para>
+          <indexterm zone="dhcpcd dhcpcd-prog">
+            <primary sortas="b-dhcpcd">dhcpcd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    
+    </variablelist>
 
-</sect3>
-
-</sect2>
-
-<sect2>
-<title>Contents</title>
-
-<segmentedlist>
-<segtitle>Installed Program</segtitle>
-<segtitle>Installed Libraries</segtitle>
-<segtitle>Installed Directories</segtitle>
-
-<seglistitem>
-<seg>dhcpcd</seg>
-<seg>None</seg>
-<seg>/var/lib/dhcpc</seg>
-</seglistitem>
-</segmentedlist>
-
-<variablelist>
-<bridgehead renderas="sect3">Short Descriptions</bridgehead>
-<?dbfo list-presentation="list"?>
-
-<varlistentry id="dhcpcd-prog">
-<term><command>dhcpcd</command></term>
-<listitem><para>is an implementation of the <acronym>DHCP</acronym> client 
-specified in <acronym>RFC</acronym>2131 and <acronym>RFC</acronym>1541 
-(depending on which options are specified).</para>
-<indexterm zone="dhcpcd dhcpcd-prog">
-<primary sortas="b-dhcpcd">dhcpcd</primary>
-</indexterm></listitem>
-</varlistentry>
-</variablelist>
-
-</sect2>
+  </sect2>
 
 </sect1>
 
