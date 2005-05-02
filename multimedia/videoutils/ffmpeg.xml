@@ -7,8 +7,8 @@
   <!ENTITY ffmpeg-download-ftp  " ">
   <!ENTITY ffmpeg-md5sum        "ea5587e3c66d50b1503b82ac4179c303">
   <!ENTITY ffmpeg-size          "1.6 MB">
-  <!ENTITY ffmpeg-buildsize     "49 MB">
-  <!ENTITY ffmpeg-time          "0.87 SBU">
+  <!ENTITY ffmpeg-buildsize     "50 MB">
+  <!ENTITY ffmpeg-time          "0.9 SBU">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -52,7 +52,6 @@ source.</para>
 <sect4><title>Optional</title>
 <para><xref linkend="libvorbis"/>, 
 <xref linkend="lame"/>, 
-<xref linkend="liba52"/>, 
 <xref linkend="imlib2"/>, 
 X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>), 
 <xref linkend="sdl"/>, 
@@ -74,30 +73,41 @@ commands:</para>
 <note><para>Review the <filename>doc/optimization.txt</filename> file in the 
 source tree for information about optimizing the build.</para></note>
 
-<screen><userinput><command>./configure --prefix=/usr --enable-shared \
+<screen><userinput><command>sed -i -e "s/static uint64/const uint64/" \
+    libavcodec/liba52/resample_mmx.c &amp;&amp;
+./configure --prefix=/usr --enable-shared \
     --enable-pthreads --disable-ffplay &amp;&amp;
-make &amp;&amp;
-make -C doc {ffmpeg,ffserver,ffplay}.1</command></userinput></screen>
+make</command></userinput></screen>
+
+<para>If you have <application>TeX</application> installed, the man pages 
+and documentation was built during the <command>make</command> process. Skip 
+to the root user installation steps. If you do not have 
+<application>TeX</application> installed, use the following command to build 
+the man pages:</para>
+
+<screen><userinput><command>make -C doc {ffmpeg,ffserver,ffplay}.1</command></userinput></screen>
 
 <para>Now, as the root user:</para>
 
 <screen><userinput role='root'><command>make install</command></userinput></screen>
 
-<para>If you have <application>TeX</application> installed and you wish to 
-install the <acronym>HTML</acronym> documentation, run the following 
-command as an unprivileged user:</para>
+<para>If you have <application>TeX</application> installed (which caused the 
+HTML documentation to be built earlier), install the documentation by issuing 
+the following commands as the root user:</para>
 
-<screen><userinput><command>make -C doc</command></userinput></screen>
-
-<para>Now, as the root user:</para>
-
-<screen><userinput role='root'><command>install -v -d -m755 /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
+<screen><userinput role='root'><command>install -v -m755 -d /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
 install -v -m644 doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</command></userinput></screen>
 
 </sect2>
 
 <sect2>
 <title>Command explanations</title>
+
+<para><command>sed -i -e "s/static uint64/const uint64/" 
+libavcodec/liba52/resample_mmx.c</command>: This command fixes an issue 
+on machines with MMX capability and use <application>GCC</application>-3.4.x 
+to compile in A52 support using the <option>--enable-a52</option> parameter 
+passed to the <command>configure</command> script.</para>
 
 <para><parameter>--enable-shared</parameter>: This switch is needed to
 build the <filename class="libraryfile">libavcodec</filename> and 
@@ -115,13 +125,6 @@ installed.</para>
 <para><option>--enable-<replaceable>[codec]</replaceable></option>: Review
 the available options and codecs using the 
 <command>./configure --help</command> command.</para>
-
-<para><command>make -C doc {ffmpeg,ffserver,ffplay}.1</command>: This builds 
-the man pages which are installed by <command>make install</command>.</para>
-
-<note><para>Linking the <application>liba52</application> library using the 
-<option>--enable-a52</option> parameter to <command>configure</command> is 
-known to break the build.</para></note>
 
 </sect2>
 
