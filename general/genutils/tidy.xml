@@ -6,14 +6,15 @@
 
   <!ENTITY tidy-download-http "http://tidy.sourceforge.net/src/tidy_src_&tidy-version;.tgz">
   <!ENTITY tidy-download-ftp  " ">
-  <!ENTITY tidy-md5sum        "94b5825afab39eed91c2c449b20afd52">
-  <!ENTITY tidy-size          "246 KB">
-  <!ENTITY tidy-buildsize     "9.8 MB">
-  <!ENTITY tidy-time          "0.23 SBU">
+  <!ENTITY tidy-md5sum        "8baf0d61bcaf7f488c7fde0b26268509">
+  <!ENTITY tidy-size          "254 KB">
+  <!ENTITY tidy-buildsize     "10.1 MB">
+  <!ENTITY tidy-time          "0.2 SBU">
 
-  <!ENTITY tidy-docs-download "http://tidy.sourceforge.net/docs/tidy_docs.tgz">
-  <!ENTITY tidy-docs-md5sum   "00808694ad7cb21a7c40387423f60993">
-  <!ENTITY tidy-docs-size     "152 KB">
+  <!ENTITY tidy-docs-version  "050502">
+  <!ENTITY tidy-docs-download "http://tidy.sourceforge.net/docs/tidy_docs_&tidy-docs-version;.tgz">
+  <!ENTITY tidy-docs-md5sum   "54488c25347b9fee5c544a13ab5324ee">
+  <!ENTITY tidy-docs-size     "150 KB">
 ]>
 
 <sect1 id="html-tidy" xreflabel="HTML Tidy-&tidy-version;">
@@ -98,6 +99,10 @@
 
     <bridgehead renderas="sect3">HTML Tidy Dependencies</bridgehead>
 
+    <bridgehead renderas="sect4">Recommended (To Build the Man Page and Quick 
+    Reference Docs)</bridgehead>
+    <para><xref linkend="libxslt"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para><ulink url="http://dmalloc.com/">Dmalloc</ulink></para>
 
@@ -120,11 +125,33 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-install -v -m644 htmldoc/man_page.txt \
-    /usr/share/man/man1/tidy.1 &amp;&amp;
-install -v -d -m755 /usr/share/doc/tidy &amp;&amp;
-cp -v -R htmldoc /usr/share/doc/tidy</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>If you have the dependencies shown above to build the man page and
+    HTML documentation, issue the following commands as an unprivileged 
+    user:</para>
+
+<screen><userinput>cd htmldoc &amp;&amp;
+tidy -xml-help >tidy-help.xml &amp;&amp;
+tidy -xml-config >tidy-config.xml &amp;&amp;
+xsltproc --xinclude --nonet --stringparam base.dir . \
+    tidy1.xsl tidy-help.xml >tidy.1 &amp;&amp;
+xsltproc --xinclude --nonet --stringparam base.dir . \
+    quickref-html.xsl tidy-config.xml >quickref.html &amp;&amp;
+cd ..</userinput></screen>
+
+    <para>If you built the man page and the Quick Reference HTML file, install 
+    the man page by issuing the following command as the 
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m644 htmldoc/tidy.1 /usr/share/man/man1</userinput></screen>
+
+    <para>Now finish the installation by installing the pre-built 
+    documentation as the <systemitem class="username">root</systemitem> 
+    user:</para>
+
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/tidy &amp;&amp;
+cp -v -R htmldoc/* /usr/share/doc/tidy</userinput></screen>
 
   </sect2>
 
