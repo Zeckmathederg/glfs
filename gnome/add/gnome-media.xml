@@ -6,10 +6,10 @@
 
 <!ENTITY gnome-media-download-http "http://ftp.gnome.org/pub/GNOME/sources/gnome-media/&gnome-version;/gnome-media-&gnome-media-version;.tar.bz2">
 <!ENTITY gnome-media-download-ftp "ftp://ftp.gnome.org/pub/GNOME/sources/gnome-media/&gnome-version;/gnome-media-&gnome-media-version;.tar.bz2">
-<!ENTITY gnome-media-md5sum "c200cb577be1adb6bedb8c6528d738a1">
-<!ENTITY gnome-media-size "3.1 MB">
-<!ENTITY gnome-media-buildsize "36.9 MB">
-<!ENTITY gnome-media-time "0.60 SBU">
+<!ENTITY gnome-media-md5sum "3d73cd40cfa52c5eef882302f92c60d6">
+<!ENTITY gnome-media-size "3.3 MB">
+<!ENTITY gnome-media-buildsize "36 MB">
+<!ENTITY gnome-media-time "0.50 SBU">
 ]>
 
 <sect1 id="gnome-media" xreflabel="GNOME Media-&gnome-media-version;">
@@ -46,6 +46,7 @@ url="&gnome-media-download-ftp;"/></para></listitem>
 dependencies</title>
 <sect4><title>Required</title>
 <para><xref linkend="libgnomeui"/>, 
+<xref linkend="nautilus-cd-burner"/>, 
 <xref linkend="gst-plugins"/> and 
 <xref linkend="scrollkeeper"/></para>
 </sect4>
@@ -66,16 +67,29 @@ Media</application></title>
 <para>Install <application><acronym>GNOME</acronym> Media</application> by 
 running the following commands:</para>
 
-<screen><userinput><command>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
+<screen><userinput><command>sed -i -e \
+"s/-lORBit-2 -lbonobo-2 -lgobject-2.0 -lglib-2.0/\$(CDDBSLAVE_LIBS)/" \
+    cddb-slave2/Makefile.in &amp;&amp;
+./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
     --libexecdir=`pkg-config --variable=prefix ORBit-2.0`/sbin \
     --sysconfdir=/etc/gnome --localstatedir=/var/lib &amp;&amp;
-make &amp;&amp;
-make install</command></userinput></screen>
+make</command></userinput></screen>
+
+<para>This package does not come with a test suite.</para>
+
+<para>Now, as the root user:</para>
+
+<screen><userinput role='root'><command>make install &amp;&amp;
+gst-register</command></userinput></screen>
 
 </sect2>
 
 <sect2>
 <title>Command explanations</title>
+
+<para><command>sed -i -e ... cddb-slave2/Makefile.in</command>: This 
+command fixes a bug encountered if <envar>$GNOME_PREFIX</envar> is not 
+set to <filename class='directory'>/usr</filename>.</para>
 
 <para><parameter>--libexecdir=`pkg-config --variable=prefix
 ORBit-2.0`/sbin</parameter>: This switch puts libexec files in
@@ -135,4 +149,3 @@ parameters.</para></sect3>
 </sect2>
 
 </sect1>
-
