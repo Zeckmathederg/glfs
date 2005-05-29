@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gnome-mag-download-http "http://ftp.gnome.org/pub/GNOME/sources/gnome-mag/0.11/gnome-mag-&gnome-mag-version;.tar.bz2">
-  <!ENTITY gnome-mag-download-ftp "ftp://ftp.gnome.org/pub/GNOME/sources/gnome-mag/0.11/gnome-mag-&gnome-mag-version;.tar.bz2">
-  <!ENTITY gnome-mag-md5sum "2603ef3349a8bbadcc1f3b36b467a9bf">
-  <!ENTITY gnome-mag-size "311 KB">
-  <!ENTITY gnome-mag-buildsize "5.1 MB">
-  <!ENTITY gnome-mag-time "0.12 SBU">
+  <!ENTITY gnome-mag-download-http "http://ftp.gnome.org/pub/GNOME/sources/gnome-mag/0.12/gnome-mag-&gnome-mag-version;.tar.bz2">
+  <!ENTITY gnome-mag-download-ftp "ftp://ftp.gnome.org/pub/GNOME/sources/gnome-mag/0.12/gnome-mag-&gnome-mag-version;.tar.bz2">
+  <!ENTITY gnome-mag-md5sum "8987cdd1034baeae4554ea50f82715aa">
+  <!ENTITY gnome-mag-size "332 KB">
+  <!ENTITY gnome-mag-buildsize "6 MB">
+  <!ENTITY gnome-mag-time "0.2 SBU">
 ]>
 
 <sect1 id="gnome-mag" xreflabel="GNOME Magnifier-&gnome-mag-version;">
@@ -59,9 +59,10 @@
     <bridgehead renderas="sect3">GNOME Magnifier Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para><xref linkend="libgail-gnome"/></para>
+    <para><xref linkend="at-spi"/></para>
 
-    <bridgehead renderas="sect4">Optional</bridgehead>
+    <bridgehead renderas="sect4">Optional (For 
+    <application>XFree86</application> Only)</bridgehead>
     <para><ulink
     url="http://www.freedesktop.org/wiki/Software_2fxlibs">Xdamage</ulink>
     (requires <ulink
@@ -73,14 +74,24 @@
     then <ulink
     url="http://www.freedesktop.org/wiki/Software_2fxlibs">DamageExt</ulink>)</para>
 
-    <para>* The <application>XExtensions</application> package is included in
-    a BLFS <application>X Window System</application> installation, but the
+    <para>* The <application>XExtensions</application> package is included with
+    the BLFS <application>XFree86</application> installation, but the
     pkgconfig <filename>.pc</filename> file <application>FixesExt</application>
     looks for is not installed. Satisfy the requirement by installing an
-    <filename>xextensions.pc</filename> file into
-    <filename class='directory'>/usr/X11R6/lib/pkgconfig</filename> which can be
-    downloaded from <ulink
-    url="http://www.linuxfromscratch.org/~randy/xextensions.pc"/>.</para>
+    <filename>xextensions.pc</filename> file:</para>
+
+<screen><userinput>cat &gt; /usr/X11R6/lib/pkgconfig/xextensions.pc &lt;&lt; "EOF"
+<literal>prefix=/usr/X11R6
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: XExtensions
+Description: Sundry X extension headers
+Version: 1.0.1
+Cflags: -I${includedir}</literal>
+
+EOF</userinput></screen>
 
   </sect2>
 
@@ -91,8 +102,13 @@
     running the following commands:</para>
 
 <screen><userinput>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` &amp;&amp;
-make &amp;&amp;
-make install</userinput></screen>
+make</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role='root'><userinput>make install</userinput></screen>
 
   </sect2>
 
@@ -106,8 +122,10 @@ make install</userinput></screen>
 
       <seglistitem>
         <seg>magnifier</seg>
-        <seg>libgnome-mag.[so,a]</seg>
-        <seg>Not determined at this time</seg>
+        <seg>libgnome-mag.so</seg>
+        <seg>$GNOME_PREFIX/include/gnome-mag-1.0,
+        $GNOME_PREFIX/share/gnome-mag and 
+        $GNOME_PREFIX/share/idl/gnome-mag-1.0</seg>
       </seglistitem>
     </segmentedlist>
 
