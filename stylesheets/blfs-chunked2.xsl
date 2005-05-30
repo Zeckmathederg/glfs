@@ -7,10 +7,10 @@
   	<!-- We use XHTML -->
   <xsl:import href="http://docbook.sourceforge.net/release/xsl/1.68.1/xhtml/docbook.xsl"/>
   <xsl:param name="chunker.output.encoding" select="'ISO-8859-1'"/>
-  
+
   	<!-- Including our others customized elements templates -->
   <xsl:include href="xhtml/lfs-admon.xsl"/>
-  <xsl:include href="xhtml/lfs-mixed.xsl"/> 
+  <xsl:include href="xhtml/lfs-mixed.xsl"/>
   <xsl:include href="xhtml/lfs-sections.xsl"/>
   <xsl:include href="xhtml/lfs-titles.xsl"/>
   <xsl:include href="xhtml/lfs-toc.xsl"/>
@@ -23,12 +23,12 @@
   <xsl:param name="html.stylesheet" select="'../stylesheets/blfs.css'"/>
   <xsl:template name='user.head.content'>
      <link rel='stylesheet' href="../stylesheets/blfs-print.css" type="text/css" media='print'/>
-  </xsl:template> 
+  </xsl:template>
 
   	<!-- Dropping some unwanted style attributes -->
   <xsl:param name="ulink.target" select="''"></xsl:param>
   <xsl:param name="css.decoration" select="0"></xsl:param>
-  
+
     <!-- No XML declaration -->
   <xsl:param name="chunker.output.omit-xml-declaration" select="'yes'"/>
 

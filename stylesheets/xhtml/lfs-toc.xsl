@@ -3,7 +3,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
-                
+
 		<!-- General settings -->
   <xsl:param name="generate.toc">
     appendix  toc
@@ -26,7 +26,7 @@
   <xsl:param name="toc.section.depth">1</xsl:param>
 
   <xsl:param name="toc.max.depth">3</xsl:param>
-  
+
   	<!-- Making the TOC -->
 	<xsl:template name="make.toc">
     <xsl:param name="toc-context" select="."/>
@@ -46,7 +46,7 @@
       </div>
     </xsl:if>
   </xsl:template>
-	
+
     <!-- Making the subtocs -->
   <xsl:template name="subtoc">
     <xsl:param name="toc-context" select="."/>

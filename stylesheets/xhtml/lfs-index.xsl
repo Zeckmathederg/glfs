@@ -17,13 +17,13 @@
 
     <!--Title-->
   <xsl:param name="index-title">Index</xsl:param>
-  
+
   <xsl:template match="index" mode="title.markup">
     <xsl:call-template name="gentext">
       <xsl:with-param name="key" select="$index-title"/>
     </xsl:call-template>
 	</xsl:template>
-  
+
   <xsl:template name="index.titlepage">
     <div class="titlepage">
     	<h1 class="index">
@@ -45,7 +45,7 @@
             will be added as time permits.
           </p>
         </div>
-      </div>    
+      </div>
       <!-- End temporary addition -->
     </div>
   </xsl:template>
@@ -228,7 +228,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
     <!-- Dropping unneeded anchors -->
   <xsl:template match="indexterm"/>
 

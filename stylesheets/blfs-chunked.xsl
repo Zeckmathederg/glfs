@@ -16,7 +16,7 @@
         <xsl:with-param name="footnotes" select="$footnotes"/>
       </xsl:call-template>
     </xsl:variable>
-   
+
     <!-- Only bother to do this if there's at least one non-table footnote -->
     <xsl:if test="$fcount &gt; 0">
       <div class="footnotes">
@@ -28,7 +28,7 @@
         </xsl:call-template>
       </div>
     </xsl:if>
-  
+
     <!-- Add this to the footnotes -->
     <xsl:apply-templates select='prefaceinfo|chapterinfo|sect1info' mode='attribution'/>
   </xsl:template>
@@ -37,11 +37,11 @@
     <p class='updated'> Last updated <!-- by 
       <xsl:apply-templates select="othername" mode='attribution'/> -->
       on 
-      <xsl:apply-templates select="date" mode='attribution'/> 
+      <xsl:apply-templates select="date" mode='attribution'/>
     </p>
   </xsl:template>
 
-  <xsl:template match='othername' mode='attribution'> 
+  <xsl:template match='othername' mode='attribution'>
      <xsl:variable name='author'>
           <xsl:value-of select='.'/>
      </xsl:variable>
@@ -49,13 +49,13 @@
           <xsl:value-of select='substring($author,16)'/>
      </xsl:variable>
      <xsl:value-of select="substring-before($nameonly,'$')" />
-  </xsl:template> 
+  </xsl:template>
 
-  <xsl:template match='date' mode='attribution'> 
+  <xsl:template match='date' mode='attribution'>
       <xsl:variable name='date'>
          <xsl:value-of select='.'/>
       </xsl:variable>
       <xsl:value-of select="substring($date,7,26)" />
-  </xsl:template> 
+  </xsl:template>
 
 </xsl:stylesheet>

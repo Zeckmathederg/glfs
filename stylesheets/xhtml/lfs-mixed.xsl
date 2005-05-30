@@ -24,7 +24,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
     <!-- userinput -->
   <xsl:template match="userinput">
     <xsl:choose>
@@ -70,7 +70,7 @@
       </span>
     </a>
   </xsl:template>
-  
+
     <!-- Cunstomizing segementedlist -->
   <xsl:template match="seg">
     <xsl:variable name="segnum" select="count(preceding-sibling::seg)+1"/>
@@ -113,7 +113,7 @@
       <xsl:copy-of select="$content"/>
     </tt>
   </xsl:template>
-  
+
   <xsl:template name="inline.boldmonoseq">
     <xsl:param name="content">
       <xsl:call-template name="anchor"/>
@@ -151,7 +151,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
   <xsl:template name="inline.italicmonoseq">
     <xsl:param name="content">
       <xsl:call-template name="anchor"/>

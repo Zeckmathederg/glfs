@@ -11,7 +11,7 @@
   <xsl:template match="beginpage">
     <fo:block break-after="page"/>
   </xsl:template>
-  
+
     <!-- Allow forced line breaks inside paragraphs emulating literallayout. -->
  <xsl:template match="para">
     <xsl:choose>
