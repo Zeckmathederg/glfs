@@ -6,10 +6,10 @@
 
   <!ENTITY gdm-download-http "http://ftp.gnome.org/pub/GNOME/sources/gdm/2.6/gdm-&gdm-version;.tar.bz2">
   <!ENTITY gdm-download-ftp "ftp://ftp.gnome.org/pub/GNOME/sources/gdm/2.6/gdm-&gdm-version;.tar.bz2">
-  <!ENTITY gdm-md5sum "8dca7cb1f28d81f60f6e07b3c24288c5">
-  <!ENTITY gdm-size "3.2 MB">
-  <!ENTITY gdm-buildsize "44 MB">
-  <!ENTITY gdm-time "0.48 SBU">
+  <!ENTITY gdm-md5sum "d845fe205412bb101d4c66d1e88a317d">
+  <!ENTITY gdm-size "3.4 MB">
+  <!ENTITY gdm-buildsize "46 MB">
+  <!ENTITY gdm-time "0.5 SBU">
 ]>
 
 <sect1 id="gdm" xreflabel="GDM-&gdm-version;">
@@ -72,17 +72,28 @@
   <sect2 role="installation">
     <title>Installation of GDM</title>
 
-    <para>Install <application>GDM</application> by running
-    the following commands:</para>
+    <para>It is recommended to have a dedicated user and group to take
+    control of the <command>gdm-binary</command> daemon after it is 
+    started. Issue the following commands as the 
+    <systemitem class="username">root</systemitem> user:</para>
 
-<screen><userinput>groupadd gdm &amp;&amp;
-useradd -c "GDM Daemon Owner" -d /dev/null -g gdm -s /bin/bash gdm &amp;&amp;
-./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
+<screen role='root'><userinput>groupadd gdm &amp;&amp;
+useradd -c "GDM Daemon Owner" -d /dev/null -g gdm -s /bin/bash gdm</userinput></screen>
+
+    <para>Install <application>GDM</application> by running
+    the following commands as an unprivileged user:</para>
+
+<screen><userinput>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
     --libexecdir=`pkg-config --variable=prefix ORBit-2.0`/sbin \
     --sysconfdir=/etc/gnome --localstatedir=/var/lib \
     --with-pam-prefix=/etc &amp;&amp;
-make &amp;&amp;
-make install</userinput></screen>
+make</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role='root'><userinput>make install</userinput></screen>
 
   </sect2>
 
@@ -95,7 +106,11 @@ make install</userinput></screen>
 
     <para><parameter>--localstatedir=/var/lib</parameter>: This command
     puts files in <filename class="directory">/var/lib</filename> instead of
-    <filename class="directory">$GNOME_PREFIX/var</filename>.</para>
+    <filename class="directory">$GNOME_PREFIX/var</filename>. This also has 
+    the downside affect of using 
+    <filename class='directory'>/var/lib/log/gdm</filename> as the log 
+    directory. See the <quote>Configuration Information</quote> section below 
+    for information how to relocate the log file directory.</para>
 
     <para><parameter>--with-pam-prefix=/etc</parameter>: This command puts
     <application>PAM</application> configuration files in
@@ -121,9 +136,18 @@ make install</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
+      <para>If desired, change the directory containing the 
+      <application>GDM</application> log files to the 
+      <filename class='directory'>/var/log</filename> hierarchy by modifying
+      the <filename>/etc/gnome/gdm/gdm.conf</filename> configuration file as
+      the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>sed -i -e "s|var/lib/log|var/log|" /etc/gnome/gdm/gdm.conf</userinput></screen>
+
       <para>The <application>GDM</application> <application>PAM</application>
       config files contain modules not present in a BLFS installation. The
-      following commands will replace those files:</para>
+      following commands will replace those files (issue as the 
+      <systemitem class="username">root</systemitem> user):</para>
 
 <screen role="root"><userinput>cat &gt; /etc/pam.d/gdm &lt;&lt; "EOF"
 <literal>auth        required    pam_unix.so
@@ -155,7 +179,7 @@ EOF</userinput></screen>
 
     </sect3>
 
-    <sect3  id="gdm-init">
+    <sect3 id="gdm-init">
       <title>Boot Script</title>
 
       <para>To start a graphical login at boot, install the
@@ -195,7 +219,13 @@ EOF</userinput></screen>
         gdmthemetester, gdm-restart, gdm-safe-restart, gdm-stop,
         gdmconfig, gdmopen, and gdmtranslate</seg>
         <seg>None</seg>
-        <seg>Not determined at this time</seg>
+        <seg>/etc/gnome/dm, /etc/gnome/gdm, 
+        $GNOME_PREFIX/share/gdm,
+        $GNOME_PREFIX/share/gnome/capplets,
+        $GNOME_PREFIX/share/gnome/help/gdm,
+        $GNOME_PREFIX/share/omf/gdm,
+        $GNOME_PREFIX/share/xsessions,
+        /var/lib/gdm and /var/log/gdm</seg>
       </seglistitem>
     </segmentedlist>
 
