@@ -35,16 +35,16 @@ blfs:
 	cp images/*.png $(BASEDIR)/images
 	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@g" *.html
 	cd $(BASEDIR); sed -i -e "s@../images@images@g" *.html
-	sh goTidy $(BASEDIR)/  
+	sh goTidy $(BASEDIR)/
 
 nochunks:
 	@echo "Generating nochunks version of BLFS..."
 	xsltproc --xinclude --nonet -stringparam profile.condition html \
         --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
           stylesheets/blfs-nochunks.xsl index.xml
- 
+
 	tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
- 
+
 	sed -i -e "s@text/html@application/xhtml+xml@g"  \
           $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
@@ -87,7 +87,7 @@ tex:
 validate:
 	xmllint --noout --nonet --xinclude --postvalid index.xml
 
-blfs-patch-list: 
+blfs-patch-list:
 	@echo "Generating blfs-patch-list..."
 	xsltproc --xinclude --nonet \
              --output blfs-patch-list stylesheets/patcheslist.xsl index.xml
