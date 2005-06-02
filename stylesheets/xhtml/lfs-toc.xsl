@@ -4,10 +4,10 @@
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
 
-		<!-- General settings -->
+    <!-- General settings -->
   <xsl:param name="generate.toc">
     appendix  toc
-    book      toc,title,figure,table,example,equation
+    book      toc,title
     chapter   nop
     part      toc
     preface   nop
@@ -27,8 +27,8 @@
 
   <xsl:param name="toc.max.depth">3</xsl:param>
 
-  	<!-- Making the TOC -->
-	<xsl:template name="make.toc">
+    <!-- Making the TOC -->
+  <xsl:template name="make.toc">
     <xsl:param name="toc-context" select="."/>
     <xsl:param name="nodes" select="/NOT-AN-ELEMENT"/>
     <xsl:if test="$nodes">
@@ -70,8 +70,8 @@
       <xsl:call-template name="toc.line">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:call-template>
-      <xsl:if test="$toc.section.depth &gt; $depth and count($nodes)&gt;0 
-      				and $toc.max.depth &gt; $depth.from.context">
+      <xsl:if test="$toc.section.depth &gt; $depth and count($nodes)&gt;0
+              and $toc.max.depth &gt; $depth.from.context">
         <xsl:copy-of select="$subtoc"/>
       </xsl:if>
     </li>
