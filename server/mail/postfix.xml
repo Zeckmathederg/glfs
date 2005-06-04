@@ -170,27 +170,34 @@ AUXLIBS="-L/usr/lib -lpq -lz -lm"</literal></screen>
       <title>Installing Postfix</title>
 
       <para>Before you compile the program, you need to create users and groups
-      that will be expected to be in place when the install script executes.
-      Add the users and groups with the following commands:</para>
+      that will be expected to be in place during the installation.
+      Add the users and groups with the following commands issued by the
+      <systemitem class='username'>root</systemitem> user:</para>
 
-<screen role="root"><userinput>groupadd postfix &amp;&amp;
-groupadd postdrop &amp;&amp;
-groupadd -g 65534 nogroup &amp;&amp;
-useradd -c postfix -d /dev/null -g postfix -s /bin/false postfix &amp;&amp;
-useradd -c nobody -d /home -g nogroup -s /bin/bash -u 65534 nobody &amp;&amp;
-chown postfix:postfix /var/mail</userinput></screen>
+<screen role="root"><userinput>groupadd -g 32 postfix &amp;&amp;
+groupadd -g 33 postdrop &amp;&amp;
+groupadd -g 99 nogroup &amp;&amp;
+useradd -c "Postfix Daemon User" -d /dev/null -g postfix \
+    -s /bin/false -u 32 postfix &amp;&amp;
+useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
+    -s /bin/false -u 99 nobody &amp;&amp;
+chown -v postfix:postfix /var/mail</userinput></screen>
 
       <para>Install <application>Postfix</application> by running the
       following commands:</para>
 
-<screen role="root"><userinput>make &amp;&amp;
-sh postfix-install daemon_directory=/usr/sbin \
+<screen role="root"><userinput>make</userinput></screen>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role='root'><userinput>sh postfix-install daemon_directory=/usr/sbin \
                    manpage_directory=/usr/share/man \
                    sample_directory=/usr/share/doc/postfix \
                    -non-interactive</userinput></screen>
 
       <para>The final installation step is to install the program's documentation
-      with the following commands:</para>
+      with the following commands (again, as the 
+      <systemitem class="username">root</systemitem> user):</para>
 
 <screen role="root"><userinput>install -v -d /usr/share/doc/postfix &amp;&amp;
 cp -v -rf html/* /usr/share/doc/postfix</userinput></screen>
