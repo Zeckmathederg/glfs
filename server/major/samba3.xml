@@ -71,8 +71,8 @@
     <xref linkend="mysql"/> or <xref linkend="postgresql"/>,
     <xref linkend="python"/>,
     <xref linkend="xinetd"/>,
-    <ulink url="http://valgrind.kde.org/">Valgrind</ulink> and
-    <xref linkend="stunnel"/> (used to encrypt access to SWAT)</para>
+    <xref linkend="xfs"/> and
+    <ulink url="http://valgrind.kde.org/">Valgrind</ulink></para>
 
   </sect2>
 
@@ -186,63 +186,179 @@ install -v -m644 ../docs/*.pdf /usr/share/samba</userinput></screen>
     </sect3>
 
     <sect3>
-      <title>Configuration Information</title>
+      <title>Printing to SMB Clients</title>
 
-      <para>The installation commands installed a default configuration file
-      which you can use as an example to set the values for your system and
-      network. At a minimum, ensure you set the following value to an
-      appropriate setting for your network in the
-      <filename>/etc/samba/smb.conf</filename> configuration file:</para>
+      <para>If you use <application>CUPS</application> for print services,
+      and you wish to print to a printer attached to an SMB client, you
+      need to create an SMB backend device. To create the device, issue the
+      following command as the <systemitem class="username">root</systemitem>
+      user:</para>
 
-<screen><literal>workgroup = <replaceable>WORKGROUP</replaceable></literal></screen>
-
-      <para>Also, for non-English locales, ensure the following values are
-      set properly in the [global] section:</para>
-
-<screen><literal>dos charset = <replaceable>cp850</replaceable>
-unix charset = <replaceable>ISO-8859-1</replaceable></literal></screen>
+<screen role="root"><userinput>ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</userinput></screen>
 
     </sect3>
 
     <sect3>
-      <title>Configuration Overview and Available Documentation</title>
+      <title>Configuration Information</title>
 
       <para>Due to the complexity and the many various uses for
-      <application>Samba</application>, complete configuration is well beyond
-      the scope of the BLFS book. Advanced configurations including setting up
-      Primary and Backup Domain Controllers are advanced topics and cannot be
-      adequately covered in BLFS (it should be noted, however, that a
-      <application>Samba</application> BDC cannot be used as a fallback for a
-      <application>Windows</application> PDC, and conversely, a
-      <application>Windows</application> BDC cannot be used as a
-      fallback for a <application>Samba</application> PDC). Many
-      complete books have been written on these topics alone.</para>
+      <application>Samba</application>, complete configuration for all the
+      package's cababilities is well beyond the scope of the BLFS book. This
+      section provides instructions to configure the
+      <filename>/etc/samba/smb.conf</filename> file for two common scenarios.
+      The complete contents of <filename>/etc/samba/smb.conf</filename> will
+      depend on the purpose of <application>Samba</application> 
+      installation.</para>
 
-      <para>There is quite a bit of documentation available which covers many
-      of these advanced configurations. Point your web browser to the links
-      below to view some of the documentation included with the
-      <application>Samba</application> package:</para>
+      <note>
+        <para>You may find it easier to copy the configuration parameters shown
+        below into an empty <filename>/etc/samba/smb.conf</filename> file
+        instead of copying and editing the default file as mentioned in the
+        <quote>Command Explanations</quote> section. How you create/edit the
+        <filename>/etc/samba/smb.conf</filename> file will be left up to
+        you. Do ensure the file is only writeable by the
+        <systemitem class="username">root</systemitem> user (mode 644).</para>
+      </note>
 
-      <itemizedlist spacing='compact'>
-        <listitem>
-          <para>Using Samba, 2nd Edition; a popular book published by O'Reilly
-          <ulink url="file:///usr/share/samba/swat/using_samba/toc.html"/></para>
-        </listitem>
-        <listitem>
-          <para>The Official Samba HOWTO and Reference Guide <ulink
-          url="file:///usr/share/samba/swat/help/Samba-HOWTO-Collection/index.html"/>
-          </para>
-        </listitem>
-        <listitem>
-          <para>Samba-3 by Example
-          <ulink url="file:///usr/share/samba/swat/help/Samba-Guide/index.html"/>
-          </para>
-        </listitem>
-        <listitem>
-          <para>The Samba-3 man Pages
-          <ulink url="file:///usr/share/samba/swat/help/samba.7.html"/></para>
-        </listitem>
-      </itemizedlist>
+      <sect4>
+        <title>Scenario 1: Minimal Standalone Client-Only Installation</title>
+
+        <para>Choose this variant if you only want to transfer files using 
+        <command>smbclient</command>, mount Windows shares and print to Windows
+        printers, and don't want to share your files and printers to Windows 
+        machines.</para>
+
+        <para>A <filename>/etc/samba/smb.conf</filename> file with the following
+        three parameters is sufficient:</para>
+
+<screen role='root'><literal>[global]
+    workgroup = <replaceable>MYGROUP</replaceable>
+    dos charset = <replaceable>cp850</replaceable>
+    unix charset = <replaceable>ISO-8859-1</replaceable></literal></screen>
+
+        <para>The values in this example specify that the computer belongs to a
+        Windows workgroup named
+        <quote><replaceable>MYGROUP</replaceable></quote>, uses the
+        <quote><replaceable>cp850</replaceable></quote> character set on the
+        wire when talking to MS-DOS and MS Windows 9x, and that the filenames
+        are stored in the <quote><replaceable>ISO-8859-1</replaceable></quote>
+        encoding on the disk. Adjust these values appropriately for your
+        installation. The <quote>unix charset</quote> value must be the same as
+        the output of <command>locale charmap</command> when executed with the
+        <envar>LANG</envar> variable set to your preferred locale, otherwise the
+        <command>ls</command> command may not display correct filenames of
+        downloaded files.</para>
+
+        <para>There is no need to run any <application>Samba</application>
+        servers in this scenario, thus you don't need to install the provided
+        bootscripts.</para>
+
+      </sect4>
+
+      <sect4>
+        <title>Scenario 2: Standalone File/Print Server</title>
+
+        <para>Choose this variant if you want to share your files and printers
+        to Windows machines in your workgroup in addition to the capabilities
+        described in Scenario 1.</para>
+
+        <para>In this case, the <filename>/etc/samba/smb.conf.default</filename>
+        file may be a good template to start from. Also add 
+        <quote>dos charset</quote> and <quote>unix charset</quote> parameters
+        to the <quote>[global]</quote> section as described in Scenario 1 in
+        order to prevent filename corruption.</para>
+
+        <para>The following configuration file creates a separate share for each
+        user's home directory and also makes all printers available to Windows
+        machines:</para>
+
+<screen role='root'><literal>[global]
+    workgroup = <replaceable>MYGROUP</replaceable>
+    dos charset = <replaceable>cp850</replaceable>
+    unix charset = <replaceable>ISO-8859-1</replaceable>
+
+[homes]
+    comment = Home Directories
+    browseable = no
+    writable = yes
+
+[printers]
+    comment = All Printers
+    path = /var/spool/samba
+    browseable = no
+    guest ok = no
+    printable = yes</literal></screen>
+
+        <para>Other parameters you may wish to customize in the 
+        <quote>[global]</quote> section include:</para>
+
+<screen role='root'><literal>    server string =
+    security =
+    hosts allow =
+    load printers =
+    log file =
+    max log size =
+    socket options =
+    local master =</literal></screen>
+
+        <para>Reference the comments in the
+        <filename>/etc/samba/smb.conf.default</filename> file for information
+        regarding these parameters.</para>
+
+        <para>Since the <command>smbd</command> and <command>nmbd</command>
+        daemons are needed in this case, install the <filename>samba</filename>
+        bootscript. Be sure to run <command>smbpasswd</command> (with the
+        <option>-a</option> option to add users) to enable and
+        set passwords for all accounts that need
+        <application>Samba</application> access, or use the SWAT web interface
+        (see below) to do the same. Using the default
+        <application>Samba</application> passdb backend, any user you attempt
+        to add will also be required to exist in the
+        <filename>/etc/passwd</filename> file.</para>
+
+      </sect4>
+
+      <sect4>
+        <title>Advanced Requirements</title>
+
+        <para>More complex scenarios involving domain control or membership are
+        possible if the right flags are passed to the ./configure script when
+        the package is built. Such setups are advanced topics and cannot be
+        adequately covered in BLFS. Many complete books have been written on
+        these topics alone. It should be noted, however, that a
+        <application>Samba</application> BDC cannot be used as a fallback
+        for a Windows PDC, and conversely, a Windows BDC cannot be used as a
+        fallback for a <application>Samba</application> PDC. Also in some
+        domain mambership scenarios, the <command>winbindd</command> daemon and
+        the corresponding bootscript are needed.</para>
+
+        <para>There is quite a bit of documentation available which covers many
+        of these advanced configurations. Point your web browser to the links
+        below to view some of the documentation included with the
+        <application>Samba</application> package:</para>
+
+        <itemizedlist spacing='compact'>
+          <listitem>
+            <para>Using Samba, 2nd Edition; a popular book published by O'Reilly
+            <ulink url="file:///usr/share/samba/swat/using_samba/toc.html"/></para>
+          </listitem>
+          <listitem>
+            <para>The Official Samba HOWTO and Reference Guide <ulink
+            url="file:///usr/share/samba/swat/help/Samba-HOWTO-Collection/index.html"/>
+            </para>
+          </listitem>
+          <listitem>
+            <para>Samba-3 by Example
+            <ulink url="file:///usr/share/samba/swat/help/Samba-Guide/index.html"/>
+            </para>
+          </listitem>
+          <listitem>
+            <para>The Samba-3 man Pages
+            <ulink url="file:///usr/share/samba/swat/help/samba.7.html"/></para>
+          </listitem>
+        </itemizedlist>
+
+      </sect4>
 
     </sect3>
 
@@ -254,50 +370,62 @@ unix charset = <replaceable>ISO-8859-1</replaceable></literal></screen>
       the <application>Samba</application> installation, but because it may
       be inconvenient, undesireable or perhaps even impossible to gain
       access to the console, BLFS recommends setting up access to SWAT using
-      <application>Stunnel</application>.</para>
+      <application>Stunnel</application>. Without
+      <application>Stunnel</application>, the
+      <systemitem class="username">root</systemitem> password is transmitted
+      in clear text over the wire, and is considered an unacceptable security
+      risk. After considering the security implications of using SWAT without
+      <application>Stunnel</application>, and you still wish to implement SWAT
+      without it, instructions are provided at this end of this section.</para>
 
       <indexterm zone="samba3 samba3-swat-config">
         <primary sortas="g-SWAT">SWAT</primary>
       </indexterm>
 
-      <para>First you must add entries to <filename>/etc/services</filename>
-      and modify the <command>inetd</command>/<command>xinetd</command>
-      configuration.</para>
+      <sect4>
+        <title>Setting up SWAT using Stunnel</title>
 
-      <indexterm zone="samba3 samba3-swat-config">
-        <primary sortas="e-etc-services">/etc/services</primary>
-      </indexterm>
+        <para>First install, or ensure you have already installed, the
+        <xref linkend="stunnel"/> package.</para>
 
-      <indexterm zone="samba3 samba3-swat-config">
-        <primary sortas="e-etc-inetd.conf">/etc/inetd.conf</primary>
-      </indexterm>
+        <para>Next you must add entries to <filename>/etc/services</filename>
+        and modify the <command>inetd</command>/<command>xinetd</command>
+        configuration.</para>
 
-      <indexterm zone="samba3 samba3-swat-config">
-        <primary sortas="e-etc-xinetd.conf">/etc/xinetd.conf</primary>
-      </indexterm>
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-services">/etc/services</primary>
+        </indexterm>
 
-      <para>Add swat and swat_tunnel entries to
-      <filename>/etc/services</filename> with the following commands issued
-      as the <systemitem class="username">root</systemitem> user:</para>
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-inetd.conf">/etc/inetd.conf</primary>
+        </indexterm>
+
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-xinetd.conf">/etc/xinetd.conf</primary>
+        </indexterm>
+
+        <para>Add swat and swat_tunnel entries to
+        <filename>/etc/services</filename> with the following commands issued
+        as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>echo "swat            901/tcp" &gt;&gt; /etc/services &amp;&amp;
 echo "swat_tunnel     902/tcp" &gt;&gt; /etc/services</userinput></screen>
 
-      <para>If <command>inetd</command> is used, the following command will
-      add the swat_tunnel entry to <filename>/etc/inetd.conf</filename> (as
-      user <systemitem class="username">root</systemitem>):</para>
+        <para>If <command>inetd</command> is used, the following command will
+        add the swat_tunnel entry to <filename>/etc/inetd.conf</filename> (as
+        user <systemitem class="username">root</systemitem>):</para>
 
 <screen role="root"><userinput>echo "swat_tunnel stream tcp nowait.400 root /usr/sbin/swat swat" \
     &gt;&gt; /etc/inetd.conf</userinput></screen>
 
-      <para>Issue a <command>killall -HUP inetd</command> to reread the
-      changed <filename>inetd.conf</filename> file.</para>
+        <para>Issue a <command>killall -HUP inetd</command> to reread the
+        changed <filename>inetd.conf</filename> file.</para>
 
-      <para>If you use <command>xinetd</command>, the following command will
-      create the <application>Samba</application> file as
-      <filename>/etc/xinetd.d/swat_tunnel</filename> (you may need to modify
-      or remove the <quote>only_from</quote> line to include the desired
-      host[s]):</para>
+        <para>If you use <command>xinetd</command>, the following command will
+        create the <application>Samba</application> file as
+        <filename>/etc/xinetd.d/swat_tunnel</filename> (you may need to modify
+        or remove the <quote>only_from</quote> line to include the desired
+        host[s]):</para>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/xinetd.d/swat_tunnel &lt;&lt; "EOF"
 <literal># Begin /etc/xinetd.d/swat_tunnel
@@ -316,20 +444,20 @@ service swat_tunnel
 # End /etc/xinetd.d/swat_tunnel</literal>
 EOF</userinput></screen>
 
-      <indexterm zone="samba3 samba3-swat-config">
-        <primary sortas="e-etc-xinetd.d-swat-tunnel">/etc/xinetd.d/swat_tunnel</primary>
-      </indexterm>
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-xinetd.d-swat-tunnel">/etc/xinetd.d/swat_tunnel</primary>
+        </indexterm>
 
-      <para>Issue a <command>killall -HUP xinetd</command> to reread the
-      changed <filename>xinetd.conf</filename> file.</para>
+        <para>Issue a <command>killall -HUP xinetd</command> to read the new
+        <filename>/etc/xinetd.d/swat_tunnel</filename> file.</para>
 
-      <para>Next, you must add an entry for the swat service to the
-      <filename>/etc/stunnel/stunnel.conf</filename> file (as user
-      <systemitem class="username">root</systemitem>):</para>
+        <para>Next, you must add an entry for the swat service to the
+        <filename>/etc/stunnel/stunnel.conf</filename> file (as user
+        <systemitem class="username">root</systemitem>):</para>
 
-      <indexterm zone="samba3 samba3-swat-config">
-        <primary sortas="e-etc-stunnel-stunnel.conf">/etc/stunnel/stunnel.conf</primary>
-      </indexterm>
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-stunnel-stunnel.conf">/etc/stunnel/stunnel.conf</primary>
+        </indexterm>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/stunnel/stunnel.conf &lt;&lt; "EOF"
 <literal>[swat]
@@ -338,8 +466,8 @@ connect = 902</literal>
 
 EOF</userinput></screen>
 
-      <para>Restart the <command>stunnel</command> daemon using the following
-      command as the <systemitem class="username">root</systemitem> user:</para>
+        <para>Restart the <command>stunnel</command> daemon using the following
+        command as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>/etc/rc.d/init.d/stunnel restart</userinput></screen>
 
@@ -348,6 +476,68 @@ EOF</userinput></screen>
       Substitute the hostname listed in the DN field of the CA certificate
       used with <application>Stunnel</application> for
       <replaceable>[CA_DN_field]</replaceable>.</para>
+
+      </sect4>
+
+      <sect4>
+        <title>Setting up SWAT without Stunnel</title>
+
+        <warning>
+          <para>BLFS does not recommend using these procedures because of the
+          security risk involved. However, in a home network environment and
+          disclosure of the root password is an acceptable risk, the following
+          instructions are provided for your convenience.</para>
+        </warning>
+
+        <para>Add a swat entry to <filename>/etc/services</filename> with the
+        following command issued as the 
+        <systemitem class='username'>root</systemitem> user:</para>
+
+<screen role='root'><userinput>echo "swat            901/tcp" &gt;&gt; /etc/services</userinput></screen>
+
+        <para>If <command>inetd</command> is used, the following command
+        issed as the <systemitem class='username'>root</systemitem> user will
+        add a swat entry to the <filename>/etc/inetd.conf</filename> file:</para>
+
+<screen role='root'><userinput>echo "swat stream tcp nowait.400 root /usr/sbin/swat swat" \
+    &gt;&gt; /etc/inetd.conf</userinput></screen>
+
+        <para>Issue a <command>killall -HUP inetd</command> to reread the
+        changed <filename>inetd.conf</filename> file.</para>
+
+        <para>If <command>xinetd</command> is used, the following command
+        issued as the <systemitem class='username'>root</systemitem> user
+        will create an <filename>/etc/xinetd.d/swat</filename> file:</para> 
+
+<screen role='root'><userinput>cat &gt;&gt; /etc/xinetd.d/swat &lt;&lt; "EOF"
+<literal># Begin /etc/xinetd.d/swat
+
+service swat
+{
+    port            = 901
+    socket_type     = stream
+    wait            = no
+    only_from       = 127.0.0.1
+    user            = root
+    server          = /usr/sbin/swat
+    log_on_failure  += USERID
+}
+
+# End /etc/xinetd.d/swat</literal>
+EOF</userinput></screen>
+
+        <para>Issue a <command>killall -HUP xinetd</command> to read the
+        new <filename>/etc/xinetd.d/swat</filename> file.</para>
+
+        <para>SWAT can be launched by pointing your web browser to
+        http://localhost:901.</para>
+
+      </sect4>
+
+    </sect3>
+
+    <sect3>
+      <title/>
 
       <note>
         <para>If you linked <application>Linux-PAM</application> into the
@@ -358,19 +548,6 @@ EOF</userinput></screen>
       <indexterm zone="samba3 samba3-swat-config">
         <primary sortas="e-etc-pam.d-samba">/etc/pam.d/samba</primary>
       </indexterm>
-
-    </sect3>
-
-    <sect3>
-      <title>Printing to SMB Clients</title>
-
-      <para>If you use <application>CUPS</application> for print services,
-      and you wish to print to a printer attached to an SMB client, you
-      need to create an SMB backend device. To create the device, issue the
-      following command as the <systemitem class="username">root</systemitem>
-      user:</para>
-
-<screen role="root"><userinput>ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</userinput></screen>
 
     </sect3>
 
@@ -393,6 +570,20 @@ EOF</userinput></screen>
       <indexterm zone="samba3 samba3-init">
         <primary sortas="f-winbind">winbind</primary>
       </indexterm>
+
+      <para>The default <application>Samba</application> installation uses the
+      <systemitem class='username'>nobody</systemitem> user for guest access
+      to the server. This can be overridden by setting the
+      <option>guest account =</option> parameter in the
+      <filename>/etc/samba/smb.conf</filename> file. If you utilize the
+      <option>guest account =</option> parameter, ensure this user exists in
+      the <filename>/etc/passwd</filename> file. To use the default user,
+      issue the following commands as the
+      <systemitem class='username'>root</systemitem> user:</para>
+
+<screen><userinput>groupadd -g 99 nogroup &amp;&amp;
+useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
+    -s /bin/false -u 99 nobody</userinput></screen>
 
       <para>Install the <filename>samba</filename> script with the following
       command issued as the <systemitem class="username">root</systemitem>
