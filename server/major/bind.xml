@@ -6,10 +6,10 @@
 
   <!ENTITY bind-download-http "http://gd.tuwien.ac.at/infosys/servers/isc/bind9/&bind-version;/bind-&bind-version;.tar.gz">
   <!ENTITY bind-download-ftp "ftp://ftp.isc.org/isc/bind9/&bind-version;/bind-&bind-version;.tar.gz">
-  <!ENTITY bind-md5sum "fdb42fff7e345372ac52a4493b77b694">
+  <!ENTITY bind-md5sum "9ff3204eea27184ea0722f37e43fc95d">
   <!ENTITY bind-size "4.6 MB">
-  <!ENTITY bind-buildsize "87 MB">
-  <!ENTITY bind-time "1.87 SBU (additional 4.14 SBU to run the complete test suite)">
+  <!ENTITY bind-buildsize "71.3 MB">
+  <!ENTITY bind-time "1.8 SBU (additional 11 minutes, processor independent, to run the complete test suite)">
 ]>
 
 <sect1 id="bind" xreflabel="BIND-&bind-version;p1">
@@ -55,21 +55,12 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para><ulink
-        url="ftp://ftp.isc.org/isc/bind9/9.3.0/&bind-version;-patch1"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">BIND Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para><xref linkend="openssl"/></para>
 
-    <bridgehead renderas="sect4">Optional (to Run the Full
-    Test Suite)</bridgehead>
+    <bridgehead renderas="sect4">Optional (to Run the Test Suite)</bridgehead>
     <para><xref linkend="net-tools"/> (for <command>ifconfig</command>)
     and <xref linkend="perl-modules"/>: Net-DNS</para>
 
@@ -87,55 +78,51 @@
     <para>Install <application>BIND</application> by running the
     following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../&bind-version;-patch1 &amp;&amp;
-sed -i -e "s/dsssl-stylesheets/&amp;-1.78/g" configure &amp;&amp;
+<screen><userinput>sed -i -e "s/dsssl-stylesheets/&amp;-1.79/g" configure &amp;&amp;
 ./configure --prefix=/usr --sysconfdir=/etc \
     --enable-threads --with-libtool &amp;&amp;
 make</userinput></screen>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>Issue the following commands to run the complete suite of tests.
+    First, as <systemitem class="username">root</systemitem>, set up some test
+    interfaces:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-chmod 755 \
-    /usr/lib/{lib{bind9,isc{,cc,cfg},lwres}.so.?.?.?,libdns.so.20.0.0} &amp;&amp;
-mv -v /usr/share/man/man8/named.conf.5 /usr/share/man/man5 &amp;&amp;
-cd doc &amp;&amp;
-install -v -d -m755 /usr/share/doc/bind-9.3.0/{arm,draft,misc,rfc} &amp;&amp;
-install -v -m644 arm/*.html \
-    /usr/share/doc/bind-9.3.0/arm &amp;&amp;
-install -v -m644 draft/*.txt \
-    /usr/share/doc/bind-9.3.0/draft &amp;&amp;
-install -v -m644 rfc/* \
-    /usr/share/doc/bind-9.3.0/rfc &amp;&amp;
-install -v -m644 \
-    misc/{dnssec,ipv6,migrat*,options,rfc-compliance,roadmap,sdb} \
-    /usr/share/doc/bind-9.3.0/misc</userinput></screen>
+<screen role="root"><userinput>bin/tests/system/ifconfig.sh up</userinput></screen> 
 
-    <para>In order to run the complete test suite before installing the
-    package, you need to set up some dummy interfaces (requires
-    <command>ifconfig</command>). Issue the following commands to run the
-    complete suite of tests (you will have to be the <systemitem
-    class="username">root</systemitem> user to issue the
-    <command>ifconfig</command> commands):</para>
+    <para>Now run the test suite as a regular user:</para>
+<screen><userinput>make check 2&gt;&amp;1 | tee check.log</userinput></screen>
 
-<screen role="root"><userinput>bin/tests/system/ifconfig.sh up &amp;&amp;
-make check &gt;check.log 2&gt;&amp;1 &amp;&amp;
-bin/tests/system/ifconfig.sh down</userinput></screen>
+    <para>Again as <systemitem class="username">root</systemitem>, clean up the
+    test interfaces:</para>
 
-    <para>If desired, issue the following command to ensure all 145 tests
+<screen role="root"><userinput>bin/tests/system/ifconfig.sh down</userinput></screen>
+
+    <para>Issue the following command to check that all 145 tests
     ran successfully:</para>
 
 <screen><userinput>grep "R:PASS" check.log | wc -l</userinput></screen>
+
+    <para>Finally, install the package as the <systemitem
+    class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install &amp;&amp;
+chmod 755 /usr/lib/{lib{bind9,isc{,cc,cfg},lwres,dns}.so.*.?.?} &amp;&amp;
+cd doc &amp;&amp;
+install -v -d -m755 /usr/share/doc/bind-&bind-version;/{arm,draft,misc,rfc} &amp;&amp;
+install -v -m644 arm/*.html \
+    /usr/share/doc/bind-&bind-version;/arm &amp;&amp;
+install -v -m644 draft/*.txt \
+    /usr/share/doc/bind-&bind-version;/draft &amp;&amp;
+install -v -m644 rfc/* \
+    /usr/share/doc/bind-&bind-version;/rfc &amp;&amp;
+install -v -m644 \
+    misc/{dnssec,ipv6,migrat*,options,rfc-compliance,roadmap,sdb} \
+    /usr/share/doc/bind-&bind-version;/misc</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>patch -Np1 -i ../&bind-version;-patch1</command>: There's a
-    vulnerability in the DNSSEC code. See
-    <ulink url="http://www.kb.cert.org/vuls/id/938617"/>. The patch fixes the
-    bug.</para>
 
     <para><command>sed -i -e ... configure</command>: This command forces
     <command>configure</command> to look for the DSSSL stylesheets in the
@@ -152,6 +139,11 @@ bin/tests/system/ifconfig.sh down</userinput></screen>
     <para><parameter>--with-libtool</parameter>: This parameter forces the
     building of dynamic libraries and links the installed binaries to these
     libraries.</para>
+
+    <para><command>chmod 755 
+    /usr/lib/{lib{bind9,isc{,cc,cfg},lwres,dns}.so.*.?.?}</command>: 
+    Libtool does not set the permissions for these libraries correctly
+    so they are fixed here.</para>
 
     <para><command>cd doc; install ...</command>: These commands install the
     additional package documentation. Optionally, omit any or all of these
