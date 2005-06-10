@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY xfree86-download-http "http://gnu.kookel.org/ftp/XFree86/4.4.0/source/">
-  <!ENTITY xfree86-download-ftp  "ftp://ftp.xfree86.org/pub/XFree86/4.4.0/source/">
-  <!ENTITY xfree86-md5sum        "ftp://ftp.xfree86.org/pub/XFree86/4.4.0/source/SUMS.md5sum">
-  <!ENTITY xfree86-size          "52 MB">
+  <!ENTITY xfree86-download-http "http://gnu.kookel.org/ftp/XFree86/&xfree86-version;/source/">
+  <!ENTITY xfree86-download-ftp  "ftp://ftp.xfree86.org/pub/XFree86/&xfree86-version;/source/">
+  <!ENTITY xfree86-md5sum        "ftp://ftp.xfree86.org/pub/XFree86/&xfree86-version;/source/SUMS.md5sum">
+  <!ENTITY xfree86-size          "51 MB">
   <!ENTITY xfree86-buildsize     "775 MB">
-  <!ENTITY xfree86-time          "11.6 SBU">
+  <!ENTITY xfree86-time          "12 SBU">
 ]>
 
 <sect1 id="xfree86" xreflabel="XFree86-&xfree86-version;">
@@ -62,8 +62,8 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
-        <para>Security patch: <ulink
-        url="http://www.x.org/pub/X11R6.8.0/patches/xorg-CAN-2004-0687-0688.patch"/>
+        <para>Required patch: <ulink
+        url="&patch-root;/XFree86-&xfree86-version;-kernel_headers-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -96,25 +96,25 @@
 
     <itemizedlist spacing='compact'>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-1.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-1.tgz</filename></para>
       </listitem>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-2.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-2.tgz</filename></para>
       </listitem>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-3.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-3.tgz</filename></para>
       </listitem>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-4.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-4.tgz</filename></para>
       </listitem>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-5.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-5.tgz</filename></para>
       </listitem>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-6.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-6.tgz</filename></para>
       </listitem>
       <listitem>
-        <para><filename>XFree86-4.4.0-src-7.tgz</filename></para>
+        <para><filename>XFree86-&xfree86-version;-src-7.tgz</filename></para>
       </listitem>
     </itemizedlist>
 
@@ -197,6 +197,34 @@ diff file, change to the <filename class="directory">xc</filename> directory and
 
   <sect2 role="installation">
     <title>Installation of XFree86</title>
+
+    <sect3>
+      <title>Setting Up a Shadow Directory</title>
+
+      <para>When building <application>XFree86</application>, you should create
+      a shadow directory of symbolic links for the compiled code. To do that,
+      first make <command>lndir</command>. Starting from the
+      <filename class='directory'>xc</filename> directory:</para>
+
+<screen><userinput>pushd config/util &amp;&amp;
+make -f Makefile.ini lndir</userinput></screen>
+
+      <para>Now, as the <systemitem class="username">root</systemitem>
+      user:</para>
+
+<screen role="root"><userinput>cp -v lndir /usr/bin/</userinput></screen>
+
+      <para>And back as a regular user:</para>
+
+<screen><userinput>popd</userinput></screen>
+
+      <para>Now create the shadow tree:</para>
+
+<screen><userinput>mkdir ../xcbuild &amp;&amp;
+cd ../xcbuild &amp;&amp;
+lndir ../xc</userinput></screen>
+
+    </sect3>
 
     <sect3>
       <title>Creating 'host.def'</title>
@@ -349,19 +377,11 @@ EOF</userinput></screen>
     <sect3>
       <title>Build Commands</title>
 
-      <para>Some vulnerabilities were reported in <filename
-      class="libraryfile">libXpm</filename>. A remote user may be able to
-      execute arbitrary code on applications that use <filename
-      class="libraryfile">libXpm</filename>. The <application>Xorg</application>
-      team released a patch for their version 6.8.0 but it works for
-      <application>XFree86</application> as well. Apply the patch:</para>
-
-<screen><userinput>patch -Np1 -i ../xorg-CAN-2004-0687-0688.patch</userinput></screen>
-
       <para>Install <application>XFree86</application> by running the
       following commands:</para>
 
-<screen><userinput>sed -i -e "s@^#include &lt;linux/config.h&gt;@/* &amp; */@" \
+<screen><userinput>patch -Np1 -i ../XFree86-&xfree86-version;-kernel_headers-1.patch &amp;&amp;
+sed -i -e "s@^#include &lt;linux/config.h&gt;@/* &amp; */@" \
     `grep -lr linux/config.h *` &amp;&amp;
 ( make WORLDOPTS="" World 2&gt;&amp;1 | \
     tee xfree-compile.log &amp;&amp; exit $PIPESTATUS )</userinput></screen>
