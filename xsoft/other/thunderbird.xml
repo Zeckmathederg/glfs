@@ -6,14 +6,14 @@
 
   <!ENTITY thunderbird-download-http     "http://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;-source.tar.bz2">
   <!ENTITY thunderbird-download-ftp      "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;-source.tar.bz2">
-  <!ENTITY thunderbird-md5sum            "232ffe434fd65f5f0284a760d6e4ba2a">
-  <!ENTITY thunderbird-size              "33 MB">
-  <!ENTITY thunderbird-buildsize         "608 MB">
-  <!ENTITY thunderbird-time              "12.38 SBU">
+  <!ENTITY thunderbird-md5sum            "9e5b8a3edb3ced400e769dc2faa45317">
+  <!ENTITY thunderbird-size              "31.8 MB">
+  <!ENTITY thunderbird-buildsize         "600 MB">
+  <!ENTITY thunderbird-time              "11.4 SBU">
 
-  <!ENTITY thunderbird-enigmail-version  "0.90.1">
+  <!ENTITY thunderbird-enigmail-version  "0.91.0">
   <!ENTITY thunderbird-enigmail-download "http://downloads.mozdev.org/enigmail/src/enigmail-&thunderbird-enigmail-version;.tar.gz">
-  <!ENTITY thunderbird-enigmail-md5sum   "61deeb21ec7df10de9ad790039063f41">
+  <!ENTITY thunderbird-enigmail-md5sum   "4ab46132f41b4f1718cd4141742f824b">
 
   <!ENTITY thunderbird-ipc-version       "1.1.2">
   <!ENTITY thunderbird-ipc-download      "http://downloads.mozdev.org/enigmail/src/ipc-&thunderbird-ipc-version;.tar.gz">
@@ -125,6 +125,10 @@
 <screen><userinput>export MOZILLA_OFFICIAL="1" &amp;&amp;
 export BUILD_OFFICIAL="1" &amp;&amp;
 export MOZ_THUNDERBIRD="1" &amp;&amp;
+
+sed -i -e 's/$(destdir)$(bindir)/$(DESTDIR)$(mozappdir)/' \
+       mail/app/Makefile.in &amp;&amp;
+ 
 ./configure --prefix=/usr \
             --with-default-mozilla-five-home=/usr/lib/thunderbird-&thunderbird-version; \
             --with-system-zlib \
@@ -201,6 +205,22 @@ touch `find . -name *.rdf`</userinput></screen>
       the <filename class='directory'>/usr</filename> hierarchy.</para>
     </note>
 
+    <para>Finally, unset the build variables from the unprivileged user's
+    environment:</para>
+    
+<screen><userinput>unset MOZILLA_OFFICIAL &amp;&amp;
+unset BUILD_OFFICIAL &amp;&amp;
+unset MOZ_THUNDERBIRD</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed -i -e 's/$(destdir)$(bindir)/$(DESTDIR)$(mozappdir)/'
+    mail/app/Makefile.in</command>: Correct the installation location of the
+    <filename class='directory'>defaults</filename> directory.</para>
+
   </sect2>
 
   <sect2 role="content">
@@ -212,12 +232,12 @@ touch `find . -name *.rdf`</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>thunderbird</seg>
+        <seg>thunderbird and thunderbird-config</seg>
         <seg>Numerous libraries, email/newsgroups components, plugins,
         extensions, and helper modules installed in <filename
         class='directory'>/usr/lib/thunderbird-&thunderbird-version;</filename>
         </seg>
-        <seg>/usr/bin/defaults, /usr/include/thunderbird-&thunderbird-version;,
+        <seg>/usr/include/thunderbird-&thunderbird-version;,
         /usr/lib/thunderbird-&thunderbird-version;, and
         /usr/share/idl/thunderbird-&thunderbird-version;</seg>
       </seglistitem>
