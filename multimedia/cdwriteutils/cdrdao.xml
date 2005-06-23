@@ -6,10 +6,10 @@
 
   <!ENTITY cdrdao-download-http "http://prdownloads.sourceforge.net/cdrdao/cdrdao-&cdrdao-version;.tar.gz">
   <!ENTITY cdrdao-download-ftp  " ">
-  <!ENTITY cdrdao-md5sum        "dd7df809fca7db8e212a6522688c166b">
-  <!ENTITY cdrdao-size          "1.6 MB">
-  <!ENTITY cdrdao-buildsize     "54 MB">
-  <!ENTITY cdrdao-time          "1.47 SBU (includes building <command>gcdmaster</command>)">
+  <!ENTITY cdrdao-md5sum        "dc2bdef7a7c8973e678ba4a4a2d9cc7e">
+  <!ENTITY cdrdao-size          "2.0 MB">
+  <!ENTITY cdrdao-buildsize     "64 MB">
+  <!ENTITY cdrdao-time          "1.5 SBU (includes building <command>gcdmaster</command>)">
 ]>
 
 <sect1 id="cdrdao" xreflabel="Cdrdao-&cdrdao-version;">
@@ -55,44 +55,42 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch (if building <command>gcdmaster</command>):
-        <ulink url="&patch-root;/cdrdao-&cdrdao-version;-gcc34-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Required patch (if building <command>gcdmaster</command>):
-        <ulink url="&patch-root;/libglademm-2.2.0-gcc34-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Required patch (if building <command>gcdmaster</command>):
-        <ulink url="&patch-root;/libgnomecanvasmm-2.0.2-gcc34-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Cdrdao Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para><xref linkend="lame"/> (required to build
-    <command>toc2mp3</command>) and
-    <ulink url="http://www.polhode.com/pccts.html">PCCTS</ulink></para>
+      <para><xref linkend="libao"/>,
+        <xref linkend="libvorbis"/>,
+        <xref linkend="libmad"/> and
+        <xref linkend="lame"/> (required to build
+      <command>toc2mp3</command>)</para>
 
     <bridgehead renderas="sect4">Optional (Required to Build the 'gcdmaster'
     Program)</bridgehead>
 
     <para><emphasis>Note: all the following packages must be built in
     the order listed.</emphasis></para>
+    
+    <note>
+    <para>Recent changes in pkgconfig may cause linking errors in gtkmm
+    applications.  After installing gtkmm-2.6.3 issue this command, as the
+    root user:</para>
+    <screen role="root"><literal>sed -i.bak \
+    's:-lgtkmm-2.4:&amp; -lgdkmm-2.4 -lpangomm-1.4 -latkmm-1.6:' \
+    /usr/lib/pkgconfig/gtkmm-2.4.pc</literal></screen>
+    <para>A backup (.bak) is created, you can revert if desired.</para>
+    </note>
+
 
     <para><xref linkend="libgnomeui"/>,
-    <ulink url="http://ftp.gnome.org/pub/GNOME/sources/libsigc++/1.2/">
-    libsigc++-1.2.5</ulink>,
-    <ulink url="http://www.gtkmm.org/">gtkmm-2.2.12</ulink>,
-    <ulink url="http://www.gtkmm.org/">libglademm-2.2.0</ulink>,
-    <ulink url="http://www.gtkmm.org/">libgnomecanvasmm-2.0.2</ulink>,
-    <ulink url="http://www.gtkmm.org/">gconfmm-2.0.2</ulink>,
-    <ulink url="http://www.gtkmm.org/">libgnomemm-2.0.1</ulink> and
-    <ulink url="http://www.gtkmm.org/">libgnomeuimm-2.0.0</ulink></para>
+    <ulink url="http://libsigc.sourceforge.net/">libsigc++-2.0.13</ulink>,
+    <ulink url="http://www.gtkmm.org/">glibmm-2.6.1</ulink>,
+    <ulink url="http://www.gtkmm.org/">gtkmm-2.6.3</ulink>,
+    <ulink url="http://www.gtkmm.org/">libglademm-2.6.0</ulink>,
+    <ulink url="http://www.gtkmm.org/">libgnomecanvasmm-2.10.0</ulink>,
+    <ulink url="http://www.gtkmm.org/">gconfmm-2.10.0</ulink>,
+    <ulink url="http://www.gtkmm.org/">libgnomemm-2.10.0</ulink>,
+    <ulink url="http://www.gtkmm.org/">gnome-vfsmm-2.10.0</ulink> and
+    <ulink url="http://www.gtkmm.org/">libgnomeuimm-2.10.0</ulink></para>
 
   </sect2>
 
@@ -102,8 +100,28 @@
     <para>Install <application>Cdrdao</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../cdrdao-&cdrdao-version;-gcc34-1.patch &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+    <para>For mp3 support in the 'gcdmaster' program, you will need
+    a temporary mad.pc. If desired, it can be deleted after the build.</para>
+    
+    <para>As the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>cat &gt; /usr/lib/pkgconfig/mad.pc &lt;&lt; "EOF"
+<literal>prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: mad
+Description: MPEG audio decoder
+Requires:
+Version: 0.15.1
+Libs: -L${libdir} -lmad
+Cflags: -I${includedir}</literal>
+EOF</userinput></screen>
+
+    <para>And, as the normal user:</para>
+
+<screen><userinput>./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
@@ -121,7 +139,7 @@ make</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>cdrdao, cue2toc, toc2cddb, toc2cue and optionally, gcdmaster, and
+        <seg>cdrdao, cue2toc, toc2cddb, toc2cue and optionally, gcdmaster and
         toc2mp3</seg>
         <seg>None</seg>
         <seg>/usr/share/cdrdao</seg>
