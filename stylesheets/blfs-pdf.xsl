@@ -18,7 +18,7 @@
   <xsl:include href="pdf/lfs-xref.xsl"/>
 
     <!-- This file contains our localization strings (for internationalization) -->
-  <xsl:param name="local.l10n.xml" select="document('lfs-l10n.xml')"/>
+  <xsl:param name="local.l10n.xml" select="document('blfs-l10n.xml')"/>
 
   	<!-- Probably want to make the paper size configurable -->
   <xsl:param name="paper.type" select="'letter'"/>

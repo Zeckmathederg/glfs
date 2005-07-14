@@ -17,7 +17,7 @@
   <xsl:include href="xhtml/lfs-xref.xsl"/>
 
     <!-- This file contains our localization strings (for internationalization) -->
-  <xsl:param name="local.l10n.xml" select="document('lfs-l10n.xml')"/>
+  <xsl:param name="local.l10n.xml" select="document('blfs-l10n.xml')"/>
 
   	<!-- The CSS Stylesheets -->
   <xsl:param name="html.stylesheet" select="'../stylesheets/blfs.css'"/>
