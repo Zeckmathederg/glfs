@@ -22,7 +22,7 @@
 
   <para>Each set of installation instructions contains a URL from which you
   can download the package.  We do however keep a selection of patches
-  available via http.  These are referenced as needed in the installation
+  available via HTTP.  These are referenced as needed in the installation
   instructions.</para>
 
   <para>While you can keep the source files anywhere you like, we
@@ -33,42 +33,55 @@
   <emphasis>clean source tree</emphasis> each time. This means that if
   you have had an error, it's usually best to delete the source tree and
   re-unpack it <emphasis>before</emphasis> trying again. This obviously
-  doesn't apply if you're an advanced user used to hacking Makefiles and C
-  code, but if in doubt, start from a clean tree.</para>
+  doesn't apply if you're an advanced user used to hacking
+  <filename>Makefile</filename>s and C code, but if in doubt, start from a
+  clean tree.</para>
 
   <sect2>
     <title>Building Software as an Unprivileged (non-root) User</title>
 
     <para>The golden rule of Unix System Administration is to use your
-	superpowers only when neccessary. Hence, BLFS recommends that you
-	build software as an unprivileged user and only "become root"
-	when installing the software. This philosophy is followed in all the
-	packages in this book. Unless otherwise specified, all instructions
-	should be executed as an unprivileged user. The book will advise you
-	on instructions that need root privileges.</para>
+    superpowers only when neccessary. Hence, BLFS recommends that you
+    build software as an unprivileged user and only become the
+    <systemitem class='username'>root</systemitem> user when installing the
+    software. This philosophy is followed in all the packages in this book.
+    Unless otherwise specified, all instructions should be executed as an
+    unprivileged user. The book will advise you on instructions that need
+    <systemitem class='username'>root</systemitem> privileges.</para>
 
   </sect2>
 
   <sect2>
     <title>Unpacking the Software</title>
 
-    <para>If a file is tar'ed and compressed, it is unpacked by running one of
-    the following commands:</para>
+    <para>If a file is in <filename class='extension'>.tar</filename> format
+    and compressed, it is unpacked by running one of the following
+    commands:</para>
 
-<screen><userinput>tar -xvzf filename.tar.gz
-tar -xvzf filename.tgz
-tar -xvzf filename.tar.Z
-tar -xvjf filename.tar.bz2</userinput></screen>
+<screen><userinput>tar -xvf filename.tar.gz
+tar -xvf filename.tgz
+tar -xvf filename.tar.Z
+tar -xvf filename.tar.bz2</userinput></screen>
+
+    <note>
+      <para>You may omit using the <option>v</option> parameter in the commands
+      shown above and below if you wish to suppress the verbose listing of all
+      the files in the archive as they are extracted. This can help speed up the
+      extraction as well as make any errors produced during the extraction
+      more obvious to you.</para>
+    </note>
 
     <para>You can also use a slightly different method:</para>
 
 <screen><userinput>bzcat filename.tar.bz2 | tar -xv</userinput></screen>
 
     <para>Finally, you sometimes need to be able to unpack patches which are
-    generally not tar'ed.  The best way to do this is to copy the patch file to
-    <filename>/usr/src</filename> and then to run one of the following commands
-    depending on whether the file is <filename>.gz</filename> or
-    <filename>.bz2</filename>:</para>
+    generally not in <filename class='extension'>.tar</filename> format. The
+    best way to do this is to copy the patch file to
+    <filename class='directory'>/usr/src</filename> and then run one of the
+    following commands depending on whether the file is a
+    <filename class='extension'>.gz</filename> or
+    <filename class='extension'>.bz2</filename> file:</para>
 
 <screen><userinput>gunzip -v patchname.gz
 bunzip2 -v patchname.bz2</userinput></screen>
@@ -79,15 +92,23 @@ bunzip2 -v patchname.bz2</userinput></screen>
     <title>Verifying File Integrity Using 'md5sum'</title>
 
     <para>Generally, to verify that the downloaded file is genuine and complete,
-    most package maintainers also distribute md5sums of the files.
-    To verify the md5sum of the downloaded files, download both the file and the
+    many package maintainers also distribute md5sums of the files. To verify the
+    md5sum of the downloaded files, download both the file and the
     corresponding md5sum file to the same directory (preferably from different
-    on-line locations), and (assuming file.md5sum is the md5sum file downloaded)
-    run the following command:</para>
+    on-line locations), and (assuming <filename>file.md5sum</filename> is the
+    md5sum file downloaded) run the following command:</para>
 
 <screen><userinput>md5sum -c file.md5sum</userinput></screen>
 
-    <para>If there are any errors, they will be reported.</para>
+    <para>If there are any errors, they will be reported. Note that the BLFS
+    book includes md5sums for all the source files also. To use the BLFS
+    supplied md5sums, you can create a <filename>file.md5sum</filename> (place
+    the md5sum data and the exact name of the downloaded file on the same
+    line of a file, separated by white space) and run the command shown above.
+    Alternately, simply run the command shown below and compare the output
+    to the md5sum data shown in the BLFS book.</para>
+
+<screen><userinput>md5sum <replaceable>[name_of_downloaded_file]</replaceable></userinput></screen>
 
   </sect2>
 
@@ -95,20 +116,20 @@ bunzip2 -v patchname.bz2</userinput></screen>
     <title>Creating Log Files During Installation</title>
 
     <para>For larger packages, it is convenient to create log files instead of
-    staring at the screen hoping to catch a particular error or warning. Log files
-    are also useful for debugging and keeping records. The following command
-    allows you to create an installation log. Replace &lt;command&gt; with the
-    command you intend to execute.</para>
+    staring at the screen hoping to catch a particular error or warning. Log
+    files are also useful for debugging and keeping records. The following
+    command allows you to create an installation log. Replace
+    <replaceable>[command]</replaceable> with the command you intend to execute.</para>
 
-<screen><userinput>( &lt;command&gt; 2&gt;&amp;1 | tee compile.log &amp;&amp; exit $PIPESTATUS )</userinput></screen>
+<screen><userinput>( <replaceable>[command]</replaceable> 2&gt;&amp;1 | tee compile.log &amp;&amp; exit $PIPESTATUS )</userinput></screen>
 
     <para><option>2&gt;&amp;1</option> redirects error messages to the same
     location as standard output. The <command>tee</command> command allows
     viewing of the output while logging the results to a file. The parentheses
     around the command run the entire command in a subshell and finally the
-    <command>exit $PIPESTATUS</command> ensures the result of the
-    &lt;command&gt; is returned as the result and not the result of the
-    <command>tee</command> command.</para>
+    <command>exit $PIPESTATUS</command> command ensures the result of the
+    <replaceable>[command]</replaceable> is returned as the result and not the
+    result of the <command>tee</command> command.</para>
 
   </sect2>
 
