@@ -83,13 +83,14 @@
     <title>Installation of Courier</title>
 
     <note>
-      <para><application>Courier</application>'s tarball must be extacted
-      as an unprivileged user or the configure script will fail.</para>
+      <para><application>Courier</application>'s tarball must be extracted
+      as an unprivileged user or the <command>configure</command> script will
+      fail.</para>
     </note>
 
     <para>Before you compile the program, you need to create the
     <systemitem class="username">courier</systemitem> user and group
-    that is expected to be in place when the install script executes.
+    that is expected to be in place during installation.
     As the <systemitem class="username">root</systemitem> user, add
     the <systemitem class="username">courier</systemitem> user and
     group with the following commands:</para>
@@ -101,16 +102,20 @@ useradd -c 'Courier Mail Server' -d /dev/null \
     <para>The install script also expects a <systemitem
     class="username">bin</systemitem> user. If you already have a
     user named <systemitem class="username">bin</systemitem>, this
-    step can be safely ignored.</para>
+    step can be safely ignored. If necessary, create the user by
+    issuing the following command as the
+    <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>useradd -c 'bin' -d /dev/null -g bin -u 1 bin</userinput></screen>
 
     <para><application>Courierfilter</application> requires the directory
     <filename class="directory">/var/run/courier</filename> to store
-    all the <application>Courier</application> pid and lockfiles.
+    all the <application>Courier</application> PID and lock files.
     <filename class="directory">/var/lock/subsys</filename> also must exist
     for the master lock file for <application>Courier</application>. Issue
-    the following commands to create these directories:</para>
+    the following commands as the
+    <systemitem class="username">root</systemitem> user to create these
+    directories:</para>
 
 <screen role="root"><userinput>install -v -d /var/run/courier -o courier -g courier -m755 &amp;&amp;
 install -v -d /var/lock/subsys -o root -g root -m755</userinput></screen>
@@ -138,7 +143,7 @@ make install-configure</userinput></screen>
     <title>Command Explanations</title>
 
     <para><parameter>--libexecdir=/usr/lib/courier</parameter>: Specifies
-    the directory which contains programs and libraries that cannot be
+    the directory which contains programs and libraries that should not be
     directly executed from the command-line.</para>
 
     <para><parameter>--datadir=/usr/share/courier</parameter>: Specifies the
@@ -152,7 +157,7 @@ make install-configure</userinput></screen>
 
     <para><parameter>--with-piddir=/var/run/courier</parameter>: Specifies
     the directory where <application>Courier</application>'s
-    <filename>PID</filename> files are stored when
+    PID files are stored when
     <application>Courier</application> is active.</para>
 
     <para><parameter>--with-paranoid-smtpext</parameter>: Be paranoid when
@@ -161,7 +166,7 @@ make install-configure</userinput></screen>
     certain experimental ESMTP extensions: XVERP and XEXDATA. Problems may
     result in the event that someone else uses the same name to implement
     some other extension. If this option is specified,
-    <application>Courier's</application> ESMTP server will also advertise a
+    <application>Courier</application>'s ESMTP server will also advertise a
     dummy ESMTP capability called XCOURIEREXTENSIONS, and will not recognize
     any Courier-specific extensions unless the remote mail server also
     advertises this dummy ESMTP capability.</para>
@@ -175,8 +180,8 @@ make install-configure</userinput></screen>
     implement the IMAP4rev1 protocol. This option enables some workarounds for
     those buggy IMAP clients. NOTE: <command>make check</command> will fail if
     this option is used. You should first configure without this option, and
-    if all post-configuration tests succeed, rerun configure with this option
-    and recompile.</para>
+    if all post-configuration tests succeed, rerun <command>configure</command>
+    with this option and recompile.</para>
 
     <para><parameter>--with-db=gdbm</parameter>:
     <application>Courier</application> requires either the
@@ -193,7 +198,7 @@ make install-configure</userinput></screen>
     <application>Courier</application>'s webmail server can use spell
     checking, if <command>configure</command> finds
     <application>ispell</application> or if you explicitly set the location
-    of <application>aspell</application>.</para>
+    of <application>Aspell</application>.</para>
 
     <para><option>--enable-mimetypes=<replaceable>[location of mime.types
     file]</replaceable></option>: Use this switch if you receive an error
@@ -259,7 +264,7 @@ EOF</userinput></screen>
       you will need to edit the
       <filename>/etc/courier/smtpaccess/default</filename> file.</para>
 
-      <para>If you wish to host mail for non local domains including virtual
+      <para>If you wish to host mail for non-local domains including virtual
       domains, you must add them to
       <filename>/etc/courier/hosteddomains</filename>. This file should exist
       whether you need a hosted domain list or not:</para>
@@ -282,8 +287,9 @@ chown <replaceable>[username]</replaceable>.<replaceable>[username]</replaceable
 
       <para>If you wish to use SSL with <application>Courier</application>,
       you should obtain certificates and store them in
-      <filename>/usr/share/courier</filename>.  You can optionally create
-      self-signed, test certificates with the following commands:</para>
+      <filename class='directory'>/usr/share/courier</filename>.  You can
+      optionally create self-signed, test certificates with the following
+      commands:</para>
 
 <screen role="root"><userinput>mkesmtpdcert &amp;&amp;
 mkimapdcert &amp;&amp;
@@ -449,7 +455,7 @@ quota                 char(255) DEFAULT '' NOT NULL,
 KEY id (id(128))
 );</userinput></screen>
 
-      <para>Grant all priveledges to the <systemitem
+      <para>Grant all privileges to the <systemitem
       class="username">courier</systemitem> user created earlier:</para>
 
 <screen role="root"><userinput>GRANT ALL PRIVILEGES ON *.* TO courier@localhost \
@@ -464,18 +470,18 @@ useradd -c 'Virtual Mailman' -g vmailman -m -k /dev/null -u 35 vmailman</userinp
       <para>Create a mail directory for a new virtual user:</para>
 
 <screen role="root"><userinput>cd /home/vmailman &amp;&amp;
-mkdir <replaceable>[virtual_user]</replaceable> &amp;&amp;
+mkdir -v <replaceable>[virtual_user]</replaceable> &amp;&amp;
 cd <replaceable>[virtual_user]</replaceable> &amp;&amp;
 maildirmake Maildir &amp;&amp;
-chown vmailman.vmailman Maildir -R</userinput></screen>
+chown -v vmailman.vmailman Maildir -R</userinput></screen>
 
-      <para>Now, connect the the <application>MySQL</application> database as
+      <para>Now, connect to the <application>MySQL</application> database as
       the <systemitem class="username">courier</systemitem> user:</para>
 
 <screen role="root"><userinput>mysql -u courier -p</userinput></screen>
 
       <para>To add the virtual user you need to enter at least one version of the
-      password either clear text or encrypted.</para>
+      password; either clear text or encrypted.</para>
 
       <para>Add the first virtual user with the following commands:</para>
 
