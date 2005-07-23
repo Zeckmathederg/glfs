@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY shadow-download-http " ">
-  <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2">
-  <!ENTITY shadow-md5sum        "89ebec0d1c0d861a5bd5c4c63e5cb0cc">
-  <!ENTITY shadow-size          "1.0 MB">
-  <!ENTITY shadow-buildsize     "13.2 MB">
-  <!ENTITY shadow-time          "0.31 SBU">
+  <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/old/shadow-&shadow-version;.tar.bz2">
+  <!ENTITY shadow-md5sum        "66e3a3a60ea6b021a7babff311b07607">
+  <!ENTITY shadow-size          "1.1 MB">
+  <!ENTITY shadow-buildsize     "13 MB">
+  <!ENTITY shadow-time          "0.3 SBU">
 ]>
 
 <sect1 id="shadow" xreflabel="Shadow-&shadow-version;">
@@ -59,8 +59,9 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
-        <para>Patch to fix a bug in the <command>lastlog</command> program:
-        <ulink url="&patch-root;/shadow-&shadow-version;-fix_lastlog-1.patch"/></para>
+        <para>Patch to fix several invalid warning messages when used with
+        <application>Linux_PAM</application>: <ulink
+        url="&patch-root;/shadow-&shadow-version;-Linux_PAM_fixes-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -77,7 +78,7 @@
     <para>Reinstall <application>Shadow</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../shadow-&shadow-version;-fix_lastlog-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../shadow-&shadow-version;-Linux_PAM_fixes-1.patch &amp;&amp;
 ./configure --libdir=/lib --enable-shared \
     --with-libpam --without-libcrack &amp;&amp;
 sed -i 's/groups$(EXEEXT) //' src/Makefile &amp;&amp;
@@ -262,11 +263,6 @@ do
     sed -i -e "s/chage/$PROGRAM/" /etc/pam.d/$PROGRAM
 done</userinput></screen>
 
-      </sect4>
-
-      <sect4>
-        <title>Other</title>
-
         <warning>
           <para>At this point, you should do a simple test to see if
           <application>Shadow</application> is working as expected. Open
@@ -281,6 +277,11 @@ done</userinput></screen>
           fail to do this and the errors remain, you will be unable to log into
           your system.</para>
         </warning>
+
+      </sect4>
+
+      <sect4>
+        <title>Other</title>
 
         <para>Currently, <filename>/etc/pam.d/other</filename> is configured
         to allow anyone with an account on the machine to use PAM-aware
@@ -363,7 +364,9 @@ fi</userinput></screen>
                 PORTTIME_CHECKS_ENAB CONSOLE \
                 MOTD_FILE NOLOGINS_FILE PASS_MIN_LEN \
                 SU_WHEEL_ONLY MD5_CRYPT_ENAB \
-                CONSOLE_GROUPS ENVIRON_FILE
+                CONSOLE_GROUPS ENVIRON_FILE \
+                ULIMIT ENV_TZ ENV_HZ ENV_SUPATH \
+                ENV_PATH QMAIL_DIR MAIL_DIR MAIL_FILE
 do
     sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
