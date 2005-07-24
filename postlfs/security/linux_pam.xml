@@ -6,10 +6,10 @@
 
   <!ENTITY Linux_PAM-download-http "http://www.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&Linux_PAM-version;.tar.bz2">
   <!ENTITY Linux_PAM-download-ftp "ftp://ftp.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&Linux_PAM-version;.tar.bz2">
-  <!ENTITY Linux_PAM-md5sum    "34938b4f2449d4d3b2ffdbf354257205">
-  <!ENTITY Linux_PAM-size      "364 KB">
-  <!ENTITY Linux_PAM-buildsize "11.4 MB">
-  <!ENTITY Linux_PAM-time      "0.17 SBU">
+  <!ENTITY Linux_PAM-md5sum    "ccff87fe639efdfc22b1ba4a0f08ec57">
+  <!ENTITY Linux_PAM-size      "376 KB">
+  <!ENTITY Linux_PAM-buildsize "8.6 MB">
+  <!ENTITY Linux_PAM-time      "0.15 SBU">
 ]>
 
 <sect1 id="Linux_PAM" xreflabel="Linux-PAM-&Linux_PAM-version;">
@@ -58,18 +58,10 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
-      <title>Patches</title>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/Linux-PAM-&Linux_PAM-version;-linkage-2.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
-    <itemizedlist spacing='compact'>
       <title>Documentation</title>
       <listitem>
         <para>Optional documentation: <ulink
-        url="http://www.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-0.78-docs.tar.bz2"/>
+        url="http://www.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&Linux_PAM-version;-docs.tar.bz2"/>
       </para>
       </listitem>
     </itemizedlist>
@@ -92,17 +84,18 @@
     <para>Install <application>Linux-PAM</application> by
     running the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../Linux-PAM-&Linux_PAM-version;-linkage-2.patch &amp;&amp;
+<screen><userinput>sed -i 's@DICT_DIR_CANDIDATES="@DICT_DIR_CANDIDATES="/lib /lib/cracklib @' \
+    configure.in &amp;&amp;
 autoconf &amp;&amp;
-sed -i 's/(mandir)/(MANDIR)/g' modules/Simple.Rules &amp;&amp;
 ./configure --enable-static-libpam --with-mailspool=/var/mail \
-    --enable-read-both-confs --sysconfdir=/etc &amp;&amp;
+    --enable-read-both-confs --sysconfdir=/etc \
+    --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
 
     <para>If you downloaded the documentation and wish to install it, unpack the
     tarball into the <filename class='directory'>doc</filename> directory:</para>
 
-<screen><userinput>tar -jxf ../Linux-PAM-0.78-docs.tar.bz2 -C doc</userinput></screen>
+<screen><userinput>tar -jxf ../Linux-PAM-&Linux_PAM-version;-docs.tar.bz2 -C doc</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -126,13 +119,13 @@ done</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>autoconf</command>:  This is necessary because the
-    patch changes where PAM looks for the <application>cracklib</application>
-    libraries, requiring regeneration of the configure script.</para>
+    <para><command>sed -i 's@CANDIDATES="@CANDIDATES="/lib 
+    /lib/cracklib @' configure.in</command>: This command 
+    changes where configure looks to find the cracklib_dict.</para>
 
-    <para><command>sed -i 's/(mandir)/(MANDIR)/g' modules/Simple.Rules</command>:
-    This command puts the module manpages with the rest of the manpages in
-    <filename>/usr/share/man</filename>.</para>
+    <para><command>autoconf</command>:  This is necessary because the
+    sed changes where PAM looks for the <application>cracklib</application>
+    libraries, requiring regeneration of the configure script.</para>
 
     <para><parameter>--enable-static-libpam</parameter>: This switch builds
     static PAM libraries as well as the dynamic libraries.</para>
