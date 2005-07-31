@@ -30,13 +30,13 @@
     </xsl:if>
 
     <!-- Add this to the footnotes -->
-    <xsl:apply-templates select='prefaceinfo|chapterinfo|sect1info' mode='attribution'/>
+    <xsl:apply-templates select='prefaceinfo|chapterinfo|sect1info|./sect1[1]/sect1info' mode='attribution'/>
   </xsl:template>
 
   <xsl:template match='prefaceinfo|chapterinfo|sect1info' mode='attribution'>
-    <p class='updated'> Last updated <!-- by 
+    <p class='updated'> Last updated <!-- by
       <xsl:apply-templates select="othername" mode='attribution'/> -->
-      on 
+      on
       <xsl:apply-templates select="date" mode='attribution'/>
     </p>
   </xsl:template>
