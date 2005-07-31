@@ -96,7 +96,8 @@ make</userinput></screen>
       <title>Configuration Information</title>
 
       <para>Probably the easiest way to store mixer levels is to set and
-      retrieve them using a bootscript.</para>
+      retrieve them using at boot and shutdown.  We'll use a bootscript to
+      store the values at shutdown.</para>
 
       <indexterm zone="alsa-utils alsa-utils-init">
         <primary sortas="f-alsa">alsa</primary>
@@ -113,23 +114,59 @@ make</userinput></screen>
       <application>ALSA Utilities</application> (or any other
       OSS mixer) to change this.</para>
 
-      <para>The first time the above script is run, it will complain that
-      there is no state in <filename>/etc/asound.state</filename>.  You can
-      prevent this by running the following commands as the
-      <systemitem class="username">root</systemitem> user after
-      installing <application>ALSA Utilities</application>:</para>
+      <para>The first time the dev.d script below is run, it will complain 
+      that there is no state in <filename>/etc/asound.state</filename>.  
+      You can prevent this by running the following commands while still 
+      the <systemitem class="username">root</systemitem> user (after
+      installing <application>ALSA Utilities</application>):</para>
 
 <screen role="root"><userinput>touch /etc/asound.state &amp;&amp;
 alsactl store</userinput></screen>
 
-      <para>A final note is that the lines loading <filename>sfxload</filename>
-      are commented out.  They are there as an example of other things you may
-      wish to do in the startup script.  <filename>sfxload</filename> is a
-      separate package of interest to SoundBlaster AWE and Live!
-      users.  It is designed for loading "sound-fonts" (which are used for
-      MIDI output).  You may wish to delete these lines and add
-      your own or, if you have the relevant sound card, install
-      <filename>sfxload</filename> and uncomment them.</para>
+      <para>We will restore the volume using the stored settings and a 
+      dev.d handler script that will execute when the device is detected 
+      durring boot (when pluged in for USB devices).  While still the 
+      <systemitem class="username">root</systemitem> user, create the dev.d
+      handler script with the following commands:</para>
+
+<screen role="root"><userinput>install -d -m755 /etc/dev.d/snd &amp;&amp;
+cat &gt;&gt; /etc/dev.d/snd/alsa.dev &lt;&lt; "EOF" &amp;&amp;
+#!/bin/sh -e
+DEV_BASENAME="${DEVNAME##*/}"
+N="${DEV_BASENAME#controlC}"
+case "$DEV_BASENAME" in
+        controlC[0-7])
+                x=0
+                while [ $x -lt 20 ]
+                do
+                        sleep 1
+                        if [ -f /usr/sbin/alsactl ]; then
+                        /usr/sbin/alsactl restore $N
+                        exit 0
+                        else
+                                if [ $x -eq 20 ]; then
+                                exit 1
+                                fi
+                        fi
+                done &amp;
+        ;;
+esac
+exit 0
+EOF
+chmod 755 /etc/dev.d/snd/alsa.dev</userinput></screen>
+
+
+      <para>You may wish to do additional configuration on a per card basis.
+      For example, if you wish to load soundfont banks into the first 
+      device (card0), use the following sample script:</para>
+
+<screen>#!/bin/sh -e
+# Begin /etc/dev.d/snd/controlC0/asfxload.dev
+
+# Load GM8.sf2 for soundcard 0
+/usr/bin/asfxload /usr/share/sounds/sf2/8mbgmsfx.sf2 -D "hw:0,2"
+
+# End /etc/dev.d/snd/controlC0/sfxload.dev</screen>
 
     </sect3>
 
