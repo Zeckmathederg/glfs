@@ -31,7 +31,7 @@
           <xsl:with-param name="key" select="$index-title"/>
         </xsl:call-template>
 		</h1>
-      <!-- Temporary addition until index is done -->
+      <!-- Temporary addition until index is done
         <div class="note">
         <div class="admonhead">
           <img alt="[Note]" src="../images/note.png" />
@@ -46,7 +46,7 @@
           </p>
         </div>
       </div>
-      <!-- End temporary addition -->
+           End temporary addition -->
     </div>
   </xsl:template>
 
