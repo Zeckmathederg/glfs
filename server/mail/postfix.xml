@@ -89,25 +89,26 @@
       one or more of the appropriate <envar>CCARGS</envar> and
       <envar>AUXLIBS</envar> settings listed below.</para>
 
-      <para>Here is an example that combines the TLS/SSL and
+      <para>Here is an example that combines the TLS and
       <application>Cyrus-SASL</application> arguments:</para>
 
 <screen><userinput>make makefiles \
-CCARGS="-DUSE_SSL -DUSE_SASL_AUTH \
--I/usr/include/openssl -I/usr/include/sasl" \
-AUXLIBS="-L/usr/lib -lssl -lcrypto -lsasl2"</userinput></screen>
+CCARGS='-DUSE_TLS -DUSE_SASL_AUTH -DDEF_DAEMON_DIR=\"/usr/lib/postfix\" \
+    -DDEF_MANPAGE_DIR=\"/usr/share/man\" -I/usr/include/openssl \
+    -I/usr/include/sasl' \
+    AUXLIBS='-L/usr/lib -lssl -lcrypto -lsasl2'</userinput></screen>
 
       <sect4>
-        <title>SSL/TLS Authentication</title>
+        <title>TLS Authentication</title>
 
         <para>To use TLS authentication with postfix
         you will need to pass the following values to the
         <command>make makefiles</command> command:</para>
 
-<screen><literal>CCARGS="-DUSE_SSL -I/usr/include/openssl" \
-AUXLIBS="-L/usr/lib -lssl -lcrypto"</literal></screen>
+<screen><literal>CCARGS='-DUSE_TLS -I/usr/include/openssl'
+AUXLIBS='-L/usr/lib -lssl -lcrypto'</literal></screen>
 
-        <para>To use SSL or TLS you will also need
+        <para>To use TLS you will also need
         <xref linkend="cyrus-sasl"/>.</para>
 
       </sect4>
@@ -118,8 +119,8 @@ AUXLIBS="-L/usr/lib -lssl -lcrypto"</literal></screen>
         <para>To use <application>Cyrus-SASL</application> with
         <application>Postfix</application>, use the following arguments:</para>
 
-<screen><literal>CCARGS="-DUSE_SASL_AUTH -I/usr/include/sasl" \
-AUXLIBS="-L/usr/lib -lsasl2"</literal></screen>
+<screen><literal>CCARGS='-DUSE_SASL_AUTH -I/usr/include/sasl'
+AUXLIBS='-L/usr/lib -lsasl2'</literal></screen>
 
       </sect4>
 
@@ -130,8 +131,8 @@ AUXLIBS="-L/usr/lib -lsasl2"</literal></screen>
         <application>Postfix</application>, use the following
         arguments:</para>
 
-<screen><literal>CCARGS="-I/usr/include -DHAS_LDAP" \
-AUXLIBS="-L/usr/lib -lldap -llber"</literal></screen>
+<screen><literal>CCARGS='-I/usr/include -DHAS_LDAP'
+AUXLIBS='-L/usr/lib -lldap -llber'</literal></screen>
 
       </sect4>
 
@@ -142,8 +143,8 @@ AUXLIBS="-L/usr/lib -lldap -llber"</literal></screen>
         <application>Postfix</application>, use the following
         arguments:</para>
 
-<screen><literal>CCARGS="-DHAS_MYSQL -I/usr/include/mysql" \
-AUXLIBS="-L/usr/lib -lmysqlclient -lz -lm"</literal></screen>
+<screen><literal>CCARGS='-DHAS_MYSQL -I/usr/include/mysql'
+AUXLIBS='-L/usr/lib -lmysqlclient -lz -lm'</literal></screen>
 
       </sect4>
 
@@ -154,8 +155,8 @@ AUXLIBS="-L/usr/lib -lmysqlclient -lz -lm"</literal></screen>
         <application>Postfix</application>, use the following
         arguments:</para>
 
-<screen><literal>CCARGS="-DHAS_PGSQL -I/usr/include/postgresql" \
-AUXLIBS="-L/usr/lib -lpq -lz -lm"</literal></screen>
+<screen><literal>CCARGS='-DHAS_PGSQL -I/usr/include/postgresql'
+AUXLIBS='-L/usr/lib -lpq -lz -lm'</literal></screen>
 
       </sect4>
 
@@ -166,7 +167,8 @@ AUXLIBS="-L/usr/lib -lpq -lz -lm"</literal></screen>
         <application>Postfix</application>, use the following
         arguments:</para>
 
-<screen><literal>CCARGS=-DHAS_CDB AUXLIBS=<replaceable>[/path/to/CDB]/</replaceable>libcdb.a</literal></screen>
+<screen><literal>CCARGS='-DHAS_CDB' 
+AUXLIBS='<replaceable>[/path/to/CDB]/</replaceable>libcdb.a'</literal></screen>
 
       </sect4>
 
@@ -192,16 +194,16 @@ chown -v postfix:postfix /var/mail</userinput></screen>
       <para>Install <application>Postfix</application> by running the
       following commands:</para>
 
-<screen><userinput>make</userinput></screen>
+<screen><userinput>make makefiles CCARGS='-DDEF_DAEMON_DIR=\"/usr/lib/postfix\" \
+    -DDEF_MANPAGE_DIR=\"/usr/share/man\" <replaceable>[additional args]</replaceable>' \
+    <replaceable>[AUXLIBS='additonal args']</replaceable> &amp;&amp;
+make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>sh postfix-install daemon_directory=/usr/sbin \
-                   manpage_directory=/usr/share/man \
-                   sample_directory=/usr/share/doc/postfix \
-                   -non-interactive</userinput></screen>
+<screen role='root'><userinput>sh postfix-install -non-interactive</userinput></screen>
 
       <para>The final installation step is to install the program's documentation
       with the following commands (again, as the 
@@ -217,14 +219,14 @@ cp -v -rf html/* /usr/share/doc/postfix</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sh postfix-install ... -non-interactive</command> : This
-    keeps the install script from asking any questions, thereby accepting
-    default destination directories in all but the three cases explicitly
-    mentioned.</para>
-
     <para><command>make makefiles</command>: This command rebuilds the
     makefiles throughout the source tree to use the options contained in the
     <envar>CCARGS</envar> and <envar>AUXLIBS</envar> variables.</para>
+
+    <para><command>sh postfix-install -non-interactive</command> : This
+    keeps the install script from asking any questions, thereby accepting
+    default destination directories in all but the two cases mentioned in
+    the 'make makefiles' command.</para>
 
   </sect2>
 
