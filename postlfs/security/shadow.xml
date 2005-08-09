@@ -199,10 +199,10 @@ done</userinput></screen>
 
 auth        requisite      pam_securetty.so
 auth        requisite      pam_nologin.so
-auth        required       pam_env.so
 auth        required       pam_unix.so
 account     required       pam_access.so
 account     required       pam_unix.so
+session     required       pam_env.so
 session     required       pam_motd.so
 session     required       pam_limits.so
 session     optional       pam_mail.so      dir=/var/mail standard
@@ -281,6 +281,7 @@ auth        sufficient      pam_rootok.so
 auth        required        pam_unix.so
 account     required        pam_unix.so
 session     optional        pam_mail.so     dir=/var/mail standard
+session     required        pam_env.so
 session     required        pam_unix.so
 
 # End /etc/pam.d/su</literal>
@@ -399,6 +400,30 @@ fi</userinput></screen>
 <screen role="root"><userinput>if [ -f /etc/limits ]; then
     mv -v /etc/limits /etc/limits.NOUSE
 fi</userinput></screen>
+
+      </sect4>
+
+
+      <sect4 id="pam-env">
+        <title>Configuring Default Environment</title>
+
+          <para>In previous configuration, serveral items were removed from 
+          <filename>/etc/login.defs</filename>.  Some of these items are now
+          controlled by the <filename class='libraryfile'>pam_env.so</filename> 
+          module and the <filename>/etc/security/pam_env.conf</filename> 
+          configuration file.  In particular, the default path has been 
+          changed.  To recover your default path, execute the following 
+          commands:</para>
+
+<screen><userinput><command>ENV_PATH=`grep '^ENV_PATH' /etc/login.defs.orig | \
+    awk '{ print $2 }' | sed 's/PATH=//'` &amp;&amp;
+echo 'PATH        DEFAULT='`echo "${ENV_PATH}"`'        OVERRIDE=${PATH}' \
+    >> /etc/security/pam_env.conf &amp;&amp;
+unset ENV_PATH</command></userinput></screen>
+
+          <note><para>ENV_SUPATH is no longer supported.  You must create 
+          a valid <filename>/root/.bashrc</filename> file to provide a 
+          modified path for the super user.</para></note>
 
       </sect4>
 
