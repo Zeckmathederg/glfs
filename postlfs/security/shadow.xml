@@ -117,8 +117,9 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
     <sect3 id="pam.d">
       <title>Config Files</title>
 
-      <para><filename>/etc/pam.d/*</filename>, or alternatively,
-      <filename>/etc/pam.conf</filename></para>
+      <para><filename>/etc/pam.d/*</filename> or alternatively
+      <filename>/etc/pam.conf, /etc/login.defs and
+      /etc/security/*</filename></para>
 
       <indexterm zone="shadow pam.d">
         <primary sortas="e-etc-pam.d">/etc/pam.d/*</primary>
@@ -128,15 +129,67 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
         <primary sortas="e-etc-pam.conf">/etc/pam.conf</primary>
       </indexterm>
 
+      <indexterm zone="shadow pam.d">
+        <primary sortas="e-etc-login.defs">/etc/login.defs</primary>
+      </indexterm>
+
+      <indexterm zone="shadow pam.d">
+        <primary sortas="e-etc-security">/etc/security/*</primary>
+      </indexterm>
+
     </sect3>
 
     <sect3>
       <title>Configuration Information</title>
 
-      <para>Add the following <application>Linux-PAM</application> configuration
-      files to <filename class="directory">/etc/pam.d/</filename> (or add them
-      to <filename>/etc/pam.conf</filename> with the additional field for
-      the program).</para>
+      <sect4 id="pam-login-defs">
+        <title>Configuring /etc/login.defs</title>
+
+        <para>The <command>login</command> program currently performs many
+        functions which <application>Linux-PAM</application> modules should
+        now handle. The following <command>sed</command> command will comment
+        out the appropriate lines in <filename>/etc/login.defs</filename>, and
+        stop <command>login</command> from performing these functions (a backup
+        file named <filename>/etc/login.defs.orig</filename> is also created
+        to preserve the original file's contents):</para>
+
+        <indexterm zone="shadow pam-login-defs">
+          <primary sortas="e-etc-login.defs">/etc/login.defs</primary>
+        </indexterm>
+
+<screen role="root"><userinput>install -v -m644 /etc/login.defs /etc/login.defs.orig &amp;&amp;
+for FUNCTION in LASTLOG_ENAB MAIL_CHECK_ENAB \
+                PORTTIME_CHECKS_ENAB CONSOLE \
+                MOTD_FILE NOLOGINS_FILE PASS_MIN_LEN \
+                SU_WHEEL_ONLY MD5_CRYPT_ENAB \
+                CONSOLE_GROUPS ENVIRON_FILE \
+                ULIMIT ENV_TZ ENV_HZ ENV_SUPATH \
+                ENV_PATH QMAIL_DIR MAIL_DIR MAIL_FILE \
+                CHFN_AUTH FAILLOG_ENAB QUOTAS_ENAB FTMP_FILE
+do
+    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
+done</userinput></screen>
+
+        <para>If you have <application>CrackLib</application> installed,
+        also comment out four more lines using the following command:</para>
+
+<screen role="root"><userinput>for FUNCTION in OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
+                PASS_CHANGE_TRIES PASS_ALWAYS_WARN
+do
+    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
+done</userinput></screen>
+
+      </sect4>
+
+      <sect4>
+        <title>Configuring the /etc/pam.d/ Files</title>
+
+        <para>Add the following <application>Linux-PAM</application> configuration
+        files to <filename class="directory">/etc/pam.d/</filename> (or add them
+        to <filename>/etc/pam.conf</filename> with the additional field for
+        the program).</para>
+
+      </sect4>
 
       <sect4>
         <title>'login' (with CrackLib)</title>
@@ -266,14 +319,16 @@ done</userinput></screen>
         <warning>
           <para>At this point, you should do a simple test to see if
           <application>Shadow</application> is working as expected. Open
-          another term and log in as a user, then <command>su</command> to
+          another terminal and log in as a user, then <command>su</command> to
           <systemitem class="username">root</systemitem>. If you do not see any
           errors, then all is well and you should proceed with the rest of the
           configuration. If you did receive errors, stop now and double check
           the above configuration files manually.  If you cannot find and
           fix the error, you should recompile <application>Shadow</application>
           replacing <option>--with-libpam</option> with
-          <option>--without-libpam</option> in the above instructions. If you
+          <option>--without-libpam</option> in the above instructions (also move
+          the <filename>/etc/login.defs.orig</filename> backup file to
+          <filename>/etc/login.defs</filename>). If you
           fail to do this and the errors remain, you will be unable to log into
           your system.</para>
         </warning>
@@ -344,42 +399,6 @@ fi</userinput></screen>
 <screen role="root"><userinput>if [ -f /etc/limits ]; then
     mv -v /etc/limits /etc/limits.NOUSE
 fi</userinput></screen>
-
-      </sect4>
-
-      <sect4 id="pam-login-defs">
-        <title>Configuring /etc/login.defs</title>
-
-        <para>The <command>login</command> program currently performs many
-        functions which <application>Linux-PAM</application> modules should
-        now handle. The following command will comment out the appropriate
-        lines in <filename>/etc/login.defs</filename>, and stop
-        <command>login</command> from performing these functions:</para>
-
-        <indexterm zone="shadow pam-login-defs">
-          <primary sortas="e-etc-login.defs">/etc/login.defs</primary>
-        </indexterm>
-
-<screen role="root"><userinput>for FUNCTION in LASTLOG_ENAB MAIL_CHECK_ENAB \
-                PORTTIME_CHECKS_ENAB CONSOLE \
-                MOTD_FILE NOLOGINS_FILE PASS_MIN_LEN \
-                SU_WHEEL_ONLY MD5_CRYPT_ENAB \
-                CONSOLE_GROUPS ENVIRON_FILE \
-                ULIMIT ENV_TZ ENV_HZ ENV_SUPATH \
-                ENV_PATH QMAIL_DIR MAIL_DIR MAIL_FILE \
-                CHFN_AUTH FAILLOG_ENAB QUOTAS_ENAB FTMP_FILE
-do
-    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
-done</userinput></screen>
-
-        <para>If you have <application>CrackLib</application> installed,
-        also comment out four more lines using the following command:</para>
-
-<screen role="root"><userinput>for FUNCTION in OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
-                PASS_CHANGE_TRIES PASS_ALWAYS_WARN
-do
-    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
-done</userinput></screen>
 
       </sect4>
 
