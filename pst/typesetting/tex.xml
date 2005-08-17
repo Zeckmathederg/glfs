@@ -9,7 +9,7 @@
   <!ENTITY tex-md5sum        "944a4641e79e61043fdaf8f38ecbb4b3">
   <!ENTITY tex-size          "12.7 MB">
   <!ENTITY tex-buildsize     "416 MB (542 MB with optional tarball)">
-  <!ENTITY tex-time          "2.07 SBU">
+  <!ENTITY tex-time          "2.1 SBU">
 
   <!ENTITY texmf-download-http "http://www.tug.org/ftp/tex-archive/systems/unix/teTeX/&tex-version;/distrib/tetex-texmf-&tex-version;.tar.gz" >
   <!ENTITY texmf-download-ftp  "ftp://tug.ctan.org/tex-archive/systems/unix/teTeX/&tex-version;/distrib/tetex-texmf-&tex-version;.tar.gz">
@@ -20,6 +20,11 @@
   <!ENTITY texmfsrc-download-ftp  "ftp://tug.ctan.org/tex-archive/systems/unix/teTeX/&tex-version;/distrib/tetex-texmfsrc-&tex-version;.tar.gz">
   <!ENTITY texmfsrc-md5sum   "66c32a11964a49982ba2a32d3bbfe7f5">
   <!ENTITY texmfsrc-size     "57.7 MB">
+
+  <!ENTITY cmsupersrc-download-http "http://anduin.linuxfromscratch.org/sources/BLFS/SVN/T-V/tetex-cm-super.tar.bz2" >
+  <!ENTITY cmsupersrc-download-ftp  "ftp://anduin.linuxfromscratch.org/BLFS/SVN/T-V/tetex-cm-super.tar.bz2">
+  <!ENTITY cmsupersrc-md5sum   "d7c89fcb35f625b02853a0881a4ec760">
+  <!ENTITY cmsupersrc-size     "63.8 MB">
 ]>
 
 <sect1 id="tex" xreflabel="TeX-&tex-version;">
@@ -100,17 +105,21 @@
       </listitem>
     </itemizedlist>
 
-<!--
-<sect4><title>Patches</title>
-<itemizedlist spacing='compact'>
-<listitem><para>Required Patch: <ulink
-url="&patch-root;/tetex-src-&tex-version;-flex-1.patch"/></para></listitem>
-<listitem><para>Recommended Patch: <ulink
-url="&patch-root;/tetex-src-&tex-version;-remove_readlink-1.patch"/></para>
-</listitem>
-</itemizedlist>
-</sect4>
- -->
+    <itemizedlist spacing='compact'>
+      <title>Optional 'cm-super' Sources:</title>
+      <listitem>
+        <para>Download (HTTP): <ulink url="&cmsupersrc-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download (FTP): <ulink url="&cmsupersrc-download-ftp;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &cmsupersrc-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &cmsupersrc-size;</para>
+      </listitem>
+    </itemizedlist>
 
     <bridgehead renderas="sect3">TeX Dependencies</bridgehead>
 
@@ -129,14 +138,6 @@ url="&patch-root;/tetex-src-&tex-version;-remove_readlink-1.patch"/></para>
 
   <sect2 role="installation">
     <title>Installation of TeX</title>
-
-<!--
-<para><application>TeX</application> is installed from the source directory
-(usually <filename class="directory">/usr/src</filename>) and untarring
-instructions are included below instead of the usual assumption that you
-have already untarred the package. The source directory should contain
-the two required packages and the optional package, if desired.</para>
--->
 
     <para>Before building <application>TeX</application>, the macros and
     fonts package (<filename>texmf</filename> tarball) must be installed.
@@ -157,11 +158,6 @@ gzip -dc ../tetex-texmf-&tex-version;.tar.gz \
     <para>Install <application>TeX</application> by running the following
     commands:</para>
 
-<!--
-<screen><userinput><command>patch -Np1 -i ../tetex-src-&tex-version;-flex-1.patch &amp;&amp;
-patch -Np1 -i ../tetex-src-&tex-version;-remove_readlink-1.patch &amp;&amp;
- -->
-
 <screen><userinput>./configure --prefix=/usr \
     --exec-prefix=/usr --bindir=/usr/bin \
     --without-texinfo --with-x=no \
@@ -171,13 +167,44 @@ make all</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-texconfig dvips paper letter &amp;&amp;
-texconfig font rw</userinput></screen>
+TEXMFVAR=/usr/share/texmf-var texconfig dvips paper letter &amp;&amp;
+TEXMFVAR=/usr/share/texmf-var texconfig font rw</userinput></screen>
 
     <note>
       <para>The paper size may be changed to a4, as is used in most
       countries.</para>
     </note>
+
+    <para>To install the optional cm-super fonts, perform the following
+    instructions as the <systemitem class="username">root</systemitem>
+    user:</para>
+
+<screen><userinput>FONTDIR=/usr/share/texmf/ &amp;&amp;
+mkdir -p $FONTDIR/fonts/afm/public/cm-super   \
+         $FONTDIR/fonts/type1/public/cm-super \
+         $FONTDIR/fonts/enc/dvips/cm-super    \
+         $FONTDIR/fonts/map/dvips/cm-super   &amp;&amp;
+         
+cp -v cm-super/pfb/*.pfb $FONTDIR/fonts/type1/public/cm-super/ &amp;&amp;
+
+gunzip cm-super/afm/* &amp;&amp;
+cp -v cm-super/afm/*.afm $FONTDIR/fonts/afm/public/cm-super/ &amp;&amp;
+
+cp -v cm-super/dvips/*.enc $FONTDIR/fonts/enc/dvips/cm-super/ &amp;&amp;
+cp -v cm-super/dvips/*.map $FONTDIR/fonts/map/dvips/cm-super/ &amp;&amp;
+
+cat &gt;&gt; $FONTDIR/texmf/web2c/updmap.cfg &lt;&lt; "EOF" &amp;&amp;
+MixedMap cm-super-t1.map 
+MixedMap cm-super-t2a.map 
+MixedMap cm-super-t2b.map 
+MixedMap cm-super-t2c.map 
+MixedMap cm-super-ts1.map 
+MixedMap cm-super-x2.map 
+EOF
+
+TEXMFVAR=/usr/share/texmf-var updmap &amp;&amp;
+            
+unset FONTDIR</userinput></screen>
 
   </sect2>
 
@@ -210,12 +237,21 @@ texconfig font rw</userinput></screen>
     <para><option>--disable-a4</option>: Use this option to set the default
     paper size to letter and the default unit to inch.</para>
 
-    <para><command>texconfig dvips paper letter</command>: This command sets
-    the default paper size for <application>TeX</application>.</para>
+    <para><command>TEXMFVAR=/usr/share/texmf-var texconfig dvips paper
+    letter</command>: This command sets the default paper size for
+    <application>TeX</application>. The TEXMFVAR variable puts the resulting
+    configuration in a global location instead of a hidden subdirectory of
+    <filename class='directory'>/root</filename>.</para>
 
-    <para><command>texconfig font rw</command>: This command specifies writable
-    fonts.</para>
+    <para><command>TEXMFVAR=/usr/share/texmf-var texconfig font rw</command>:
+    This command specifies writable fonts. The TEXMFVAR variable puts the
+    resulting configuration in a global location instead of a hidden
+    subdirectory of <filename class='directory'>/root</filename>.</para>
 
+    <para><command>TEXMFVAR=/usr/share/texmf-var updmap</command>:
+    This command updates the font configuration. The TEXMFVAR variable puts the
+    resulting configuration in a global location instead of a hidden
+    subdirectory of <filename class='directory'>/root</filename>.</para>
     <tip>
       <para>Run <command>./configure --help</command> for information about
       using other switches which will enable the build to use any installed
