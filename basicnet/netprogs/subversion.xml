@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY subversion-download-http "http://subversion.tigris.org/tarballs/subversion-&subversion-version;.tar.bz2">
-  <!ENTITY subversion-download-ftp  " ">
-  <!ENTITY subversion-md5sum        "6e557ae65b6b8d7577cc7704ede85a23">
-  <!ENTITY subversion-size          "6.7 MB">
-  <!ENTITY subversion-buildsize     "182 MB (additional 577 MB to run all test suites)">
-  <!ENTITY subversion-time          "1.24 SBU (add 0.90 SBU for SWIG bindings and 6.45 SBU to run test suites)">
+  <!ENTITY subversion-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/subversion-&subversion-version;.tar.bz2">
+  <!ENTITY subversion-md5sum        "0b546195ca794c327c6830f2e88661f7">
+  <!ENTITY subversion-size          "7.2 MB">
+  <!ENTITY subversion-buildsize     "90 MB (additional 45 MB for all bindings and 488 MB to run all test suites)">
+  <!ENTITY subversion-time          "1.6 SBU (add 1.1 SBU for bindings and 22.2 SBU to run test suites)">
   <!ENTITY svn-neon-version         "0.24.7">
 ]>
 
@@ -36,8 +36,9 @@
     extends and enhances <application>CVS</application>' feature set,
     while maintaining a similar interface for those already familiar with
     <application>CVS</application>. These instructions install the client
-    and server software used to manipulate a <application>Subversion</application>
-    repository. Creation of a repository is covered at <xref linkend="svnserver"/>.</para>
+    and server software used to manipulate a
+    <application>Subversion</application> repository. Creation of a repository
+    is covered at <xref linkend="svnserver"/>.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -61,6 +62,16 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch if using
+        <application>Swig</application>-1.3.25 and you wish
+        to build the <application>Perl</application> bindings: <ulink
+        url="&patch-root;/patches/subversion-&subversion-version;-swig_1.3.25-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Subversion Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -68,13 +79,13 @@
     <application>neon</application>)</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para><xref linkend="python"/> (required to run the full test suite),
+    <para><xref linkend="python"/> (required to run the test suite),
+    <xref linkend="db"/>,
     <xref linkend="apache"/>,
-    <xref linkend="openssh"/> (runtime only),
     <ulink url="http://www.webdav.org/neon/">neon-&svn-neon-version;</ulink>,
     <xref linkend="jdk"/> (to build the <application>JAVA</application>
     bindings),
-    <ulink url="http://www.junit.org/">JUnit</ulink> (for running the
+    <ulink url="http://www.junit.org/">JUnit</ulink> (required for running the
     <application>JAVA</application> bindings test suite and requires
     <xref linkend="unzip"/>),
     <ulink url="http://www.inet.no/dante/">Dante</ulink> (alternate
@@ -97,8 +108,10 @@
 
     <bridgehead renderas="sect4">Optional to Build the
     <application>SWIG</application> Bindings</bridgehead>
-    <para><ulink url="http://www.swig.org">SWIG</ulink> and
-    <xref linkend="python"/></para>
+    <para><ulink url="http://www.swig.org">SWIG</ulink>,
+    <xref linkend="python"/> and
+    <xref linkend="ruby"/> (<application>Ruby</application> bindings require
+    <application>Swig-1.3.24</application>)</para>
 
   </sect2>
 
@@ -129,8 +142,7 @@ make</userinput></screen>
 
 <screen><userinput>make javahl</userinput></screen>
 
-    <para>If you passed the <option>--with-swig</option> and
-    <option>--enable-swig-bindings</option> parameters to
+    <para>If you passed the <option>--with-swig</option> parameter to
     <command>configure</command> and wish to build the
     <application>SWIG</application> <application>Perl</application> and
     <application>Python</application> <application>Subversion</application>
@@ -139,13 +151,27 @@ make</userinput></screen>
 <screen><userinput>make swig-pl &amp;&amp;
 make swig-py</userinput></screen>
 
-    <para>To test the results, issue: <command>make check</command>.</para>
+    <para>The <application>Ruby</application> bindings are a recent
+    development, and are only partially implemented. The
+    <application>Ruby</application> bindings API may change incompatibly as
+    development proceeds. They currently require
+    <application>SWIG</application> 1.3.24 exactly &ndash; neither later nor
+    earlier will work.</para>
+
+    <para>To test the results of the <application>Subversion</application>
+    build, issue: <command>make check</command>.</para>
+
+    <para>To test the results of the bindings builds, issue either or both
+    of: <command>make check-javahl</command> and
+    <command>make check-swig-pl</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
 install -v -d -m755 /usr/share/doc/subversion-&subversion-version; &amp;&amp;
-cp -v -R doc/* /usr/share/doc/subversion-&subversion-version;</userinput></screen>
+cp -v -R doc/* /usr/share/doc/subversion-&subversion-version; &amp;&amp;
+rm -v /usr/share/doc/subversion-&subversion-version;/{Makefile,doxygen.conf} \
+    /usr/share/doc/subversion-&subversion-version;/translations/norwegian_nb/Makefile</userinput></screen>
 
     <para>If you built the <application>JAVA</application>
     <application>Subversion</application> bindings, issue the following command
