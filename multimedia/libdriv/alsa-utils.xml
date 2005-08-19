@@ -123,32 +123,44 @@ alsactl store</userinput></screen>
       <para>The volume settings will be restored from the saved state using a 
       <filename class='directory'>dev.d</filename> handler script that will
       execute when the device is detected 
-      during boot (when plugged in for USB devices).  While still the 
+      during boot (when plugged in for USB devices).</para>
+
+      <note>
+        <para>For versions of udev greater than 0.58, this script will
+        not work by default.  You'll have to add dev.d compatibility by adding
+        a udev rules file that contains the line 
+        'RUN="/sbin/udev_send_devd" to continue using the now depreciated 
+        dev.d system.</para>
+      </note>
+
+      <para>  While still the 
       <systemitem class="username">root</systemitem> user, create the
       <filename class='directory'>dev.d</filename> script with the following
       commands:</para>
 
 <screen role="root"><userinput>install -v -d -m755 /etc/dev.d/snd &amp;&amp;
-cat &gt;&gt; /etc/dev.d/snd/alsa.dev &lt;&lt; "EOF"
+cat &gt; /etc/dev.d/snd/alsa.dev &lt;&lt; "EOF"
 #!/bin/sh -e
+# This script is called by udevd when a change in a device is
+# detected, including initial detection upon bootup.
+# udevd sets the environment variables ACTION and DEVNAME.
+
+[ "$ACTION" = "add" ] || exit 0
 DEV_BASENAME="${DEVNAME##*/}"
 N="${DEV_BASENAME#controlC}"
 case "$DEV_BASENAME" in
-        controlC[0-7])
-                x=0
-                while [ $x -lt 20 ]
-                do
-                        sleep 1
-                        if [ -f /usr/sbin/alsactl ]; then
-                        /usr/sbin/alsactl restore $N
-                        exit 0
-                        else
-                                if [ $x -eq 20 ]; then
-                                exit 1
-                                fi
-                        fi
-                done &amp;
-        ;;
+    controlC[0-7])
+        x=0
+        while [ $x -lt 20 ]; do
+            # Wait up to 20 seconds for /usr to be mounted if necessary
+            if [ -f /usr/sbin/alsactl ]; then
+                /usr/sbin/alsactl restore $N
+	        exit 0
+            fi
+            sleep 1
+	    x=`expr $x + 1`
+        done &amp; # Put the while command in the background and continue
+    ;;
 esac
 exit 0
 EOF
@@ -156,16 +168,26 @@ chmod -v 755 /etc/dev.d/snd/alsa.dev</userinput></screen>
 
 
       <para>You may wish to do additional configuration on a per card basis.
-      For example, if you wish to load soundfont banks into the first 
-      device (card0), use the following sample script:</para>
+      For example, if you wish to load soundfont banks, use the following 
+      sample script:</para>
 
 <screen>#!/bin/sh -e
-# Begin /etc/dev.d/snd/controlC0/asfxload.dev
+# Begin /etc/dev.d/snd/<replaceable>[DEVICE]</replaceable>/asfxload.dev
 
-# Load GM8.sf2 for soundcard 0
-/usr/bin/asfxload /usr/share/sounds/sf2/8mbgmsfx.sf2 -D "hw:0,2"
+x=0
+    while [ $x -lt 20 ]; do
+        # Wait up to 20 seconds for /usr to be mounted if necessary
+        if [ -f /usr/bin/asfxload ]; then
+            # Load 8 MB sountfont bank
+            /usr/bin/asfxload /usr/share/sounds/sf2/8mbgmsfx.sf2 -D "<replaceable>[ALSA device string]</replaceable>"
+            exit 0
+        fi
+        sleep 1
+        x=`expr $x + 1`
+    done &amp; # Put the while command in the background and continue
 
-# End /etc/dev.d/snd/controlC0/sfxload.dev</screen>
+exit 0
+# End /etc/dev.d/snd/<replaceable>[DEVICE]</replaceable>/asfxload.dev</screen>
 
     </sect3>
 
