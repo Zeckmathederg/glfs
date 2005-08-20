@@ -5,8 +5,8 @@
                 version="1.0">
 
 
-    <!-- This is a hack and isn't correct semantically. Theoretically, the beginpage 
-      tags should be placed in the XML source only to render the PDF output and 
+    <!-- This is a hack and isn't correct semantically. Theoretically, the beginpage
+      tags should be placed in the XML source only to render the PDF output and
       should be removed after it. But there is no a better way and we need this.-->
   <xsl:template match="beginpage">
     <fo:block break-after="page"/>
@@ -138,7 +138,7 @@
   <xsl:param name="variablelist.as.blocks" select="1"/>
   <xsl:param name="variablelist.max.termlength">32</xsl:param>
 
-    <!-- Adding space before segmentedlist -->
+    <!-- Making the same look that in the XHTML output. -->
   <xsl:template match="segmentedlist">
     <!--<xsl:variable name="presentation">
       <xsl:call-template name="pi-attribute">
@@ -161,12 +161,42 @@
         <xsl:apply-templates select="." mode="seglist-table"/>
       </xsl:when>
       <xsl:otherwise>-->
-        <fo:block space-before.minimum="0.4em" space-before.optimum="0.6em"
-                space-before.maximum="0.8em">
+        <fo:list-block provisional-distance-between-starts="11em"
+              provisional-label-separation="1em"
+              xsl:use-attribute-sets="list.block.spacing">
           <xsl:apply-templates/>
-        </fo:block>
+        </fo:list-block>
       <!--</xsl:otherwise>
     </xsl:choose>-->
+  </xsl:template>
+
+  <xsl:template match="seglistitem">
+    <xsl:apply-templates/>
+  </xsl:template>
+
+  <xsl:template match="seg">
+    <xsl:variable name="segnum" select="count(preceding-sibling::seg)+1"/>
+    <xsl:variable name="seglist" select="ancestor::segmentedlist"/>
+    <xsl:variable name="segtitles" select="$seglist/segtitle"/>
+    <!-- Note: segtitle is only going to be the right thing in a well formed
+      SegmentedList.  If there are too many Segs or too few SegTitles,
+      you'll get something odd...maybe an error -->
+    <fo:list-item xsl:use-attribute-sets="list.item.spacing">
+      <fo:list-item-label end-indent="label-end()" text-align="start">
+        <fo:block>
+          <fo:inline font-weight="bold">
+            <xsl:apply-templates select="$segtitles[$segnum=position()]"
+                    mode="segtitle-in-seg"/>
+            <xsl:text>: </xsl:text>
+          </fo:inline>
+        </fo:block>
+      </fo:list-item-label>
+      <fo:list-item-body start-indent="body-start()">
+        <fo:block text-align="left">
+          <xsl:apply-templates/>
+        </fo:block>
+      </fo:list-item-body>
+    </fo:list-item>
   </xsl:template>
 
     <!-- Presentation of literal tag -->
