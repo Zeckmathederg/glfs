@@ -110,12 +110,13 @@ h3, h4, h5, h6 {
   color: #222;
 }
 
-h1 { font-size: 173%; text-align: center; }
-h2 { font-size: 144%; }
-h2.subtitle { text-align: center; }
-h3 { font-size: 120%; padding-top: 0.2em; margin-top: 0.3em; }
+h1 { font-size: 173%; text-align: center; line-height: 1.2em; }
+h1.title sup { font-size: small; }
+h2 { font-size: 144%; line-height: 1.2em; }
+h2.subtitle { text-align: center; line-height: 1.2em; }
+h3 { font-size: 120%; padding-top: 0.2em; margin-top: 0.3em; line-height: 1.2em; }
 h4 { font-size: 110%;}
-h5, h6 { font-size: 110%; font-style: italic; }
+div.package h4, h5, h6 { font-size: 110%; font-style: italic; }
 
 /* TOC and Index*/
 
@@ -136,13 +137,17 @@ div.toc ul li h3, div.toc ul li h4 {
 }
 
 .item {
-    width: 15em;
+    width: 18.5em;
     float: left;
+}
+
+.indexref {
+    margin-left: 18.5em;
 }
 
 .secitem {
     font-weight: normal;
-    width: 14em;
+    width: 16em;
     float: left;
 }
 
@@ -185,10 +190,42 @@ div.important tt, div.warning tt, div.caution tt {
   font-weight: bold;
 }
 
+table {
+  width: auto;
+  margin-left: 1em;
+}
+
+td {
+  vertical-align: top;
+}
+
+td span, td p {
+  margin: 0.3em;
+}
+
+div.table table {
+  border-collapse: collapse;
+  }
+
+div.table td, div.table th {
+  padding: 0.3em;
+  text-align: right;
+  vertical-align: baseline;
+}
+
+div.table tr > td:first-child, div.table tr > th:first-child {
+  text-align: left;
+}
+
+span.term {
+  display: block;
+}
+
 /* variablelist and segmentedlist */
 dl {
   margin: 0;
   padding: 0;
+  list-style-type: none;
 }
 
 dt {
@@ -196,6 +233,11 @@ dt {
   font-weight: bold;
   margin: .33em 0 0 1em;
   padding: 0;
+}
+
+span.seg {
+  display: block;
+  padding-left: 12em;
 }
 
 div.content dt {
@@ -227,13 +269,23 @@ div.segmentedlist p {
   margin: 0px auto;
 }
 
+span.segtitle {
+  display: block;
+  float: left;
+  width: 12em;
+}
+
+div.seg {
+  clear: left;
+}
+
 /* itemizedlist */
 
 div.itemizedlist {
   margin-left: 1em;
 }
 
-div.sect3 li p {
+ul[compact="compact"] li p {
   padding: 0.3em;
   margin: 0em;
   background-color: #f0fff0;
@@ -258,6 +310,19 @@ pre.userinput {
   font-weight: bold;
 }
 
+pre.root {
+  color: #101310;
+  background-color: #e5e5e5;
+  border: 1px solid #050505;
+  padding: .5em 1em;
+  margin: 0 2em;
+  font-weight: bold;
+}
+
+.literal, .prompt {
+  font-weight: normal;
+}
+
 pre.screen {
   background-color: #e9e9e9;
   border: 1px solid #050505;
@@ -266,11 +331,26 @@ pre.screen {
 }
 
 /* Sections */
-div.package {
-  background: #f5f6f7;
-  border-bottom: 0.2em solid #dbddec;
-  padding: 0.5em 0.5em 0.3em 0.5em;
+div h2 {
+  padding: 1em 0 0.5em 0;
   margin: 0px auto;
+}
+
+div.glossary h2 {
+  text-align: center;
+   font-size: 173%;
+   padding-top: 0.4em;
+   border-bottom: .1em solid #dbddec;
+}
+
+div.package {
+  padding: 0 0.5em 0.3em 0.5em;
+  margin: 0.5em 0 0.5em 0;
+}
+
+div.kernel {
+  padding: 0 0.5em 0.3em 0.5em;
+  margin: 0.5em 0 0.5em 0;
 }
 
 div.installation {
@@ -278,24 +358,24 @@ div.installation {
   margin: 0.5em 0 0.5em 0;
 }
 
+div.commands {
+  padding: 0 0.5em 0.3em 0.5em;
+  margin: 0.5em 0 0.5em 0;
+}
+
+div.testing {
+  padding: 0 0.5em 0.3em 0.5em;
+  margin: 0.5em 0 0.5em 0;
+}
+
 div.configuration {
-  background:   #fefefe;
-  border-top: 0.2em solid #dbddec;
-  padding: 0.5em;
-  margin: 0.5em 0 .5em 0;
+  padding: 0 0.5em 0.3em 0.5em;
+  margin: 0.5em 0 0.5em 0;
 }
 
 div.content {
-  background: #f5f6f7;
-  border-top: 0.2em solid #dbddec;
-  border-bottom: 0.2em solid #dbddec;
-  padding: 0.5em 0.5em 1em 0.5em;
-  margin: 0.5em 0 .5em 0;
-}
-
-div.installation h3.title, div.content h3.title {
-  padding-top: 0.3em;
-  margin: 0;
+  padding: 0 0.5em 0.3em 0.5em;
+  margin: 0.5em 0 0.5em 0;
 }
 
 div.book, div.preface, div.part, div.chapter, div.sect1, div.appendix, div.index {
@@ -304,8 +384,8 @@ div.book, div.preface, div.part, div.chapter, div.sect1, div.appendix, div.index
 
 div.preface h2, div.part h1, div.chapter h2.title, div.sect1 h2.title, div.appendix h1, div.index h1 {
   background: #f5f6f7;
-  border-bottom: .2em solid #dbddec;
-  border-top: .2em solid #dbddec;
+  border-bottom: .1em solid #dbddec;
+  border-top: .1em solid #dbddec;
   margin-top 1em;
   padding: .5em;
   text-align: center;
@@ -322,7 +402,7 @@ div.book h2.subtitle {
   margin: 0px auto;
   padding: 0.2em;
 }
-div.authorgroup, div p.copyright, div.abstract div p.pubdate, div.revhistory {
+div.authorgroup, div p.copyright, div.abstract, div p.pubdate, div.revhistory {
   background: #f5f6f7;
   margin: 0px auto;
   padding:  1em 0.5em;
@@ -334,6 +414,19 @@ hr {
   border: 0px;
   margin: 0px auto;
   padding: 0;
+}
+
+/* Last edited info */
+p.updated {
+  font-size: small;
+  font-weight: bold;
+  font-style: italic;
+}
+
+/* Inline tags */
+
+tt.systemitem {
+  font-style: italic;
 }
       </xsl:text>
     </style>
