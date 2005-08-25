@@ -126,7 +126,7 @@
     <!-- don't put <strong> inside figure, example, or table titles -->
     <!-- or other titles that may already be represented with <strong>'s. -->
     <xsl:choose>
-      <xsl:when test="local-name(..) = 'title' and (local-name(../..) = 'figure' 
+      <xsl:when test="local-name(..) = 'title' and (local-name(../..) = 'figure'
               or local-name(../..) = 'example' or local-name(../..) = 'table' or local-name(../..) = 'formalpara')">
         <tt class="{local-name(.)}">
           <xsl:if test="@dir">
@@ -171,6 +171,122 @@
         <xsl:copy-of select="$content"/>
       </tt>
     </em>
+  </xsl:template>
+
+    <!-- Revision History -->
+  <xsl:template match="revhistory" mode="titlepage.mode">
+    <xsl:variable name="numcols">
+      <xsl:choose>
+        <xsl:when test="//authorinitials">4</xsl:when>
+        <xsl:otherwise>3</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="id"><xsl:call-template name="object.id"/></xsl:variable>
+    <xsl:variable name="title">
+      <xsl:call-template name="gentext">
+        <xsl:with-param name="key">RevHistory</xsl:with-param>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:variable name="contents">
+      <div class="{name(.)}">
+        <table summary="Revision history">
+          <tr>
+            <th colspan="{$numcols}">
+              <b>
+                <xsl:call-template name="gentext">
+                  <xsl:with-param name="key" select="'RevHistory'"/>
+                </xsl:call-template>
+              </b>
+            </th>
+          </tr>
+          <xsl:apply-templates mode="titlepage.mode">
+            <xsl:with-param name="numcols" select="$numcols"/>
+          </xsl:apply-templates>
+        </table>
+      </div>
+    </xsl:variable>
+    <!--<xsl:choose>
+      <xsl:when test="$generate.revhistory.link != 0">
+        <xsl:variable name="filename">
+          <xsl:call-template name="make-relative-filename">
+            <xsl:with-param name="base.dir" select="$base.dir"/>
+            <xsl:with-param name="base.name" select="concat($id,$html.ext)"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <a href="{concat($id,$html.ext)}">
+          <xsl:copy-of select="$title"/>
+        </a>
+        <xsl:call-template name="write.chunk">
+          <xsl:with-param name="filename" select="$filename"/>
+          <xsl:with-param name="quiet" select="$chunk.quietly"/>
+          <xsl:with-param name="content">
+          <xsl:call-template name="user.preroot"/>
+            <html>
+              <head>
+                <xsl:call-template name="system.head.content"/>
+                <xsl:call-template name="head.content">
+                  <xsl:with-param name="title">
+                      <xsl:value-of select="$title"/>
+                      <xsl:if test="../../title">
+                          <xsl:value-of select="concat(' (', ../../title, ')')"/>
+                      </xsl:if>
+                  </xsl:with-param>
+                </xsl:call-template>
+                <xsl:call-template name="user.head.content"/>
+              </head>
+              <body>
+                <xsl:call-template name="body.attributes"/>
+                <xsl:copy-of select="$contents"/>
+              </body>
+            </html>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>-->
+        <xsl:copy-of select="$contents"/>
+      <!--</xsl:otherwise>
+    </xsl:choose>-->
+  </xsl:template>
+
+  <xsl:template match="revhistory/revision" mode="titlepage.mode">
+    <xsl:param name="numcols" select="'3'"/>
+    <xsl:variable name="revnumber" select="revnumber"/>
+    <xsl:variable name="revdate" select="date"/>
+    <xsl:variable name="revauthor" select="authorinitials"/>
+    <xsl:variable name="revremark" select="revremark|revdescription"/>
+    <tr>
+      <td>
+        <xsl:if test="$revnumber">
+          <xsl:call-template name="gentext">
+            <xsl:with-param name="key" select="'Revision'"/>
+          </xsl:call-template>
+          <xsl:call-template name="gentext.space"/>
+          <xsl:apply-templates select="$revnumber[1]" mode="titlepage.mode"/>
+        </xsl:if>
+      </td>
+      <td>
+        <xsl:apply-templates select="$revdate[1]" mode="titlepage.mode"/>
+      </td>
+      <xsl:choose>
+        <xsl:when test="$revauthor">
+          <td align="left">
+            <xsl:for-each select="$revauthor">
+              <xsl:apply-templates select="." mode="titlepage.mode"/>
+              <xsl:if test="position() != last()">
+                <xsl:text>, </xsl:text>
+              </xsl:if>
+            </xsl:for-each>
+          </td>
+        </xsl:when>
+        <xsl:when test="$numcols &gt; 3">
+          <td>&#160;</td>
+        </xsl:when>
+        <xsl:otherwise/>
+      </xsl:choose>
+      <td>
+        <xsl:apply-templates select="$revremark[1]" mode="titlepage.mode"/>
+      </td>
+    </tr>
   </xsl:template>
 
 </xsl:stylesheet>
