@@ -12,6 +12,17 @@
   <!ENTITY firefox-time          "10.3 SBU">
 ]>
 
+<!--
+
+Devs:
+
+Always check the browser/config/mozconfig file in the source tree for
+any changes to the options passed to configure. This file shows the
+default build used by Mozilla. BLFS adds to this, but the values here
+should be in our setup.
+
+-->
+
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
   <?dbhtml filename="firefox.html" ?>
 
@@ -83,14 +94,23 @@
     discussed. Refer to the <xref linkend="mozilla"/> instructions for
     explanations and additional configuration information.</para>
 
+    <para><application>Firefox</application> default behavior when invoked
+    with a URL parameter is to open a new browser window. If you would rather
+    <application>Firefox</application> open a new tab in an existing browser
+    window, issue the following command:</para>
+
+<screen><userinput>sed -i 's|openURL(\${_optLast}|&amp;, new-tab|' browser/app/mozilla.in</userinput></screen>
+
     <para>Compile and install <application>Firefox</application> by
     running the following commands:</para>
 
 <screen><userinput>export MOZILLA_OFFICIAL="1" &amp;&amp;
 export BUILD_OFFICIAL="1" &amp;&amp;
 export MOZ_PHOENIX="1" &amp;&amp;
+sed -i 's|    dist_bin="\$moz_libdir"|\
+&amp;\n    run_moz="\$dist_bin/run-mozilla.sh"|' browser/app/mozilla.in &amp;&amp;
 ./configure --prefix=/usr \
-            --with-default-mozilla-five-home=/usr/lib/firefox-1.0 \
+            --with-default-mozilla-five-home=/usr/lib/firefox-&firefox-version; \
             --with-user-appdir=.firefox \
             --with-system-zlib \
             --with-system-png \
@@ -129,8 +149,8 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -d /usr/include/firefox-&firefox-version;/nss &amp;&amp;
-cp -Lf dist/private/nss/*.h dist/public/nss/*.h \
+install -v -m755 -d /usr/include/firefox-&firefox-version;/nss &amp;&amp;
+cp -v -Lf dist/private/nss/*.h dist/public/nss/*.h \
     /usr/include/firefox-&firefox-version;/nss</userinput></screen>
 
     <para>To enable multi-user operation, execute the following as the
@@ -156,6 +176,15 @@ touch `find . -name *.rdf`</userinput></screen>
 <screen><userinput>unset MOZILLA_OFFICIAL &amp;&amp;
 unset BUILD_OFFICIAL &amp;&amp;
 unset MOZ_PHOENIX</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed -i '...' browser/app/mozilla.in</command>: This command
+    fixes an issue where <application>Firefox</application> wants to call the
+    profile manager instead of just invoking another copy of itself.</para>
 
   </sect2>
 
