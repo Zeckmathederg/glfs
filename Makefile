@@ -5,6 +5,7 @@
 # $Date$
 # Adjust these to suit your installation
 OUTPUTDIR = $(HOME)/public_html/blfs-book
+DUMPDIR= $(HOME)/blfs-commands
 INSTALL = install
 JADE = openjade
 DOCBOOK = /usr/share/sgml/docbook/dsssl-stylesheets-1.78
@@ -35,7 +36,13 @@ blfs:
 	cp images/*.png $(BASEDIR)/images
 	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@g" *.html
 	cd $(BASEDIR); sed -i -e "s@../images@images@g" *.html
-	sh goTidy $(BASEDIR)/
+
+	for filename in `find $(BASEDIR) -name "*.html"`; do \
+	  tidy -config tidy.conf $$filename; \
+	  true; \
+	  sh obfuscate.sh $$filename; \
+	  sed -i -e "s@text/html@application/xhtml+xml@g" $$filename; \
+	done;
 
 nochunks:
 	@echo "Generating nochunks version of BLFS..."
@@ -44,6 +51,8 @@ nochunks:
         stylesheets/blfs-nochunks.xsl index.xml
 
 	tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
+
+	sh obfuscate.sh $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
 	sed -i -e "s@text/html@application/xhtml+xml@g"  \
           $(BASEDIR)/$(NOCHUNKS_OUTPUT)
@@ -73,6 +82,10 @@ tex:
 	    index.xml
 	@cd $(TEXBASEDIR) && xsltproc --nonet -o blfs-book.tex \
 	    $(SRCDIR)/stylesheets/blfs-tex.xsl index.xml
+
+dump-commands:
+	xsltproc --xinclude --nonet --output $(DUMPDIR)/ \
+	   stylesheets/dump-commands.xsl index.xml
 
 validate:
 	xmllint --noout --nonet --xinclude --postvalid index.xml
