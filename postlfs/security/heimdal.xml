@@ -77,9 +77,11 @@
 
     <bridgehead renderas="sect3">Heimdal Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Required</bridgehead>
-    <para><xref linkend="openssl"/> and
-    <xref linkend="db"/></para>
+    <bridgehead renderas="sect4">Required to Build the Server-Side Tools</bridgehead>
+    <para><xref linkend="db"/> (recommended) or <xref linkend="gdbm"/></para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para><xref linkend="openssl"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para><xref linkend="Linux_PAM"/>,
@@ -136,7 +138,16 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>mv -v /usr/include/fnmatch.h /usr/include/fnmatch.h.glibc &amp;&amp;
+mv -v /usr/include/glob.h /usr/include/glob.h.glibc &amp;&amp;
+mv -v /usr/include/ss/ss.h /usr/include/ss/ss.h.e2fsprogs &amp;&amp;
+mv -v /usr/lib/libss.a /usr/lib/libss.a.e2fsprogs &amp;&amp;
+mv -v /usr/lib/libss.so /usr/lib/libss.so.e2fsprogs &amp;&amp;
+make install &amp;&amp;
+mv -v /usr/include/fnmatch.h /usr/include/fnmatch.h.heimdal &amp;&amp;
+mv -v /usr/include/fnmatch.h.glibc /usr/include/fnmatch.h &amp;&amp;
+mv -v /usr/include/glob.h /usr/include/glob.h.heimdal &amp;&amp;
+mv -v /usr/include/glob.h.glibc /usr/include/glob.h &amp;&amp;
 install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;/standardisation &amp;&amp;
 install -v -m644 doc/{init-creds,layman.asc} \
     /usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
@@ -162,6 +173,19 @@ ldconfig</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>mv -v /usr/include/...</command> and
+    <command>mv -v /usr/lib/libss.*</command>: The
+    <application>Heimdal</application> installation will overwrite two
+    interface headers from the <application>Glibc</application> package and an
+    interface header, static library and library symbolic link from the
+    <application>E2fsprogs</application> package. These commands move the
+    original files out of the way before the installation, and then restore
+    the original <application>Glibc</application> headers after the
+    installation. The two <application>Heimdal</application> headers are renamed
+    and preserved on the system. Testing has shown that the system is stable
+    using the <application>Heimdal</application> version of the
+    <filename>libss</filename> library and interface header.</para>
 
     <para><parameter>--libexecdir=/usr/sbin</parameter>: This switch
     puts the daemon programs into
