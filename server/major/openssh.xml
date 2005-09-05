@@ -6,10 +6,10 @@
 
   <!ENTITY openssh-download-http "http://sunsite.ualberta.ca/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
   <!ENTITY openssh-download-ftp "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
-  <!ENTITY openssh-md5sum "959c663e709c981f07a3315bfd64f3d0">
-  <!ENTITY openssh-size "894 KB">
-  <!ENTITY openssh-buildsize "15 MB">
-  <!ENTITY openssh-time "0.4 SBU">
+  <!ENTITY openssh-md5sum "df899194a340c933944b193477c628fa">
+  <!ENTITY openssh-size "914 KB">
+  <!ENTITY openssh-buildsize "15.7 MB">
+  <!ENTITY openssh-time "0.5 SBU (additional 0.5 SBU to run the test suite)">
 ]>
 
 <sect1 id="openssh" xreflabel="OpenSSH-&openssh-version;">
@@ -84,8 +84,8 @@
     to set up the proper environment, which are performed by the following
     commands:</para>
 
-<screen role="root"><userinput>install -v -d -m700 /var/lib/sshd &amp;&amp;
-chown root:sys /var/lib/sshd &amp;&amp;
+<screen role="root"><userinput>install -v -m700 -d /var/lib/sshd &amp;&amp;
+chown -v root:sys /var/lib/sshd &amp;&amp;
 groupadd -g 50 sshd &amp;&amp;
 useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
     -s /bin/false -u 50 sshd</userinput></screen>
@@ -108,9 +108,16 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
 
     <para>If you use <application>Heimdal</application> as your Kerberos5
     implementation and you linked the <application>Heimdal</application>
-    libraries into the build using the <option>--with-kerberos5</option>
-    parameter, you'll need to modify the <filename>Makefile</filename> or
-    the build will fail. Use the following command:</para>
+    libraries into the <application>OpenSSH</application> build using the
+    <option>--with-kerberos5</option> parameter, you'll need to modify the
+    <filename>Makefile</filename> if you previously linked
+    <application>OpenSSL</application> into the
+    <application>Heimdal</application> build or the build will fail. The
+    <application>OpenSSH</application> default expects
+    <application>Heimdal</application> was built using the included
+    <filename class='libraryfile'>libdes</filename> library instead of
+    <application>OpenSSL</application>. Use the following command to modify
+    the <filename>Makefile</filename>:</para>
 
 <screen><userinput>sed -i -e "s/lkrb5 -ldes/lkrb5/" Makefile</userinput></screen>
 
@@ -122,12 +129,15 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
     build using the <option>--with-tcp-wrappers</option> parameter, ensure
     you add 127.0.0.1 to the sshd line in <filename>/etc/hosts.allow</filename>
     if you have a restrictive <filename>/etc/hosts.deny</filename> file, or the
-    testsuite will fail. To run the testsuite, issue: <command>make -k
-    tests</command>.</para>
+    test suite will fail. To run the test suite, issue: <command>make -k
+    tests</command>. The banner tests are known to fail.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d /usr/share/doc/openssh-&openssh-version; &amp;&amp;
+install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
+    /usr/share/doc/openssh-&openssh-version;</userinput></screen>
 
   </sect2>
 
@@ -220,7 +230,8 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
         <seg>scp, sftp, sftp-server, slogin, ssh, sshd, ssh-add, ssh-agent,
         ssh-keygen, ssh-keyscan, and ssh-keysign</seg>
         <seg>None</seg>
-        <seg>/etc/ssh and /var/lib/sshd</seg>
+        <seg>/etc/ssh, /var/lib/sshd and
+        /usr/share/doc/openssh-&openssh-version;</seg>
       </seglistitem>
     </segmentedlist>
 
