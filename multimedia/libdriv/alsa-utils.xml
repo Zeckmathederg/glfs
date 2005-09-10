@@ -111,7 +111,7 @@ make</userinput></screen>
       You can use the <command>alsamixer</command> program from the
       <application>ALSA Utilities</application> to change this.</para>
 
-      <para>The first time the <filename class='directory'>dev.d</filename>
+      <para>The first time the <filename>alsa-restore</filename>
       script below is run, it will complain 
       that there is no state in <filename>/etc/asound.state</filename>.  
       You can prevent this by running the following commands as
@@ -121,73 +121,58 @@ make</userinput></screen>
 alsactl store</userinput></screen>
 
       <para>The volume settings will be restored from the saved state using a 
-      <filename class='directory'>dev.d</filename> handler script that will
-      execute when the device is detected 
-      during boot (when plugged in for USB devices).</para>
-
-      <note>
-        <para>For versions of udev greater than 0.58, this script will
-        not work by default.  You'll have to add dev.d compatibility by adding
-        a udev rules file that contains the line 
-        'RUN="/sbin/udev_send_devd" to continue using the now depreciated 
-        dev.d system.</para>
-      </note>
+      shell script called by <application>Udev</application> that will 
+      execute when the device is detected (during boot or when plugged in for 
+      USB devices).</para>
 
       <para>  While still the 
       <systemitem class="username">root</systemitem> user, create the
-      <filename class='directory'>dev.d</filename> script with the following
-      commands:</para>
+      <filename>/etc/udev/scripts/alsa-restore</filename> script with 
+      the following commands:</para>
 
-<screen role="root"><userinput>install -v -d -m755 /etc/dev.d/snd &amp;&amp;
-cat &gt; /etc/dev.d/snd/alsa.dev &lt;&lt; "EOF"
+<screen role="root"><userinput>install -v -d -m754 /etc/udev/scripts &amp;&amp;
+cat &gt; /etc/udev/scripts/alsa-restore &lt;&lt; "EOF"
 #!/bin/sh -e
-# This script is called by udevd when a change in a device is
-# detected, including initial detection upon bootup.
-# udevd sets the environment variables ACTION and DEVNAME.
-
-[ "$ACTION" = "add" ] || exit 0
-DEV_BASENAME="${DEVNAME##*/}"
-N="${DEV_BASENAME#controlC}"
-case "$DEV_BASENAME" in
-    controlC[0-7])
-        x=0
-        while [ $x -lt 20 ]; do
-            # Wait up to 20 seconds for /usr to be mounted if necessary
-            if [ -f /usr/sbin/alsactl ]; then
-                /usr/sbin/alsactl restore $N
-	        exit 0
-            fi
-            sleep 1
-	    x=`expr $x + 1`
-        done &amp; # Put the while command in the background and continue
-    ;;
-esac
-exit 0
-EOF
-chmod -v 755 /etc/dev.d/snd/alsa.dev</userinput></screen>
-
-
-      <para>You may wish to do additional configuration on a per card basis.
-      For example, if you wish to load soundfont banks, use the following 
-      sample script:</para>
-
-<screen>#!/bin/sh -e
-# Begin /etc/dev.d/snd/<replaceable>[DEVICE]</replaceable>/asfxload.dev
+# Begin /etc/udev/scripts/alsa-restore
+# $1 is (the numbered device "%n") passed in by udev/kernel.
 
 x=0
-    while [ $x -lt 20 ]; do
-        # Wait up to 20 seconds for /usr to be mounted if necessary
-        if [ -f /usr/bin/asfxload ]; then
-            # Load 8 MB sountfont bank
-            /usr/bin/asfxload /usr/share/sounds/sf2/8mbgmsfx.sf2 -D "<replaceable>[ALSA device string]</replaceable>"
-            exit 0
-        fi
-        sleep 1
-        x=`expr $x + 1`
-    done &amp; # Put the while command in the background and continue
 
-exit 0
-# End /etc/dev.d/snd/<replaceable>[DEVICE]</replaceable>/asfxload.dev</screen>
+# Give up to 20 seconds for /usr to be mounted
+while [ "${x}" -lt 20 ]
+do
+    sleep 1
+    if [ -f /usr/sbin/alsactl ]; then
+        /usr/sbin/alsactl restore "${1}"
+        exit 0
+    fi
+    x=`expr "${x}" + 1`
+done &amp; # Put the loop in the background
+
+# End /etc/udev/scripts/alsa-restore
+EOF
+chmod -v 754 /etc/udev/scripts/alsa-restore</userinput></screen>
+
+      <para>Finally, again as the 
+      <systemitem class="username">root</systemitem> user, install a new 
+      <application>Udev</application> rules file to create the audio
+      device nodes and run the restore script:</para>
+
+<screen role="root"><userinput>cat &gt; /etc/udev/rules.d/15-alsa.rules &lt;&lt; "EOF"
+# Give the audio group ownership of sound devices
+SUBSYSTEM=="sound",       GROUP="audio"
+SUBSYSTEM=="snd",         GROUP="audio"
+
+# ALSA Devices
+# When a sound device is detected, restore the volume settings
+KERNEL=="controlC[0-9]*", ACTION=="add", NAME="snd/%k", RUN="/etc/udev/scripts/alsa-restore %n"
+KERNEL="hw[CD0-9]*",      NAME="snd/%k"
+KERNEL="pcm[CD0-9cp]*",   NAME="snd/%k"
+KERNEL="midiC[D0-9]*",    NAME="snd/%k"
+KERNEL="timer",           NAME="snd/%k"
+KERNEL="seq",             NAME="snd/%k"
+EOF
+chmod 644 /etc/udev/rules.d/15-alsa.rules</userinput></screen>
 
     </sect3>
 
