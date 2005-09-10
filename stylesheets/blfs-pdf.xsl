@@ -5,7 +5,7 @@
                 version="1.0">
 
     <!-- We use FO and FOP as the processor -->
-  <xsl:import href="http://docbook.sourceforge.net/release/xsl/1.68.1/fo/docbook.xsl"/>
+  <xsl:import href="http://docbook.sourceforge.net/release/xsl/1.69.1/fo/docbook.xsl"/>
   <xsl:param name="fop.extensions" select="1"/>
   <xsl:param name="draft.mode" select="'no'"/>
 
