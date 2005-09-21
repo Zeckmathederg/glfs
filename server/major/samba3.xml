@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-download-ftp "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-md5sum "ebee37e66a8b5f6fd328967dc09088e8">
-  <!ENTITY samba3-size "15.6 MB">
-  <!ENTITY samba3-buildsize "147 MB">
-  <!ENTITY samba3-time "2.21 SBU">
+  <!ENTITY samba3-download-ftp  "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
+  <!ENTITY samba3-md5sum        "68e72ab16334c329901816febc43217a">
+  <!ENTITY samba3-size          "17.1 MB">
+  <!ENTITY samba3-buildsize     "146 MB">
+  <!ENTITY samba3-time          "2.5 SBU">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -59,6 +59,15 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem> 
+        <para>Required patch if you have <application>Heimdal</application>
+        installed: <ulink
+        url="&patch-root;/samba-&samba3-version;-heimdal-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Samba Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -69,8 +78,7 @@
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
     <xref linkend="libxml2"/>,
     <xref linkend="mysql"/> or <xref linkend="postgresql"/>,
-    <xref linkend="python"/>,
-    <xref linkend="xinetd"/> and
+    <xref linkend="python"/> and
     <ulink url="http://valgrind.kde.org/">Valgrind</ulink></para>
 
   </sect2>
@@ -78,8 +86,23 @@
   <sect2 role="installation">
     <title>Installation of Samba</title>
 
+    <para>A <application>Samba</application> <filename>include.h</filename>
+    header now does checks for C++ reserved names. The package will not build
+    if you have <application>Heimdal</application> installed as Heimdal uses
+    some of these reserved names inappropriately. If you have
+    <application>Heimdal</application> installed, apply the following patch to
+    disable these checks and allow the package to compile successfully:</para>
+
+<screen><userinput>patch -Np1 -i ../samba-&samba3-version;-heimdal-1.patch</userinput></screen>
+
     <para>Install <application>Samba</application> by running the following
     commands:</para>
+
+    <note>
+      <para>You may want to run <command>configure</command> with the
+      <option>--help</option> parameter. There may be other parameters
+      needed to take advantage of the optional dependencies.</para>
+    </note>
 
 <screen><userinput>cd source &amp;&amp;
 ./configure \
@@ -90,6 +113,8 @@
     --with-fhs \
     --with-smbmount &amp;&amp;
 make</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -106,12 +131,6 @@ if [ -f nsswitch/pam_winbind.so ]; then
 fi &amp;&amp;
 install -v -m644 ../examples/smb.conf.default /etc/samba &amp;&amp;
 install -v -m644 ../docs/*.pdf /usr/share/samba</userinput></screen>
-
-    <note>
-      <para>You may want to run <command>configure</command> with the
-      <option>--help</option> parameter. There may be other parameters
-      needed to take advantage of the optional dependencies.</para>
-    </note>
 
   </sect2>
 
