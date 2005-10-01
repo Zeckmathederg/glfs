@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+   "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY hal-download-http "http://freedesktop.org/~david/dist/hal-&hal-version;.tar.gz">
+  <!ENTITY hal-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/hal-&hal-version;.tar.gz">
+  <!ENTITY hal-md5sum        "2f84ddbc22bc35baa9388e7794d1fa31">
+  <!ENTITY hal-size          "1.4 MB">
+  <!ENTITY hal-buildsize     "18.0 MB">
+  <!ENTITY hal-time          "0.5 SBU">
+]>
+
+<sect1 id="hal" xreflabel="HAL-&hal-version;">
+  <?dbhtml filename="hal.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>HAL-&hal-version;</title>
+
+  <indexterm zone="hal">
+    <primary sortas="a-HAL">HAL</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to HAL</title>
+
+    <para><application>HAL</application> is a hardware abstraction layer, which
+    is a piece of software that provides a view of the various hardware
+    attached to a system. In addition to this, <application>HAL</application>
+    keeps detailed metadata for each piece of hardware and provides hooks such
+    that system and desktop-level software can react to changes in the hardware
+    configuration in order to maintain system policy. The most important goal
+    of <application>HAL</application> is to provide plug-and-play facilities
+    for UNIX-like desktops with focus on providing a rich and extensible
+    description of device characteristics and features.</para>
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP): <ulink url="&hal-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download (FTP): <ulink url="&hal-download-ftp;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &hal-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &hal-size;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated disk space required: &hal-buildsize;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated build time: &hal-time;</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem> 
+        <para>Recommended USB ID list:
+        <ulink url="http://www.linux-usb.org/usb.ids"/></para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">HAL Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para><xref linkend="dbus"/>,
+    <xref linkend="popt"/> and
+    <xref linkend="perl-xml-parser"/></para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para><xref linkend="pciutils"/> (with a current
+    <filename>pci.ids</filename> file)</para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para><xref linkend="pkgconfig"/>,
+    <xref linkend="intltool"/>,
+    <xref linkend="libusb"/>,
+    <xref linkend="expat"/>,
+    <xref linkend="python"/>,
+    <ulink url="http://ftp.gnome.org/pub/GNOME/sources/gnome-python/">GNOME-Python</ulink>
+    (run-time requirement to use the <command>hal-device-manager</command> program),
+    <xref linkend="doxygen"/> and
+    <xref linkend="docbook-utils"/></para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of HAL</title>
+
+    <para>If you downloaded the USB ID list, install it by issuing the
+    following command as the <systemitem class="username">root</systemitem>
+    user:</para>
+
+<screen role="root"><userinput>install -v -m644 ../usb.ids /usr/share</userinput></screen>
+
+    <para>You must create a dedicated user and group for the
+    <application>HAL</application> daemon before installing the package. Issue
+    the following as the <systemitem class="username">root</systemitem>
+    user:</para>
+
+<screen role="root"><userinput>groupadd -g 19 haldaemon &amp;&amp;
+useradd -c "HAL Daemon User" -d /dev/null -u 19 \
+        -g haldaemon -s /bin/false haldaemon</userinput></screen>
+
+    <para>Install <application>HAL</application> by running the following
+    commands:</para>
+
+<screen><userinput>./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --libexecdir=/usr/sbin \
+            --localstatedir=/var \
+            --enable-fstab-sync \
+            --enable-pcmcia-support &amp;&amp;
+make</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d /var/run/hald</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><parameter>--libexecdir=/usr/sbin</parameter>: This parameter forces
+    the installation of libexec files to
+    <filename class='directory'>/usr/sbin</filename> instead of
+    <filename class='directory'>/usr/libexec</filename>.</para>
+
+    <para><parameter>--localstatedir=/var</parameter>: This parameter forces
+    the creation of the <filename>pid</filename> file to
+    <filename class='directory'>/var/run/hald</filename> instead of
+    <filename class='directory'>/usr/var/run/hald</filename>.</para>
+
+    <para><parameter>--enable-fstab-sync</parameter>: This parameter will
+    ensure the <command>fstab-sync</command> program is built.</para>
+
+    <para><parameter>--enable-pcmcia-support</parameter>: This parameter
+    provides extended PCMCIA support.</para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring HAL</title>
+
+    <sect3 id="hal-config">
+      <title>Config Files</title>
+      <para><filename>/etc/dbus-1/system.d/hal.conf</filename> and
+      <filename>/etc/hal/*</filename></para>
+
+      <indexterm zone="hal hal-config">
+        <primary sortas="e-etc-dbus-1-system.d-hal.conf">/etc/dbus-1/system.d/hal.conf</primary>
+      </indexterm>
+
+      <indexterm zone="hal hal-config">
+        <primary sortas="e-etc-hal-star">/etc/hal/*</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3><title>Configuration Information</title>
+
+      <para>Research is underway to determine exactly what configuration is
+      necessary.</para>
+
+<!--
+<screen><userinput>USER CONFIG COMMANDS</userinput></screen>
+
+<screen role="root"><userinput>ROOT CONFIG COMMANDS</userinput></screen>
+
+      <para>Create the file .... for ...</para>
+
+<screen role="root"><userinput>cat &gt;&gt; /PATH/FILENAME &lt;&lt; "EOF"
+<literal># Begin FILENAME
+
+TEXT
+
+# End FILENAME</literal>
+EOF</userinput></screen>
+-->
+
+    </sect3>
+
+    <sect3  id="hal-init">
+      <title>Boot Script</title>
+
+      <para>To automatically start the <command>hald</command> daemon
+      when the system is rebooted, install the
+      <filename>/etc/rc.d/init.d/haldaemon</filename>
+      bootscript from the
+      <xref linkend="intro-important-bootscripts"/> package.</para>
+
+      <indexterm zone="hal hal-init">
+        <primary sortas="f-haldaemon">haldaemon</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-haldaemon</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>fstab-sync, hal.hotplug, hal-device, hal-device-manager,
+        hal-find-by-capability, hal-find-by-property, hal-get-property,
+        hal-luks-remove, hal-luks-setup, hal-set-property,
+        hal-system-power-hibernate, hal-system-power-set-power-save,
+        hal-system-power-suspend, hald, hald-addon-acpi, hald-addon-hid-ups,
+        hald-addon-pmu, hald-addon-storage, hald-addon-usb-csr,
+        hald-probe-hiddev, hald-probe-input, hald-probe-pc-floppy,
+        hald-probe-printer, hald-probe-smbios, hald-probe-storage,
+        hald-probe-volume and lshal</seg>
+        <seg>libhal.[so,a] and libhal-storage,[so,a]</seg>
+        <seg>/etc/hal, /usr/include/hal, /usr/share/doc/hal-&hal-version;,
+        /usr/share/hal and /var/run/hald</seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="fstab-sync">
+        <term><command>fstab-sync</command></term>
+        <listitem>
+          <para>updates the file systems table file
+          <filename class='directory'>/etc/fstab</filename> and creates/removes
+          mount points in <filename class='directory'>/media</filename> in
+          response to <application>HAL</application> events. This program is
+          usually never run directly from a shell; instead it is invoked as a
+          callout by the <application>HAL</application> daemon.</para>
+          <indexterm zone="hal fstab-sync">
+            <primary sortas="b-fstab-sync">fstab-sync</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-device">
+        <term><command>hal-device</command></term>
+        <listitem>
+          <para>is used to create, remove or show a
+          <application>HAL</application> device.</para>
+          <indexterm zone="hal hal-device">
+            <primary sortas="b-hal-device">hal-device</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-device-manager">
+        <term><command>hal-device-manager</command></term>
+        <listitem>
+          <para>shows a graphical respresentation of all the devices
+          <application>HAL</application> is aware of. This program requires
+          <application>GNOME-Python</application>.</para>
+          <indexterm zone="hal hal-device-manager">
+            <primary sortas="b-hal-device-manager">hal-device-manager</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-find-by-capability">
+        <term><command>hal-find-by-capability</command></term>
+        <listitem>
+          <para>prints the Unique Device Identifiers for
+          <application>HAL</application> device objects of a given
+          capability.</para>
+          <indexterm zone="hal hal-find-by-capability">
+            <primary sortas="b-hal-find-by-cpability">hal-find-by-capability</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-find-by-property">
+        <term><command>hal-find-by-property</command></term>
+        <listitem>
+          <para>prints the Unique Device Identifiers for
+          <application>HAL</application> device objects where a given property
+          assumes a given value.</para>
+          <indexterm zone="hal hal-find-by-property">
+            <primary sortas="b-hal-find-by-property">hal-find-by-property</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-get-property">
+        <term><command>hal-get-property</command></term>
+        <listitem>
+          <para>retrieves a property from a device.</para>
+          <indexterm zone="hal hal-get-property">
+            <primary sortas="b-hal-get-property">hal-get-property</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-luks-remove">
+        <term><command>hal-luks-remove</command></term>
+        <listitem>
+          <para>is a <application>HAL</application> method wrapper for
+          <command>cryptsetup</command> remove. This program requires <ulink
+          url="http://luks.endorphin.org/dm-crypt">LUKS</ulink>.</para>
+          <indexterm zone="hal hal-luks-remove">
+            <primary sortas="b-hal-luks-remove">hal-luks-remove</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-luks-setup">
+        <term><command>hal-luks-setup</command></term>
+        <listitem>
+          <para>is a <application>HAL</application> method wrapper for
+          <command>luks-setup</command>. This program requires  <ulink
+          url="http://luks.endorphin.org/dm-crypt">LUKS</ulink>.</para>
+          <indexterm zone="hal hal-luks-setup">
+            <primary sortas="b-hal-luks-setup">hal-luks-setup</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-set-property">
+        <term><command>hal-set-property</command></term>
+        <listitem>
+          <para>attempts to set property for a device. Note that, due to
+          security considerations, it may not be possible to set a
+          property.</para>
+          <indexterm zone="hal hal-set-property">
+            <primary sortas="b-hal-set-property">hal-set-property</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-system-power-hibernate">
+        <term><command>hal-system-power-hibernate</command></term>
+        <listitem>
+          <para>is a <application>HAL</application> wrapper script for
+          system power saving features. This program is currently not supported
+          on LFS platforms.</para>
+          <indexterm zone="hal hal-system-power-hibernate">
+            <primary sortas="b-hal-system-power-hibernate">hal-system-power-hibernate</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-system-power-set-power-save">
+        <term><command>hal-system-power-set-power-save</command></term>
+        <listitem>
+          <para>is a <application>HAL</application> wrapper script for
+          system power saving features. This program is currently not supported
+          on LFS platforms.</para>
+          <indexterm zone="hal hal-system-power-set-power-save">
+            <primary sortas="b-hal-system-power-set-power-save">hal-system-power-set-power-save</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-system-power-suspend">
+        <term><command>hal-system-power-suspend</command></term>
+        <listitem>
+          <para>is a <application>HAL</application> wrapper script for
+          system power saving features. This program is currently not supported
+          on LFS platforms.</para>
+          <indexterm zone="hal hal-system-power-suspend">
+            <primary sortas="b-hal-system-power-suspend">hal-system-power-suspend</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hald">
+        <term><command>hald</command></term>
+        <listitem>
+          <para>is the <application>HAL</application> daemon program.</para>
+          <indexterm zone="hal hald">
+            <primary sortas="b-hald">hald</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="lshal">
+        <term><command>lshal</command></term>
+        <listitem>
+          <para>shows all devices and their properties. If the --monitor option
+          is given then the device list and all devices are monitored for
+          changes.</para>
+          <indexterm zone="hal lshal">
+            <primary sortas="b-lshal">lshal</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libhal">
+        <term><filename class='libraryfile'>libhal.[so,a]</filename></term>
+        <listitem>
+          <para>contains the API functions required by the
+          <application>HAL</application> programs.</para>
+          <indexterm zone="hal libhal">
+            <primary sortas="c-libhal">libhal.[so,a]</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libhal-storage">
+        <term><filename class='libraryfile'>libhal-storage.[so,a]</filename></term>
+        <listitem>
+          <para>contains the API functions required by the
+          <application>HAL</application> storage and volume utility
+          programs.</para>
+          <indexterm zone="hal libhal-storage">
+            <primary sortas="c-libhal-storage">libhal-storage.[so,a]</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
