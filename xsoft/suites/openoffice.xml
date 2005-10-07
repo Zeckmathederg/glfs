@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY openoffice-download-http "http://download.openoffice.org/&openoffice-version;/source.html">
-  <!ENTITY openoffice-download-ftp "ftp://ftp.ussg.iu.edu/pub/openoffice/stable/&openoffice-version;/OOo_&openoffice-version;_source.tar.gz">
-  <!ENTITY openoffice-md5sum        "20c10db97865ae4c51dc827d668b8939">
-  <!ENTITY openoffice-size          "214 MB">
-  <!ENTITY openoffice-buildsize     "2.8 GB">
-  <!ENTITY openoffice-time          "75 SBU">
+  <!ENTITY openoffice-download-ftp "ftp://ftp.ussg.iu.edu/pub/openoffice/stable/&openoffice-version;/OOo_&openoffice-version;_src.tar.gz">
+  <!ENTITY openoffice-md5sum        "1c8e860adae05087a53bdba5646962a9">
+  <!ENTITY openoffice-size          "213 MB">
+  <!ENTITY openoffice-buildsize     "3120 MB">
+  <!ENTITY openoffice-time          "70 SBU">
 ]>
 
 <sect1 id="openoffice" xreflabel="OpenOffice-&openoffice-version;">
@@ -57,13 +57,8 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
-        <para>Required security patch: <ulink
-        url="&patch-root;/OOo_&openoffice-version;-security-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
         <para>Required patch for gcc-&gcc-version;: <ulink
-        url="&patch-root;/OOo_&openoffice-version;-gcc_3.4.2+_fixes-2.patch"/>
+        url="&patch-root;/OOo_&openoffice-version;-gcc4-1.patch"/>
         </para>
       </listitem>
       <listitem>
@@ -77,17 +72,11 @@
         </para>
       </listitem>
       <listitem>
-        <para>Required patch (Executable <command>test</command> is in
-        <filename class="directory">/bin</filename>,
-        not in <filename class="directory">/usr/bin</filename>): <ulink
-        url="&patch-root;/OOo_&openoffice-version;-test_bin_loc-1.patch"/></para>
-      </listitem>
-      <listitem>
         <para>Required patch for STLport-4.6.2: <ulink
         url="&patch-root;/OOo_&openoffice-version;-STLport_4.6.2-1.patch"/></para>
       </listitem>
       <listitem>
-        <para>Required patch for use with glibc-2.3.4: <ulink
+        <para>Required patch for use with glibc-2.3.5: <ulink
         url="&patch-root;/OOo_&openoffice-version;-doublefree-1.patch"/></para>
       </listitem>
       <listitem>
@@ -141,14 +130,6 @@
   <sect2 role="installation">
     <title>Installation of OpenOffice</title>
 
-    <para><application>OpenOffice</application> does not create a directory
-    when you extract the TAR ball. Create a build directory and extract the
-    source with the following commands:</para>
-
-<screen><userinput>mkdir OOo-build &amp;&amp;
-cd OOo-build &amp;&amp;
-tar -zxf ../OOo_&openoffice-version;_source.tar.gz</userinput></screen>
-
     <para>Apply all of the downloaded patches:</para>
 
 <screen><userinput>for PATCH in ../OOo_&openoffice-version;-*.patch
@@ -162,16 +143,9 @@ done</userinput></screen>
     <para>STLport looks for the c++ headers in the wrong location. Put a
     temporary symlink in place to satisfy STLport:</para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>As the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>ln -sf /usr/include/c++/&gcc-version; /usr/g++-v3</userinput></screen>
-
-    <para>Create a temporary symlink to the JRE's
-    <application>motif</application> libraries:</para>
-
-    <para>Again, as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>ln -sf ${JAVA_HOME}/jre/lib/i?86/motif21/libmawt.so /usr/lib</userinput></screen>
 
     <para>If you want to optimize the build, edit
     <filename>solenv/inc/unxlngi4.mk</filename> and add the desired optimization
@@ -180,18 +154,16 @@ done</userinput></screen>
     is to not use any custom optimizations. The following command removes an
     incorrect <option>-mcpu</option> option in the above file:</para>
 
-    <para>Now, as an unprivileged user:</para>
-
 <screen><userinput>sed -i "s:\-mcpu=pentiumpro::" \
     solenv/inc/unxlngi4.mk</userinput></screen>
 
     <para>Configure <application>OpenOffice</application> using the following
     commands. You may build install sets for specific languages based on your
-    preferences. Supply a comma separated list to the <envar>--with-lang=</envar>
-    switch. If a particular component is not available in the language of your
-    choice, the default will be US English. If you need other languages, be sure
-    to add <parameter>ENUS</parameter> to the list; otherwise the build will
-    fail:</para>
+    preferences. Supply a comma separated list to the 
+    <envar>--with-lang=</envar> switch. If a particular component is not 
+    available in the language of your choice, the default will be US English. 
+    If you need other languages, be sure to add <parameter>ENUS</parameter> 
+    to the list; otherwise the build will fail:</para>
 
 <screen><userinput>cd config_office/ &amp;&amp;
 ./configure --with-lang=ENUS \
@@ -215,7 +187,8 @@ unset LANG LC_ALL</userinput></screen>
     commands:</para>
 
 <screen><userinput>./bootstrap &amp;&amp;
-bash -c "source LinuxIntelEnv.Set.sh; dmake"</userinput></screen>
+. LinuxIntelEnv.Set.sh &amp;&amp;
+dmake</userinput></screen>
 
     <para>If you have downloaded localized help content <filename>tgz</filename>
     files, you will need to untar them to the appropriate directory as shown
@@ -248,18 +221,12 @@ for appl in sagenda scalc sdraw sfax simpress slabel sletter \
     necessary.  If you use <application>Gnome</application>, you should copy
     the <filename>*.desktop</filename> files to
     <filename>/usr/share/applications</filename> with the following
-    commands as the <systemitem class="username">root</systemitem> use:</para>
+    commands as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -d /usr/share/applications -m 755 &amp;&amp;
 cp -v /opt/openoffice/share/gnome/net/ooo645*.desktop \
     /usr/share/applications/ &amp;&amp;
 rename -v ooo645 ooo /usr/share/applications/ooo645*.desktop</userinput></screen>
-
-    <para>Finally, as the <systemitem class="username">root</systemitem>user:
-    remove the temporary symlinks:</para>
-
-<screen role="root"><userinput>rm /usr/g++-v3 &amp;&amp;
-rm /usr/lib/libmawt.so</userinput></screen>
 
   </sect2>
 
