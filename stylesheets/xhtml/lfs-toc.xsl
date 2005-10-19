@@ -84,14 +84,23 @@
     <xsl:param name="depth.from.context" select="8"/>
     <xsl:choose>
       <xsl:when test="local-name(.) = 'sect1'">
-        <a>
-          <xsl:attribute name="href">
-            <xsl:call-template name="href.target">
-              <xsl:with-param name="context" select="$toc-context"/>
-            </xsl:call-template>
-          </xsl:attribute>
-          <xsl:apply-templates select="." mode="titleabbrev.markup"/>
-        </a>
+        <xsl:choose>
+          <xsl:when test="@role='dummy'">
+            <span class="dummy">
+              <xsl:apply-templates select="." mode="titleabbrev.markup"/>
+            </span>
+          </xsl:when>
+          <xsl:otherwise>
+            <a>
+              <xsl:attribute name="href">
+                <xsl:call-template name="href.target">
+                  <xsl:with-param name="context" select="$toc-context"/>
+                </xsl:call-template>
+              </xsl:attribute>
+              <xsl:apply-templates select="." mode="titleabbrev.markup"/>
+            </a>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:when test="local-name(.) = 'chapter' or local-name(.) = 'preface'">
         <h4>
