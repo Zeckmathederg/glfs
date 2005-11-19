@@ -5,7 +5,7 @@
   %general-entities;
 
   <!ENTITY dbus-download-http "http://dbus.freedesktop.org/releases/dbus-&dbus-version;.tar.gz">
-  <!ENTITY dbus-download-ftp  " ">
+  <!ENTITY dbus-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/dbus-&dbus-version;.tar.gz">
   <!ENTITY dbus-md5sum        "1addd5b600a8a4550766005d1f59401b">
   <!ENTITY dbus-size          "1.6 MB">
   <!ENTITY dbus-buildsize     "34.6 MB">
@@ -180,6 +180,65 @@ install -v -m644 doc/{TODO,*.{dtd,xml,xsl,html,txt,c}} \
       </indexterm>
 
 <screen role="root"><userinput>make install-dbus</userinput></screen>
+
+      <para>Note that this boot script only starts the system-wide
+      <application>D-BUS</application> daemon. Each user requiring access to
+      <application>D-BUS</application> services will also need to run a
+      session daemon as well. There are many methods you can use to start a
+      session daemon using the <command>dbus-launch</command> command. Review
+      the <command>dbus-launch</command> man page for details about the
+      available parameters and options. Here are some suggestions and
+      examples:</para>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>Add <command>dbus-launch</command> to the line in the
+          <filename>~/.xinitrc</filename> file that starts your graphical
+          desktop environment as shown in <xref linkend="gnome-config"/>.</para>
+        </listitem>
+        <listitem>
+          <para>If you use <command>xdm</command> or some other display manager
+          that calls the <filename>~/.xsession</filename> file, you can add
+          <command>dbus-launch</command> to the line in your
+          <filename>~/.xsession</filename> file that starts your graphical
+          desktop environment. The syntax would be similar to the example in
+          the <filename>~/.xinitrc</filename> file.</para>
+        </listitem>
+        <listitem>
+          <para>If you use <command>gdm</command> or some other display manager
+          that utilizes custom files to initiate sessions, use the example in
+          <xref linkend="gdm-config-dbus"/> of the
+          <application>GDM</application> instructions to create a file
+          containing <command>dbus-launch</command>.</para>
+        </listitem>
+        <listitem>
+          <para>The examples shown previously use
+          <command>dbus-launch</command> to specify a program to be run. This
+          has the benefit (when also using the
+          <parameter>--exit-with-session</parameter> parameter) of stopping the
+          session daemon when the specified program is stopped. You can also
+          start the session daemon in your system or personal startup scripts
+          by adding the following lines:</para>
+
+<screen><userinput><literal># Start the D-BUS session daemon
+eval `dbus-launch`
+export DBUS_SESSION_BUS_ADDRESS</literal></userinput></screen>
+
+          <para>This method will not stop the session daemon when you exit
+          your shell, therefore you should add the following line to your
+          <filename>~/.bash_logout</filename> file:</para>
+
+<screen><userinput><literal># Kill the D-BUS session daemon
+kill $DBUS_SESSION_BUS_PID</literal></userinput></screen>
+        </listitem> 
+        <listitem>
+          <para>If you use <application>Linux-PAM</application>, you can review
+          the <ulink
+          url="&hints-root;/downloads/files/execute-session-scripts-using-pam.txt">
+          Execute Session Scripts Using PAM</ulink> hint to see if it would work
+          for you.</para>
+        </listitem>
+      </itemizedlist>
 
     </sect3>
 
