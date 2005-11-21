@@ -114,9 +114,11 @@ useradd -c "HAL Daemon User" -d /dev/null -u 19 \
     <para>Install <application>HAL</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
+<screen><userinput>sed -i -e "9,11d" -e "s/pamconsole/users/" \
+    fdi/policy/10osvendor/10-storage-policy.fdi
+./configure --prefix=/usr \
             --sysconfdir=/etc \
-            --libexecdir=/usr/sbin \
+            --libexecdir=/usr/lib/hal \
             --localstatedir=/var \
             --enable-fstab-sync \
             --enable-pcmcia-support &amp;&amp;
@@ -134,9 +136,14 @@ install -v -m755 -d /var/run/hald</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--libexecdir=/usr/sbin</parameter>: This parameter forces
-    the installation of libexec files to
-    <filename class='directory'>/usr/sbin</filename> instead of
+    <para><command>sed -i -e "9,11d" -e "s/pamconsole/users/" ...</command>:
+    This command adjusts the policy for storage devices so that the
+    <filename>/etc/fstab</filename> file is updated to standards used by LFS
+    systems.</para>
+
+    <para><parameter>--libexecdir=/usr/lib/hal</parameter>: This parameter
+    forces the installation of libexec files to
+    <filename class='directory'>/usr/lib/hal</filename> instead of
     <filename class='directory'>/usr/libexec</filename>.</para>
 
     <para><parameter>--localstatedir=/var</parameter>: This parameter forces
@@ -171,24 +178,9 @@ install -v -m755 -d /var/run/hald</userinput></screen>
 
     <sect3><title>Configuration Information</title>
 
-      <para>Research is underway to determine exactly what configuration is
-      necessary.</para>
-
-<!--
-<screen><userinput>USER CONFIG COMMANDS</userinput></screen>
-
-<screen role="root"><userinput>ROOT CONFIG COMMANDS</userinput></screen>
-
-      <para>Create the file .... for ...</para>
-
-<screen role="root"><userinput>cat &gt;&gt; /PATH/FILENAME &lt;&lt; "EOF"
-<literal># Begin FILENAME
-
-TEXT
-
-# End FILENAME</literal>
-EOF</userinput></screen>
--->
+      <para>No configuration is necessary as the default values will work for
+      most systems. Some tweaking of the various policies may be required for
+      special circumstances.</para>
 
     </sect3>
 
@@ -204,6 +196,14 @@ EOF</userinput></screen>
       <indexterm zone="hal hal-init">
         <primary sortas="f-haldaemon">haldaemon</primary>
       </indexterm>
+
+      <note>
+        <para>If the system-wide <application>D-BUS</application> daemon was
+        running during the installation of <application>HAL</application>,
+        ensure you stop and restart the <application>D-BUS</application>
+        daemon before attempting to start the <command>hald</command>
+        daemon.</para>
+      </note>
 
 <screen role="root"><userinput>make install-haldaemon</userinput></screen>
 
@@ -230,8 +230,9 @@ EOF</userinput></screen>
         hald-probe-printer, hald-probe-smbios, hald-probe-storage,
         hald-probe-volume and lshal</seg>
         <seg>libhal.[so,a] and libhal-storage,[so,a]</seg>
-        <seg>/etc/hal, /usr/include/hal, /usr/share/doc/hal-&hal-version;,
-        /usr/share/hal and /var/run/hald</seg>
+        <seg>/etc/hal, /usr/include/hal, /usr/lib/hal,
+        /usr/share/doc/hal-&hal-version;, /usr/share/hal
+        and /var/run/hald</seg>
       </seglistitem>
     </segmentedlist>
 
