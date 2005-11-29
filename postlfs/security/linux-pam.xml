@@ -5,11 +5,12 @@
   %general-entities;
 
   <!ENTITY linux-pam-download-http "http://www.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&linux-pam-version;.tar.bz2">
-  <!ENTITY linux-pam-download-ftp "ftp://ftp.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&linux-pam-version;.tar.bz2">
-  <!ENTITY linux-pam-md5sum    "ccff87fe639efdfc22b1ba4a0f08ec57">
-  <!ENTITY linux-pam-size      "376 KB">
-  <!ENTITY linux-pam-buildsize "8.6 MB">
-  <!ENTITY linux-pam-time      "0.2 SBU">
+  <!ENTITY linux-pam-download-ftp  "ftp://ftp.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&linux-pam-version;.tar.bz2">
+  <!ENTITY linux-pam-md5sum        "5f44d3cfe402dba91b01a6b1c40aba2a">
+  <!ENTITY linux-pam-size          "710 KB">
+  <!ENTITY linux-pam-buildsize     "15.6 MB">
+  <!ENTITY linux-pam-time          "0.5 SBU">
+  <!ENTITY linux-pam-docs-download "http://www.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&linux-pam-version;-docs.tar.bz2">
 ]>
 
 <sect1 id="linux-pam" xreflabel="Linux-PAM-&linux-pam-version;">
@@ -58,19 +59,9 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
-      <title>Documentation</title>
       <listitem>
-        <para>Optional documentation: <ulink
-        url="http://www.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-&linux-pam-version;-docs.tar.bz2"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
-    <itemizedlist spacing='compact'>
-      <title>Patches</title>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/Linux-PAM-&linux-pam-version;-gcc4-1.patch"/></para>
+        <para>Optional documentation:
+        <ulink url="&linux-pam-docs-download;"/></para>
       </listitem>
     </itemizedlist>
 
@@ -80,44 +71,47 @@
     <para><xref linkend="cracklib"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para><ulink
-    url="http://sourceforge.net/projects/sgmltools-lite/">sgmltools-lite</ulink>
-    and <xref linkend="db"/> (for pam_userdb module)</para>
+    <para><xref linkend="db"/> (for the pam_userdb module),
+    <ulink url="http://www.prelude-ids.org/">Prelude</ulink> and
+    <ulink
+    url="http://sourceforge.net/projects/sgmltools-lite/">sgmltools-lite</ulink></para>
 
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of Linux-PAM</title>
 
+    <para>If you downloaded the documentation, unpack the tarball into the
+    <filename class='directory'>doc</filename> directory of the source
+    tree:</para>
+
+<screen><userinput>tar -xf ../Linux-PAM-&linux-pam-version;-docs.tar.bz2 -C doc</userinput></screen>
+
     <para>Install <application>Linux-PAM</application> by
     running the following commands:</para>
 
-<screen><userinput>sed -i 's|DICT_DIR_CANDIDATES="|&amp;/lib /lib/cracklib |' \
-    configure &amp;&amp;
-patch -Np1 -i ../Linux-PAM-&linux-pam-version;-gcc4-1.patch &amp;&amp;
-./configure --enable-static-libpam --with-mailspool=/var/mail \
-    --enable-read-both-confs --sysconfdir=/etc \
-    --mandir=/usr/share/man &amp;&amp;
+<screen><userinput>./configure --libdir=/usr/lib \
+            --sbindir=/lib/security \
+            --enable-securedir=/lib/security \
+            --enable-docdir=/usr/share/doc/Linux-PAM-&linux-pam-version; \
+            --enable-read-both-confs &amp;&amp;
 make</userinput></screen>
 
-    <para>If you downloaded the documentation and wish to install it, unpack the
-    tarball into the <filename class='directory'>doc</filename> directory:</para>
-
-<screen><userinput>tar -xf ../Linux-PAM-&linux-pam-version;-docs.tar.bz2 -C doc</userinput></screen>
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-mv -v /lib/libpam.a /lib/libpam_misc.a /lib/libpamc.a /usr/lib &amp;&amp;
-rm -v /lib/libpam{,c,_misc}.so &amp;&amp;
-ln -v -sf ../../lib/libpam.so.&linux-pam-version; /usr/lib/libpam.so &amp;&amp;
-ln -v -sf ../../lib/libpam_misc.so.&linux-pam-version; /usr/lib/libpam_misc.so &amp;&amp;
-ln -v -sf ../../lib/libpamc.so.&linux-pam-version; /usr/lib/libpamc.so</userinput></screen>
+mv -v /lib/security/pam_tally /sbin &amp;&amp;
+mv -v /usr/lib/libpam*.so.0* /lib &amp;&amp;
+ln -v -sf ../../lib/libpam.so.0.81.1 /usr/lib/libpam.so &amp;&amp;
+ln -v -sf ../../lib/libpamc.so.0.81.0 /usr/lib/libpamc.so &amp;&amp;
+ln -v -sf ../../lib/libpam_misc.so.0.81.1 /usr/lib/libpam_misc.so</userinput></screen>
 
-    <para>Install the documentation using the following commands:</para>
+    <para>If you downloaded the documentation, install it using the following
+    command:</para>
 
-<screen role="root"><userinput>install -v -d -m755 /usr/share/doc/Linux-PAM-&linux-pam-version; &amp;&amp;
-for DOCTYPE in html ps specs txts
+<screen role="root"><userinput>for DOCTYPE in html pdf ps txts
 do
     cp -v -R doc/$DOCTYPE /usr/share/doc/Linux-PAM-&linux-pam-version;
 done</userinput></screen>
@@ -127,30 +121,39 @@ done</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's|DICT_DIR_CANDIDATES="|&amp;/lib /lib/cracklib |'
-    configure</command>: This command changes where
-    <command>configure</command> looks to find the
-    <application>CrackLib</application> dictionary.</para>
-
-    <para><parameter>--enable-static-libpam</parameter>: This switch builds
-    static PAM libraries as well as the dynamic libraries.</para>
-
-    <para><parameter>--with-mailspool=/var/mail</parameter>: This switch
-    makes the mailspool directory FHS compliant.</para>
-
-    <para><parameter>--enable-read-both-confs</parameter>: This switch lets
-    the local administrator choose which configuration file setup to use.</para>
-
-    <para><command>mv -v /lib/libpam.a /lib/libpam_misc.a /lib/libpamc.a
-    /usr/lib</command>: This command moves the static libraries to
-    <filename class='directory'>/usr/lib</filename> to comply with FHS
-    guidelines.</para>
-
-    <para><command>rm -v /lib/libpam{,c,_misc}.so; ln -v -sf ...
-    /usr/lib/...</command>: These commands move the
-    <filename class='symlink'>.so</filename> symlinks from
-    <filename class='directory'>/lib</filename> to
+    <para><parameter>--libdir=/usr/lib</parameter>: This parameter results in
+    the libraries being installed in
     <filename class='directory'>/usr/lib</filename>.</para>
+
+    <para><parameter>--sbindir=/lib/security</parameter>: This parameter
+    results in two executables, one which is not intended to be run from the
+    command line, being installed in the same directory as the PAM modules.
+    One of the executables is later moved to the
+    <filename class='directory'>/sbin</filename> directory.</para>
+
+    <para><parameter>--enable-securedir=/lib/security</parameter>: This
+    parameter results in the PAM modules being installed in
+    <filename class='directory'>/lib/security</filename>.</para>
+
+    <para><parameter>--enable-docdir=...</parameter>: This parameter results in
+    the documentation being installed in a versioned directory name.</para>
+
+    <para><parameter>--enable-read-both-confs</parameter>: This parameter
+    allows the local administrator to choose which configuration file setup to
+    use.</para>
+
+    <para><command>mv -v /lib/security/pam_tally /sbin</command>: The
+    <command>pam_tally</command> program is designed to be run by the system
+    administrator, possibly in single-user mode, so it is moved to the
+    appropriate directory.</para>
+
+    <para><command>mv -v /usr/lib/libpam*.so.0* /lib</command>: This command
+    moves the dynamic libraries to <filename class='directory'>/lib</filename>
+    as they may be required in single user mode.</para>
+
+    <para><command>ln -v -sf ...</command>: These commands recreate the
+    <filename class='symlink'>.so</filename> symlinks as the libraries they
+    pointed to were moved to <filename class='directory'>/lib</filename>.</para>
 
   </sect2>
 
@@ -183,8 +186,8 @@ done</userinput></screen>
 
       <para>Configuration information is placed in
       <filename class='directory'>/etc/pam.d/</filename> or
-      <filename>/etc/pam.conf</filename> depending on user preference.
-      Below are example files of each type:</para>
+      <filename>/etc/pam.conf</filename> depending on system administrator
+       preference. Below are example files of each type:</para>
 
 <screen><literal># Begin /etc/pam.d/other
 
@@ -208,17 +211,17 @@ other           password        required        pam_unix.so     nullok
       (<command>man pam</command>) provides a good starting point for
       descriptions of fields and allowable entries. The <ulink
       url="http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/pam.html">
-      Linux-PAM guide for system administrators</ulink>
-      is recommended for further reading.</para>
+      Linux-PAM System Administrators' Guide</ulink>
+      is recommended for additional information.</para>
 
       <para>Refer to <ulink
       url="http://www.kernel.org/pub/linux/libs/pam/modules.html"/>
       for a list of various modules available.</para>
 
-      <note>
+      <important>
         <para>You should now reinstall the <xref linkend="shadow"/>
         package.</para>
-      </note>
+      </important>
 
     </sect3>
 
@@ -228,14 +231,14 @@ other           password        required        pam_unix.so     nullok
     <title>Contents</title>
 
     <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Program</segtitle>
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>unix_chkpwd and pam_tally</seg>
+        <seg>pam_tally</seg>
         <seg>libpam.[so,a], libpamc.[so,a], and libpam_misc.[so,a]</seg>
-        <seg>/etc/pam.d, /etc/security, /lib/security, and
+        <seg>/etc/pam.d, /etc/security, /lib/security and
         /usr/include/security</seg>
       </seglistitem>
     </segmentedlist>
@@ -244,17 +247,6 @@ other           password        required        pam_unix.so     nullok
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="unix_chkpwd">
-        <term><command>unix_chkpwd</command></term>
-        <listitem>
-          <para>checks user passwords that are stored
-          in read protected databases.</para>
-          <indexterm zone="linux-pam unix_chkpwd">
-            <primary sortas="b-unix_chkpwd">unix_chkpwd</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="pam_tally">
         <term><command>pam_tally</command></term>
