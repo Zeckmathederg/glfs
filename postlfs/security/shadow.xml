@@ -6,9 +6,9 @@
 
   <!ENTITY shadow-download-http "http://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2">
   <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2">
-  <!ENTITY shadow-md5sum        "609a417a45827c36ba6e33f9dc785371">
+  <!ENTITY shadow-md5sum        "5c6a105d89afb0900922260e9c5650cc">
   <!ENTITY shadow-size          "1.0 MB">
-  <!ENTITY shadow-buildsize     "13.4 MB">
+  <!ENTITY shadow-buildsize     "13.6 MB">
   <!ENTITY shadow-time          "0.3 SBU">
 ]>
 
@@ -31,9 +31,10 @@
 
     <para><application>Shadow</application> was indeed installed in LFS and
     there is no reason to reinstall it unless you installed
-    <application>Linux-PAM</application>. If you did, this will allow programs
-    like <command>login</command> and <command>su</command> to utilize
-    PAM.</para>
+    <application>Linux-PAM</application>. If you did install
+    <application>Linux-PAM</application>, reinstalling
+    <application>Shadow</application> will allow programs such as
+    <command>login</command> and <command>su</command> to utilize PAM.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -57,16 +58,13 @@
       </listitem>
     </itemizedlist>
 
-<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
-        <para>Patch to fix several invalid warning messages when used with
-        <application>Linux-PAM</application>: <ulink
-        url="&patch-root;/shadow-&shadow-version;-Linux_PAM_fixes-1.patch"/></para>
+        <para>Required patch: <ulink
+        url="&patch-root;/shadow-&shadow-version;-configure_fix-1.patch"/></para>
       </listitem>
     </itemizedlist>
--->
 
     <bridgehead renderas="sect3">Shadow Dependencies</bridgehead>
 
@@ -81,14 +79,10 @@
     <para>Reinstall <application>Shadow</application> by running the following
     commands:</para>
 
-<!--
-<screen><userinput>patch -Np1 -i ../shadow-&shadow-version;-Linux_PAM_fixes-1.patch &amp;&amp;
-<-->
-
 <screen><userinput>./configure --libdir=/lib --enable-shared \
     --with-libpam --without-libcrack &amp;&amp;
 sed -i 's/groups$(EXEEXT) //' src/Makefile &amp;&amp;
-sed -i '/groups/d' man/Makefile &amp;&amp;
+find man -name Makefile -exec sed -i '/groups/d' &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -109,18 +103,13 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
     <para><parameter>--without-libcrack</parameter>: This switch tells
     <application>Shadow</application> not to use
     <filename class='libraryfile'>libcrack</filename>. This is desired as
-    <application>Linux-PAM</application> already contains
-    <filename class='libraryfile'>libcrack</filename>.</para>
-
-    <para><parameter>--enable-shadowgrp</parameter>: This version of
-    <application>Shadow</application> defaults to not enabling
-    its group functionality, which causes <command>grpconv</command> to
-    fail.</para>
+    <application>Linux-PAM</application> will provide
+    <filename class='libraryfile'>libcrack</filename> functionality.</para>
 
     <para><command>sed -i ...</command>: These commands are used to suppress
-    the installation of the <command>groups</command> program as the version
-    from the <application>Coreutils</application> package installed during
-    LFS is preferred.</para>
+    the installation of the <command>groups</command> program and man pages
+    as the version from the <application>Coreutils</application> package
+    installed during LFS is preferred.</para>
 
   </sect2>
 
@@ -164,7 +153,8 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
         out the appropriate lines in <filename>/etc/login.defs</filename>, and
         stop <command>login</command> from performing these functions (a backup
         file named <filename>/etc/login.defs.orig</filename> is also created
-        to preserve the original file's contents):</para>
+        to preserve the original file's contents). Issue the following commands
+        as the <systemitem class="username">root</systemitem> user:</para>
 
         <indexterm zone="shadow pam-login-defs">
           <primary sortas="e-etc-login.defs">/etc/login.defs</primary>
@@ -180,16 +170,17 @@ for FUNCTION in LASTLOG_ENAB MAIL_CHECK_ENAB \
                 ENV_PATH QMAIL_DIR MAIL_DIR MAIL_FILE \
                 CHFN_AUTH FAILLOG_ENAB QUOTAS_ENAB FTMP_FILE
 do
-    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
+    sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
 
         <para>If you have <application>CrackLib</application> installed,
-        also comment out four more lines using the following command:</para>
+        also comment out four more lines using the following command as the
+        <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>for FUNCTION in OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
                 PASS_CHANGE_TRIES PASS_ALWAYS_WARN
 do
-    sed -i -e "s/^$FUNCTION/# &amp;/" /etc/login.defs
+    sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
 
       </sect4>
@@ -200,7 +191,8 @@ done</userinput></screen>
         <para>Add the following <application>Linux-PAM</application> configuration
         files to <filename class="directory">/etc/pam.d/</filename> (or add them
         to <filename>/etc/pam.conf</filename> with the additional field for
-        the program).</para>
+        the program). Issue the commands as the
+        <systemitem class="username">root</systemitem> user:</para>
 
       </sect4>
 
@@ -327,7 +319,7 @@ EOF</userinput></screen>
                groupmod useradd userdel usermod
 do
     install -v -m644 /etc/pam.d/chage /etc/pam.d/$PROGRAM
-    sed -i -e "s/chage/$PROGRAM/" /etc/pam.d/$PROGRAM
+    sed -i "s/chage/$PROGRAM/" /etc/pam.d/$PROGRAM
 done</userinput></screen>
 
         <warning>
@@ -416,7 +408,6 @@ fi</userinput></screen>
 
       </sect4>
 
-
       <sect4 id="pam-env">
         <title>Configuring Default Environment</title>
 
@@ -428,15 +419,18 @@ fi</userinput></screen>
           changed.  To recover your default path, execute the following 
           commands:</para>
 
-<screen><userinput><command>ENV_PATH=`grep '^ENV_PATH' /etc/login.defs.orig | \
+<screen role="root"><userinput>ENV_PATH=`grep '^ENV_PATH' /etc/login.defs.orig | \
     awk '{ print $2 }' | sed 's/PATH=//'` &amp;&amp;
-echo 'PATH        DEFAULT='`echo "${ENV_PATH}"`'        OVERRIDE=${PATH}' \
+echo 'PATH        DEFAULT='`echo "${ENV_PATH}"`\
+'        OVERRIDE=${PATH}' \
     >> /etc/security/pam_env.conf &amp;&amp;
-unset ENV_PATH</command></userinput></screen>
+unset ENV_PATH</userinput></screen>
 
-          <note><para>ENV_SUPATH is no longer supported.  You must create 
-          a valid <filename>/root/.bashrc</filename> file to provide a 
-          modified path for the super-user.</para></note>
+          <note>
+            <para>ENV_SUPATH is no longer supported.  You must create 
+            a valid <filename>/root/.bashrc</filename> file to provide a 
+            modified path for the super-user.</para>
+          </note>
 
       </sect4>
 
