@@ -6,10 +6,10 @@
 
   <!ENTITY heimdal-download-http "http://ftp.vc-graz.ac.at/mirror/crypto/kerberos/heimdal/heimdal-&heimdal-version;.tar.gz">
   <!ENTITY heimdal-download-ftp  "ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-&heimdal-version;.tar.gz">
-  <!ENTITY heimdal-md5sum        "0a8097a8772d5d2de8c5539d3182b82a">
+  <!ENTITY heimdal-md5sum        "70504c824cb0437e6fae2b866f9d2ed4">
   <!ENTITY heimdal-size          "4.5 MB">
-  <!ENTITY heimdal-buildsize     "91 MB">
-  <!ENTITY heimdal-time          "2.4 SBU">
+  <!ENTITY heimdal-buildsize     "96.9 MB">
+  <!ENTITY heimdal-time          "2.7 SBU">
 ]>
 
 <sect1 id="heimdal" xreflabel="Heimdal-&heimdal-version;">
@@ -82,7 +82,8 @@
     <bridgehead renderas="sect3">Heimdal Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required to Build the Server-Side Tools</bridgehead>
-    <para role="required"><xref linkend="db"/> (recommended) or <xref linkend="gdbm"/></para>
+    <para role="required"><xref linkend="db"/> (recommended) or
+    <xref linkend="gdbm"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended"><xref linkend="openssl"/></para>
@@ -107,6 +108,9 @@
   <sect2 role="installation">
     <title>Installation of Heimdal</title>
 
+    <!-- This doesn't appear to be needed any longer as testing has 
+         shown that the ftp client now works without issues
+
     <para>Before installing the package, you may want to preserve the
     <command>ftp</command> program from the <application>Inetutils</application>
     package. This is because using the <application>Heimdal</application>
@@ -118,10 +122,20 @@
 
 <screen role="root"><userinput>mv -v /usr/bin/ftp /usr/bin/ftpn</userinput></screen>
 
+    -->
+
+    <warning>
+      <para>Ensure you really need a Kerberos installation before you decide
+      to install this package. Failure to install and configure the package
+      in accordance with the instructions below can render your system
+      unusable.</para>
+    </warning>
+
     <para>If you wish the <application>Heimdal</application> package to
-    link against the <application>CrackLib</application> library (requires
-    <xref linkend="cracklib"/> installed with the <filename>heimdal</filename>
-    patch), you must apply a patch:</para>
+    link against the <application>CrackLib</application> library to provide
+    enforcement of strong passwords (requires <xref linkend="cracklib"/>
+    installed with the <filename>heimdal</filename> patch), you must apply a
+    patch:</para>
 
 <screen><userinput>patch -Np1 -i ../heimdal-&heimdal-version;-cracklib-1.patch</userinput></screen>
 
@@ -137,6 +151,18 @@
             --enable-shared \
             --with-readline=/usr &amp;&amp;
 make</userinput></screen>
+
+    <para>If you wish to create HTML documentation, issue the following
+    command:</para>
+
+<screen><userinput>make -C doc heimdal.html</userinput></screen>
+
+    <para>If you wish to create a text-based version of the documentation,
+    issue the following commands:</para>
+
+<screen><userinput>cd doc &amp;&amp;
+makeinfo --plaintext -o heimdal.txt heimdal.texi &amp;&amp;
+cd ..</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
@@ -172,6 +198,15 @@ do
         /usr/lib/lib`echo $SYMLINK | cut -d. -f1`.so
 done
 ldconfig</userinput></screen>
+
+    <para>If you built the HTML or text-based documentation, install it using
+    the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
+install -v -m644 doc/heimdal.html/* \
+    /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
+install -v -m644 doc/heimdal.txt /usr/share/doc/heimdal-&heimdal-version;</userinput></screen>
 
   </sect2>
 
@@ -218,7 +253,10 @@ ldconfig</userinput></screen>
     <command>login</command> program is symlinked because
     <application>Heimdal</application> is expecting to find it in
     <filename class="directory">/usr/bin</filename>. The old executables are
-    preserved before the move to keep things sane should breaks occur.</para>
+    preserved before the move so that they can be restored if you experience
+    problems logging into the system after the
+    <application>Heimdal</application> package is installed and
+    configured.</para>
 
     <para><command>mv ... /lib; ln -v -sf ../../lib/lib... /usr/lib...</command>:
     The <command>login</command> and <command>su</command> programs installed
@@ -427,9 +465,7 @@ kstash</userinput></screen>
         to the program.</para>
 
         <para>The kerberized programs will connect to non-kerberized daemons,
-        warning you that authentication is not encrypted. As mentioned earlier,
-        only the <command>ftp</command> program gives any trouble connecting to
-        non-kerberized daemons.</para>
+        warning you that authentication is not encrypted.</para>
 
         <para>In order to use the <application>Heimdal</application>
         <application>X</application> programs, you'll need to add a service
