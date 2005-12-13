@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY AbiWord-download-http "http://www.abisource.com/downloads/abiword/2.2.10/source/abiword-&AbiWord-version;.tar.bz2">
+  <!ENTITY AbiWord-download-http "http://www.abisource.com/downloads/abiword/2.4.1/source/abiword-&AbiWord-version;.tar.bz2">
   <!ENTITY AbiWord-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/abiword-&AbiWord-version;.tar.bz2">
-  <!ENTITY AbiWord-md5sum        "4aa8838d211129b8fc9c1231bc9df18a">
-  <!ENTITY AbiWord-size          "23.9 MB">
-  <!ENTITY AbiWord-buildsize     "215 MB">
-  <!ENTITY AbiWord-time          "3.8 SBU (to build and install the program, docs and all plugins)">
+  <!ENTITY AbiWord-md5sum        "03d47aad66c4c9f9d329e3538de97dcd">
+  <!ENTITY AbiWord-size          "24.1 MB">
+  <!ENTITY AbiWord-buildsize     "23.7 MB">
+  <!ENTITY AbiWord-time          "3.1 SBU (to build and install the program, docs and all plugins)">
 ]>
 
 <sect1 id="abiword" xreflabel="AbiWord-&AbiWord-version;">
@@ -62,39 +62,33 @@
     <bridgehead renderas="sect3">AbiWord Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="popt"/>,
-    <xref linkend="libglade"/> and
-    <xref linkend="fribidi"/></para>
-
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="libjpeg"/></para>
+    <para role="required"><xref linkend="libglade"/>,
+    <xref linkend="fribidi"/> and
+    <xref linkend="libgnomeprintui"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="gucharmap"/>,
-    <xref linkend="libgnomeprintui"/>,
-    <xref linkend="libgnomeui"/>,
-    <xref linkend="imagemagick"/>,
+    <para role="optional">
     <ulink url="http://www.abisource.com/enchant/">Enchant</ulink>
-    (uses <xref linkend="aspell"/>) and
+    (uses <xref linkend="aspell"/>), <xref linkend="gucharmap"/>,
+    <xref linkend="imagemagick"/> and
     <ulink url="http://wvware.sourceforge.net/">wv</ulink> (with
     <ulink url="http://sourceforge.net/projects/wvware">libwmf</ulink>
     installed first)</para>
 
     <bridgehead renderas="sect4">Optional for Plugins</bridgehead>
-    <para role="optional"><xref linkend="librsvg"/>,
+    <para role="optional"><xref linkend="libgsf"/>
+    (needed to build the OpenDocument/OpenOffice plugin),
+    <xref linkend="poppler"/> (for the pdf plugin),
+    <xref linkend="librsvg"/>,
     <xref linkend="gnome-utils"/>,
-    <xref linkend="nautilus"/>,
-    <xref linkend="html-tidy"/>,
-    <xref linkend="libgsf"/>,
-    <xref linkend="python"/> (for gypsthon mailmerge),
     <ulink url="http://aiksaurus.sourceforge.net/">Aiksaurus</ulink>,
     <ulink url="http://www.gnome-db.org/">libgda</ulink>,
     <ulink url="http://www.gnome-db.org/">libgnomedb</ulink>,
     <ulink url="http://sourceforge.net/projects/wvware">libwmf</ulink>,
     <ulink url="http://libwpd.sourceforge.net/">libwpd</ulink>,
-    <ulink url="http://www.inter7.com/index.php?page=eps">EPS</ulink>,
+    <ulink url="http://ftp.gnome.org/pub/gnome/sources/goffice/0.1/">goffice</ulink>,
     <ulink url="http://libots.sourceforge.net/">OTS</ulink> and
-    <ulink url="http://www.frodol.dds.nl/psiconv/index.html">Psiconv</ulink></para>
+    <ulink url="http://software.frodo.looijaard.name/psiconv/">Psiconv</ulink></para>
 
   </sect2>
 
@@ -104,28 +98,33 @@
     <para>Install <application>AbiWord</application> by running the following
     commands:</para>
 
-<screen><userinput>cd abi &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
-make &amp;&amp;
-cd ../abiword-plugins &amp;&amp;
-sed -i 's:python2.3:python2.4:g' configure &amp;&amp;
+<screen><userinput>cd abiword-plugins &amp;&amp;
 ./configure --prefix=/usr --without-inter7eps &amp;&amp;
 make &amp;&amp;
-cd ../abi</userinput></screen>
+cd ../abi &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
+make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-cp -v -rf docs /usr/share/AbiSuite-2.2/AbiWord &amp;&amp;
+cp -v -rf docs /usr/share/AbiSuite-2.4/AbiWord &amp;&amp;
 cd ../abiword-plugins &amp;&amp;
 make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Install The Help Documentation</title>
 
     <para>Build the help files by issuing the following commands as an
     unprivileged user:</para>
 
 <screen><userinput>cd ../abiword-docs &amp;&amp;
+sed -i 's@AbiWord-2.0@abiword@' make-gnome-html.sh &amp;&amp;
+./make-gnome-html.sh &amp;&amp;
 ./make-html.sh</userinput></screen>
 
     <para>Then, as the <systemitem class="username">root</systemitem> user,
@@ -133,36 +132,82 @@ make install</userinput></screen>
 
 <screen role="root"><userinput>install -v -m644 man/abiword.1 /usr/share/man/man1 &amp;&amp;
 install -v -m644 Manual/en/Abiword_Manual.abw \
-    /usr/share/AbiSuite-2.2/AbiWord/docs  &amp;&amp;
-cp -v -rf help /usr/share/AbiSuite-2.2/AbiWord &amp;&amp;
-find /usr/share/AbiSuite-2.2/AbiWord/help \
+    /usr/share/AbiSuite-2.4/AbiWord/docs  &amp;&amp;
+cp -v -rf help /usr/share/AbiSuite-2.4/AbiWord &amp;&amp;
+find /usr/share/AbiSuite-2.4/AbiWord/help \
     -type d -exec chmod -v 755 {} \;</userinput></screen>
 
+<!-- I commented this out because I don't know what it does. Andy
     <para>If you have a <application>GNOME-2</application> installation, issue
     the following command as the <systemitem class="username">root</systemitem>
     user:</para>
 
 <screen role="root"><userinput>cd .. &amp;&amp;
-install -v -m644 abidistfiles/GNOME_AbiWord_Control_2_2.server \
+install -v -m644 abidistfiles/GNOME_AbiWord_Control_2_4.server \
     $GNOME_PREFIX/lib/bonobo/servers</userinput></screen>
+-->
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's:python2.3:python2.4:g' configure</command>: This
-    command changes the version of <application>Python</application> that
-    <application>AbiWord</application> looks for.</para>
-
     <para><parameter>--without-inter7eps</parameter>: Some of the headers from
     the <application>EPS</application> package are not compatible with
     <application>GCC</application>-4.0.x. This parameter prevents linking to
     the package and incurring a build failure.</para>
 
-    <para><command>./make-html.sh</command>: This command creates the HTML files
-    used by <application>AbiWord</application> when help is requested from the
-    main menu.</para>
+    <para><command>sed -i 's@AbiWord-2.0@abiword@' make-gnome-html.sh</command>:
+    This command alters the make-gnome-html.sh script to look for the current
+    version of <command>abiword</command>.</para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring Abiword</title>
+
+    <sect3 id="abiword-config">
+      <title>Config File</title>
+
+      <para><filename>~/.AbiSuite/templates/normal.awt</filename></para>
+
+    </sect3>
+
+    <sect3>
+      <title>Configuration Information</title>
+
+      <para>Choose the right template for your language and locale:</para>
+
+<screen><userinput>ls /usr/share/AbiSuite-2.4/templates</userinput></screen>
+
+      <para>Create the folder
+      <filename class='directory'>~/.AbiSuite/templates</filename> then copy the
+      <filename>normal.awt</filename> you want into it:</para>
+
+<screen><userinput>mkdir -p -v ~/.AbiSuite/templates &amp;&amp;
+cp -v /usr/share/AbiSuite-2.4/templates/normal.awt-[lang] \
+      ~/.AbiSuite/templates/normal.awt</userinput></screen>
+
+      <para>Obviously, change <emphasis role="strong">[lang]</emphasis> in that
+      command to fit the name of the file you want</para>
+
+      <para><application>Abiword</application> uses Times New Roman as its default
+      font. If you'd like it to default to a different font, edit
+      <filename>~/.AbiSuite/templates/normal.awt</filename> and change the font to
+      the one you want. Open <application>Abiword</application>, choose the font,
+      type one letter then save the document in your home folder as
+      <filename>test.abw</filename>. Find out what name
+      <application>Abiword</application> uses for the font:</para>
+
+<screen><userinput>grep -m 1 '"font-family' ~/test.abw</userinput></screen>
+
+      <para>Now put it into your <application>Abiword</application> template. For
+      example, if you want to use Bitstream Vera Sans:</para>
+
+<screen><userinput>sed -i 's@Times New Roman@Bitstream Vera Sans@g' \
+      ~/.AbiSuite/templates/normal.awt</userinput></screen>
+
+    </sect3>
 
   </sect2>
 
@@ -175,9 +220,10 @@ install -v -m644 abidistfiles/GNOME_AbiWord_Control_2_2.server \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>abiword, AbiWord-2.2, ttfadmin.sh, and ttftool</seg>
+        <seg>abiword, AbiWord-2.4, ttfadmin.sh, and ttftool</seg>
         <seg>Numerous plugin library support modules</seg>
-        <seg>/usr/lib/AbiWord-2.2 and /usr/share/AbiSuite-2.2</seg>
+        <seg>/usr/lib/AbiWord-2.4 and
+        /usr/share/AbiSuite-2.4</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -189,7 +235,8 @@ install -v -m644 abidistfiles/GNOME_AbiWord_Control_2_2.server \
       <varlistentry id="abiword-prog">
         <term><command>abiword</command></term>
         <listitem>
-          <para>is a symbolic link to the main <command>AbiWord-2.2</command>
+          <para>is a symbolic link to the main
+          <command>AbiWord-2.4</command>
           executable.</para>
           <indexterm zone="abiword abiword-prog">
             <primary sortas="g-abiword">abiword</primary>
@@ -197,12 +244,12 @@ install -v -m644 abidistfiles/GNOME_AbiWord_Control_2_2.server \
         </listitem>
       </varlistentry>
 
-      <varlistentry id="AbiWord-2.2">
-        <term><command>AbiWord-2.2</command></term>
+      <varlistentry id="AbiWord-2.4">
+        <term><command>AbiWord-2.4</command></term>
         <listitem>
           <para>is the word-processing program executable.</para>
-          <indexterm zone="abiword AbiWord-2.2">
-            <primary sortas="b-AbiWord-2.2">AbiWord-2.2</primary>
+          <indexterm zone="abiword AbiWord-2.4">
+            <primary sortas="b-AbiWord-2.4">AbiWord-2.4</primary>
           </indexterm>
         </listitem>
       </varlistentry>
