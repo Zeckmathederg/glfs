@@ -6,10 +6,10 @@
 
   <!ENTITY postgresql-download-http "http://gd.tuwien.ac.at/db/postgresql/source/v&postgresql-version;/postgresql-&postgresql-version;.tar.bz2">
   <!ENTITY postgresql-download-ftp  "ftp://ftp.fr.postgresql.org/source/v&postgresql-version;/postgresql-&postgresql-version;.tar.bz2">
-  <!ENTITY postgresql-md5sum        "c0914a133ce6c1e0f1d8b93982d6e881">
-  <!ENTITY postgresql-size          "11.0 MB">
-  <!ENTITY postgresql-buildsize     "139 MB (additional 110 MB to run the testsuite)">
-  <!ENTITY postgresql-time          "1.12 SBU">
+  <!ENTITY postgresql-md5sum        "d22d7bd1d5e5f9aa89d574ff66e2c8bb">
+  <!ENTITY postgresql-size          "11.5 MB">
+  <!ENTITY postgresql-buildsize     "153 MB (additional 100 MB to run the testsuite)">
+  <!ENTITY postgresql-time          "1.4 SBU">
 ]>
 
 <sect1 id="postgresql" xreflabel="PostgreSQL-&postgresql-version;">
@@ -59,15 +59,6 @@
       </listitem>
     </itemizedlist>
 
-<!--
-<sect3><title>Additional downloads</title>
-<itemizedlist spacing='compact'>
-<listitem><para>Required patch: <ulink
-url="&patch-root;/postgresql-&postgresql-version;-dsssl_fix-1.patch"/></para>
-</listitem></itemizedlist>
-</sect3>
- -->
-
     <bridgehead renderas="sect3">PostgreSQL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -75,39 +66,25 @@ url="&patch-root;/postgresql-&postgresql-version;-dsssl_fix-1.patch"/></para>
     <xref linkend="tcl"/>,
     <xref linkend="openssl"/>,
     <xref linkend="linux-pam"/>,
-    <xref linkend="sgml-dtd"/>,
-    <xref linkend="docbook-dsssl"/>,
-    <xref linkend="openjade"/>,
-    <xref linkend="perl-sgmlspm"/>,
     <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink>,
     <xref linkend="mitkrb"/> or <xref linkend="heimdal"/>, and
-    <ulink url="http://rendezvous.sourceforge.net/">Rendezvous</ulink></para>
+    <ulink url="http://developer.apple.com/networking/bonjour/">Bonjour</ulink></para>
+
+    <bridgehead renderas="sect4">Optional (To Regenerate Documentation)</bridgehead>
+    <para role="optional"><xref linkend="sgml-dtd"/>,
+    <xref linkend="docbook-dsssl"/>,
+    <xref linkend="openjade"/>, and
+    <xref linkend="perl-sgmlspm"/></para>
 
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of PostgreSQL</title>
 
-<!-- Disabling obsolete text
-
-    <para>In order for <command>configure</command> to properly discover
-    <application>Docbook SGML DTD</application>, you may need to remove
-    <application>OpenSP</application> catalog definitions from the system
-    SGML catalogs. Use the following command before building the package
-    to accomplish this:</para>
-
-<screen role="root"><userinput>sed -i.orig \
-    -e "/CATALOG \/etc\/sgml\/OpenSP-1.5.1.cat/d" \
-    /etc/sgml/catalog \
-    /etc/sgml/sgml-docbook.cat</userinput></screen>
-
--->
-
     <para>Install <application>PostgreSQL</application> with the
     following commands: </para>
 
-<screen><userinput>sed -i \
-    -e "s|dsssl-stylesheets|&amp; \\\\\n        sgml/docbook/&amp;-&docbook-dsssl-version;|" \
+<screen><userinput>sed -i "s|dsssl-stylesheets|&amp; \\\\\n        sgml/docbook/&amp;-&docbook-dsssl-version;|" \
     configure &amp;&amp;
 ./configure --prefix=/usr --enable-thread-safety &amp;&amp;
 make</userinput></screen>
@@ -117,22 +94,19 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chown -v root:root /usr/share/doc/postgresql/html</userinput></screen>
-
-<!--
-<para>The standard installation provides only the header files needed
-for client application development. Server-side applications require
-the entire <application>PostgreSQL</application>
-include tree which can be installed using the following command:</para>
-
-<screen><userinput><command>make install-all-headers</command></userinput></screen>
- -->
+chown -v root:root /usr/share/doc/postgresql/html/* &amp;&amp;
+install -v -m755 -d /usr/share/doc/postgresql/{FAQ/html,TODO.detail} &amp;&amp;
+install -v -m644 doc/TODO /usr/share/doc/postgresql &amp;&amp;
+install -v -m644 doc/FAQ* /usr/share/doc/postgresql/FAQ &amp;&amp;
+install -v -m644 doc/src/FAQ/* /usr/share/doc/postgresql/FAQ/html &amp;&amp;
+install -v -m644 doc/TODO.detail/* \
+    /usr/share/doc/postgresql/TODO.detail</userinput></screen>
 
     <note>
       <para>If you are upgrading an existing system and are going to install
       the new files over the old ones, then you should back up your data, shut
       down the old server and follow the instructions in <ulink
-      url="http://www.postgresql.org/docs/8.0/static/install-upgrading.html">the
+      url="http://www.postgresql.org/docs/8.1/static/install-upgrading.html">the
       official <application>PostgreSQL</application> documentation</ulink>.</para>
     </note>
 
@@ -140,7 +114,8 @@ include tree which can be installed using the following command:</para>
     <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /srv/pgsql/data &amp;&amp;
-useradd -c "PostgreSQL Server" -g users -d /srv/pgsql/data \
+groupadd -g 41 postgres &amp;&amp;
+useradd -c "PostgreSQL Server" -g postgres -d /srv/pgsql/data \
         -u 41 postgres &amp;&amp;
 chown -v postgres /srv/pgsql/data &amp;&amp;
 su - postgres -c '/usr/bin/initdb -D /srv/pgsql/data'</userinput></screen>
@@ -170,21 +145,21 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i -e "s|dsssl-stylesheets|..."</command>: This command
+    <para><command>sed -i "s|dsssl-stylesheets|..."</command>: This command
     puts an extra line in the <command>configure</command> script so that the
-    BLFS installed version of the DSSSL stylesheets can be discovered.</para>
+    BLFS installed version of the DSSSL stylesheets are discovered.</para>
 
     <para><parameter>--enable-thread-safety</parameter>: This switch makes the
     client libraries thread-safe by allowing concurrent threads in
     <filename class='libraryfile'>libpq</filename> and ECPG programs to safely
     control their private connection handles.</para>
 
-    <para><command>chown -R root:root /usr/share/doc/postgresql/html</command>:
-    This command corrects the improper ownership of some documentation
-    files.</para>
+    <para><command>chown -R root:root /usr/share/doc/postgresql/html/*</command>:
+    This command corrects the improper ownership of documentation files.</para>
 
-    <para><command>useradd ...</command>: Add an unprivileged user to run the
-    database server.</para>
+    <para><command>groupadd ...</command>; <command>useradd ...</command>:
+    These commands add an unprivileged user and group to run the database
+    server.</para>
 
     <para><command>createdb test; create table t1; insert into t1 values...;
     select * from t1</command>: Create a database, add a table to it, insert
