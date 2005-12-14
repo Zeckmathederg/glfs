@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz">
-  <!ENTITY openldap-download-ftp "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz">
-  <!ENTITY openldap-md5sum "afc8700b5738da863b30208e1d3e9de8">
-  <!ENTITY openldap-size "2.6 MB">
-  <!ENTITY openldap-buildsize "86 MB">
-  <!ENTITY openldap-time "1.5 SBU with an additional 15 minutes to run the tests (processor independent)">
+  <!ENTITY openldap-download-ftp  "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz">
+  <!ENTITY openldap-md5sum        "fbde128a8421b8d2ea587a25057a281e">
+  <!ENTITY openldap-size          "3.6 MB">
+  <!ENTITY openldap-buildsize     "101.4 MB">
+  <!ENTITY openldap-time          "1.8 SBU and approximately 28 minutes to run the tests (processor independent)">
 ]>
 
 <sect1 id="openldap" xreflabel="OpenLDAP-&openldap-version;">
@@ -78,6 +78,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="tcpwrappers"/>,
     <xref linkend="unixodbc"/>,
+    <xref linkend="gmp"/>,
     <ulink url="http://www.gnu.org/software/pth/">GNU Pth</ulink> and
     <ulink url="http://www.openslp.org/">OpenSLP</ulink></para>
 
@@ -89,9 +90,20 @@
     <para>Install <application>OpenLDAP</application> by
     running the following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --libexecdir=/usr/sbin \
-    --sysconfdir=/etc --localstatedir=/srv/ldap \
-    --enable-dynamic --enable-ldbm --disable-debug &amp;&amp;
+<screen><userinput>./configure --prefix=/usr \
+            --libexecdir=/usr/sbin \
+            --sysconfdir=/etc \
+            --localstatedir=/srv/ldap \
+            --disable-debug
+            --enable-dynamic \
+            --enable-crypt \
+            --enable-modules \
+            --enable-ldap \
+            --enable-ldbm \
+            --enable-dyngroup \
+            --enable-dynlist \
+            --enable-ppolicy \
+            --enable-valsort &amp;&amp;
 make depend &amp;&amp;
 make &amp;&amp;
 make test</userinput></screen>
@@ -99,20 +111,20 @@ make test</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chmod 755 /usr/lib/libl*-2.2.so.7.0.19 &amp;&amp;
-install -v -m755 -d /usr/share/doc/openldap-&openldap-version;/{drafts,rfc} &amp;&amp;
-install -v -m644 doc/drafts/* \
-    /usr/share/doc/openldap-&openldap-version;/drafts &amp;&amp;
-install -v -m644 doc/rfc/* \
-    /usr/share/doc/openldap-&openldap-version;/rfc</userinput></screen>
+chmod -v 755 /usr/lib/libl*-2.3.so.0.1.6 &amp;&amp;
+install -v -m755 -d /usr/share/doc/openldap-&openldap-version;/{drafts,guide,rfc} &amp;&amp;
+install -v -m644 doc/drafts/* /usr/share/doc/openldap-&openldap-version;/drafts &amp;&amp;
+install -v -m644 doc/rfc/*    /usr/share/doc/openldap-&openldap-version;/rfc &amp;&amp;
+cp -v -R doc/guide/*          /usr/share/doc/openldap-&openldap-version;/guide</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--libexecdir=/usr/sbin</parameter>: Installs the server
-    executables in <filename class="directory">/usr/sbin</filename> instead of
+    <para><parameter>--libexecdir=/usr/sbin</parameter>: Installs the
+    <command>slapd</command> and <command>slurpd</command> daemon programs in
+    <filename class="directory">/usr/sbin</filename> instead of
     <filename class="directory">/usr/libexec</filename>.</para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration file
@@ -123,34 +135,59 @@ install -v -m644 doc/rfc/* \
     to use for the LDAP directory database, replication logs and
     run-time variable data.</para>
 
+    <para><parameter>--disable-debug</parameter>: Disable debugging code.</para>
+
     <para><parameter>--enable-dynamic</parameter>: This forces the
     <application>OpenLDAP</application> libraries to be dynamically linked
     to the executable programs.</para>
+
+    <para><parameter>--enable-crypt</parameter>: Enables crypt(3)
+    passwords.</para>
+
+    <para><parameter>--enable-modules</parameter>: Enables dynamic module
+    support.</para>
+
+    <para><parameter>--enable-ldap</parameter>: Enables the
+    <command>slapd</command> LDAP backend.</para>
 
     <para><parameter>--enable-ldbm</parameter>: Build <command>slapd</command>
     with the primary database back end using either
     <application>Berkeley DB</application> or
     <application>GNU Database Manager</application>.</para>
 
-    <para><parameter>--disable-debug</parameter>: Disable debugging code.</para>
+    <para><parameter>--enable-dyngroup</parameter>: Enables the
+    <command>slapd</command> dynamic group overlay.</para>
+
+    <para><parameter>--enable-dynlist</parameter>: Enables the
+    <command>slapd</command> dynamic list overlay.</para>
+
+    <para><parameter>--enable-ppolicy</parameter>: Enables the
+    <command>slapd</command> password policy overlay.</para>
+
+    <para><parameter>--enable-valsort</parameter>: Enables the
+    <command>slapd</command> value sorting overlay.</para>
 
     <para><command>make test</command>: Validates the correct build of the
-    package. If you've enabled <application>tcp_wrappers</application>, ensure you
-    add 127.0.0.1 to the <parameter>slapd</parameter> line in the
+    package. If you've enabled <application>tcp_wrappers</application>, ensure
+    you add 127.0.0.1 to the <parameter>slapd</parameter> line in the
     <filename>/etc/hosts.allow</filename> file if you have a
-    restrictive <filename>/etc/hosts.deny</filename> file. If you logged the
-    output of the <command>make test</command>, an easy test to see if all the
-    tests succeeded is to issue <command>grep ">>>>> Test succeeded"
-    <replaceable>[logfilename]</replaceable> | wc -l</command>. You should have
-    <computeroutput>39</computeroutput> returned.</para>
+    restrictive <filename>/etc/hosts.deny</filename> file.</para>
 
-    <para><command>chmod 755 /usr/lib/libl*-2.2.so.7.0.17</command>: This command
+    <para><command>chmod -v 755 /usr/lib/libl*-2.3.so.0.1.6</command>: This command
     adds the executable bit to the shared libraries.</para>
 
     <para><option>--disable-bdb --disable-hdb --with-ldbm-api=gdbm</option>:
-    Use these parameters to the <command>configure</command> command if you
-    wish to use GDBM instead of Berkeley DB as the primary backend
+    Pass these parameters to the <command>configure</command> command if you
+    wish to use <application>GDBM</application> instead of
+    <application>Berkeley DB</application> as the primary backend
     database.</para>
+
+    <note>
+      <para>Run <command>./configure --help</command> to see if there are
+      other parameters you can pass to the <command>configure</command> command
+      to enable other options or dependency packages.</para>
+    </note>
+
   </sect2>
 
   <sect2 role="configuration">
@@ -202,8 +239,10 @@ install -v -m644 doc/rfc/* \
         </listitem>
         <listitem>
           <para>The <ulink
-          url="http://www.openldap.org/doc/admin22/">OpenLDAP 2.2 Administrator's
-          Guide</ulink></para>
+          url="http://www.openldap.org/doc/admin23/">OpenLDAP 2.3
+          Administrator's Guide</ulink> (also installed locally in
+          <filename class='directory'>
+          /usr/share/doc/openldap-&openldap-version;/guide/admin</filename>)</para>
         </listitem>
         <listitem>
           <para>Documents located at
