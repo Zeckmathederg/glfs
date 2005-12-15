@@ -132,7 +132,9 @@
       the <systemitem class="username">root</systemitem> user while in the
       root of the <application>FOP</application> source tree:</para>
 
-<screen role="root"><userinput>chmod 755 ../jai-1_1_2_01-lib-linux-i586-jdk.bin &amp;&amp;
+<screen role="root"><userinput>sed -i 's/tail +122/tail -n +122/' \
+    ../jai-1_1_2_01-lib-linux-i586-jdk.bin &amp;&amp;
+chmod 755 ../jai-1_1_2_01-lib-linux-i586-jdk.bin &amp;&amp;
 FOP_BUILD_DIR=$(pwd) &amp;&amp;
 cd $JAVA_HOME &amp;&amp;
 yes | $FOP_BUILD_DIR/../jai-1_1_2_01-lib-linux-i586-jdk.bin &amp;&amp;
@@ -148,7 +150,7 @@ cd $FOP_BUILD_DIR</userinput></screen>
 
 <screen><userinput>patch -Np1 -i ../fop-&fop-version;-jdk_1.5.0-1.patch &amp;&amp;
 ./build.sh &amp;&amp;
-sed -i -e "s/build/lib/" fop.sh</userinput></screen>
+sed -i "s/build/lib/" fop.sh</userinput></screen>
 
       <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -211,7 +213,7 @@ install -v -m644 lib/batik.LICENSE.txt \
       package, run the following commands as the <systemitem
       class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>sed -i -e "s/build/lib/" xalan.sh &amp;&amp;
+<screen role="root"><userinput>sed -i "s/build/lib/" xalan.sh &amp;&amp;
 install -v -m755 xalan.sh /opt/fop-&fop-version;/bin &amp;&amp;
 install -v -m644 lib/xml-apis.jar \
                  lib/xercesImpl-2.2.1.jar \
@@ -241,6 +243,12 @@ install -v -m644 lib/{xml-apis,xerces,xalan}.LICENSE.txt \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i 's/tail +122/tail -n +122/' ...</command>:
+    The <application>JAI</application> binary file has a <command>tail</command>
+    command imbedded in the file which uses obsolete syntax and causes the
+    file to not unpack correctly. This command fixes the obsolete
+    syntax.</para>
+
     <para><command>yes | $FOP_BUILD_DIR/../jai-...-jdk.bin</command>: This
     command installs the <application>JAI</application> components
     into the <application>JDK</application> file structure. The
@@ -250,7 +258,7 @@ install -v -m644 lib/{xml-apis,xerces,xalan}.LICENSE.txt \
     a reference point to the source executable and as a method to return back to
     the <application>FOP</application> source tree.</para>
 
-    <para><command>sed -i -e "s/build/lib/" ...</command>: These commands modify
+    <para><command>sed -i "s/build/lib/" ...</command>: These commands modify
     the installed shell scripts so that the location of the installed
     <filename>fop.jar</filename> file is correctly identified.</para>
 
