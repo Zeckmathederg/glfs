@@ -6,10 +6,10 @@
 
   <!ENTITY apache-download-http "http://www.apache.org/dist/httpd/httpd-&apache-version;.tar.bz2">
   <!ENTITY apache-download-ftp  "ftp://ftp.tux.org/pub/net/apache/dist/httpd/httpd-&apache-version;.tar.bz2">
-  <!ENTITY apache-md5sum        "f1b5b65c8661db9ffe38b5a4a865a0e2">
-  <!ENTITY apache-size          "4.6 MB">
-  <!ENTITY apache-buildsize     "91.6 MB">
-  <!ENTITY apache-time          "1.7 SBU">
+  <!ENTITY apache-md5sum        "402b90a2e47205f94b3b1d91e1a8c459">
+  <!ENTITY apache-size          "4.8 MB">
+  <!ENTITY apache-buildsize     "91.5 MB">
+  <!ENTITY apache-time          "2.1 SBU">
 ]>
 
 <sect1 id="apache" xreflabel="Apache-&apache-version;">
@@ -70,11 +70,16 @@
     <bridgehead renderas="sect3">Apache Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="db"/> or <xref linkend="gdbm"/>,
+    <para role="optional"><xref linkend="db"/>,
+    <xref linkend="gdbm"/>,
     <xref linkend="openssl"/>,
     <xref linkend="openldap"/>,
+    <xref linkend="postgresql"/>,
+    <ulink url="http://sqlite.org/">SQLite</ulink>,
+    <xref linkend="pcre"/>,
+    <xref linkend="pkgconfig"/>,
     <xref linkend="expat"/> and
-    <xref linkend="doxygen"/></para>
+    <ulink url="http://www.distcache.org/">distcache</ulink></para>
 
   </sect2>
 
@@ -83,14 +88,15 @@
 
     <para>For security reasons, running the server as an unprivileged user and
     group is strongly encouraged. Create the following group and user using the
-    following commands (as <systemitem class="username">root</systemitem>):</para>
+    following commands
+    (as <systemitem class="username">root</systemitem>):</para>
 
 <screen role="root"><userinput>groupadd -g 25 apache &amp;&amp;
 useradd -c "Apache Server" -d /dev/null -g apache \
         -s /bin/false -u 25 apache</userinput></screen>
 
-    <para>The following patch will define the layout of destination
-    directories and, among them, the build directory at
+    <para>The following patch modifies the layout of destination
+    directories and among them, the build directory at
     <filename class="directory">/usr/lib/apache/build</filename>. This
     will allow the modules added to <application>Apache</application>
     to be configured without errors. Apply the patch:</para>
@@ -101,7 +107,12 @@ useradd -c "Apache Server" -d /dev/null -g apache \
       <para>You may wish to review the output from
       <command>./configure --help</command> and include whatever parameters
       are necessary to the <command>configure</command> command below to build
-      the modules required for your installation.</para>
+      the modules required for your installation. There are as many as 62
+      additional parameters you can add to the <command>configure</command>
+      command to build additional modules. Some of the extra parameters which
+      aren't described or mentioned in the <parameter>--help</parameter>
+      information are listed in the <quote>Command Explanations</quote> section
+      below.</para>
     </note>
 
     <para>Build and install <application>Apache</application> by running the
@@ -115,11 +126,10 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chown -v root:root \
-    /usr/sbin/{apxs,apachectl,dbmmanage,envvars-std,envvars} \
-    /usr/include/apache/* /usr/lib/apache/httpd.exp \
-    /usr/share/man/man1/{dbmmanage,htdigest,htpasswd}.1 \
-    /usr/share/man/man8/{ab,apachectl,apxs,httpd}.8 \
+chown -v root:root /usr/lib/apache/httpd.exp \
+    /usr/sbin/{apxs,apachectl,dbmmanage,envvars{,-std}} \
+    /usr/share/man/man1/{dbmmanage,ht{dbm,digest,passwd}}.1 \
+    /usr/share/man/man8/{ab,apachectl,apxs,htcacheclean,httpd}.8 \
     /usr/share/man/man8/{logresolve,rotatelogs,suexec}.8 &amp;&amp;
 chown -v -R apache:apache /srv/www</userinput></screen>
 
@@ -128,7 +138,7 @@ chown -v -R apache:apache /srv/www</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><option>--with-expat=/usr</option>: Uses system installed
+    <para><option>--with-expat=/usr</option>: Uses the system installed
     <application>expat</application>. <emphasis>If you have installed
     <application>expat</application> and do not use this switch, the
     <application>Apache</application> installation may overwrite some files
@@ -139,9 +149,22 @@ chown -v -R apache:apache /srv/www</userinput></screen>
     (DSOs) so they can be included and excluded from the
     server using the run-time configuration directives.</para>
 
-    <para><option>--enable-ssl</option>: Use this switch
+    <para><option>--enable-ssl</option>: Use this parameter
     to create the <filename class="libraryfile">mod_ssl</filename>
-    module and enable SSL support.</para>
+    module and enable SSL support. This parameter is mentioned as one of many
+    parameters which can be passed to the <command>configure</command> command
+    to create additional DSO modules.</para>
+
+    <para><option>--with-pcre</option>: Add this parameter to use the system
+    installed version of the <application>PCRE</application> library.</para>
+
+    <para><option>--with-z</option>: Add this parameter to use the system
+    installed version of the <application>Zlib</application> library.</para>
+
+    <para><option>--with-ldap</option>: This parameter is required if you
+    passed the <option>--enable-authnz-ldap</option> or
+    <option>--enable-ldap</option> options to <command>configure</command> 
+    and enabled the <application>OpenLDAP</application> modules.</para>
 
     <para><command>chown root:root ...</command>: This command changes the
     ownership of some installed files, the result of building the package as
@@ -179,22 +202,25 @@ chown -v -R apache:apache /srv/www</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
-      <para>The main configuration file is named <filename>httpd.conf</filename>.
-      Modify it to run the server as a dedicated user:</para>
+      <para>The main configuration file is named
+      <filename>/etc/apache/httpd.conf</filename>. Modify it so that the HTTP
+      server runs as the dedicated user and group:</para>
 
-<screen role="root"><userinput>sed -i -e "s%User nobody%User apache%" \
-       -e "s%^Group #-1%Group apache%" \
+<screen role="root"><userinput>
+sed -i -e "s/User daemon/User apache/" \
+       -e "s/Group daemon/Group apache/" \
     /etc/apache/httpd.conf</userinput></screen>
 
-      <para>See <ulink url="http://httpd.apache.org/docs-2.0/configuring.html"/>
+      <para>See <ulink url="http://httpd.apache.org/docs-2.2/configuring.html"/>
       for detailed instructions on customizing your
-      <application>Apache</application> HTTP server.</para>
+      <application>Apache</application> HTTP server configuration file.</para>
 
       <para>There's a problem with the ISAPI DSO module caused from compiling
-      with <application>GCC</application>-&gcc-version;. Comment out the module
-      from the configuration file with the following command:</para>
+      with <application>GCC</application>-&gcc-version;. If you included the
+      parameter to build the module, comment out the module's load command
+      in the configuration file with the following command:</para>
 
-<screen role="root"><userinput>sed -i -e "s/^LoadModule isapi_module/# &amp;/" \
+<screen role="root"><userinput>sed -i "s/^LoadModule isapi_module/# &amp;/" \
     /etc/apache/httpd.conf</userinput></screen>
 
     </sect3>
@@ -229,7 +255,7 @@ chown -v -R apache:apache /srv/www</userinput></screen>
         <seg>ab, apachectl, apr-config, apu-config, apxs, checkgid, dbmmanage,
         htdbm, htdigest, htpasswd, httpd, instdso.sh, logresolve, and
         rotatelogs</seg>
-        <seg>libapr-0.[so,a], libaprutil-0.[so,a], and /usr/lib/apache/*.so</seg>
+        <seg>libapr-1.[so,a], libaprutil-1.[so,a], and /usr/lib/apache/*.so</seg>
         <seg>/etc/apache, /srv/www, /usr/include/apache, /usr/lib/apache, and
         /var/log/apache</seg>
       </seglistitem>
