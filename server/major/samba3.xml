@@ -6,9 +6,9 @@
 
   <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/samba-&samba3-version;.tar.gz">
   <!ENTITY samba3-download-ftp  "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-md5sum        "68e72ab16334c329901816febc43217a">
+  <!ENTITY samba3-md5sum        "39c0cae08fe0224cb003aa0af97d3050">
   <!ENTITY samba3-size          "17.1 MB">
-  <!ENTITY samba3-buildsize     "146 MB">
+  <!ENTITY samba3-buildsize     "177.4 MB">
   <!ENTITY samba3-time          "2.5 SBU">
 ]>
 
@@ -81,7 +81,8 @@
     <xref linkend="cups"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
     <xref linkend="libxml2"/>,
-    <xref linkend="mysql"/> or <xref linkend="postgresql"/>,
+    <xref linkend="mysql"/>,
+    <xref linkend="postgresql"/>,
     <xref linkend="python"/> and
     <ulink url="http://valgrind.kde.org/">Valgrind</ulink></para>
 
@@ -109,6 +110,7 @@
     </note>
 
 <screen><userinput>cd source &amp;&amp;
+sed -i "60s/lib\[2/lib[1/" python/setup.py &amp;&amp;
 ./configure \
     --prefix=/usr \
     --sysconfdir=/etc \
@@ -122,24 +124,50 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
+<!-- Commenting out the need for /var/cache/samba as my testing has
+     shown me that this directory is not used. Grepping the source
+     tree also turns up nothing about 'cache/samba'. -Randy 
 <screen role="root"><userinput>install -v -m755 -d /var/cache/samba &amp;&amp;
-make install &amp;&amp;
+-->
+
+<screen role="root"><userinput>make install &amp;&amp;
 mv -v /usr/lib/samba/libsmbclient.so /usr/lib &amp;&amp;
 ln -v -sf ../libsmbclient.so /usr/lib/samba &amp;&amp;
+ln -v -sf libsmbclient.so /usr/lib/libsmbclient.so.0 &amp;&amp;
+
 chmod -v 644 /usr/include/libsmbclient.h &amp;&amp;
+
 install -v -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
 ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
 ln -v -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
+
 if [ -f nsswitch/pam_winbind.so ]; then
     install -v -m755 nsswitch/pam_winbind.so /lib/security
 fi &amp;&amp;
+
 install -v -m644 ../examples/smb.conf.default /etc/samba &amp;&amp;
-install -v -m644 ../docs/*.pdf /usr/share/samba</userinput></screen>
+
+install -v -m755 -d /usr/share/doc/samba-&samba3-version; &amp;&amp;
+install -v -m644 ../docs/*.pdf /usr/share/doc/samba-&samba3-version; &amp;&amp;
+ln -v -s ../../samba/swat  /usr/share/doc/samba-3.0.20b</userinput></screen>
+
+  <para>If you passed the <option>--with-python</option> option to the
+  <command>configure</command> script, issue the following command as the
+  <systemitem class="username">root</systemitem> user to install the
+  <application>Python</application> extensions:</para>
+
+<screen role="root"><userinput>make python_install</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed -i "60s/lib\[2/lib[1/" python/setup.py</command>:
+    This command is necessary to build the
+    <application>Python</application> extensions. The
+    <filename>setup.py</filename> file has a bug which causes the build to
+    crash. This command fixes the bug.</para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration
     file directory to avoid the default of
@@ -164,9 +192,11 @@ install -v -m644 ../docs/*.pdf /usr/share/samba</userinput></screen>
     instructions on how to configure and use the module by running
     <command>man winbindd</command>.</para>
 
+    <!-- I am convinced that this command is no longer necessary. -Randy
     <para><command>install -v -d /var/cache/samba</command>: This directory is
     needed for proper operation of the <command>smbd</command> and
     <command>nmbd</command> daemons.</para>
+    -->
 
     <para><command>mv -v /usr/lib/samba/libsmbclient.so ...; ln -v -sf
     ../libsmbclient.so ...</command>: The
