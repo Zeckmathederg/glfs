@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY guile-download-http "http://ftp.gnu.org/pub/gnu/guile/guile-&guile-version;.tar.gz">
-  <!ENTITY guile-download-ftp "ftp://ftp.gnu.org/pub/gnu/guile/guile-&guile-version;.tar.gz">
-  <!ENTITY guile-md5sum "c2ff2a2231f0cbb2e838dd8701a587c5">
-  <!ENTITY guile-size "3.0 MB">
-  <!ENTITY guile-buildsize "37.4 MB">
-  <!ENTITY guile-time "0.86 SBU">
+  <!ENTITY guile-download-ftp  "ftp://ftp.gnu.org/pub/gnu/guile/guile-&guile-version;.tar.gz">
+  <!ENTITY guile-md5sum        "c2ff2a2231f0cbb2e838dd8701a587c5">
+  <!ENTITY guile-size          "3.0 MB">
+  <!ENTITY guile-buildsize     "37.4 MB (additional 32 MB to install all the docs)">
+  <!ENTITY guile-time          "0.9 SBU">
 ]>
 
 <sect1 id="guile" xreflabel="Guile-&guile-version;">
@@ -34,8 +34,8 @@
     <title>Introduction to Guile</title>
 
     <para>The <application>Guile</application> package contains the Project
-    GNU's extension language library. <application>Guile</application> also contains
-    a stand alone <application>Scheme</application> interpreter.</para>
+    GNU's extension language library. <application>Guile</application> also
+    contains a stand alone <application>Scheme</application> interpreter.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -71,6 +71,11 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Guile Dependencies</bridgehead>
+  
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="required"><xref linkend="tex"/></para>
+
   </sect2>
 
   <sect2 role="installation">
@@ -84,12 +89,51 @@ patch -Np1 -i ../guile-&guile-version;-slib_3a2-1.patch &amp;&amp;
 ./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
+    <para>If you have <application>TeX</application> installed and wish to
+    build alternate formats of the documentation, issue the following
+    commands:</para>
+
+<screen><userinput>for DIRNAME in goops r5rs ref tutorial
+do
+  make -k -C doc/$DIRNAME pdf ps html
+done &amp;&amp;
+makeinfo --plaintext -o doc/goops/goops.txt doc/goops/goops.texi &amp;&amp;
+makeinfo --plaintext -o doc/r5rs/r5rs.txt doc/r5rs/r5rs.texi &amp;&amp;
+makeinfo --plaintext -o doc/ref/guile.txt doc/ref/guile.texi &amp;&amp;
+makeinfo --plaintext -o doc/tutorial/guile-tut.txt \
+    doc/tutorial/guile-tut.texi &amp;&amp;
+unset DIRNAME</userinput></screen>
+
     <para>To test the results, issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+find examples -name "Makefile*" -exec rm {} \; &amp;&amp;
+install -v -m755 -d /usr/share/doc/guile-&guile-version; &amp;&amp;
+cp -v -R examples /usr/share/doc/guile-&guile-version;</userinput></screen>
 
+    <para>If you built the alternate formats of the documentation, install it
+    using the following commands issued by the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>for DIRNAME in goops r5rs ref tutorial
+do
+  install -v -m755 -d /usr/share/doc/guile-&guile-version;/$DIRNAME/html
+  install -v -m644 doc/$DIRNAME/*.{pdf,ps,dvi,txt} \
+      /usr/share/doc/guile-&guile-version;/$DIRNAME
+  if [ -d doc/$DIRNAME/$DIRNAME.html ]; then
+    install -v -m644 doc/$DIRNAME/$DIRNAME.html/* \
+        /usr/share/doc/guile-&guile-version;/$DIRNAME/html
+  fi
+done &amp;&amp;
+
+install -v -m644 doc/goops/hierarchy.{eps,png} \
+    /usr/share/doc/guile-&guile-version;/goops &amp;&amp;
+install -v -m644 doc/ref/guile.html/* \
+    /usr/share/doc/guile-&guile-version;/ref/html &amp;&amp;
+install -v -m644 doc/tutorial/guile-tut.html/* \
+    /usr/share/doc/guile-&guile-version;/tutorial/html</userinput></screen>
   </sect2>
 
   <sect2 role="content">
@@ -106,7 +150,7 @@ make</userinput></screen>
         libguile-srfi-srfi-13-14-v-1.[so,a], libguile-srfi-srfi-4-v-1.[so,a], and
         optionally, libqthreads.[so,a]</seg>
         <seg>/usr/include/guile, /usr/include/guile-readline, /usr/include/libguile,
-        and /usr/share/guile</seg>
+        /usr/share/doc/guile-&guile-version;, and /usr/share/guile</seg>
       </seglistitem>
     </segmentedlist>
 
