@@ -5,23 +5,12 @@
   %general-entities;
 
   <!ENTITY firefox-download-http "http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
-  <!ENTITY firefox-download-ftp "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
-  <!ENTITY firefox-md5sum        "5704a8c36de84b408e069afb0c5bc1df">
-  <!ENTITY firefox-size          "32.0 MB">
-  <!ENTITY firefox-buildsize     "545 MB">
-  <!ENTITY firefox-time          "10.3 SBU">
+  <!ENTITY firefox-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
+  <!ENTITY firefox-md5sum        "fa915ddcadecda30ed3e13694f26a779">
+  <!ENTITY firefox-size          "34.4 MB">
+  <!ENTITY firefox-buildsize     "568 MB">
+  <!ENTITY firefox-time          "15.8 SBU">
 ]>
-
-<!--
-
-Devs:
-
-Always check the browser/config/mozconfig file in the source tree for
-any changes to the options passed to configure. This file shows the
-default build used by Mozilla. BLFS adds to this, but the values here
-should be in our setup.
-
--->
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
   <?dbhtml filename="firefox.html" ?>
@@ -69,14 +58,6 @@ should be in our setup.
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/firefox-&firefox-version;-gcc4-2.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Firefox Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -84,26 +65,24 @@ should be in our setup.
     <xref linkend="libidl"/> and
     <xref linkend="zip"/></para>
 
+    <para>Note: <application>libjpeg</application> should have been installed
+    before <application>GTK+</application> and should exist on your system. If
+    for some reason you haven't installed <application>libjpeg</application>,
+    you should remove the <option>--with-system-jpeg</option> option from the
+    <filename>.mozconfig</filename> file created below.</para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libjpeg"/>,
-    <xref linkend="unzip"/>,
-    <xref linkend="gnome-vfs"/> and
-    <xref linkend="libgnome"/> (to build the gnomevfs extension),
-    <xref linkend="mitkrb"/> or <xref linkend="heimdal"/>
-    (for the GSSAPI libraries to build the negotiateauth extension),
-    <xref linkend="doxygen"/>,
-    <ulink url="http://xprint.mozdev.org/">Xprint</ulink>,
-    <ulink url="http://perens.com/FreeSoftware/">Electric Fence</ulink></para>
+    <para role="optional"><xref linkend="unzip"/> and
+    <xref linkend="libgnomeui"/> (to build the gnomevfs extension)</para>
 
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of Firefox</title>
 
-    <para>The configuration of <application>Firefox</application> is very
-    similar to <xref linkend="mozilla"/> and hence the options are not
-    discussed. Refer to the <xref linkend="mozilla"/> instructions for
-    explanations and additional configuration information.</para>
+    <!-- This is now obsolete (I'm almost certain). During the next update
+         of Firefox, please remove everything contained in this comment if
+         there's been no mention to reactivate this. -Randy
 
     <para><application>Firefox</application> default behavior when invoked
     with a URL parameter is to open a new browser window. If you would rather
@@ -111,61 +90,149 @@ should be in our setup.
     window, issue the following command:</para>
 
 <screen><userinput>sed -i 's|openURL(${_optLast}|&amp;, new-tab|' browser/app/mozilla.in</userinput></screen>
+    -->
 
-    <para>Compile and install <application>Firefox</application> by
-    running the following commands:</para>
+    <para>The configuration of <application>Firefox</application> is
+    accomplished by creating a <filename>.mozconfig</filename> file containing
+    the desired configuration options. A default <filename>.mozconfig</filename>
+    is created below. To see the entire list of available configuration options
+    (and an abbreviated description of each one), issue
+    <command>./configure --help</command>. If you are going to build the
+    <application>OpenOffice</application> package and you want to use this
+    <application>Firefox</application> installation as the default
+    <application>Mozilla</application> source, ensure you uncomment the
+    <option>--enable-ldap</option> option from the default file created below.
+    You may also wish to review the entire file and uncomment any other desired
+    options. If you would prefer to download the file instead of creating it by
+    typing or cut-and-pasting, here is the URL: <ulink
+    url="http://anduin.linuxfromscratch.org/files/BLFS/firefox-&firefox-version;-mozconfig"/>
+    (the file must be installed in the
+    <filename class='directory'>mozilla</filename> directory and named
+    <filename>.mozconfig</filename>). Create the file by issuing the following
+    command:</para>
 
-<screen><userinput>export MOZILLA_OFFICIAL="1" &amp;&amp;
-export BUILD_OFFICIAL="1" &amp;&amp;
-export MOZ_PHOENIX="1" &amp;&amp;
+<screen><userinput>cat &gt; .mozconfig &lt;&lt; "EOF"
+<literal># This file contains the options used in the Firefox build. You may
+# need to specify additional options for your specific build needs.
+# Use the information provided by running './configure --help' to
+# help you determine if you need to add any additional options.
+# Some additional options can be added by uncommenting the examples
+# in this file or adding options by inserting a line containing
+# 'ac_add_options --some-option-you-need'.
 
-sed -i 's|    dist_bin="$moz_libdir"|\
-&amp;\n    run_moz="$dist_bin/run-mozilla.sh"|' browser/app/mozilla.in &amp;&amp;
 
-patch -Np1 -i ../firefox-&firefox-version;-gcc4-2.patch &amp;&amp;
-./configure --prefix=/usr \
-            --with-default-mozilla-five-home=/usr/lib/firefox-&firefox-version; \
-            --with-user-appdir=.firefox \
-            --with-system-zlib \
-            --with-system-png \
-            --enable-application=browser \
-            --enable-default-toolkit=gtk2 \
-            --enable-extensions=cookie,xml-rpc,xmlextras,pref,\
-transformiix,universalchardet,webservices,inspector,\
-gnomevfs,negotiateauth \
-            --enable-crypto \
-            --enable-xft \
-            --enable-xinerama \
-            --enable-optimize \
-            --enable-reorder \
-            --enable-strip \
-            --enable-cpp-rtti \
-            --enable-single-profile \
-            --disable-freetype2 \
-            --disable-accessibility \
-            --disable-debug \
-            --disable-tests \
-            --disable-logging \
-            --disable-pedantic \
-            --disable-installer \
-            --disable-mailnews \
-            --disable-ldap \
-            --disable-composer \
-            --disable-profilesharing &amp;&amp;
-make</userinput></screen>
+# Use the default settings specified in the source tree
+. $topsrcdir/browser/config/mozconfig
 
-    <para>You should add the <option>--with-system-jpeg</option> switch
-    to the <command>configure</command> script if you have
-    <application>libjpeg</application> installed.</para>
+# Create an object directory and specify to build the package in that
+# directory. If desired, modify the location of the object directory
+# to a directory inside the source tree by removing '../' from the
+# line below.
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../firefox-build
+
+# Specify the installation prefix. If you would prefer Firefox
+# installed in a different prefix, modify the line below to fit
+# your needs. You'll also need to modify some of the instructions in
+# the BLFS book to point to your desired prefix.
+ac_add_options --prefix=/usr
+
+# These options are used so that the Firefox binaries are linked to
+# the system-installed copies of the specified libraries instead of
+# the source tree code which may not be the most recent versions.
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+ac_add_options --with-system-jpeg
+ac_add_options --enable-system-cairo
+
+# This option causes the installed binaries to have the official
+# Firefox name embedded in them. Due to license restrictions, you
+# may not distribute binaries created using this option.
+ac_add_options --enable-official-branding
+
+# This option specifies to include support for rendering the HTML
+# &lt;canvas&gt;&lt;/canvas&gt; tag in the Firefox browser.
+ac_add_options --enable-canvas
+
+# This option is used so that the debugging symbols are removed from
+# the installed binaries during the installation process. Comment out
+# this option if you may have a need to retain the debugging symbols
+# in the installed binaries. Note that this can substantially
+# increase the size of the installed binaries.
+ac_add_options --enable-strip
+
+# This option is added so that test libraries and programs are not
+# built. These would only be required for debugging purposes.
+ac_add_options --disable-tests
+
+# This option is added so that the Mozilla Installer program is not
+# built or installed. The program is not required for a BLFS
+# installation of Firefox.
+ac_add_options --disable-installer
+
+# This option is used to disable the a11y support in the Firefox
+# binaries. Comment out this option if you require a11y support.
+ac_add_options --disable-accessibility
+
+# This option is used to enable source tree included LDAP support in
+# the Firefox binaries.
+###################################################################
+#
+# NOTE: You must uncomment this option if there is any chance of
+# compiling the OpenOffice package from source code using this copy
+# of Firefox for your Mozilla support.
+#
+###################################################################
+#ac_add_options --enable-ldap
+
+# This option is used to enable support for rendering SVG files in the
+# Firefox browser. Uncomment the line below to enable the option.
+#ac_add_options --enable-svg
+
+# Uncomment this option if you desire support for dual-monitor
+# display of Firefox using the X-Window Xinerama libraries.
+#ac_add_options --enable-xinerama
+
+# This option identifies the default binary directory of the Firefox
+# installation and is used to locate Firefox's installed files. This
+# option is not required for end-user browsing, and is only used for
+# development purposes.
+#ac_add_options --with-default-mozilla-five-home=/usr/lib/firefox-&firefox-version;</literal>
+
+EOF</userinput></screen>
+
+    <para>Compile <application>Firefox</application> by issuing the
+    following command:</para>
+
+<screen><userinput>make -f client.mk build</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>Now, as the <systemitem class="username">root</systemitem> user,
+    install the package:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>make -f client.mk install &amp;&amp;
+
+install -v -m755 -d /usr/lib/firefox-&firefox-version;/chrome/icons/default &amp;&amp;
+ln -v -s ../../../icons/default.xpm \
+    /usr/lib/firefox-&firefox-version;/chrome/icons/default &amp;&amp;
+
 install -v -m755 -d /usr/include/firefox-&firefox-version;/nss &amp;&amp;
-cp -v -Lf dist/private/nss/*.h dist/public/nss/*.h \
-    /usr/include/firefox-&firefox-version;/nss</userinput></screen>
+cp -v -Lf ../firefox-build/dist/{private,public}/nss/*.h \
+    /usr/include/firefox-&firefox-version;/nss &amp;&amp;
+
+chown -v -R root:root \
+    /usr/lib/firefox-&firefox-version;/extensions/inspector@mozilla.org/*</userinput></screen>
+
+    <para>If you enabled LDAP support in the <application>Firefox</application>
+    build, install some additional interface headers as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m644 ../firefox-build/dist/public/ldap-private/* \
+    /usr/include/firefox-&firefox-version;/ldap</userinput></screen>
+
+    <!-- This appears to not be required any longer. The regchrome program
+         is not built any longer, and multi-user access to Firefox appears
+         to work fine without running regxpcom and touching the files. -Randy 
 
     <para>To enable multi-user operation, execute the following as the
     <systemitem class="username">root</systemitem> user:</para>
@@ -177,6 +244,8 @@ export MOZILLA_FIVE_HOME="$PWD" &amp;&amp;
 ./regchrome &amp;&amp;
 touch `find . -name *.rdf`</userinput></screen>
 
+    -->
+
     <note>
       <para>You should run <command>/usr/bin/firefox</command> once as the
       <systemitem class="username">root</systemitem> user (or any user with
@@ -184,21 +253,25 @@ touch `find . -name *.rdf`</userinput></screen>
       <filename class='directory'>/usr</filename> hierarchy.</para>
     </note>
 
-    <para>Lastly, unset the build variables from the unprivileged user's
-    environment:</para>
-
-<screen><userinput>unset MOZILLA_OFFICIAL &amp;&amp;
-unset BUILD_OFFICIAL &amp;&amp;
-unset MOZ_PHOENIX</userinput></screen>
-
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i '...' browser/app/mozilla.in</command>: This command
-    fixes an issue where <application>Firefox</application> wants to call the
-    profile manager instead of just invoking another copy of itself.</para>
+    <para><command>install -v -m755 -d .../chrome/icons/default</command> and
+    <command>ln -v -s ../../../icons/default.xpm ...</command>: These two
+    commands are used to create a symlink in the required directory so that
+    the proper icon is displayed in the taskbar and when
+    <application>Firefox</application> windows are minimized.</para>
+
+    <para><command>install -v -m755 -d /usr/include/firefox-&firefox-version;/nss</command>
+    and <command>cp -v -Lf ../firefox-build/dist/{private,public}/nss/*.h ...</command>:
+    These commands are used to install the Mozilla Network Security Services
+    (NSS) interface headers to a system-wide location.</para>
+
+    <para><command>chown -v -R root:root ...</command>: This command changes
+    the ownership of some installed files to more appropriate user:group
+    names.</para>
 
   </sect2>
 
@@ -208,8 +281,8 @@ unset MOZ_PHOENIX</userinput></screen>
     <para>No specific configuration is required as long as the
     <command>firefox</command> script is in the user's path. If
     <application>Firefox</application> is installed in a non-standard location,
-    then make a symlink to the <command>firefox</command> script from
-    <filename class="directory">/usr/bin</filename>.</para>
+    then make a symlink to the <command>firefox</command> script in the
+    <filename class="directory">/usr/bin</filename> directory.</para>
 
     <para>Many applications look for <command>netscape</command> when they
     need to open a browser. You may make the following symlink for convenience
@@ -221,11 +294,26 @@ unset MOZ_PHOENIX</userinput></screen>
     refer to <ulink url="http://plugindoc.mozdev.org/linux.html">Mozdev's
     PluginDoc Project</ulink>. If you have <xref linkend="jdk"/> already
     installed, create the following link as the
-    <systemitem class="username">root</systemitem> user to utilize the
-    <application>JAVA</application> plugin: </para>
+    <systemitem class="username">root</systemitem> user to utilize the installed
+    <application>Java</application> plugin: </para>
 
 <screen role="root"><userinput>ln -v -s $JAVA_HOME/jre/plugin/i386/ns7/libjavaplugin_oji.so \
     /usr/lib/firefox-&firefox-version;/plugins</userinput></screen>
+
+    <para>Some packages install Mozilla plugins into the default system-wide
+    directory <filename class='directory'>/usr/lib/mozilla/plugins</filename>.
+    If desired, issue the following commands as the
+    <systemitem class="username">root</systemitem> user to link any plugins
+    you may have installed to the <application>Firefox</application> plugin
+    directory.</para>
+
+<screen role="root"><userinput>if [ -f /usr/lib/mozilla/plugins/* ]; then
+  for PLUGIN_FILE in $(ls /usr/lib/mozilla/plugins/*)
+  do
+    ln -v -s ../../mozilla/plugins/$(basename $PLUGIN_FILE) \
+        /usr/lib/firefox-&firefox-version;/plugins
+  done
+fi</userinput></screen>
 
   </sect2>
 
@@ -242,7 +330,7 @@ unset MOZ_PHOENIX</userinput></screen>
         <seg>Numerous libraries, browser components, plugins, extensions, and
         helper modules installed in <filename
         class='directory'>/usr/lib/firefox-&firefox-version;</filename></seg>
-        <seg>/usr/bin/defaults, /usr/include/firefox-&firefox-version;,
+        <seg>/usr/include/firefox-&firefox-version;,
         /usr/lib/firefox-&firefox-version;, and
         /usr/share/idl/firefox-&firefox-version;</seg>
       </seglistitem>
@@ -256,7 +344,8 @@ unset MOZ_PHOENIX</userinput></screen>
       <varlistentry id="firefox-prog">
         <term><command>firefox</command></term>
         <listitem>
-          <para>is the next-generation browser from Mozilla.</para>
+          <para>is a shell script that sets up the environment and
+          calls the <filename>firefox-bin</filename> binary.</para>
           <indexterm zone="firefox firefox-prog">
             <primary sortas="b-firefox">firefox</primary>
           </indexterm>
