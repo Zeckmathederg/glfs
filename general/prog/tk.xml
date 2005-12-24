@@ -77,10 +77,11 @@ commands:</para>
 export V=`echo $VERSION | cut -d "." -f 1,2` &amp;&amp;
 export DIR=$PWD &amp;&amp;
 cd unix &amp;&amp;
+sed -i "s/relid'/relid/" configure &amp;&amp;
 ./configure --prefix=/usr --enable-threads &amp;&amp;
 make &amp;&amp;
-sed -i "s:${DIR}/unix:/usr/lib:" tkConfig.sh &amp;&amp;
-sed -i "s:${DIR}:/usr/include/tk${V}:" tkConfig.sh</userinput></screen>
+sed -i -e "s:${DIR}/unix:/usr/lib:" \
+       -e "s:${DIR}:/usr/include/tk${V}:" tkConfig.sh</userinput></screen>
 
     <para>The test is not recommended.  Some tests may crash your X Server.  To
     test the results, issue: <command>make test</command>.  Ensure you run it
@@ -121,12 +122,15 @@ unset DIR</userinput></screen>
     <para><parameter>--enable-threads</parameter>: This switch forces the package
     to build with thread support.</para>
 
-    <para><command>sed -i ...</command>: The <application>Tk</application> package
-    assumes that the source used to build <application>Tk</application> is
-    always kept around for compiling packages that depend on
-    <application>Tk</application>. These <command>sed</command>s remove the
-    reference to the build directory and replace them by saner system-wide
-    locations.</para>
+    <para><command>sed -i "s/relid'/relid/" configure</command>: This command
+    fixes a syntax error in the <command>configure</command> script.</para>
+
+    <para><command>sed -i -e ... tkConfig.sh</command>: The
+    <application>Tk</application> package assumes that the source used to build
+    <application>Tk</application> is always kept around for compiling packages
+    that depend on <application>Tk</application>. This <command>sed</command>
+    removes the references to the build directory and replaces them by saner
+    system-wide locations.</para>
 
     <para><command>install ...</command>: These commands install the internal
     headers into a system-wide location.</para>
