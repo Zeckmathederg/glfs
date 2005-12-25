@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY sendmail-download-ftp "ftp://ftp.sendmail.org/pub/sendmail/sendmail.&sendmail-version;.tar.gz">
   <!ENTITY sendmail-download-http "http://www.sendmail.org/ftp/sendmail.&sendmail-version;.tar.gz">
-  <!ENTITY sendmail-md5sum "61e336750b48b01abaa69b4d7c9473b5">
-  <!ENTITY sendmail-size "1.9 MB">
-  <!ENTITY sendmail-buildsize "19.3 MB">
-  <!ENTITY sendmail-time "0.43 SBU">
+  <!ENTITY sendmail-download-ftp  "ftp://ftp.sendmail.org/pub/sendmail/sendmail.&sendmail-version;.tar.gz">
+  <!ENTITY sendmail-md5sum        "f4550d8dcc55771f4a81e999c7d6df20">
+  <!ENTITY sendmail-size          "1.9 MB">
+  <!ENTITY sendmail-buildsize     "19.4 MB">
+  <!ENTITY sendmail-time          "0.5 SBU">
 ]>
 
 <sect1 id="sendmail" xreflabel="Sendmail-&sendmail-version;">
@@ -61,14 +61,15 @@
     <bridgehead renderas="sect3">Sendmail Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="db"/> and <xref linkend="procmail"/></para>
+    <para role="required"><xref linkend="db"/> and
+    <xref linkend="procmail"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="openssl"/>,
     <xref linkend="openldap"/>,
     <xref linkend="tcpwrappers"/>,
     <xref linkend="cyrus-sasl"/>,
-    <ulink url="http://www-dev.cites.uiuc.edu/ph/nph/">nph</ulink>, and
+    <ulink url="http://www.feep.net/nph/">nph</ulink>, and
     <xref linkend="gs"/> or <xref linkend="espgs"/> (for creating
     PDF documentation)</para>
 
@@ -78,14 +79,12 @@
     <title>Installation of Sendmail</title>
 
     <para>Before building <application>Sendmail</application>, create the
-    users, groups and directories that <application>Sendmail</application>
-    requires with the following commands issued as the
-    <systemitem class="username">root</systemitem> user:</para>
+    required user, group and directory with the following commands issued as
+    the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>groupadd -g 26 smmsp &amp;&amp;
-groupadd -g 34 mail &amp;&amp;
-useradd -c "Sendmail Daemon" -g smmsp -G mail \
-        -d /dev/null -s /bin/false -u 26 smmsp &amp;&amp;
+useradd -c "Sendmail Daemon" -g smmsp -d /dev/null \
+        -s /bin/false -u 26 smmsp &amp;&amp;
 chmod -v 1777 /var/mail &amp;&amp;
 install -v -m700 -d /var/spool/mqueue</userinput></screen>
 
@@ -123,10 +122,21 @@ sh Build sendmail.cf</userinput></screen>
 
 <screen role="root"><userinput>install -v -d -m755 /etc/mail &amp;&amp;
 sh Build install-cf &amp;&amp;
-cd ../../ &amp;&amp;
+
+cd ../.. &amp;&amp;
 sh Build install &amp;&amp;
+
+install -v -m644 cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
 cp -v -R cf/* /etc/mail &amp;&amp;
-cp -v cf/cf/{submit,sendmail}.mc /etc/mail &amp;&amp;
+
+install -v -m755 -d /usr/share/doc/sendmail-&sendmail-version;/{cf,sendmail} &amp;&amp;
+install -v -m644 \
+        CACerts FAQ KNOWNBUGS LICENSE PGPKEYS README RELEASE_NOTES \
+        /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
+install -v -m644 sendmail/{README,SECURITY,TRACEFLAGS,TUNING} \
+        /usr/share/doc/sendmail-&sendmail-version;/sendmail &amp;&amp;
+install -v -m644 cf/README /usr/share/doc/sendmail-&sendmail-version;/cf &amp;&amp;
+
 for manpage in sendmail editmap mailstats makemap praliases smrsh
 do
     install -v -m444 $manpage/$manpage.8 /usr/share/man/man8
@@ -140,15 +150,14 @@ install -v -m444 vacation/vacation.1   /usr/share/man/man1</userinput></screen>
     Operations Guide with the following commands:</para>
 
 <screen><userinput>cd doc/op &amp;&amp;
-sed -i -e 's/groff/GROFF_NO_SGR=1 groff/' Makefile &amp;&amp;
+sed -i 's/groff/GROFF_NO_SGR=1 groff/' Makefile &amp;&amp;
 make op.txt op.pdf</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -d -m755 /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
-install -v -m644 op.ps op.txt op.pdf \
-    /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
-cd ../../</userinput></screen>
+install -v -m644 op.ps op.txt op.pdf /usr/share/doc/sendmail-&sendmail-version; &amp;&amp;
+cd ../..</userinput></screen>
 
     <para><emphasis>Note:</emphasis> remove <filename>op.pdf</filename> from
     the <command>make</command> and <command>install</command> commands if
@@ -165,7 +174,7 @@ cd ../../</userinput></screen>
     <para><command>sh Build; sh Build sendmail.cf; sh Build install-cf;
     sh Build install</command>: <application>Sendmail</application> uses an
     <application>m4</application> based build script to create the various
-    <filename>Makefile</filename>'s. These commands build and install the
+    <filename>Makefile</filename>s. These commands build and install the
     package.</para>
 
     <para><command>for manpage in...;do...;done; install ...</command>: The man
@@ -207,11 +216,11 @@ newaliases -v</userinput></screen>
 
       <para><application>Sendmail</application>'s primary configuration file,
       <filename>/etc/mail/sendmail.cf</filename>, is complex and not meant to be
-      directly edited. The recommended method to make changes is to modify
-      <filename>/etc/mail/sendmail.mc</filename>, and various
+      directly edited. The recommended method for changing it is to modify
+      <filename>/etc/mail/sendmail.mc</filename> and various
       <application>m4</application> files, then run the <command>m4</command>
-      macro processor from within <filename class='directory'>/etc/mail</filename>
-      as follows:</para>
+      macro processor from within
+      <filename class='directory'>/etc/mail</filename> as follows:</para>
 
 <screen role="root"><userinput>m4 m4/cf.m4 sendmail.mc > sendmail.cf</userinput></screen>
 
