@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY qt-download-http "http://ftp.uoi.gr/mirror/X11/Qt/qt/source/qt-x11-free-&qt-version;.tar.bz2">
+  <!ENTITY qt-download-http "http://ftp.silug.org/mirrors/ftp.trolltech.com/qt/source/qt-x11-free-&qt-version;.tar.bz2">
   <!ENTITY qt-download-ftp  "ftp://ftp.trolltech.com/qt/source/qt-x11-free-&qt-version;.tar.bz2">
   <!ENTITY qt-md5sum        "05d04688c0c0230ed54e89102d689ca4">
-  <!ENTITY qt-size          "16.7 MB">
-  <!ENTITY qt-buildsize     "167 MB">
-  <!ENTITY qt-time          "9.7 SBU (full), 6.8 SBU (sub-tools)">
+  <!ENTITY qt-size          "14.4 MB">
+  <!ENTITY qt-buildsize     "263 MB">
+  <!ENTITY qt-time          "10.6 SBU (full), 7.5 SBU (sub-tools)">
 ]>
 
 <sect1 id="qt" xreflabel="Qt-&qt-version;">
@@ -63,14 +63,7 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-<!--
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/qt-x11-free-&qt-version;-gcc4-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
--->
+
     <bridgehead renderas="sect3">Qt Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -81,6 +74,13 @@
     <para role="recommended"><xref linkend="libjpeg"/> and
     <xref linkend="libmng"/></para>
 
+    <para>Note: if for whatever reason you do not have the recommended
+    libraries installed on your system, you must remove the corresponding
+    <parameter>-system-<replaceable>[library]</replaceable></parameter> and
+    <parameter>-plugin-imgfmt-<replaceable>[library]</replaceable></parameter>
+    parameters from the <command>configure</command> commands shown in the
+    instructions below.</para>
+    
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="nas"/>,
     <xref linkend="cups"/>,
@@ -121,7 +121,7 @@
     <note>
       <para>The build time for <application>Qt</application> is quite long. If
       you want to save some time and don't want the tutorials and examples,
-      change the first make line to:</para>
+      change the first <command>make</command> command to:</para>
 
 <screen><userinput>make sub-tools</userinput></screen>
 
@@ -148,6 +148,7 @@
         <filename>qmake.conf</filename>.</para>
       </note>
 -->
+
       <note>
         <para>If <application>Qt</application> is being reinstalled, run the
         following commands from a console or non-Qt based window manager.
@@ -158,18 +159,35 @@
 <screen><userinput>sed -i -e 's:$(QTDIR)/include:&amp;/qt:' \
        -e 's:$(QTDIR)/lib:&amp;/qt:' \
     mkspecs/linux*/qmake.conf &amp;&amp;
+
 bash
 export PATH=$PWD/bin:$PATH &amp;&amp;
 export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH &amp;&amp;
-./configure -prefix /usr -docdir /usr/share/doc/qt \
-    -headerdir /usr/include/qt -plugindir /usr/lib/qt/plugins \
-    -datadir /usr/share/qt -translationdir /usr/share/qt/translations \
-    -sysconfdir /etc/qt -qt-gif -system-zlib -system-libmng \
-    -no-exceptions -thread -plugin-imgfmt-png \
-    -system-libjpeg -system-libpng &amp;&amp;
+
+./configure -prefix /usr \
+            -docdir /usr/share/doc/qt \
+            -headerdir /usr/include/qt \
+            -plugindir /usr/lib/qt/plugins \
+            -datadir /usr/share/qt \
+            -translationdir /usr/share/qt/translations \
+            -sysconfdir /etc/qt \
+            -qt-gif \
+            -system-zlib \
+            -system-libpng \
+            -system-libjpeg \
+            -system-libmng \
+            -plugin-imgfmt-png \
+            -plugin-imgfmt-jpeg \
+            -plugin-imgfmt-mng \
+            -no-exceptions \
+            -thread \
+            -tablet &amp;&amp;
+
 find -type f -name Makefile | xargs sed -i "s@-Wl,-rpath,/usr/lib@@g" &amp;&amp;
 make &amp;&amp;
 exit</userinput></screen>
+
+      <para>This package does not come with a test suite.</para>
 
       <para>Now, as the <systemitem class="username">root</systemitem>
       user:</para>
@@ -201,11 +219,25 @@ cp -v -r examples /usr/share/doc/qt</userinput></screen>
 export QTDIR=$PWD &amp;&amp;
 export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH &amp;&amp;
 export PATH=$PWD/bin:$PATH &amp;&amp;
-./configure -prefix /opt/qt-&qt-version; -qt-gif -system-libpng \
-    -system-libmng -system-zlib -system-libjpeg -no-exceptions \
-    -thread -plugin-imgfmt-png &amp;&amp;
+
+./configure -prefix /opt/qt-&qt-version; \
+            -sysconfdir /etc/qt \
+            -qt-gif \
+            -system-zlib \
+            -system-libpng \
+            -system-libjpeg \
+            -system-libmng \
+            -plugin-imgfmt-png \
+            -plugin-imgfmt-jpeg \
+            -plugin-imgfmt-mng \
+            -no-exceptions \
+            -thread \
+            -tablet &amp;&amp;
+
 make &amp;&amp;
 exit</userinput></screen>
+
+      <para>This package does not come with a test suite.</para>
 
       <para>Now, as the <systemitem class="username">root</systemitem>
       user:</para>
@@ -252,13 +284,14 @@ cp -v -r examples /opt/qt/doc</userinput></screen>
     <para><parameter>-qt-gif</parameter>: This switch adds support for
     <filename>gif</filename> files to the libraries.</para>
 
-    <para><parameter>-system-zlib -system-libpng</parameter>: This switch
-    forces the build instructions to use the shared libraries that are on
-    your system instead of creating a custom set of support libraries for
-    these functions.</para>
+    <para><parameter>-system-zlib -system-libpng -system-libjpeg
+    -system-mng</parameter>: These switches force the build instructions to use
+    the shared libraries that are on your system instead of creating a custom
+    set of support libraries for these functions.</para>
 
-    <para><parameter>-plugin-imgfmt-png</parameter>: This switch enables
-    <application>libpng</application> to be linked to at runtime.</para>
+    <para><parameter>-plugin-imgfmt-png -plugin-imgfmt-jpeg
+    -plugin-imgfmt-mng</parameter>: These switches enable run-time linking of
+    the referenced libraries.</para>
 
     <para><parameter>-no-exceptions</parameter>: This switch disables
     the exceptions coding generated by the <application>C++</application>
