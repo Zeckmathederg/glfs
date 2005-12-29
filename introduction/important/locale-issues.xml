@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+   "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="locale-issues" xreflabel="Locale Related Issues">
+  <?dbhtml filename="locale-issues.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy:$</othername>
+    <date>$Date:$</date>
+  </sect1info>
+
+  <title>Locale Related Issues</title>
+
+  <para>This page contains information about locale related problems and
+  issues. In this paragraph you'll find a generic overview of things that can
+  come up when configuring your system for various locales. The previous
+  sentence and the remainder of this paragraph must still be
+  revised/completed.</para>
+
+ <sect2>
+
+    <title>Package Specific Locale Issues</title> 
+
+    <para>For package specific issues, find the concerned package from the list
+    below and follow the link to view the available information. If a package
+    is not listed here, it means there are no known locale specific issues or
+    problems with that package.</para>
+
+    <itemizedlist>
+
+      <title>List of Packages with Locale Related Issues</title>
+
+      <listitem>
+        <para><xref linkend="locale-unzip"/></para>
+      </listitem>
+
+    </itemizedlist>
+
+    <sect3 id="locale-unzip" xreflabel="UnZip-&unzip-version;">
+
+      <title><xref linkend="unzip"/></title>
+
+      <note>
+        <para>Use of <application>UnZip</application> in the
+        <application>JDK</application>, <application>Mozilla</application>,
+        <application>DocBook</application> or any other BLFS installation
+        instructions is not a problem, as these applications never use
+        <application>UnZip</application> to extract a file with non-ASCII
+        characters in its name.</para>
+      </note>
+
+      <para>The <application>UnZip</application> package assumes that filenames
+      stored in the ZIP archives created on non-Unix systems are encoded in
+      CP850, and that they should be converted to ISO-8859-1 when writing files
+      onto the filesystem. Such assumptions are not always valid. In fact,
+      inside the ZIP archive, filenames are encoded in the DOS codepage that is
+      in use in the relevant country, and the filenames on disk should be in
+      the locale encoding. In MS Windows, the OemToChar() C function (from
+      <filename>User32.DLL</filename>) does the correct conversion (which is
+      indeed the conversion from CP850 to a superset of ISO-8859-1 if MS
+      Windows is set up to use the US English language), but there is no
+      equivalent in Linux.</para>
+
+      <para>When using <command>unzip</command> to unpack a ZIP archive
+      containing non-ASCII filenames, the filenames are damaged because
+      <command>unzip</command> uses improper conversion when any of
+      <replaceable>[SOMETHING NEEDS TO BE PUT HERE AS THE SENTENCE WAS
+      INCOMPLETE]</replaceable>. For example, in the ru_RU.KOI8-R locale,
+      conversion of filenames from CP866 to KOI8-R is required, but conversion
+      from CP850 to ISO-8859-1 is done, which produces filenames consisting of
+      undecipherable characters instead of words (the closest equivalent
+      understandable example for English-only users is rot13). There are
+      several ways around this limitation:</para>
+
+      <para>1) For unpacking ZIP archives with filenames containing non-ASCII
+      characters, use <ulink url="http://www.winzip.com/">WinZip</ulink> while
+      running the <ulink url="http://www.winehq.com/">Wine</ulink> Windows
+      emulator.</para>
+
+      <para>2) After running <command>unzip</command>, fix the damage made to
+      the filenames using the <command>convmv</command> tool
+      (<ulink url="http://j3e.de/linux/convmv/"/>). The following is an example
+      for the ru_RU.KOI8-R locale:</para>
+
+      <blockquote>
+        <para>Step 1. Undo the conversion done by
+        <command>unzip</command>:</para>
+
+<screen><userinput>convmv -f iso-8859-1 -t cp850 -r --nosmart --notest \
+    <replaceable>[/path/to/unzipped/files]</replaceable></userinput></screen>
+
+        <para>Step 2. Do the correct conversion instead:</para>
+
+<screen><userinput>convmv -f cp866 -t koi8-r -r --nosmart --notest \
+    <replaceable>[/path/to/unzipped/files]</replaceable></userinput></screen>
+      </blockquote>
+
+      <para>3) Apply this patch to unzip:
+      <ulink url="https://bugzilla.altlinux.ru/attachment.cgi?id=532"/></para>
+
+      <para>It allows to specify the assumed filename encoding in the ZIP
+      archive using the <option>-O charset_name</option> option and the
+      on-disk filename encoding using the <option>-I charset_name</option>
+      option. Defaults: the on-disk filename encoding is the locale encoding,
+      the encoding inside the ZIP archive is guessed according to the builtin
+      table based on the locale encoding. For US English users, this still
+      means that unzip converts from CP850 to ISO-8859-1 by default.</para>
+
+      <para>Caveat: this method works only with 8-bit locale encodings, not
+      with UTF-8. Attempting to use a patched <command>unzip</command> in UTF-8
+      locales may result in a segmentation fault and is probably a security
+      risk.</para>
+
+    </sect3>
+
+  </sect2>
+
+</sect1>
