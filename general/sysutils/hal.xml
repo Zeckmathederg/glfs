@@ -38,10 +38,17 @@
     attached to a system. In addition to this, <application>HAL</application>
     keeps detailed metadata for each piece of hardware and provides hooks such
     that system and desktop-level software can react to changes in the hardware
-    configuration in order to maintain system policy. The most important goal
-    of <application>HAL</application> is to provide plug-and-play facilities
-    for UNIX-like desktops with focus on providing a rich and extensible
-    description of device characteristics and features.</para>
+    configuration in order to maintain system policy.</para>
+
+    <para>The most important goal of <application>HAL</application> is to
+    provide plug-and-play facilities for UNIX-like desktops with focus on
+    providing a rich and extensible description of device characteristics and
+    features. One example of the functionality provided by
+    <application>HAL</application> is when you plug in a USB storage device.
+    <application>HAL</application> can automatically create an appropriate
+    entry in the <filename>/etc/fstab</filename> file and create the
+    corresponding mount point in
+    <filename class="directory">/media</filename>.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -76,8 +83,10 @@
     <bridgehead renderas="sect3">HAL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="dbus"/>,
-    <xref linkend="popt"/> and
+    <para role="required"><xref linkend="glib2"/>,
+    <xref linkend="dbus"/> (see the <xref linkend="hal-requirements"/>),
+    <xref linkend="python"/>,
+    <xref linkend="popt"/>, and
     <xref linkend="perl-xml-parser"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -88,11 +97,7 @@
     <para role="optional"><xref linkend="pkgconfig"/>,
     <xref linkend="intltool"/>,
     <xref linkend="libusb"/>,
-    <xref linkend="expat"/>,
-    <xref linkend="python"/>,
-    <ulink url="http://ftp.gnome.org/pub/GNOME/sources/gnome-python/">GNOME-Python</ulink>
-    (run-time requirement to use the <command>hal-device-manager</command> program),
-    <xref linkend="doxygen"/> and
+    <xref linkend="doxygen"/>, and
     <xref linkend="docbook-utils"/></para>
 
   </sect2>
@@ -106,10 +111,14 @@
 
 <screen role="root"><userinput>install -v -m644 ../usb.ids /usr/share</userinput></screen>
 
-    <para>You must create a dedicated user and group for the
-    <application>HAL</application> daemon before installing the package. Issue
-    the following as the <systemitem class="username">root</systemitem>
-    user:</para>
+    <para>You must create a dedicated user and group before installing the
+    package. Though the default BLFS instructions run the
+    <application>HAL</application> daemon as the
+    <systemitem class="username">root</systemitem> user, a configuration file
+    is installed which has the dedicated user's name hard-coded in it. This
+    causes a confusing message to be generated when starting the
+    <application>D-BUS</application> daemon. Issue the following commands as
+    the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>groupadd -g 19 haldaemon &amp;&amp;
 useradd -c "HAL Daemon User" -d /dev/null -u 19 \
@@ -118,7 +127,8 @@ useradd -c "HAL Daemon User" -d /dev/null -u 19 \
     <para>Install <application>HAL</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i -e "9,11d" -e "s/pamconsole/users/" \
+<screen><userinput>sed -i -e "s/managed&lt;/comment=&amp;/" \
+       -e "s/pamconsole/users/" \
     fdi/policy/10osvendor/10-storage-policy.fdi &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
@@ -140,10 +150,9 @@ install -v -m755 -d /var/run/hald</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i -e "9,11d" -e "s/pamconsole/users/" ...</command>:
-    This command adjusts the policy for storage devices so that the
-    <filename>/etc/fstab</filename> file is updated to standards used by LFS
-    systems.</para>
+    <para><command>sed -i -e ...</command>: This command adjusts the policy for
+    storage devices so that the <filename>/etc/fstab</filename> file is updated
+    to standards used by LFS systems.</para>
 
     <para><parameter>--libexecdir=/usr/lib/hal</parameter>: This parameter
     forces the installation of libexec files to
@@ -160,6 +169,124 @@ install -v -m755 -d /var/run/hald</userinput></screen>
 
     <para><parameter>--enable-pcmcia-support</parameter>: This parameter
     provides extended PCMCIA support.</para>
+
+  </sect2>
+
+  <sect2 id="hal-runtime-dependencies" xreflabel="GNOME-Python">
+    <title>Run-Time Dependencies</title>
+
+    <para>The <xref linkend="hal-device-manager"/> program requires several
+    additional packages to be installed before it will run. The list is
+    significant and requires a substantial commitment to install them. It is
+    left up to you to determine if the time and effort spent installing the
+    following packages is worth using the <command>hal-device-manager</command>
+    program.</para>
+
+    <para>Though the only requirement to run the
+    <command>hal-device-manager</command> program is installing 
+    <ulink url="http://ftp.gnome.org/pub/GNOME/sources/gnome-python/">
+    GNOME-Python</ulink>, the dependency list is staggering. The following
+    list does not include the dependencies already identified in the BLFS
+    book. For example, <application>libgnome</application> already lists
+    <application>GNOME VFS</application>, <application>GConf</application>,
+    etc., so they are not repeated here. Note that some of the dependencies
+    have their own dependencies, which have their own, and so forth and so
+    on.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><ulink
+          url="http://ftp.gnome.org/pub/GNOME/sources/gnome-python/">GNOME-Python</ulink>
+        </para>
+
+        <itemizedlist>
+          <listitem>
+            <para><ulink
+              url="http://www.pygtk.org/">PyGTK</ulink> (required)
+            </para>
+
+            <itemizedlist>
+              <listitem>
+                <para><ulink
+                  url="http://www.cairographics.org/pycairo">Pycairo</ulink> (optional)
+                </para>
+
+                <itemizedlist>
+                  <listitem>
+                    <para><ulink
+                      url="http://www.cairographics.org/snapshots/">libsvg-cairo</ulink> (optional)
+                    </para>
+
+                    <itemizedlist>
+                      <listitem>
+                        <para><ulink
+                          url="http://www.cairographics.org/snapshots/">libsvg</ulink> (required)
+                        </para>
+                      </listitem>
+                    </itemizedlist>
+
+                  </listitem>
+                  <listitem>
+                    <para><ulink
+                      url="http://www.pygtk.org/">PyGTK</ulink> (optional, and circular)
+                    </para>
+                  </listitem>
+                  <listitem>
+                    <para><ulink
+                      url="http://sourceforge.net/projects/numpy">Numerical Python</ulink> (optional)
+                    </para>
+                  </listitem>
+                </itemizedlist>
+
+              </listitem>
+              <listitem>
+                <para><ulink
+                  url="http://sourceforge.net/projects/numpy">Numerical Python</ulink> (optional)
+                </para>
+              </listitem>
+              <listitem>
+                <para><xref linkend="libglade"/> (required)</para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+          <listitem>
+            <para><xref linkend="libgnomeui"/> (optional)</para>
+          </listitem>
+          <listitem>
+            <para><xref linkend="libgnome"/> (required)</para>
+          </listitem>
+          <listitem>
+            <para><ulink
+              url="http://ftp.gnome.org/pub/GNOME/sources/pyorbit/2.0/">PyORBit</ulink> (optional)
+            </para>
+
+            <itemizedlist>
+              <listitem>
+                <para><xref linkend="ORBit2"/> (required)</para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+        </itemizedlist>
+
+      </listitem>
+    </itemizedlist>
+
+    <note>
+      <para>The dependency list is designed to start at the bottom and work
+      your way up until the last package to install is
+      <application>GNOME-Python</application>. Note that the dependencies
+      marked as <quote>required</quote> are required for the package it is
+      listed under. For example, you don't need to install
+      <application>ORBit</application> if you don't plan on installing
+      <application>PyORBit</application>. The minimum packages you could
+      install to support running <xref linkend="hal-device-manager"/> would be
+      (in this order): <xref linkend="libgnome"/>, <xref linkend="libglade"/>,
+      <ulink url="http://www.pygtk.org/">PyGTK</ulink> and <ulink
+      url="http://ftp.gnome.org/pub/GNOME/sources/gnome-python/">
+      GNOME-Python</ulink>.</para>
+    </note>
 
   </sect2>
 
@@ -182,9 +309,77 @@ install -v -m755 -d /var/run/hald</userinput></screen>
 
     <sect3><title>Configuration Information</title>
 
-      <para>No configuration is necessary as the default values will work for
-      most systems. Some tweaking of the various policies may be required for
-      special circumstances.</para>
+      <para>No configuration is necessary for the majority of installations
+      on systems configured with ISO-8859-1 compatible locales. The defaults
+      should work just fine. For some installations, tweaking of the various
+      policies may be required. One such configuration change necessary in some
+      locales is identifying the <option>iocharset</option> and
+      <option>codepage</option> variables in the
+      <filename>/etc/fstab</filename> entries created by the
+      <command>fstab-sync</command> program. If changes are required to the
+      configuration so that your locale is properly identified in the entries
+      created in <filename>/etc/fstab</filename>, issue the following commands
+      as the <systemitem class="username">root</systemitem> user (you must
+      substitute the proper data for the <replaceable>[iocharset]</replaceable>
+      and <replaceable>[codepage]</replaceable> info):</para>
+
+<screen role="root"><userinput>install -v -m755 -d /etc/hal/fdi/policy/30user &amp;&amp;
+cat &gt; /etc/hal/fdi/policy/30user/30user-policy.fdi &lt;&lt; "EOF"
+<literal>&lt;?xml version="1.0" encoding="UTF-8"?&gt; &lt;!-- -*- SGML -*- --&gt;
+
+&lt;!-- 
+This file is used to set custom options to the HAL policy settings.
+The default policy settings are defined in files contained in the
+/usr/share/hal/fdi/policy directories. User defined customizations
+should be in files contained in the /etc/hal/fdi/policy directories.
+--&gt;
+
+&lt;deviceinfo version="0.2"&gt;
+
+  &lt;device&gt;
+    &lt;match key="info.udi" \
+        string="/org/freedesktop/Hal/devices/computer"&gt;
+
+      &lt;!-- Set the iocharset variable in the /etc/fstab file entry --&gt;
+      &lt;merge \
+        key="storage.policy.default.mount_option.iocharset=<replaceable>[iocharset]</replaceable>" \
+        type="bool"&gt;true&lt;/merge&gt;
+
+      &lt;!-- Set the codepage variable in the /etc/fstab file entry --&gt;
+      &lt;merge \
+        key="storage.policy.default.mount_option.codepage=<replaceable>[codepage]</replaceable>" \
+        type="bool"&gt;true&lt;/merge&gt;
+
+    &lt;/match&gt;
+  &lt;/device&gt;
+
+&lt;/deviceinfo&gt;</literal>
+
+EOF</userinput></screen>
+
+      <note>
+        <para>The previous commands created a file named
+        <filename>/etc/hal/fdi/policy/30user/30user-policy.fdi</filename>. To
+        ease readability of the file, put everything between the
+        &lt;angle brackets&gt; and &lt;merge&gt;&lt;/merge&gt; tags on one
+        line. You must have at least one space character
+        <quote><keycap> </keycap></quote> where the backslashes
+        <quote><keycap>\</keycap></quote> are. The file would then look like
+        this (trimmed at the top and bottom to show only changed lines):</para>
+
+<screen><literal>  &lt;device&gt;
+    &lt;match key="<replaceable>[text]</replaceable>" string="<replaceable>[text]</replaceable>"&gt;
+
+      &lt;!-- Set the iocharset variable in the /etc/fstab file entry --&gt;
+      &lt;merge key="<replaceable>[iocharset text]</replaceable>" type="bool"&gt;true&lt;/merge&gt;
+
+      &lt;!-- Set the codepage variable in the /etc/fstab file entry --&gt;
+      &lt;merge key="<replaceable>[codepage text]</replaceable>" type="bool"&gt;true&lt;/merge&gt;
+
+    &lt;/match&gt;
+  &lt;/device&gt;</literal></screen>
+
+      </note>
 
     </sect3>
 
@@ -201,13 +396,13 @@ install -v -m755 -d /var/run/hald</userinput></screen>
         <primary sortas="f-haldaemon">haldaemon</primary>
       </indexterm>
 
-      <note>
+      <important>
         <para>If the system-wide <application>D-BUS</application> daemon was
         running during the installation of <application>HAL</application>,
         ensure you stop and restart the <application>D-BUS</application>
         daemon before attempting to start the <command>hald</command>
         daemon.</para>
-      </note>
+      </important>
 
 <screen role="root"><userinput>make install-haldaemon</userinput></screen>
 
@@ -276,7 +471,12 @@ install -v -m755 -d /var/run/hald</userinput></screen>
         <listitem>
           <para>shows a graphical respresentation of all the devices
           <application>HAL</application> is aware of. This program requires
-          <application>GNOME-Python</application>.</para>
+          <xref linkend="hal-runtime-dependencies"/>. Here is a <ulink
+          url="http://cvs.freedesktop.org/*checkout*/hal/hal/doc/spec/hal-devices1.png">
+          screenshot</ulink> of <command>hal-device-manager</command>
+          communicating with the HAL daemon and displaying a tree of device
+          objects. The shown properties in the screenshot are for a device
+          object representing a hard disk.</para>
           <indexterm zone="hal hal-device-manager">
             <primary sortas="b-hal-device-manager">hal-device-manager</primary>
           </indexterm>
