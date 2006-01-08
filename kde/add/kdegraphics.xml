@@ -8,7 +8,7 @@
   <!ENTITY kdegraphics-download-ftp  "&kde-download-ftp;/kdegraphics-&kde-version;.tar.bz2">
   <!ENTITY kdegraphics-md5sum        "00d4387e621d4dd325a59c7657c4">
   <!ENTITY kdegraphics-size          "6.8 MB">
-  <!ENTITY kdegraphics-buildsize     "117 MB">
+  <!ENTITY kdegraphics-buildsize     "117 MB (additional 50 MB for API documentation)">
   <!ENTITY kdegraphics-time          "6.4 SBU">
 ]>
 
@@ -35,7 +35,7 @@
 
     <para><application>Kdegraphics</application> provides
     <application>KDE</application> programs to manage the video display and
-    graphical output.  Applications include pdf, dvi, and Postscript viewers,
+    graphical output.  Applications include PDF, DVI, and Postscript viewers,
     an application to adjust monitor gamma correction, a 3D modeling
     application to generate POV-Ray scenes, and a scanner application.</para>
     
@@ -83,14 +83,23 @@
     <para role="optional"><xref linkend="libtiff"/>,
     <xref linkend="imlib"/>,
     <xref linkend="lcms"/>,
+    <xref linkend="poppler"/>
+    (<filename class='libraryfile'>libpoppler-qt.so</filename> must have
+    been built),
     <xref linkend="sane"/>,
-    <xref linkend="xpdf"/>,
+    <!-- There is an internal copy of Xpdf and there are *no* hooks to any
+         outside version. Commenting this out for now
+    <xref linkend="xpdf"/>, -->
     <xref linkend="tex"/>,
     <xref linkend="fribidi"/>,
-    <ulink url="http://www.gphoto.org/">gPhoto2</ulink>,
+    <ulink url="http://www.gphoto.org/">libgphoto2</ulink>,
     <ulink url="http://gd.tuwien.ac.at/visual/ibiblio/libs/graphics/t1lib-5.1.0.tar.gz">t1lib</ulink>,
-    <ulink url="http://www.openexr.com/">OpenEXR</ulink>, and
-    <ulink url="http://packages.debian.org/unstable/source/libpaper">libpaper</ulink></para>
+    <ulink url="http://www.openexr.com/">OpenEXR</ulink>,
+    <ulink url="http://packages.debian.org/unstable/source/libpaper">libpaper</ulink>,
+    <ulink url="http://www.rerecognition.com/">KADMOS</ulink> (a commercial
+    OCR engine),
+    <ulink url="http://www.graphviz.org/">GraphViz</ulink>, and
+    <xref linkend="doxygen"/></para>
 
   </sect2>
 
@@ -106,9 +115,26 @@
     --disable-dependency-tracking &amp;&amp;
 make</userinput></screen>
 
+    <note>
+      <para>If you wish to create the API documentation and you have
+      <application>Doxygen</application> and <application>GraphViz</application>
+      installed, <command>make apidox</command> must be done before
+      <command>make install</command>.</para>
+    </note>
+
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d &kde-dir;/man/man1 &amp;&amp;
+install -v -m644 debian/man/* &kde-dir;/man/man1</userinput></screen>
+
+    <para>The <command>kooka</command> utility is a scanning and OCR program.
+    In order for <command>kooka</command> to utilize the OCR capabilities, you
+    must install an OCR engine. <command>kooka</command> provides full OCR
+    support using the <ulink url="http://www.rerecognition.com/">KADMOS</ulink>
+    and <ulink url="http://sourceforge.net/projects/jocr">GOCR</ulink> engines
+    and partial support using the <ulink
+    url="https://savannah.gnu.org/projects/ocrad/">Ocrad</ulink> engine.</para>
 
   </sect2>
 
@@ -121,10 +147,15 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>kcoloredit, kdvi, kfax, kgamma, kghostview, kiconedit, kooka, kpaint,
-        kpdf, kpovmodeler, kruler, ksnapshot, kuickshow, and kview</seg>
-        <seg>kio_kamera and several other kdegraphics specific libraries</seg>
-        <seg>Several subdirectories in $KDE_PREFIX/share</seg>
+        <seg>kcolorchooser, kcoloredit, kdvi, kfax, kfaxview, kghostview,
+        kiconedit, kolourpaint, kooka, kpdf, kpovmodeler, kruler, ksnapshot,
+        kuickshow, kview, kviewshell, mrmlsearch, printnodetest, svgdisplay,
+        and xf86gammacfg</seg>
+        <seg>kio_kamera and several other kdegraphics specific libraries and
+        support modules</seg>
+        <seg>The following subdirectories in &kde-dir;: include/[svg,
+        kviewshell, libtext2path-0.1], share/applnk/Graphics, share/apps/[too
+        many to list], and share/config/magic</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -132,6 +163,16 @@ make</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="kcolorchooser">
+        <term><command>kcolorchooser</command></term>
+        <listitem>
+          <para>is a color chooser for a given pallette.</para>
+          <indexterm zone="kdegraphics kcolorchooser">
+            <primary sortas="b-kcolorchooser">kcolorchooser</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="kcoloredit">
         <term><command>kcoloredit</command></term>
@@ -163,12 +204,13 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="kgamma">
-        <term><command>kgamma</command></term>
+      <varlistentry id="kfaxview">
+        <term><command>kfaxview</command></term>
         <listitem>
-          <para>is a simple tool for monitor gamma correction.</para>
-          <indexterm zone="kdegraphics kgamma">
-            <primary sortas="b-kgamma">kgamma</primary>
+          <para>is a FAX previewer used with
+          <command>kviewshell</command>.</para>
+          <indexterm zone="kdegraphics kfaxview">
+            <primary sortas="b-kfaxview">kfaxview</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -193,6 +235,16 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="kolourpaint">
+        <term><command>kolourpaint</command></term>
+        <listitem>
+          <para>is a paint program.</para>
+          <indexterm zone="kdegraphics kolourpaint">
+            <primary sortas="b-kolourpaint">kolourpaint</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="kooka">
         <term><command>kooka</command></term>
         <listitem>
@@ -203,12 +255,12 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="kpaint">
-        <term><command>kpaint</command></term>
+      <varlistentry id="kpdf">
+        <term><command>kpdf</command></term>
         <listitem>
-          <para>is a paint program.</para>
-          <indexterm zone="kdegraphics kpaint">
-            <primary sortas="b-kpaint">kpaint</primary>
+          <para>is a PDF viewer.</para>
+          <indexterm zone="kdegraphics kpdf">
+            <primary sortas="b-kpdf">kpdf</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -264,12 +316,33 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="kviewshell">
+        <term><command>kviewshell</command></term>
+        <listitem>
+          <para>is a generic framework for the KDE viewer
+          applications.</para>
+          <indexterm zone="kdegraphics kviewshell">
+            <primary sortas="b-kviewshell">kviewshell</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="xf86gammacfg">
+        <term><command>xf86gammacfg</command></term>
+        <listitem>
+          <para>is a simple tool for monitor gamma correction.</para>
+          <indexterm zone="kdegraphics xf86gammacfg">
+            <primary sortas="b-xf86gammacfg">xf86gammacfg</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="kio_kamera">
         <term><command>kio_kamera</command></term>
         <listitem>
-          <para>is an io slave that allows you to view and download images from a
+          <para>is an ioslave that allows you to view and download images from a
           digital camera using the <userinput>kamera:/</userinput> URL in
-          <application>konqueror</application>.</para>
+          <command>konqueror</command>.</para>
           <indexterm zone="kdegraphics kio_kamera">
             <primary sortas="c-kio_kamera">kio_kamera</primary>
           </indexterm>
