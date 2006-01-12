@@ -8,8 +8,8 @@
   <!ENTITY ffmpeg-download-ftp  " ">
   <!ENTITY ffmpeg-md5sum        "ea5587e3c66d50b1503b82ac4179c303">
   <!ENTITY ffmpeg-size          "1.6 MB">
-  <!ENTITY ffmpeg-buildsize     "50 MB">
-  <!ENTITY ffmpeg-time          "0.9 SBU">
+  <!ENTITY ffmpeg-buildsize     "62.9 MB (built with all dependencies)">
+  <!ENTITY ffmpeg-time          "1.0 SBU">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -71,6 +71,10 @@
         <para>Required patch: <ulink
         url="&patch-root;/ffmpeg-&ffmpeg-version;-gcc4-1.patch"/></para>
       </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/ffmpeg-&ffmpeg-version;-amr_fixes-1.patch"/></para>
+      </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">FFmpeg Dependencies</bridgehead>
@@ -84,7 +88,13 @@
     <xref linkend="freetype2"/>,
     <xref linkend="mplayer"/> (for the shared post-processing library),
     <ulink url="http://sourceforge.net/projects/faac">FAAC</ulink>,
-    <ulink url="http://sourceforge.net/projects/faac">FAAD2</ulink> and
+    <ulink url="http://sourceforge.net/projects/faac">FAAD2</ulink>,
+    <ulink url="http://www.3gpp.org/ftp/Specs/latest/Rel-5/26_series/26104-540.zip">
+    AMR narrowband (floating point)</ulink> or
+    <ulink url="http://www.3gpp.org/ftp/Specs/latest/Rel-5/26_series/26073-530.zip">
+    AMR naarrowband (fixed point)</ulink>,
+    <ulink url="http://www.3gpp.org/ftp/Specs/latest/Rel-5/26_series/26204-530.zip">
+    AMR wideband</ulink>, and
     <xref linkend="tex"/> (to build HTML documentation)</para>
 
   </sect2>
@@ -101,31 +111,45 @@
     </note>
 
 <screen><userinput>patch -Np1 -i ../ffmpeg-&ffmpeg-version;-gcc4-1.patch &amp;&amp;
-sed -i -e "s/static uint64/const uint64/" \
+patch -Np1 -i ../ffmpeg-&ffmpeg-version;-amr_fixes-1.patch &amp;&amp;
+sed -i "s/static uint64/const uint64/" \
     libavcodec/liba52/resample_mmx.c &amp;&amp;
 ./configure --prefix=/usr --enable-shared \
     --enable-pthreads --disable-ffplay &amp;&amp;
 make</userinput></screen>
 
     <para>If you have <application>TeX</application> installed, the man pages
-    and documentation were built during the <command>make</command> process.
-    Skip to the <systemitem class="username">root</systemitem> user installation
-    steps. If you do not have <application>TeX</application> installed, use the
+    and HTML documentation were built during the <command>make</command>
+    process. Skip to the <systemitem class="username">root</systemitem> user
+    installation steps if you don't need other formats of the documentation, or
+    issue any or all of the following commands to create the additional
+    formats.</para>
+
+<screen><userinput>for DOCFILE in faq ffmpeg-doc ffplay-doc ffserver-doc hooks
+do
+    texi2pdf -b $DOCFILE.texi
+    texi2dvi -b $DOCFILE.texi
+    dvips -o $DOCFILE.ps $DOCFILE.dvi
+    makeinfo --plaintext --force -o $DOCFILE.txt $DOCFILE.texi
+done</userinput></screen>
+
+    <para>If you do not have <application>TeX</application> installed, use the
     following command to build the man pages:</para>
 
-<screen><userinput>make -C doc {ffmpeg,ffserver,ffplay}.1</userinput></screen>
+<screen><userinput>make -C doc ff{mpeg,play,server}.1</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
-    <para>If you have <application>TeX</application> installed (which caused
-    the HTML documentation to be built earlier), install the documentation by
-    issuing the following commands as the <systemitem
-    class="username">root</systemitem> user:</para>
+    <para>If you have <application>TeX</application> installed on your system,
+    install the documentation by issuing the following commands as the
+    <systemitem class="username">root</systemitem> user (modify the command
+    appropriately to reflect the documentation formats you've created):</para>
 
 <screen role="root"><userinput>install -v -m755 -d /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
-install -v -m644 doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
+install -v -m644 doc/*.{html,dvi,pdf,ps,txt}
+    /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
 
   </sect2>
 
@@ -134,9 +158,9 @@ install -v -m644 doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></
 
     <para><command>sed -i -e "s/static uint64/const uint64/"
     libavcodec/liba52/resample_mmx.c</command>: This command fixes an issue
-    on machines with MMX capability and use <application>GCC</application>-3.4.x
-    to compile in A52 support using the <option>--enable-a52</option> parameter
-    passed to the <command>configure</command> script.</para>
+    on machines with MMX capability and use <application>GCC</application> >=
+    3.4.x to compile in A52 support using the <option>--enable-a52</option>
+    parameter passed to the <command>configure</command> script.</para>
 
     <para><parameter>--enable-shared</parameter>: This switch is needed to
     build the <filename class="libraryfile">libavcodec</filename> and
@@ -153,7 +177,10 @@ install -v -m644 doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></
 
     <para><option>--enable-<replaceable>[codec]</replaceable></option>: Review
     the available options and codecs using the
-    <command>./configure --help</command> command.</para>
+    <command>./configure --help</command> command. Also review the information
+    at the end of the configure script (<command>cat</command> the file or view
+    it using a text editor) for information about building support for the AMR
+    codecs.</para>
 
   </sect2>
 
@@ -264,4 +291,3 @@ install -v -m644 doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></
   </sect2>
 
 </sect1>
-
