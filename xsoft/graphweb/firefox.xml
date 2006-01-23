@@ -58,11 +58,22 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch (if using the system-installed versions of
+        <application>NSS</application> and <application>NSPR</application>):
+        <ulink
+        url="&patch-root;/firefox-&firefox-version;-system_nss-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Firefox Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="gtk2"/>,
-    <xref linkend="libidl"/> and
+    <xref linkend="libidl"/>, and
     <xref linkend="zip"/></para>
 
     <para>Note: <application>libjpeg</application> should have been installed
@@ -70,6 +81,12 @@
     for some reason you haven't installed <application>libjpeg</application>,
     you should remove the <option>--with-system-jpeg</option> option from the
     <filename>.mozconfig</filename> file created below.</para>
+
+    <bridgehead renderas="sect4">Recommended (if you will be installing any
+    other package that utilizes NSS/NSPR, such as
+    <application>Thunderbird</application> or
+    <application>Mozilla</application>)</bridgehead>
+    <para role="recommended"><xref linkend="nss"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="unzip"/> and
@@ -97,17 +114,20 @@
     the desired configuration options. A default <filename>.mozconfig</filename>
     is created below. To see the entire list of available configuration options
     (and an abbreviated description of each one), issue
-    <command>./configure --help</command>. If you are going to build the
+    <command>./configure --help</command>.  If you are going to use the
+    system-installed versions of <application>NSS</application> and
+    <application>NSPR</application>, ensure you uncomment the two lines near
+    the bottom of the file. If you are going to build the
     <application>OpenOffice</application> package and you want to use this
     <application>Firefox</application> installation as the default
     <application>Mozilla</application> source, ensure you uncomment the
-    <option>--enable-ldap</option> option from the default file created below.
+    <option>--enable-ldap</option> option in the file created below.
     You may also wish to review the entire file and uncomment any other desired
     options. If you would prefer to download the file instead of creating it by
-    typing or cut-and-pasting, here is the URL: <ulink
+    typing or cut-and-pasting, you can find it at <ulink
     url="http://anduin.linuxfromscratch.org/files/BLFS/firefox-&firefox-version;-mozconfig"/>
-    (the file must be installed in the
-    <filename class='directory'>mozilla</filename> directory and named
+    (the file must be installed in the root of the source tree
+    <filename class='directory'>mozilla</filename> directory, and named 
     <filename>.mozconfig</filename>). Create the file by issuing the following
     command:</para>
 
@@ -192,6 +212,13 @@ ac_add_options --disable-accessibility
 # display of Firefox using the X-Window Xinerama libraries.
 #ac_add_options --enable-xinerama
 
+# These two options enable support for building Firefox with
+# system-installed versions of the Network Security Services (NSS)
+# and Netscape Portable Runtime (NSPR) libraries. Uncomment both
+# lines to enable support for system-installed NSS/NSPR.
+#ac_add_options --with-system-nss
+#ac_add_options --with-system-nspr
+
 # This option identifies the default binary directory of the Firefox
 # installation and is used to locate Firefox's installed files. This
 # option is not required for end-user browsing, and is only used for
@@ -199,6 +226,13 @@ ac_add_options --disable-accessibility
 #ac_add_options --with-default-mozilla-five-home=/usr/lib/firefox-&firefox-version;</literal>
 
 EOF</userinput></screen>
+
+    <para>If you have system-installed Network Security Services (NSS) and
+    Netscape Portable Runtime (NSPR) libraries and you uncommented the
+    appropriate lines in the <filename>.mozconfig</filename> file to utilize
+    them, apply the following patch:</para>
+
+<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-system_nss-1.patch</userinput></screen>
 
     <para>Compile <application>Firefox</application> by issuing the
     following commands:</para>
@@ -218,10 +252,6 @@ install -v -m755 -d /usr/lib/firefox-&firefox-version;/chrome/icons/default &amp
 ln -v -s ../../../icons/default.xpm \
     /usr/lib/firefox-&firefox-version;/chrome/icons/default &amp;&amp;
 
-install -v -m755 -d /usr/include/firefox-&firefox-version;/nss &amp;&amp;
-cp -v -Lf ../firefox-build/dist/{private,public}/nss/*.h \
-    /usr/include/firefox-&firefox-version;/nss &amp;&amp;
-
 chown -v -R root:root \
     /usr/lib/firefox-&firefox-version;/extensions/inspector@mozilla.org/*</userinput></screen>
 
@@ -231,6 +261,24 @@ chown -v -R root:root \
 
 <screen role="root"><userinput>install -v -m644 ../firefox-build/dist/public/ldap-private/* \
     /usr/include/firefox-&firefox-version;/ldap</userinput></screen>
+
+    <para>If you built <application>Firefox</application> utilizing
+    system-installed NSS and NSPR libraries, the
+    <filename>firefox-ns*.pc</filename> <application>pkgconfig</application>
+    files need to be modified. Issue the following command as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>sed -i 's|/firefox-1.5||' /usr/lib/pkgconfig/firefox-ns*.pc</userinput></screen>
+
+    <para>If you did <emphasis role="strong">NOT</emphasis> build
+    <application>Firefox</application> utilizing system-installed NSS and
+    NSPR libraries, issue the following commands as the
+    <systemitem class="username">root</systemitem> user to install the NSS
+    interface headers:</para>
+
+<screen role="root"><userinput>install -v -m755 -d /usr/include/firefox-&firefox-version;/nss &amp;&amp;
+cp -v -Lf ../firefox-build/dist/{private,public}/nss/*.h \
+    /usr/include/firefox-&firefox-version;/nss</userinput></screen>
 
     <!-- This appears to not be required any longer. The regchrome program
          is not built any longer, and multi-user access to Firefox appears
@@ -270,11 +318,6 @@ touch `find . -name *.rdf`</userinput></screen>
     the proper icon is displayed in the taskbar and when
     <application>Firefox</application> windows are minimized.</para>
 
-    <para><command>install -v -m755 -d /usr/include/firefox-&firefox-version;/nss</command>
-    and <command>cp -v -Lf ../firefox-build/dist/{private,public}/nss/*.h ...</command>:
-    These commands are used to install the Mozilla Network Security Services
-    (NSS) interface headers to a system-wide location.</para>
-
     <para><command>chown -v -R root:root ...</command>: This command changes
     the ownership of some installed files to more appropriate user:group
     names.</para>
@@ -290,15 +333,53 @@ touch `find . -name *.rdf`</userinput></screen>
     then make a symlink to the <command>firefox</command> script in the
     <filename class="directory">/usr/bin</filename> directory.</para>
 
+    <para>If your Window or Desktop Manager does not allow you to configure
+    a default mail client, you can add a configuration paramater to
+    <application>Firefox</application> so that an email client will start
+    when you click on a <systemitem role='url'>mailto:</systemitem> URL.
+    There are two parameters you need to check. The procedure to check or
+    modify any of the configuration parameters is quite simple and the
+    instructions here can be used to view or modify any of the
+    parameters.</para>
+
+    <para>First, open the configuration dialog by entering
+    <systemitem role='url'>about:config</systemitem> in the address bar. This
+    will display a list of the configuration preferences and information
+    related to each one. You can use the <quote>Filter:</quote> bar to enter
+    search criteria and narrow down the listed items. Changing a preference
+    can be done in two methods. One, if the preference has a boolean value
+    (True/False), simply double-click on the preference to toggle the value
+    and two, for other preferences simply right-click on the desired line,
+    choose <quote>Modify</quote> from the menu and change the value. Creating
+    new preference items is accomplished in the same way, except choose
+    <quote>New</quote> from the menu and provide the desired data into the
+    fields when prompted.</para>
+
+    <para>The two configuration preference items you need to check so that
+    <application>Firefox</application> uses a specified default mail client
+    are the <parameter>network.protocol-handler.external.mailto</parameter>
+    which should be set to <option>True</option> and the
+    <parameter>network.protocol-handler.app.mailto</parameter> which should
+    be set to the path of the desired mail client, e.g.,
+    <option>/usr/bin/thunderbird</option>.</para>
+
+    <tip>
+      <para>There is a multitude of configuration parameters you can tweak to
+      customize <application>Firefox</application>. A very extensive and
+      up-to-date list of these parameters can be found at <ulink
+      url="http://preferential.mozdev.org/preferences.html"/>.</para>
+    </tip>
+
     <para>Many applications look for <command>netscape</command> when they
-    need to open a browser. You may make the following symlink for convenience
-    (as the <systemitem class="username">root</systemitem> user).</para>
+    need to open a browser. You may wish to make the following symlink for
+    convenience (as the <systemitem class="username">root</systemitem>
+    user).</para>
 
 <screen role="root"><userinput>ln -v -sf firefox /usr/bin/netscape</userinput></screen>
 
     <para>For installing various <application>Firefox</application> plugins,
     refer to <ulink url="http://plugindoc.mozdev.org/linux.html">Mozdev's
-    PluginDoc Project</ulink>. If you have <xref linkend="jdk"/> already
+    PluginDoc Project</ulink>. If you have the <xref linkend="jdk"/> already
     installed, create the following link as the
     <systemitem class="username">root</systemitem> user to utilize the installed
     <application>Java</application> plugin: </para>
@@ -311,8 +392,9 @@ touch `find . -name *.rdf`</userinput></screen>
     If desired, create symbolic links in the <application>Firefox</application>
     plugin directory
     <filename class='directory'>/usr/lib/firefox-&firefox-version;/plugins</filename>
-    to the files in the default plugin directory. Alternatively, you can move
-    or copy the files in the default plugin directory to the
+    to the files in the default plugin directory (you should link to the actual
+    files and not other links). Alternatively, you can move or copy the files
+    in the default plugin directory to the
     <application>Firefox</application> plugin directory. An example of creating
     a symbolic link is shown below. Create the links as the
     <systemitem class="username">root</systemitem> user:</para>
