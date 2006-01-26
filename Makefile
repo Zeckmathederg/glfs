@@ -58,8 +58,10 @@ nochunks:
           $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
 pdf:
+	xsltproc --xinclude --nonet --stringparam profile.condition pdf \
+             --output blfs-pdf.xml stylesheets/blfs-profile.xsl index.xml 
 	xsltproc --xinclude --nonet --output blfs.fo \
-	  stylesheets/blfs-pdf.xsl index.xml
+	         stylesheets/blfs-pdf.xsl blfs-pdf.xml
 	sed -i -e "s/inherit/all/" blfs.fo
 	fop.sh blfs.fo blfs.pdf
 	$(INSTALL) -d $(BASEDIR)pdf
@@ -89,6 +91,11 @@ dump-commands:
 
 validate:
 	xmllint --noout --nonet --xinclude --postvalid index.xml
+
+validate-pdf:
+	xsltproc --xinclude --nonet --stringparam profile.condition pdf \
+             --output blfs-pdf.xml stylesheets/blfs-profile.xsl index.xml 
+	xmllint --noout --nonet --postvalid blfs-pdf.xml
 
 blfs-patch-list:
 	@echo "Generating blfs-patch-list..."
