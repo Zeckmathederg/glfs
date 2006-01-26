@@ -4,6 +4,13 @@
   %general-entities;
 ]>
 
+<!-- 
+  This stylesheet creates a script to copy the patches referenced
+  in the BLFS book from the patches repository to the blfs
+  download area.  It is very specific to the installation on 
+  the home server.
+-->
+
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 version="1.0">
 
@@ -16,19 +23,26 @@
 
   <xsl:template match="/">
     <xsl:text>#! /bin/bash&#x0a;&#x0a;</xsl:text>
+    <xsl:text>function copy
+{
+   cp $1 $2 >>copyerrs 2>&amp;1
+}&#x0a;&#x0a;</xsl:text>
       <!-- Create dest.dir if it don't exist -->
-    <xsl:text>  mkdir -p </xsl:text>
+    <xsl:text>mkdir -p </xsl:text>
     <xsl:value-of select="$dest.dir"/>
     <xsl:text> &amp;&amp;&#x0a;</xsl:text>
-    <xsl:text>  cd </xsl:text>
+    <xsl:text>cd </xsl:text>
     <xsl:value-of select="$dest.dir"/>
     <xsl:text> &amp;&amp;&#x0a;&#x0a;</xsl:text>
-      <!-- Touch a dummy patch to prevent fails if dest dir is empty, then remove old patches -->
-    <xsl:text>  touch dummy.patch &amp;&amp;&#x0a;  rm -f *.patch &amp;&amp;&#x0a;&#x0a;</xsl:text>
+      <!-- Remove old patches and possible list of missing patches-->
+    <xsl:text>rm -f *.patch copyerrs &amp;&amp;&#x0a;&#x0a;</xsl:text>
     <xsl:apply-templates/>
-      <!-- Ensure correct owneship -->
-    <xsl:text>&#x0a;  chgrp lfswww *.patch &amp;&amp;&#x0a;</xsl:text>
-    <xsl:text>&#x0a;  exit&#x0a;</xsl:text>
+      <!-- Ensure correct ownership -->
+    <xsl:text>&#x0a;chgrp lfswww *.patch &amp;&amp;&#x0a;</xsl:text>
+    <xsl:text>if [ `wc -l copyerrs|sed 's/ *//' |cut -f1 -d' '` -gt 0 ]; then 
+  mail -s "Missing BLFS patches" blfs-book@linuxfromscratch.org &lt; copyerrs 
+fi</xsl:text>
+    <xsl:text>&#x0a;exit&#x0a;</xsl:text>
   </xsl:template>
 
   <xsl:template match="//text()"/>
@@ -38,7 +52,7 @@
     <xsl:if test="contains(@url, '.patch') and contains(@url, '&patch-root;') 
             and not(ancestor-or-self::*/@condition = 'pdf')">
       <xsl:variable name="patch.name" select="substring-after(@url, '&patch-root;')"/>
-      <xsl:text>  cp /home/httpd/www.linuxfromscratch.org/patches/downloads</xsl:text>
+      <xsl:text>copy /home/httpd/www.linuxfromscratch.org/patches/downloads</xsl:text>
       <xsl:choose>
           <!-- cdparanoia -->
         <xsl:when test="contains($patch.name, '-III')">
