@@ -8,7 +8,7 @@
 <!ENTITY gst-plugins-download-ftp  "ftp://ftp.gnome.org/pub/GNOME/sources/gst-plugins/0.8/gst-plugins-&gst-plugins-version;.tar.bz2">
 <!ENTITY gst-plugins-md5sum        "ea787eeed3761ff03cb60ecebebe1c30">
 <!ENTITY gst-plugins-size          "2.4 MB">
-<!ENTITY gst-plugins-buildsize     "up to 107 MB (depends on what dependencies are installed)">
+<!ENTITY gst-plugins-buildsize     "up to 109 MB (depends on what dependencies are installed)">
 <!ENTITY gst-plugins-time          "up to 3.6 SBU">
 ]>
 
@@ -38,7 +38,11 @@
     <application>GStreamer</application> package. There are over 170 different
     modules that can be built, providing <application>GStreamer</application>
     the capability to create a pipeline for almost every known media
-    stream.</para>
+    stream. In recent versions of <application>GStreamer Plug-ins</application>,
+    the <application>FFmpeg</application> plugin has been removed and is now
+    released in a separate module. You can find out information about this
+    module and how to download it from <ulink
+    url="http://gstreamer.freedesktop.org/modules/gst-ffmpeg.html"/>.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -86,14 +90,14 @@
     <ulink url="http://www.schleef.org/liboil/">liboil</ulink>,
     <xref linkend="libpng"/>,
     <xref linkend="NASM"/>,
-    <xref linkend="pango"/> and
+    <xref linkend="pango"/>, and
     X (<xref linkend="xfree86"/> or <xref linkend="xorg"/>)</para>
 
     <bridgehead renderas="sect4">Optional Audio Libraries/Drivers/CODECs</bridgehead>
     <para role="optional"><xref linkend="alsa"/>,
     <xref linkend="arts"/>,
     <xref linkend="audiofile"/>,
-    <ulink url="https://cvs.comedi.org/cgi-bin/viewcvs.cgi/audioresample/">audioresample</ulink>,
+    <ulink url="http://www.comedi.org/cgi-bin/viewcvs.cgi/audioresample/">audioresample</ulink>,
     <xref linkend="esound"/>,
     <ulink url="http://sourceforge.net/projects/faac">FAAC</ulink>,
     <ulink url="http://sourceforge.net/projects/faac">FAAD2</ulink>,
@@ -122,8 +126,8 @@
     <ulink url="http://0pointer.de/lennart/projects/polypaudio/">polypaudio</ulink>,
     <xref linkend="speex"/>,
     <ulink url="http://www.theora.org/">Theora</ulink>,
-    <ulink url="http://www.xiph.org/ogg/vorbis/index.html">Tremor</ulink>,
-    <ulink url="http://www.wavpack.com/">WavPack</ulink> and
+    <ulink url="http://www.xiph.org/vorbis/">Tremor</ulink>,
+    <ulink url="http://www.wavpack.com/">WavPack</ulink>, and
     <ulink url="http://developers.videolan.org/x264.html">x264</ulink></para>
 
     <bridgehead renderas="sect4">Optional Video Libraries/Drivers/CODECs</bridgehead>
@@ -136,16 +140,16 @@
     <xref linkend="libdvdread"/>,
     <xref linkend="libfame"/>,
     <xref linkend="libmpeg2"/>,
-    <ulink url="https://cvs.comedi.org/cgi-bin/viewcvs.cgi/librfb/">librfb</ulink>,
+    <!-- <ulink url="https://cvs.comedi.org/cgi-bin/viewcvs.cgi/librfb/">librfb</ulink>, -->
     <ulink url="http://mjpeg.sourceforge.net/">MJPEG Tools</ulink>,
-    <ulink url="http://www.thedirks.org/v4l2/">V4L2</ulink> and
+    <ulink url="http://www.thedirks.org/v4l2/">V4L2</ulink>, and
     <xref linkend="xvid"/></para>
 
     <bridgehead renderas="sect4">Optional Multimedia Utilities</bridgehead>
     <para role="optional"><ulink url="http://sourceforge.net/projects/libmms">libmms</ulink>,
     <ulink url="http://sourceforge.net/projects/libvisual/">libvisual</ulink>,
     <xref linkend="sdl"/>,
-    <ulink url="http://swfdec.sourceforge.net/">swfdec</ulink> and
+    <ulink url="http://swfdec.sourceforge.net/">swfdec</ulink>, and
     <xref linkend="xine-lib"/></para>
 
   </sect2>
@@ -156,31 +160,99 @@
     <para>Install <application>GStreamer Plug-ins</application> by running the
     following commands:</para>
 
-<screen><userinput>sed -i 's|LIBS="-lGLU|LIBS="-L/usr/X11R6/lib -lGLU|' configure &amp;&amp;
+<screen><userinput>sed -i -e 's|LIBS="-lGLU|LIBS="-L/usr/X11R6/lib -lGLU|' \
+       -e '/GST_DOC/d' \
+       -e 's/lx264 -lm/&amp; -lpthread/' \
+    configure &amp;&amp;
+sed -i 's/X264_LIBS@/&amp; -lpthread/' ext{,/x264}/Makefile.in &amp;&amp;
+
 ./configure --prefix=/usr --sysconfdir=/etc &amp;&amp;
 make</userinput></screen>
 
     <para>To check the results, issue:</para>
 
-<screen><userinput>gst-register &amp;&amp;
-make check</userinput></screen>
+<screen><userinput>sed -i 's|:\$(GST_LIB_DIR)/..||' gst/audioconvert/Makefile &amp;&amp;
+make -C gst/audioconvert check</userinput></screen>
 
-    <para> On some platforms in certain situations the tests will fail. This
-    issue has been reported upstream.</para>
+    <para> On some platforms in certain situations the tests may fail because
+    one or more of the plugins will fail to register. This will be displayed in
+    the output from the command. If this happens, you are urged to rename the
+    offending plugin and repeat the
+    <command>make -C gst/audioconvert check</command> command. Both tests
+    should pass before you continue. Simply renaming the offending plugin by
+    adding <filename class='extension'>.BAD</filename> to the end of the
+    filename is sufficient. Here is an example:</para>
+
+<screen><userinput>mv gst/audioconvert/../../ext/xine/.libs/libgstxine.so \
+   gst/audioconvert/../../ext/xine/.libs/libgstxine.so.BAD</userinput></screen>
+
+    <para>After the tests have completed successfully, if you had to rename any
+    of the plugins, ensure you rename it back to the original, or the
+    installation step will fail.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-gst-register</userinput></screen>
+ldconfig</userinput></screen>
+
+    <para>If you had to rename any of the plugins for the tests to complete
+    successfully, you will have to also rename (or remove) them so that the
+    <command>gst-register</command> command will complete successfully. The
+    plugins were installed into the
+    <filename class='directory'>/usr/lib/gstreamer-0.8</filename>
+    directory. Finish the installation by running the following command as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>gst-register</userinput></screen>
+
+    <caution>
+      <para>If you <command>touch</command>, <command>strip</command> or do
+      anything else that can update the time stamp (modification time) of the
+      plugin files, ensure you rerun the <command>gst-register</command>
+      command as the <systemitem class="username">root</systemitem> user again
+      so that the time stamp of the global registry file
+      (<filename>/var/cache/gstreamer-0.8/registry.xml</filename>) is dated
+      later than the time stamp of any of the plugin files.</para>
+    </caution>
+
+    <sect3>
+      <title>Testing the Installation</title>
+
+      <para>To test the functionality of the completed
+      <application>GStreamer</application> installation, you can run a couple
+      of tests. Perform the tests as an unprivileged user.</para>
+
+      <para>The first test should complete without any errors displayed to
+      the screen:</para>
+
+<screen><userinput>gst-launch --iterations=10000 sinesrc ! fakesink</userinput></screen>
+
+      <para>For the next test you'll need to choose an output method valid for
+      your system such as osssink/esdsink/artsdsink/alsasink/jacksink. Replace
+      the <replaceable>[output_sink]</replaceable> in the command below with
+      a valid output method. Running the command should produce a C tone for a
+      short duration.</para>
+
+<screen><userinput>gst-launch --iterations=50 sinesrc ! <replaceable>[output_sink]</replaceable></userinput></screen>
+
+    </sect3>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i '...' configure</command>: The check for the OpenGL
-    (Mesa) libraries will fail because the proper directory is not included in
-    the search path. This command fixes the problem.</para>
+    <para><command>sed -i ... configure</command>: The check for the OpenGL
+    (Mesa) libraries will fail if <application>X</application> is installed in
+    any directory other than <filename class='directory'>/usr</filename>. This
+    commands adds an additional search path. Additionally, the command removes
+    a misplaced line and fixes the checks for the
+    <application>x264</application> library.</para>
+
+    <para><command>sed -i ... ext{,/x264}/Makefile.in</command>: This command
+    adds the <filename class='libraryfile'>libpthread.so</filename> library to
+    the list of libraries required to properly compile the
+    <application>x264</application> library.</para>
 
     <para><option>--with-gconf-schema-file-dir=/etc/gnome/gconf/schemas</option>:
     Use this option if you have the <application>GNOME-2</application>
@@ -192,7 +264,9 @@ gst-register</userinput></screen>
 
     <para><option>-enable-xine</option>: Use this option to build the
     <application>Xine</application> wrapper module if you have the
-    <application>Xine Libraries</application> package installed.</para>
+    <application>Xine Libraries</application> package installed. On some
+    platforms, the module will have some corruption and cause the test suite
+    and <command>gst-register</command> command to fail.</para>
 
     <!--
     <para><option>-enable-xine</option>: Using this option to build the
