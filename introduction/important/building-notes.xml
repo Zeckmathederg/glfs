@@ -173,10 +173,10 @@ bunzip2 -v patchname.bz2</userinput></screen>
 <screen><userinput>make check &lt; ../cups-1.1.23-testsuite_parms</userinput></screen>
 
     <para>This effectively makes the test suite use the responses in the file
-    as the input to the questions. Impressive, don't you think? Occasionally
-    you may end up doing a bit of trial and error determining the exact format
-    of your input file for some things, but once figured out and documented you
-    can use this to automate building the package.</para>
+    as the input to the questions. Occasionally you may end up doing a bit of
+    trial and error determining the exact format of your input file for some
+    things, but once figured out and documented you can use this to automate
+    building the package.</para>
 
     <bridgehead renderas="sect3">Using <command>yes</command> to Automate
     Input</bridgehead>
@@ -193,10 +193,10 @@ bunzip2 -v patchname.bz2</userinput></screen>
     <para>First, create a short <application>Bash</application> script by
     entering the following commands:</para>
 
-<screen><userinput>cat &gt; blfsyestest1 &lt;&lt; "EOF"
+<screen><userinput>cat &gt; blfs-yes-test1 &lt;&lt; "EOF"
 <literal>#!/bin/bash
 
-echo -n -e \\n\\n"Please type something (or nothing) and press Enter ---> "
+echo -n -e "\n\nPlease type something (or nothing) and press Enter ---> "
 
 read A_STRING
 
@@ -204,29 +204,29 @@ if test "$A_STRING" = ""; then A_STRING="Just the Enter key was pressed"
 else A_STRING="You entered '$A_STRING'"
 fi
 
-echo -e \\n\\n$A_STRING\\n\\n</literal>
+echo -e "\n\n$A_STRING\n\n"</literal>
 EOF
-chmod 755 blfsyestest1</userinput></screen>
+chmod 755 blfs-yes-test1</userinput></screen>
 
-    <para>Now run the script by issuing <command>./blfsyestest1</command> from
+    <para>Now run the script by issuing <command>./blfs-yes-test1</command> from
     the command line. It will wait for a response, which can be anything (or
     nothing) followed by the <keycap>Enter</keycap> key. After entering
     something, the result will be echoed to the screen. Now use the
     <command>yes</command> command to automate the entering of a
     response:</para>
 
-<screen><userinput>yes | ./blfsyestest1</userinput></screen>
+<screen><userinput>yes | ./blfs-yes-test1</userinput></screen>
 
     <para>Notice that piping <command>yes</command> by itself to the script
     results in <keycap>y</keycap> being passed to the script. Now try it with a
     string of text:</para>
 
-<screen><userinput>yes 'This is some text' | ./blfsyestest1</userinput></screen>
+<screen><userinput>yes 'This is some text' | ./blfs-yes-test1</userinput></screen>
 
     <para>The exact string was used as the response to the script. Finally,
     try it using an empty (null) string:</para>
 
-<screen><userinput>yes '' | ./blfsyestest1</userinput></screen>
+<screen><userinput>yes '' | ./blfs-yes-test1</userinput></screen>
 
     <para>Notice this results in passing just the press of the
     <keycap>Enter</keycap> key to the script. This is useful for times when the
@@ -261,21 +261,23 @@ chmod 755 blfsyestest1</userinput></screen>
 <screen><userinput>ls -l /usr/bin | more &gt; redirect_test.log 2&gt;&amp;1</userinput></screen>
 
     <para>Notice that this time the command immediately returned to the shell
-    prompt without having to page through the output. The last example will use
-    the <command>yes</command> command in combination with output redirection
-    to bypass having to page through the output and then providing a
-    <keycap>y</keycap> to a prompt. This technique could be used in instances
-    where otherwise you would have to page through the output of a file (such
-    as a license agreement) and then answer the question of <quote>do you
-    accept the above?</quote>. For this example, another short
-    <application>Bash</application> script is required:</para>
+    prompt without having to page through the output. You may now remove the
+    log file.</para>
 
-<screen><userinput>cat &gt; blfsyestest2 &lt;&lt; "EOF"
+    <para>The last example will use the <command>yes</command> command in
+    combination with output redirection to bypass having to page through the
+    output and then provide a <keycap>y</keycap> to a prompt. This technique
+    could be used in instances when otherwise you would have to page through
+    the output of a file (such as a license agreement) and then answer the
+    question of <quote>do you accept the above?</quote>. For this example,
+    another short <application>Bash</application> script is required:</para>
+
+<screen><userinput>cat &gt; blfs-yes-test2 &lt;&lt; "EOF"
 <literal>#!/bin/bash
 
 ls -l /usr/bin | more
 
-echo -n -e \\n\\n"Did you enjoy reading this? (y,n) "
+echo -n -e "\n\nDid you enjoy reading this? (y,n) "
 
 read A_STRING
 
@@ -283,22 +285,22 @@ if test "$A_STRING" = "y"; then A_STRING="You entered the 'y' key"
 else A_STRING="You did NOT enter the 'y' key"
 fi
 
-echo -e \\n\\n$A_STRING\\n\\n</literal>
+echo -e "\n\n$A_STRING\n\n"</literal>
 EOF
-chmod 755 blfsyestest2</userinput></screen>
+chmod 755 blfs-yes-test2</userinput></screen>
 
     <para>This script can be used to simulate a program that requires you to
     read a license agreement, then respond appropriately to accept the
     agreement before the program will install anything. First, run the script
     without any automation techniques by issuing
-    <command>./blfsyestest2</command>.</para>
+    <command>./blfs-yes-test2</command>.</para>
 
     <para>Now issue the following command which uses two automation techniques,
     making it suitable for use in an automated build script:</para>
 
-<screen><userinput>yes | ./blfsyestest2 &gt; blfsyestest2.log 2&gt;&amp;1</userinput></screen>
+<screen><userinput>yes | ./blfs-yes-test2 &gt; blfs-yes-test2.log 2&gt;&amp;1</userinput></screen>
 
-    <para>If desired, issue <command>tail blfsyestest2.log</command> to see
+    <para>If desired, issue <command>tail blfs-yes-test2.log</command> to see
     the end of the paged output, and confirmation that <keycap>y</keycap> was
     passed through to the script. Once satisfied that it works as it should,
     you may remove the script and log file.</para>
