@@ -314,18 +314,34 @@ install -v -m644 ../mozilla-build/dist/public/ldap-private/* \
 install -v -m755 -d /usr/lib/mozilla-&mozilla-version;/defaults/isp/US &amp;&amp;
 install -v -m644 mailnews/base/ispdata/movemail.rdf \
     /usr/lib/mozilla-&mozilla-version;/defaults/isp &amp;&amp;
-ln -v -s ../movemail.rdf /usr/lib/mozilla-&mozilla-version;/defaults/isp/US &amp;&amp;
+ln -v -s ../movemail.rdf /usr/lib/mozilla-&mozilla-version;/defaults/isp/US</userinput></screen>
 
-if [ -d /usr/lib/mozilla/plugins ]; then
-    if [ -f /usr/lib/mozilla/plugins/libnullplugin.so ]; then
-        rm -vf /usr/lib/mozilla/plugins/libnullplugin.so
-    fi
-    mv -v /usr/lib/mozilla/plugins/* /usr/lib/mozilla-&mozilla-version;/plugins
-    rm -v -rf /usr/lib/mozilla
+<!-- Commenting this out per the discussion on BLFS-Dev about this.
+     The stuff commented out below is replaced with text in the
+     Configuration section to create links to any system-wide 
+     plugins the user may have installed
+
+if [ -L /usr/lib/mozilla/plugins ]; then
+     rm /usr/lib/mozilla/plugins
+fi &amp;&amp;
+if [ -L /usr/lib/mozilla ]; then
+     rm /usr/lib/mozilla
 fi &amp;&amp;
 
+install -v -m755 -d /usr/lib/mozilla/plugins &amp;&amp;
+cp -v /usr/lib/mozilla-1.7.12/plugins/* /usr/lib/mozilla/plugins &amp;&amp;
+rm -f /usr/lib/mozilla-1.7.12/plugins &amp;&amp;
+ln -v -s ../mozilla/plugins /usr/lib/mozilla-1.7.12 &amp;&amp;
+-->
+
+<!-- The following commented out per the discussion on BLFS-Dev. It
+     has been determined that we will no longer continue to support
+     broken programs that don't look at pkgconfig files to find out
+     where Mozilla is installed
+
+ln -v -nsf mozilla-&mozilla-version; /usr/include/mozilla &amp;&amp;
 ln -v -nsf mozilla-&mozilla-version; /usr/lib/mozilla &amp;&amp;
-ln -v -nsf mozilla-&mozilla-version; /usr/include/mozilla</userinput></screen>
+-->
 
     <para>If you built <application>Mozilla</application> utilizing
     system-installed NSS and NSPR libraries, the
@@ -568,6 +584,9 @@ unset BUILD_OFFICIAL</userinput></screen>
     command is used to install a file inadvertently left out of the
     installation script.</para>
 
+    <!-- Commenting this out as the commands needing these explanations
+         are also commented out
+
     <para><command>if [ -d /usr/lib/mozilla/plugins ] ... fi</command>: Some
     applications may have already installed <application>Mozilla</application>
     plugins. This set of commands moves any existing plugins to the newly
@@ -581,6 +600,7 @@ unset BUILD_OFFICIAL</userinput></screen>
     <application>OpenOffice</application>, <application>Galeon</application>,
     etc.) don't need to know which version of <application>Mozilla</application>
     is installed.</para>
+    -->
 
   </sect2>
 
@@ -607,6 +627,21 @@ unset BUILD_OFFICIAL</userinput></screen>
     <application>JAVA</application> plugin: </para>
 
 <screen role="root"><userinput>ln -v -s $JAVA_HOME/jre/plugin/i386/ns7/libjavaplugin_oji.so \
+    /usr/lib/mozilla-&mozilla-version;/plugins</userinput></screen>
+
+    <para>Some packages install Mozilla plugins into the default system-wide
+    directory <filename class='directory'>/usr/lib/mozilla/plugins</filename>.
+    If desired, create symbolic links in the <application>Mozilla</application>
+    plugin directory
+    <filename class='directory'>/usr/lib/mozilla-&mozilla-version;/plugins</filename>
+    to the files in the default plugin directory (you should link to the actual
+    files and not other links). Alternatively, you can move or copy the files
+    in the default plugin directory to the
+    <application>Mozilla</application> plugin directory. An example of creating
+    a symbolic link is shown below. Create the links as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>ln -v -s ../../mozilla/plugins/<replaceable>[plugin.so]</replaceable> \
     /usr/lib/mozilla-&mozilla-version;/plugins</userinput></screen>
 
     <para>Along with using the <quote>Preferences</quote> menu to configure
