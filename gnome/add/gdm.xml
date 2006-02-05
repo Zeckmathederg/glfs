@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gdm-download-http "http://ftp.gnome.org/pub/GNOME/sources/gdm/2.8/gdm-&gdm-version;.tar.bz2">
-  <!ENTITY gdm-download-ftp  "ftp://ftp.gnome.org/pub/GNOME/sources/gdm/2.8/gdm-&gdm-version;.tar.bz2">
-  <!ENTITY gdm-md5sum        "2944ba9c2a2bf7032ac81dc24eecf32d">
+  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/2.8/gdm-&gdm-version;.tar.bz2">
+  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/2.8/gdm-&gdm-version;.tar.bz2">
+  <!ENTITY gdm-md5sum        "566a1e3d656b6b536414f287ead2db7e">
   <!ENTITY gdm-size          "2.7 MB">
-  <!ENTITY gdm-buildsize     "51.7 MB">
+  <!ENTITY gdm-buildsize     "51.2 MB">
   <!ENTITY gdm-time          "0.7 SBU">
 ]>
 
@@ -63,7 +63,7 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="libgnomeui"/>,
-    <xref linkend="scrollkeeper"/> and
+    <xref linkend="scrollkeeper"/>, and
     <xref linkend="librsvg"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -88,20 +88,18 @@ useradd -c "GDM Daemon Owner" -d /dev/null \
     the following commands as an unprivileged user:</para>
 
 <screen><userinput>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
-    --libexecdir=`pkg-config --variable=prefix ORBit-2.0`/sbin \
-    --sysconfdir=&gnome-etc-dir; --localstatedir=/var/lib \
-    --with-pam-prefix=/etc &amp;&amp;
+            --libexecdir=`pkg-config \
+            --variable=prefix ORBit-2.0`/lib/gdm \
+            --sysconfdir=&gnome-etc-dir; \
+            --localstatedir=/var/lib \
+            --with-pam-prefix=/etc &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make install &amp;&amp;
-chmod -v 644 `pkg-config --variable=prefix ORBit-2.0`\
-/share/gdm/BuiltInSessions/default.desktop \
-    `pkg-config --variable=prefix ORBit-2.0`\
-/share/xsessions/gnome.desktop</userinput></screen>
+<screen role='root'><userinput>make install</userinput></screen>
 
   </sect2>
 
@@ -118,12 +116,12 @@ chmod -v 644 `pkg-config --variable=prefix ORBit-2.0`\
     the downside affect of using
     <filename class='directory'>/var/lib/log/gdm</filename> as the log
     directory. See the <quote>Configuration Information</quote> section below
-    for information how to relocate the log file directory.</para>
+    for instructions on relocating the log file directory.</para>
 
     <para><parameter>--with-pam-prefix=/etc</parameter>: This command puts
     <application>PAM</application> configuration files in
     <filename class="directory">/etc/pam.d</filename> instead of
-    <filename class="directory">$gnome-etc-dir;</filename>.</para>
+    <filename class="directory">&gnome-etc-dir;</filename>.</para>
 
   </sect2>
 
@@ -153,12 +151,16 @@ chmod -v 644 `pkg-config --variable=prefix ORBit-2.0`\
       <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /var/log/gdm &amp;&amp;
-sed -i "s|var/lib/log|var/log|" &gnome-etc-dir;/gdm/gdm.conf</userinput></screen>
+sed -i "s|var/lib/log|var/log|" &gnome-etc-dir;/gdm/gdm.conf &amp;&amp;
+rmdir -v /var/lib/log/gdm &amp;&amp;
+rmdir -v /var/lib/log</userinput></screen>
 
       <para>The <application>GDM</application> <application>PAM</application>
-      config files contain modules not present in a BLFS installation. The
-      following commands will replace those files (issue as the
-      <systemitem class="username">root</systemitem> user):</para>
+      configuration files contain modules not present in a BLFS installation.
+      If you have <application>PAM</application> installed, issue the following
+      commands as the <systemitem class="username">root</systemitem> user to
+      replace those files with files containing correctly specified
+      modules:</para>
 
 <screen role="root"><userinput>cat &gt; /etc/pam.d/gdm &lt;&lt; "EOF"
 <literal>auth        required    pam_unix.so
@@ -204,7 +206,8 @@ TryExec=/usr/bin/dbus-launch
 Icon=
 Type=Application</literal>
 
-EOF</userinput></screen>
+EOF
+chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></screen>
 
       <para>Choose this session using the session selection dialog on the
       display manager login screen. You also have the opportunity to make this
@@ -228,14 +231,14 @@ EOF</userinput></screen>
     <sect3 id="gdm-init">
       <title>Boot Script</title>
 
-      <para>To start a graphical login at boot, install the
+      <para>To start a graphical login when the system is booted, install the
       <filename>/etc/rc.d/init.d/gdm</filename> init script included in the
       <xref linkend="bootscripts"/> package. If your
       <envar>GNOME_PREFIX</envar> environment variable is anything other than
-      <filename class='directory'>/usr</filename> or
-      <filename class='directory'>/opt/gnome-&gnome-version;</filename>, you
-      will need to modify the <envar>PATH</envar> statement in the script to
-      include the path where you have <application>GNOME</application>
+      <filename class='directory'>/usr</filename> or <filename
+      class='directory'>/opt/gnome-&gnome-version;&gnome-minor-version;</filename>,
+      you will need to modify the <envar>PATH</envar> statement in the script
+      to include the path where you have <application>GNOME</application>
       installed.</para>
 
       <indexterm zone="gdm gdm-init">
@@ -266,18 +269,17 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gdm, gdm-binary, gdmXnest, gdmXnestchooser, gdmchooser,
-        gdmflexiserver, gdmgreeter, gdmlogin, gdmphotosetup, gdmsetup,
-        gdmthemetester, gdm-restart, gdm-safe-restart, gdm-stop,
-        gdmconfig, gdmopen, and gdmtranslate</seg>
+        <seg>gdm, gdm-binary, gdm-dmx-reconnect-proxy, gdm-restart,
+        gdm-safe-restart, gdm-stop, gdmXnest, gdmXnestchooser, gdmdynamic,
+        gdmflexiserver, gdmphotosetup, gdmsetup, and gdmthemetester</seg>
         <seg>None</seg>
-        <seg>&gnome-etc-dir;/dm, &gnome-etc-dir;/gdm,
-        $GNOME_PREFIX/share/gdm,
-        $GNOME_PREFIX/share/gnome/capplets,
-        $GNOME_PREFIX/share/gnome/help/gdm,
-        $GNOME_PREFIX/share/omf/gdm,
-        $GNOME_PREFIX/share/xsessions,
-        /var/lib/gdm and /var/log/gdm</seg>
+        <seg>&gnome-etc-dir;/[,g]dm, /var/lib/gdm, /var/log/gdm and the
+        following directories in $GNOME_PREFIX/:
+        share/gdm,
+        share/gnome/capplets,
+        share/gnome/help/gdm,
+        share/omf/gdm, and
+        share/xsessions</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -294,28 +296,6 @@ EOF</userinput></screen>
           <application>GNOME</application> based login prompt.</para>
           <indexterm zone="gdm gdm-prog">
             <primary sortas="b-gdm">gdm</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gdmchooser">
-        <term><command>gdmchooser</command></term>
-        <listitem>
-          <para>is an application for selecting XDMCP enabled hosts on
-          the local network.</para>
-          <indexterm zone="gdm gdmchooser">
-            <primary sortas="b-gdmchooser">gdmchooser</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gdmsetup">
-        <term><command>gdmsetup</command></term>
-        <listitem>
-          <para>is a graphical interface to edit the
-          <filename>gdm.conf</filename> file.</para>
-          <indexterm zone="gdm gdmsetup">
-            <primary sortas="b-gdmsetup">gdmsetup</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -344,18 +324,16 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="gdmconfig">
-        <term><command>gdmconfig</command></term>
+      <varlistentry id="gdmsetup">
+        <term><command>gdmsetup</command></term>
         <listitem>
-          <para>is an application for managing the configuration of the
-          entire <application>GDM</application> applications suite. It
-          handles look and feel, security, XDMCP, GDMchooser and more.</para>
-          <indexterm zone="gdm gdmconfig">
-            <primary sortas="b-gdmconfig">gdmconfig</primary>
+          <para>is a graphical interface to edit the
+          <filename>gdm.conf</filename> file.</para>
+          <indexterm zone="gdm gdmsetup">
+            <primary sortas="b-gdmsetup">gdmsetup</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
 
   </sect2>
