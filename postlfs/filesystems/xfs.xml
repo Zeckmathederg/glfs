@@ -6,10 +6,10 @@
 
   <!ENTITY xfsprogs-download-http "http://mirrors.sunsite.dk/xfs/download/cmd_tars/xfsprogs-&xfsprogs-version;.src.tar.gz">
   <!ENTITY xfsprogs-download-ftp  "ftp://oss.sgi.com/projects/xfs/download/cmd_tars/xfsprogs-&xfsprogs-version;.src.tar.gz">
-  <!ENTITY xfsprogs-md5sum        "65fbf692f348b57f21edd4813733d9ae">
-  <!ENTITY xfsprogs-size          "833 KB">
-  <!ENTITY xfsprogs-buildsize     "25.2 MB">
-  <!ENTITY xfsprogs-time          "0.59 SBU">
+  <!ENTITY xfsprogs-md5sum        "d4a78fced98c0f3f32627a473e8e0a59">
+  <!ENTITY xfsprogs-size          "878 KB">
+  <!ENTITY xfsprogs-buildsize     "17.3 MB">
+  <!ENTITY xfsprogs-time          "0.78 SBU">
 ]>
 
 <sect1 id="xfs" xreflabel="XFS-&xfsprogs-version;">
@@ -67,28 +67,50 @@
       <para>If you did not install the
       <ulink url="&lfs-root;/chapter06/e2fsprogs.html">E2fsprogs</ulink>
       package in LFS, you must install it, or
-      <ulink url="http://pecl.php.net/get/uuid-1.0.tgz">UUID</ulink> before
+      <ulink url="http://pecl.php.net/package/uuid">UUID</ulink> before
       proceeding with the installation of <application>XFS</application>.</para>
     </note>
 
     <para>Install <application>XFS</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i 's/autoconf//' Makefile &amp;&amp;
-make</userinput></screen>
+<screen><userinput>sed -i '/autoconf/d' Makefile &amp;&amp;
+make DEBUG=-DNDEBUG</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+    <para>The <application>XFS</application> library installation is
+    incomplete.  To finish the installation, issue the following commands
+    as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>chmod -v 755 /lib/libhandle.so* &amp;&amp;
+install -v -m755 -D libhandle/libhandle.la /usr/lib/libhandle.la &amp;&amp;
+install -v -m644 libhandle/.libs/libhandle.a /usr/lib &amp;&amp;
+ln -sv ../../lib/libhandle.so.1 /usr/lib/libhandle.so</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's/autoconf//' Makefile</command>: This command
+    <para><command>sed -i '/autoconf/d' Makefile</command>: This command
     disables running <command>autoconf</command> because it is
     unnecessary.</para>
+
+    <para><command>make DEBUG=-DNDEBUG</command>: The <application>XFS
+    </application> build will fail using the default -DDEBUG flags.</para>
+
+    <para><parameter>OPTIMIZER="..."</parameter>: Adding this parameter to
+    the <command>make</command> command overrides the default optimization
+    settings.</para>
+
+    <para><command>install -v ...</command>: These commands install the
+    static library and libtool archive for <filename>libhandle</filename>.</para>
+
+    <para><command>ln -sv ...</command>: This command installs a symlink
+    that is missed by the <command>make install</command> command.</para>
 
   </sect2>
 
@@ -104,7 +126,7 @@ make</userinput></screen>
         <seg>fsck.xfs, mkfs.xfs, xfs_admin, xfs_bmap, xfs_check, xfs_copy,
         xfs_db, xfs_freeze, xfs_growfs, xfs_info, xfs_io, xfs_logprint,
         xfs_mkfile, xfs_ncheck, xfs_repair, and xfs_rtcp</seg>
-        <seg>libhandle.so</seg>
+        <seg>libhandle.[so,a]</seg>
         <seg>/usr/share/doc/xfsprogs</seg>
       </seglistitem>
     </segmentedlist>
@@ -256,6 +278,17 @@ make</userinput></screen>
           XFS file system.</para>
           <indexterm zone="xfs xfs_ncheck">
             <primary sortas="b-xfs_ncheck">xfs_ncheck</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="xfs_quota">
+        <term><command>xfs_quota</command></term>
+        <listitem>
+          <para>is a utility for reporting and editing various
+          aspects of filesystem quota.</para>
+          <indexterm zone="xfs xfs_quota">
+            <primary sortas="b-xfs_quota">xfs_quota</primary>
           </indexterm>
         </listitem>
       </varlistentry>
