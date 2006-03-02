@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+   "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="xorg7" xreflabel="X.org-&xorg7-version;">
+  <?dbhtml filename="xorg7.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+<!--    <keywordset>
+      <keyword role="package">X11R&xorg7-version;-src.tar</keyword>
+      <keyword role="ftpdir">Xorg7</keyword>
+    </keywordset> 
+########## Need a way to fix this on the mirrors ##########
+##### Maybe a single tarball is the way to handle it ######
+-->
+
+
+  </sect1info>
+
+  <title>Xorg-&xorg7-version;</title>
+
+  <indexterm zone="xorg7">
+    <primary sortas="a-xorg7">Xorg</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Xorg</title>
+
+    <para><application>Xorg</application> is a freely redistributable, 
+    open-source implementation of the <application>X</application> Window 
+    System. This system provides a client/server interface between display 
+    hardware (the mouse, keyboard, and video displays) and the desktop 
+    environment, while also providing both the windowing infrastructure and a 
+    standardized application interface (API).</para>
+
+    <bridgehead renderas="sect3">Xorg Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required"><xref linkend="fontconfig"/>,
+    <xref linkend="libdrm"/>,
+    <xref linkend="libpng"/>, and
+    <xref linkend="pkgconfig"/>.</para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional"><xref linkend="linux-pam"/>.</para>
+
+    <bridgehead renderas="sect3">Xorg Download and Installation Instructions</bridgehead>
+
+    <para>With the new modular build system, is no longer possible to download
+    the entire package in a single file.  In fact, there may be upto 200 files 
+    that need to be fetched from the download location.  To assist with
+    such a large task, it is strongly recommended to install 
+    <xref linkend="wget"/> for downloading the needed files.  A complete 
+    <application>wget</application> script is available for each section at 
+    <ulink 
+    url="http://anduin.linuxfromscratch.org/sources/BLFS/svn/x/wget/"/>.</para>
+
+    <para>Givin the number of packages availible, deciding which packages you 
+    need to install for your particular setup may seem a bit overwhelming at 
+    first.  Take a look at<ulink 
+    url="http://lists.x.org/archives/xorg-modular/2005-November/000801.html"> 
+    this thread</ulink> to get an idea of what you will need.  If you are 
+    unsure, simply install all packages at the cost of extra diskspace.</para>
+
+    <para>Additionally, because of the large number of repetative commands,
+    you are encouraged to script the build.  For most sections, you can use 
+    the following commands to compile and install all packages in your build 
+    directory:</para>
+
+<screen>for package in *.tar.bz2
+do
+  packagedir=`echo $package | sed 's/.tar.bz2//'`
+  tar -xf $package &amp;&amp;
+  cd $packagedir &amp;&amp;
+  ./configure $XORG_CONFIG &amp;&amp;
+  make &amp;&amp;
+  make install
+  if [ $? -ne 0 ]; then
+    break #stop the build if the previous command failed
+  fi
+  cd .. &amp;&amp;
+  rm -rf $packagedir
+done 2&gt;&amp;1 | tee -a ../xorg-compile.log #log the entire loop</screen>
+
+  </sect2>
+
+  <sect2>
+    <title>Setting up the Xorg Build Environment</title>
+
+      <para>First, you'll need to create a working directory:</para>
+
+<screen><userinput>mkdir xc &amp;&amp;
+cd xc</userinput></screen>
+
+    <para>As with previous releases of the X Windows System, it may be 
+    desireable to install <application>Xorg</application> into an alternate 
+    prefix.  This is no longer common practice among linux distributions.  
+    The common installation prefix for <application>Xorg</application> on
+    linux is <filename class="directory">/usr</filename>.  There is no standard
+    alternate prefix, nor is there any exception in the current revision of 
+    the Filesystem Hierarcy Standard for Release 7 of the X Windows System.
+    Alan Coopersmith of Sun Microsystems, has recently stated
+    "At Sun, we were using <filename class="directory">/usr/X11</filename> and 
+    plan to stick with it."  Only the 
+    <filename class="directory">/opt/*</filename> prefix or the
+    <filename class="directory">/usr</filename> prefix adhere to the current 
+    FHS guidelines.</para>
+    
+    <para>Choose your installation prefix, and set the 
+    <parameter>XORG_PREFIX</parameter> variable with the following 
+    command:</para>
+
+<screen><userinput>export XORG_PREFIX="<replaceable>[/usr]</replaceable>"</userinput></screen>
+
+    <para>Throughout these instructions, you will use the same three 
+    configure switches for all of the packages.  Create the 
+    <parameter>XORG_CONFIG</parameter> varialbe to use for substitution:</para>
+
+<screen><userinput>export XORG_CONFIG="--prefix=$XORG_PREFIX --sysconfdir=/etc --localstatedir=/var"</userinput></screen>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Protocol Headers</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-proto">Xorg Protocol Headers</primary>
+    </indexterm>
+
+      <para>The <application>Xorg</application> protocol headers provide the
+      header files required to build the system, and to allow other
+      applications to build against the installed X Window system.</para>
+
+      <para><application>Xorg</application> Proto packages can be downloaded
+      individually from <ulink
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/proto/"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Protocol Headers</title>
+
+      <para>Install the <application>Xorg</application> protocol headers
+      by running the following commands for each package to be installed.</para>
+
+<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Utilities</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-data">Xorg Utilities</primary>
+    </indexterm>
+
+      <para>The <application>Xorg</application> utility packages provide
+      needed utilities, not for the <application>Xorg</application> 
+      installation itself, but for other applications that make use of
+      legacy X11R6 installation methods.</para>
+
+      <para><application>Xorg</application> Utility packages can be downloaded
+      individually from <ulink
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/util/"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Utilities</title>
+
+      <para>Install first, the <application>xorg-cf-files</application> package
+      with the following commands:</para>
+
+<screen><userinput>sed -i "s@/usr/X11R6@$XORG_PREFIX@" site.def &amp;&amp;
+sed -i "s@/usr/X11R6@$XORG_PREFIX@" X11.tmpl &amp;&amp;
+./configure $XORG_CONFIG --with-config-dir=$XORG_PREFIX/lib/X11/config &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+      <para>Next, install the <application>Imake</application> package with
+      these commands:</para>
+
+<screen><userinput>./configure $XORG_CONFIG --with-config-dir=$XORG_PREFIX/lib/X11/config &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+
+      <para>Finally, build the three remaining packages with the standard build 
+      commands:</para>
+
+
+<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Libraries</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-lib">Xorg Libraries</primary>
+    </indexterm>
+
+      <para>The <application>Xorg</application> libraries provide library
+      routines that are used within all X Window applications.</para>
+
+      <para><application>Xorg</application> Library packages can be downloaded
+      individually from <ulink
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/lib/"/>.</para>
+
+    <sect3>
+      <title>Meeting Library Dependencies</title>
+
+      <para>These 17 libraries are a core part of the X Windows Sytem and 
+      must be built in the order provided:</para>
+
+<screen>xtrans-X11R7.0-1.0.0.tar.bz2
+libXau-X11R7.0-1.0.0.tar.bz2
+libXdmcp-X11R7.0-1.0.0.tar.bz2
+libX11-X11R7.0-1.0.0.tar.bz2
+libXext-X11R7.0-1.0.0.tar.bz2
+libICE-X11R7.0-1.0.0.tar.bz2
+libSM-X11R7.0-1.0.0.tar.bz2
+libXt-X11R7.0-1.0.0.tar.bz2
+libXmu-X11R7.0-1.0.0.tar.bz2
+libXpm-X11R7.0-3.5.4.2.tar.bz2
+libXp-X11R7.0-1.0.0.tar.bz2
+libXfixes-X11R7.0-3.0.1.2.tar.bz2
+libXrender-X11R7.0-0.9.0.2.tar.bz2
+libfontenc-X11R7.0-1.0.1.tar.bz2
+libxkbfile-X11R7.0-1.0.1.tar.bz2
+libXprintUtil-X11R7.0-1.0.1.tar.bz2
+libXv-X11R7.0-1.0.1.tar.bz2</screen>
+
+    </sect3>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Libraries</title>
+
+      <para>Install the libraries by running the following commands for each 
+      of the chosen packages:</para>
+
+<para><screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen></para>
+
+    </sect3>
+
+    <sect3 role="configuration">
+      <title>Configuration of Xorg Libraries</title>
+
+        <para>If you've chosen to install <application>Xorg</application> into
+        <filename class="directory">/usr</filename>, then no furthur 
+        configuration is necessary and you can skip the rest of this section.
+        If you've opted for an alternate prefix, you should create two symlinks
+        to satisfy the expected environment of several packages. 
+        Execute the following commands as the root user:</para>
+
+<screen role="root"><userinput>ln -sv $XORG_PREFIX/lib/X11 /usr/lib/X11 &amp;&amp;
+ln -sv $XORG_PREFIX/include/X11 /usr/include/X11</userinput></screen>
+
+        <para>As with other libraries, as the root user, you must add 
+        <filename class="directory">$XORG_PREFIX/lib</filename> to
+        <filename>/etc/ld.so.conf</filename> and execute 
+        <command>/sbin/ldconfig</command>.</para>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Data</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-data">Xorg Data</primary>
+    </indexterm>
+
+      <para>The <application>Xorg</application> data packages provide
+      static data such as images and keymaps to the 
+      <application>Xorg</application> applications.</para>
+
+      <para><application>Xorg</application> Data packages can be downloaded
+      individually from <ulink
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/data/"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Data</title>
+
+      <para>First, install the xbitmap package by running the following
+      commands:</para>
+
+<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+      <note><para>At this point, you should continue to the applications
+      installation.  After the applications installation has completed, you
+      can use the same instructions above to install the xcursor-themes and
+      xkb-data packages.</para></note>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Applications</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-app">Xorg Applications</primary>
+    </indexterm>
+
+    <note><para>You must install <xref linkend="MesaLib"/> before you install
+    Xorg Applications.</para></note>
+
+      <para>The <application>Xorg</application> applications provide the
+      expected applications availible in previous X Window
+      implementations.</para>
+
+      <para><application>Xorg</application> applications can be downloaded
+      individually from <ulink 
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/app/"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Applications</title>
+
+      <para>Install the applications by running the following commands for each 
+      chosen package:</para>
+
+<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+      <note><para>The luit package should not be compiled at this point.  You
+      should install the luit application after the fonts have been installed.
+      When compiling the luit package, you will need to change a hard 
+      coded reference to /usr/X11R6 in parser.h.  Use the command 
+      "<command>sed -i 's@/usr/X11R6@$XORG_PREFIX@' parser.h</command>" from 
+      the top level of the package source directory.</para></note>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Fonts</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-fonts">Xorg Fonts</primary>
+    </indexterm>
+
+      <para>The <application>Xorg</application> font packages provide
+      needed fonts to the <application>Xorg</application> applications.</para>
+
+      <para><application>Xorg</application> Font packages can be downloaded
+      individually from <ulink
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/font/"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Fonts</title>
+
+      <para>Create a fonts direcorty and a symlink so that the fonts
+      installed in /usr/share/fonts can be accessible by the old fontpath
+      $XORG_PREFIX/lib/X11/fonts:</para>
+
+<screen><userinput> mkdir -p /usr/share/fonts &amp;&amp;
+ln -s -v ../../../share/fonts $XORG_PREFIX/lib/X11/</userinput></screen>
+
+      <para>Run the following commands for each package:</para>
+
+<note><para>You should install encoding and font-util before all others</para></note>
+
+
+<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Server</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-server">Xorg Server</primary>
+    </indexterm>
+
+    <para>The <application>Xorg</application> Server is the core
+    of the X Window system.</para>
+
+      <para>The Xorg Server is a single download.  Get it from
+      <ulink url="http://xorg.freedesktop.org/releases/X11R7.0/src/xserver/xorg-server-X11R7.0-1.0.1.tar.bz2"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Server</title>
+
+      <note><para>You must have the <application>Mesa</application> source
+      directory availible when building the 
+      <application>Xorg-server</application></para></note>
+
+      <para>Install the server by running the following commands:</para>
+
+<screen><userinput>sed -i "s@*/@*/\n#include &lt;linux/types.h&gt;\n@" \
+    hw/xfree86/os-support/linux/lnx_agp.c &amp;&amp;
+./configure --prefix=$XORG_PREFIX --sysconfdir=/etc \
+    --localstatedir=/var --with-mesa-source='../../Mesa-&mesalib-version;' \
+    --with-fontdir=/usr/share/fonts \
+    --with-module-dir=$XORG_PREFIX/lib/modules &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Xorg Drivers</title>
+
+    <indexterm zone="xorg7">
+      <primary sortas="a-xorg7-driver">Xorg Drivers</primary>
+    </indexterm>
+
+      <para>The <application>Xorg</application> drivers provide the means
+      for the xserver to take advantage of installed hardware.</para>
+
+      <para><application>Xorg</application> Driver packages can be downloaded
+      individually from <ulink
+      url="http://xorg.freedesktop.org/releases/X11R7.0/src/driver/"/>.</para>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg Drivers</title>
+
+      <warning><para>It is very important not to build display drivers that
+      cannot be used on your hardware.  For instance, do not build Sun drivers
+      for an x86 PC as the Sun drivers will expect to see SPARC symbols
+      exported from the kernel.  Failure to follow this warning will result
+      in a display lockup, which requires a hard reboot, when configuring
+      <application>Xorg</application> for the first time.</para></warning>
+
+      <para>Install the drivers by running the following commands for each 
+      package:</para>
+
+<screen><userinput>./configure $XORG_CONFIG \
+    --with-xorg-module-dir=$XORG_PREFIX/lib/modules &amp;&amp;
+make &amp;&amp;
+make install</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="configuration" id='xorg7-config'>
+    <title>Configuring Xorg</title>
+
+    <para>Make certain that you have executed  <command>ldconfig</command> and 
+    create the <filename>xorg.conf</filename> file with:</para>
+
+<screen><userinput>cd ~ &amp;&amp;
+Xorg -configure</userinput></screen>
+
+    <para>The screen will go black and you may hear some clicking of the monitor.
+    This command will create a file, <filename>xorg.conf.new</filename> in your
+    home directory.</para>
+
+    <indexterm zone="xorg7 xorg7-config">
+      <primary sortas="e-etc-X11-xorg-conf">/etc/X11/xorg.conf</primary>
+    </indexterm>
+
+    <para>Edit <filename>xorg.conf.new</filename> to suit your system. The
+    details of the file are located in the xorg.conf man page. Some things
+    you may want to do are:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Section "Files". Change the order of the font paths searched.
+        You may want to put 100dpi fonts ahead of 75dpi fonts if your system
+        normally comes up closer to 100 dots per inch. You may want to remove
+        some font directories completely.</para>
+      </listitem>
+      <listitem>
+        <para>Section "Module". If you are going to install NVidia
+        drivers, remove the "dri" line.</para>
+      </listitem>
+      <listitem>
+        <para>Sections "InputDevice". You may want to change the
+        keyboard autorepeat rate by adding
+        <option>Option "Autorepeat" "250 30"</option>.</para>
+      </listitem>
+      <listitem>
+        <para>Section "Monitor". Specify the <option>VertRefresh</option>
+        and <option>HorizSync</option> values if the system does not
+        automatically detect the monitor and its values.</para>
+      </listitem>
+      <listitem>
+        <para>Section "Device". You may want to set some of the options
+        available for your selected video driver. A description of the driver
+        parameters is in the man page for your driver.</para>
+      </listitem>
+      <listitem><para>Section "Screen". Add a DefaultDepth statement such as:
+        <option>DefaultDepth 24</option>. In the SubSection for your
+        default depth, add a modes line such as:
+        <option>Modes "1600x1200" "1280x1024" "1024x768"</option>. The first
+        mode listed will normally be the starting resolution.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Test the system with:</para>
+
+<screen><userinput>X -config ~/xorg.conf.new</userinput></screen>
+
+    <para>You will only get a gray background with an X-shaped mouse cursor,
+    but it confirms the system is working. Exit with
+    <keycap>Control+Alt+Backspace</keycap>. If the system does not work, take
+    a look at <filename>/var/log/Xorg.0.log</filename> to see what went
+    wrong.</para>
+
+    <para>Move the configuration file to its final location:</para>
+
+<screen role="root"><userinput>mv ~/xorg.conf.new /etc/X11/xorg.conf</userinput></screen>
+
+    <para>Create <filename>.xinitrc</filename>:</para>
+
+<screen><userinput>cat &gt; ~/.xinitrc &lt;&lt; "EOF"
+<literal># Begin .xinitrc file
+xterm  -g 80x40+0+0   &amp;
+xclock -g 100x100-0+0 &amp;
+twm</literal>
+EOF</userinput></screen>
+
+    <para>This provides an initial screen with a small clock that is
+    managed by a simple window manager, Tab Window Manager. For details of
+    <command>twm</command>, see the man page.</para>
+
+    <note><para>The above file is the default configuration for Xorg.  Xorg's 
+    distrubuition no longer includes xterm, as such the startx will fail if
+    you have not yet installed <xref linkend="xterm2"/>.</para></note>
+
+    <indexterm zone="xorg7 xorg7-config">
+      <primary sortas="e-AA.xinitrc">~/.xinitrc</primary>
+    </indexterm>
+
+    <note>
+      <para>When needed, <application>Xorg</application> creates the directory
+      <filename>/tmp/.ICE-unix</filename> if it does not exist. If this
+      directory is not owned by <systemitem class="username">root</systemitem>,
+      <application>Xorg</application> delays startup by a few seconds and also
+      appends a warning to the logfile. This also affects startup of other
+      applications. To improve performance, it is advisable to manually create
+      the directory before <application>Xorg</application> uses it. Add the
+      file creation to <filename>/etc/sysconfig/createfiles</filename> that is
+      sourced by the <filename>/etc/rc.d/init.d/cleanfs</filename> startup
+      script.</para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/sysconfig/createfiles &lt;&lt; "EOF"
+<literal>/tmp/.ICE-unix dir 1777 root root</literal>
+EOF</userinput></screen>
+
+    </note>
+
+    <indexterm zone="xorg7 xorg7-config">
+      <primary
+      sortas="e-etc-sysconfig-createfiles">/etc/sysconfig/createfiles</primary>
+    </indexterm>
+
+    <para>Start <application>X</application> with:</para>
+
+<screen><userinput>startx</userinput></screen>
+
+    <para>to get a basic functional <application>X Window
+    System</application>.</para>
+
+    <para>At this point, you should check out <xref linkend='x-setup'/> for
+    the necessary configuration to make <application>X</application> fully
+    functional. Additionally, you can have a look at <xref linkend='x-config'/>
+    for information on fine tuning your <application>X</application>
+    configuration.</para>
+
+    <para>For a list of the package contents and a description of the commands,
+    see the sections in the <xref linkend='xfree86-contents'/>.</para>
+
+  </sect2>
+
+</sect1>
