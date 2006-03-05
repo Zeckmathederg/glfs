@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY xorg-download-http " ">
-  <!ENTITY xorg-download-ftp  "ftp://ftp.opengroup.org/pub/x.org/pub/X11R&xorg-version;/src-single/X11R&xorg-version;-src.tar.bz2">
-  <!ENTITY xorg-md5sum        "8131cd7ea1e4566e6e05c438a93fcfe1">
-  <!ENTITY xorg-size          "43 MB">
-  <!ENTITY xorg-buildsize     "839 MB">
-  <!ENTITY xorg-time          "10.34 SBU">
+  <!ENTITY xorg-download-http "http://xorg.freedesktop.org/releases/X11R&xorg-version;/src-single/X11R&xorg-version;-src.tar.bz2 ">
+  <!ENTITY xorg-download-ftp  "ftp://expo.x.org/pub/X11R&xorg-version;/src-single/X11R&xorg-version;-src.tar.bz2">
+  <!ENTITY xorg-md5sum        "52ad69832db5c36c7041f90625ed4598">
+  <!ENTITY xorg-size          "45 MB">
+  <!ENTITY xorg-buildsize     "864 MB">
+  <!ENTITY xorg-time          "11.68 SBU">
 ]>
 
 <sect1 id="xorg" xreflabel="X.org-&xorg-version;">
@@ -34,36 +34,34 @@
     <title>Introduction to Xorg</title>
 
     <note>
-      <para>There are two packages in BLFS that implement the <application>X
-      Window System</application>: <application>Xorg</application> and
-      <application>XFree86</application>. These packages are quite similar.
-      In fact, the base system of <application>Xorg</application> is
-      <application>XFree86</application>-4.4.0RC2. The primary difference as
-      of this writing is the license provisions of the packages. For someone
-      building a package for their own use, these issues are not significant.
+      <para>There are three packages in BLFS that implement the <application>X
+      Window System</application>: <application>Xorg</application> 
+      (X11R6 and X11R7) and  <application>XFree86</application>. These 
+      packages are all quite similar.  In fact, the base system of 
+      <application>Xorg</application> is 
+      <application>XFree86</application>-4.4.0RC2. Licensing was the original
+      reason for the split.  <application>Xorg-&xorg7-version;</application>
+      introduces a completely autotooled build system, but is otherwise the
+      same codebase as <application>Xorg-&xorg-version;</application>. 
       Most large commercial distributions have decided to use the
-      <application>Xorg</application> package, but several still use
+      <application>Xorg</application> package, but several still provide
       <application>XFree86</application>.</para>
 
       <para>A second reason for the forking of <application>X</application>
       packages is the stated goals of the developers. Some developers were
       unhappy with the administration and progress of
       <application>XFree86</application>. X.org's future plans include
-      significant improvements to the internals of the system and more frequent
-      releases.</para>
+      significant improvements to the internals of the system and more 
+      frequent releases.</para>
 
       <para><application>XFree86</application> continues to be a solid,
       conservative application with excellent driver support.</para>
 
-      <para>Both <application>Xorg</application> and
-      <application>XFree86</application> can be installed in the same way,
-      but this section will provide a slightly different and more current
-      variation for installation.</para>
     </note>
 
     <para><application>Xorg</application> is a freely redistributable open-source
     implementation of the <application>X</application> Window System. This
-    application provides a client/server interface between display hardware (the
+    system provides a client/server interface between display hardware (the
     mouse, keyboard, and video displays) and the desktop environment, while also
     providing both the windowing infrastructure and a standardized application
     interface (API).</para>
@@ -94,7 +92,7 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/X11R&xorg-version;-src-gcc4-1.patch"/></para>
+        url="&patch-root;/X11R&xorg-version;-luit_race-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -110,8 +108,8 @@
     <bridgehead renderas="sect3">Download Instructions</bridgehead>
 
     <para>As an alternative to downloading the entire source tree in a single
-    file, there are several files that need to be fetched from the download
-    location (directory /pub/x.org/pub/X11R&xorg-version;/src/):</para>
+    file, there are several, smaller files that can be fetched from the 
+    download location (directory /pub/X11R&xorg-version;/src/):</para>
 
     <itemizedlist spacing='compact'>
       <listitem>
@@ -196,13 +194,26 @@
     <title>Installation of Xorg</title>
 
     <sect3>
-      <title>Patching to be Compatible with GCC-4.x</title>
+      <title>Various build fixes</title>
 
       <para>The <application>Xorg</application> sources must be patched in
-      order to be compiled using <application>GCC</application>-4.x. Install
-      the following patch:</para>
+      order to avoid a race condition with the <application>luit</application>
+      program.  Additionally, recent <application>glibc</application> requires
+      <filename>linux/types.h</filename> to be included prior to 
+      <filename>asm/types.h</filename>.  Fix both issues with the following 
+      commands:</para>
 
-<screen><userinput>patch -Np1 -i ../X11R&xorg-version;-src-gcc4-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../X11R&xorg-version;-luit_race-1.patch &amp;&amp;
+sed -i "s@*/@*/\n#include &lt;linux/types.h&gt;\n@" \
+    programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c</userinput></screen>
+
+      <para>Additionally, if you choose to install 
+      <application>Xorg</application> to any prefix other than 
+      <filename class="directory">/usr/X11R6</filename>, the luit package
+      needs another correction to fix a hard coded path.  Execute the 
+      following command:</para>
+
+<screen><userinput>sed -i 's@/usr/X11R6@<replaceable>[/usr]</replaceable>@' programs/luit/parser.h</userinput></screen>
 
     </sect3>
 
@@ -316,6 +327,9 @@ cd ../xcbuild &amp;&amp;
 /* Most installs will only need this */
 
 #define XInputDrivers           mouse keyboard
+
+/* Xterm is no longer built by default */
+#define BuildXterm              YES
 
 /* Disable building Xprint server and clients until we get them figured
  * out but build Xprint libraries to allow precompiled binaries such as
