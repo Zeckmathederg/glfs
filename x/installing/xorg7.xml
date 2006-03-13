@@ -49,12 +49,13 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="linux-pam"/>.</para>
 
-    <bridgehead renderas="sect3">Xorg Download and Installation Instructions</bridgehead>
+    <bridgehead renderas="sect3">Xorg Download and Installation 
+    Instructions</bridgehead>
 
     <para>With the modular build system, it is no longer possible to download
-    the entire package in a single file.  In fact, there may be as many as 200 
-    files that need to be fetched from the download location.  To assist with
-    such a large task, it is strongly recommended to install 
+    the entire package in a single file.  In fact, there may be as many as 
+    280 files that need to be fetched from the download location.  To assist 
+    with such a large task, it is strongly recommended to install 
     <xref linkend="wget"/> for downloading the needed files.  A complete 
     <application>wget</application> script is available for each section at 
     <ulink 
@@ -65,11 +66,25 @@
     first.  Take a look at<ulink 
     url="http://lists.x.org/archives/xorg-modular/2005-November/000801.html"> 
     this thread</ulink> to get an idea of what you will need.  If you are 
-    unsure, simply install all packages at the cost of extra diskspace.</para>
+    unsure, you should install all packages at the cost of extra 
+    disk space.</para>
+
+    <note><para>The installed size of <application>Xorg</application> can
+    be reduced considerably by installing only the packages that you will
+    need and use. However, the BLFS book cannot account for all dependencies 
+    and build options for individual <application>Xorg</application> 
+    packages.  The instructions assume that all packages have been built 
+    from a particular group unless otherwise noted. A 
+    <ulink url="http://wiki.linuxfromscratch.org/blfs/wiki/Xorg-7.0.0">
+    wiki</ulink> page containing dependency information, for users who wish 
+    to cut down on the installed size of <application>Xorg</application>, is
+    under development.  You are encouraged to add to these 
+    pages if you discover additional information that may be helpful to 
+    other users.</para></note>
 
     <para>Additionally, because of the large number of repetitive commands,
-    you are encouraged to script the build.  For most sections, you can use 
-    the following commands to compile and install all packages in your build 
+    you are encouraged to script the build.  For most sections, you can use
+    the following commands to compile and install all packages in your build
     directory:</para>
 
 <screen>for package in *.tar.bz2
@@ -97,19 +112,19 @@ done 2&gt;&amp;1 | tee -a ../xorg-compile.log #log the entire loop</screen>
 <screen><userinput>mkdir xc &amp;&amp;
 cd xc</userinput></screen>
 
-    <para>As with previous releases of the X Windows System, it may be 
+    <para>As with previous releases of the X Window System, it may be 
     desirable to install <application>Xorg</application> into an alternate 
     prefix.  This is no longer common practice among linux distributions.  
     The common installation prefix for <application>Xorg</application> on
-    linux is <filename class="directory">/usr</filename>.  There is no standard
-    alternate prefix, nor is there any exception in the current revision of 
-    the Filesystem Hierarchy Standard for Release 7 of the X Windows System.
-    Alan Coopersmith of Sun Microsystems, has recently stated
-    "At Sun, we were using <filename class="directory">/usr/X11</filename> and 
-    plan to stick with it."  Only the 
-    <filename class="directory">/opt/*</filename> prefix or the
-    <filename class="directory">/usr</filename> prefix adhere to the current 
-    FHS guidelines.</para>
+    linux is <filename class="directory">/usr</filename>.  There is no 
+    standard alternate prefix, nor is there any exception in the current 
+    revision of the Filesystem Hierarchy Standard for Release 7 of the X 
+    Window System.  Alan Coopersmith of Sun Microsystems, has recently 
+    stated "At Sun, we were using 
+    <filename class="directory">/usr/X11</filename> and plan to stick with 
+    it."  Only the <filename class="directory">/opt/*</filename> prefix or 
+    the <filename class="directory">/usr</filename> prefix adhere to the 
+    current FHS guidelines.</para>
     
     <para>Choose your installation prefix, and set the 
     <parameter>XORG_PREFIX</parameter> variable with the following 
@@ -122,6 +137,11 @@ cd xc</userinput></screen>
     <parameter>XORG_CONFIG</parameter> variable to use for substitution:</para>
 
 <screen><userinput>export XORG_CONFIG="--prefix=$XORG_PREFIX --sysconfdir=/etc --localstatedir=/var"</userinput></screen>
+
+    <note><para>If you've decided to use an alternate prefix, be sure to
+    add an the 
+    <replaceable>[/usr]</replaceable><filename class="directory">/lib/pkgconfig</filename>
+    to your <parameter>PKG_CONFIG_PATH</parameter> variable.</para></note>
 
   </sect2>
 
@@ -146,8 +166,7 @@ cd xc</userinput></screen>
       <para>Install the <application>Xorg</application> protocol headers
       by running the following commands for each package to be installed.</para>
 
-<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
-make</userinput></screen>
+<screen><userinput>./configure $XORG_CONFIG</userinput></screen>
 
       <para>Now as the <systemitem class="username">root</systemitem>
       user:</para>
@@ -235,8 +254,8 @@ make</userinput></screen>
     <sect3>
       <title>Meeting Library Dependencies</title>
 
-      <para>These 17 libraries are a core part of the X Windows System and 
-      must be built in the order provided:</para>
+      <para>These 17 libraries must be built first, in the order provided, 
+      to cover the dependencies of the other library packages:</para>
 
 <screen>xtrans-X11R7.0-1.0.0.tar.bz2
 libXau-X11R7.0-1.0.0.tar.bz2
@@ -370,7 +389,10 @@ make</userinput></screen>
       should install the luit application after the fonts have been 
       installed.</para></note>
 
-    </sect3>
+      <note><para>Remember to return to the data packages and install the
+      xcursor-themes and xkb-data packages.</para></note>
+
+</sect3>
 
     <sect3 role="installation">
 
@@ -415,7 +437,7 @@ make</userinput></screen>
 
       <para>Run the following commands for each package:</para>
 
-      <note><para>You should install encoding and font-util before all 
+      <note><para>You should install encodings and font-util before all 
       other font packages</para></note>
 
 
@@ -426,6 +448,8 @@ make</userinput></screen>
 
 <screen><userinput role="root">make install</userinput></screen>
 
+      <note><para>If you haven't done so, and intend to install
+      <application>luit</application>, do so now.</para></note>
     </sect3>
 
   </sect2>
