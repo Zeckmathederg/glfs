@@ -25,7 +25,7 @@
 # Nothing like a backup plan!
 #cp "$1" "$1".bak
 
-for i in `grep -o '"mailto:.*@.*"' "$1" |sed -e 's|^"mailto:||' -e 's|"$||'`; do
+for i in `grep -o '"mailto:.*@.*"' "$1" |cut -d\" -f2|sed -e 's|^mailto:||' -e 's|"$||'`; do
   link=`echo $i | perl -pe 's/[^\n]/"\\\&#".ord($&)."\;"/ge'`
   plaintext=`echo $i | sed -e 's|@| AT |' -e 's|\.| D0T |g'`
   sed -i "s|mailto:$i|mailto:$link|" "$1"
