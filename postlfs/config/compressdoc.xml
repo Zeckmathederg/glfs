@@ -21,15 +21,18 @@
 
   <para>Man and info reader programs can transparently process files compressed
   with <command>gzip</command> or <command>bzip2</command>, a feature you can
-  use to free some disk space while keeping
-  your documentation available. However, things are not that simple; man
-  directories tend to contain links&mdash;hard and symbolic&mdash;which defeat
-  simple ideas like recursively calling <command>gzip</command> on them. A
-  better way to go is to use the script below.</para>
+  use to free some disk space while keeping your documentation
+  available. However, things are not that simple; man directories tend to
+  contain links&mdash;hard and symbolic&mdash;which defeat simple ideas like
+  recursively calling <command>gzip</command> on them. A better way to go is
+  to use the script below. If you would prefer to download the file instead of
+  creating it by typing or cut-and-pasting, you can find it at
+  <ulink url="&files-anduin;/compressdoc"/> (the file should be installed in
+  the <filename class="directory">/usr/sbin</filename> directory).</para>
 
 <screen role="root"><userinput>cat &gt; /usr/sbin/compressdoc &lt;&lt; "EOF"
 <literal>#!/bin/bash
-# VERSION: 20050112.0027
+# VERSION: 20060311.0028
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -49,6 +52,11 @@
 #
 # Modified 20050112 by Randy McMurchy to shorten line lengths and
 # correct grammar errors.
+#
+# Modified 20060128 by Alexander E. Patrakov for compatibility with Man-DB.
+#
+# Modified 20060311 by Archaic to use Man-DB manpath utility which is a
+# replacement for man --path from Man.
 #
 # TODO:
 #     - choose a default compress method to be based on the available
@@ -104,17 +112,18 @@ And where options are :
                 backup mode.
 
   --conf=dir, --conf dir
-                Specify the location of man.conf. Defaults to /etc.
+                Specify the location of man_db.conf. Defaults to /etc.
 
   --verbose, -v Verbose mode, print the name of the directory being
                 processed. Double the flag to turn it even more verbose,
                 and to print the name of the file being processed.
 
-  --fake, -f    Fakes it. Print the actual parameters compman will use.
+  --fake, -f    Fakes it. Print the actual parameters compressdoc will use.
 
   dirs          A list of space-separated _absolute_ pathnames to the
-                man directories. When empty, and only then, parse
-                ${MAN_CONF}/man.conf for all occurrences of MANPATH.
+                man directories. When empty, and only then, use manpath
+                to parse ${MAN_CONF}/man_db.conf for all valid occurrences
+                of MANDATORY_MANPATH.
 
 Note about compression:
   There has been a discussion on blfs-support about compression ratios of
@@ -179,7 +188,7 @@ MY_NAME=`basename $0`
 
 # OK, parse the command-line for arguments, and initialize to some
 # sensible state, that is: don't change links state, parse
-# /etc/man.conf, be most silent, search man.conf in /etc, and don't
+# /etc/man_db.conf, be most silent, search man_db.conf in /etc, and don't
 # force (re-)compression.
 COMP_METHOD=
 COMP_SUF=
@@ -289,16 +298,16 @@ esac
 # Note: on my machine, 'man --path' gives /usr/share/man twice, once
 # with a trailing '/', once without.
 if [ -z "$MAN_DIR" ]; then
-  MAN_DIR=`man --path -C "$MAN_CONF"/man.conf \
+  MAN_DIR=`manpath -C "$MAN_CONF"/man_db.conf \
             | sed 's/:/\\n/g' \
             | while read foo; do dirname "$foo"/.; done \
             | sort -u \
             | while read bar; do echo -n "$bar "; done`
 fi
 
-# If no MANPATH in ${MAN_CONF}/man.conf, abort as well
+# If no MANDATORY_MANPATH in ${MAN_CONF}/man_db.conf, abort as well
 if [ -z "$MAN_DIR" ]; then
-  echo "No directory specified, and no directory found with \`man --path'"
+  echo "No directory specified, and no directory found with \`manpath'"
   exit 1
 fi
 
@@ -317,7 +326,7 @@ if [ "$FAKE" != "no" ]; then
   echo "Compression suffix: $COMP_SUF"
   echo -n "Force compression.: "
   [ "foo$FORCE_OPT" = "foo-F" ] &amp;&amp; echo "yes" || echo "no"
-  echo "man.conf is.......: ${MAN_CONF}/man.conf"
+  echo "man_db.conf is....: ${MAN_CONF}/man_db.conf"
   echo -n "Hard-links........: "
   [ "foo$LN_OPT" = "foo-S" ] &amp;&amp;
   echo "convert to soft-links" || echo "leave as is"
@@ -494,28 +503,33 @@ for DIR in $MAN_DIR; do
   done # for FILE
 done # for DIR</literal>
 
-EOF
-chmod 755 /usr/sbin/compressdoc</userinput></screen>
+EOF</userinput></screen>
+
+  <para>As <systemitem class="username">root</systemitem>, make
+  <command>compressdoc</command> executable for all users:</para>
+
+<screen><userinput>chmod -v 755 /usr/sbin/compressdoc</userinput></screen>
 
   <para>Now, as <systemitem class="username">root</systemitem>, you can issue
   the command <command>compressdoc --bz2</command> to compress all your system man
   pages. You can also run <command>compressdoc --help</command> to get
   comprehensive help about what the script is able to do.</para>
 
-  <para> Don't forget that a few programs, like the <application>X Window
+  <para>Don't forget that a few programs, like the <application>X Window
   System</application> and <application>XEmacs</application> also
   install their documentation in non-standard places (such as
   <filename class="directory">/usr/X11R6/man</filename>, etc.). Be sure
-  to add these locations to the file <filename>/etc/man.conf</filename>, as
-  <envar>MANPATH</envar> <replaceable>[/path]</replaceable> lines.</para>
+  to add these locations to the file <filename>/etc/man_db.conf</filename>, as
+  <envar>MANDATORY_MANPATH</envar> <replaceable>[/path]</replaceable>
+  lines.</para>
 
-  <para> Example:</para>
+  <para>Example:</para>
 
 <screen><literal>    ...
-    MANPATH /usr/share/man
-    MANPATH /usr/local/man
-    MANPATH /usr/X11R6/man
-    MANPATH /opt/qt/doc/man
+    MANDATORY_MANPATH                       /usr/share/man
+    MANDATORY_MANPATH                       /usr/X11R6/man
+    MANDATORY_MANPATH                       /usr/local/man
+    MANDATORY_MANPATH                       /opt/qt/doc/man
     ...</literal></screen>
 
   <para>Generally, package installation systems do not compress man/info pages,
