@@ -7,9 +7,9 @@
   <!ENTITY bc-download-http "http://ftp.gnu.org/gnu/bc/bc-&bc-version;.tar.gz">
   <!ENTITY bc-download-ftp "ftp://ftp.gnu.org/gnu/bc/bc-&bc-version;.tar.gz">
   <!ENTITY bc-md5sum "d44b5dddebd8a7a7309aea6c36fda117">
-  <!ENTITY bc-size "278 KB">
-  <!ENTITY bc-buildsize "2.31 MB">
-  <!ENTITY bc-time "0.04 SBU">
+  <!ENTITY bc-size "273 KB">
+  <!ENTITY bc-buildsize "2.36 MB">
+  <!ENTITY bc-time "less than 0.1 SBU (0.2 SBU if running the testsuite)">
 ]>
 
 <sect1 id="bc" xreflabel="bc-&bc-version;">
@@ -58,24 +58,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/bc-&bc-version;-flex_invocation-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/bc-&bc-version;-readline-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Bc Dependencies</bridgehead>
-
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><ulink url="http://sourceforge.net/projects/libedit/">libedit</ulink>
-    (as an alternative to readline)</para>
-
   </sect2>
 
   <sect2 role="installation">
@@ -83,16 +65,45 @@
 
     <para>Install <application>bc</application> by running the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../bc-&bc-version;-flex_invocation-1.patch &amp;&amp;
-patch -Np1 -i ../bc-&bc-version;-readline-1.patch &amp;&amp;
+<screen><userinput>sed -i '/PROTO.*readline/d' bc/scan.l &amp;&amp;
+sed -i '/flex -I8/s/8//' configure &amp;&amp;
+sed -i '/stdlib/a #include &lt;string.h&gt;' lib/number.c &amp;&amp;
+sed -i 's/program.*save/static &amp;/' bc/load.c &amp;&amp;
 ./configure --prefix=/usr --with-readline &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>To test <application>bc</application>, run the commands below.
+    There is quite a bit of output, so you may want to redirect it to a file. 
+    Some tests are known to fail, but <application>bc</application> is still
+    useable.</para>
+<screen><userinput>for TEST in Test/{checklib,testfn}.b&amp; do
+    echo "quit" | ./bc/bc -l $TEST
+done</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed -i '/PROTO.*readline/d' bc/scan.l</command>: This
+    command fixes the <application>Readline</application> library call.</para>
+
+    <para><command>sed -i '/flex -I8/s/8//' configure</command>: This
+    command fixes the <application>Flex</application> invocation.</para>
+
+    <para><command>sed -i '/stdlib/a #include &lt;string.h&gt;' lib/number.c</command>:
+    This command inserts a missing header.</para>
+
+    <para><command>sed -i 's/program.*save/static &amp;/' bc/load.c</command>:
+    This command fixes a segfault when running <application>bc</application>
+    with <command>bc -l</command>.</para>
+
+    <para><parameter>--with-readline</parameter>: This option enables
+    <application>Readline</application> support in interactive mode.</para>
 
   </sect2>
 
