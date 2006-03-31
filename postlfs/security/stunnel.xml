@@ -4,12 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!-- <!ENTITY stunnel-download-http "http://www.stunnel.org/download/stunnel/src/stunnel-&stunnel-version;.tar.gz"> -->
   <!ENTITY stunnel-download-http "http://www.stunnel.org/download/stunnel/src/stunnel-&stunnel-version;.tar.gz">
   <!ENTITY stunnel-download-ftp  "ftp://stunnel.mirt.net/stunnel/stunnel-&stunnel-version;.tar.gz">
-  <!ENTITY stunnel-md5sum        "0969cc4868dfd75f22792ecccc9ec555">
-  <!ENTITY stunnel-size          "488 KB">
-  <!ENTITY stunnel-buildsize     "4.0 MB">
+  <!ENTITY stunnel-md5sum        "2c00153ad099a5f9c5609e8d1dbbe470">
+  <!ENTITY stunnel-size          "497 KB">
+  <!ENTITY stunnel-buildsize     "4.2 MB">
   <!ENTITY stunnel-time          "0.1 SBU">
 ]>
 
@@ -87,7 +86,7 @@
 <screen role="root"><userinput>groupadd -g 51 stunnel &amp;&amp;
 useradd -c "Stunnel Daemon" -d /var/lib/stunnel \
         -g stunnel -s /bin/false -u 51 stunnel &amp;&amp;
-install -v -m700 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></screen>
+install -v -m 1770 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></screen>
 
     <note>
       <para>A signed SSL Certificate and a Private Key is necessary to run
@@ -105,16 +104,18 @@ install -v -m700 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></scre
 -----END RSA PRIVATE KEY-----
 -----BEGIN CERTIFICATE-----
 <replaceable>[many encrypted lines of certificate]</replaceable>
------END CERTIFICATE-----
------BEGIN DH PARAMETERS-----
-<replaceable>[multiple encrypted lines of DH parameters]</replaceable>
------END DH PARAMETERS-----</literal></screen>
+-----END CERTIFICATE-----</literal></screen>
     </note>
 
     <para>Install <application>Stunnel</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
+<screen><userinput>sed -i -e 's|nogroup|stunnel|' \
+       -e 's|$(prefix)/var/lib|$(localstatedir)|' \
+    tools/Makefile.in
+sed -i 's|doc/stunnel|&amp;-$(VERSION)|' {,doc/,tools/}Makefile.in &amp;&amp;
+
+./configure --prefix=/usr --sysconfdir=/etc \
     --localstatedir=/var/lib --disable-libwrap &amp;&amp;
 make</userinput></screen>
 
@@ -129,13 +130,23 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i -e '...' -e '...' tools/Makefile.in</command>:
+    This <command>sed</command> command modifies the group and directory
+    used for the <command>chroot</command> jail to conform with the parameters
+    created earlier.</para>
+
+    <para><command>sed -i '...' {,doc/,tools/}Makefile.in</command>: This
+    <command>sed</command> command modifies the location of the installed
+    docs to a versioned directory.</para>
+
     <para><parameter>--sysconfdir=/etc</parameter>: This parameter forces
     the configuration directory to <filename class='directory'>/etc</filename>
     instead of <filename class='directory'>/usr/etc</filename>.</para>
 
     <para><parameter>--localstatedir=/var/lib</parameter>: This parameter
-    causes the installation process to create
+    sets the installation to use
     <filename class='directory'>/var/lib/stunnel</filename> instead of
+    creating and using
     <filename class='directory'>/usr/var/stunnel</filename>.</para>
 
     <para><parameter>--disable-libwrap</parameter>: This parameter is required
@@ -237,7 +248,8 @@ connect = <replaceable>[hostname:portnumber]</replaceable></literal></screen>
       <seglistitem>
         <seg>stunnel and stunnel3</seg>
         <seg>libstunnel.so</seg>
-        <seg>/etc/stunnel, /var/lib/stunnel, and /usr/share/doc/stunnel</seg>
+        <seg>/etc/stunnel, /var/lib/stunnel and
+        /usr/share/doc/stunnel-&stunnel-version;</seg>
       </seglistitem>
     </segmentedlist>
 
