@@ -6,9 +6,9 @@
 
   <!ENTITY shadow-download-http "http://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2">
   <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2">
-  <!ENTITY shadow-md5sum        "5c6a105d89afb0900922260e9c5650cc">
-  <!ENTITY shadow-size          "1.0 MB">
-  <!ENTITY shadow-buildsize     "13.6 MB">
+  <!ENTITY shadow-md5sum        "a0452fa989f8ba45023cc5a08136568e">
+  <!ENTITY shadow-size          "1.2 MB">
+  <!ENTITY shadow-buildsize     "15.5 MB">
   <!ENTITY shadow-time          "0.3 SBU">
 ]>
 
@@ -65,6 +65,7 @@
       </listitem>
     </itemizedlist>
 
+    <!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
@@ -72,6 +73,7 @@
         url="&patch-root;/shadow-&shadow-version;-configure_fix-1.patch"/></para>
       </listitem>
     </itemizedlist>
+    -->
 
     <bridgehead renderas="sect3">Shadow Dependencies</bridgehead>
 
@@ -93,18 +95,34 @@
       reinstalling <application>Shadow</application> to provide strong
       password support via the <application>CrackLib</application> library
       and you have not installed <application>Linux-PAM</application>, ensure
-      you replace the <parameter>--with-libpam --without-libcrack</parameter>
-      parameters with <parameter>--with-libcrack</parameter>.</para>
+      you add the <parameter>--with-libcrack</parameter> parameter to the
+      <command>configure</command> script below.</para>
     </important>
 
     <para>Reinstall <application>Shadow</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../shadow-&shadow-version;-configure_fix-1.patch &amp;&amp;
-./configure --libdir=/lib --enable-shared \
-    --with-libpam --without-libcrack &amp;&amp;
+<screen><userinput>./configure --libdir=/lib \
+            --enable-shared \
+            --without-selinux &amp;&amp;
 sed -i 's/groups$(EXEEXT) //' src/Makefile &amp;&amp;
 find man -name Makefile -exec sed -i '/groups/d' {} \; &amp;&amp;
+sed -i -e 's/ ko//' \
+       -e 's/ zh_CN zh_TW//' \
+    man/Makefile &amp;&amp;
+
+for i in de es fi fr id it pt_BR; do
+    convert-mans UTF-8 ISO-8859-1 man/${i}/*.?
+done &amp;&amp;
+
+for i in cs hu pl; do
+    convert-mans UTF-8 ISO-8859-2 man/${i}/*.?
+done &amp;&amp;
+
+convert-mans UTF-8 EUC-JP man/ja/*.? &amp;&amp;
+convert-mans UTF-8 KOI8-R man/ru/*.? &amp;&amp;
+convert-mans UTF-8 ISO-8859-9 man/tr/*.? &amp;&amp;
+
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -122,21 +140,65 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--without-libcrack</parameter>: This switch tells
+    <!-- Removed the -with-libpam and -without-libcrack options from the
+         default as these are the defaults. Pam will automatically be picked
+         up if it is installed, and CrackLib won't be used unless specifically
+         requested via -with-libcrack
+    <para><parameter>-without-libcrack</parameter>: This switch tells
     <application>Shadow</application> not to use
     <filename class='libraryfile'>libcrack</filename>. This is desired as
     <application>Linux-PAM</application> will provide
     <filename class='libraryfile'>libcrack</filename> functionality.</para>
+    -->
 
-    <para><command>sed -i ...</command>: These commands are used to suppress
-    the installation of the <command>groups</command> program and man pages
-    as the version from the <application>Coreutils</application> package
-    installed during LFS is preferred.</para>
+    <para><parameter>--without-selinux</parameter>: Support for selinux is
+    enabled by default, but selinux is not built in a base LFS system. The
+    <command>configure</command> script will fail if this option is not
+    used.</para>
+
+    <para><command>sed -i 's/groups$(EXEEXT) //' src/Makefile</command>: This
+    command is used to suppress the installation of the
+    <command>groups</command> program as the version from the
+    <application>Coreutils</application> package installed during LFS is
+    preferred.</para>
+
+    <para><command>find man -name Makefile -exec ... {} \;</command>: This
+    command is used to suppress the installation of the
+    <command>groups</command> man pages so the existing ones installed from
+    the <application>Coreutils</application> package are not replaced.</para>
+
+    <para><command>sed -i -e '...' -e '...' man/Makefile</command>: This
+    command disables the installation of Chinese and Korean manual pages, since
+    <application>Man-DB</application> cannot format them properly.</para>
+
+    <para><command>convert-mans ...</command>: These commands are used to
+    convert some of the man pages so that <application>Man-DB</application>
+    will display them in the recommended encodings.</para>
+
+    <para><command>mv -v /usr/bin/passwd /bin</command>: The
+    <command>passwd</command> program may be needed during times when the
+    <filename class='directory'>/usr</filename> filesystem is not mounted so
+    it is moved into the root partition.</para>
+
+    <para><command>mv -v ...; rm -v ...; ln -v ...</command>: These commands
+    are used to move the <filename class='libraryfile'>libshadow</filename>
+    library to the root partition to support the moving of the
+    <command>passwd</command> program earlier.</para>
 
   </sect2>
 
   <sect2 role="configuration">
     <title>Configuring Linux-PAM to Work with Shadow</title>
+
+    <note>
+      <para>The rest of the page is devoted to configuring
+      <application>Shadow</application> to work properly with
+      <application>Linux-PAM</application>. If you do not have
+      <application>Linux-PAM</application> installed, and you reinstalled
+      <application>Shadow</application> to support strong passwords via
+      the <application>CrackLib</application> library, no further configuration
+      is required.</para>
+    </note>
 
     <sect3 id="pam.d">
       <title>Config Files</title>
@@ -166,6 +228,28 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
+      <para>Configuring your system to use <application>Linux-PAM</application>
+      can be a complex task. The information below will provide a basic setup
+      so that <application>Shadow</application>'s login and password
+      functionality will work effectively with
+      <application>Linux-PAM</application>. Review the information and links on
+      the <xref linkend="linux-pam"/> page for further configuration
+      information. For information specific to integrating
+      <application>Shadow</application>, <application>Linux-PAM</application>
+      and <application>CrackLib</application>, you can visit the following
+      links:</para>
+
+      <itemizedlist spacing="compact">
+      <listitem>
+        <para><ulink
+        url="http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/pam-6.html#ss6.3"/></para>
+      </listitem>
+      <listitem>
+        <para><ulink
+        url="http://www.deer-run.com/~hal/sysadmin/pam_cracklib.html"/></para>
+      </listitem>
+      </itemizedlist>
+
       <sect4 id="pam-login-defs">
         <title>Configuring /etc/login.defs</title>
 
@@ -190,10 +274,16 @@ for FUNCTION in LASTLOG_ENAB MAIL_CHECK_ENAB \
                 CONSOLE_GROUPS ENVIRON_FILE \
                 ULIMIT ENV_TZ ENV_HZ ENV_SUPATH \
                 ENV_PATH QMAIL_DIR MAIL_DIR MAIL_FILE \
-                CHFN_AUTH FAILLOG_ENAB QUOTAS_ENAB FTMP_FILE
+                CHFN_AUTH FAILLOG_ENAB QUOTAS_ENAB FTMP_FILE \
+                OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
+                PASS_CHANGE_TRIES PASS_ALWAYS_WARN
 do
     sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
+
+        <!-- Moved the commenting of these four parameters into the section
+        above. If PAM is installed, it complains if these are not commented
+        regardless if CrackLib is installed.
 
         <para>If you have <application>CrackLib</application> installed,
         also comment out four more lines using the following command as the
@@ -204,6 +294,8 @@ done</userinput></screen>
 do
     sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
+
+        -->
 
       </sect4>
 
