@@ -9,8 +9,8 @@ DUMPDIR= $(HOME)/blfs-commands
 INSTALL = install
 JADE = openjade
 DOCBOOK = /usr/share/sgml/docbook/dsssl-stylesheets-1.78
-BASEDIR= $(HOME)/public_html/blfs-book-xsl/
-TEXBASEDIR= $(HOME)/public_html/blfs-book-tex/
+BASEDIR= $(HOME)/public_html/blfs-book-xsl
+TEXBASEDIR= $(HOME)/public_html/blfs-book-tex
 NOCHUNKS_OUTPUT=BLFS-BOOK.html
 SRCDIR = $(PWD)
 
@@ -24,14 +24,14 @@ blfs:
 	@echo "Generating XHTML Version of BLFS Book with xsltproc..."
 	@echo "  BASEDIR = $(BASEDIR)"
 	@$(INSTALL) -d $(BASEDIR)
-	xsltproc --xinclude --nonet -stringparam base.dir $(BASEDIR) \
+	xsltproc --xinclude --nonet -stringparam base.dir $(BASEDIR)/ \
 	  stylesheets/blfs-chunked.xsl index.xml
-	if [ ! -e $(BASEDIR)stylesheets ]; then \
-	  mkdir -p $(BASEDIR)stylesheets; \
+	if [ ! -e $(BASEDIR)/stylesheets ]; then \
+	  mkdir -p $(BASEDIR)/stylesheets; \
 	fi;
-	cp stylesheets/*.css $(BASEDIR)stylesheets
-	if [ ! -e $(BASEDIR)images ]; then \
-	  mkdir -p $(BASEDIR)images; \
+	cp stylesheets/*.css $(BASEDIR)/stylesheets
+	if [ ! -e $(BASEDIR)/images ]; then \
+	  mkdir -p $(BASEDIR)/images; \
 	fi;
 	cp images/*.png $(BASEDIR)/images
 	cd $(BASEDIR); sed -i -e "s@../stylesheets@stylesheets@g" *.html
@@ -64,9 +64,9 @@ pdf:
 	         stylesheets/blfs-pdf.xsl blfs-pdf.xml
 	sed -i -e "s/inherit/all/" blfs.fo
 	fop.sh blfs.fo blfs.pdf
-	$(INSTALL) -d $(BASEDIR)pdf
+	$(INSTALL) -d $(BASEDIR)/pdf
 	rm blfs.fo
-	mv blfs.pdf $(BASEDIR)pdf
+	mv blfs.pdf $(BASEDIR)/pdf
 
 tex:
 	@if [ -z $(TEXBASEDIR) ]; then \
@@ -78,7 +78,7 @@ tex:
 	@$(INSTALL) -d $(TEXBASEDIR)
 # Using profiles in book source to exclude parts of the book from TeX
 # i.e., Changelog
-	xsltproc --nonet --output $(TEXBASEDIR)index.xml \
+	xsltproc --nonet --output $(TEXBASEDIR)/index.xml \
     	--stringparam "profile.role" "book" \
 	http://docbook.sourceforge.net/release/xsl/current/profiling/profile.xsl \
 	    index.xml
