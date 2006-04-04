@@ -5,18 +5,14 @@
   %general-entities;
 
   <!ENTITY subversion-download-http "http://subversion.tigris.org/tarballs/subversion-&subversion-version;.tar.bz2">
-  <!ENTITY subversion-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/subversion-&subversion-version;.tar.bz2">
-  <!ENTITY subversion-md5sum        "a14bc6590241b6e5c2ff2b354cc184a1">
-  <!ENTITY subversion-size          "7.2 MB">
+  <!ENTITY subversion-download-ftp  " ">
+  <!ENTITY subversion-md5sum        "07b95963968ae345541ca99d0e7bf082">
+  <!ENTITY subversion-size          "6.7 MB">
 
-  <!-- Commenting out the stuff about bindings for now
-  <!ENTITY subversion-buildsize     "90 MB (additional 45 MB for all bindings and 443 MB to run all test suites)">
-  <!ENTITY subversion-time          "1.6 SBU (add 1.1 SBU for bindings and 22.5 SBU to run test suites)">
-  -->
+  <!ENTITY subversion-buildsize     "100 MB (additional 57 MB to install all bindings and 465 MB to run all test suites)">
+  <!ENTITY subversion-time          "1.7 SBU (add 1.1 SBU for bindings and 20-60 minutes to run test suites)">
 
-  <!ENTITY subversion-buildsize     "93 MB (additional 466 MB to run the test suite)">
-  <!ENTITY subversion-time          "1.7 SBU (add 7.1 SBU to run the test suite)">
-  <!ENTITY svn-neon-version         "0.24.7">
+  <!ENTITY svn-neon-version         "0.25.5">
 ]>
 
 <sect1 id="subversion" xreflabel="Subversion-&subversion-version;">
@@ -49,6 +45,26 @@
     and server software used to manipulate a
     <application>Subversion</application> repository. Creation of a repository
     is covered at <xref linkend="svnserver"/>.</para>
+
+    <caution>
+      <para>For reasons that are not yet fully understood,
+      <application>Subversion</application> repositories based on some versions
+      of <application>Berkeley DB</application> (notably 4.4.x) may not perform
+      reliably. Though there have been no reports of corrupted databases caused
+      by this issue, the <application>Subversion</application> test suite may
+      report a failure in one of the tests due to problems opening a repository
+      based on <application>Berkeley DB</application>. This issue only affects
+      BDB-based repositories on a local installation and does not affect access
+      to a BDB-based repository on a remote system.</para>
+
+      <para>To eliminate any problems that may be associated with this issue,
+      you are encouraged (as well as recommended by the
+      <application>Subversion</application> development team) to use
+      File System based repositories. Additionally, if you have existing
+      repositories based on <application>Berkeley DB</application>, you are
+      encouraged to dump and reload them into a File System based
+      repository.</para>
+    </caution>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -86,35 +102,26 @@
 
     <bridgehead renderas="sect3">Subversion Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="libxml2"/> (only if using the bundled
-    version of <application>neon</application>)</para>
-
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="python"/> (required to run the test
-    suite),
+    <para role="optional"><xref linkend="python"/>
+    (required to run the test suite),
     <!-- <xref linkend="db"/>, -->
-    <xref linkend="apache"/>,
+    <xref linkend="apache"/> or
+    <ulink url="http://apr.apache.org/">Apache Portable Runtime</ulink>,
     <ulink url="http://www.webdav.org/neon/">neon-&svn-neon-version;</ulink>,
-
-    <xref linkend="jdk"/> (to build the <application>Java</application>
-    bindings),
-
-    <ulink url="http://www.junit.org/">JUnit</ulink> (required for running the
-    <application>Java</application> bindings test suite and requires
+    <xref linkend="jdk"/> (to build the Java bindings),
+    <ulink url="http://www.junit.org/">JUnit</ulink>
+    (required for running the Java bindings test suite and requires
     <xref linkend="unzip"/>),
-
-    <ulink url="http://www.inet.no/dante/">Dante</ulink> (alternate
-    <application>Java</application> compiler), and
-
+    <ulink url="http://www.inet.no/dante/">Dante</ulink>
+    (alternate Java compiler), and
     <ulink url="http://oss.software.ibm.com/developerworks/opensource/jikes/">
-    Jikes</ulink> (another alternate
-    <application>Java</application> compiler)</para>
-    <!-- inetd or <xref linkend="xinetd"/> (server only) -->
+    Jikes</ulink> (another alternate Java compiler)</para>
 
     <bridgehead renderas="sect4">Optional for the Bundled Version of
     <application>Neon</application></bridgehead>
     <para role="optional"><xref linkend="pkgconfig"/>,
+    <xref linkend="libxml2"/> or <xref linkend="expat"/>,
     <xref linkend="openssl"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/></para>
 
@@ -122,114 +129,130 @@
     <application>Apache Portable Runtime</application></bridgehead>
     <para role="optional"><xref linkend="expat"/> and
     <xref linkend="gdbm"/></para>
+    <!-- <xref linkend="db"/>, -->
 
     <bridgehead renderas="sect4">Optional to Build the
     <application>SWIG</application> Bindings</bridgehead>
     <para role="optional"><ulink url="http://www.swig.org">SWIG</ulink>,
     <xref linkend="python"/>, and
-    <xref linkend="ruby"/> (<application>Ruby</application> bindings require
-    <application>Swig-1.3.24</application>)</para>
+    <xref linkend="ruby"/></para>
 
-    <!-- Added a note that the bindings may not work correctly. This may have
-         to be commented out in future versions where all the bindings build
-         and work properly-->
-    <para>Note that the <application>Python</application> and
-    <application>Perl</application> bindings may not compile properly with
-    the current versions of <application>SWIG</application> and the
-    (B)LFS packages.</para>
+    <para>Note that the <application>Python</application>,
+    <application>Perl</application> and <application>Ruby</application>
+    bindings will not compile properly with the current version of
+    <application>SWIG</application>. To build the bindings, you must have
+    <application>SWIG</application>-1.3.{24,25} installed. Complete
+    instructions for building the <application>SWIG</application> bindings
+    can be found in the <application>Subversion</application> source tree
+    file <filename>./subversion/bindings/swig/INSTALL</filename>.</para>
 
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of Subversion</title>
 
-    <para>Install <application>Subversion</application> by running the following
-    commands:</para>
+    <para>Install <application>Subversion</application> by running the
+    following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>./configure --prefix=/usr \
+            --with-installbuilddir=/usr/lib/apr-0 &amp;&amp;
 make</userinput></screen>
 
     <note>
       <para>If you have <application>Apache</application> installed, pass
-      the <option>--with-apr=/usr</option> and <option>--with-apr-util=/usr</option>
-      switches to the <command>configure</command> script. Otherwise,
+      the <option>--with-apr=/usr</option> and
+      <option>--with-apr-util=/usr</option> switches to the
+      <command>configure</command> script. Otherwise,
       <application>Subversion</application> will overwrite APR and APR-utils
-      from the <application>Apache</application> installation with its own
-      files. You may also need to pass <option>--with-apxs=/usr/sbin/apxs</option>
-      as <command>apxs</command> might not be in an unprivileged user's
-      <envar>PATH</envar> and won't be properly discovered.</para>
+      from the <application>Apache</application> installation with the source
+      distribution files. You may also need to pass
+      <option>--with-apxs=/usr/sbin/apxs</option> as <command>apxs</command>
+      might not be in an unprivileged user's <envar>PATH</envar> and won't be
+      properly discovered. Additionally if you have
+      <application>Apache</application> installed, you may safely remove the
+      <parameter>--with-installbuilddir=/usr/lib/apr-0</parameter> parameter
+      as it will have no effect.</para>
     </note>
 
     <para>If you passed the <option>--enable-javahl</option> parameter to
-    <command>configure</command> and wish to build the
-    <application>Java</application> <application>Subversion</application>
-    bindings, issue the following command:</para>
+    <command>configure</command> and wish to build the Java bindings, issue
+    the following command:</para>
 
 <screen><userinput>make javahl</userinput></screen>
 
-    <!-- Perl and Python bindings appear broken right now so
-         commenting them out
     <para>If you passed the <option>-with-swig</option> parameter to
     <command>configure</command> and wish to build the
-    <application>SWIG</application> <application>Perl</application> and
-    <application>Python</application> <application>Subversion</application>
-    bindings, issue the following commands:</para>
+    <application>Perl</application>, <application>Python</application> and/or
+    <application>Ruby</application> bindings, issue any or all of the following
+    commands:</para>
 
 <screen><userinput>make swig-pl &amp;&amp;
-make swig-py</userinput></screen>
-    -->
-
-    <para>The <application>Ruby</application> bindings are a recent
-    development, and are only partially implemented. The
-    <application>Ruby</application> bindings API may change incompatibly as
-    development proceeds. They currently require
-    <application>SWIG</application> 1.3.24 exactly &ndash; neither later nor
-    earlier will work.</para>
+make swig-py &amp;&amp;
+make swig-rb</userinput></screen>
 
     <para>To test the results of the <application>Subversion</application>
     build, issue: <command>make check</command>. This will take quite a long
     time.</para>
 
-    <!-- Revising the command to exclude the Perl bindings check
-    <para>To test the results of the bindings builds, issue either or both
-    of: <command>make check-javahl</command> and
-    <command>make check-swig-pl</command>.</para>
-    -->
+    <note>
+      <para>The <computeroutput>fs-base-test</computeroutput> is known to fail
+      with issues surrounding the Berkely database installation. As mentioned
+      earlier, it is not yet fully understood why this test fails.</para>
+    </note>
 
-    <para>To test the results of the <application>Java</application> bindings
-    build, issue <command>make check-javahl</command>.</para>
+    <para>To test the results of the Java bindings build, issue
+    <command>make check-javahl</command>. Note you must have the
+    <application>JUnit</application> (version 3.8.x) testing framework
+    installed.</para>
+
+    <para>To test the results of any or all of the
+    <application>SWIG</application> bindings, you can use the following
+    commands:</para>
+
+<screen><userinput>make check-swig-pl &amp;&amp;
+make check-swig-py &amp;&amp;
+make check-swig-rb</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
-install -v -d -m755 /usr/share/doc/subversion-&subversion-version; &amp;&amp;
+install -v -m755 -d /usr/share/doc/subversion-&subversion-version; &amp;&amp;
 cp -v -R doc/* /usr/share/doc/subversion-&subversion-version; &amp;&amp;
 rm -v /usr/share/doc/subversion-&subversion-version;/{Makefile,doxygen.conf}</userinput></screen>
 
-    <para>If you built the <application>Java</application>
-    <application>Subversion</application> bindings, issue the following command
+    <para>If you built the Java bindings, issue the following command
     as the <systemitem class="username">root</systemitem> user to install
     them:</para>
 
 <screen role='root'><userinput>make install-javahl</userinput></screen>
 
-    <!-- Commenting out Perl and Python bindings install
-    <para>If you built the <application>SWIG</application>
-    <application>Perl</application> and <application>Python</application>
-    <application>Subversion</application> bindings, issue the following commands
-    as the <systemitem class="username">root</systemitem> user to install
-    them:</para>
+    <para>If you built any of the <application>SWIG</application> bindings,
+    issue any or all of the following commands as the
+    <systemitem class="username">root</systemitem> user to install them:</para>
 
 <screen role='root'><userinput>make install-swig-pl &amp;&amp;
+
 make install-swig-py &amp;&amp;
 echo /usr/lib/svn-python \
-    &gt; /usr/lib/python2.4/site-packages/subversion.pth</userinput></screen>
-    -->
+    &gt; /usr/lib/python2.4/site-packages/subversion.pth &amp;&amp;
+
+make install-swig-rb</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><parameter>--with-installbuilddir=/usr/lib/apr-0</parameter>:
+    This parameter is used (and only has an effect if you used the source
+    provided version of Apache Portable Runtime) to force the installation
+    of some APR-related support programs to
+    <filename class="directory">/usr/lib/apr-0</filename> instead of
+    <filename class="directory">/usr/build</filename>.</para>
+
+    <para><option>--with-neon=<replaceable>[prefix]</replaceable></option>:
+    This option should be used if you wish to use a system-installed version
+    of <application>neon</application>.</para>
 
     <para><option>--with-ssl</option>: This switch enables
     <application>OpenSSL</application> support in
@@ -283,7 +306,7 @@ echo /usr/lib/svn-python \
 
       <seglistitem>
         <seg>svn, svnadmin, svndumpfilter, svnlook, svnserve, svnversion, and
-        optionally, neon-config</seg>
+        optionally, neon-config and apr-config</seg>
         <seg>libsvn*.[so,a] and optionally, libneon.[so,a] and the mod_dav_svn.so,
         and mod_authz_svn.so <application>Apache HTTP</application>
         DSO modules</seg>
