@@ -21,6 +21,26 @@
     <para>This section will describe how to set up, administer and secure
     a <application>Subversion</application> server.</para>
 
+    <note>
+      <para>The default build instructions for
+      <application>Subversion</application> disabled the
+      <application>Berkeley DB</application> repository back-end due to the
+      errors encountered in the test suite while building the
+      <xref linkend="subversion"/> package. This should not present a
+      functionality issue as the FSFS repository back-end is now the default,
+      and recommended by the <application>Subversion</application> development
+      team.</para>
+
+      <para>If you have existing repositories based on a
+      <application>Berkeley DB</application> back-end and you followed the
+      BLFS instructions for building <application>Subversion</application>,
+      you'll need to dump the databases, create new repositories using the
+      FSFS back-end, then then reload the data into the new repositories.
+      Instructions for performing these operations can be found at <ulink
+      url="http://svnbook.red-bean.com/en/1.1/ch05s03.html#svn-ch-5-sect-3.5"/>.
+      </para>
+    </note>
+
     <bridgehead renderas="sect3">Subversion Server Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -98,20 +118,18 @@ chmod 0755 /usr/bin/svn{,serve}</userinput></screen>
       recover the repository.  For more information and comparison between
       FSFS and BDB, see <ulink
       url="http://svnbook.red-bean.com/svnbook-1.1/ch05.html#svn-ch-5-sect-1.2.A"/>.
-      Optionally you can pass <option>bdb</option> in place of
-      <option>fsfs</option> in the following command to create a
-      BerkeleyDB data-store.</para>
+      </para>
 
       <para>Create a new <application>Subversion</application> repository with
       the following commands:</para>
 
-<screen role="root"><userinput>install -d -m0755 /srv &amp;&amp;
-install -d -m0755 -o svn -g svn /srv/svn/repositories &amp;&amp;
+<screen role="root"><userinput>install -v -m 0755 -d /srv &amp;&amp;
+install -v -m 0755 -o svn -g svn -d /srv/svn/repositories &amp;&amp;
 svnadmin create --fs-type fsfs /srv/svn/repositories/svntest</userinput></screen>
 
-      <para>Now that the repository is created, we need to populate it
+      <para>Now that the repository is created, it should be populated with
       with something useful. You'll need to have a predefined directory
-      layout setup exactly as you want your repository to look. For
+      layout set up exactly as you want your repository to look. For
       example, here is a sample BLFS layout setup with a root of
       <filename>svntest/</filename>. You'll need to setup a directory
       tree similar to the following:</para>
@@ -133,7 +151,7 @@ svnadmin create --fs-type fsfs /srv/svn/repositories/svntest</userinput></screen
     <replaceable>[/path/to/source/tree]</replaceable> \
     file:///srv/svn/repositories/svntest</userinput></screen>
 
-      <para>Now go ahead and change owner and group information on the
+      <para>Now change owner and group information on the
       repository, and add an unprivileged user to the
       <systemitem class="groupname">svn</systemitem> and
       <systemitem class="groupname">svntest</systemitem> groups:</para>
@@ -162,8 +180,8 @@ usermod -G svn,svntest,<replaceable>[insert existing groups]</replaceable> <repl
       files, but still give the entire group write access to those
       files. This avoids locking out other users from the repository.</para>
 
-      <para>Now, go ahead and return to an unprivileged user account, and take a
-      look at your new repository using <command>svnlook</command>:</para>
+      <para>Now, return to an unprivileged user account, and take a
+      look at the new repository using <command>svnlook</command>:</para>
 
 <screen><userinput>svnlook tree /srv/svn/repositories/svntest/</userinput></screen>
 
@@ -256,7 +274,7 @@ service svn
 # End /etc/xinetd.d/svn</literal>
 EOF</userinput></screen>
 
-      <para>Finally, if you wish to simply start the sever at
+      <para>Finally, if you wish to simply start the server at
       startup, install the svn bootscript included in the
       <xref linkend="bootscripts"/> package.</para>
 

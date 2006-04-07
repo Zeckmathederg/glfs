@@ -46,26 +46,6 @@
     <application>Subversion</application> repository. Creation of a repository
     is covered at <xref linkend="svnserver"/>.</para>
 
-    <caution>
-      <para>For reasons that are not yet fully understood,
-      <application>Subversion</application> repositories based on some versions
-      of <application>Berkeley DB</application> (notably 4.4.x) may not perform
-      reliably. Though there have been no reports of corrupted databases caused
-      by this issue, the <application>Subversion</application> test suite may
-      report a failure in one of the tests due to problems opening a repository
-      based on <application>Berkeley DB</application>. This issue only affects
-      BDB-based repositories on a local installation and does not affect access
-      to a BDB-based repository on a remote system.</para>
-
-      <para>To eliminate any problems that may be associated with this issue,
-      you are encouraged (as well as recommended by the
-      <application>Subversion</application> development team) to use
-      File System based repositories. Additionally, if you have existing
-      repositories based on <application>Berkeley DB</application>, you are
-      encouraged to dump and reload them into a File System based
-      repository.</para>
-    </caution>
-
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -151,10 +131,33 @@
   <sect2 role="installation">
     <title>Installation of Subversion</title>
 
+    <caution>
+      <para>For reasons that are not yet fully understood,
+      <application>Subversion</application> repositories based on some versions
+      of <application>Berkeley DB</application> (notably 4.4.x) may not perform
+      reliably. Though there have been no reports of corrupted databases caused
+      by this issue, the <application>Subversion</application> test suite may
+      report a failure in one of the tests due to problems opening a repository
+      based on <application>Berkeley DB</application>. This issue only affects
+      BDB-based repositories on a local installation and does not affect access
+      to a BDB-based repository on a remote system built with older versions of
+      <application>Subversion</application> or
+      <application>Berkeley DB</application>.</para>
+
+      <para>For these reasons, the <application>Berkeley DB</application>
+      back-end is disabled, and any local BDB-based repositories you may have
+      will be unavailable after installing <application>Subversion</application>
+      using the following instructions. Please reference the information at
+      <ulink
+      url="http://svnbook.red-bean.com/en/1.1/ch05s03.html#svn-ch-5-sect-3.5"/>
+      if you need to migrate your repositores.</para>
+    </caution>
+
     <para>Install <application>Subversion</application> by running the
     following commands:</para>
 
 <screen><userinput>./configure --prefix=/usr \
+            --without-berkeley-db \
             --with-installbuilddir=/usr/lib/apr-0 &amp;&amp;
 make</userinput></screen>
 
@@ -216,9 +219,11 @@ make check-swig-rb</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
+rm doc/{Makefile,doxygen.conf} &amp;&amp;
+find doc -type d -exec chmod 755 {} \; &amp;&amp;
+find doc -type f -exec chmod 644 {} \; &amp;&amp;
 install -v -m755 -d /usr/share/doc/subversion-&subversion-version; &amp;&amp;
-cp -v -R doc/* /usr/share/doc/subversion-&subversion-version; &amp;&amp;
-rm -v /usr/share/doc/subversion-&subversion-version;/{Makefile,doxygen.conf}</userinput></screen>
+cp -v -R doc/* /usr/share/doc/subversion-&subversion-version;</userinput></screen>
 
     <para>If you built the Java bindings, issue the following command
     as the <systemitem class="username">root</systemitem> user to install
