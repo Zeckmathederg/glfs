@@ -12,8 +12,8 @@
   <!ENTITY enscript-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/enscript-&enscript-version;.tar.gz">
   <!ENTITY enscript-md5sum        "b5174b59e4a050fb462af5dbf28ebba3">
   <!ENTITY enscript-size          "1.0 MB">
-  <!ENTITY enscript-buildsize     "10.2 MB">
-  <!ENTITY enscript-time          "0.13 SBU">
+  <!ENTITY enscript-buildsize     "11.5 MB">
+  <!ENTITY enscript-time          "less than 0.1 SBU">
 ]>
 
 <sect1 id="enscript" xreflabel="Enscript-&enscript-version;">
@@ -62,8 +62,16 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/enscript-&enscript-version;-security_fixes-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/enscript"/></para>
+    <ulink url="&blfs-wiki;/Enscript"/></para>
 
   </sect2>
 
@@ -73,15 +81,40 @@
     <para>Install <application>Enscript</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc/enscript \
-    --localstatedir=/var --with-media=Letter &amp;&amp;
+<screen><userinput>patch -Np1 -i ../enscript-&enscript-version;-security_fixes-1.patch &amp;&amp;
+./configure --prefix=/usr \
+            --sysconfdir=/etc/enscript \
+            --localstatedir=/var \
+            --with-media=Letter &amp;&amp;
 make</userinput></screen>
+
+    <para>Though it is very sparse, if you have <xref linkend="tex"/>
+    installed, you can create alternate forms of the documentation by issuing
+    any or all of the following commands:</para>
+
+<screen><userinput>make -C docs ps &amp;&amp;
+make -C docs pdf &amp;&amp;
+
+cd docs &amp;&amp;
+texi2html enscript.texi &amp;&amp;
+makeinfo --plaintext -o enscript.txt enscript.texi &amp;&amp;
+cd ..</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d /usr/share/doc/enscript-&enscript-version; &amp;&amp;
+install -v -m644 README* *.txt docs/FAQ.html \
+    /usr/share/doc/enscript-&enscript-version;</userinput></screen>
+
+    <para>If you built any of the alternate forms of documentation, install it
+    using the following command as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m644 docs/*.{dvi,html,pdf,ps,txt} \
+    /usr/share/doc/enscript-&enscript-version;</userinput></screen>
 
   </sect2>
 
@@ -113,7 +146,8 @@ make</userinput></screen>
         <seg>diffpp, enscript, mkafmmap, over, sliceprint,
         and states</seg>
         <seg>None</seg>
-        <seg>/usr/share/enscript</seg>
+        <seg>/etc/enscript, /usr/share/doc/enscript-&enscript-version; and
+        /usr/share/enscript</seg>
       </seglistitem>
     </segmentedlist>
 
