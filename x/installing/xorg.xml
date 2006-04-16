@@ -200,18 +200,32 @@
 
       <para>The <application>Xorg</application> sources must be patched in
       order to avoid a race condition with the <application>luit</application>
-      program.  Additionally, recent <application>glibc</application> requires
-      <filename>linux/types.h</filename> to be included prior to
-      <filename>asm/types.h</filename>.  Finally, the server portion of
+      program.  Additionally, the server portion of
       <application>Xorg</application> contains a <ulink
       url="http://wiki.x.org/wiki/SecurityPage">security vulnerability</ulink>.
       Fix these issues with the following commands:</para>
 
 <screen><userinput>patch -Np1 -i ../xorg-&xorg-version;-luit_race-1.patch &amp;&amp;
-sed -i '/CONFIG_H/i #include &lt;linux/types.h&gt;' \
-    programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c &amp;&amp;
 sed -i 's/geteuid /geteuid() /' \
     programs/Xserver/hw/xfree86/common/xf86Init.c</userinput></screen>
+
+
+<!-- To be removed if/when proposed glibc patch is added to LFS SVN
+     Leave in in for a couple of weeks with 'you may need' and a testcase
+     around it to save the support list silly questions.  Should remove in
+     a couple of weeks -->
+      <para>Recent glibc may have a problem with it's installed sys/kd.h file.
+      This has recently been fixed in LFS svn.  Execute the
+      following commands to work around a broken kd.h file.  The commands will
+      only make the modification if needed:</para>
+
+<screen><userinput>grep "__undef_LINUX" \
+    /usr/include/sys/kd.h 2&gt;&amp;1 &gt; /dev/null || \
+    sed -i.bak '/CONFIG_H/i #include &lt;linux/types.h&gt;' \
+    programs/Xserver/hw/xfree86/os-support/linux/lnx_agp.c</userinput></screen>
+<!-- End remove -->
+
+
 
       <para>Additionally, if you choose to install
       <application>Xorg</application> to any prefix other than
@@ -388,7 +402,8 @@ ln -v -s ../X11R6/include/X11 /usr/include/X11</userinput></screen>
       following commands as the <systemitem class="username">root</systemitem>
       user:</para>
 
-<screen role="root"><userinput>ln -svn /usr/X11R6/lib/X11/fonts/OTF /usr/share/fonts/X11-OTF &amp;&amp;
+<screen role="root"><userinput>install -d -m755 /usr/share/fonts &amp;&amp;
+ln -svn /usr/X11R6/lib/X11/fonts/OTF /usr/share/fonts/X11-OTF &amp;&amp;
 ln -svn /usr/X11R6/lib/X11/fonts/TTF /usr/share/fonts/X11-TTF</userinput></screen>
 
     </sect3>
