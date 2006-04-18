@@ -6,13 +6,13 @@
 
   <!ENTITY gnucash-download-http "http://www.gnucash.org/pub/gnucash/sources/stable/gnucash-&gnucash-version;.tar.gz">
   <!ENTITY gnucash-download-ftp  "ftp://ftp.at.gnucash.org/pub/gnucash/gnucash/sources/stable/gnucash-&gnucash-version;.tar.gz">
-  <!ENTITY gnucash-src-md5sum    "62f94331936e37ed1b1d28b5a1863bb3">
-  <!ENTITY gnucash-docs-md5sum   "9758d8e523530c2509912761e327a9d5">
-  <!ENTITY gnucash-size          "7.8 MB">
-  <!ENTITY gnucash-buildsize     "113 MB (additional 22 MB for Help documentation)">
-  <!ENTITY gnucash-time          "2.9 SBU">
+  <!ENTITY gnucash-src-md5sum    "81e7c703db56bb203e106664157779cc">
+  <!ENTITY gnucash-size          "8.2 MB">
+  <!ENTITY gnucash-buildsize     "123 MB (additional 22 MB for Help documentation)">
+  <!ENTITY gnucash-time          "3.2 SBU (additional 0.3 SBU to run the test suite)">
   <!ENTITY gnucash-docs-version  "1.8.5">
   <!ENTITY gnucash-docs-download "http://www.gnucash.org/pub/gnucash/sources/stable/gnucash-docs-&gnucash-docs-version;.tar.gz">
+  <!ENTITY gnucash-docs-md5sum   "9758d8e523530c2509912761e327a9d5">
 ]>
 
 <sect1 id="gnucash" xreflabel="GnuCash-&gnucash-version;">
@@ -78,7 +78,7 @@
     <xref linkend="gtkhtml1"/>,
     <xref linkend="libghttp"/>,
     <xref linkend="gwrap"/>, and
-    <xref linkend="slib"/></para>
+    <xref linkend="perl-xml-parser"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="postgresql"/>,
@@ -90,17 +90,15 @@
     <ulink url="http://perens.com/FreeSoftware/">Electric Fence</ulink></para>
 
     <bridgehead renderas="sect4">Optional (for On-Line Banking)</bridgehead>
-    <para role="optional"><ulink url="http://libofx.sourceforge.net/">LibOFX</ulink>
+    <para role="optional"><ulink
+    url="http://libofx.sourceforge.net/">LibOFX</ulink>
     (requires <xref linkend="opensp"/> and <xref linkend="curl"/>),
     <ulink url="http://sourceforge.net/projects/ktoblzcheck">KtoBlzCheck</ulink>,
-    <ulink url="http://sourceforge.net/projects/aqhbci">AqHBCI</ulink>
-    (requires
-    <ulink url="http://sourceforge.net/projects/gwenhywfar">Gwenhywfar</ulink>
-    then
-    <ulink url="http://sourceforge.net/projects/aqbanking">AqBanking</ulink>),
-    and also see
-    <ulink
-    url="http://sourceforge.net/projects/libchipcard">libchipcard</ulink></para>
+    and <ulink url="http://www.aquamaniac.de/aqbanking/">AqBanking</ulink>
+    (requires <ulink
+    url="http://gwenhywfar.sourceforge.net/">Gwenhywfar</ulink>
+    and also see <ulink
+    url="http://www.libchipcard.de/">libchipcard2</ulink>)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gnucash"/></para>
@@ -113,20 +111,40 @@
     <para>Install <application>GnuCash</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/opt/gnome-1.4 --sysconfdir=/etc \
-    --disable-guppi --disable-error-on-warning &amp;&amp;
+<screen><userinput>sed -i 's/^\(host_os=.*\)$/\1-gnu/' configure &amp;&amp;
+./configure --prefix=/opt/gnome-1.4 \
+            --sysconfdir=/etc \
+            --disable-guppi \
+            --disable-error-on-warning &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue <command>make check</command> as the
-    <systemitem class="username">root</systemitem> user as the test suite will
-    attempt to update the <application>SLIB</application> catalog in
-    <filename class='directory'>/usr/share/guile</filename>. All tests should
-    pass.</para>
+    <para>To test the results, issue <command>make check</command>. All tests
+    should pass. An easy way to look at the results of the tests is to issue
+    <command>grep -A1 ============== check.log</command> (this is assuming you
+    redirected the output from the tests to the aforementioned filename).</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make install &amp;&amp;
-chown -v -R root:root /opt/gnome-1.4/share/gnucash/doc/html/html</userinput></screen>
+<screen role='root'><userinput>make install</userinput></screen>
+
+    <para>If desired, create a symbolic link from the
+    <application>GnuCash</application> documentation directory to the
+    system-wide documentation directory using the following command as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role='root'><userinput>ln -v -s /opt/gnome-1.4/share/gnucash/doc \
+         /usr/share/doc/gnucash-&gnucash-version;</userinput></screen>
+
+    <para>If desired, create symbolic links to the
+    <application>GnuCash</application> <filename>.desktop</filename> and icon
+    files in the system-wide directories using the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role='root'><userinput>install -v -m755 -d /usr/share/pixmaps/gnucash &amp;&amp;
+ln -v -s /opt/gnome-1.4/share/pixmaps/gnucash/gnucash-icon.png \
+         /usr/share/pixmaps/gnucash &amp;&amp;
+ln -v -s /opt/gnome-1.4/share/gnome/apps/Applications/gnucash.desktop \
+         /usr/share/applications</userinput></screen>
 
     <para>If you want to install the Help documentation (requires
     <xref linkend="scrollkeeper"/> to be installed), unpack the additional
@@ -136,7 +154,7 @@ chown -v -R root:root /opt/gnome-1.4/share/gnucash/doc/html/html</userinput></sc
     user:</para>
 
 <screen><userinput>./configure --prefix=/opt/gnome-1.4 \
-    --localstatedir=/var/lib &amp;&amp;
+            --localstatedir=/var/lib &amp;&amp;
 make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
@@ -147,6 +165,11 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed -i 's/^\(host_os=.*\)$/\1-gnu/' configure</command>:
+    This command is used to fix a broken <command>configure</command> script.
+    Without it, no shared libraries are built, and the program will not
+    function properly.</para>
 
     <para><parameter>--prefix=/opt/gnome-1.4</parameter>:
     <application>GnuCash</application>-&gnucash-version; is a
@@ -172,11 +195,12 @@ make</userinput></screen>
     to build in on-line banking support using
     <application>LibOFX</application>.</para>
 
-    <para><option>--enable-hbci</option>: This parameter is required if you want
-    to build in on-line banking support using
-    <application>AqBanking</application>/<application>AqHBCI</application>. See
+    <para><option>--enable-hbci</option>: This parameter is required if you
+    want to build in on-line banking support using
+    <application>AqBanking</application>. See
     <filename>doc/README.HBCI</filename> in the
-    <application>GnuCash</application> source tree for complete information.</para>
+    <application>GnuCash</application> source tree for complete
+    information.</para>
 
   </sect2>
 
@@ -193,6 +217,7 @@ make</userinput></screen>
       <xref linkend="perl-html-parser"/>, <xref linkend="perl-finance-quote"/>
       and <xref linkend="perl-finance-quotehist"/>.</para>
 
+      <!--
       <note>
         <para><application>GnuCash</application> must be run as
         <systemitem class="username">root</systemitem> once before use. Simply
@@ -200,10 +225,9 @@ make</userinput></screen>
         terminal and clicking on the cancel button is sufficient. This must be
         done prior to setting up accounts as an unprivileged user, due to the
         fact that <application>GnuCash</application> must update scheme catalogs
-        before it is used. If you ran the test suite as the
-        <systemitem class="username">root</systemitem> user during the build
-        instructions, this step is not necessary.</para>
+        before it is used.</para>
       </note>
+      -->
 
     </sect3>
 
