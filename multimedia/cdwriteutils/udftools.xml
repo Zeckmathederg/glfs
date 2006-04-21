@@ -9,7 +9,7 @@
   <!ENTITY udftools-md5sum        "2f491ddd63f31040797236fe18db9e60">
   <!ENTITY udftools-size          "287 KB">
   <!ENTITY udftools-buildsize     "3.5 MB">
-  <!ENTITY udftools-time          "0.10 SBU">
+  <!ENTITY udftools-time          "0.1 SBU">
 ]>
 
 <sect1 id="udftools" xreflabel="UDFtools-&udftools-version;">
@@ -66,10 +66,6 @@
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required patch: <ulink
-        url="http://w1.894.telia.com/~u89404340/patches/packet/2.6/packet-2.6.8-2.patch.bz2"/></para>
-      </listitem>
-      <listitem>
-        <para>Required patch: <ulink
         url="http://w1.894.telia.com/~u89404340/patches/packet/udftools-1.0.0b3.patch.bz2"/></para>
       </listitem>
     </itemizedlist>
@@ -80,26 +76,14 @@
   </sect2>
 
   <sect2 id="udftools-kernel">
-    <title>Installation of the Kernel Patch</title>
+    <title>Kernel Configuration</title>
 
     <indexterm zone="udftools udftools-kernel">
       <primary sortas="d-UDF-File-System">UDF File System</primary>
     </indexterm>
 
-    <warning>
-      <para>Note that this patch can permanently damage your CD
-      drive if it is from one of the few mentioned at
-      <ulink url="http://slashdot.org/article.pl?sid=03/10/25/1737244"/>. Do
-      not apply the patch without first checking out the article.</para>
-    </warning>
-
-    <para>Install the kernel patch by running the following commands from
-    the kernel source directory:</para>
-
-<screen><userinput>bzcat ../packet-2.6.8-2.patch.bz2 | patch -Np1</userinput></screen>
-
-  <para>In the kernel configuration, modify your settings to match those listed
-  here:</para>
+    <para>In the kernel configuration, modify your settings to match those listed
+    here:</para>
 
 <screen><literal>Block devices
     Packet writing on CD/DVD media:       Y or M
@@ -107,21 +91,6 @@ CD-ROM/DVD Filesystems
     UDF file system support               Y or M</literal></screen>
 
     <para>Recompile and install the new kernel.</para>
-
-<!--
-<para>If you built packet writer as a module, add the following to
-<filename>/etc/modules.conf</filename>:</para>
-
-<screen><userinput>alias block-major-97 pktcdvd</userinput></screen>
-
-<para>Finally, create the packet driver device nodes in <filename
-class="directory">/dev</filename>, add one node for every
-CD-RW drive you
-want to support:</para>
-
-<screen><userinput><command>mknod /dev/pktcdvd0 b 97 0
-mknod /dev/pktcdvd1 b 97 1</command></userinput></screen>
--->
 
   </sect2>
 
@@ -132,12 +101,22 @@ mknod /dev/pktcdvd1 b 97 1</command></userinput></screen>
     running the following commands:</para>
 
 <screen><userinput>bzcat ../udftools-1.0.0b3.patch.bz2 | patch -Np1 &amp;&amp;
+sed -i -e 's/(char\*)spm +=/spm = (char\*)spm +/' wrudf/wrudf.c &amp;&amp;
 ./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+     <title>Command Explanations</title>
+
+     <para><command>sed -i -e 's/(char\*)spm +=/spm = (char\*)spm +/' 
+     wrudf/wrudf.c</command>: This change is required to compile with 
+     recent compilers.</para>
 
   </sect2>
 
