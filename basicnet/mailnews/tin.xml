@@ -66,13 +66,9 @@
     <para role="optional"><xref linkend="pcre"/>,
     <xref linkend="libidn"/>,
     an <ulink url="../server/mail.html">MTA</ulink> that provides the
-    <command>sendmail</command> command,
-    <xref linkend="mailx"/>,
+    <command>sendmail</command> command or <xref linkend="mailx"/>,
     <xref linkend="gnupg"/>,
     a spell checker (<xref linkend="ispell"/> or <xref linkend="aspell"/>),
-    a printing system (<xref linkend="cups"/> or <xref linkend="LPRng"/>),
-    <xref linkend="mutt"/> and <xref linkend="procmail"/>
-    for <command>metamutt</command>,
     <ulink url="http://www.isc.org/index.pl?/sw/inn/">INN</ulink>,
     <ulink url="http://www.fpx.de/fp/Software/UUDeview/">UUDeview</ulink>,
     <ulink url="http://www.inet.no/dante/">Socks</ulink>,
@@ -102,7 +98,11 @@ make build</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make install</userinput></screen>
+<screen role='root'><userinput>make install &amp;&amp;
+make install_sysdefs &amp;&amp;
+rm -vf doc/*.? &amp;&amp;
+install -v -m755 -d /usr/share/doc/tin-&tin-version; &amp;&amp;
+install -v -m644 doc/* /usr/share/doc/tin-&tin-version;</userinput></screen>
 
   </sect2>
 
@@ -131,8 +131,12 @@ make build</userinput></screen>
       <title>Config Files</title>
 
       <para><filename>/etc/tin/tinrc</filename>,
-      <filename>~/.tin/tinrc</filename> and
-      <filename>~/.newsrc</filename></para>
+      <filename>~/.tin/tinrc</filename>,
+      <filename>~/.newsrc</filename>,
+      <filename>/etc/tin/tin.defaults</filename>,
+      <filename>/etc/tin/mime.types</filename>,
+      <filename>/etc/tin/keymap</filename> and
+      <filename>/etc/mailcap</filename></para>
 
       <indexterm zone="tin tin-config">
         <primary sortas="e-etc-tinrc">/etc/tin/tinrc</primary>
@@ -146,6 +150,18 @@ make build</userinput></screen>
         <primary sortas="e-AA.newsrc">~/.newsrc</primary>
       </indexterm>
 
+      <indexterm zone="tin tin-config">
+        <primary sortas="e-etc-tindefaults">/etc/tin/tin.defaults</primary>
+      </indexterm>
+
+      <indexterm zone="tin tin-config">
+        <primary sortas="e-etc-tinkeymap">/etc/tin/keymap</primary>
+      </indexterm>
+
+      <indexterm zone="tin tin-config">
+        <primary sortas="e-etc-mailcap">/etc/mailcap</primary>
+      </indexterm>
+
     </sect3>
 
     <sect3>
@@ -155,8 +171,7 @@ make build</userinput></screen>
       running the following commands as the
       <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>install -v -m755 -d /etc/tin &amp;&amp;
-cat &gt; /etc/tin/tinrc &lt;&lt; "EOF"
+<screen role='root'><userinput>cat &gt; /etc/tin/tinrc &lt;&lt; "EOF"
 use_mouse=ON
 getart_limit=100
 translit=ON
@@ -171,6 +186,19 @@ gmane.linux.lfs.beyond.devel:
 EOF
 export NNTPSERVER=news.gmane.org
 tin -Q</userinput></screen>
+
+    <para>For printing, <application>TIN</application> executes the
+    <command>lpr</command> command. This is provided by
+    <xref linkend="cups"/> or <xref linkend="LPRng"/>.</para>
+
+    <para>If you do not have the <command>metamail</command> program,
+    <application>TIN</application> will use an internal parser for multipart
+    MIME articles.  Alternatively, you can use <application>Mutt</application>
+    for MIME parsing through the <command>metamutt</command> shell script.
+    This requires both the <xref linkend="mutt"/> and
+    <xref linkend="procmail"/> programs.  To use <command>metamutt</command>,
+    set <option>metamail_prog=metamutt</option> in
+    <command>tin</command>.</para>
 
     </sect3>
 
