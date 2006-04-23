@@ -6,9 +6,9 @@
 
   <!ENTITY openoffice-download-http "http://download.openoffice.org/&openoffice-version;/source.html">
   <!ENTITY openoffice-download-ftp  "ftp://ftp.ussg.iu.edu/pub/openoffice/stable/&openoffice-version;/OOo_&openoffice-version;_src.tar.gz">
-  <!ENTITY openoffice-md5sum        "a68933afc2bf432d11b2043ac99ba0aa">
-  <!ENTITY openoffice-size          "263 MB">
-  <!ENTITY openoffice-buildsize     "5.7 GB">
+  <!ENTITY openoffice-md5sum        "1b50c8c4c1002edbc4993060ca05ca8f">
+  <!ENTITY openoffice-size          "280 MB">
+  <!ENTITY openoffice-buildsize     "5.8 GB">
   <!ENTITY openoffice-time          "117 SBU">
 ]>
 
@@ -60,16 +60,6 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch for use with GCC-&gcc-version;:
-        <ulink url="&patch-root;/OOo_&openoffice-version;-gcc4-1.patch"/>
-        </para>
-      </listitem>
-
-      <listitem>
-        <para>Required patch for use with NPTL:
-        <ulink url="&patch-root;/OOo_&openoffice-version;-nptl-1.patch"/></para>
-      </listitem>
 
       <listitem>
         <para>Required patch for use with
@@ -78,24 +68,33 @@
         </para>
       </listitem>
 
-<!--
       <listitem>
-        <para>Required patch for use with pkgconfig-0.17 and greater:
-        <ulink
-        url="&patch-root;/OOo_&openoffice-version;-pkgconfig_0.17-1.patch"/></para>
+        <para>Required patch to fix broken printing support durring
+        installation:
+        <ulink url="&patch-root;/OOo_&openoffice-version;-print_fix-1.patch"/>
+        </para>
       </listitem>
--->
+
       <listitem>
         <para>Optional patch if
         <application>Linux-PAM</application>-&linux-pam-version; is not
         installed:
         <ulink url="&patch-root;/OOo_&openoffice-version;-no_pam-1.patch"/></para>
+      </listitem> 
+
+      <listitem>
+        <para>Optional patch if building against 
+        <application>Xorg</application>:
+        <ulink url="&patch-root;/OOo_&openoffice-version;-xauth-1.patch"/>
+        </para>
       </listitem>
 
       <listitem>
         <para>Optional patch if building against the system-installed
-        <application>Firefox</application>:
-        <ulink url="&patch-root;/OOo_&openoffice-version;-xmlsec_no_mozilla-2.patch"/>
+        Mozilla products (<application>NSS</application>, 
+        <application>Firefox</application>, or 
+        <application>Seamonkey</application>):
+        <ulink url="&patch-root;/OOo_&openoffice-version;-system_mozilla_fixes-1patch"/>
         </para>
       </listitem>
 
@@ -137,7 +136,12 @@
     <ulink url="http://boost.sourceforge.net/">boost</ulink>,
     <xref linkend="cups"/>,
     <xref linkend="curl"/>,
-    <!-- <xref linkend="db"/>, -->
+    <!-- <xref linkend="db"/>, THIS IS CURRENTLY BROKEN!  Internal version is
+    4.2.x, just too different.  Using the system db (which must be rebuilt 
+    with java bindings) results in a segfault of javac and gcj because of 
+    xalan caching leading to OOM killing the process.  Experimental patches 
+    exist, but require that libxslt is used in place of xalan....big change, 
+    not quite ready for the book. -->
     <xref linkend="desktop-file-utils"/>,
     <ulink url="http://www.easysw.com/epm/">EPM</ulink>,
     <xref linkend="evolution"/>,
@@ -154,7 +158,7 @@
     <ulink url="http://lingucomponent.openoffice.org/thesaurus.html">MyThes</ulink>,
     <xref linkend="nas"/>,
     <ulink url="http://www.webdav.org/neon/">neon</ulink>,
-    <!--    <xref linkend="openldap"/>, -->
+    <xref linkend="openldap"/>,
     <ulink url="http://www.portaudio.com/">PortAudio</ulink>,
     <xref linkend="python"/>,
     <ulink url="http://www.gingerall.com/charlie/ga/xml/p_sab.xml">Sablotron</ulink>,
@@ -200,24 +204,6 @@ done</userinput></screen>
 
 <screen><userinput>sed -i '/^ARCH_FLAGS\*=/d' solenv/inc/unx{lngi{4,5,6},fbsdi}.mk</userinput></screen>
 
-<!-- To be removed before final release -->
-
-    <note><para>If building against the system Mozilla or Firefox,
-    a change may be required to the external headers.  The following commands
-    will make the change only if it is necessary.</para></note>
-
-<para>Mozilla:</para>
-<screen role="root"><userinput>grep "xptinfo_enum_1" /usr/include/mozilla-&mozilla-version;/xpcom/xptinfo.h || \
-    sed -i 's@enum@enum xptinfo_enum_1@' \
-    /usr/include/mozilla-&mozilla-version;/xpcom/xptinfo.h</userinput></screen>
-
-<para>Firefox:</para>
-<screen role="root"><userinput>grep "xptinfo_enum_1" /usr/include/firefox-&firefox-version;/xpcom/xptinfo.h || \
-    sed -i 's@enum@enum xptinfo_enum_1@' \
-    /usr/include/firefox-&firefox-version;/xpcom/xptinfo.h</userinput></screen>
-
-<!-- End to be removed -->
-
     <para>Configure <application>OpenOffice</application> using the following
     commands:</para>
 
@@ -229,8 +215,14 @@ done</userinput></screen>
     the <parameter>--enable</parameter>, <parameter>--disable</parameter>,  and
     <parameter>--with-system-*</parameter> parameters.</para></note>
 
+    <warning><para>Do not use the <parameter>--with-system-db</parameter> 
+    switch.  The <application>BerkelyDB</application> that is installed with 
+    LFS is too new for this version of 
+    <application>OpenOffice</application>.</para></warning>
+
 <screen><userinput>cd config_office/ &amp;&amp;
-./configure --prefix=/opt/openoffice-2.0.0 \
+autoreconf &amp;&amp;
+./configure --prefix=/opt/openoffice-&openoffice-version; \
     --enable-libart --disable-fontooo --disable-gnome-vfs \
     --without-fonts --with-system-stdlibs --with-system-freetype \
     --with-system-expat --with-system-libxml --with-system-zlib \
@@ -259,22 +251,22 @@ dmake</userinput></screen>
     following commands:</para>
 
 <screen role="root"><userinput>cd instsetoo_native/unxlngi6.pro/OpenOffice/\
-install/en-US/linux-2.6-intel/buildroot/opt &amp;&amp;
-cp -a -v openoffice.org2.0 /opt/openoffice-2.0.0</userinput></screen>
+native/install/en-US/linux-2.6-intel/buildroot/opt &amp;&amp;
+cp -a -v openoffice.org2.0 /opt/openoffice-&openoffice-version;</userinput></screen>
 
     <para>Still as the <systemitem class="username">root</systemitem>
     user:</para>
 
 <screen role="root"><userinput>for appl in sbase scalc sdraw simpress smath soffice spadmin swriter
 do
-    ln -v -sf /opt/openoffice-2.0.0/program/$appl /usr/bin/$appl
+    ln -v -sf /opt/openoffice-&openoffice-version;/program/$appl /usr/bin/$appl
 done</userinput></screen>
 
     <para>The icons are not installed by default.  While still the
     <systemitem class="username">root</systemitem> user, install the icons
     with the following commands:</para>
 
-<screen role="root"><userinput>cd ../../../../../../../../sysui/desktop/icons &amp;&amp;
+<screen role="root"><userinput>cd ../../../../../../../../../sysui/desktop/icons &amp;&amp;
 install -v -d /usr/share/icons/{HighContrast,hicolor,locolor} -m755 &amp;&amp;
 cp -a -v HighContrast/*x* /usr/share/icons/HighContrast &amp;&amp;
 cp -a -v hicolor/*x* /usr/share/icons/hicolor &amp;&amp;
@@ -288,7 +280,7 @@ cp -a -v locolor/*x* /usr/share/icons/locolor</userinput></screen>
     commands as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -d /usr/share/applications -m 755 &amp;&amp;
-cd /opt/openoffice-2.0.0/share/xdg/ &amp;&amp;
+cd /opt/openoffice-&openoffice-version;/share/xdg/ &amp;&amp;
 for appl in *.desktop
 do
     sed -i '/Exec/d' $appl
@@ -303,7 +295,7 @@ cp -v *.desktop /usr/share/applications</userinput></screen>
     documents directly from <application>Mozilla</application> or
     <application>Firefox</application>, create a symbolic link in your
     plugins directory to
-    <filename>/opt/openoffice-2.0.0/program/libnpsoplugin.so</filename>.
+    <filename>/opt/openoffice-&openoffice-version;/program/libnpsoplugin.so</filename>.
     Additionally, you must enable the plugin from the
     <parameter>Internet Options</parameter> within any
     <application>OpenOffice</application> application.</para>
@@ -387,7 +379,7 @@ cp -v *.desktop /usr/share/applications</userinput></screen>
       <seglistitem>
         <seg>scalc, sdraw, simpress, smath, soffice, spadmin, and swriter.</seg>
         <seg><application>OpenOffice</application> libraries</seg>
-        <seg>/opt/openoffice-2.0.0</seg>
+        <seg>/opt/openoffice-&openoffice-version;</seg>
       </seglistitem>
     </segmentedlist>
 
