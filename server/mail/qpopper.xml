@@ -8,10 +8,10 @@
 -->
   <!ENTITY qpopper-download-http " ">
   <!ENTITY qpopper-download-ftp "ftp://ftp.qualcomm.com/eudora/servers/unix/popper/qpopper&qpopper-version;.tar.gz">
-  <!ENTITY qpopper-md5sum "e00853280c9e899711f0b0239d3d8f86">
-  <!ENTITY qpopper-size "2.2 MB">
-  <!ENTITY qpopper-buildsize "9.0 MB">
-  <!ENTITY qpopper-time "0.13 SBU">
+  <!ENTITY qpopper-md5sum "de2cd15f95cfd00d0d080fd16287acad">
+  <!ENTITY qpopper-size "2.7 MB">
+  <!ENTITY qpopper-buildsize "9.1 MB">
+  <!ENTITY qpopper-time "0.1 SBU">
 ]>
 
 <sect1 id="qpopper" xreflabel="Qpopper-&qpopper-version;">
@@ -82,12 +82,22 @@
     <para>Install <application>Qpopper</application> with the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>./configure --prefix=/usr --enable-standalone &amp;&amp;
 make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -D -m644 GUIDE.pdf /usr/share/doc/qpopper-&qpopper-version;/GUIDE.pdf</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><option>--enable-standalone</option>: This option gives the
+    flexibility to run <application>Qpopper</application> in
+    standalone mode.</para>
 
   </sect2>
 
@@ -108,6 +118,37 @@ make</userinput></screen>
 <screen role="root"><userinput>echo "local0.notice;local0.debug /var/log/POP.log" &gt;&gt; \
     /etc/syslog.conf &amp;&amp;
 killall -HUP syslogd</userinput></screen>
+
+      <para id="qpopper-init">If you want <application>Qpopper</application> to
+      start automatically when the system is booted, install the
+      <filename>/etc/rc.d/init.d/qpopper</filename> init script included in the
+      <xref linkend="bootscripts"/> package.</para>
+
+      <indexterm zone="qpopper qpopper-init">
+        <primary sortas="f-qpopper">popper</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-qpopper</userinput></screen>
+
+      <para>This startup procedure uses a configuration file.  The details of
+      the configuration file can be found in the documentation file
+      <filename>GUIDE.pdf</filename>.</para>
+
+<screen role="root"><userinput>cat &gt; /etc/mail/qpopper.conf &lt;&lt; "EOF"
+<literal># Qpopper configuration file
+
+set debug = false
+
+set spool-dir = /var/spool/mail/
+set temp-dir  = /var/spool/mail/
+
+set downcase-user = true
+set trim-domain = true
+
+set statistics = true
+
+# End /etc/shells</literal>
+EOF</userinput></screen>
 
       <para>If you use <command>inetd</command>, the following command will
       add the <application>Qpopper</application> entry to
