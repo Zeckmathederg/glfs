@@ -67,7 +67,7 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/cyrus-sasl-&cyrus-sasl-version;-gcc4-1.patch"/></para>
+        url="&patch-root;/cyrus-sasl-&cyrus-sasl-version;-openldap23-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -101,7 +101,9 @@
     <para>Install <application>Cyrus SASL</application> by
     running the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../cyrus-sasl-&cyrus-sasl-version;-gcc4-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../cyrus-sasl-&cyrus-sasl-version;-openldap23-1.patch &amp;&amp;
+sed -i '/sasl_global/s/^static //' lib/client.c &amp;&amp;
+sed -i 's/cat8/man8/' saslauthd/Makefile.in &amp;&amp;
 ./configure --prefix=/usr --sysconfdir=/etc \
             --with-dbpath=/var/lib/sasl/sasldb2 \
             --with-saslauthd=/var/run &amp;&amp;
@@ -117,7 +119,6 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m644 saslauthd/saslauthd.8 /usr/share/man/man8 &amp;&amp;
 install -v -m755 -d /usr/share/doc/cyrus-sasl-&cyrus-sasl-version; &amp;&amp;
 install -v -m644 doc/{*.{html,txt,fig},ONEWS,TODO} \
     saslauthd/LDAP_SASLAUTHD /usr/share/doc/cyrus-sasl-&cyrus-sasl-version; &amp;&amp;
@@ -127,6 +128,13 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed ... lib/client.c</command>: This command fixes an issue
+    when compiling <application>Cyrus SASL</application> with
+    <application>GCC-4</application>.</para>
+
+    <para><command>sed 's/cat8/man8/' ...</command>: This command puts the
+    <command>saslauthd</command> man page in a more standard location.</para>
 
     <para><parameter>--with-dbpath=/var/lib/sasl/sasldb2</parameter>: This
     parameter forces the <command>saslauthd</command> database to be created
@@ -143,11 +151,8 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
 
     <para><option>--enable-ldapdb</option>: This parameter enables the
     LDAPDB authentication backend. There is a circular dependency with this
-    parameter which requires you to build the
-    <application>Cyrus SASL</application> package, then the
-    <application>OpenLDAP</application> package (with SASL support), then
-    finally building the <application>Cyrus SASL</application> package again
-    with this parameter.</para>
+    parameter. See <ulink url="&blfs-wiki;/cyrus-sasl"/> for a solution to
+    this problem.</para>
 
     <para><command>install -v -m644 ...</command>: These commands
     install documentation which is not installed by the
@@ -165,7 +170,8 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
     <sect3 id="cyrus-sasl-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/saslauthd.conf</filename> (for LDAP configuration)
+      <para><filename>/etc/saslauthd.conf</filename> (for
+      <command>saslauthd</command> LDAP configuration)
       and <filename>/usr/lib/sasl2/Appname.conf</filename> (where "Appname"
       is the application defined name of the application)</para>
 
@@ -248,7 +254,8 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
       <varlistentry id="sasldblistusers2">
         <term><command>sasldblistusers2</command></term>
         <listitem>
-          <para>is used to list the users in the SASL password database.</para>
+          <para>is used to list the users in the SASL password database
+          <filename>sasldb2</filename>.</para>
           <indexterm zone="cyrus-sasl sasldblistusers2">
             <primary sortas="b-sasldblistusers2">sasldblistusers2</primary>
           </indexterm>
@@ -259,7 +266,8 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
         <term><command>saslpasswd2</command></term>
         <listitem>
           <para>is used to set and delete a user's SASL password and
-          mechanism specific secrets in the SASL password database.</para>
+          mechanism specific secrets in the SASL password database
+          <filename>sasldb2</filename>.</para>
           <indexterm zone="cyrus-sasl saslpasswd2">
             <primary sortas="b-saslpasswd2">saslpasswd2</primary>
           </indexterm>
