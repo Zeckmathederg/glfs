@@ -4,12 +4,15 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY opensp-download-http "http://download.sourceforge.net/openjade/OpenSP-&opensp-version;.tar.gz">
+  <!ENTITY opensp-download-http "http://prdownloads.sourceforge.net/openjade/OpenSP-&opensp-version;.tar.gz">
+  <!ENTITY opensp-download-ftp  " ">
+<!--
   <!ENTITY opensp-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/OpenSP-&opensp-version;.tar.gz">
-  <!ENTITY opensp-md5sum        "f46fe0a04b76a4454ec27b7fcc84ec54">
-  <!ENTITY opensp-size          "1.4 MB">
-  <!ENTITY opensp-buildsize     "43 MB">
-  <!ENTITY opensp-time          "0.97 SBU">
+-->
+  <!ENTITY opensp-md5sum        "670b223c5d12cee40c9137be86b6c39b">
+  <!ENTITY opensp-size          "1.5 MB">
+  <!ENTITY opensp-buildsize     "32 MB">
+  <!ENTITY opensp-time          "1.0 SBU">
 ]>
 
 <sect1 id="opensp" xreflabel="OpenSP-&opensp-version;">
@@ -60,23 +63,14 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required Patch (removes some annoying messages that can appear
-        while running <command>openjade</command>): <ulink
-        url="&patch-root;/OpenSP-&opensp-version;-LITLEN-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Required Patch: <ulink
-        url="&patch-root;/OpenSP-&opensp-version;-gcc34-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">OpenSP Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="sgml-common"/></para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional"><ulink url="http://cyberelk.net/tim/xmlto/">
+    xmlto</ulink></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/opensp"/></para>
@@ -89,10 +83,12 @@
     <para>Install <application>OpenSP</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../OpenSP-&opensp-version;-LITLEN-1.patch &amp;&amp;
-patch -Np1 -i ../OpenSP-&opensp-version;-gcc34-1.patch &amp;&amp;
-./configure --prefix=/usr --disable-static --enable-http \
-    --enable-default-catalog=/etc/sgml/catalog \
+<screen><userinput>
+sed -i 's:32,:253,:' lib/Syntax.cxx &amp;&amp;
+sed -i 's:LITLEN          240 :LITLEN          8092:' \
+    unicode/{gensyntax.pl,unicode.syn} &amp;&amp;
+./configure --prefix=/usr --disable-static --disable-doc-build \
+    --enable-default-catalog=/etc/sgml/catalog --enable-http \
     --enable-default-search-path=/usr/share/sgml &amp;&amp;
 make pkgdatadir=/usr/share/sgml/OpenSP-&opensp-version;</userinput></screen>
 
@@ -111,27 +107,18 @@ ln -v -sf osx /usr/bin/sx &amp;&amp;
 ln -v -sf osx /usr/bin/sgml2xml &amp;&amp;
 ln -v -sf libosp.so /usr/lib/libsp.so</userinput></screen>
 
-<!--
-install-catalog -add /etc/sgml/OpenSP-&opensp-version;.cat \
-    /usr/share/sgml/OpenSP-&opensp-version;/catalog &amp;&amp;
-install-catalog -add /etc/sgml/sgml-docbook.cat \
-    /etc/sgml/OpenSP-&opensp-version;.cat</command></userinput></screen>
-
-<tip><title>Update hint</title>
-<para>Remove the above catalog items prior to upgrading with:
-<screen><command>install-catalog -remove /etc/sgml/OpenSP-<replaceable>&lt;version&gt;</replaceable>.cat \
-    /usr/share/sgml/OpenSP-<replaceable>&lt;version&gt;</replaceable>/catalog &amp;&amp;
-install-catalog -remove /etc/sgml/sgml-docbook.cat \
-    /etc/sgml/OpenSP-<replaceable>&lt;version&gt;</replaceable>.cat</command></screen></para></tip>
- -->
-
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><parameter>sed -i 's:32,:253,:...unicode.syn}</parameter>:
+    These seds prevent some annoying messages that may otherwise appear
+    while running <application>openjade</application>.</para>
+
     <para><parameter>--disable-static</parameter>: This switch prevents
     the building of the static library.</para>
+    <!-- Why don't we want the static library? -->
 
     <para><parameter>--enable-http</parameter>: This switch adds support
     for HTTP.</para>
@@ -144,6 +131,11 @@ install-catalog -remove /etc/sgml/sgml-docbook.cat \
 
     <para><option>--enable-xml-messages</option>: This switch adds
     support for XML Formatted Messages.</para>
+
+    <para><option>--disable-doc-build</option>: This switch prevents the
+    <command>configure</command> script checking if you have
+    <application>xmlto</application> installed. If you have
+    <application>xmlto</application> you can remove this option.</para>
 
     <para><command>make
     pkgdatadir=/usr/share/sgml/OpenSP-&opensp-version;</command>: This sets the
