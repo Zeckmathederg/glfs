@@ -68,9 +68,19 @@ xreflabel="Evolution Data Server-&evolution-data-server-version;">
     <para role="required"><xref linkend="libgnomeui"/> and
     <xref linkend="libsoup"/></para>
 
+    <bridgehead renderas="sect4">Recommended
+    (For SSL and S/MIME support)</bridgehead>
+    <para role="recommended"><xref linkend="nss"/></para>
+
+    <para>The <application>NSS</application> package is not required if you
+    have <xref linkend="firefox"/>, <xref linkend="thunderbird"/> or
+    <xref linkend="seamonkey"/> installed. These packages contain internal
+    copies of <application>NSS</application> (or they used a system-installed
+    copy). If any of the three packages are installed, one way or another you
+    will already have NSS/NSPR libraries on your system.</para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="openldap"/>,
-    <xref linkend="nss"/>,
     <xref linkend="sendmail"/>
     (or any other <ulink url="../server/mail.html">MTA</ulink>
     that provides a <command>sendmail</command> command),
@@ -90,9 +100,27 @@ xreflabel="Evolution Data Server-&evolution-data-server-version;">
     <para>Install <application>Evolution Data Server</application> by running
     the following commands:</para>
 
+    <note>
+      <para>The instructions below assume you have the NSS/NSPR libraries
+      installed on your system. If you elected not to install
+      <application>NSS</application> (or one of the other packages mentioned
+      above), you'll need to remove the following four parameter settings from
+      the <command>configure</command> command below:</para>
+
+      <literallayout><parameter>            --enable-nss
+            --enable-smime
+            --with-nspr-includes=/usr/include/nspr
+            --with-nss-includes=/usr/include/nss</parameter></literallayout>
+    </note>
+
 <screen><userinput>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
             --libexecdir=`pkg-config --variable=prefix \
-            ORBit-2.0`/lib/evolution-data-server-1.2 &amp;&amp;
+                ORBit-2.0`/lib/evolution-data-server-1.2 \
+            --enable-nntp \
+            --enable-nss \
+            --enable-smime \
+            --with-nspr-includes=/usr/include/nspr \
+            --with-nss-includes=/usr/include/nss &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make -k check</command>.</para>
@@ -112,6 +140,24 @@ make</userinput></screen>
     class="directory">$GNOME_PREFIX/lib/evolution-data-server-1.2</filename>
     instead of <filename
     class="directory">$GNOME_PREFIX/libexec</filename>.</para>
+
+    <para><parameter>--enable-nntp</parameter>: This parameter is used to build
+    the Usenet news (NNTP) backend.</para>
+
+    <para><parameter>--enable-nss</parameter>: This parameter is used to pull
+    in the Mozilla Network Security Services libraries for SSL support.</para>
+
+    <para><parameter>--enable-smime</parameter>: This parameter is used to pull
+    in the Mozilla Network Security Services libraries for S/MIME
+    support.</para>
+
+    <para><parameter>--with-{nspr,nss}-includes</parameter>: This parameter is
+    used to identify where the Mozilla Network Security Services interface
+    headers are located. By default,
+    <application>Evolution Data Server</application> uses
+    <filename>mozilla-{nss,nspr}.pc</filename> files to locate the headers
+    and chances are you will not have <application>Mozilla</application>
+    installed.</para>
 
     <note>
       <para>To enable many of the optional dependencies, review the information
