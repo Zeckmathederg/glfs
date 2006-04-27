@@ -8,10 +8,10 @@
 -->
   <!ENTITY mysql-download-http " ">
   <!ENTITY mysql-download-ftp  "ftp://mirror.mcs.anl.gov/pub/mysql/Downloads/MySQL-5.0/mysql-&mysql-version;.tar.gz">
-  <!ENTITY mysql-md5sum        "ecf2ae1d782a8d129af940c15a44f477">
-  <!ENTITY mysql-size          "19.0 MB">
-  <!ENTITY mysql-buildsize     "195 MB (additional 180 MB to run the test suite)">
-  <!ENTITY mysql-time          "3.8 SBU (additional 14.1 SBU to run the test suite)">
+  <!ENTITY mysql-md5sum        "946867320094875c1a44f305bcdf1665">
+  <!ENTITY mysql-size          "18.6 MB">
+  <!ENTITY mysql-buildsize     "241 MB (additional 194 MB to run the test suite)">
+  <!ENTITY mysql-time          "4.5 SBU (Test suite is an additional 48 minutes, only partially CPU dependent)">
 ]>
 
 <sect1 id="mysql" xreflabel="MySQL-&mysql-version;">
@@ -64,10 +64,15 @@
     <bridgehead renderas="sect3">MySQL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openssl"/>,
-    <xref linkend="tcpwrappers"/> and
+    <para role="optional"><xref linkend="openssl"/> and
+    <xref linkend="tcpwrappers"/>.
+    
+    <!-- Removing libedit because it causes more problems than it solves.
+    
     <ulink url="http://sourceforge.net/projects/libedit/">libedit</ulink>
-    (as an alternative to readline)</para>
+    (as an alternative to readline)-->
+    
+    </para>
 
     <!-- These appear to be obsolete now that the docs have been pulled
          out of the main tarball. Configure still checks for them, but
@@ -100,7 +105,10 @@ useradd -c "MySQL Server" -d /dev/null -g mysql -s /bin/false \
          required any longer
     -->
 
-<screen><userinput>./configure --prefix=/usr \
+<screen><userinput>CFLAGS="-O3 -DPIC -fPIC -DUNDEF_HAVE_INITGROUPS -fno-strict-aliasing" \
+CXXFLAGS="-O3 -fno-strict-aliasing -felide-constructors -fno-exceptions \
+-fno-rtti -fPIC -DPIC -DUNDEF_HAVE_INITGROUPS" \
+./configure --prefix=/usr \
             --sysconfdir=/etc \
             --libexecdir=/usr/sbin \
             --localstatedir=/srv/mysql \
@@ -110,9 +118,12 @@ useradd -c "MySQL Server" -d /dev/null -g mysql -s /bin/false \
             --with-unix-socket-path=/var/run/mysql/mysql.sock \
             --without-debug \
             --without-bench \
-            --without-readline &amp;&amp;
+            --without-readline \
+            --with-berkeley-db \
+            --with-extra-charsets=all &amp;&amp;
 make testdir=/tmp/mysql</userinput></screen>
 
+<!--
     <para>Some of the tests in the test suite are known to fail and this will
     cause the test suite to abort at that point. Issue the following command
     to disable the tests known to fail:</para>
@@ -124,7 +135,7 @@ do
   mv mysql-test/t/$TESTFILE.test mysql-test/t/$TESTFILE.test.disabled
 done
 unset TESTFILE</userinput></screen>
-
+-->
     <para>To test the results, issue: <command>make test</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
@@ -149,6 +160,10 @@ install -v -m644 Docs/Images/*.{jpg,gif} /usr/share/mysql/Docs/Images &amp;&amp;
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><parameter>CFLAGS=... CXXFLAGS=... </parameter>: These environment
+    variables adjust the compiler optimization to avoid failures in the
+    testsuite and other operations.</para>
+
     <para><parameter>--libexecdir=/usr/sbin</parameter>: This switch installs
     the <command>mysqld</command> daemon and the
     <command>mysqlmanager</command> program in an appropriate location.</para>
@@ -168,13 +183,6 @@ install -v -m644 Docs/Images/*.{jpg,gif} /usr/share/mysql/Docs/Images &amp;&amp;
     <para><parameter>--enable-local-infile</parameter>: This switch enables
     the <quote>LOAD DATA INFILE</quote> SQL statement.</para>
 
-    <!-- Removing for now. See explanation above
-    <para><parameter>CPPFLAGS="-D_GNU_SOURCE"</parameter> and
-    <parameter>-with-named-thread-libs=-lpthread</parameter>: This environment
-    variable and <command>configure</command> switch enables building the
-    package on NPTL systems.</para>
-    -->
-
     <para><parameter>--with-unix-socket-path=/var/run/mysql</parameter>:
     This switch puts the unix-domain socket into the
     <filename class="directory">/var/run/mysql</filename> directory instead of
@@ -186,6 +194,12 @@ install -v -m644 Docs/Images/*.{jpg,gif} /usr/share/mysql/Docs/Images &amp;&amp;
     <para><parameter>--without-readline</parameter>: This switch forces the
     build to use the system copy of <application>readline</application> instead
     of the bundled copy.</para>
+
+    <para><parameter>--with-berkeley-db</parameter>: This switch enables 
+    using <application>Berkeley DB</application> tables as a back end.</para>
+
+    <para><parameter>--with-extra-charsets=all</parameter>: This switch enables 
+    international character sets within the suite.</para>
 
     <para><command>make testdir=...</command>: This installs the test suite in
     <filename class='directory'>/tmp/mysql</filename>. The test suite is not
@@ -200,8 +214,7 @@ install -v -m644 Docs/Images/*.{jpg,gif} /usr/share/mysql/Docs/Images &amp;&amp;
     to <application>MySQL</application>.</para>
 
     <para><option>--with-libwrap</option>: This switch adds tcpwrappers
-    support to <application>MySQL</application>. As of MySQL-&mysql-version;,
-    this option is known to break the build.</para>
+    support to <application>MySQL</application>.</para>
 
   </sect2>
 
