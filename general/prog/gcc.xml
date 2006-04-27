@@ -4,24 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
   <!ENTITY gcc-download-http  "http://ftp.gnu.org/gnu/gcc/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
   <!ENTITY gcc-download-ftp   "ftp://mirrors.rcn.net/pub/sourceware/gcc/releases/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
-  <!ENTITY gcc-md5sum         "a659b8388cac9db2b13e056e574ceeb0">
-  <!ENTITY gcc-size           "31.7 MB">
+  <!ENTITY gcc-md5sum         "6ff1af12c53cbb3f79b27f2d6a9a3d50">
+  <!ENTITY gcc-size           "32.9 MB">
   <!ENTITY gcc-buildsize      "1.7 GB">
-  <!ENTITY gcc-time           "59 SBU (build, test and install all compilers)">
+  <!ENTITY gcc-time           "60 SBU (build, test and install all compilers)">
 
   <!ENTITY gnat-download-http "&sources-anduin-http;/g/gnat-3.15p-i686-pc-redhat71-gnu-bin.tar.bz2">
   <!ENTITY gnat-download-ftp  "&sources-anduin-ftp;/g/gnat-3.15p-i686-pc-redhat71-gnu-bin.tar.bz2">
@@ -194,7 +182,7 @@ rm -rf gnat-3.15p-i686-pc-linux-gnu-bin</userinput></screen>
     commands:</para>
 
 <screen><userinput>PATH_HOLD=$PATH &amp;&amp;
-export PATH=/opt/gnat/bin:$PATH</userinput></screen>
+export PATH=/opt/gnat/bin:$PATH_HOLD</userinput></screen>
 
   </sect2>
 
@@ -214,21 +202,23 @@ export PATH=/opt/gnat/bin:$PATH</userinput></screen>
       suite of tests.</para>
 
       <para>Do not continue with the <command>make install</command> command
-      until you're confident the build was successful. You can compare your
+      until you are confident the build was successful. You can compare your
       test results with those found at
       <ulink url="http://gcc.gnu.org/ml/gcc-testresults/"/>. There's also an
       i686 platform test result produced by an LFS-SVN-20051127 system at
-      <ulink url="&files-anduin;/gcc402_test.txt"/>. You
+      <ulink url="&files-anduin;/gcc403_test.txt"/>. You
       may also want to refer to the information found in the
       <application>GCC</application>-Pass 2 section of Chapter 5 in the LFS
       book (<ulink url="&lfs-root;/chapter05/gcc-pass2.html"/>).</para>
     </important>
 
-    <!-- <note>
-      <para>The instructions below assume that the base compiler is
-      gcc-&gcc-version;.  If it is not, the initial <command>make</command>
-      command below should be <command>make bootstrap</command>.</para>
-    </note> -->
+    <!-- The instructions below perform a 'make bootstrap' instead of just
+         a plain 'make' intentionally. Even though we assume that the current
+         version of GCC is installed in LFS, because this installation includes
+         the Ada compiler as an installed language, a bootstrap is required.
+         The GNAT compiler must be used for stage1 of the bootstrap in order to
+         build Ada, therefore we must bootstrap, else we would have a GCC
+         installed on the system that was produced by a foriegn compiler. -->
 
 <screen><userinput>sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in &amp;&amp;
 sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in &amp;&amp;
@@ -275,20 +265,6 @@ chown -v -R root:root \
 <screen><userinput>export PATH=$PATH_HOLD &amp;&amp;
 unset PATH_HOLD</userinput></screen>
 
-<!--
-    <note>
-      <para>Some of the <application>Java</application> programs installed by
-      the <application>GCC</application> package conflict (have the same names)
-      with programs from the <xref linkend="jdk"/> package. If you installed
-      the <application>Java</application> language from the
-      <application>GCC</application> package but you wish to use the programs
-      from the <application>JDK</application> as the defaults, ensure
-      <filename class='directory'>$JAVA_HOME/bin</filename> is listed before
-      <filename class='directory'>/usr/bin</filename> in your
-      <envar>PATH</envar> variable.</para>
-    </note>
--->
-
   </sect2>
 
   <sect2 role="commands">
@@ -314,16 +290,6 @@ unset PATH_HOLD</userinput></screen>
     <parameter>--enable-languages=c,c++,objc,f95,ada,java,treelang</parameter>:
     This command identifies which languages to build. You may modify this command
     to remove undesired languages.</para>
-
-<!--
-    <para><command>make -C gcc gnatlib-shared</command>: This command builds the
-    Ada shared and static libraries. Skip this step if you have not enabled
-    Ada as one of the languages.</para>
-
-    <para><command>make -C gcc gnattools</command>: This command builds the
-    Ada development tools and binaries. Skip this step if you have not enabled
-    Ada as one of the languages.</para>
--->
 
     <para><command>make -k check</command>: This command runs the test suite
     without stopping if any errors are encountered.</para>
