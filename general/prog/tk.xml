@@ -4,25 +4,16 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
   <!ENTITY tk-download-http "http://prdownloads.sourceforge.net/tcl/tk&tk-version;-src.tar.gz">
   <!ENTITY tk-download-ftp  " ">
 <!--  <!ENTITY tk-download-ftp  "ftp://ftp.us.xemacs.org/pub/tcl/tcl8_4/tk&tk-version;-src.tar.gz"> -->
-  <!ENTITY tk-md5sum        "316491cb82d898b434842353aed1f0d6">
+  <!ENTITY tk-md5sum        "0a16d4d9398e43cbb85784c85fb807a4">
   <!ENTITY tk-size          "3.2 MB">
-  <!ENTITY tk-buildsize     "23.5 MB">
+  <!ENTITY tk-buildsize     "23.3 MB">
   <!ENTITY tk-time          "0.4 SBU">
+  <!-- Ensure this is updated when Tk moves to the 8.5.x branch -->
+  <!ENTITY tk-ver           "8.4">
+  <!-- Ensure the above is updated when Tk moves to the 8.5.x branch -->
 ]>
 
 <sect1 id="tk" xreflabel="Tk-&tk-version;">
@@ -88,64 +79,42 @@
 <para>Install <application>Tk</application> by running the following
 commands:</para>
 
-<screen><userinput>export VERSION=&tk-version; &amp;&amp;
-export V=`echo $VERSION | cut -d "." -f 1,2` &amp;&amp;
-export DIR=$PWD &amp;&amp;
-cd unix &amp;&amp;
-sed -i "s/relid'/relid/" configure &amp;&amp;
+<screen><userinput>cd unix &amp;&amp;
 ./configure --prefix=/usr --enable-threads &amp;&amp;
 make &amp;&amp;
-sed -i -e "s:${DIR}/unix:/usr/lib:" \
-       -e "s:${DIR}:/usr/include/tk${V}:" tkConfig.sh</userinput></screen>
+sed -i -e "s:${PWD}:/usr/lib:" \
+       -e "s:$(dirname ${PWD}):/usr/include/tk&tk-ver;:" \
+    tkConfig.sh</userinput></screen>
 
-    <para>The test is not recommended.  Some tests may crash your X Server.  To
-    test the results, issue: <command>make test</command>.  Ensure you run it
-    from an X Window display device with the GLX extensions loaded, else the
-    tests will hang.</para>
+    <para>Running the tests is not recommended. Some tests may crash your X
+    Server. To test the results anyway, issue: <command>make test</command>.
+    Ensure you run it from an X Window display device with the GLX extensions
+    loaded, else the tests will hang.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-    <caution>
-      <para>If you become the <systemitem class="username">root</systemitem>
-      user in a manner that doesn't preserve the unprivileged user's
-      environment, ensure you correctly set the environment variable
-      <envar>V</envar> again before running the installation commands.</para>
-    </caution>
-
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -d /usr/include/tk${V}/unix &amp;&amp;
-install -v -m644 *.h /usr/include/tk${V}/unix/ &amp;&amp;
-install -v -d /usr/include/tk${V}/generic &amp;&amp;
-install -v -m644 ../generic/*.h /usr/include/tk${V}/generic/ &amp;&amp;
-rm -v -f /usr/include/tk${V}/generic/{tk,tkDecls,tkPlatDecls}.h &amp;&amp;
-ln -v -nsf ../../include/tk${V} /usr/lib/tk${V}/include &amp;&amp;
-ln -v -sf libtk${V}.so /usr/lib/libtk.so &amp;&amp;
-ln -v -sf wish${V} /usr/bin/wish</userinput></screen>
-
-    <para>Clean up the unprivileged user's environment using the following
-    commands:</para>
-
-<screen><userinput>unset VERSION &amp;&amp;
-unset V &amp;&amp;
-unset DIR</userinput></screen>
+install -v -m755 -d /usr/include/tk&tk-ver;/{unix,generic} &amp;&amp;
+install -v -m644 *.h /usr/include/tk&tk-ver;/unix/ &amp;&amp;
+install -v -m644 ../generic/*.h /usr/include/tk&tk-ver;/generic/ &amp;&amp;
+rm -v -f /usr/include/tk&tk-ver;/generic/tk{,{,Plat}Decls}.h &amp;&amp;
+ln -v -nsf ../../include/tk&tk-ver; /usr/lib/tk&tk-ver;/include &amp;&amp;
+ln -v -sf libtk&tk-ver;.so /usr/lib/libtk.so &amp;&amp;
+ln -v -sf wish&tk-ver; /usr/bin/wish</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--enable-threads</parameter>: This switch forces the package
-    to build with thread support.</para>
-
-    <para><command>sed -i "s/relid'/relid/" configure</command>: This command
-    fixes a syntax error in the <command>configure</command> script.</para>
+    <para><parameter>--enable-threads</parameter>: This switch forces the
+    package to build with thread support.</para>
 
     <para><command>sed -i -e ... tkConfig.sh</command>: The
-    <application>Tk</application> package assumes that the source used to build
-    <application>Tk</application> is always kept around for compiling packages
-    that depend on <application>Tk</application>. This <command>sed</command>
-    removes the references to the build directory and replaces them with saner
-    system-wide locations.</para>
+    <application>Tk</application> package expects that its source tree is
+    preserved so that packages depending on it for their compilation
+    can utilize it. This <command>sed</command> removes the references to the
+    build directory and replaces them with saner system-wide locations.</para>
 
     <para><command>install ...</command>: These commands install the internal
     headers into a system-wide location.</para>
@@ -164,9 +133,9 @@ unset DIR</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>wish and wish8.4</seg>
-        <seg>libtk.so and libtkstub8.4.a</seg>
-        <seg>/usr/include/tk8.4 and /usr/lib/tk8.4</seg>
+        <seg>wish and wish&tk-ver;</seg>
+        <seg>libtk.so and libtkstub&tk-ver;.a</seg>
+        <seg>/usr/include/tk&tk-ver; and /usr/lib/tk&tk-ver;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -178,21 +147,22 @@ unset DIR</userinput></screen>
       <varlistentry id="wish">
         <term><command>wish</command></term>
         <listitem>
-          <para> is a symlink to the <command>wish8.4</command> program.</para>
+          <para> is a symlink to the <command>wish&tk-ver;</command>
+          program.</para>
           <indexterm zone="tk wish">
             <primary sortas="g-wish">wish</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="wish8.4">
-        <term><command>wish8.4</command></term>
+      <varlistentry id="wish-eight">
+        <term><command>wish&tk-ver;</command></term>
         <listitem>
           <para> is a simple shell containing the
           <application>Tk</application> toolkit that creates a main window and
           then processes <application>Tcl</application> commands.</para>
-          <indexterm zone="tk wish8.4">
-            <primary sortas="b-wish8.4">wish8.4</primary>
+          <indexterm zone="tk wish-eight">
+            <primary sortas="b-wish&tk-ver;">wish&tk-ver;</primary>
           </indexterm>
         </listitem>
       </varlistentry>

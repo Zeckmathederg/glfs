@@ -6,11 +6,14 @@
 
   <!ENTITY tcl-download-http "http://prdownloads.sourceforge.net/tcl/tcl&tcl-version;-src.tar.gz">
   <!ENTITY tcl-download-ftp  " ">
-<!-- <!ENTITY tcl-download-ftp  "ftp://ftp.us.xemacs.org/pub/tcl/tcl8_4/tcl&tcl-version;-src.tar.gz"> -->
-  <!ENTITY tcl-md5sum        "7480432d8730263f267952788eb4839b">
+  <!-- <!ENTITY tcl-download-ftp  "ftp://ftp.us.xemacs.org/pub/tcl/tcl8_4/tcl&tcl-version;-src.tar.gz"> -->
+  <!ENTITY tcl-md5sum        "c6b655ad5db095ee73227113220c0523">
   <!ENTITY tcl-size          "3.5 MB">
-  <!ENTITY tcl-buildsize     "24.5 MB">
-  <!ENTITY tcl-time          "0.3 SBU (additional 0.4 SBU to run the test suite)">
+  <!ENTITY tcl-buildsize     "24.6 MB">
+  <!ENTITY tcl-time          "0.3 SBU (additional 0.8 SBU to run the test suite)">
+  <!-- Ensure this is updated when Tcl moves to the 8.5.x branch -->
+  <!ENTITY tcl-ver           "8.4">
+  <!-- Ensure the above is updated when Tcl moves to the 8.5.x branch -->
 ]>
 
 <sect1 id="tcl" xreflabel="Tcl-&tcl-version;">
@@ -76,45 +79,26 @@
     <para>Install <application>Tcl</application> by running the following
     commands:</para>
 
-<screen><userinput>export VERSION=&tcl-version; &amp;&amp;
-export V=`echo $VERSION | cut -d "." -f 1,2` &amp;&amp;
-export DIR=$PWD &amp;&amp;
-cd unix &amp;&amp;
-sed -i "s/relid'/relid/" configure &amp;&amp;
+<screen><userinput>cd unix &amp;&amp;
 ./configure --prefix=/usr --enable-threads &amp;&amp;
 make &amp;&amp;
-sed -i -e "s:${DIR}/unix:/usr/lib:" \
-       -e "s:${DIR}:/usr/include/tcl${V}:" \
-       -e "s:^TCL_LIB_FILE='libtcl${V}..TCL_DBGX..so':\
-TCL_LIB_FILE=\"libtcl${V}\$\{TCL_DBGX\}.so\":" tclConfig.sh</userinput></screen>
+sed -i -e "s:${PWD}:/usr/lib:" \
+       -e "s:$(dirname ${PWD}):/usr/include/tcl&tcl-ver;:" \
+       -e "/TCL_LIB_FILE/ s:':\":g" \
+    tclConfig.sh</userinput></screen>
 
     <para>To test the results, issue: <command>make test</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-    <caution>
-      <para>If you become the <systemitem class="username">root</systemitem>
-      user in a manner that doesn't preserve the unprivileged user's
-      environment, ensure you correctly set the environment variable
-      <envar>V</envar> again before running the installation commands.</para>
-    </caution>
-
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -d /usr/include/tcl${V}/unix &amp;&amp;
-install -v -m644 *.h /usr/include/tcl${V}/unix/ &amp;&amp;
-install -v -d /usr/include/tcl${V}/generic &amp;&amp;
-install -v -c -m644 ../generic/*.h /usr/include/tcl${V}/generic/ &amp;&amp;
-rm -v -f /usr/include/tcl${V}/generic/{tcl,tclDecls,tclPlatDecls}.h &amp;&amp;
-ln -v -nsf ../../include/tcl${V} /usr/lib/tcl${V}/include &amp;&amp;
-ln -v -sf libtcl${V}.so /usr/lib/libtcl.so &amp;&amp;
-ln -v -sf tclsh${V} /usr/bin/tclsh</userinput></screen>
-
-    <para>Clean up the unprivileged user's environment using the following
-    commands:</para>
-
-<screen><userinput>unset VERSION &amp;&amp;
-unset V &amp;&amp;
-unset DIR</userinput></screen>
+install -v -d /usr/include/tcl&tcl-ver;/{unix,generic} &amp;&amp;
+install -v -m644 *.h /usr/include/tcl&tcl-ver;/unix/ &amp;&amp;
+install -v -m644 ../generic/*.h /usr/include/tcl&tcl-ver;/generic/ &amp;&amp;
+rm -v -f /usr/include/tcl&tcl-ver;/generic/tcl{,{,Plat}Decls}.h &amp;&amp;
+ln -v -nsf ../../include/tcl&tcl-ver; /usr/lib/tcl&tcl-ver;/include &amp;&amp;
+ln -v -sf libtcl&tcl-ver;.so /usr/lib/libtcl.so &amp;&amp;
+ln -v -sf tclsh&tcl-ver; /usr/bin/tclsh</userinput></screen>
 
   </sect2>
 
@@ -124,15 +108,11 @@ unset DIR</userinput></screen>
     <para><parameter>--enable-threads</parameter>: This switch forces the package
     to build with thread support.</para>
 
-    <para><command>sed -i "s/relid'/relid/" configure</command>: This command
-    fixes a syntax error in the <command>configure</command> script.</para>
-
     <para><command>sed -i -e ... tclConfig.sh</command>: The
-    <application>Tcl</application> package assumes that the source used to build
-    <application>Tcl</application> is always kept around for compiling packages
-    that depend on <application>Tcl</application>. This <command>sed</command>
-    removes the references to the build directory and replaces them with saner
-    system-wide locations.</para>
+    <application>Tcl</application> package expects that its source tree is
+    preserved so that packages depending on it for their compilation
+    can utilize it. This <command>sed</command> removes the references to the
+    build directory and replaces them with saner system-wide locations.</para>
 
     <para><command>install ...</command>: These commands install the internal
     headers into a system-wide location.</para>
@@ -151,9 +131,9 @@ unset DIR</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>tclsh and tclsh8.4</seg>
-        <seg>libtcl.so and libtclstub8.4.a</seg>
-        <seg>/usr/include/tcl8.4 and /usr/lib/tcl8.4</seg>
+        <seg>tclsh and tclsh&tcl-ver;</seg>
+        <seg>libtcl.so and libtclstub&tcl-ver;.a</seg>
+        <seg>/usr/include/tcl&tcl-ver; and /usr/lib/tcl&tcl-ver;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -165,7 +145,7 @@ unset DIR</userinput></screen>
       <varlistentry id="tclsh">
         <term><command>tclsh</command></term>
         <listitem>
-          <para> is a symlink to the <command>tclsh8.4</command>
+          <para> is a symlink to the <command>tclsh&tcl-ver;</command>
           program.</para>
           <indexterm zone="tcl tclsh">
             <primary sortas="g-tclsh">tclsh</primary>
@@ -173,13 +153,13 @@ unset DIR</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="tclsh8.4">
-        <term><command>tclsh8.4</command></term>
+      <varlistentry id="tclsh-eight">
+        <term><command>tclsh&tcl-ver;</command></term>
         <listitem>
           <para> is a simple shell containing the
           <application>Tcl</application> interpreter.</para>
-          <indexterm zone="tcl tclsh8.4">
-            <primary sortas="b-tclsh8.4">tclsh8.4</primary>
+          <indexterm zone="tcl tclsh-eight">
+            <primary sortas="b-tclsh&tcl-ver;">tclsh&tcl-ver;</primary>
           </indexterm>
         </listitem>
       </varlistentry>
