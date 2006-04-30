@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY pine-download-http "http://arwen.cs.dal.ca/~vlado/mirror/pine/pine4.63.tar.bz2">
-  <!ENTITY pine-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/pine&pine-version;.tar.bz2">
-  <!ENTITY pine-md5sum        "e881f439f38039b310d22554ab08feb4">
+  <!ENTITY pine-download-http "http://mirror.sit.wisc.edu/pub/net/mail/pine/pine&pine-version;.tar.bz2">
+  <!ENTITY pine-download-ftp  "ftp://ftp.cac.washington.edu/pine/pine&pine-version;.tar.bz2">
+  <!ENTITY pine-md5sum        "39ca07b3d305b4cd0d6aaf4585123275">
   <!ENTITY pine-size          "3.0 MB">
-  <!ENTITY pine-buildsize     "57 MB">
+  <!ENTITY pine-buildsize     "60 MB">
   <!ENTITY pine-time          "0.5 SBU">
 ]>
 
@@ -87,7 +87,8 @@
     <para>Install <application>Pine</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../pine-&pine-version;-fhs-3.patch &amp;&amp;
+<screen><userinput>sed -i "s@/usr/local/lib/pine@/etc/pine@g" \
+    $(grep -lr /usr/local/lib/pine *) &amp;&amp;
 ./build DEBUG=-O MAILSPOOL=/var/mail \
     SSLDIR=/usr SSLCERTS=/etc/ssl/certs slx</userinput></screen>
 
@@ -95,19 +96,21 @@
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>cp -v doc/*.1 /usr/share/man/man1 &amp;&amp;
-cd bin &amp;&amp;
-install -v -m755 pine imapd ipop2d ipop3d mailutil mtest pico \
-    pilot rpdump rpload /usr/bin</userinput></screen>
+<screen role='root'><userinput>install -v -m755 doc/*.1 /usr/share/man/man1 &amp;&amp;
+install -v -p -m755 doc/tech-notes/*.html /usr/share/doc/pine&pine-version; &amp;&amp;
+install -v -m755 \
+bin/{pine,imapd,ipop2d,ipop3d,mailutil,mtest,pico,pilot,rpdump,rpload} \
+    /usr/bin</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>patch -Np1 -i ../pine-&pine-version;-fhs-x.patch</command>: This
-    patch will make <application>Pine</application> use <filename
-    class="directory">/etc</filename> for configuration files.</para>
+    <para><command>sed -i "s@/usr/ ... /lib/pine *)</command>: This
+    sed will make <application>Pine</application> use <filename
+    class="directory">/etc</filename> for configuration files. It also alters
+    the documentation to reflect that.</para>
 
     <para>The build procedure for <application>Pine</application> is somewhat
     unusual, in that options usually passed as <command>./configure</command>
@@ -129,9 +132,6 @@ install -v -m755 pine imapd ipop2d ipop3d mailutil mtest pico \
 
     <para><command>SSLDIR=/usr SSLCERTS=/etc/ssl/certs</command>: Location
     of <application>OpenSSL</application> files.</para>
-
-    <para><command>cd bin &amp;&amp; install ... /usr/bin</command>:
-    This installs the <application>Pine</application> programs.</para>
 
   </sect2>
 
@@ -171,7 +171,7 @@ install -v -m755 pine imapd ipop2d ipop3d mailutil mtest pico \
       <seglistitem>
         <seg>imapd, ipop2d, ipop3d, mtest, pico, pilot, pine, rpdump, and rpload</seg>
         <seg>None</seg>
-        <seg>None</seg>
+        <seg>/usr/share/doc/pine&pine-version;</seg>
       </seglistitem>
     </segmentedlist>
 
