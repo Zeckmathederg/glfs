@@ -40,60 +40,104 @@
         <ul class="headerlinks">
           <xsl:if test="count($prev)&gt;0 and $prev != $home">
             <li class="prev">
-              <a accesskey="p">
-                <xsl:attribute name="href">
-                  <xsl:call-template name="href.target">
-                    <xsl:with-param name="object" select="$prev"/>
-                  </xsl:call-template>
-                </xsl:attribute>
-                <xsl:attribute name="title">
-                  <xsl:value-of select="$prev/title"/>
-                </xsl:attribute>
-                <xsl:call-template name="navig.content">
-                  <xsl:with-param name="direction" select="'prev'"/>
-                </xsl:call-template>
-              </a>
-              <p>
-                <xsl:value-of select="$prev/title"/>
-              </p>
+              <xsl:choose>
+                <xsl:when test="$prev[@role='dummy']">
+                  <a accesskey="p">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="preceding-sibling::sect1[position()=2]"/>
+                      </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="preceding-sibling::sect1[position()=2]/title"/>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'prev'"/>
+                    </xsl:call-template>
+                  </a>
+                  <p>
+                    <xsl:value-of select="preceding-sibling::sect1[position()=2]/title"/>
+                  </p>
+                </xsl:when>
+                <xsl:otherwise>
+                  <a accesskey="p">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="$prev"/>
+                      </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="$prev/title"/>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'prev'"/>
+                    </xsl:call-template>
+                  </a>
+                  <p>
+                    <xsl:value-of select="$prev/title"/>
+                  </p>
+                </xsl:otherwise>
+              </xsl:choose>
             </li>
           </xsl:if>
           <xsl:if test="count($next)&gt;0">
             <li class="next">
-              <a accesskey="n">
-                <xsl:attribute name="href">
-                  <xsl:call-template name="href.target">
-                    <xsl:with-param name="object" select="$next"/>
-                  </xsl:call-template>
-                </xsl:attribute>
-                <xsl:attribute name="title">
-                  <xsl:choose>
-                    <xsl:when test="local-name($next)='index'">
-                      <xsl:call-template name="gentext">
-                        <xsl:with-param name="key">Index</xsl:with-param>
+              <xsl:choose>
+                <xsl:when test="$next[@role='dummy']">
+                  <a accesskey="n">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="following-sibling::sect1[position()=2]"/>
                       </xsl:call-template>
-                    </xsl:when>
-                    <xsl:otherwise>
-                      <xsl:value-of select="$next/title"/>
-                    </xsl:otherwise>
-                  </xsl:choose>
-                </xsl:attribute>
-                <xsl:call-template name="navig.content">
-                  <xsl:with-param name="direction" select="'next'"/>
-                </xsl:call-template>
-              </a>
-              <p>
-                <xsl:choose>
-                  <xsl:when test="local-name($next)='index'">
-                    <xsl:call-template name="gentext">
-                      <xsl:with-param name="key">Index</xsl:with-param>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="following-sibling::sect1[position()=2]/title"/>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'next'"/>
                     </xsl:call-template>
-                  </xsl:when>
-                  <xsl:otherwise>
-                    <xsl:value-of select="$next/title"/>
-                  </xsl:otherwise>
-                </xsl:choose>
-              </p>
+                  </a>
+                  <p>
+                    <xsl:value-of select="following-sibling::sect1[position()=2]/title"/>
+                  </p>
+                </xsl:when>
+                <xsl:otherwise>
+                  <a accesskey="n">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="$next"/>
+                      </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:choose>
+                        <xsl:when test="local-name($next)='index'">
+                          <xsl:call-template name="gentext">
+                            <xsl:with-param name="key">Index</xsl:with-param>
+                          </xsl:call-template>
+                        </xsl:when>
+                        <xsl:otherwise>
+                          <xsl:value-of select="$next/title"/>
+                        </xsl:otherwise>
+                      </xsl:choose>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'next'"/>
+                    </xsl:call-template>
+                  </a>
+                  <p>
+                    <xsl:choose>
+                      <xsl:when test="local-name($next)='index'">
+                        <xsl:call-template name="gentext">
+                          <xsl:with-param name="key">Index</xsl:with-param>
+                        </xsl:call-template>
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="$next/title"/>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </p>
+                </xsl:otherwise>
+              </xsl:choose>
             </li>
           </xsl:if>
             <li class="up">
@@ -150,60 +194,104 @@
         <ul>
           <xsl:if test="count($prev)&gt;0 and $prev != $home">
             <li class="prev">
-              <a accesskey="p">
-                <xsl:attribute name="href">
-                  <xsl:call-template name="href.target">
-                    <xsl:with-param name="object" select="$prev"/>
-                  </xsl:call-template>
-                </xsl:attribute>
-                <xsl:attribute name="title">
-                  <xsl:value-of select="$prev/title"/>
-                </xsl:attribute>
-                <xsl:call-template name="navig.content">
-                  <xsl:with-param name="direction" select="'prev'"/>
-                </xsl:call-template>
-              </a>
-              <p>
-                <xsl:value-of select="$prev/title"/>
-              </p>
+              <xsl:choose>
+                <xsl:when test="$prev[@role='dummy']">
+                  <a accesskey="p">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="preceding-sibling::sect1[position()=2]"/>
+                      </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="preceding-sibling::sect1[position()=2]/title"/>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'prev'"/>
+                    </xsl:call-template>
+                  </a>
+                  <p>
+                    <xsl:value-of select="preceding-sibling::sect1[position()=2]/title"/>
+                  </p>
+                </xsl:when>
+                <xsl:otherwise>
+                  <a accesskey="p">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="$prev"/>
+                      </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="$prev/title"/>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'prev'"/>
+                    </xsl:call-template>
+                  </a>
+                  <p>
+                    <xsl:value-of select="$prev/title"/>
+                  </p>
+                </xsl:otherwise>
+              </xsl:choose>
             </li>
           </xsl:if>
           <xsl:if test="count($next)&gt;0">
             <li class="next">
-              <a accesskey="n">
-                <xsl:attribute name="href">
-                  <xsl:call-template name="href.target">
-                    <xsl:with-param name="object" select="$next"/>
-                  </xsl:call-template>
-                </xsl:attribute>
-                <xsl:attribute name="title">
-                  <xsl:choose>
-                    <xsl:when test="local-name($next)='index'">
-                      <xsl:call-template name="gentext">
-                        <xsl:with-param name="key">Index</xsl:with-param>
+              <xsl:choose>
+                <xsl:when test="$next[@role='dummy']">
+                  <a accesskey="n">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="following-sibling::sect1[position()=2]"/>
                       </xsl:call-template>
-                    </xsl:when>
-                    <xsl:otherwise>
-                      <xsl:value-of select="$next/title"/>
-                    </xsl:otherwise>
-                  </xsl:choose>
-                </xsl:attribute>
-                <xsl:call-template name="navig.content">
-                  <xsl:with-param name="direction" select="'next'"/>
-                </xsl:call-template>
-              </a>
-              <p>
-                <xsl:choose>
-                  <xsl:when test="local-name($next)='index'">
-                    <xsl:call-template name="gentext">
-                      <xsl:with-param name="key">Index</xsl:with-param>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="following-sibling::sect1[position()=2]/title"/>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'next'"/>
                     </xsl:call-template>
-                  </xsl:when>
-                  <xsl:otherwise>
-                    <xsl:value-of select="$next/title"/>
-                  </xsl:otherwise>
-                </xsl:choose>
-              </p>
+                  </a>
+                  <p>
+                    <xsl:value-of select="following-sibling::sect1[position()=2]/title"/>
+                  </p>
+                </xsl:when>
+                <xsl:otherwise>
+                  <a accesskey="n">
+                    <xsl:attribute name="href">
+                      <xsl:call-template name="href.target">
+                        <xsl:with-param name="object" select="$next"/>
+                      </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:choose>
+                        <xsl:when test="local-name($next)='index'">
+                          <xsl:call-template name="gentext">
+                            <xsl:with-param name="key">Index</xsl:with-param>
+                          </xsl:call-template>
+                        </xsl:when>
+                        <xsl:otherwise>
+                          <xsl:value-of select="$next/title"/>
+                        </xsl:otherwise>
+                      </xsl:choose>
+                    </xsl:attribute>
+                    <xsl:call-template name="navig.content">
+                      <xsl:with-param name="direction" select="'next'"/>
+                    </xsl:call-template>
+                  </a>
+                  <p>
+                    <xsl:choose>
+                      <xsl:when test="local-name($next)='index'">
+                        <xsl:call-template name="gentext">
+                          <xsl:with-param name="key">Index</xsl:with-param>
+                        </xsl:call-template>
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="$next/title"/>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </p>
+                </xsl:otherwise>
+              </xsl:choose>
             </li>
           </xsl:if>
             <li class="up">
@@ -250,5 +338,3 @@
   </xsl:template>
 
 </xsl:stylesheet>
-
-

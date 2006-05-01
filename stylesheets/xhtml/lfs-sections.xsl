@@ -4,10 +4,6 @@
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
 
-
-  <!-- Dummy sect1 files for TOC hacking -->
-  <xsl:template match="sect1[@role='dummy']"/>
-   
    <!-- Sect1 attributes -->
   <xsl:template match="sect1">
     <div>

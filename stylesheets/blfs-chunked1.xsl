@@ -31,4 +31,23 @@
   <xsl:include href="xhtml/lfs-legalnotice.xsl"/>
   <xsl:include href="xhtml/lfs-navigational.xsl"/>
 
+  <!-- Prevent creation of dummy files -->
+  <xsl:template match="sect1|sect2|sect3|sect4|sect5|section">
+    <xsl:variable name="ischunk">
+      <xsl:call-template name="chunk"/>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="@role = 'dummy'"/>
+      <xsl:when test="not(parent::*)">
+        <xsl:call-template name="process-chunk-element"/>
+      </xsl:when>
+      <xsl:when test="$ischunk = 0">
+        <xsl:apply-imports/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="process-chunk-element"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
 </xsl:stylesheet>
