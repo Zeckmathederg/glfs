@@ -418,6 +418,10 @@ ln -v -s ../X11R6/include/X11 /usr/include/X11</userinput></screen>
 ln -svn /usr/X11R6/lib/X11/fonts/OTF /usr/share/fonts/X11-OTF &amp;&amp;
 ln -svn /usr/X11R6/lib/X11/fonts/TTF /usr/share/fonts/X11-TTF</userinput></screen>
 
+      <para>You should now continue on to the <xref linkend="x-setup"/> section
+      to complete the configuration of
+      <application>Xorg</application>.</para>
+
     </sect3>
 
   </sect2>
@@ -462,146 +466,8 @@ ln -svn /usr/X11R6/lib/X11/fonts/TTF /usr/share/fonts/X11-TTF</userinput></scree
     managed via the above symbolic links. They are intended for utilization
     by users only.</quote></para>
 
-  </sect2>
-
-  <sect2 role="configuration" id='xorg-config'>
-    <title>Configuring Xorg</title>
-
-    <para>Edit <filename>/etc/ld.so.conf</filename> and add
-    <filename class="directory">/usr/X11R6/lib</filename>. Run:</para>
-
-    <indexterm zone="xorg xorg-config">
-      <primary sortas="e-etc-ld.so.conf">/etc/ld.so.conf</primary>
-    </indexterm>
-
-<screen role="root"><userinput>ldconfig</userinput></screen>
-
-    <para>Ensure <filename class="directory">/usr/X11R6/bin</filename>
-    and <filename class="directory">/usr/X11R6/lib/pkgconfig</filename>
-    are added to your <envar>PATH</envar> and <envar>PKG_CONFIG_PATH</envar>
-    environment variables, respectively. Instructions for doing this are
-    described in the section <xref linkend='postlfs-config-profile'/>.</para>
-
-    <para>Create the <filename>xorg.conf</filename> file with:</para>
-
-<screen><userinput>cd ~ &amp;&amp;
-Xorg -configure</userinput></screen>
-
-    <para>The screen will go black and you may hear some clicking of the monitor.
-    This command will create a file, <filename>xorg.conf.new</filename> in your
-    home directory.</para>
-
-    <indexterm zone="xorg xorg-config">
-      <primary sortas="e-etc-X11-xorg-conf">/etc/X11/xorg.conf</primary>
-    </indexterm>
-
-    <para>Edit <filename>xorg.conf.new</filename> to suit your system. The
-    details of the file are located in the xorg.conf man page. Some things
-    you may want to do are:</para>
-
-    <itemizedlist>
-      <listitem>
-        <para>Section "Files". Change the order of the font paths searched.
-        You may want to put 100dpi fonts ahead of 75dpi fonts if your system
-        normally comes up closer to 100 dots per inch. You may want to remove
-        some font directories completely.</para>
-      </listitem>
-      <listitem>
-        <para>Section "Module". If you are going to install NVidia
-        drivers, remove the "dri" line.</para>
-      </listitem>
-      <listitem>
-        <para>Sections "InputDevice". You may want to change the
-        keyboard autorepeat rate by adding
-        <option>Option "Autorepeat" "250 30"</option>.</para>
-      </listitem>
-      <listitem>
-        <para>Section "Monitor". Specify the <option>VertRefresh</option>
-        and <option>HorizSync</option> values if the system does not
-        automatically detect the monitor and its values.</para>
-      </listitem>
-      <listitem>
-        <para>Section "Device". You may want to set some of the options
-        available for your selected video driver. A description of the driver
-        parameters is in the man page for your driver.</para>
-      </listitem>
-      <listitem><para>Section "Screen". Add a DefaultDepth statement such as:
-        <option>DefaultDepth 24</option>. In the SubSection for your
-        default depth, add a modes line such as:
-        <option>Modes "1600x1200" "1280x1024" "1024x768"</option>. The first
-        mode listed will normally be the starting resolution.</para>
-      </listitem>
-    </itemizedlist>
-
-    <para>Test the system with:</para>
-
-<screen><userinput>X -config ~/xorg.conf.new</userinput></screen>
-
-    <para>You will only get a gray background with an X-shaped mouse cursor,
-    but it confirms the system is working. Exit with
-    <keycap>Control+Alt+Backspace</keycap>. If the system does not work, take
-    a look at <filename>/var/log/Xorg.0.log</filename> to see what went
-    wrong.</para>
-
-    <para>Move the configuration file to its final location:</para>
-
-<screen role="root"><userinput>mv ~/xorg.conf.new /etc/X11/xorg.conf</userinput></screen>
-
-    <para>Create <filename>.xinitrc</filename>:</para>
-
-<screen><userinput>cat &gt; ~/.xinitrc &lt;&lt; "EOF"
-<literal># Begin .xinitrc file
-xterm  -g 80x40+0+0   &amp;
-xclock -g 100x100-0+0 &amp;
-twm</literal>
-EOF</userinput></screen>
-
-    <para>This provides an initial screen with an xterm and a clock that is
-    managed by a simple window manager, Tab Window Manager. For details of
-    <command>twm</command>, see the man page.</para>
-
-    <indexterm zone="xorg xorg-config">
-      <primary sortas="e-AA.xinitrc">~/.xinitrc</primary>
-    </indexterm>
-
-    <note>
-      <para>When needed, <application>Xorg</application> creates the directory
-      <filename>/tmp/.ICE-unix</filename> if it does not exist. If this
-      directory is not owned by <systemitem class="username">root</systemitem>,
-      <application>Xorg</application> delays startup by a few seconds and also
-      appends a warning to the logfile. This also affects startup of other
-      applications. To improve performance, it is advisable to manually create
-      the directory before <application>Xorg</application> uses it. Add the
-      file creation to <filename>/etc/sysconfig/createfiles</filename> that is
-      sourced by the <filename>/etc/rc.d/init.d/cleanfs</filename> startup
-      script.</para>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/sysconfig/createfiles &lt;&lt; "EOF"
-<literal>/tmp/.ICE-unix dir 1777 root root</literal>
-EOF</userinput></screen>
-
-    </note>
-
-    <indexterm zone="xorg xorg-config">
-      <primary
-      sortas="e-etc-sysconfig-createfiles">/etc/sysconfig/createfiles</primary>
-    </indexterm>
-
-    <para>Start <application>X</application> with:</para>
-
-<screen><userinput>startx</userinput></screen>
-
-    <para>to get a basic functional <application>X Window
-    System</application>.</para>
-
-    <para>At this point, you should check out <xref linkend='x-setup'/> for
-    the necessary configuration to make <application>X</application> fully
-    functional. Additionally, you can have a look at <xref linkend='x-config'/>
-    for information on fine tuning your <application>X</application>
-    configuration.</para>
-
-    <para>For a list of the package contents and a description of the commands,
-    see the sections in the <xref linkend='xfree86-contents'/>.</para>
+    <para>For a list of the package contents, see the sections in the 
+    <xref linkend='xfree86-contents'/>.</para>
 
   </sect2>
 

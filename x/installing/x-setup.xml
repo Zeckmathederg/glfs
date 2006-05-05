@@ -5,8 +5,8 @@
   %general-entities;
 ]>
 
-<sect1 id="x-setup">
-  <?dbhtml filename="xfree86-setup.html"?>
+<sect1 id="x-setup" xreflabel="X Window System Components">
+  <?dbhtml filename="x-setup.html"?>
 
   <sect1info>
   <othername>$LastChangedBy$</othername>
@@ -14,6 +14,175 @@
   </sect1info>
 
   <title>X Window System Components</title>
+
+    <sect2 role="configuration" id='xconfig'>
+    <title>Configuring The X Window System</title>
+
+    <para>If you've installed the X Window System in any prefix other
+    than <filename>/usr</filename>, as the 
+    <systemitem class="username">root</systemitem> user, add
+    <filename class="directory">
+    <replaceable>&lt;/usr/X11R6&gt;</replaceable>/lib</filename> to 
+    the <filename>/etc/ld.so.conf</filename> file and run 
+    <command>ldconfig</command>.  Additionally, While still the 
+    <systemitem class="username">root</systemitem> user, ensure 
+    <filename class="directory">
+    <replaceable>&lt;/usr/X11R6&gt;</replaceable>/bin</filename>
+    and <filename class="directory">
+    <replaceable>&lt;/usr/X11R6&gt;</replaceable>/lib/pkgconfig</filename>
+    are added to your <envar>PATH</envar> and <envar>PKG_CONFIG_PATH</envar>
+    environment variables, respectively. Instructions for doing this are
+    described in the section <xref linkend='postlfs-config-profile'/>.</para>
+
+    <para>As the <systemitem class="username">root</systemitem> user
+    create a basic X Window System configuration file with the following
+    commands:</para>
+
+    <para>For <application>Xorg</application>:</para>
+<screen><userinput>cd ~ &amp;&amp;
+Xorg -configure</userinput></screen>
+
+    <para>For <application>XFree86</application>:</para>
+<screen><userinput>cd ~ &amp;&amp;
+XFree86 -configure</userinput></screen>
+
+    <indexterm zone="x-setup xconfig">
+      <primary sortas="e-etc-X11-xorg-conf">/etc/X11/xorg.conf</primary>
+    </indexterm>
+
+    <indexterm zone="x-setup xconfig">
+      <primary sortas="e-etc-X11-XF86Config">/etc/X11/XF86Config</primary>
+    </indexterm>
+
+    <para>The screen will go black and you may hear some clicking of the 
+    monitor.  This command will create a file in your
+    home directory, <filename>xorg.conf.new</filename> for 
+    <application>Xorg</application>, or <filename>XF86Config.new</filename> 
+    for <application>XFree86</application>.</para>
+
+    <para>Edit the newly created configuration file to suit your system. The
+    details of the files are located in the xorg.conf and XF86Config man 
+    pages. Some things you may want to do are:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Section "Files". Change the order of the font paths searched.
+        You may want to put 100dpi fonts ahead of 75dpi fonts if your system
+        normally comes up closer to 100 dots per inch. You may want to remove
+        some font directories completely.</para>
+      </listitem>
+      <listitem>
+        <para>Section "Module". If you are going to install NVidia
+        drivers, remove the "dri" line.</para>
+      </listitem>
+      <listitem>
+        <para>Sections "InputDevice". You may want to change the
+        keyboard autorepeat rate by adding
+        <option>Option "Autorepeat" "250 30"</option>.</para>
+      </listitem>
+      <listitem>
+        <para>Section "Monitor". Specify the <option>VertRefresh</option>
+        and <option>HorizSync</option> values if the system does not
+        automatically detect the monitor and its values.</para>
+      </listitem>
+      <listitem>
+        <para>Section "Device". You may want to set some of the options
+        available for your selected video driver. A description of the driver
+        parameters is in the man page for your driver.</para>
+      </listitem>
+      <listitem><para>Section "Screen". Add a DefaultDepth statement such as:
+        <option>DefaultDepth 24</option>. In the SubSection for your
+        default depth, add a modes line such as:
+        <option>Modes "1600x1200" "1280x1024" "1024x768"</option>. The first
+        mode listed will normally be the starting resolution.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Test the system with one of the following commands:</para>
+
+    <para>For <application>Xorg</application>:</para>
+<screen><userinput>X -config ~/xorg.conf.new</userinput></screen>
+
+    <para>For <application>XFree86</application>:</para>
+<screen><userinput>XFree86 -xf86config ~/XF86Config.new</userinput></screen>
+
+    <para>You will only get a gray background with an X-shaped mouse cursor,
+    but it confirms the system is working. Exit with
+    <keycap>Control+Alt+Backspace</keycap>. If the system does not work, take
+    a look at <filename>/var/log/Xorg.0.log</filename> or 
+    <filename>/var/log/XFree86.0.log</filename> to see what went
+    wrong.</para>
+
+    <para>As the <systemitem class="username">root</systemitem> user, create
+    the configuration directory and move the configuration file to the new 
+    directory:</para>
+
+    <para>For <application>Xorg</application>:</para>
+<screen role="root"><userinput>install -v -m755 -D ~/xorg.conf.new /etc/X11/xorg.conf</userinput></screen>
+
+    <para>For <application>XFree86</application>:</para>
+<screen role="root"><userinput>install -v -m755 -D ~/XF86Config.new /etc/X11/XF86Config</userinput></screen>
+
+    <para>As the <systemitem class="username">root</systemitem> user, create
+    <filename>.xinitrc</filename>:</para>
+
+<screen><userinput>cat &gt; ~/.xinitrc &lt;&lt; "EOF"
+<literal># Begin .xinitrc file
+xterm  -g 80x40+0+0   &amp;
+xclock -g 100x100-0+0 &amp;
+twm</literal>
+EOF</userinput></screen>
+
+    <para>This provides an initial screen with a small clock that is
+    managed by a simple window manager, Tab Window Manager. For details of
+    <command>twm</command>, see the man page.</para>
+
+    <note>
+      <para>The default configuration for <application>Xorg</application> 
+      includes <application>xterm</application>.  
+      <application>Xorg</application>'s modular distribution no longer includes 
+      <application>xterm</application>, and 
+      as a result, the <command>startx</command> command will fail if you have 
+      not installed <xref linkend="xterm2"/> when using the modular X Window
+      System.</para>
+    </note>
+
+    <indexterm zone="x-setup xconfig">
+      <primary sortas="e-AA.xinitrc">~/.xinitrc</primary>
+    </indexterm>
+
+    <para>When needed, the X Window System creates the directory
+    <filename class='directory'>/tmp/.ICE-unix</filename> if it does not
+    exist. If this directory is not owned by
+    <systemitem class="username">root</systemitem>,
+    the X Window System delays startup by a few seconds and also
+    appends a warning to the logfile. This also affects startup of other
+    applications. To improve performance, it is advisable to manually create
+    the directory before the X Window System uses it. Add the file creation 
+    to <filename>/etc/sysconfig/createfiles</filename> that is sourced by 
+    the <filename>/etc/rc.d/init.d/cleanfs</filename> startup script.</para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/sysconfig/createfiles &lt;&lt; "EOF"
+/tmp/.ICE-unix dir 1777 root root
+EOF</userinput></screen>
+
+    <indexterm zone="x-setup xconfig">
+      <primary
+      sortas="e-etc-sysconfig-createfiles">/etc/sysconfig/createfiles</primary>
+    </indexterm>
+
+    <para>Start <application>X</application> with:</para>
+
+<screen><userinput>startx</userinput></screen>
+
+    <para>and a basic functional <application>X Window
+    System</application> should be displayed.</para>
+
+    <para>For a list of the package contents and a description of the commands,
+    see the sections in the <xref linkend='xfree86-contents'/>.</para>
+
+  </sect2>
+
 
   <sect2 id='dri'>
     <title>Checking Direct Rendering Infrastructure (DRI) Installation</title>
