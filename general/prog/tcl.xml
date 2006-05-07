@@ -79,26 +79,33 @@
     <para>Install <application>Tcl</application> by running the following
     commands:</para>
 
-<screen><userinput>cd unix &amp;&amp;
-./configure --prefix=/usr --enable-threads &amp;&amp;
-make &amp;&amp;
+<!-- This is removed per discussion and fairly vigorous testing
 sed -i -e "s:${PWD}:/usr/lib:" \
        -e "s:$(dirname ${PWD}):/usr/include/tcl&tcl-ver;:" \
        -e "/TCL_LIB_FILE/ s:':\":g" \
-    tclConfig.sh</userinput></screen>
+    tclConfig.sh
+-->
+
+<screen><userinput>cd unix &amp;&amp;
+./configure --prefix=/usr --enable-threads &amp;&amp;
+make</userinput></screen>
 
     <para>To test the results, issue: <command>make test</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
+make install-private-headers &amp;&amp;
+ln -v -sf tclsh&tcl-ver; /usr/bin/tclsh</userinput></screen>
+
+<!-- This is removed per discussion and fairly vigorous testing
 install -v -d /usr/include/tcl&tcl-ver;/{unix,generic} &amp;&amp;
 install -v -m644 *.h /usr/include/tcl&tcl-ver;/unix/ &amp;&amp;
 install -v -m644 ../generic/*.h /usr/include/tcl&tcl-ver;/generic/ &amp;&amp;
 rm -v -f /usr/include/tcl&tcl-ver;/generic/tcl{,{,Plat}Decls}.h &amp;&amp;
 ln -v -nsf ../../include/tcl&tcl-ver; /usr/lib/tcl&tcl-ver;/include &amp;&amp;
 ln -v -sf libtcl&tcl-ver;.so /usr/lib/libtcl.so &amp;&amp;
-ln -v -sf tclsh&tcl-ver; /usr/bin/tclsh</userinput></screen>
+-->
 
   </sect2>
 
@@ -108,6 +115,17 @@ ln -v -sf tclsh&tcl-ver; /usr/bin/tclsh</userinput></screen>
     <para><parameter>--enable-threads</parameter>: This switch forces the package
     to build with thread support.</para>
 
+    <para><command>make install-private-headers</command>: This command is
+    used to install the <application>Tcl</application> library interface
+    headers used by other packages if they link to the
+    <application>Tcl</application> library.</para>
+
+    <para><command>ln -v -sf tclsh&tcl-ver; /usr/bin/tclsh</command>: This
+    command is used to create a compatibility symbolic link to the
+    <command>tclsh&tcl-ver;</command> file as many packages expect a file
+    named <command>tclsh</command>.</para>
+
+    <!-- This is removed per discussion and fairly vigorous testing
     <para><command>sed -i -e ... tclConfig.sh</command>: The
     <application>Tcl</application> package expects that its source tree is
     preserved so that packages depending on it for their compilation
@@ -119,6 +137,7 @@ ln -v -sf tclsh&tcl-ver; /usr/bin/tclsh</userinput></screen>
 
     <para><command>ln -v -sf ...</command>: These commands create compatibility
     symbolic links.</para>
+    -->
 
   </sect2>
 
