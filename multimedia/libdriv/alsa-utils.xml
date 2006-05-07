@@ -6,9 +6,9 @@
 
   <!ENTITY alsa-utils-download-http "&alsa-download-http;/utils/alsa-utils-&alsa-utils-version;.tar.bz2">
   <!ENTITY alsa-utils-download-ftp  "&alsa-download-ftp;/utils/alsa-utils-&alsa-utils-version;.tar.bz2">
-  <!ENTITY alsa-utils-md5sum        "d4b77e9fe0311772293e402fdd634ad2">
-  <!ENTITY alsa-utils-size          "935 KB">
-  <!ENTITY alsa-utils-buildsize     "5.9 MB">
+  <!ENTITY alsa-utils-md5sum        "ba9b8010120701d0f6daf061d392cfa2">
+  <!ENTITY alsa-utils-size          "972 KB">
+  <!ENTITY alsa-utils-buildsize     "6.8 MB">
   <!ENTITY alsa-utils-time          "0.1 SBU">
 ]>
 
@@ -127,11 +127,11 @@ make</userinput></screen>
 <screen role="root"><userinput>touch /etc/asound.state &amp;&amp;
 alsactl store</userinput></screen>
 
-      <para>The volume settings will be restored from the saved state using a
-      shell script called by <application>Udev</application> that will
-      execute when the device is detected (during boot or when plugged in for
-      USB devices).</para>
+      <para>The volume settings will be restored from the saved state by
+      <application>Udev</application> when the device is detected (during boot
+      or when plugged in for USB devices).</para>
 
+<!--
       <para>  While still the
       <systemitem class="username">root</systemitem> user, create the
       <filename>/etc/udev/scripts/alsa-restore</filename> script with
@@ -143,26 +143,22 @@ cat &gt; /etc/udev/scripts/alsa-restore &lt;&lt; "EOF"
 # Begin /etc/udev/scripts/alsa-restore
 # $1 is (the numbered device "%n") passed in by udev/kernel.
 
-x=0
+    rc=1
 
-# Give up to 20 seconds for /usr to be mounted
-while [ "${x}" -lt 20 ]
-do
     if [ -f /usr/sbin/alsactl ]; then
         /usr/sbin/alsactl restore "${1}"
-        exit 0
+        rc=$?
     fi
-    x=$(( x + 1 ))
-    sleep 1
-done &amp; # Put the loop in the background
+
+    exit $rc
 
 # End /etc/udev/scripts/alsa-restore
 EOF
 chmod -v 754 /etc/udev/scripts/alsa-restore</userinput></screen>
+-->
 
-      <para>Finally, again as the
-      <systemitem class="username">root</systemitem> user, install a new
-      <application>Udev</application> rules file to create the audio
+      <para>As the <systemitem class="username">root</systemitem> user, install
+      a new <application>Udev</application> rules file to create the audio
       device nodes and run the restore script:</para>
 
 <screen role="root"><userinput>cat &gt; /etc/udev/rules.d/15-alsa.rules &lt;&lt; "EOF"
@@ -172,7 +168,7 @@ SUBSYSTEM=="snd",         GROUP="audio"
 
 # ALSA Devices
 # When a sound device is detected, restore the volume settings
-KERNEL=="controlC[0-9]*", ACTION=="add", NAME="snd/%k", RUN="/etc/udev/scripts/alsa-restore %n"
+KERNEL=="controlC[0-9]*", ACTION=="add", RUN+="/usr/sbin/alsactl restore %n"
 KERNEL="hw[CD0-9]*",      NAME="snd/%k"
 KERNEL="pcm[CD0-9cp]*",   NAME="snd/%k"
 KERNEL="midiC[D0-9]*",    NAME="snd/%k"
@@ -194,8 +190,9 @@ chmod 644 /etc/udev/rules.d/15-alsa.rules</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>aconnect, alsaconf, alsactl, alsamixer, amidi, amixer, aplay, aplaymidi,
-        arecord, arecordmidi, aseqnet, aseqdump, iecset, and speaker-test</seg>
+        <seg>aconnect, alsaconf, alsactl, alsamixer, amidi, 
+        amixer, aplay, aplaymidi, arecord, arecordmidi, aseqnet, 
+        aseqdump, iecset, and speaker-test</seg>
         <seg>None</seg>
         <seg>None</seg>
       </seglistitem>
