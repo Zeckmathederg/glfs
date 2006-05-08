@@ -152,31 +152,29 @@ install -v -m644 apidocs/html/* \
     <primary sortas="d-USB-device-filesystem">Support for Host-side USB</primary>
     </indexterm>
     
-    <para>To have USB devices set up properly, add the followng 
+    <para>To have raw USB devices set up properly, add the following 
     <application>udev</application> rule and add any users 
-    that need USB devices to the "usb" group.</para>
+    that need to access raw USB devices to the "usb" group.</para>
     
 <screen><literal>cat &gt; /etc/udev/rules.d/23-usb-rules &lt;&lt; "EOF"
-# Set group ownership for USB devices 
-SUBSYSTEM=="usb_device", \
-PROGRAM="/bin/sh -c 'X=%k X=$${X#usbdev} B=$${X%%%%.*} D=$${X#*.}; \
-echo bus/usb/$$B/$$D'", SYMLINK+="%c", GROUP="usb"
+# Set group ownership for raw USB devices 
+SUBSYSTEM=="usb_device", GROUP="usb" 
 EOF</literal></screen>
 
-    <para>Fine-tunuing of permissions is also possible by creating extra rules,
+    <para>Fine-tuning of permissions is also possible by creating extra rules,
     matching on something like this (on one line).  The vendor and product can
     be found by searchng the <filename
-    class='directory'>/sys/devices</filename> directory entries after
-    the device has been attached.</para>
+    class='directory'>/sys/devices</filename> directory entries or using
+    <command>udevinfo</command> after the device has been attached.  See the
+    documentation in the current udev directory of <filename
+    class='directory'>/usr/share/doc></filename> for details.</para>
 
 <screen><literal>SUBSYSTEM=="usb_device", SYSFS{idVendor}=="05d8", 
 SYSFS{idProduct}=="4002", GROUP:="scanner"</literal></screen>
 
-
-
-    <para>Some older applications need the following deprecated entry in
-    the <filename>/etc/fstab</filename> file.  Do not use it unless you 
-    know its needed.</para>
+    <para>Some older applications, such as <application>VMware</application>,
+    need the following deprecated entry in the <filename>/etc/fstab</filename>
+    file.  Do not use it unless you know its needed.</para>
 
 <screen><literal>usbfs  /proc/bus/usb  usbfs  devgid=14,devmode=0660  0  0</literal></screen>
 
