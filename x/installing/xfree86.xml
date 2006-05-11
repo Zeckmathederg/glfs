@@ -4,23 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
   <!ENTITY xfree86-download-http "http://gnu.kookel.org/ftp/XFree86/&xfree86-version;/source/">
   <!ENTITY xfree86-download-ftp  "ftp://ftp.xfree86.org/pub/XFree86/&xfree86-version;/source/">
   <!ENTITY xfree86-md5sum        "ftp://ftp.xfree86.org/pub/XFree86/&xfree86-version;/source/SUMS.md5sum">
   <!ENTITY xfree86-size          "51 MB">
-  <!ENTITY xfree86-buildsize     "775 MB">
+  <!ENTITY xfree86-buildsize     "740 MB">
   <!ENTITY xfree86-time          "12 SBU">
 ]>
 
@@ -72,15 +60,6 @@
       </listitem>
       <listitem>
         <para>Estimated build time: &xfree86-time;</para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/XFree86-&xfree86-version;-kernel_headers-1.patch"/>
-        </para>
       </listitem>
     </itemizedlist>
 
@@ -139,12 +118,7 @@
 
     <para>The first three packages are the <application>XFree86</application>
     programs, the fourth and fifth are fonts, the sixth is normal documentation,
-    and the seventh is hardcopy documentation. There are also two packages
-    <filename>doctools-1.3.x.tgz</filename>, which contain programs to
-    regenerate hardcopy documentation, and <filename>utils-1.1.x.tgz</filename>,
-    which contain <application>GNU TAR</application> and
-    <application>zlib</application> which are already installed on an
-    LFS system.</para>
+    and the seventh is hardcopy documentation.</para>
 
     <para>To check your downloads for integrity, download the
     <filename>SUMS.md5sum</filename> file. Then:</para>
@@ -155,23 +129,6 @@
     <filename>doctools-1.3.x.tgz</filename>, <filename>utils-1.1.x.tgz</filename>
     and <filename>XFree86-xtest-4.0.x.tar.bz2</filename> files if you did not
     download them.</para>
-
-<!--
-<para>The fixes subdirectory also has a <filename>SUMS.md5sum</filename>.  Note that
-this is the same filename as the sums for the main sources, so you need to rename the
-file if you download it.  Otherwise, you can just look at it and use it to
-check against the patch files:</para>
-<screen><userinput><command>md5sum 4.3.0-4.3.0.1.diff.gz</command></userinput>
-<userinput><command>md5sum fontfile.diff</command></userinput></screen>
-
-<para>After unpacking the <filename>X430src-?.tgz</filename> files and uncompressing the
-diff file, change to the <filename class="directory">xc</filename> directory and run:</para>
-
-<screen><userinput><command>patch -Np1 -i ../4.3.0-4.3.0.1.diff</command></userinput>
-<userinput><command>pushd  lib/font/fontfile/</command></userinput>
-<userinput><command>patch -N -i ../../../../fontfile.diff</command></userinput>
-<userinput><command>popd</command></userinput></screen>
--->
 
   </sect2>
 
@@ -225,9 +182,7 @@ diff file, change to the <filename class="directory">xc</filename> directory and
       first make <command>lndir</command>. Starting from the
       <filename class='directory'>xc</filename> directory:</para>
 
-<screen><userinput>pushd config/util &amp;&amp;
-make -f Makefile.ini lndir
-popd</userinput></screen>
+<screen><userinput>make -C config/util -f Makefile.ini lndir</userinput></screen>
 
       <para>Now create the shadow tree:</para>
 
@@ -368,6 +323,14 @@ cd ../xcbuild &amp;&amp;
 #define InstallXdmConfig          YES
 #define ForceNormalLib            YES
 #define BuildSpecsDocs             NO
+#define DocDir                    /usr/share/doc
+
+/* Installation prefix. The default is to install into /usr/X11R6. If you
+ * would like to install into /usr, uncomment these options. */
+
+/* #define ProjectRoot            /usr */
+/* #define LinkGLToUsrLib         NO */
+/* #define LinkGLToUsrInclude     NO */
 
 /* End XFree86 host.def file */</literal>
 EOF</userinput></screen>
@@ -382,20 +345,23 @@ EOF</userinput></screen>
       <para>Install <application>XFree86</application> by running the
       following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../XFree86-&xfree86-version;-kernel_headers-1.patch &amp;&amp;
+<screen><userinput>sed -i 's:^.*asm.*$:# define PAGE_MASK   (~(getpagesize() - 1)):' \
+    ../xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c &amp;&amp;
 sed -i -e "s@^#include &lt;linux/config.h&gt;@/* &amp; */@" \
-    `grep -lr linux/config.h *` &amp;&amp;
-( make WORLDOPTS="" World 2&gt;&amp;1 | \
-    tee xfree-compile.log &amp;&amp; exit $PIPESTATUS )</userinput></screen>
+    `grep -lr linux/config.h ../xc` &amp;&amp;
+( make World 2&gt;&amp;1 | tee xfree-compile.log &amp;&amp; exit $PIPESTATUS )
+</userinput></screen>
+
+      <para>This package does not come with a test suite.</para>
 
       <para>Now, as the <systemitem class="username">root</systemitem>
       user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 make install.man &amp;&amp;
-ln -v -sf ../X11R6/bin /usr/bin/X11 &amp;&amp;
-ln -v -sf ../X11R6/lib/X11 /usr/lib/X11 &amp;&amp;
-ln -v -sf ../X11R6/include/X11 /usr/include/X11</userinput></screen>
+ln -v -s ../X11R6/bin /usr/bin/X11 &amp;&amp;
+ln -v -s ../X11R6/lib/X11 /usr/lib/X11 &amp;&amp;
+ln -v -s ../X11R6/include/X11 /usr/include/X11</userinput></screen>
 
       <para>The <application>XFree86</application> fonts have been installed
       outside of <application>Fontconfig</application>'s default search path
@@ -455,6 +421,9 @@ EOF</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i 's:^.*asm.* ... fbdevhw.c</command>: This sed fixes a
+    problem compiling against kernel headers since linux-2.6.8.</para>
+
     <para><command>sed -i -e "s@^#include &lt;linux/config.h&gt;@...</command>:
     The <application>Linux-Libc-Headers</application> package installed in
     LFS installs a <filename>/usr/include/linux/config.h</filename> file which
@@ -466,11 +435,10 @@ EOF</userinput></screen>
     remove (comment) the line in the appropriate video driver file if you
     customized <filename>host.def</filename>.</para>
 
-    <para><command>( make WORLDOPTS="" World 2&gt;&amp;1 | tee xfree-compile.log
+    <para><command>( make World 2&gt;&amp;1 | tee xfree-compile.log
       &amp;&amp; exit $PIPESTATUS )</command>:
     This command runs multiple <filename>Makefile</filename>s to completely
-    rebuild the system. <envar>WORLDOPTS</envar>="" disables the default setting
-    to continue after encountering an error. <option>2&gt;&amp;1</option>
+    rebuild the system. <option>2&gt;&amp;1</option>
     redirects error messages to the same location as standard output. The
     <command>tee</command> command allows viewing of the output while logging
     the results to a file. The parentheses around the command runs the entire
@@ -512,7 +480,9 @@ EOF</userinput></screen>
 
     <note>
       <para>The following lists are not comprehensive. The full list of
-      programs is in <filename class="directory">/usr/X11R6/bin</filename>.
+      programs is (if you install into
+      <filename class="directory">/usr/X11R6</filename>) in
+      <filename class="directory">/usr/X11R6/bin</filename>.
       For additional information about these programs, see the respective
       man page.</para>
     </note>
