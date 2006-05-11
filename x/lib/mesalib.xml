@@ -64,8 +64,11 @@
     <bridgehead renderas="sect3">MesaLib Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para><xref linkend="x-window-system"/> or
-    <xref linkend="xorg7"/> Libs and Utilities, <xref linkend="libdrm"/> and
+    <para>
+<!--<xref linkend="x-window-system"/> -->
+    <xref linkend="xorg"/> or
+    <xref linkend="xorg7-lib"/> and <xref linkend="xorg7-util"/>, 
+    <xref linkend="libdrm"/>, and
     <xref linkend="pkgconfig"/></para>
 
     <bridgehead renderas="sect3">Recommended Download</bridgehead>
@@ -94,13 +97,19 @@
   <sect2 role="installation">
     <title>Installation of MesaLib</title>
 
-    <para>If you've installed the X Window System into any prefix other than
-    <filename class="directory">/usr</filename>, then you'll need to adjust the
-    commands below for your system.  Correct several hard coded directories
-    in the source files with the following commands:</para>
+    <para>You will need to adjust the commands below to reflect the
+    installation prefix of the X Window System.  First, correct several 
+    hard coded directories in the source files with the following 
+    command (you can skip this first command if the prefix is 
+   <filename class="directory">/usr/X11R6</filename>):</para>
 
-<screen><userinput>find . -type f -exec sed -i 's@/usr/X11R6@/usr@g' {} \; &amp;&amp;
-sed -i 's@lib/modules@lib/X11/modules@' src/glx/x11/dri_glx.c</userinput></screen>
+<screen><userinput>find . -type f -exec sed -i 's@/usr/X11R6@<replaceable>&lt;PREFIX&gt;</replaceable>@g' {} \;</userinput></screen>
+
+    <para>If building for <application>Xorg-&xorg7-version;</application>,
+    issue the following command to correct for the default module path in the
+    new build system:</para>
+
+<screen><userinput>sed -i 's@lib/modules@lib/X11/modules@' src/glx/x11/dri_glx.c</userinput></screen>
 
     <para>Build <application>MesaLib</application>
     by running the following command:</para>
@@ -115,9 +124,9 @@ sed -i 's@lib/modules@lib/X11/modules@' src/glx/x11/dri_glx.c</userinput></scree
     System into any prefix other than 
     <filename class="directory">/usr</filename>:</para>
 
-<screen role="root"><userinput>bin/installmesa /usr &amp;&amp;
-mkdir -v -p /usr/lib/X11/modules/dri &amp;&amp;
-install -v -m755 lib/*dri* /usr/lib/X11/modules/dri</userinput></screen>
+<screen role="root"><userinput>bin/installmesa <replaceable>&lt;PREFIX&gt;</replaceable> &amp;&amp;
+mkdir -v -p <replaceable>&lt;PREFIX&gt;</replaceable>/lib/X11/modules/dri &amp;&amp;
+install -v -m755 lib/*dri* <replaceable>&lt;PREFIX&gt;</replaceable>/lib/X11/modules/dri</userinput></screen>
 
     <para>If you've extracted the Demos package as well, then
     build the test programs with the following commands:</para>
@@ -130,7 +139,7 @@ make PROGS='glxinfo glxgears'</userinput></screen>
     <systemitem class="username">root</systemitem> user, again adjusting for 
     the prefix of your X Window System:</para>
 
-<screen role="root"><userinput>install -v -m755 glxinfo glxgears /usr/bin</userinput></screen>
+<screen role="root"><userinput>install -v -m755 glxinfo glxgears <replaceable>&lt;PREFIX&gt;</replaceable>/bin</userinput></screen>
 
     <note>
       <para>If building <xref linkend="xorg7"/>, do not
@@ -151,8 +160,9 @@ make PROGS='glxinfo glxgears'</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>find...sed -i 's@/usr/X11R6@/usr@'...</command>: This
-    command corrects several hard coded references to the X11R6 default
+    <para><command>find...sed -i 
+    's@/usr/X11R6@/<replaceable>&lt;PREFIX&gt;</replaceable>@'...</command>: 
+    This command corrects several hard coded references to the X11R6 default
     installation path.</para>
 
     <para><command>sed -i 's@lib/modules@lib/X11/modules@'
@@ -164,7 +174,8 @@ make PROGS='glxinfo glxgears'</userinput></screen>
     target.</para>
 
     <para><command>install -v -m755 lib/*dri*
-    /usr/lib/X11/modules/dri</command>: installs the DRI modules.</para>
+    <replaceable>&lt;PREFIX&gt;</replaceable>/lib/X11/modules/dri</command>: 
+    installs the DRI modules.</para>
 
     <para><command>sed -i 's@-l$(GLUT_LIB)@@g' configs/default</command>:
     disables linking against GLUT libraries for the demo programs.</para>
@@ -172,7 +183,8 @@ make PROGS='glxinfo glxgears'</userinput></screen>
     <para><command>make PROGS='glxinfo glxgears'</command>: build only
     the glxinfo and glxgears programs.</para>
 
-    <para><command>install -v -m755 glxinfo glxgears /usr/bin</command>:
+    <para><command>install -v -m755 glxinfo glxgears 
+    <replaceable>&lt;PREFIX&gt;</replaceable>/bin</command>:
     Installs only the glxinfo and glxgears programs.</para>
 
   </sect2>
