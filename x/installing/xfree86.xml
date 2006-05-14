@@ -277,7 +277,8 @@ EOF</userinput></screen>
 
       <para>Edit the file for your hardware and desires. You can find more
       options by reading the other files in
-      <filename class="directory">xc/config/cf</filename></para>
+      <filename class="directory">xc/config/cf</filename> and on the wiki.
+      <ulink url='&blfs-wiki;/XFree86-&xfree86-version;'/></para>
 
     </sect3>
 
@@ -300,19 +301,26 @@ sed -i -e "s@^#include &lt;linux/config.h&gt;@/* &amp; */@" \
       user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-make install.man &amp;&amp;
-ln -v -s ../X11R6/bin /usr/bin/X11 &amp;&amp;
+make install.man</userinput></screen>
+
+      <para>If you installed <application>XFree86</application> into the default
+      prefix, <filename class="directory">/usr/X11R6</filename>, make these
+      symlinks to work around some applications which look for things in the
+      wrong place. As <systemitem class="username">root</systemitem>:</para>
+
+<screen role="root"><userinput>ln -v -s ../X11R6/bin /usr/bin/X11 &amp;&amp;
 ln -v -s ../X11R6/lib/X11 /usr/lib/X11 &amp;&amp;
 ln -v -s ../X11R6/include/X11 /usr/include/X11</userinput></screen>
 
       <para>The <application>XFree86</application> fonts have been installed
       outside of <application>Fontconfig</application>'s default search path
-      of <filename class="directory">/usr/share/fonts</filename>.  In order
+      of <filename class="directory">/usr/share/fonts</filename>. In order
       for <application>Fontconfig</application> to find the installed TrueType
-      fonts, you should make symlinks to their directories.  Assuming you've
-      installed <application>XFree86</application> in the default prefix, run the
-      following commands as the <systemitem class="username">root</systemitem>
-      user:</para>
+      fonts, you should make symlinks to their directories. If you installed
+      <application>XFree86</application> with the prefix
+      <filename class="directory">/usr</filename>, omit /X11R6 from the
+      following commands. As <systemitem class="username">root</systemitem>:
+      </para>
 
 <screen role="root"><userinput>install -d -m755 /usr/share/fonts &amp;&amp;
 ln -svn /usr/X11R6/lib/X11/fonts/OTF /usr/share/fonts/X11-OTF &amp;&amp;
@@ -322,8 +330,10 @@ ln -svn /usr/X11R6/lib/X11/fonts/TTF /usr/share/fonts/X11-TTF</userinput></scree
       <application>XRender</application> and
       <application>XExtensions</application> extension libraries but does not
       install the corresponding <application>pkg-config</application> files.
-      Create the files by issuing the following commands as the
-      <systemitem class="username">root</systemitem> user:</para>
+      Create the files with these commands. If you installed
+      <application>XFree86</application> with the prefix
+      <filename class="directory">/usr</filename>, omit /X11R6 from the
+      paths. As <systemitem class="username">root</systemitem>:</para>
 
 <screen role="root"><userinput>cat &gt; /usr/X11R6/lib/pkgconfig/xrender.pc &lt;&lt; "EOF"
 <literal>prefix=/usr/X11R6
@@ -364,7 +374,7 @@ EOF</userinput></screen>
     <title>Command Explanations</title>
 
     <para><command>sed -i 's:^.*asm.* ... fbdevhw.c</command>: This sed fixes a
-    problem compiling against kernel headers since linux-2.6.8.</para>
+    problem compiling against headers from kernels newer than linux-2.6.8.</para>
 
     <para><command>sed -i -e "s@^#include &lt;linux/config.h&gt;@...</command>:
     The <application>Linux-Libc-Headers</application> package installed in
@@ -396,7 +406,7 @@ EOF</userinput></screen>
       are out of date.</para>
     </note>
 
-    <para><command>ln -v -sf ...</command>: These commands are present to
+    <para><command>ln -v -s ...</command>: These commands are present to
     enable other (broken) packages to build against
     <application>XFree86</application>, even though the Filesystem Hierarchy
     Standard says: <quote>In general, software must not be installed or managed
