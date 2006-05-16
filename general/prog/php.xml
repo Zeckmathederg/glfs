@@ -6,10 +6,10 @@
 
   <!ENTITY php-download-http "http://us2.php.net/distributions/php-&php-version;.tar.bz2">
   <!ENTITY php-download-ftp  "ftp://ftp.isu.edu.tw/pub/Unix/Web/PHP/distributions/php-&php-version;.tar.bz2">
-  <!ENTITY php-md5sum        "79cee17e9db85be878000a2a4198378e">
+  <!ENTITY php-md5sum        "66a806161d4a2d3b5153ebe4cd0f2e1c">
   <!ENTITY php-size          "6.3 MB">
   <!ENTITY php-buildsize     "213 MB (includes installing all documentation)">
-  <!ENTITY php-time          "2.6 SBU (additional 1.5 SBU to run the test suite)">
+  <!ENTITY php-time          "2.5 SBU (additional 1.9 SBU to run the test suite)">
 ]>
 
 <sect1 id="php" xreflabel="PHP-&php-version;">
@@ -61,10 +61,10 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
-      <listitem>
+      <!-- <listitem>
         <para>Required patch for Berkeley DB: <ulink
         url="&patch-root;/php-&php-version;-db43-1.patch"/></para>
-      </listitem>
+      </listitem> -->
       <listitem>
         <para>Pre-built documentation (optional): <ulink
         url="http://www.php.net/download-docs.php"/></para>
@@ -81,7 +81,7 @@
 
     <bridgehead renderas="sect4">Optional System Utilities and Libraries</bridgehead>
     <para role="optional"><xref linkend="libxslt"/>,
-    <xref linkend="gamin"/>,
+    <!-- <xref linkend="gamin"/>, -->
     <xref linkend="gmp"/>,
     <xref linkend="pcre"/>,
     <xref linkend="aspell"/>,
@@ -137,6 +137,11 @@
     <ulink url="http://www.frontbase.com/">FrontBase</ulink>, and
     <ulink url="http://www.mainstreetsoftworks.com/">Monetra</ulink></para>
 
+    <para><application>PHP</application> also provides support for many
+    commercial database tools such as <application>Oracle</application>,
+    <application>SAP</application> and
+    <application>ODBC Router</application>.</para>
+
     <bridgehead renderas="sect4">Optional Security/Encryption Utilities and Libraries</bridgehead>
     <para role="optional"><xref linkend="openssl"/>,
     <xref linkend="cyrus-sasl"/>,
@@ -152,13 +157,10 @@
   <sect2 role="installation">
     <title>Installation of PHP</title>
 
-    <note>
-      <para>You can use <application>PHP</application>
-      for server-side scripting, command-line scripting or client-side
-      GUI applications. This book provides instructions for
-      setting up <application>PHP</application> for
-      server-side scripting as it is the most common form.</para>
-    </note>
+    <para>You can use <application>PHP</application> for server-side
+    scripting, command-line scripting or client-side GUI applications. This
+    book provides instructions for setting up <application>PHP</application>
+    for server-side scripting as it is the most common form.</para>
 
     <!-- Commenting this out for now as BDB is built in LFS
 
@@ -175,12 +177,17 @@
       things. You can use <command>./configure --help</command> to see a full
       list of the available options. Also, use of the
       <ulink url="http://www.php.net/">PHP web site</ulink>
-      is highly recommended, as their online docs are very good.</para>
+      is highly recommended, as their online docs are very good. An example of
+      a <command>configure</command> command that utilizes many of the most
+      common dependencies can be found at <ulink
+      url="http://anduin.linuxfromscratch.org/files/BLFS/php_configure.txt"/>.
+      </para>
 
       <para>If, for whatever reason, you don't have <xref linkend="libxml2"/>
       installed, you need to add <option>--disable-libxml</option> to the
-      <command>configure</command> command in the instructions below. This
-      will prevent the <command>pear</command> command from being built.</para>
+      <command>configure</command> command in the instructions below. Note that
+      this will prevent the <command>pear</command> command from being
+      built.</para>
     </note>
 
     <!-- Commenting this out as libxml is a recommended dependency.
@@ -195,10 +202,13 @@
     <para>Install <application>PHP</application> by
     running the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../php-&php-version;-db43-1.patch &amp;&amp;
+<screen><userinput>sed -i 's/const char \*errpfx,/const DB_ENV *dbenv, &amp; const/' \
+    ext/dba/dba_db4.c &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --with-apxs2 \
+            --enable-force-cgi-redirect \
+            --enable-discard-path \
             --with-config-file-path=/etc \
             --with-zlib \
             --enable-bcmath \
@@ -214,7 +224,12 @@
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make test</command>. Three of
-    the tests are known to fail.</para>
+    the (over 1600) tests are known to fail: an <command>iconv</command>
+    stream filter test (ext/iconv/tests/iconv_stream_filter.phpt) and two
+    MBString function overload tests (ext/mbstring/tests/overload01.phpt and
+    ext/mbstring/tests/overload02.phpt). Additionally, if you have the
+    <application>unixODBC</application> package installed and linked into the
+    build, you may see many failures related to it.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -251,6 +266,9 @@ chown -v -R root:root /usr/share/doc/php-&php-version;/html</userinput></screen>
 
   <sect2 role="commands">
       <title>Command Explanations</title>
+
+      <para><command>sed -i '...' ext/dba/dba_db4.c</command>: This command is
+      used to fix an issue with the use of Berkeley DB &gt;= 4.3.x.</para>
 
       <para><parameter>--with-apxs2</parameter>: This parameter
       builds the Apache HTTPD 2.0 module.</para>
@@ -321,6 +339,14 @@ chown -v -R root:root /usr/share/doc/php-&php-version;/html</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
+      <para>The file used as the default <filename>/etc/php.ini</filename>
+      configuration file is recommended by the <application>PHP</application>
+      development team. This file modifies the default behavior of
+      <application>PHP</application> if no <filename>/etc/php.ini</filename>
+      is used and all configuration settings fall to the defaults. You should
+      review the comments in this file and ensure the changes are acceptable
+      in your particular environment.</para>
+
       <para>You may have noticed the following from the output of the
       <command>make install</command> command:</para>
 
@@ -340,9 +366,14 @@ chown -v -R root:root /usr/share/doc/php-&php-version;/html</userinput></screen>
 <screen><literal>LoadModule php5_module lib/apache/libphp5.so
 AddType application/x-httpd-php .php</literal></screen>
 
-      <para>Also, it can be useful to add an entry for
+      <para>Additionally, it can be useful to add an entry for
       <filename>index.php</filename> to the DirectoryIndex directive of the
-      <filename>httpd.conf</filename> file.</para>
+      <filename>httpd.conf</filename> file. Lastly, adding a line to setup the
+      <filename class='extension'>.phps</filename> extension to show
+      highlighted <application>PHP</application> source may be
+      desirable:</para>
+
+<screen><literal>AddType application/x-httpd-php-source .phps</literal></screen>
 
       <para>You'll need to restart the <application>Apache</application> web server
       after making any modifications to the <filename>httpd.conf</filename>
@@ -361,8 +392,8 @@ AddType application/x-httpd-php .php</literal></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>pear, php, php-config, phpextdist, and phpize</seg>
-        <seg>libphp5.so</seg>
+        <seg>pear, peardev, pecl, php, php-config and phpize</seg>
+        <seg>libphp5.so Apache module</seg>
         <seg>/usr/include/php, /usr/lib/php and
         /usr/share/doc/php-&php-version;</seg>
       </seglistitem>
