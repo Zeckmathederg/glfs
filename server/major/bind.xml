@@ -220,18 +220,19 @@ install -v -m644 \
       class="username">named</systemitem>:</para>
 
 <screen role="root"><userinput>groupadd -g 20 named &amp;&amp;
-useradd -m -c "BIND Owner" -g named -s /bin/false -u 20 named</userinput></screen>
+useradd -c "BIND Owner" -g named -s /bin/false -u 20 named
+install -d -m770 -o named -g named /srv/named</userinput></screen>
 
       <para>Set up some files, directories and devices needed by
       <application>BIND</application>:</para>
 
-<screen role="root"><userinput>cd /home/named &amp;&amp;
+<screen role="root"><userinput>cd /srv/named &amp;&amp;
 mkdir -p dev etc/namedb/slave var/run &amp;&amp;
-mknod /home/named/dev/null c 1 3 &amp;&amp;
-mknod /home/named/dev/random c 1 8 &amp;&amp;
-chmod 666 /home/named/dev/{null,random} &amp;&amp;
-mkdir /home/named/etc/namedb/pz &amp;&amp;
-cp /etc/localtime /home/named/etc</userinput></screen>
+mknod /srv/named/dev/null c 1 3 &amp;&amp;
+mknod /srv/named/dev/random c 1 8 &amp;&amp;
+chmod 666 /srv/named/dev/{null,random} &amp;&amp;
+mkdir /srv/named/etc/namedb/pz &amp;&amp;
+cp /etc/localtime /srv/named/etc</userinput></screen>
 
       <para>Then, generate a key for use in the <filename>named.conf</filename>
       and <filename>rdnc.conf</filename> files using the
@@ -243,7 +244,7 @@ cp /etc/localtime /home/named/etc</userinput></screen>
       <command>named</command> will read the location of zone files, root
       name servers and secure DNS keys:</para>
 
-<screen role="root"><userinput>cat &gt; /home/named/etc/named.conf &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; /srv/named/etc/named.conf &lt;&lt; "EOF"
 <literal> options {
      directory "/etc/namedb";
     pid-file "/var/run/named.pid";
@@ -326,7 +327,7 @@ EOF</userinput></screen>
 
       <para>Create a zone file with the following contents:</para>
 
-<screen role="root"><userinput>cat &gt; /home/named/etc/namedb/pz/127.0.0 &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; /srv/named/etc/namedb/pz/127.0.0 &lt;&lt; "EOF"
 <literal>$TTL 3D
 @      IN      SOA     ns.local.domain. hostmaster.local.domain. (
                         1       ; Serial
@@ -346,7 +347,7 @@ EOF</userinput></screen>
         this file.</para>
       </note>
 
-<screen role="root"><userinput>cat &gt; /home/named/etc/namedb/root.hints &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; /srv/named/etc/namedb/root.hints &lt;&lt; "EOF"
 <literal>.                       6D  IN      NS      A.ROOT-SERVERS.NET.
 .                       6D  IN      NS      B.ROOT-SERVERS.NET.
 .                       6D  IN      NS      C.ROOT-SERVERS.NET.
@@ -399,7 +400,7 @@ EOF</userinput></screen>
       <para>Set permissions on the <command>chroot</command> jail with the
       following command:</para>
 
-<screen role="root"><userinput>chown -R named.named /home/named</userinput></screen>
+<screen role="root"><userinput>chown -R named.named /srv/named</userinput></screen>
 
     </sect3>
 
@@ -461,7 +462,7 @@ dig www.linuxfromscratch.org</userinput></screen>
         rndc-confgen</seg>
         <seg>libbind9.{so,a}, libdns.{so,a}, libisc.{so,a}, libisccc.{so,a},
         libisccfg.{so,a}, and liblwres.{so,a}</seg>
-        <seg>/home/named, /usr/include/bind9, /usr/include/dns, /usr/include/dst,
+        <seg>/srv/named, /usr/include/bind9, /usr/include/dns, /usr/include/dst,
         /usr/include/isc, /usr/include/isccc, /usr/include/isccfg,
         /usr/include/lwres, and /usr/share/doc/bind-&bind-version;</seg>
       </seglistitem>
