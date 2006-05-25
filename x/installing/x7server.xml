@@ -6,10 +6,10 @@
 
   <!ENTITY xorg-server-download-http "http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-&xorg-server-version;.tar.bz2">
   <!ENTITY xorg-server-download-ftp  "">
-  <!ENTITY xorg-server-md5sum        "5cd3316f07ed32a05cbd69e73a71bc74">
-  <!ENTITY xorg-server-size          "5.8 MB">
-  <!ENTITY xorg-server-buildsize     "413 MB">
-  <!ENTITY xorg-server-time          "5.96 SBU">
+  <!ENTITY xorg-server-md5sum        "d070c58a598fb52c5cb86344725c4ad6">
+  <!ENTITY xorg-server-size          "6.1 MB">
+  <!ENTITY xorg-server-buildsize     "424 MB">
+  <!ENTITY xorg-server-time          "5.6 SBU">
 
 ]>
 
@@ -64,7 +64,8 @@
   <bridgehead renderas="sect3">Xorg Server Dependencies</bridgehead>
 
   <bridgehead renderas="sect4">Required</bridgehead>
-  <para role="required"><xref linkend="xorg7-font"/></para>
+  <para role="required"><xref linkend="xorg7-font"/> and
+  <xref linkend="xorg7-lib"/></para>
 
   <bridgehead renderas="sect4">Optional</bridgehead>
   <para><xref linkend="mesalib"/> and
@@ -83,16 +84,10 @@
       <application>Xorg-server</application>.</para>
     </note>
 
-    <para>A serious security vulnerability was recently discovered that will
-    allow a malicious user to execute code as the root user.  Fix the
-    vulnerability with the following command:</para>
-
-<screen><userinput>sed -i 's/ntri &amp; sizeof/ntri * sizeof/' render/mitri.c</userinput></screen>
-
 <!-- To be removed if/when proposed glibc patch is added to LFS SVN
      Leave in in for a couple of weeks with 'you may need' and a testcase 
      around it to save the support list silly questions.  Should remove in
-     a couple of weeks -->       
+     a couple of weeks 
       <para>Recent <application>Glibc</application> may have a problem with its
       installed <filename>sys/kd.h</filename> file. This has recently been 
       fixed in LFS SVN.  Execute the following commands to work around a 
@@ -103,14 +98,21 @@
     /usr/include/sys/kd.h 2&gt;&amp;1 &gt; /dev/null || \
     sed -i.bak '/CONFIG_H/i #include &lt;linux/types.h&gt;' \
         hw/xfree86/os-support/linux/lnx_agp.c</userinput></screen>
-<!-- End remove -->
+ End remove -->
 
     <para>Install the server by running the following commands:</para>
 
-<screen><userinput>./configure $XORG_CONFIG \
+<screen><userinput>sed -i \
+    's@-I$(top_builddir)/include@-I$(top_builddir)/GL/mesa/main@8' \
+    GL/glx/Makefile.in &amp;&amp;
+sed -i \
+    's@-I$(top_builddir)/include@-I$(top_builddir)/GL/mesa/glapi@7' \
+    GL/glx/Makefile.in &amp;&amp;
+./configure $XORG_CONFIG \
     --with-mesa-source='<replaceable>&lt;/path/to&gt;</replaceable>/Mesa-&mesalib-version;' \
     --with-fontdir=$XORG_PREFIX/lib/X11/fonts \
     --with-module-dir=$XORG_PREFIX/lib/X11/modules \
+    --with-dri-driver-path=$XORG_PREFIX/lib/X11/modules/dri \
     --enable-install-setuid &amp;&amp;
 make</userinput></screen>
 
@@ -126,26 +128,38 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i '...' GL/glx/Makefile.in</command>: These commands
+    correct the search path for the <application>Mesa</application> headers.  
+    The 8th and 7th instance of '-I$(top_builddir)' in the existing search
+    search path are replaced with <application>Mesa</application> paths.</para>
+
     <para><parameter>--with-mesa-source=...</parameter>: This switch directs
     the build system to the location of the <application>Mesa</application>
     source directory.  If you wish to build without 
     <application>Mesa</application>, omit this switch.</para>
 
+    <para><parameter>--with-module-dir=...</parameter>:  This parameter 
+    sets the destination for the installed modules.</para>
+
+    <para><parameter>--with-dri-driver-path=...</parameter>:  This is the
+    location of the <application>Mesa</application> dri drivers.</para>
+
     <para><parameter>--enable-install-setuid</parameter>: The Xorg binary must
     run as the root user.  This switch ensures that the binary is installed 
-    setuid when the build is done by an unprivileged user.</para>
+    setuid when make is run by an unprivileged user.</para>
 
     <para><parameter>--disable-glx</parameter>: Disable building of the GLX
-    extension.  This is required if building without 
+    extension.  This parameter is required if building without 
     <application>Mesa</application>.</para>
 
     <para><parameter>--disable-dri</parameter>: Disable building of the DRI
-    extension.  This is required if building without
+    extension.  This parameter is required if building without
     <application>Mesa</application>.</para>
 
     <para><parameter>--disable-xprint</parameter>: Disable building of
-    the <application>Xprint</application>  extension and server.  This is 
-    required if building without <application>Mesa</application>.</para>
+    the <application>Xprint</application>  extension and server.  This 
+    parameter is required if building without 
+    <application>Mesa</application>.</para>
 
   </sect2>
 
