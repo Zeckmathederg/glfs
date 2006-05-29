@@ -18,6 +18,9 @@
     <sect2 role="configuration" id='xconfig'>
     <title>Configuring The X Window System</title>
 
+    <para condition="html" role="usernotes">User Notes:
+    <ulink url='&blfs-wiki;/XWindowSystemComponents'/></para>
+
     <para>If you've installed the X Window System in any prefix other
     than <filename>/usr</filename>, as the 
     <systemitem class="username">root</systemitem> user, add
@@ -73,7 +76,7 @@ XFree86 -configure</userinput></screen>
         some font directories completely.</para>
       </listitem>
       <listitem>
-        <para>Section "Module". If you are going to install NVidia
+        <para>Section "Module". If you are going to install NVIDIA
         drivers, remove the "dri" line.</para>
       </listitem>
       <listitem>
@@ -129,7 +132,7 @@ XFree86 -configure</userinput></screen>
     to various configuration directories that were located in 
     <filename class="directory">/etc/X11</filename> with previous
     versions of <application>Xorg</application>.  This step is not needed
-    for users of Xorg-&xorg-version; or XFree86.  Exectute the following
+    for users of Xorg-&xorg-version; or XFree86.  Execute the following
     commands as the <systemitem class="username">root</systemitem> 
     user:</para>
 
@@ -210,7 +213,34 @@ EOF</userinput></screen>
     <para>DRI is a framework for allowing software to access graphics hardware
     in a safe and efficient manner. It is installed in
     <application>X</application> by default if you have a supported video card.
-    To check if DRI is installed properly, check the log file
+    To enable direct rendering using the OpenGL implementation from
+    <xref linkend="mesalib"/> (built separately with <xref linkend="xorg7"/>
+    or included with <xref linkend="xorg"/> and <xref linkend="xfree86"/>),
+    the "glx" and "dri" modules must be loaded.  Additionally, the created
+    device nodes in <filename class="directory">/dev/dri</filename> must
+    have proper permissions for your users.  A sample
+    <filename>XF86config</filename> or <filename>xorg.conf</filename>
+    file might look like this:</para>
+
+<screen><literal>Section "Module"
+    ...
+    Load  "glx"
+    Load  "dri"
+    ...
+EndSection
+...
+Section "DRI"
+    Group "video"
+    Mode  0660
+EndSection</literal></screen>
+
+    <note><para>DRI configuration may differ if you are using alternate
+    drivers, such as those from
+    <ulink url="http://www.nvidia.com/page/home.html">NVIDIA</ulink> or
+    <ulink url="http://www.ati.com/">ATI</ulink>.</para>
+    </note>
+
+    <para>To check if DRI is installed properly, check the log file
     <filename>/var/log/XFree86.0.log</filename> or
     <filename>/var/log/Xorg.0.log</filename> for statements like:</para>
 
@@ -220,6 +250,10 @@ EOF</userinput></screen>
     and look for the phrase:</para>
 
 <screen><computeroutput>direct rendering: Yes</computeroutput></screen>
+
+    <para>If direct rendering is not enabled, you can add verbosity by
+    running <command>LIBGL_DEBUG=verbose glxinfo</command>.  This will
+    show the drivers, device nodes and files used by the DRI system.</para>
 
     <para>You can also run the test program <command>glxgears</command>.
     This program brings up a window with three gears turning.  The
@@ -355,22 +389,28 @@ EndSection</literal></screen>
       <application>Freetype</application>, and fonts are controlled from the
       client side using <application>Fontconfig</application>.  The default
       search path is <filename class="directory">/usr/share/fonts</filename>
-      and <filename class="directory">~/.fonts</filename>. 
-      When installing <application>X</application>, symlinks were created from
-      the <filename class="directory">OTF</filename> and <filename
-      class="directory">TTF</filename> <application>X</application> font
-      directories to <filename
-      class="directory">/usr/share/fonts/X11-{OTF,TTF}</filename>.  This
-      prevents <application>Fontconfig</application> from using the poorly
-      rendered Type1 fonts or the non-scalable bitmapped fonts.</para>
-
-      <para><application>Fontconfig</application> searches directories in its
+      and <filename class="directory">~/.fonts</filename>.
+      <application>Fontconfig</application> searches directories in its
       path recursively and maintains a cache of the font characteristics in
       <filename>fonts.cache-1</filename> files in each directory.  If the cache
       appears to be out of date, it is ignored, and information is (slowly)
       fetched from the fonts themselves.  This cache
       can be regenerated using the <command>fc-cache</command> command at any
-      time.</para>
+      time. You can see the list of fonts known by
+      <application>Fontconfig</application> by running the command
+      <command>fc-list</command>.</para>
+
+      <para>The <application>X</application> fonts were not installed in a
+      location known to <application>Fontconfig</application>. This prevents
+      <application>Fontconfig</application> from using the poorly rendered
+      Type 1 fonts or the non-scalable bitmapped fonts. Symlinks were created
+      from the <filename class="directory">OTF</filename> and <filename
+      class="directory">TTF</filename> <application>X</application> font
+      directories to <filename
+      class="directory">/usr/share/fonts/X11-{OTF,TTF}</filename>. This allows
+      <application>Fontconfig</application> to use the OpenType and TrueType
+      fonts provided by <application>X</application> (which are scalable and
+      of higher quality).</para>
 
       <para><application>Fontconfig</application> uses names such as
       "Monospace 12" to define fonts.  Applications generally use generic font
@@ -378,7 +418,9 @@ EndSection</literal></screen>
       <application>Fontconfig</application> resolves these names to a font that
       has all characters that cover the orthography of the language indicated
       by the locale settings.  Knowledge of these font names is included in
-      <filename>/etc/fonts/fonts.conf</filename>.</para>
+      <filename>/etc/fonts/fonts.conf</filename>. Fonts that are not listed
+      in this file are still usable by <application>Fontconfig</application>,
+      but they will not be accessible by the generic family names.</para>
 
       <para>Standard scalable fonts that come with <application>X</application>
       provide very poor Unicode coverage.  You may notice in applications that
@@ -399,8 +441,8 @@ EndSection</literal></screen>
           <para><ulink url="http://dejavu.sourceforge.net/">DejaVu fonts</ulink>
           - These fonts are replacements for the Bitstream Vera fonts and
           provide Latin-based scripts with accents and Cyrillic glyphs.
-          <application>Fontconfig</application> does not know about the DejaVu
-          fonts by default, so <filename>/etc/fonts/fonts.conf</filename> will
+          The DejaVu fonts by are not aliased to the generic family names
+          by default, so <filename>/etc/fonts/fonts.conf</filename> will
           have to be edited for it to be recognized by the generic names such
           as "Sans".  This will be described below.</para>
         </listitem>
@@ -416,36 +458,36 @@ EndSection</literal></screen>
           url="http://corefonts.sourceforge.net/">Microsoft Core fonts</ulink>
           - These fonts provide slightly worse Unicode coverage than FreeFont,
           but are better hinted.  Be sure to read the license before using
-          them.  <application>Fontconfig</application> knows about them by
-          default.</para>
+          them. These fonts are listed in the
+          <filename>/etc/fonts/fonts.conf</filename> aliases by default.</para>
         </listitem>
         <listitem>
           <para><ulink
           url="http://cle.linux.org.tw/fonts/FireFly">Firefly New Sung font</ulink>
-          - This font provides Chinese coverage.  However,
-          <application>Fontconfig</application> does not know about this font
-          by default.</para>
+          - This font provides Chinese coverage. This font is not listed in
+          the <filename>/etc/fonts/fonts.conf</filename> aliases by default.
+          </para>
         </listitem>
         <listitem>
           <para><ulink
           url="http://cle.linux.org.tw/fonts/Arphic">Arphic fonts</ulink> -
           A similar set of Chinese fonts to the Firefly New Sung font.
-          <application>Fontconfig</application> knows about these fonts by
-          default and will substitute them for generic family names.</para>
+          These fonts are listed in the 
+          <filename>/etc/fonts/fonts.conf</filename> aliases by default.
+          </para>
         </listitem>
         <listitem>
           <para><ulink
           url="http://sourceforge.jp/projects/efont/">Kochi fonts</ulink> -
-          These provide Japanese characters, and
-          <application>Fontconfig</application> knows about these fonts by
-          default.</para>
+          These provide Japanese characters, and they are listed in the aliases
+          in <filename>/etc/fonts/fonts.conf</filename> by default.</para>
         </listitem>
         <listitem>
           <para><ulink
           url="http://kldp.net/projects/baekmuk/">Baekmuk fonts</ulink>
-          - These fonts provide Korean coverage, and
-          <application>Fontconfig</application> knows about these fonts by
-          default.</para>
+          - These fonts provide Korean coverage, and they are listed in the
+          aliases in <filename>/etc/fonts/fonts.conf</filename> by default.
+          </para>
         </listitem>
       </itemizedlist>
 
@@ -465,9 +507,10 @@ fc-cache -v /usr/share/fonts/dejavu</userinput></screen>
       could be modified to use DejaVu using the default family names.  Since
       DejaVu is a replacement for Bitstream Vera fonts, it can be substituted
       for that family.  Visually inspect the <filename>fonts.conf</filename> to
-      see how fonts are grouped together under the generic family names and a
-      preference list is created.  To replace Bitstream Vera with DejaVu, as the
-      <systemitem class="username">root</systemitem> user:</para>
+      see how fonts are grouped together under the generic family names within
+      &lt;alias&gt; tags and a preference list is created within &lt;prefer&gt;
+      tags. To replace Bitstream Vera with DejaVu, run the following command as
+      the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>sed -i 's/&lt;family&gt;Bitstream Vera/&lt;family&gt;DejaVu/' /etc/fonts/fonts.conf</userinput></screen>
 
@@ -477,8 +520,10 @@ fc-cache -v /usr/share/fonts/dejavu</userinput></screen>
 &lt;dir&gt;/usr/X11R6/lib/X11/fonts/Type1&lt;/dir&gt;' /etc/fonts/local.conf</command></userinput></screen>
  -->
 
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url='&blfs-wiki;/XWindowSystemComponents'/></para>
+    <para>To see which fonts will be used as the generic fonts in your locale,
+    run the command <command>fc-match monospace</command>. Substitute "sans" or
+    "serif" to see the fonts that will be used for those aliases.
+    </para>
 
     </sect3>
 
