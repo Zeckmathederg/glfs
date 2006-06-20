@@ -5,11 +5,12 @@
   %general-entities;
 
   <!ENTITY dbus-download-http "http://dbus.freedesktop.org/releases/dbus-&dbus-version;.tar.gz">
-  <!ENTITY dbus-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/dbus-&dbus-version;.tar.gz">
-  <!ENTITY dbus-md5sum        "1addd5b600a8a4550766005d1f59401b">
-  <!ENTITY dbus-size          "1.6 MB">
-  <!ENTITY dbus-buildsize     "34.6 MB">
-  <!ENTITY dbus-time          "0.9 SBU">
+  <!-- <!ENTITY dbus-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/dbus-&dbus-version;.tar.gz"> -->
+  <!ENTITY dbus-download-ftp  " ">
+  <!ENTITY dbus-md5sum        "ba7692f63d0e9f1ef06703dff56cb650b">
+  <!ENTITY dbus-size          "1.7 MB">
+  <!ENTITY dbus-buildsize     "69.4 MB (includes building and installing all docs)">
+  <!ENTITY dbus-time          "1.0 SBU">
 ]>
 
 <sect1 id="dbus" xreflabel="D-BUS-&dbus-version;">
@@ -18,10 +19,6 @@
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
-    <keywordset>
-      <keyword role="package">dbus-&dbus-version;.tar</keyword>
-      <keyword role="ftpdir">dbus</keyword>
-    </keywordset>
   </sect1info>
 
   <title>D-BUS-&dbus-version;</title>
@@ -73,14 +70,48 @@
     <xref linkend="glib2"/>,
     <xref linkend="gtk2"/>,
     <xref linkend="qt"/>,
+    <ulink url="http://www.trolltech.com/products/qt">Qt-4.x.x</ulink>,
     <xref linkend="x-window-system"/>,
     <xref linkend="gcc"/> (for the Java compiler and tools),
     <ulink url="http://nz.cosc.canterbury.ac.nz/~greg/python/Pyrex/">Pyrex</ulink>
     (requires <xref linkend="python"/>),
-    <ulink url="http://go-mono.org">Mono</ulink> (and
-    <ulink url="http://www.mono-project.com/GtkSharp">GtkSharp-1.0.x</ulink>),
-    <xref linkend="doxygen"/>, and
-    <ulink url="http://cyberelk.net/tim/xmlto/">xmlto</ulink></para>
+    <ulink url="http://www.mono-project.com/GtkSharp">GtkSharp-1.0.x</ulink>
+    (requires <ulink url="http://go-mono.org">Mono</ulink>),
+    <ulink url="http://go-mono.com/sources-stable/">Monodoc</ulink>,
+    <xref linkend="doxygen"/> (to generate the API documentation), and
+    <ulink url="http://cyberelk.net/tim/xmlto/">xmlto</ulink>
+    (to generate HTML documentation and manuals)</para>
+
+    <para>Listed below are some additional notes about the dependencies</para>
+
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Review the information from running
+        <command>./configure --help</command> for the available parameters to
+        pass to the <command>configure</command> script to enable the various
+        dependencies.</para>
+      </listitem>
+      <listitem>
+        <para>To build the <application>Mono</application> bindings, you must
+        have <application>GtkSharp</application> installed. If you wish to use
+        recent versions of <application>GtkSharp</application>, you'll need to
+        make some trivial patches to the <application>D-BUS</application>
+        sources. See <ulink url="http://www.mono-project.com/GtkSharpUpgrade"/>
+        for details.</para>
+      </listitem>
+      <listitem>
+        <para>If you have a recent version of <ulink
+        url="http://go-mono.com/sources-stable/">Monodoc</ulink> installed
+        (&gt;= 1.1.10) and you passed the <option>--enable-mono-docs</option>
+        parameter to <command>configure</command>, the
+        <application>D-BUS</application> build will fail. You can review the
+        parts of this patch (<ulink
+        url="http://www.mail-archive.com/frugalware-darcs@frugalware.org/msg10156.html"/>)
+        that apply to the <application>Monodoc</application> installation, to
+        fix the build problems. Note this is untested by the BLFS Team, but
+        should work just fine.</para>
+      </listitem>
+    </itemizedlist>
 
     <bridgehead renderas="sect4" id="hal-requirements"
     xreflabel="HAL Requirements">HAL Requirements</bridgehead>
@@ -140,35 +171,42 @@ useradd -c "D-BUS Message Daemon User" -d /dev/null \
     <command>./configure --help</command> first and add any desired parameters
     to the <command>configure</command> command shown below):</para>
 
-<screen><userinput>sed -i 's/= jar/= fastjar/' gcj/Makefile.in &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --sysconfdir=/etc \
             --localstatedir=/var \
             --disable-python &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>The <option>--enable-doxygen-docs</option> parameter does not work
+    properly. If you have <application>Doxygen</application> installed and you
+    wish to build the API documentation, issue
+    <command>doxygen</command>.</para>
+
+    <para>This package's test suite cannot be run without passing additional
+    parameters to <command>configure</command>. These parameters are not
+    intended to be used in a production build of
+    <application>D-BUS</application> so you will have to build twice (issuing
+    <command>make distclean</command> after the first build) if you
+    want to run the regression tests.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m755 -d /usr/share/doc/dbus-0.50 &amp;&amp;
+install -v -m755 -d /usr/share/doc/dbus-&dbus-version; &amp;&amp;
 install -v -m644 doc/{TODO,*.{dtd,xml,xsl,html,txt,c}} \
-    /usr/share/doc/dbus-0.50</userinput></screen>
+    /usr/share/doc/dbus-&dbus-version;</userinput></screen>
+
+    <para>If you built the API documentation, install it by issuing the
+    following commands as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/dbus-&dbus-version;/api &amp;&amp;
+install -v -m644 doc/api/html/* \
+    /usr/share/doc/dbus-&dbus-version;/api</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>sed -i 's/= jar/= fastjar/' gcj/Makefile.in</command>:
-    The <application>GCC</application>-&gcc-version; compiler installation
-    installs a command named <command>fastjar</command> to create Java
-    <filename class='extension'>.jar</filename> files instead of
-    <command>jar</command>. This <command>sed</command> command changes the
-    <filename>Makefile</filename> to use the appropriate command so the build
-    doesn't fail if you passed the <option>--enable-gcj</option> option to
-    the <command>configure</command> command.</para>
 
     <para><parameter>--localstatedir=/var</parameter>: This parameter causes
     the daemon PID file to be created in
@@ -190,7 +228,7 @@ install -v -m644 doc/{TODO,*.{dtd,xml,xsl,html,txt,c}} \
       <title>Config Files</title>
       <para><filename>/etc/dbus-1/session.conf</filename>,
       <filename>/etc/dbus-1/system.conf</filename> and
-      <filename>/etc/system.d/*</filename></para>
+      <filename>/etc/dbus-1/system.d/*</filename></para>
 
       <indexterm zone="dbus dbus-config">
         <primary sortas="e-etc-dbus-1-session.conf">/etc/dbus-1/session.conf</primary>
@@ -201,7 +239,7 @@ install -v -m644 doc/{TODO,*.{dtd,xml,xsl,html,txt,c}} \
       </indexterm>
 
       <indexterm zone="dbus dbus-config">
-        <primary sortas="e-etc-system.d-star">/etc/system.d/*</primary>
+        <primary sortas="e-etc-dbus-1-system.d-star">/etc/dbus-1/system.d/*</primary>
       </indexterm>
 
     </sect3>
@@ -281,15 +319,15 @@ export DBUS_SESSION_BUS_ADDRESS</literal></userinput></screen>
 kill $DBUS_SESSION_BUS_PID</literal></userinput></screen>
         </listitem>
 
-<!-- Dead link. This hint isn't there.
         <listitem>
-          <para>If you use <application>Linux-PAM</application>, you can review
-          the <ulink
-          url="&hints-root;/downloads/files/execute-session-scripts-using-pam.txt">
-          Execute Session Scripts Using PAM</ulink> hint to see if it would work
-          for you.</para>
+          <para>A hint has been written that provides ways to start scripts
+          using the KDM session manager of KDE. The concepts in this hint could
+          possibly used with other session managers as well. The hint is
+          located at <ulink
+          url="&hints-root;/downloads/files/execute-session-scripts-using-kdm.txt"/>.
+          </para>
         </listitem>
--->
+
       </itemizedlist>
 
     </sect3>
@@ -308,8 +346,9 @@ kill $DBUS_SESSION_BUS_PID</literal></userinput></screen>
         <seg>dbus-binding-tool, dbus-cleanup-sockets, dbus-daemon, dbus-launch,
         dbus-monitor, dbus-send and dbus-viewer</seg>
         <seg>libdbus-1.{so,a} and optionally, dbus-1.jar, libdbus-gcj-1.{so,a},
-        libdbus-glib-1.{so,a}, libdbus-qt-1.{so,a} and
-        <application>Python</application> modules</seg>
+        libdbus-glib-1.{so,a}, libdbus-qt-1.{so,a}, libdbus-qt4-1.{so,a},
+        libdbus-mono-1.{so,a} and <application>Python</application>
+        modules</seg>
         <seg>/etc/dbus-1, /usr/include/dbus-1.0, /usr/lib/dbus-1.0,
         /usr/lib/python2.4/site-packages/dbus, /usr/share/dbus-1,
         /usr/share/doc/dbus-&dbus-version; and /var/run/dbus</seg>
