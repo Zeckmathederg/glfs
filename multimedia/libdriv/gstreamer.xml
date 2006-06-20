@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY gstreamer-download-http "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-&gstreamer-version;.tar.bz2">
-  <!ENTITY gstreamer-download-ftp  "&gnome-download-ftp;/gstreamer/0.8/gstreamer-&gstreamer-version;.tar.bz2">
-  <!ENTITY gstreamer-md5sum        "3a251cf05b794ebac04e18f71e5b26eb">
-  <!ENTITY gstreamer-size          "1.4 MB">
-  <!ENTITY gstreamer-buildsize     "81.2 MB">
-  <!ENTITY gstreamer-time          "3.2 SBU (includes building docs, additional 0.8 SBU to run the test suite)">
+  <!ENTITY gstreamer-download-ftp  "&gnome-download-ftp;/gstreamer/0.10/gstreamer-&gstreamer-version;.tar.bz2">
+  <!ENTITY gstreamer-md5sum        "a094ea86d4cea4f23ef2eb8c6e7bfc10">
+  <!ENTITY gstreamer-size          "1.6 MB">
+  <!ENTITY gstreamer-buildsize     "65.3 MB">
+  <!ENTITY gstreamer-time          "1.6 SBU (includes building manuals, additional 1.1 SBU to rebuild API docs and 0.5 SBU to run the test suite)">
 ]>
 
 <sect1 id="gstreamer" xreflabel="GStreamer-&gstreamer-version;">
@@ -18,10 +18,6 @@
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
-    <keywordset>
-      <keyword role="package">gstreamer-&gstreamer-version;.tar</keyword>
-      <keyword role="ftpdir">gstreamer</keyword>
-    </keywordset>
   </sect1info>
 
   <title>GStreamer-&gstreamer-version;</title>
@@ -65,19 +61,24 @@
     <bridgehead renderas="sect3">GStreamer Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="glib2"/>,
-    <xref linkend="libxml2"/>, and
-    <xref linkend="popt"/></para>
+    <para role="required"><xref linkend="glib2"/> and
+    <xref linkend="libxml2"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libgnomeui"/>,
-    <xref linkend="python"/>, and
-    <ulink url="http://valgrind.kde.org/">Valgrind</ulink> (see the note below
-    about some versions)</para>
+    <para role="optional">
+    <ulink url="http://check.sourceforge.net/">Check</ulink>
+    (required to run the unit regression tests), and
+    <ulink url="http://www.valgrind.org/">Valgrind</ulink>
+    (optionally used during the unit regression tests)</para>
 
-    <bridgehead renderas="sect4">Optional (to Build Documentation)</bridgehead>
+    <bridgehead renderas="sect4">Optional (Required to Rebuild the API
+    Documentation)</bridgehead>
+    <para role="optional"><xref linkend="gtk-doc"/> and
+    <xref linkend="pyxml"/></para>
+
+    <bridgehead renderas="sect4">Optional (Required to Build
+    Manuals)</bridgehead>
     <para role="optional"><xref linkend="libxslt"/>,
-    <xref linkend="gtk-doc"/>,
     <xref linkend="tetex"/>,
     <xref linkend="gs"/> or
     <xref linkend="espgs"/>,
@@ -93,29 +94,63 @@
   <sect2 role="installation">
     <title>Installation of GStreamer</title>
 
+    <!-- Commenting as the Valgrind stuff has been fixed, but leaving it in
+         here so in case we need it again
     <para>Newer versions of <application>Valgrind</application> are known to
     cause the build to break. If you have <application>Valgrind</application>
     version &gt;= 3.1.0 installed, you should add
-    <option>--disable-valgrind</option> to the <command>configure</command>
+    <option>-disable-valgrind</option> to the <command>configure</command>
     command below so the build will complete.</para>
+    -->
 
     <para>Install <application>GStreamer</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
-    --localstatedir=/var &amp;&amp;
+<screen><userinput>./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --localstatedir=/var &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make check</command>.</para>
+    <para>To test the results, issue: <command>make check</command>. There are
+    many other <filename>Makefile</filename> targets you can specify for
+    running the tests, issue <command>make -C tests/check help</command> to see
+    the complete list.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-if [ -d /usr/share/doc/gstreamer-&gstreamer-version;/faq/html ]; then
+install -v -m755 -d /usr/share/doc/gstreamer-0.10/design &amp;&amp;
+install -v -m644 docs/design/*.txt \
+                    /usr/share/doc/gstreamer-0.10/design &amp;&amp;
+if [ -d /usr/share/doc/gstreamer-0.10/faq/html ]; then
     chown -v -R root:root \
-        /usr/share/doc/gstreamer-&gstreamer-version;/*/html
-fi &amp;&amp;
-gst-register</userinput></screen>
+        /usr/share/doc/gstreamer-0.10/*/html
+fi</userinput></screen>
+
+    <para>If you did not rebuild the API documentation by passing
+    <option>--enable-gtk-doc</option> to the <command>configure</command>
+    script and you wish to install the pre-built documentation, issue the
+    following command as the <systemitem class="username">root</systemitem>
+    user:</para>
+
+<screen role="root"><userinput>for DOCS in gst libs plugins; do make -C docs/$DOCS install-data; done</userinput></screen>
+
+    <sect3>
+      <title>Testing the Installation</title>
+
+      <para>To test the functionality of the
+      <application>GStreamer</application> installation, you can run a simple
+      test as an unprivileged user (you may have to run
+      <command>ldconfig</command> as the
+      <systemitem class="username">root</systemitem> user before attempting
+      the test).</para>
+
+<screen><userinput>gst-launch -v fakesrc num_buffers=5 ! fakesink</userinput></screen>
+
+      <para>If the command outputs a series of messages from fakesrc and
+      fakesink, everything is okay.</para>
+
+    </sect3>
 
   </sect2>
 
@@ -124,13 +159,21 @@ gst-register</userinput></screen>
 
     <para><parameter>--localstatedir=/var</parameter>: This switch puts
     <command>gst-register</command>'s cache in
-    <filename class="directory">/var/cache/gstreamer-0.8</filename>
+    <filename class="directory">/var/cache/gstreamer-0.10</filename>
     instead of
-    <filename class="directory">/usr/cache/gstreamer-0.8</filename>.</para>
+    <filename class="directory">/usr/cache/gstreamer-0.10</filename>.</para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: This switch puts configuration
     files in <filename class="directory">/etc</filename>
     instead of <filename class="directory">/usr/etc</filename>.</para>
+
+    <para><option>--enable-gtk-doc</option>: This parameter is used to rebuild
+    and install the API documentation.</para>
+
+    <para><option>--enable-docbook</option>: This parameter is used to build
+    HTML, PDF and PostScript versions of the
+    <application>GStreamer</application> User's Manual, FAQ and Writer's Guide.
+    Note that you must have all the listed dependencies installed.</para>
 
     <para><command>chown -v -R root:root ...</command>: The documentation is
     installed with ownerships of the user who untarred and built the package.
@@ -149,17 +192,16 @@ gst-register</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gst-complete, gst-complete-0.8, gst-compprep, gst-compprep-0.8,
-        gst-feedback, gst-feedback-0.8, gst-inspect, gst-inspect-0.8, gst-launch,
-        gst-launch-0.8, gst-md5sum, gst-md5sum-0.8, gst-register, gst-register-0.8,
-        gst-typefind, gst-typefind-0.8, gst-xmllaunch, gst-xmllaunch-0.8,
-        gst-xmlinspect, and gst-xmlinspect-0.8</seg>
-        <seg>libgstcontrol-0.8.{so,a}, libgstreamer-0.8.{so,a}, and
+        <seg>gst-feedback{,-0.10}, gst-inspect{,-0.10}, gst-launch{,-0.10},
+        gst-typefind{,-0.10}, gst-xmllaunch{,-0.10} and
+        gst-xmlinspect{,-0.10}</seg>
+        <seg>libgstbase-0.10.{so,a}, libgstcheck-0.10.{so,a},
+        libgstcontroller-0.10.{so,a}, libgstdataprotocol-0.10.{so,a},
+        libgstnet-0.10.{so,a}, libgstreamer-0.10.{so,a}, and
         libgst*.{so,a} plugin modules</seg>
-        <seg>/usr/include/gstreamer-0.8, /usr/lib/gstreamer-0.8,
-        /usr/share/doc/gstreamer-&gstreamer-version;,
-        /usr/share/gtk-doc/html/gstreamer-0.8,
-        /usr/share/gtk-doc/html/gstreamer-libs-0.8, and /var/cache/gstreamer-0.8</seg>
+        <seg>/usr/include/gstreamer-0.10, /usr/lib/gstreamer-0.10,
+        /usr/share/doc/gstreamer-0.10,
+        /usr/share/gtk-doc/html/gstreamer{,-libs,-plugins}-0.10</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -168,118 +210,70 @@ gst-register</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="gst-complete">
-        <term><command>gst-complete-0.8</command></term>
-        <listitem>
-          <para>is a utility enabling <command>bash</command> to provide
-          context sensitive tab completion for <command>gst-launch</command>
-          command lines.</para>
-          <indexterm zone="gstreamer gst-complete">
-            <primary sortas="b-gst-complete">gst-complete-0.8</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gst-compprep">
-        <term><command>gst-compprep-0.8</command></term>
-        <listitem>
-          <para>builds a registry of <application>GStreamer</application>
-          elements and their features that is used by
-          <command>gst-complete</command>.</para>
-          <indexterm zone="gstreamer gst-compprep">
-            <primary sortas="b-gst-compprep">gst-compprep-0.8</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="gst-feedback">
-        <term><command>gst-feedback-0.8</command></term>
+        <term><command>gst-feedback-0.10</command></term>
         <listitem>
           <para>generates debug info for <application>GStreamer</application>
           bug reports.</para>
           <indexterm zone="gstreamer gst-feedback">
-            <primary sortas="b-gst-feedback">gst-feedback-0.8</primary>
+            <primary sortas="b-gst-feedback">gst-feedback-0.10</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="gst-inspect">
-        <term><command>gst-inspect-0.8</command></term>
+        <term><command>gst-inspect-0.10</command></term>
         <listitem>
           <para>prints information about a
           <application>GStreamer</application> plugin or element.</para>
           <indexterm zone="gstreamer gst-inspect">
-            <primary sortas="b-gst-inspect">gst-inspect-0.8</primary>
+            <primary sortas="b-gst-inspect">gst-inspect-0.10</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="gst-launch">
-        <term><command>gst-launch-0.8</command></term>
+        <term><command>gst-launch-0.10</command></term>
         <listitem>
           <para>is a tool that builds and runs basic
           <application>GStreamer</application> pipelines.</para>
           <indexterm zone="gstreamer gst-launch">
-            <primary sortas="b-gst-launch">gst-launch-0.8</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gst-md5sum">
-        <term><command>gst-md5sum-0.8</command></term>
-        <listitem>
-          <para>generates MD5 checksums of the data generated by a
-          <application>GStreamer</application> pipeline.</para>
-          <indexterm zone="gstreamer gst-md5sum">
-            <primary sortas="b-gst-md5sum">gst-md5sum-0.8</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gst-register">
-        <term><command>gst-register-0.8</command></term>
-        <listitem>
-          <para>is used to register all the <application>GStreamer</application>
-          plugins on the system. It creates a listing of their properties so that when a
-          <application>GStreamer</application> based application is started, it
-          does not need to load plugins until it needs them.</para>
-          <indexterm zone="gstreamer gst-register">
-            <primary sortas="b-gst-register">gst-register-0.8</primary>
+            <primary sortas="b-gst-launch">gst-launch-0.10</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="gst-typefind">
-        <term><command>gst-typefind-0.8</command></term>
+        <term><command>gst-typefind-0.10</command></term>
         <listitem>
           <para>uses the <application>GStreamer</application> type finding
           system to determine the relevant <application>GStreamer</application>
           plugin to parse or decode a file, and determine the corresponding
           MIME type.</para>
           <indexterm zone="gstreamer gst-typefind">
-            <primary sortas="b-gst-typefind">gst-typefind-0.8</primary>
+            <primary sortas="b-gst-typefind">gst-typefind-0.10</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="gst-xmlinspect">
-        <term><command>gst-xmlinspect-0.8</command></term>
+        <term><command>gst-xmlinspect-0.10</command></term>
         <listitem>
           <para>prints information about a <application>GStreamer</application>
           plugin or element in XML document format.</para>
           <indexterm zone="gstreamer gst-xmlinspect">
-            <primary sortas="b-gst-xmlinspect">gst-xmlinspect-0.8</primary>
+            <primary sortas="b-gst-xmlinspect">gst-xmlinspect-0.10</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="gst-xmllaunch">
-        <term><command>gst-xmllaunch-0.8</command></term>
+        <term><command>gst-xmllaunch-0.10</command></term>
         <listitem>
           <para>is used to build and run a basic <application>GStreamer</application>
           pipeline, loading it from an XML description.</para>
           <indexterm zone="gstreamer gst-xmllaunch">
-            <primary sortas="b-gst-xmllaunch">gst-xmllaunch-0.8</primary>
+            <primary sortas="b-gst-xmllaunch">gst-xmllaunch-0.10</primary>
           </indexterm>
         </listitem>
       </varlistentry>
