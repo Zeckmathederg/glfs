@@ -6,9 +6,9 @@
 
   <!ENTITY hal-download-http "http://freedesktop.org/~david/dist/hal-&hal-version;.tar.gz">
   <!ENTITY hal-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/hal-&hal-version;.tar.gz">
-  <!ENTITY hal-md5sum        "2f84ddbc22bc35baa9388e7794d1fa31">
-  <!ENTITY hal-size          "1.4 MB">
-  <!ENTITY hal-buildsize     "18.0 MB">
+  <!ENTITY hal-md5sum        "4163afb8285db64e00e7b1392b401d92">
+  <!ENTITY hal-size          "1.5 MB">
+  <!ENTITY hal-buildsize     "19.0 MB">
   <!ENTITY hal-time          "0.5 SBU">
 ]>
 
@@ -18,10 +18,6 @@
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
-    <keywordset>
-      <keyword role="package">hal-&hal-version;.tar</keyword>
-      <keyword role="ftpdir">hal</keyword>
-    </keywordset>
   </sect1info>
 
   <title>HAL-&hal-version;</title>
@@ -72,26 +68,19 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Recommended USB ID list:
-        <ulink url="http://www.linux-usb.org/usb.ids"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">HAL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="glib2"/>,
     <xref linkend="dbus"/> (see the <xref linkend="hal-requirements"/>),
-    <xref linkend="python"/>,
-    <xref linkend="popt"/>, and
+    <xref linkend="python"/>, and
     <xref linkend="perl-xml-parser"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="pciutils"/> (with a current
-    <filename>pci.ids</filename> file)</para>
+    <para role="recommended"><xref linkend="pciutils"/>
+    (with a current <filename>pci.ids</filename> file) and
+    <xref linkend="usbutils"/>
+    (with a current <filename>usb.ids</filename> file)</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="pkgconfig"/>,
@@ -107,12 +96,6 @@
 
   <sect2 role="installation">
     <title>Installation of HAL</title>
-
-    <para>If you downloaded the USB ID list, install it by issuing the
-    following command as the <systemitem class="username">root</systemitem>
-    user:</para>
-
-<screen role="root"><userinput>install -v -m644 ../usb.ids /usr/share</userinput></screen>
 
     <para>You must create a dedicated user and group before installing the
     package. Though the default BLFS instructions run the
@@ -130,18 +113,13 @@ useradd -c "HAL Daemon User" -d /dev/null -u 19 \
     <para>Install <application>HAL</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i -e "s/managed&lt;/comment=&amp;/" \
-       -e "s/pamconsole/users/" \
-    fdi/policy/10osvendor/10-storage-policy.fdi &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --sysconfdir=/etc \
             --libexecdir=/usr/lib/hal \
-            --localstatedir=/var \
-            --enable-fstab-sync \
-            --enable-pcmcia-support &amp;&amp;
+            --localstatedir=/var &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>To test the results, issue <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -153,10 +131,6 @@ install -v -m755 -d /var/run/hald</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i -e ...</command>: This command adjusts the policy for
-    storage devices so that the <filename>/etc/fstab</filename> file is updated
-    to standards used by LFS systems.</para>
-
     <para><parameter>--libexecdir=/usr/lib/hal</parameter>: This parameter
     forces the installation of libexec files to
     <filename class='directory'>/usr/lib/hal</filename> instead of
@@ -166,12 +140,6 @@ install -v -m755 -d /var/run/hald</userinput></screen>
     the creation of the <filename>pid</filename> file to
     <filename class='directory'>/var/run/hald</filename> instead of
     <filename class='directory'>/usr/var/run/hald</filename>.</para>
-
-    <para><parameter>--enable-fstab-sync</parameter>: This parameter will
-    ensure the <command>fstab-sync</command> program is built.</para>
-
-    <para><parameter>--enable-pcmcia-support</parameter>: This parameter
-    provides extended PCMCIA support.</para>
 
   </sect2>
 
@@ -261,7 +229,7 @@ install -v -m755 -d /var/run/hald</userinput></screen>
           </listitem>
           <listitem>
             <para><ulink
-              url="&gnome-download-http;/pyorbit/2.0/">PyORBit</ulink> (optional)
+              url="&gnome-download-http;/pyorbit/">PyORBit</ulink> (optional)
             </para>
 
             <itemizedlist>
@@ -310,6 +278,9 @@ install -v -m755 -d /var/run/hald</userinput></screen>
       </indexterm>
     </sect3>
 
+    <!-- This section commented out for now until it is determined what should
+         be placed in this section
+
     <sect3><title>Configuration Information</title>
 
       <para>No configuration is necessary for the majority of installations
@@ -329,14 +300,14 @@ install -v -m755 -d /var/run/hald</userinput></screen>
 
 <screen role="root"><userinput>install -v -m755 -d /etc/hal/fdi/policy/30user &amp;&amp;
 cat &gt; /etc/hal/fdi/policy/30user/30user-policy.fdi &lt;&lt; "EOF"
-<literal>&lt;?xml version="1.0" encoding="UTF-8"?&gt; &lt;!-- -*- SGML -*- --&gt;
+<literal>&lt;?xml version="1.0" encoding="UTF-8"?&gt; &lt;!- -*- SGML -*- -&gt;
 
-&lt;!--
+&lt;!-
 This file is used to set custom options to the HAL policy settings.
 The default policy settings are defined in files contained in the
 /usr/share/hal/fdi/policy directories. User defined customizations
 should be in files contained in the /etc/hal/fdi/policy directories.
---&gt;
+-&gt;
 
 &lt;deviceinfo version="0.2"&gt;
 
@@ -344,12 +315,12 @@ should be in files contained in the /etc/hal/fdi/policy directories.
     &lt;match key="info.udi"
         string="/org/freedesktop/Hal/devices/computer"&gt;
 
-      &lt;!-- Set the iocharset variable in the /etc/fstab file entry --&gt;
+      &lt;!- Set the iocharset variable in the /etc/fstab file entry -&gt;
       &lt;merge
         key="storage.policy.default.mount_option.iocharset=<replaceable>&lt;iocharset&gt;</replaceable>"
         type="bool"&gt;true&lt;/merge&gt;
 
-      &lt;!-- Set the codepage variable in the /etc/fstab file entry --&gt;
+      &lt;!- Set the codepage variable in the /etc/fstab file entry -&gt;
       &lt;merge
         key="storage.policy.default.mount_option.codepage=<replaceable>&lt;codepage&gt;</replaceable>"
         type="bool"&gt;true&lt;/merge&gt;
@@ -373,10 +344,10 @@ EOF</userinput></screen>
 <screen><literal>  &lt;device&gt;
     &lt;match key="<replaceable>&lt;text&gt;</replaceable>" string="<replaceable>&lt;text&gt;</replaceable>"&gt;
 
-      &lt;!-- Set the iocharset variable in the /etc/fstab file entry --&gt;
+      &lt;!- Set the iocharset variable in the /etc/fstab file entry -&gt;
       &lt;merge key="<replaceable>&lt;iocharset text&gt;</replaceable>" type="bool"&gt;true&lt;/merge&gt;
 
-      &lt;!-- Set the codepage variable in the /etc/fstab file entry --&gt;
+      &lt;!- Set the codepage variable in the /etc/fstab file entry -&gt;
       &lt;merge key="<replaceable>&lt;codepage text&gt;</replaceable>" type="bool"&gt;true&lt;/merge&gt;
 
     &lt;/match&gt;
@@ -385,6 +356,8 @@ EOF</userinput></screen>
       </note>
 
     </sect3>
+
+    -->
 
     <sect3  id="hal-init">
       <title>Boot Script</title>
@@ -398,6 +371,13 @@ EOF</userinput></screen>
       <indexterm zone="hal hal-init">
         <primary sortas="f-haldaemon">haldaemon</primary>
       </indexterm>
+
+      <!-- Not sure if this is still required any longer as the HAL daemon
+           used to hang if you didn't first restart the DBUS daemon. This is
+           not the case any longer, but it still seems that D-Bus should be
+           restarted, as the hald.conf file is read by the D-BUS daemon.
+           Leaving it in for now until it is positively confirmed it is not
+           required. -->
 
       <important>
         <para>If the system-wide <application>D-BUS</application> daemon was
@@ -422,15 +402,9 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>fstab-sync, hal.hotplug, hal-device, hal-device-manager,
+        <seg>hal-device, hal-device-manager,
         hal-find-by-capability, hal-find-by-property, hal-get-property,
-        hal-luks-remove, hal-luks-setup, hal-set-property,
-        hal-system-power-hibernate, hal-system-power-set-power-save,
-        hal-system-power-suspend, hald, hald-addon-acpi, hald-addon-hid-ups,
-        hald-addon-pmu, hald-addon-storage, hald-addon-usb-csr,
-        hald-probe-hiddev, hald-probe-input, hald-probe-pc-floppy,
-        hald-probe-printer, hald-probe-smbios, hald-probe-storage,
-        hald-probe-volume and lshal</seg>
+        hal-set-property, hald and lshal</seg>
         <seg>libhal.{so,a} and libhal-storage,{so,a}</seg>
         <seg>/etc/hal, /usr/include/hal, /usr/lib/hal,
         /usr/share/doc/hal-&hal-version;, /usr/share/hal
@@ -442,21 +416,6 @@ EOF</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="fstab-sync">
-        <term><command>fstab-sync</command></term>
-        <listitem>
-          <para>updates the file systems table file
-          <filename class='directory'>/etc/fstab</filename> and creates/removes
-          mount points in <filename class='directory'>/media</filename> in
-          response to <application>HAL</application> events. This program is
-          usually never run directly from a shell; instead it is invoked as a
-          callout by the <application>HAL</application> daemon.</para>
-          <indexterm zone="hal fstab-sync">
-            <primary sortas="b-fstab-sync">fstab-sync</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="hal-device">
         <term><command>hal-device</command></term>
@@ -520,30 +479,6 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="hal-luks-remove">
-        <term><command>hal-luks-remove</command></term>
-        <listitem>
-          <para>is a <application>HAL</application> method wrapper for
-          <command>cryptsetup</command> remove. This program requires <ulink
-          url="http://luks.endorphin.org/dm-crypt">LUKS</ulink>.</para>
-          <indexterm zone="hal hal-luks-remove">
-            <primary sortas="b-hal-luks-remove">hal-luks-remove</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="hal-luks-setup">
-        <term><command>hal-luks-setup</command></term>
-        <listitem>
-          <para>is a <application>HAL</application> method wrapper for
-          <command>luks-setup</command>. This program requires  <ulink
-          url="http://luks.endorphin.org/dm-crypt">LUKS</ulink>.</para>
-          <indexterm zone="hal hal-luks-setup">
-            <primary sortas="b-hal-luks-setup">hal-luks-setup</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="hal-set-property">
         <term><command>hal-set-property</command></term>
         <listitem>
@@ -552,42 +487,6 @@ EOF</userinput></screen>
           property.</para>
           <indexterm zone="hal hal-set-property">
             <primary sortas="b-hal-set-property">hal-set-property</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="hal-system-power-hibernate">
-        <term><command>hal-system-power-hibernate</command></term>
-        <listitem>
-          <para>is a <application>HAL</application> wrapper script for
-          system power saving features. This program is currently not supported
-          on LFS platforms.</para>
-          <indexterm zone="hal hal-system-power-hibernate">
-            <primary sortas="b-hal-system-power-hibernate">hal-system-power-hibernate</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="hal-system-power-set-power-save">
-        <term><command>hal-system-power-set-power-save</command></term>
-        <listitem>
-          <para>is a <application>HAL</application> wrapper script for
-          system power saving features. This program is currently not supported
-          on LFS platforms.</para>
-          <indexterm zone="hal hal-system-power-set-power-save">
-            <primary sortas="b-hal-system-power-set-power-save">hal-system-power-set-power-save</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="hal-system-power-suspend">
-        <term><command>hal-system-power-suspend</command></term>
-        <listitem>
-          <para>is a <application>HAL</application> wrapper script for
-          system power saving features. This program is currently not supported
-          on LFS platforms.</para>
-          <indexterm zone="hal hal-system-power-suspend">
-            <primary sortas="b-hal-system-power-suspend">hal-system-power-suspend</primary>
           </indexterm>
         </listitem>
       </varlistentry>
