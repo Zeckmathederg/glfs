@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY evolution-download-http "&gnome-download-http;/evolution/2.4/evolution-&evolution-version;.tar.bz2">
-  <!ENTITY evolution-download-ftp  "&gnome-download-ftp;/evolution/2.4/evolution-&evolution-version;.tar.bz2">
-  <!ENTITY evolution-md5sum        "cee3e0ac6ca43e5060468c3b938bea72">
-  <!ENTITY evolution-size          "11.5 MB">
-  <!ENTITY evolution-buildsize     "248 MB">
-  <!ENTITY evolution-time          "7.4 SBU">
+  <!ENTITY evolution-download-http "&gnome-download-http;/evolution/2.6/evolution-&evolution-version;.tar.bz2">
+  <!ENTITY evolution-download-ftp  "&gnome-download-ftp;/evolution/2.6/evolution-&evolution-version;.tar.bz2">
+  <!ENTITY evolution-md5sum        "24b97cf70a3c1e9e34f6e328e6910ab1">
+  <!ENTITY evolution-size          "12.3 MB">
+  <!ENTITY evolution-buildsize     "278 MB">
+  <!ENTITY evolution-time          "9.2 SBU">
 ]>
 
 <sect1 id="evolution" xreflabel="Evolution-&evolution-version;">
@@ -18,10 +18,6 @@
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
-    <keywordset>
-      <keyword role="package">evolution-&evolution-version;.tar</keyword>
-      <keyword role="ftpdir">evolution</keyword>
-    </keywordset>
   </sect1info>
 
   <title>Evolution-&evolution-version;</title>
@@ -69,27 +65,33 @@
     (For SSL and S/MIME support)</bridgehead>
     <para role="recommended"><xref linkend="nss"/></para>
 
-    <para>The <application>NSS</application> package is not
-    required if you have <xref linkend="firefox"/>,
-    <xref linkend="thunderbird"/> or <xref linkend="seamonkey"/> installed.
-    These packages contain internal copies of <application>NSS</application>
-    (or they used a system-installed copy). If any of the three packages
-    are installed, one way or another you will already have
-    NSS/NSPR libraries on your system.</para>
+    <para>The <application>NSS</application> package is not required if you
+    have <xref linkend="firefox"/>, <xref linkend="thunderbird"/>,
+    <xref linkend="seamonkey"/> or
+    <ulink url="http://www.mozilla.org/products/mozilla1.x/">Mozilla</ulink>
+    installed. These packages contain internal copies of
+    <application>NSS</application> (or they used a system-installed copy).
+    If any of the four packages are installed, one way or another you will
+    already have NSS/NSPR libraries on your system.</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="gstreamer"/>,
-    <xref linkend="openldap"/>,
+    <para role="optional"><xref linkend="openldap"/>,
+    <xref linkend="hal"/>,
+    <xref linkend="dbus"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
     <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink>,
     <ulink url="&gnome-download-http;/gnome-pilot-conduits/2.0/">GNOME
-    Pilot conduits</ulink> (requires
-    <xref linkend="pilot-link"/> then
+    Pilot conduits</ulink>
+    (requires <xref linkend="pilot-link"/> then
     <ulink url="&gnome-download-http;/gnome-pilot/2.0/">GNOME Pilot</ulink>),
-    <ulink url="&gnome-download-http;/gnome-spell/1.0/">
-    GNOME Spell</ulink>,
-    <xref linkend="dbus"/>,
+    <ulink url="&gnome-download-http;/gnome-spell/1.0/">GNOME Spell</ulink>,
+    <ulink url="http://gstreamer.freedesktop.org/">GStreamer-0.8.x</ulink>,
+    <ulink url="http://www.gnome.org/projects/NetworkManager/">NetworkManager</ulink>
+    (<ulink url="&gnome-download-http;/NetworkManager/">download</ulink>),
+    <ulink url="http://www.galago-project.org/news/index.php">libnotify</ulink>,
+    <ulink url="http://www.mono-project.com/Main_Page">Mono</ulink>,
     <!-- <xref linkend="kdebase"/>, -->
+    <xref linkend="intltool"/>,
     <xref linkend="gtk-doc"/>, and
     <xref linkend="docbook-utils"/></para>
 
@@ -108,24 +110,34 @@
       <para>The instructions below assume you have the NSS/NSPR libraries
       installed on your system. If you elected not to install
       <application>NSS</application> (or one of the other packages mentioned
-      above), you'll need to remove the following four parameter settings from
+      above), you'll need to remove the following two parameter settings from
       the <command>configure</command> command below:</para>
 
       <literallayout><parameter>            --enable-nss
-            --enable-smime
-            --with-nspr-includes=/usr/include/nspr
+            --enable-smime</parameter></literallayout>
+
+      <para>The <application>Evolution</application>
+      <command>configure</command> script only looks for the stand-alone
+      <application>NSS</application> package and the
+      <application>Mozilla</application> and
+      <application>Firefox</application> browsers for the NSS/NSPR libraries.
+      If you are using <application>Thunderbird</application> as your source
+      for the NSS/NSPR libraries, you will have to add the following two
+      parameter settings to the <command>configure</command> command
+      below:</para>
+
+      <literallayout><parameter>            --with-nspr-includes=/usr/include/nspr
             --with-nss-includes=/usr/include/nss</parameter></literallayout>
     </note>
 
-<screen><userinput>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
-            --libexecdir=`pkg-config --variable=prefix ORBit-2.0`/lib \
+<screen><userinput>./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) \
             --localstatedir=/var/lib \
             --sysconfdir=&gnome-etc-dir; \
+            --libexecdir=$(pkg-config \
+                --variable=prefix ORBit-2.0)/lib \
             --enable-nntp \
             --enable-nss \
-            --enable-smime \
-            --with-nspr-includes=/usr/include/nspr \
-            --with-nss-includes=/usr/include/nss &amp;&amp;
+            --enable-smime &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -133,8 +145,8 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-ln -v -s evolution-2.4 \
-    `pkg-config --variable=prefix ORBit-2.0`/bin/evolution</userinput></screen>
+ln -v -s evolution-2.6 \
+    $(pkg-config --variable=prefix ORBit-2.0)/bin/evolution</userinput></screen>
 
   </sect2>
 
@@ -158,12 +170,14 @@ ln -v -s evolution-2.4 \
     in the Mozilla Network Security Services libraries for S/MIME
     support.</para>
 
-    <para><parameter>--with-{nspr,nss}-includes</parameter>: This parameter is
+    <!--
+    <para><parameter>-with-{nspr,nss}-includes</parameter>: This parameter is
     used to identify where the Mozilla Network Security Services interface
     headers are located. By default, <application>Evolution</application> uses
     <filename>mozilla-{nss,nspr}.pc</filename> files to locate the headers
     and chances are you will not have <application>Mozilla</application>
     installed.</para>
+    -->
 
     <para><option>--with-openldap</option>: This parameter will compile
     LDAP support into <application>Evolution</application>.</para>
@@ -177,9 +191,9 @@ ln -v -s evolution-2.4 \
     synchronize <application>Evolution</application> data on a Palm
     device.</para>
 
-    <para><command>ln -v -s evolution-2.4 `pkg-config
-    --variable=prefix ORBit-2.0`/bin/evolution</command>: This optional command
-    creates a convenience symlink to the <command>evolution-2.4</command>
+    <para><command>ln -v -s evolution-2.6 $(pkg-config
+    --variable=prefix ORBit-2.0)/bin/evolution</command>: This optional command
+    creates a convenience symlink to the <command>evolution-2.6</command>
     binary.</para>
 
   </sect2>
@@ -193,14 +207,13 @@ ln -v -s evolution-2.4 \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>evolution and evolution-2.4</seg>
-        <seg>lib/evolution/2.4/* (contains support libraries, conduits,
-        and other components)</seg>
-        <seg>&gnome-etc-dir;/gconf/gconf.xml.defaults/{,schemas/}apps/evolution
-        and the following subdirectories of $GNOME_PREFIX/:
-        include/evolution-2.4,
+        <seg>evolution and evolution-2.6</seg>
+        <seg>$GNOME_PREFIX/lib/evolution/2.6/* (contains support libraries,
+        conduits, and other components)</seg>
+        <seg>The following subdirectories of $GNOME_PREFIX/:
+        include/evolution-2.6,
         lib/evolution,
-        share/{{,omf/}evolution, {gnome/help,idl}/evolution-2.4}</seg>
+        share/{{,omf/}evolution, {gnome/help,idl}/evolution-2.6}</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -212,7 +225,7 @@ ln -v -s evolution-2.4 \
       <varlistentry id="evolution-prog">
         <term><command>evolution</command></term>
         <listitem>
-          <para>is a symlink to the <command>evolution-2.4</command>
+          <para>is a symlink to the <command>evolution-2.6</command>
           program.</para>
           <indexterm zone="evolution evolution-prog">
             <primary sortas="g-evolution">evolution</primary>
@@ -220,12 +233,12 @@ ln -v -s evolution-2.4 \
         </listitem>
       </varlistentry>
 
-      <varlistentry id="evolution-2.4">
-        <term><command>evolution-2.4</command></term>
+      <varlistentry id="evolution-2.6">
+        <term><command>evolution-2.6</command></term>
         <listitem>
           <para>is an email, calendar and address book suite.</para>
-          <indexterm zone="evolution evolution-2.4">
-            <primary sortas="b-evolution-2.4">evolution-2.4</primary>
+          <indexterm zone="evolution evolution-2.6">
+            <primary sortas="b-evolution-2.6">evolution-2.6</primary>
           </indexterm>
         </listitem>
       </varlistentry>
