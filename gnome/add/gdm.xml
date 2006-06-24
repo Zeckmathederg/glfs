@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/2.8/gdm-&gdm-version;.tar.bz2">
-  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/2.8/gdm-&gdm-version;.tar.bz2">
-  <!ENTITY gdm-md5sum        "566a1e3d656b6b536414f287ead2db7e">
-  <!ENTITY gdm-size          "2.7 MB">
-  <!ENTITY gdm-buildsize     "51.2 MB">
-  <!ENTITY gdm-time          "0.7 SBU">
+  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/&gnome-version;/gdm-&gdm-version;.tar.bz2">
+  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/&gnome-version;/gdm-&gdm-version;.tar.bz2">
+  <!ENTITY gdm-md5sum        "7e46bc3b0a5b08e79f1f2f1b869caf40">
+  <!ENTITY gdm-size          "3.0 MB">
+  <!ENTITY gdm-buildsize     "54.2 MB">
+  <!ENTITY gdm-time          "0.6 SBU">
 ]>
 
 <sect1 id="gdm" xreflabel="GDM-&gdm-version;">
@@ -18,10 +18,6 @@
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
-    <keywordset>
-      <keyword role="package">gdm-&gdm-version;.tar</keyword>
-      <keyword role="ftpdir">gdm</keyword>
-    </keywordset>
   </sect1info>
 
   <title>GDM-&gdm-version;</title>
@@ -62,13 +58,22 @@
     <bridgehead renderas="sect3">GDM Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="libgnomeui"/>,
-    <xref linkend="scrollkeeper"/>, and
+    <para role="required"><xref linkend="libgnomecanvas"/>,
+    <xref linkend="gnome-doc-utils"/>, and
     <xref linkend="librsvg"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="linux-pam"/> and
-    <xref linkend="tcpwrappers"/></para>
+    <para role="optional"><xref linkend="intltool"/>,
+    <xref linkend="zenity"/>,
+    <xref linkend="linux-pam"/>,
+    <xref linkend="tcpwrappers"/>,
+    <ulink url="http://www.openafs.org/">OpenAFS</ulink>, and
+    PAM consolehelper</para>
+
+    <para>If you configure <application>GDM</application> to offer secure
+    connections to remote machines, you will need to have
+    <xref linkend="zenity"/>, <xref linkend="openssh"/> and
+    <xref linkend="which"/> installed.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gdm"/></para>
@@ -90,11 +95,11 @@ useradd -c "GDM Daemon Owner" -d /dev/null \
     <para>Install <application>GDM</application> by running
     the following commands as an unprivileged user:</para>
 
-<screen><userinput>./configure --prefix=`pkg-config --variable=prefix ORBit-2.0` \
-            --libexecdir=`pkg-config \
-            --variable=prefix ORBit-2.0`/lib/gdm \
+<screen><userinput>./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) \
             --sysconfdir=&gnome-etc-dir; \
             --localstatedir=/var/lib \
+            --libexecdir=$(pkg-config \
+                --variable=prefix ORBit-2.0)/lib/gdm \
             --with-pam-prefix=/etc &amp;&amp;
 make</userinput></screen>
 
@@ -109,8 +114,8 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--libexecdir=`pkg-config
-    --variable=prefix ORBit-2.0`/lib/gdm</parameter>: This parameter is
+    <para><parameter>--libexecdir=$(pkg-config
+    --variable=prefix ORBit-2.0)/lib/gdm</parameter>: This parameter is
     used so that the <application>GDM</application> internal support programs
     are installed in
     <filename class='directory'>$GNOME_PREFIX/lib/gdm</filename> instead
@@ -141,11 +146,11 @@ make</userinput></screen>
     <sect3 id="gdm-config">
       <title>Config Files</title>
 
-      <para><filename>&gnome-etc-dir;/gdm/gdm.conf</filename></para>
+      <para><filename>&gnome-etc-dir;/gdm/custom.conf</filename></para>
 
       <indexterm zone="gdm gdm-config">
-        <primary sortas="e-etc-gnome-&gnome-version;&gnome-minor-version;gdm-gdm.conf">
-        &gnome-etc-dir;/gdm/gdm.conf</primary>
+        <primary sortas="e-etc-gnome-&gnome-version;&gnome-minor-version;gdm-custom.conf">
+        &gnome-etc-dir;/gdm/custom.conf</primary>
       </indexterm>
 
     </sect3>
@@ -153,15 +158,25 @@ make</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
+      <para>Starting with the 2.14.x version of GNOME, the default
+      configuration parameters are stored in a static file
+      (<filename><envar>$GNOME_PREFIX</envar>/share/gdm/defaults.conf</filename>).
+      This file is not intended to be edited. If modification of the
+      configuration is necessary, you should add parameters to the
+      <filename>&gnome-etc-dir;/gdm/custom.conf</filename> file. The settings
+      in this file will override the settings in the static file. The same
+      parameters in the static file are used in the configuration file.</para>
+
       <para>Change the directory containing the <application>GDM</application>
       log files to the <filename class='directory'>/var/log</filename>
       hierarchy by creating a directory and modifying the
-      <filename>&gnome-etc-dir;/gdm/gdm.conf</filename> configuration file. Issue
+      <filename>&gnome-etc-dir;/gdm/custom.conf</filename> configuration file. Issue
       the following commands as the
       <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /var/log/gdm &amp;&amp;
-sed -i "s|var/lib/log|var/log|" &gnome-etc-dir;/gdm/gdm.conf &amp;&amp;
+sed -i.orig "/\[daemon\]/ a LogDir=/var/log/gdm" \
+    &gnome-etc-dir;/gdm/custom.conf &amp;&amp;
 rmdir -v /var/lib/log/gdm &amp;&amp;
 rmdir -v /var/lib/log</userinput></screen>
 
@@ -257,8 +272,8 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
 
 <screen role="root"><userinput>make install-gdm</userinput></screen>
 
-      <para>To autostart with a graphical login, edit
-      <filename>/etc/inittab</filename> so that the line containing:</para>
+      <para>Now edit <filename>/etc/inittab</filename> so that the line
+      containing:</para>
 
 <screen><literal>id:3:initdefault:</literal></screen>
 
@@ -282,11 +297,12 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
         <seg>gdm, gdm-binary, gdm-dmx-reconnect-proxy, gdm-restart,
         gdm-safe-restart, gdm-stop, gdmXnest, gdmXnestchooser, gdmdynamic,
         gdmflexiserver, gdmphotosetup, gdmsetup, and gdmthemetester</seg>
-        <seg>None</seg>
+        <seg>lib*mouselistener.{so,a} GTK+ modules</seg>
         <seg>&gnome-etc-dir;/{,g}dm,
         /var/lib/gdm,
-        /var/log/gdm and the following directories in $GNOME_PREFIX/:
-        share/{{,gnome/help/ ,omf/}gdm, gnome/capplets, xsessions}</seg>
+        /var/log/gdm and the following directories in
+        <envar>$GNOME_PREFIX</envar>/:
+        share/{,gnome/help/ ,omf/}gdm</seg>
       </seglistitem>
     </segmentedlist>
 
