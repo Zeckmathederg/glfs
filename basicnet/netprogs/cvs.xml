@@ -6,9 +6,9 @@
 
   <!ENTITY cvs-download-http "http://ftp.gnu.org/non-gnu/cvs/source/stable/&cvs-version;/cvs-&cvs-version;.tar.bz2">
   <!ENTITY cvs-download-ftp  "ftp://ftp.gnu.org/non-gnu/cvs/source/stable/&cvs-version;/cvs-&cvs-version;.tar.bz2">
-  <!ENTITY cvs-md5sum        "54dd9eeb0648c9eef680df7cb26c710e">
-  <!ENTITY cvs-size          "2.8 MB">
-  <!ENTITY cvs-buildsize     "30.5 MB">
+  <!ENTITY cvs-md5sum        "f24043a640509aff1aa28871dd345762">
+  <!ENTITY cvs-size          "2.9 MB">
+  <!ENTITY cvs-buildsize     "32.3 MB">
   <!ENTITY cvs-time          "0.3 SBU (additional ~20 SBU to run the test suite)">
 ]>
 
@@ -70,12 +70,40 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="gdbm"/>,
     <xref linkend="tcsh"/>,
+    <xref linkend="openssh"/>,
     <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink>,
     <xref linkend="mitkrb"/> or <xref linkend="heimdal"/>
     (for the GSSAPI libraries),
     <xref linkend="gs"/> or <xref linkend="espgs"/>, and
     an <xref linkend="server-mail"/> (that provides a
     <command>sendmail</command> command)</para>
+
+    <para><application>CVS</application> will invoke a default text editor to
+    create a commit message if the <parameter>-m "Commit message"</parameter>
+    parameter was not used when changes are committed to a respository.
+    <application>CVS</application> looks for the following text editors, in the
+    order shown below, during configuration to determine the default. This
+    default can always be overridden by the <envar>CVSEDITOR</envar> or
+    <envar>EDITOR</envar> environment variables and can be specified directly
+    by passing the <option>--with-editor=<replaceable>&lt;desired text
+    editor&gt;</replaceable></option> parameter to the
+    <command>configure</command> script.</para>
+
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para><xref linkend="vim"/></para>
+      </listitem>
+      <listitem>
+        <para><xref linkend="emacs"/></para>
+      </listitem>
+      <listitem>
+        <para><xref linkend="nano"/></para>
+      </listitem>
+      <listitem>
+        <para><xref linkend="pine"/> (for Pico)</para>
+      </listitem>
+    </itemizedlist>
+
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/cvs"/></para>
@@ -101,22 +129,23 @@
 make</userinput></screen>
 
     <para>If you have <xref linkend="tetex"/> installed and wish to create
-    Postscript, HTML or text docs from the documentation source files, issue
-    any or all of the following commands:</para>
+    DVI, Postscript, HTML or text docs from the documentation source files,
+    issue the following command:</para>
 
-<screen><userinput>cd doc &amp;&amp;
-texi2dvi cvs.texinfo &amp;&amp;
-texi2dvi cvsclient.texi &amp;&amp;
-dvips -o cvs.ps cvs.dvi &amp;&amp;
-dvips -o cvsclient.ps cvsclient.dvi &amp;&amp;
-texi2html cvs.texinfo &amp;&amp;
-texi2html cvsclient.texi &amp;&amp;
-makeinfo --plaintext -o cvs.txt cvs.texinfo &amp;&amp;
-makeinfo --plaintext -o cvsclient.txt cvsclient.texi &amp;&amp;
-cd ..</userinput></screen>
+<screen><userinput>make -C doc html txt dvi ps</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>. This will
-    take quite a while.</para>
+    take quite a while. If you don't have <command>rsh</command> configured for
+    access to the host you are building on (or you didn't pass the
+    <option>--with-rsh=</option> parameter to the <command>configure</command>
+    script, some tests may fail. If you passed the
+    <option>--with-rsh=ssh</option> parameter to enable <command>ssh</command>
+    as the default remote shell program, you'll need to issue the following
+    command so that the tests will complete without any failures:</para>
+
+<screen><userinput>sed -e 's/rsh};/ssh};/' \
+    -e 's/g=rw,o=r$/g=r,o=r/' \
+    -i src/sanity.sh</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -126,10 +155,15 @@ install -v -m644 FAQ README /usr/share/doc/cvs-&cvs-version; &amp;&amp;
 install -v -m644 doc/*.pdf /usr/share/doc/cvs-&cvs-version;</userinput></screen>
 
     <para>If you created any additional documentation, install it by issuing
-    the following command as the
+    the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>install -v -m644 doc/*.{ps,dvi,html,txt} /usr/share/doc/cvs-&cvs-version;</userinput></screen>
+<screen role='root'><userinput>install -v -m644 doc/*.{ps,dvi,txt} /usr/share/doc/cvs-&cvs-version; &amp;&amp;
+install -v -m755 -d /usr/share/doc/cvs-&cvs-version;/html/cvs{,client} &amp;&amp;
+install -v -m644 doc/cvs.html/* \
+                 /usr/share/doc/cvs-&cvs-version;/html/cvs &amp;&amp;
+install -v -m644 doc/cvsclient.html/* \
+                 /usr/share/doc/cvs-&cvs-version;/html/cvsclient</userinput></screen>
 
   </sect2>
 
@@ -171,7 +205,7 @@ install -v -m644 doc/*.pdf /usr/share/doc/cvs-&cvs-version;</userinput></screen>
       addition to those specified in the <filename>CVSROOT/cvswrappers</filename>
       file in the repository.</para>
 
-      <para><filename>~/.cvspass</filename> can hold passwords to complete
+      <para><filename>~/.cvspass</filename> contains passwords used to complete
       logins to servers.</para>
 
     </sect3>
