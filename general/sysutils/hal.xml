@@ -41,10 +41,8 @@
     providing a rich and extensible description of device characteristics and
     features. One example of the functionality provided by
     <application>HAL</application> is when you plug in a USB storage device.
-    <application>HAL</application> can automatically create an appropriate
-    entry in the <filename>/etc/fstab</filename> file and create the
-    corresponding mount point in
-    <filename class="directory">/media</filename>.</para>
+    <application>HAL</application> can automatically create a mount point in
+    <filename class="directory">/media</filename> and mount the device.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -266,7 +264,8 @@ install -v -m755 -d /var/run/hald</userinput></screen>
 
     <sect3 id="hal-config">
       <title>Config Files</title>
-      <para><filename>/etc/dbus-1/system.d/hal.conf</filename> and
+      <para><filename>/etc/dbus-1/system.d/hal.conf</filename>,
+      <filename>/etc/dbus-1/system.d/halusers.conf</filename> and
       <filename>/etc/hal/*</filename></para>
 
       <indexterm zone="hal hal-config">
@@ -274,14 +273,71 @@ install -v -m755 -d /var/run/hald</userinput></screen>
       </indexterm>
 
       <indexterm zone="hal hal-config">
+        <primary sortas="e-etc-dbus-1-system.d-halusers.conf">/etc/dbus-1/system.d/halusers.conf</primary>
+      </indexterm>
+
+      <indexterm zone="hal hal-config">
         <primary sortas="e-etc-hal-star">/etc/hal/*</primary>
       </indexterm>
     </sect3>
 
+    <sect3><title>Configuration Information</title>
+
+      <para>The default setup for <application>HAL</application> is to allow
+      only certain users to invoke methods such as Mount(). These are
+      the <systemitem class="username">root</systemitem> user and the user
+      determined to be at the active console using <ulink
+      url="&blfs-wiki;/linux-pam">pam_console</ulink>. If you are not set
+      up to use <xref linkend="linux-pam"/> and <ulink
+      url="&blfs-wiki;/linux-pam">pam_console</ulink>, create a group that
+      is allowed to invoke <application>HAL</application> methods with the
+      following commands:</para>
+
+<screen role="root"><userinput>groupadd -g 61 halusers &amp;&amp;
+cat &gt; /etc/dbus-1/system.d/halusers.conf &lt;&lt; "EOF"
+<literal>&lt;!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
+&lt;busconfig&gt;
+
+  &lt;!-- Allow users in the halusers group invoke HAL methods --&gt;
+  &lt;policy group="halusers"&gt;
+    &lt;allow send_interface="org.freedesktop.Hal.Device.SystemPowerManagement"/&gt;
+    &lt;allow send_interface="org.freedesktop.Hal.Device.LaptopPanel"/&gt;
+    &lt;allow send_interface="org.freedesktop.Hal.Device.Volume"/&gt;
+    &lt;allow send_interface="org.freedesktop.Hal.Device.Volume.Crypto"/&gt;
+  &lt;/policy&gt;
+
+&lt;/busconfig&gt;</literal>
+EOF</userinput></screen>
+
+      <para>Now add the users you would like to the <systemitem
+      class="groupname">halusers</systemitem> group to use
+      <application>HAL</application>. Note that these users still need
+      to have appropriate permissions to access the devices that
+      <application>HAL</application> will invoke its methods on.</para>
+
+      <para><application>HAL</application> only provides the methods such
+      as Mount() to act on hardware. In order to take advantage of these,
+      a <application>HAL</application> event handler such as
+      <xref linkend="gnome-volume-manager"/> or <ulink
+      url="http://ivman.sourceforge.net/">Ivman</ulink> should be
+      installed.</para>
+
+      <!-- Following note is only relevant for HAL-0.5.7.x.
+           Fixed upstream. -->
+      <note>
+        <para><application>HAL</application> will ignore any devices listed
+        in <filename>/etc/fstab</filename> for the purpose of automounting.
+        You must remove any listings for devices that you would like
+        automounted such as CD-ROMs or USB keys.</para>
+      </note>
+
     <!-- This section commented out for now until it is determined what should
          be placed in this section
 
-    <sect3><title>Configuration Information</title>
+         FIXME: I think this information is still relevant with the
+         exception of its interaction with /etc/fstab. Needs investigation.
 
       <para>No configuration is necessary for the majority of installations
       on systems configured with ISO-8859-1 compatible locales. The defaults
@@ -355,9 +411,9 @@ EOF</userinput></screen>
 
       </note>
 
-    </sect3>
-
     -->
+
+    </sect3>
 
     <sect3  id="hal-init">
       <title>Boot Script</title>
