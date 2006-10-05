@@ -6,10 +6,10 @@
 
   <!ENTITY cairo-download-http "http://cairographics.org/releases/cairo-&cairo-version;.tar.gz">
   <!ENTITY cairo-download-ftp  " ">
-  <!ENTITY cairo-md5sum        "9002b0e69b3f94831a22d3f2a7735ce2">
-  <!ENTITY cairo-size          "1.4 MB">
-  <!ENTITY cairo-buildsize     "30.6 MB">
-  <!ENTITY cairo-time          "0.4 SBU">
+  <!ENTITY cairo-md5sum        "1222b2bfdf113e2c92f66b3389659f2d">
+  <!ENTITY cairo-size          "2.8 MB">
+  <!ENTITY cairo-buildsize     "56.7 MB">
+  <!ENTITY cairo-time          "0.5 SBU (additional 0.9 SBU to run the test suite)">
 ]>
 
 <sect1 id="cairo" xreflabel="cairo-&cairo-version;">
@@ -31,9 +31,9 @@
 
     <para><application>cairo</application> is a 2D graphics library with
     support for multiple output devices. Currently supported output targets
-    include the <application>X</application> Window System, win32, and image
-    buffers. Experimental backends include OpenGL (through glitz), Quartz,
-    XCB, PostScript and PDF file output. cairo is designed to produce
+    include the <application>X</application> Window System, win32, image
+    buffers, PostScript, PDF and SVG. Experimental backends include OpenGL
+    (through glitz), Quartz and XCB file output. cairo is designed to produce
     consistent output on all output media while taking advantage of display
     hardware acceleration when available (e.g., through the X Render
     Extension). The <application>cairo</application> API provides operations
@@ -74,8 +74,20 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><ulink
     url="http://www.freedesktop.org/Software/glitz">glitz</ulink>,
+    <ulink url="http://www.directfb.org/">DirectFB</ulink>,
     <ulink url="http://xcb.freedesktop.org/wiki/">XCB</ulink>, and
     <xref linkend="gtk-doc"/></para>
+
+    <bridgehead renderas="sect4">Optional (to provide extended test suite
+    coverage)</bridgehead>
+    <para role="optional"><xref linkend="gtk2"/> (for testing the PDF backend),
+    <xref linkend="poppler"/> (for testing the PDF backend),
+    <xref linkend="librsvg"/> (for testing the SVG backend), and
+    <ulink url="http://ltp.sf.net/">LTP</ulink></para>
+
+    <para>Note that the GTK, Poppler and librsvg packages are circular in that
+    using them for test suite coverage requires installing cairo first,
+    then installing the desired package(s), then installing cairo again.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/cairo"/></para>
@@ -89,18 +101,13 @@
     <application>X Render</application> <application>pkg-config</application>
     file. If you use <application>XFree86</application> as your
     <application>X</application> Window system, ensure this file exists
-    (<filename>/usr/X11R6/lib/pkgconfig/xrender.pc</filename>). Instructions to
-    create this file have just recently been added to the BLFS book, so you may
-    need to go back to the <application>XFree86</application> section to create
-    it.</para>
+    (<filename>/usr/X11R6/lib/pkgconfig/xrender.pc</filename>) before beginning
+    the installation.</para>
 
     <para>Install <application>cairo</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i -e 's/type == GLITZ/color.fourcc == GLITZ/' \
-       -e 's/FORMAT_TYPE_COLOR/FOURCC_RGB/' \
-    src/cairo-glitz-surface.c &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+<screen><userinput>./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
@@ -113,12 +120,6 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>sed -i -e '...' -e '...' src/cairo-glitz-surface.c</command>:
-    This command (copied from upstream CVS) fixes a build problem if you link
-    <application>glitz</application> into the build by passing
-    <option>--enable-glitz</option> to the <command>configure</command>
-    script.</para>
 
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/gtk-doc-rebuild.xml"/>
