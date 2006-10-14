@@ -6,10 +6,10 @@
 
   <!ENTITY postfix-download-http "http://www.mirrorspace.org/postfix/official/postfix-&postfix-version;.tar.gz">
   <!ENTITY postfix-download-ftp "ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-&postfix-version;.tar.gz">
-  <!ENTITY postfix-md5sum "./server/mail/postfix.xml">
-  <!ENTITY postfix-size "2.3 MB">
-  <!ENTITY postfix-buildsize "78 MB">
-  <!ENTITY postfix-time "0.4 SBU">
+  <!ENTITY postfix-md5sum "f957e9319428be81c724b606fe060cc7">
+  <!ENTITY postfix-size "2.6 MB">
+  <!ENTITY postfix-buildsize "85 MB">
+  <!ENTITY postfix-time "0.5 SBU">
 ]>
 
 <sect1 id="postfix" xreflabel="Postfix-&postfix-version;">
@@ -198,23 +198,23 @@ chown -v postfix:postfix /var/mail</userinput></screen>
       <para>Install <application>Postfix</application> by running the
       following commands:</para>
 
-<screen><userinput>make makefiles CCARGS='-DDEF_DAEMON_DIR=\"/usr/lib/postfix\" \
-    -DDEF_MANPAGE_DIR=\"/usr/share/man\" <replaceable>&lt;additional args&gt;</replaceable>' \
+<screen><userinput>make makefiles \
+CCARGS='-DDEF_DAEMON_DIR=\"/usr/lib/postfix\" \
+    -DDEF_MANPAGE_DIR=\"/usr/share/man\" \
+    -DDEF_HTML_DIR=\"/usr/share/doc/postfix-&postfix-version;/html\" \
+    -DDEF_README_DIR=\"/usr/share/doc/postfix-&postfix-version;/README\" \
+    <replaceable>&lt;additional args&gt;</replaceable>' \
     <replaceable>&lt;AUXLIBS='additional args'&gt;</replaceable> &amp;&amp;
 make</userinput></screen>
 
+    <!-- There is a testsuite, but it fails a lot. It seems to need
+         the host to be specifically setup for the tests.
+         Run with `make tests' and `make root_tests' -->
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>sh postfix-install -non-interactive</userinput></screen>
-
-      <para>The final installation step is to install the program's documentation
-      with the following commands (again, as the
-      <systemitem class="username">root</systemitem> user):</para>
-
-<screen role="root"><userinput>install -v -d /usr/share/doc/postfix &amp;&amp;
-cp -v -rf html/* /usr/share/doc/postfix</userinput></screen>
 
     </sect3>
 
@@ -227,9 +227,9 @@ cp -v -rf html/* /usr/share/doc/postfix</userinput></screen>
     makefiles throughout the source tree to use the options contained in the
     <envar>CCARGS</envar> and <envar>AUXLIBS</envar> variables.</para>
 
-    <para><command>sh postfix-install -non-interactive</command> : This
+    <para><command>sh postfix-install -non-interactive</command>: This
     keeps the install script from asking any questions, thereby accepting
-    default destination directories in all but the two cases mentioned in
+    default destination directories in all but the few cases mentioned in
     the 'make makefiles' command.</para>
 
   </sect2>
@@ -290,7 +290,22 @@ EOF</userinput></screen>
 <screen role="root"><userinput>sed -i "s/LOGIN/<replaceable>&lt;user&gt;</replaceable>/" /etc/aliases &amp;&amp;
 sed -i "s/#myhostname = host.domain.tld/myhostname = \
   <replaceable>&lt;localhost.localdomain&gt;</replaceable>/" /etc/postfix/main.cf &amp;&amp;
-/usr/bin/newaliases &amp;&amp;
+/usr/bin/newaliases</userinput></screen>
+
+      <para>If you have an existing configuration, you can run the
+      <command>postfix</command> utility to add any necessary definitions
+      to your existing files. As the
+      <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>/usr/sbin/postfix upgrade-configuration</userinput></screen>
+
+      <para>Before starting <application>Postfix</application>, you
+      should check that your configuration and file permissions will work
+      properly. Run the following commands as the
+      <systemitem class="username">root</systemitem> user to check and
+      start your <application>Postfix</application> server:</para>
+
+<screen role="root"><userinput>/usr/sbin/postfix check &amp;&amp;
 /usr/sbin/postfix start</userinput></screen>
 
     </sect3>
@@ -327,7 +342,8 @@ sed -i "s/#myhostname = host.domain.tld/myhostname = \
         postqueue, postsuper, proxymap, qmgr, qmqpd, sendmail, showq, smtp,
         smtpd, spawn, tlsmgr, trivial-rewrite, verify, and virtual</seg>
         <seg>None</seg>
-        <seg>/etc/postfix, /usr/lib/postfix and /usr/share/doc/postfix</seg>
+        <seg>/etc/postfix, /usr/lib/postfix and
+        /usr/share/doc/postfix-&postfix-version;</seg>
       </seglistitem>
     </segmentedlist>
 
