@@ -38,9 +38,10 @@
 
     <caution>
       <para>The <application>UnZip</application> package has some locale
-      related issues. For a full explanation of the issues and some possible
-      solutions, see the <xref linkend="locale-unzip"/> section of the
-      <xref linkend="locale-issues"/>.</para>
+      related issues. See the discussion below in the
+      <xref linkend="unzip-locale-issues"/> section. A more general
+      discussion of these problems can be found on the
+      <xref linkend="locale-issues"/> page.</para>
     </caution>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -67,6 +68,80 @@
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/unzip"/></para>
+
+  </sect2>
+
+  <sect2 id="unzip-locale-issues">
+    <title>UnZip Locale Issues</title>
+
+    <note>
+      <para>Use of <application>UnZip</application> in the
+      <application>JDK</application>, <application>Mozilla</application>,
+      <application>DocBook</application> or any other BLFS package
+      installation is not a problem, as BLFS instructions never use
+      <application>UnZip</application> to extract a file with non-ASCII
+      characters in the file's name.</para>
+    </note>
+
+    <para>The <application>UnZip</application> package assumes that filenames
+    stored in the ZIP archives created on non-Unix systems are encoded in
+    CP850, and that they should be converted to ISO-8859-1 when writing files
+    onto the filesystem. Such assumptions are not always valid. In fact,
+    inside the ZIP archive, filenames are encoded in the DOS codepage that is
+    in use in the relevant country, and the filenames on disk should be in
+    the locale encoding. In MS Windows, the OemToChar() C function (from
+    <filename>User32.DLL</filename>) does the correct conversion (which is
+    indeed the conversion from CP850 to a superset of ISO-8859-1 if MS
+    Windows is set up to use the US English language), but there is no
+    equivalent in Linux.</para>
+
+    <para>When using <command>unzip</command> to unpack a ZIP archive
+    containing non-ASCII filenames, the filenames are damaged because
+    <command>unzip</command> uses improper conversion when any of its
+    encoding assumptions are incorrect. For example, in the ru_RU.KOI8-R
+    locale, conversion of filenames from CP866 to KOI8-R is required, but
+    conversion from CP850 to ISO-8859-1 is done, which produces filenames
+    consisting of undecipherable characters instead of words (the closest
+    equivalent understandable example for English-only users is rot13). There
+    are several ways around this limitation:</para>
+
+    <para>1) For unpacking ZIP archives with filenames containing non-ASCII
+    characters, use <ulink url="http://www.winzip.com/">WinZip</ulink> while-      running the <ulink url="http://www.winehq.com/">Wine</ulink> Windows
+    emulator.</para>
+
+    <para>2) After running <command>unzip</command>, fix the damage made to
+    the filenames using the <command>convmv</command> tool
+    (<ulink url="http://j3e.de/linux/convmv/"/>). The following is an example
+    for the ru_RU.KOI8-R locale:</para>
+
+    <blockquote>
+      <para>Step 1. Undo the conversion done by
+      <command>unzip</command>:</para>
+
+<screen><userinput>convmv -f iso-8859-1 -t cp850 -r --nosmart --notest \
+    <replaceable>&lt;/path/to/unzipped/files&gt;</replaceable></userinput></screen>
+
+      <para>Step 2. Do the correct conversion instead:</para>
+
+<screen><userinput>convmv -f cp866 -t koi8-r -r --nosmart --notest \
+    <replaceable>&lt;/path/to/unzipped/files&gt;</replaceable></userinput></screen>
+    </blockquote>
+
+    <para>3) Apply this patch to unzip:
+    <ulink url="https://bugzilla.altlinux.ru/attachment.cgi?id=532"/></para>
+
+    <para>It allows to specify the assumed filename encoding in the ZIP
+    archive using the <option>-O charset_name</option> option and the
+    on-disk filename encoding using the <option>-I charset_name</option>
+    option. Defaults: the on-disk filename encoding is the locale encoding,
+    the encoding inside the ZIP archive is guessed according to the builtin
+    table based on the locale encoding. For US English users, this still
+    means that unzip converts from CP850 to ISO-8859-1 by default.</para>
+
+    <para>Caveat: this method works only with 8-bit locale encodings, not
+    with UTF-8. Attempting to use a patched <command>unzip</command> in UTF-8
+    locales may result in a segmentation fault and is probably a security
+    risk.</para>
 
   </sect2>
 

@@ -16,144 +16,233 @@
   <title>Locale Related Issues</title>
 
   <para>This page contains information about locale related problems and
-  issues. In this paragraph you'll find a generic overview of things that can
-  come up when configuring your system for various locales. The previous
-  sentence and the remainder of this paragraph must still be
-  revised/completed.</para>
+  issues. In the following paragraphs you'll find a generic overview of
+  things that can come up when configuring your system for various locales.
+  Many (but not all) existing locale-related problems can be classified
+  and fall under one of the headings below. The severity ratings below use
+  the following criteria:</para>
 
- <sect2>
+  <itemizedlist>
+    <listitem>
+      <para>Critical: The program doesn't perform its main function.
+      The fix would be very intrusive, it's better to search for a
+      replacement.</para>
+    </listitem>
+    <listitem>
+      <para>High: Part of the functionality that the program provides
+      is not usable. If that functionality is required, it's better to
+      search for a replacement.</para>
+    </listitem>
+    <listitem>
+      <para>Low: The program works in all typical use cases, but lacks
+      some functionality normally provided by its equivalents.</para>
+    </listitem>
+  </itemizedlist>
 
-    <title>Package Specific Locale Issues</title>
+  <para>If there is a known workaround for a specific package, it will
+  appear on that package's page.</para>
 
-    <para>For package-specific issues, find the concerned package from the list
-    below and follow the link to view the available information. If a package
-    is not listed here, it does not mean there are no known locale-specific
-    issues or problems with that package. It only means that this page has not
-    been updated with the locale-specific information regarding that package.
-    Please reference the BLFS Wiki page for a particular package for any
-    additional locale-specific information. </para>
+  <sect2 id="locale-not-valid-option"
+         xreflabel="Needed Encoding Not a Valid Option">
+
+    <title>The Needed Encoding is Not a Valid Option in the Program</title>
+
+    <para>Severity: Critical</para>
+
+    <para>Some programs require the user to specify the character encoding
+    for their input or output data and present only a limited choice of
+    encodings. This is the case for the <option>-X</option> option in
+    <xref linkend="a2ps"/> and <xref linkend="enscript"/>,
+    the <option>-input-charset</option> option in unpatched
+    <xref linkend="cdrtools"/>, and the character sets offered for display
+    in the menu of <xref linkend="links"/>. If the required encoding is not
+    in the list, the program usually becomes completely unusable. For
+    non-interactive programs, it may be possible to work around this by
+    converting the document to a supported input character set before
+    submitting to the program.</para>
+
+    <para>A solution to this type of problem is to implement the necessary
+    support for the missing encoding as a patch to the original program
+    (as done for <xref linkend="cdrtools"/> in this book), or to find a
+    replacement.</para>
+
+  </sect2>
+
+  <sect2 id="locale-assumed-encoding"
+         xreflabel="Program Assumes Encoding">
+
+    <title>The Program Assumes the Locale-Based Encoding of External
+    Documents</title>
+
+    <para>Severity: High for non-text documents, low for text
+    documents</para>
+
+    <para>Some programs, <xref linkend="nano"/> or
+    <xref linkend="joe"/> for example, assume that documents are always
+    in the encoding implied by the current locale. While this assumption
+    may be valid for the user-created documents, it is not safe for
+    external ones. When this assumption fails, non-ASCII characters are
+    displayed incorrectly, and the document may become unreadable.</para>
+
+    <para>If the external document is entirely text based, it can be
+    converted to the current locale encoding using the
+    <command>iconv</command> program.</para>
+
+    <para>For documents that are not text-based, this is not possible.
+    In fact, the assumption made in the program may be completely
+    invalid for documents where the Microsoft Windows operating system
+    has set de facto standards. An example of this problem is ID3v1 tags
+    in MP3 files (see <ulink url="&blfs-wiki;/ID3v1Coding">this page</ulink>
+    for more details). For these cases, the only solution is to find a
+    replacement program that doesn't have the issue (e.g., one that
+    will allow you to specify the assumed document encoding).</para>
+
+    <para>Among BLFS packages, this problem applies to
+    <xref linkend="nano"/>, <xref linkend="joe"/>, and all media players
+    except <xref linkend="audacious"/>.</para>
+
+    <para>Another problem in this category is when someone cannot read
+    the documents you've sent them because their operating system is
+    set up to handle character encodings differently. This can happen
+    often when the other person is using Microsoft Windows, which only
+    provides one character encoding for a given country. For example,
+    this causes problems with UTF-8 encoded TeX documents created in
+    Linux. On Windows, most applications will assume that these documents
+    have been created using the default Windows 8-bit encoding. See the
+    <ulink url="&blfs-wiki;/tetex">teTeX</ulink> Wiki page for more
+    details.</para>
+
+    <para>In extreme cases, Windows encoding compatibility issues may be 
+    solved only by running Windows programs under
+    <ulink url="http://www.winehq.com/">Wine</ulink>.</para>
+
+  </sect2>
+
+  <sect2 id="locale-wrong-filename-encoding"
+         xreflabel="Wrong Filename Encoding">
+
+    <title>The Program Uses or Creates Filenames in the Wrong Encoding</title>
+
+    <para>Severity: Critical</para>
+
+    <para>The POSIX standard mandates that the filename encoding is
+    the encoding implied by the current LC_CTYPE locale category. This
+    information is well-hidden on the page which specifies the behavior
+    of <application>Tar</application> and <application>Cpio</application>
+    programs. Some programs get it wrong by default (or simply don't 
+    have enough information to get it right). The result is that they
+    create filenames which are not subsequently shown correctly by
+    <command>ls</command>, or they refuse to accept filenames that
+    <command>ls</command> shows properly. For the <xref linkend="glib2"/>
+    library, the problem can be corrected by setting the
+    <envar>G_FILENAME_ENCODING</envar> environment variable to the special
+    "@locale" value. <application>Glib2</application> based programs that
+    don't respect that environment variable are buggy.</para>
+
+    <para>The <xref linkend="zip"/>, <xref linkend="unzip"/>, and
+    <xref linkend="nautilus-cd-burner"/> have this problem because
+    they hard-code the expected filename encoding.
+    <application>UnZip</application> contains a hard-coded conversion
+    table between the CP850 (DOS) and ISO-8859-1 (UNIX) encodings and
+    uses this table when extracting archives created under DOS or
+    Microsoft Windows. However, this assumption only works for those
+    in the US and not for anyone using a UTF-8 locale. Non-ASCII
+    characters will be mangled in the extracted filenames.</para>
+
+    <para>On the other hand,
+    <application>Nautilus CD Burner</application> checks names of
+    files added to its window for UTF-8 validity. This is wrong for
+    users of non-UTF-8 locales. Also,
+    <application>Nautilus CD Burner</application> unconditionally
+    calls <command>mkisofs</command> with the
+    <parameter>-input-charset UTF-8</parameter> parameter, which is
+    only correct in UTF-8 locales.</para>
+
+    <para>The general rule for avoiding this class of problems is to 
+    avoid installing broken programs. If this is impossible, the
+    <ulink url="http://j3e.de/linux/convmv/">convmv</ulink>
+    command-line tool can be used to fix filenames created by these
+    broken programs, or intentionally mangle the existing filenames
+    to meet the broken expectations of such programs.</para>
+
+    <para>In other cases, a similar problem is caused by importing
+    filenames from a system using a different locale with a tool that
+    is not locale-aware (e.g., <xref linkend="nfs-utils"/> or
+    <xref linkend="openssh"/>). In order to avoid mangling non-ASCII 
+    characters when transferring files to a system with a different
+    locale, any of the following methods can be used:</para>
 
     <itemizedlist>
-
-      <title>List of Packages with Locale Related Issues</title>
-
       <listitem>
-        <para><xref linkend="locale-mc"/></para>
+        <para>Transfer anyway, fix the damage with
+        <command>convmv</command>.</para>
       </listitem>
       <listitem>
-        <para><xref linkend="locale-unzip"/></para>
+        <para>On the sending side, create a tar archive with the 
+        <parameter>--format=posix</parameter> switch passed to
+        <command>tar</command> (this will be the default in a future 
+        version of <command>tar</command>).</para>
       </listitem>
       <listitem>
-        <para><xref linkend="locale-nano"/></para>
+        <para>Mail the files as attachments. Mail clients specify the
+        encoding of attached filenames.</para>
       </listitem>
-
+      <listitem>
+        <para>Write the files to a removable disk formatted with a FAT or
+        FAT32 filesystem.</para>
+      </listitem>
+      <listitem>
+        <para>Transfer the files using Samba.</para>
+      </listitem>
+      <listitem>
+        <para>Transfer the files via FTP using RFC2640-aware server
+        (this currently means only wu-ftpd, which has bad security history)
+        and client (e.g., lftp).</para>
+      </listitem>
     </itemizedlist>
 
-    <sect3 id="locale-mc" xreflabel="MC-&mc-version;">
+    <para>The last four methods work because the filenames are automatically
+    converted from the sender's locale to UNICODE and stored or sent in this
+    form. They are then transparently converted from UNICODE to the
+    recipient's locale encoding.</para>
 
-      <title><xref linkend="mc"/></title>
+  </sect2>
 
-      <para>This package makes the assumption that <quote>characters</quote>
-      and <quote>bytes</quote> are the same thing. This is not true in UTF-8
-      based locales. Due to this assumption <application>MC</application> will
-      incorrectly position characters on the screen. After the cursor is moved
-      a bit the screen becomes totally unreadable, as illustrated on
-      <ulink url="&files-anduin;/mc-bad.png">this
-      screenshot</ulink> (taken in a ru_RU.UTF-8 locale). Additionally, input
-      of non-ASCII characters in the editor is impossible, even after selecting
-      <quote>Other 8-bit</quote> encoding from the menu.</para>
+  <sect2 id="locale-wrong-multibyte-characters"
+         xreflabel="Wrong Multibyte Characters">
 
-    </sect3>
+    <title>The Program Breaks Multibyte Characters or Doesn't Count
+    Character Cells Correctly</title>
 
-    <sect3 id="locale-unzip" xreflabel="UnZip-&unzip-version;">
+    <para>Severity: High or critical</para>
 
-      <title><xref linkend="unzip"/></title>
+    <para>Many programs were written in an older era where multibyte
+    locales were not common. Such programs assume that C "char" data
+    type, which is one byte, can be used to store single characters.
+    Further, they assume that any sequence of characters is a valid
+    string and that every character occupies a single character cell.
+    Such assumptions completely break in UTF-8 locales. The visible
+    manifestation is that the program truncates strings prematurely
+    (i.e., at 80 bytes instead of 80 characters). Terminal-based
+    programs don't place the cursor correctly on the screen, don't react
+    to the "Backspace" key by erasing one character, and leave junk
+    characters around when updating the screen, usually turning the
+    screen into a complete mess.</para>
 
-      <note>
-        <para>Use of <application>UnZip</application> in the
-        <application>JDK</application>, <application>Mozilla</application>,
-        <application>DocBook</application> or any other BLFS package
-        installation is not a problem, as BLFS instructions never use
-        <application>UnZip</application> to extract a file with non-ASCII
-        characters in the file's name.</para>
-      </note>
+    <para>Fixing this kind of problems is a tedious task from a 
+    programmer's point of view, like all other cases of retrofitting new 
+    concepts into the old flawed design. In this case, one has to redesign 
+    all data structures in order to accommodate to the fact that a complete 
+    character may span a variable number of "char"s (or switch to wchar_t 
+    and convert as needed). Also, for every call to the "strlen" and 
+    similar functions, find out whether a number of bytes, a number of 
+    characters, or the width of the string was really meant. Sometimes it 
+    is faster to write a program with the same functionality from scratch.
+    </para>
 
-      <para>The <application>UnZip</application> package assumes that filenames
-      stored in the ZIP archives created on non-Unix systems are encoded in
-      CP850, and that they should be converted to ISO-8859-1 when writing files
-      onto the filesystem. Such assumptions are not always valid. In fact,
-      inside the ZIP archive, filenames are encoded in the DOS codepage that is
-      in use in the relevant country, and the filenames on disk should be in
-      the locale encoding. In MS Windows, the OemToChar() C function (from
-      <filename>User32.DLL</filename>) does the correct conversion (which is
-      indeed the conversion from CP850 to a superset of ISO-8859-1 if MS
-      Windows is set up to use the US English language), but there is no
-      equivalent in Linux.</para>
-
-      <para>When using <command>unzip</command> to unpack a ZIP archive
-      containing non-ASCII filenames, the filenames are damaged because
-      <command>unzip</command> uses improper conversion when any of its
-      encoding assumptions are incorrect. For example, in the ru_RU.KOI8-R
-      locale, conversion of filenames from CP866 to KOI8-R is required, but
-      conversion from CP850 to ISO-8859-1 is done, which produces filenames
-      consisting of undecipherable characters instead of words (the closest
-      equivalent understandable example for English-only users is rot13). There
-      are several ways around this limitation:</para>
-
-      <para>1) For unpacking ZIP archives with filenames containing non-ASCII
-      characters, use <ulink url="http://www.winzip.com/">WinZip</ulink> while
-      running the <ulink url="http://www.winehq.com/">Wine</ulink> Windows
-      emulator.</para>
-
-      <para>2) After running <command>unzip</command>, fix the damage made to
-      the filenames using the <command>convmv</command> tool
-      (<ulink url="http://j3e.de/linux/convmv/"/>). The following is an example
-      for the ru_RU.KOI8-R locale:</para>
-
-      <blockquote>
-        <para>Step 1. Undo the conversion done by
-        <command>unzip</command>:</para>
-
-<screen><userinput>convmv -f iso-8859-1 -t cp850 -r --nosmart --notest \
-    <replaceable>&lt;/path/to/unzipped/files&gt;</replaceable></userinput></screen>
-
-        <para>Step 2. Do the correct conversion instead:</para>
-
-<screen><userinput>convmv -f cp866 -t koi8-r -r --nosmart --notest \
-    <replaceable>&lt;/path/to/unzipped/files&gt;</replaceable></userinput></screen>
-      </blockquote>
-
-      <para>3) Apply this patch to unzip:
-      <ulink url="https://bugzilla.altlinux.ru/attachment.cgi?id=532"/></para>
-
-      <para>It allows to specify the assumed filename encoding in the ZIP
-      archive using the <option>-O charset_name</option> option and the
-      on-disk filename encoding using the <option>-I charset_name</option>
-      option. Defaults: the on-disk filename encoding is the locale encoding,
-      the encoding inside the ZIP archive is guessed according to the builtin
-      table based on the locale encoding. For US English users, this still
-      means that unzip converts from CP850 to ISO-8859-1 by default.</para>
-
-      <para>Caveat: this method works only with 8-bit locale encodings, not
-      with UTF-8. Attempting to use a patched <command>unzip</command> in UTF-8
-      locales may result in a segmentation fault and is probably a security
-      risk.</para>
-
-    </sect3>
-
-    <sect3 id="locale-nano" xreflabel="Nano-&nano-version;">
-
-      <title><xref linkend="nano"/></title>
-
-      <para>The current stable version of <application>Nano</application>
-      (&nano-version;) does not support UTF-8 character encodings.  A
-      development version is available which addresses these issues.  This
-      version can be downloaded at <ulink
-      url="http://www.nano-editor.org/dist/v1.3/nano-1.3.11.tar.gz"/>.
-      Instructions for installing this version are the same as those found on
-      the <xref linkend="nano"/> page.</para>
-
-    </sect3>
+    <para>Among BLFS packages, this problem applies to <xref linkend="mc"/>,
+    <xref linkend="nano"/>, <xref linkend="ed"/>, <xref linkend="xine-ui"/>
+    and all shells.</para>
 
   </sect2>
 
