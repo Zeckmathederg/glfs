@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/stable/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-download-ftp  "ftp://ftp.samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-md5sum        "5c39505af17cf5caf3d6ed8bab135036">
-  <!ENTITY samba3-size          "17.5 MB">
-  <!ENTITY samba3-buildsize     "199 MB">
-  <!ENTITY samba3-time          "2.8 SBU">
+  <!ENTITY samba3-download-ftp  "ftp://us5.samba.org/pub/samba-ftp/samba-&samba3-version;.tar.gz">
+  <!ENTITY samba3-md5sum        "afe6923d05fed5b5ccab593c7a407cd1">
+  <!ENTITY samba3-size          "17.7 MB">
+  <!ENTITY samba3-buildsize     "257 MB">
+  <!ENTITY samba3-time          "2.8 SBU (additional 1.8 SBU to run the test suite)">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -75,23 +75,24 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="popt"/>,
     <xref linkend="linux-pam"/>,
-    <xref linkend="openldap"/>,
     <xref linkend="cups"/>,
+    <xref linkend="openldap"/>,
+    <xref linkend="gamin"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
     <xref linkend="python"/> (to build Samba API bindings for the
-    <application>Python</application> installation) and
+    <application>Python</application> installation),
     <ulink url="ftp://oss.sgi.com/projects/xfs/cmd_tars/">libacl</ulink>
-    (requires <ulink url="ftp://oss.sgi.com/projects/xfs/cmd_tars/">libattr</ulink>)</para>
+    (requires <ulink url="ftp://oss.sgi.com/projects/xfs/cmd_tars/">libattr</ulink>),
+    and <ulink url="http://valgrind.kde.org/">Valgrind</ulink> (optionally
+    used by the test suite)</para>
 
-    <!-- only used for the test suite which is not really functional
-     and
-    <ulink url="http://valgrind.kde.org/">Valgrind</ulink></para> -->
-
+    <!-- Removed starting in version 3.0.23
     <bridgehead renderas="sect4">Optional
-    (To Build Experimental passdb Libraries</bridgehead>
+    (To Build Experimental passdb Libraries)</bridgehead>
     <para><xref linkend="libxml2"/>,
-    <xref linkend="mysql"/>,
+    <xref linkend="mysql"/>, and
     <xref linkend="postgresql"/></para>
+    -->
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/samba3"/></para>
@@ -116,9 +117,12 @@
     commands:</para>
 
     <note>
-      <para>You may want to run <command>configure</command> with the
-      <option>--help</option> parameter. There may be other parameters
-      needed to take advantage of the optional dependencies.</para>
+      <para>If you wish to run the test suite after the binaries are built,
+      you must add the <option>--enable-socket-wrapper</option> parameter to
+      the <command>configure</command> script below. You may want to run
+      <command>configure</command> with the <option>--help</option> parameter
+      first. There may be other parameters needed to take advantage of
+      optional dependencies.</para>
     </note>
 
 <screen><userinput>cd source &amp;&amp;
@@ -131,7 +135,12 @@
     --with-smbmount &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a functional test suite.</para>
+    <para>You must become the <systemitem class="username">root</systemitem>
+    user to run the test framework. To run the tests, issue: 
+    <command>make test</command>. If you have
+    <application>Linux-PAM</application> installed and built the PAM library
+    modules, you can perform a dlopen test by issuing:
+    <command>make test_pam_modules</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -139,6 +148,10 @@ make</userinput></screen>
      shown me that this directory is not used. Grepping the source
      tree also turns up nothing about 'cache/samba'. -Randy
 <screen role="root"><userinput>install -v -m755 -d /var/cache/samba &amp;&amp;
+-->
+<!-- if [ -f nsswitch/pam_winbind.so ]; then
+         install -v -m755 nsswitch/pam_winbind.so /lib/security
+     fi &amp;&amp;
 -->
 
 <screen role="root"><userinput>make install &amp;&amp;
@@ -151,10 +164,6 @@ chmod -v 644 /usr/include/lib{smbclient,msrpc}.h &amp;&amp;
 install -v -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
 ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
 ln -v -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
-
-if [ -f nsswitch/pam_winbind.so ]; then
-    install -v -m755 nsswitch/pam_winbind.so /lib/security
-fi &amp;&amp;
 
 install -v -m644 ../examples/smb.conf.default /etc/samba &amp;&amp;
 
@@ -193,8 +202,10 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
     <para><option>--with-pam</option>: Use this parameter to link
     <application>Linux-PAM</application> into the build. This
     also builds the <filename class='libraryfile'>pam_winbind.so</filename>
-    <application>PAM</application> module. You can find
-    instructions on how to configure and use the module by running
+    and <filename class='libraryfile'>pam_smbpass.so</filename>
+    <application>PAM</application> modules. You can find
+    instructions on how to configure and use the
+    <filename class='libraryfile'>pam_winbind.so</filename>module by running
     <command>man winbindd</command>.</para>
 
     <!-- I am convinced that this command is no longer necessary. -Randy
@@ -246,16 +257,18 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
       <title>Mounting Shares by Unprivileged Users</title>
 
       <para>If it is desired for unprivileged users to directly mount (and
-      unmount) SMB shares, the <command>smbmnt</command> and
-      <command>smbumount</command> commands must be setuid
+      unmount) SMB and CIFS shares, the <command>smbmnt</command>,
+      <command>smbumount</command>, <command>mount.cifs</command> and
+      <command>umount.cifs</command> commands must be setuid
       <systemitem class='username'>root</systemitem>. Note that users can
-      only mount SMB shares on a mount point owned by that user (requires
+      only mount SMB/CIFS shares on a mount point owned by that user (requires
       write access also). If desired, change these programs to setuid
       <systemitem class='username'>root</systemitem> by issuing the following
       command as the <systemitem class='username'>root</systemitem>
       user:</para>
 
-<screen role="root"><userinput>chmod -v 4755 /usr/bin/smb{mnt,umount}</userinput></screen>
+<screen role="root"><userinput>chmod -v 4755 /usr/bin/smb{mnt,umount}
+              /usr/sbin/{,u}mount.cifs</userinput></screen>
 
     </sect3>
 
@@ -687,14 +700,15 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
 <!--newprogs: eventlogadm smbget-->
 
       <seglistitem>
-        <seg>eventlogadm, findsmb, mount.smbfs, net, nmbd, nmblookup,
-        ntlm_auth, pdbedit, profiles, rpcclient, smbcacls, smbclient,
-        smbcontrol, smbcquotas, smbd, smbget, smbmnt, smbmount, smbpasswd,
-        smbspool, smbstatus, smbtar, smbtree, smbumount, swat, tdbbackup,
-        tdbdump, tdbtool, testparm, testprns, wbinfo, and winbindd</seg>
+        <seg>eventlogadm, findsmb, mount.cifs, mount.smbfs, net, nmbd,
+        nmblookup, ntlm_auth, pdbedit, profiles, rpcclient, smbcacls,
+        smbclient, smbcontrol, smbcquotas, smbd, smbget, smbmnt, smbmount,
+        smbpasswd, smbspool, smbstatus, smbtar, smbtree, smbumount, swat,
+        tdbbackup, tdbdump, tdbtool, testparm, unmount.cifs, wbinfo
+        and winbindd</seg>
         <seg>libnss_winbind.so, libnss_wins.so, libsmbclient.so, libmsrpc.so,
-        the pam_winbind.so PAM library and assorted character set, filesystem
-        and support modules.</seg>
+        the pam_winbind.so and pam_smbpass.so PAM libraries, and assorted
+        character set, filesystem and support modules.</seg>
         <seg>/etc/samba, /usr/lib/python2.4/site-packages/samba,
         /usr/lib/samba, /usr/share/doc/samba-&samba3-version;,
         /usr/share/samba, /var/lib/samba and /var/log/samba</seg>
@@ -725,6 +739,18 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           SMB name queries on a subnet.</para>
           <indexterm zone="samba3 findsmb">
             <primary sortas="b-findsmb">findsmb</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mount.cifs">
+        <term><command>mount.cifs</command></term>
+        <listitem>
+          <para>mounts a Linux CIFS filesystem. It is usually invoked
+          indirectly by the <command>mount</command> command when using the
+          <option>-t cifs</option> option.</para>
+          <indexterm zone="samba3 mount.cifs">
+            <primary sortas="b-mount.cifs">mount.cifs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -1031,12 +1057,15 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
         </listitem>
       </varlistentry>
 
-      <varlistentry id="testprns">
-        <term><command>testprns</command></term>
+      <varlistentry id="umount.cifs">
+        <term><command>umount.cifs</command></term>
         <listitem>
-          <para>tests printer names.</para>
-          <indexterm zone="samba3 testprns">
-            <primary sortas="b-testprns">testprns</primary>
+          <para>is used by normal, non-<systemitem
+          class="username">root</systemitem> users, to
+          <command>unmount</command> their own Common Internet File System
+          (CIFS) mounts.</para>
+          <indexterm zone="samba3 umount.cifs">
+            <primary sortas="b-umount.cifs">umount.cifs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
