@@ -18,7 +18,7 @@
 
     <!-- Allow select the dest dir at runtime -->
   <xsl:param name="dest.dir">
-    <xsl:value-of select="concat('/home/httpd/', substring-after('&patch-root;', 'http://'))"/>
+    <xsl:value-of select="concat('/srv/www/', substring-after('&patch-root;', 'http://'))"/>
   </xsl:param>
 
   <xsl:template match="/">
@@ -52,7 +52,7 @@ fi</xsl:text>
     <xsl:if test="contains(@url, '.patch') and contains(@url, '&patch-root;') 
             and not(ancestor-or-self::*/@condition = 'pdf')">
       <xsl:variable name="patch.name" select="substring-after(@url, '&patch-root;')"/>
-      <xsl:text>copy /home/httpd/www.linuxfromscratch.org/patches/downloads</xsl:text>
+      <xsl:text>copy /srv/www/www.linuxfromscratch.org/patches/downloads</xsl:text>
       <xsl:choose>
           <!-- cdparanoia -->
         <xsl:when test="contains($patch.name, '-III')">
