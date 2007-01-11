@@ -4,27 +4,15 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
-  <!ENTITY mitkrb-download-http "http://web.mit.edu/kerberos/www/dist/krb5/1.4/krb5-&mitkrb-version;-signed.tar">
+  <!ENTITY mitkrb-download-http "http://web.mit.edu/kerberos/www/dist/krb5/1.6/krb5-&mitkrb-version;-signed.tar">
   <!ENTITY mitkrb-download-ftp " ">
-  <!ENTITY mitkrb-md5sum "617e0071fa5b74ab4116f064678af551">
-  <!ENTITY mitkrb-size "6.4 MB">
-  <!ENTITY mitkrb-buildsize "TBD MB">
-  <!ENTITY mitkrb-time "TBD SBU">
+  <!ENTITY mitkrb-md5sum "a365e39ff7d39639556c2797a0e1c3f4">
+  <!ENTITY mitkrb-size "12.0 MB">
+  <!ENTITY mitkrb-buildsize "124 MB">
+  <!ENTITY mitkrb-time "1.4 SBU">
 ]>
 
-<sect1 id="mitkrb" xreflabel="MIT krb5-&mitkrb-version;">
+<sect1 id="mitkrb" xreflabel="MIT Kerberos V5-&mitkrb-version;">
   <?dbhtml filename="mitkrb.html"?>
 
   <sect1info>
@@ -32,17 +20,17 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>MIT Krb5-&mitkrb-version;</title>
+  <title>MIT Kerberos V5-&mitkrb-version;</title>
 
   <indexterm zone="mitkrb">
-    <primary sortas="a-Kerberos-MIT">Kerberos5(MIT)</primary>
+    <primary sortas="a-MIT-Kerberos">MIT Kerberos V5</primary>
   </indexterm>
 
     <sect2 role="package">
-      <title>Introduction to MIT Krb5</title>
+      <title>Introduction to MIT Kerberos V5</title>
 
-    <para><application>MIT krb5</application> is a free implementation of
-    Kerberos 5. Kerberos is a network authentication protocol. It
+    <para><application>MIT Kerberos V5</application> is a free implementation
+    of Kerberos 5. Kerberos is a network authentication protocol. It
     centralizes the authentication database and uses kerberized
     applications to work with servers or services that support Kerberos
     allowing single logins and encrypted communication over internal
@@ -70,13 +58,13 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">MIT Krb5 Dependencies</bridgehead>
+    <bridgehead renderas="sect3">MIT Kerberos V5 Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="xinetd"/> (services servers only),
-    <xref linkend="linux-pam"/> (for <command>xdm</command> based logins) and
-    <xref linkend="openldap"/> (alternative for <command>krb5kdc</command>
-    password database)</para>
+    <para role="optional"><xref linkend="linux-pam"/>
+    (for <command>xdm</command> based logins),
+    <xref linkend="openldap"/>, and
+    <xref linkend="dejagnu"/> (required to run the test suite)</para>
 
     <note>
       <para>Some sort of time synchronization facility on your system (like
@@ -91,52 +79,64 @@
   </sect2>
 
   <sect2 role="installation">
-    <title>Installation of MIT Krb5</title>
+    <title>Installation of MIT Kerberos V5</title>
 
-
-    <!-- <note><para>The instructions for MIT Krb5 have not yet been validated by
-    the BLFS Editors.  Until this section is updated, the Editors reccomend
-    using <xref linkend='heimdal'/> to implement the functionality of this
-    package.</para></note> -->
-
-
-    <para><application>MIT krb5</application> is distributed in a
+    <para><application>MIT Kerberos V5</application> is distributed in a
     TAR file containing a compressed TAR package and a detached PGP
-    <filename class="extension">ASC</filename> file.</para>
+    <filename class="extension">ASC</filename> file. You'll need to unpack
+    the distribution tar file, then unpack the compressed tar file before
+    starting the build.</para>
 
-    <para>If you have installed <xref linkend="gnupg"/>, you can
+    <para>After unpacking the distribution tarball and if you have
+    <xref linkend="gnupg"/> installed, you can
     authenticate the package with the following command:</para>
 
 <screen><userinput>gpg - -verify krb5-&mitkrb-version;.tar.gz.asc</userinput></screen>
 
-    <para>Build <application>MIT krb5</application> by running the
+    <para>Build <application>MIT Kerberos V5</application> by running the
     following commands:</para>
 
 <screen><userinput>cd src &amp;&amp;
-./configure --prefix=/usr --sysconfdir=/etc \
-    --localstatedir=/var/lib --enable-dns \
-    --enable-static --mandir=/usr/share/man &amp;&amp;
+./configure CPPFLAGS="-I/usr/include/et -I/usr/include/ss" \
+            --prefix=/usr \
+            --sysconfdir=/etc/krb5 \
+            --localstatedir=/var/lib \
+            --with-system-et \
+            --with-system-ss \
+            --enable-dns-for-realm \
+            --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
+
+    <para>The regression test suite is designed to be run after the
+    installation has been completed.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
+
 mv -v /usr/bin/ksu /bin &amp;&amp;
+chmod -v 755 /bin/ksu &amp;&amp;
 mv -v /usr/lib/libkrb5.so.3* /lib &amp;&amp;
-mv -v /usr/lib/libkrb4.so.2* /lib &amp;&amp;
-mv -v /usr/lib/libdes425.so.3* /lib &amp;&amp;
 mv -v /usr/lib/libk5crypto.so.3* /lib &amp;&amp;
-mv -v /usr/lib/libcom_err.so.3* /lib &amp;&amp;
-ln -v -sf ../../lib/libkrb5.so.3 /usr/lib/libkrb5.so &amp;&amp;
-ln -v -sf ../../lib/libkrb4.so.2 /usr/lib/libkrb4.so &amp;&amp;
-ln -v -sf ../../lib/libdes425.so.3 /usr/lib/libdes425.so &amp;&amp;
-ln -v -sf ../../lib/libk5crypto.so.3 /usr/lib/libk5crypto.so &amp;&amp;
-ln -v -sf ../../lib/libcom_err.so.3 /usr/lib/libcom_err.so &amp;&amp;
-ldconfig</userinput></screen>
+mv -v /usr/lib/libkrb5support.so.0* /lib &amp;&amp;
+
+ln -v -sf ../../lib/libkrb5.so.3.3 /usr/lib/libkrb5.so &amp;&amp;
+ln -v -sf ../../lib/libk5crypto.so.3.1 /usr/lib/libk5crypto.so &amp;&amp;
+ln -v -sf ../../lib/libkrb5support.so.0.1 /usr/lib/libkrb5support.so&amp;&amp;
+
+install -m644 -v ../doc/*.info* /usr/share/info &amp;&amp;
+for INFOFILE in 425 5-admin 5-install 5-user; do
+    install-info --info-dir=/usr/share/info \
+                 /usr/share/info/krb$INFOFILE.info
+    rm ../doc/krb$INFOFILE.info*
+done &amp;&amp;
+
+install -m755 -v -d /usr/share/doc/krb5-&mitkrb-version; &amp;&amp;
+cp -Rv ../doc/* /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
 
     <warning>
       <para><command>login.krb5</command> does not support
-      <application>shadow</application> passwords. As a result, when the
+      <application>Shadow</application> passwords. As a result, when the
       Kerberos server is unavailable, the default fall through to
       <filename>/etc/password</filename> will not work because
       the passwords have been moved to <filename>/etc/shadow</filename> during
@@ -145,13 +145,27 @@ ldconfig</userinput></screen>
       <filename>/etc/password</filename> could prevent any logins.</para>
     </warning>
 
-    <para>If <application>Linux-Pam</application> is not installed and
-    you understand the above warning, the following can be entered as the
-    <systemitem class="username">root</systemitem> user:</para>
+    <para>After considering (and understanding) the above warning, the
+    following commands can be entered as the
+    <systemitem class="username">root</systemitem> user to replace the
+    existing <command>login</command> program with the Kerberized
+    version (after preserving the original) and move the support libraries
+    to a location available when the
+    <filename class='directory'>/usr</filename> filesystem is
+    not mounted:</para>
 
 <screen role="root"><userinput>mv -v /bin/login /bin/login.shadow &amp;&amp;
-cp -v /usr/sbin/login.krb5 /bin/login</userinput></screen>
+install -m755 -v /usr/sbin/login.krb5 /bin/login &amp;&amp;
 
+mv -v /usr/lib/libdes425.so.3* /lib &amp;&amp;
+mv -v /usr/lib/libkrb4.so.2* /lib &amp;&amp;
+
+ln -v -sf ../../lib/libdes425.so.3.0 /usr/lib/libdes425.so &amp;&amp;
+ln -v -sf ../../lib/libkrb4.so.2.0 /usr/lib/libkrb4.so &amp;&amp;
+
+ldconfig</userinput></screen>
+
+    <!--
     <para>If <application>CrackLib</application> is installed, or if any
     word list has been put in
     <filename class='directory'>/usr/share/dict</filename>, the following
@@ -159,44 +173,65 @@ cp -v /usr/sbin/login.krb5 /bin/login</userinput></screen>
     user:</para>
 
 <screen role="root"><userinput>ln -s /usr/share/dict/words /var/lib/krb5kdc/kadmin.dict</userinput></screen>
+    -->
+
+    <para>To test the installation, you must have
+    <xref linkend="dejagnu"/> installed and issue: <command>make
+    check</command>. The RPC layer tests will require a portmap daemon
+    (see <xref linkend="portmap"/>) running and configured to listen on the
+    regular network interface (not localhost). See the <quote>Testing the
+    Build</quote> section of the <filename>krb5-install.html</filename> file
+    in the <filename class='directory'>../doc</filename> directory for complete
+    information on running the regression tests.</para>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--enable-dns</parameter>: This switch allows
+    <para><parameter>--enable-dns-for-realm</parameter>: This parameter allows
     realms to be resolved using the DNS server.</para>
 
-    <para><parameter>--enable-static</parameter>: This switch builds static
-    libraries in addition to the shared libraries.</para>
+    <para><parameter>--with-system-et</parameter>: This parameter causes the
+    build to use the system-installed versions of the error-table support
+    software.</para>
 
-    <para><command>mv -v /bin/login /bin/login.shadow &amp;&amp;
-    cp -v /usr/sbin/login.krb5 /bin/login &amp;&amp;
-    mv -v /usr/bin/ksu /bin</command>: Preserves
-    <application>Shadow</application>'s <command>login</command>
-    command, moves <command>ksu</command> and <command>login</command> to
-    the <filename class="directory">/bin</filename> directory.</para>
+    <para><parameter>--with-system-ss</parameter>: This parameter causes the
+    build to use the system-installed versions of the subsystem command-line
+    interface software.</para>
+
+    <para><parameter>--localstatedir=/var/lib</parameter>: This parameter is
+    used so that the Kerberos variable run-time data is located in
+    <filename class='directory'>/var/lib</filename> instead of
+    <filename class='directory'>/usr/var</filename>.</para>
+
+    <!-- <para><parameter>- -enable-static</parameter>: This switch builds static
+    libraries in addition to the shared libraries.</para> -->
+
+    <para><command>mv -v /usr/bin/ksu /bin</command>: Moves the
+    <command>ksu</command> program to the
+    <filename class="directory">/bin</filename> directory so that it is
+    available when the <filename class="directory">/usr</filename>
+    filesystem is not mounted.</para>
 
     <para><command>mv -v ... /lib &amp;&amp; ln -v -sf ...</command>:
-    The <command>login</command> and <command>ksu</command> programs
-    are linked against these libraries, therefore these libraries are moved
-    to <filename class="directory">/lib</filename> to allow logins without
-    mounting <filename class="directory">/usr</filename>.</para>
+    These libraries are moved to <filename class="directory">/lib</filename> so
+    they are available when the <filename class="directory">/usr</filename>
+    filesystem is not mounted.</para>
 
   </sect2>
 
   <sect2 role="configuration">
-    <title>Configuring MIT Krb5</title>
+    <title>Configuring MIT Kerberos V5</title>
 
     <sect3 id="krb5-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/krb5.conf</filename> and
+      <para><filename>/etc/krb5/krb5.conf</filename> and
       <filename>/var/lib/krb5kdc/kdc.conf</filename></para>
 
       <indexterm zone="mitkrb krb5-config">
-        <primary sortas="e-etc-krb5.conf">/etc/krb5.conf</primary>
+        <primary sortas="e-etc-krb5-krb5.conf">/etc/krb5/krb5.conf</primary>
       </indexterm>
 
       <indexterm zone="mitkrb krb5-config">
@@ -211,11 +246,23 @@ cp -v /usr/sbin/login.krb5 /bin/login</userinput></screen>
       <sect4>
         <title>Kerberos Configuration</title>
 
-        <para>Create the Kerberos configuration file with the following
-        command:</para>
+        <tip>
+          <para>You should consider installing some sort of password checking
+          dictionary so that you can configure the installation to only
+          accept strong passwords. A suitable dictionary to use is shown in
+          the <xref linkend="cracklib"/> instructions. Note that only one
+          file can be used, but you can concatenate many files into one. The
+          configuration file shown below assumes you have installed a
+          dictionary to <filename>/usr/share/dict/words</filename>.</para>
+        </tip>
 
-<screen role="root"><userinput>cat &gt; /etc/krb5.conf &lt;&lt; "EOF"
-<literal># Begin /etc/krb5.conf
+        <para>Create the Kerberos configuration file with the following
+        commands issued by the <systemitem class="username">root</systemitem>
+        user:</para>
+
+<screen role="root"><userinput>install -v -m755 -d /etc/krb5 &amp;&amp;
+cat &gt; /etc/krb5/krb5.conf &lt;&lt; "EOF"
+<literal># Begin /etc/krb5/krb5.conf
 
 [libdefaults]
     default_realm = <replaceable>&lt;LFS.ORG&gt;</replaceable>
@@ -225,6 +272,7 @@ cp -v /usr/sbin/login.krb5 /bin/login</userinput></screen>
     <replaceable>&lt;LFS.ORG&gt;</replaceable> = {
         kdc = <replaceable>&lt;belgarath.lfs.org&gt;</replaceable>
         admin_server = <replaceable>&lt;belgarath.lfs.org&gt;</replaceable>
+        dict_file = /usr/share/dict/words
     }
 
 [domain_realm]
@@ -235,7 +283,7 @@ cp -v /usr/sbin/login.krb5 /bin/login</userinput></screen>
     admin_server = SYSLOG[INFO[:AUTH]]
     default = SYSLOG[[:SYS]]
 
-# End /etc/krb5.conf</literal>
+# End /etc/krb5/krb5.conf</literal>
 EOF</userinput></screen>
 
         <para>You will need to substitute your domain and proper hostname
@@ -281,7 +329,7 @@ EOF</userinput></screen>
 <screen role='root'><userinput><prompt>kadmin:</prompt> ktadd host/<replaceable>&lt;belgarath.lfs.org&gt;</replaceable></userinput></screen>
 
         <para>This should have created a file in
-        <filename class="directory">/etc</filename> named
+        <filename class="directory">/etc/krb5</filename> named
         <filename>krb5.keytab</filename> (Kerberos 5). This file should
         have 600 (<systemitem class="username">root</systemitem> rw only)
         permissions. Keeping the keytab files from public access is crucial
@@ -317,7 +365,7 @@ EOF</userinput></screen>
         following command:</para>
 
 <screen><userinput>ktutil
-<prompt>ktutil:</prompt> rkt /etc/krb5.keytab
+<prompt>ktutil:</prompt> rkt /etc/krb5/krb5.keytab
 <prompt>ktutil:</prompt> l</userinput></screen>
 
         <para>This should dump a list of the host principal, along with
@@ -371,7 +419,7 @@ EOF</userinput></screen>
         <title>Additional Information</title>
 
         <para>For additional information consult <ulink
-        url="http://web.mit.edu/kerberos/www/krb5-1.4/#documentation">
+        url="http://web.mit.edu/kerberos/www/krb5-1.6/#documentation">
         Documentation for krb-&mitkrb-version;</ulink> on which the above
         instructions are based.</para>
 
@@ -391,16 +439,19 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>compile-et, ftp, ftpd, gss-client, gss-server, k5srvutil, kadmin,
-        kadmin.local, kadmind, kadmind4, kdb5_util, kdestroy, kinit, klist,
-        klogind, kpasswd, kprop, kpropd, krb5-send-pr, krb5-config, krb524d,
+        <seg>ftp, ftpd, gss-client, gss-server, k5srvutil, kadmin,
+        kadmin.local, kadmind, kdb5_ldap_util, kdb5_util, kdestroy, kinit, klist,
+        klogind, kpasswd, kprop, kpropd, krb5-config, krb5-send-pr, krb524d,
         krb524init, krb5kdc, kshd, ksu, ktutil, kvno, login.krb5, rcp, rlogin,
         rsh, sclient, sim_client, sim_server, sserver, telnet, telnetd,
-        uuclient, uuserver, v5passwd, and v5passwdd</seg>
-        <seg>libcom_err.{so,a}, libdes425.{so,a}, libgssapi.{so,a},
-        libgssrpc.{so,a}, libkadm5clnt.{so,a}, libkadm5srv.{so,a},
-        libkdb5.{so,a}, libkrb5.{so,a}, and libkrb4.{so,a}</seg>
-        <seg>/usr/include/kerberosIV and /var/lib/krb5kdc</seg>
+        uuclient, uuserver and v4rcp</seg>
+        <seg>libdes425.so, libgssapi_krb5.so,
+        libgssrpc.so, libk5crypto.so, libkadm5clnt.so, libkadm5srv.so,
+        libkdb5.so, libkdb_ldap.so, libkrb4.so, libkrb5.so and
+        libkrb5support.so</seg>
+        <seg>/etc/krb5, /usr/include/{gssapi,gssrpc,kerberosIV,krb5},
+        /usr/lib/krb5, /usr/share/{doc/krb5-&mitkrb-version;,examples,gnats}
+        and /var/lib/krb5kdc</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -409,22 +460,11 @@ EOF</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="compile_et">
-        <term><command>compile_et</command></term>
-        <listitem>
-          <para>converts the table listing error-code names into a
-          C source file.</para>
-          <indexterm zone="mitkrb compile_et">
-            <primary sortas="b-compile_et">compile_et</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="ftp-mitkrb">
         <term><command>ftp</command></term>
         <listitem>
           <para>is a kerberized FTP client.</para>
-          <indexterm zone="mitkrb ftp">
+          <indexterm zone="mitkrb ftp-mitkrb">
             <primary sortas="b-ftp">ftp</primary>
           </indexterm>
         </listitem>
@@ -434,7 +474,7 @@ EOF</userinput></screen>
         <term><command>ftpd</command></term>
         <listitem>
           <para>is a kerberized FTP daemon.</para>
-          <indexterm zone="mitkrb ftpd">
+          <indexterm zone="mitkrb ftpd-mitkrb">
             <primary sortas="b-ftpd">ftpd</primary>
           </indexterm>
         </listitem>
@@ -558,13 +598,13 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="krb5-config-1">
+      <varlistentry id="krb5-config-prog2">
         <term><command>krb5-config</command></term>
         <listitem>
           <para>gives information on how to link programs against
           libraries.</para>
-          <indexterm zone="mitkrb krb5-config-prog">
-            <primary sortas="b-krb5-config-1">krb5-config</primary>
+          <indexterm zone="mitkrb krb5-config-prog2">
+            <primary sortas="b-krb5-config">krb5-config</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -638,7 +678,7 @@ EOF</userinput></screen>
         <term><command>rcp</command></term>
         <listitem>
           <para>is a kerberized rcp client program.</para>
-          <indexterm zone="mitkrb rcp">
+          <indexterm zone="mitkrb rcp-mitkrb">
             <primary sortas="b-rcp">rcp</primary>
           </indexterm>
         </listitem>
@@ -658,7 +698,7 @@ EOF</userinput></screen>
         <term><command>rsh</command></term>
         <listitem>
           <para>is a kerberized rsh client program.</para>
-          <indexterm zone="mitkrb rsh">
+          <indexterm zone="mitkrb rsh-mitkrb">
             <primary sortas="b-rsh">rsh</primary>
           </indexterm>
         </listitem>
@@ -668,7 +708,7 @@ EOF</userinput></screen>
         <term><command>telnet</command></term>
         <listitem>
           <para>is a kerberized telnet client program.</para>
-          <indexterm zone="mitkrb telnet">
+          <indexterm zone="mitkrb telnet-mitkrb">
             <primary sortas="b-telnet">telnet</primary>
           </indexterm>
         </listitem>
@@ -678,75 +718,65 @@ EOF</userinput></screen>
         <term><command>telnetd</command></term>
         <listitem>
           <para>is a kerberized telnet server.</para>
-          <indexterm zone="mitkrb telnetd">
+          <indexterm zone="mitkrb telnetd-mitkrb">
             <primary sortas="b-telnetd">telnetd</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libcom_err">
-        <term><filename class='libraryfile'>libcom_err.{so,a}</filename></term>
-        <listitem>
-          <para>implements the Kerberos library error code.</para>
-          <indexterm zone="mitkrb libcom_err">
-            <primary sortas="c-libcom_err">libcom_err.{so,a}</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="libgssapi-mitkrb">
-        <term><filename class='libraryfile'>libgssapi.{so,a}</filename></term>
+      <varlistentry id="libgssapi_krb5-mitkrb">
+        <term><filename class='libraryfile'>libgssapi_krb5.so</filename></term>
         <listitem>
           <para>contain the Generic Security Service Application
           Programming Interface (GSSAPI) functions which provides security
           services to callers in a generic fashion, supportable with a range of
           underlying mechanisms and technologies and hence allowing source-level
           portability of applications to different environments.</para>
-          <indexterm zone="mitkrb libgssapi">
-            <primary sortas="c-libgssapi">libgssapi.{so,a}</primary>
+          <indexterm zone="mitkrb libgssapi_krb5-mitkrb">
+            <primary sortas="c-libgssapi_krb5">libgssapi_krb5.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libkadm5clnt-mitkrb">
-        <term><filename class='libraryfile'>libkadm5clnt.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libkadm5clnt.so</filename></term>
         <listitem>
           <para>contains the administrative authentication and password
           checking functions required by Kerberos 5 client-side programs.</para>
-          <indexterm zone="mitkrb libkadm5clnt">
-            <primary sortas="c-libkadm5clnt">libkadm5clnt.{so,a}</primary>
+          <indexterm zone="mitkrb libkadm5clnt-mitkrb">
+            <primary sortas="c-libkadm5clnt">libkadm5clnt.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libkadm5srv-mitkrb">
-        <term><filename class='libraryfile'>libkadm5srv.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libkadm5srv.so</filename></term>
         <listitem>
           <para>contain the administrative authentication and password
           checking functions required by Kerberos 5 servers.</para>
-          <indexterm zone="mitkrb libkadm5srv">
-            <primary sortas="c-libkadm5srv">libkadm5srv.{so,a}</primary>
+          <indexterm zone="mitkrb libkadm5srv-mitkrb">
+            <primary sortas="c-libkadm5srv">libkadm5srv.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libkdb5">
-        <term><filename class='libraryfile'>libkdb5.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libkdb5.so</filename></term>
         <listitem>
           <para>is a Kerberos 5 authentication/authorization database
           access library.</para>
           <indexterm zone="mitkrb libkdb5">
-            <primary sortas="c-libkdb5">libkdb5.{so,a}</primary>
+            <primary sortas="c-libkdb5">libkdb5.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libkrb5-mitkrb">
-        <term><filename class='libraryfile'>libkrb5.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libkrb5.so</filename></term>
         <listitem>
           <para>is an all-purpose Kerberos 5 library.</para>
-          <indexterm zone="mitkrb libkrb5">
-            <primary sortas="c-libkrb5">libkrb5.{so,a}</primary>
+          <indexterm zone="mitkrb libkrb5-mitkrb">
+            <primary sortas="c-libkrb5">libkrb5.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
