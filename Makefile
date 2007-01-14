@@ -44,6 +44,10 @@ blfs:
 	  sed -i -e "s@text/html@application/xhtml+xml@g" $$filename; \
 	done;
 
+wget-list:
+	mkdir -p $(BASEDIR)
+	xsltproc --xinclude --nonet stylesheets/wget-list.xsl index.xml > $(BASEDIR)/wget-list
+
 nochunks:
 	@echo "Generating nochunks version of BLFS..."
 	xsltproc --xinclude --nonet -stringparam profile.condition html \
@@ -59,7 +63,7 @@ nochunks:
 
 pdf:
 	xsltproc --xinclude --nonet --stringparam profile.condition pdf \
-             --output blfs-pdf.xml stylesheets/blfs-profile.xsl index.xml 
+             --output blfs-pdf.xml stylesheets/blfs-profile.xsl index.xml
 	xsltproc --xinclude --nonet --output blfs.fo \
 	         stylesheets/blfs-pdf.xsl blfs-pdf.xml
 	sed -i -e "s/inherit/all/" blfs.fo
@@ -94,7 +98,7 @@ validate:
 
 validate-pdf:
 	xsltproc --xinclude --nonet --stringparam profile.condition pdf \
-             --output blfs-pdf.xml stylesheets/blfs-profile.xsl index.xml 
+             --output blfs-pdf.xml stylesheets/blfs-profile.xsl index.xml
 	xmllint --noout --nonet --postvalid blfs-pdf.xml
 
 blfs-patch-list:
