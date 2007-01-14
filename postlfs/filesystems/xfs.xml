@@ -4,24 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
-  <!ENTITY xfsprogs-download-http "http://mirrors.sunsite.dk/xfs/download/cmd_tars/xfsprogs-&xfsprogs-version;.src.tar.gz">
-  <!ENTITY xfsprogs-download-ftp  "ftp://oss.sgi.com/projects/xfs/download/cmd_tars/xfsprogs-&xfsprogs-version;.src.tar.gz">
-  <!ENTITY xfsprogs-md5sum        "d4a78fced98c0f3f32627a473e8e0a59">
-  <!ENTITY xfsprogs-size          "878 KB">
-  <!ENTITY xfsprogs-buildsize     "17.3 MB">
-  <!ENTITY xfsprogs-time          "0.78 SBU">
+  <!ENTITY xfsprogs-download-http "http://mirrors.sunsite.dk/xfs/download/cmd_tars/xfsprogs_&xfsprogs-version;-1.tar.gz">
+  <!ENTITY xfsprogs-download-ftp  "ftp://oss.sgi.com/projects/xfs/download/cmd_tars/xfsprogs_&xfsprogs-version;-1.tar.gz">
+  <!ENTITY xfsprogs-md5sum        "6ce9e198cc79ebec6f6fb1f34ffa7709">
+  <!ENTITY xfsprogs-size          "956 KB">
+  <!ENTITY xfsprogs-buildsize     "17.9 MB">
+  <!ENTITY xfsprogs-time          "0.57 SBU">
 ]>
 
 <sect1 id="xfs" xreflabel="XFS-&xfsprogs-version;">
@@ -78,15 +66,19 @@
     commands:</para>
 
 <screen><userinput>sed -i '/autoconf/d' Makefile &amp;&amp;
-make DEBUG=-DNDEBUG</userinput></screen>
+make DEBUG=-DNDEBUG INSTALL_USER=root INSTALL_GROUP=root \
+    LOCAL_CONFIGURE_OPTIONS="--enable-readline=yes"</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chmod -v 755 /lib/libhandle.so* &amp;&amp;
+make install-dev &amp;&amp;
 install -v -m755 -D libhandle/libhandle.la /usr/lib/libhandle.la &amp;&amp;
-install -v -m644 libhandle/.libs/libhandle.a /usr/lib &amp;&amp;
-ln -sv ../../lib/libhandle.so.1 /usr/lib/libhandle.so</userinput></screen>
+chmod -v 755 /lib/libhandle.so* &amp;&amp;
+rm -f /lib/libhandle.{a,la,so} &amp;&amp;
+ln -svf ../../lib/libhandle.so.1 /usr/lib/libhandle.so</userinput></screen>
 
   </sect2>
 
@@ -100,17 +92,31 @@ ln -sv ../../lib/libhandle.so.1 /usr/lib/libhandle.so</userinput></screen>
     <para><command>make DEBUG=-DNDEBUG</command>: The <application>XFS
     </application> build will fail using the default -DDEBUG flags.</para>
 
+    <para><parameter>INSTALL_USER=root INSTALL_GROUP=root</parameter>: This
+    sets the owner and group of the installed files.</para>
+    <!-- relevant only if building as non-root -->
+    
+    <para><parameter>LOCAL_CONFIGURE_OPTIONS="..."</parameter>: This passes
+    extra configuration options to the <filename>configure</filename> script.
+    The example <parameter>--enable-readline=yes</parameter> parameter
+    enables linking the XFS programs with the
+    <filename class="libraryfile">libreadline.so</filename> library, in order
+    to allow editing interactive commands.</para>
+    
     <para><parameter>OPTIMIZER="..."</parameter>: Adding this parameter to
-    the <command>make</command> command overrides the default optimization
-    settings.</para>
+    the end of the <command>make</command> command overrides the
+    default optimization settings.</para>
 
-    <para><command>install -v ...</command>: These commands install the
-    static library and libtool archive for <filename>libhandle</filename>
-    since <command>make install</command> only installs the shared
-    library.</para>
-
-    <para><command>ln -sv ...</command>: This command installs a symlink
-    that is missed by the <command>make install</command> command.</para>
+    <para><command>make install-dev</command>: This command installs
+    static XFS libraries, their headers and the corresponding documentation.
+    Currently, <ulink url="ftp://oss.sgi.com/projects/xfs/">DMAPI</ulink>
+    and <ulink url="ftp://oss.sgi.com/projects/xfs/">xfsdump</ulink> are
+    the only packages that use the installed libraries.</para>
+    <!-- checked with the Debian package database as of 2007-01-14 -->
+    
+    <para><command>install -v ...</command> and the three following commands
+    fix the installation of <filename class="libraryfile">libhandle</filename>
+    libraries.</para>
 
   </sect2>
 
@@ -119,14 +125,14 @@ ln -sv ../../lib/libhandle.so.1 /usr/lib/libhandle.so</userinput></screen>
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
         <seg>fsck.xfs, mkfs.xfs, xfs_admin, xfs_bmap, xfs_check, xfs_copy,
         xfs_db, xfs_freeze, xfs_growfs, xfs_info, xfs_io, xfs_logprint,
-        xfs_mkfile, xfs_ncheck, xfs_repair, and xfs_rtcp</seg>
-        <seg>libhandle.{so,a}</seg>
+        xfs_mkfile, xfs_ncheck, xfs_quota, xfs_repair, and xfs_rtcp</seg>
+        <seg>libdisk.a, libhandle.{so,a}, libxcmd.a, libxfs.a, and libxlog.a </seg>
         <seg>/usr/share/doc/xfsprogs</seg>
       </seglistitem>
     </segmentedlist>
@@ -317,13 +323,16 @@ ln -sv ../../lib/libhandle.so.1 /usr/lib/libhandle.so</userinput></screen>
       <varlistentry id="libhandle">
         <term><filename class='libraryfile'>libhandle.so</filename></term>
         <listitem>
-          <para>contains functions to map filesystem handles to a
-          corresponding open file descriptor for that filesystem.</para>
+          <para>contains XFS-specific functions that provide a way to perform
+	  certain filesystem  operations without using a file descriptor to
+	  access filesystem objects.</para>
           <indexterm zone="xfs libhandle">
             <primary sortas="c-libhandle">libhandle.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
+      
+      <!-- FIXME: other libraries are undocumented -->
 
     </variablelist>
 
