@@ -6,9 +6,9 @@
 
   <!ENTITY lynx-download-http "http://lynx.isc.org/release/lynx&lynx-version;.tar.bz2">
   <!ENTITY lynx-download-ftp  "ftp://lynx.isc.org/lynx&lynx-version;/lynx&lynx-version;.tar.bz2">
-  <!ENTITY lynx-md5sum        "d1e5134e5d175f913c16cb6768bc30eb">
+  <!ENTITY lynx-md5sum        "dc80497b7dda6a28fd80404684d27548">
   <!ENTITY lynx-size          "2.2 MB">
-  <!ENTITY lynx-buildsize     "25 MB">
+  <!ENTITY lynx-buildsize     "26 MB">
   <!ENTITY lynx-time          "0.5 SBU">
 ]>
 
@@ -56,18 +56,21 @@
     <bridgehead renderas="sect3">Lynx Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openssl"/> or
+    <para role="optional"><xref linkend="openssl"/> or experimentaly,
     <ulink url="http://www.gnu.org/software/gnutls/">GnuTLS</ulink> (which
     needs <ulink
     url="ftp://ftp.gnupg.org/gcrypt/alpha/libgpg-error/">libgpg-error</ulink>
     then <ulink url="ftp://ftp.gnupg.org/gcrypt/libgcrypt/">libgcrypt</ulink>),
-    an <xref linkend="server-mail"/>,
-    <xref linkend="zip"/>, <xref linkend="unzip"/>,
-    <xref linkend="slang"/> and
+    <xref linkend="zip"/>,
+    <xref linkend="unzip"/>,
+    an <xref linkend="server-mail"/> (that provides a
+    <command>sendmail</command> command),
+    <xref linkend="slang"/>, and
     <!-- <ulink
     url="http://ftp.ibiblio.org/pub/linux/utils/compress/ncompress-4.2.4.tar.Z">
     ncompress</ulink> and -->
-    <ulink url="http://www.gnu.org/software/sharutils/">sharutils</ulink></para>
+    <ulink url="http://www.gnu.org/software/sharutils/">sharutils</ulink>
+    (for a <command>uudecode</command> program)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/Lynx"/></para>
@@ -80,29 +83,35 @@
     <para>Install <application>Lynx</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --libdir=/etc \
-    --with-zlib --with-bzlib &amp;&amp;
+<screen><userinput>./configure --prefix=/usr \
+            --sysconfdir=/etc/lynx \
+            --datadir=/usr/share/doc/lynx-&lynx-version; \
+            --with-zlib \
+            --with-bzlib &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make docdir=/usr/share/doc/lynx-&lynx-version;/doc \
-    helpdir=/usr/share/doc/lynx-&lynx-version;/help install-full &amp;&amp;
-chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/doc</userinput></screen>
+<screen role='root'><userinput>make install-full &amp;&amp;
+chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/lynx_doc</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--libdir=/etc</parameter>: For some reason, the
-    <command>configure</command> and <command>make</command> routine for
-    <application>Lynx</application> uses <option>libdir</option> as the prefix
-    for the configuration file. This is set to
-    <filename class="directory">/etc</filename> so that the system wide
-    configuration file is <filename>/etc/lynx.cfg</filename>.</para>
+    <para><parameter>--sysconfdir=/etc/lynx</parameter>: This parameter is
+    used so that the configuration files are located in
+    <filename class="directory">/etc/lynx</filename> instead of
+    <filename class="directory">/usr/etc</filename>.</para>
+
+    <para><parameter>--datadir=/usr/share/doc/lynx-&lynx-version;</parameter>:
+    This parameter is used so that the documentation files are installed into
+    <filename class="directory">/usr/share/doc/lynx-&lynx-version;</filename>
+    instead of
+    <filename class="directory">/usr/share/lynx_{doc,help}</filename>.</para>
 
     <para><parameter>--with-zlib</parameter>: This enables support for
     linking <filename class="libraryfile">libz</filename> into
@@ -112,35 +121,33 @@ chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/doc</userinput></screen>
     linking <filename class="libraryfile">libbz2</filename> into
     <application>Lynx</application>.</para>
 
-    <para><parameter>docdir=... helpdir=...</parameter>: These
-    variables are set to avoid getting the help and documentation files
-    installed under <filename class="directory">/etc</filename>.</para>
-
-    <para><parameter>install-full</parameter>: In addition to the standard
-    installation, this target installs the documentation and the help
-    files.</para>
-
     <para><option>--with-ssl</option>: This enables support for
     linking SSL into <application>Lynx</application>.</para>
 
-    <para><option>--with-gnutls</option>: This enables support for
-    linking <application>GnuTLS</application> into
+    <para><option>--with-gnutls</option>: This enables experimental support
+    for linking <application>GnuTLS</application> into
     <application>Lynx</application>.</para>
 
+    <para><command>make install-full</command>: In addition to the standard
+    installation, this target installs the documentation and help files.</para>
+
     <para><command>chgrp -v -R root
-    /usr/share/doc/lynx-&lynx-version;/doc</command>:
+    /usr/share/doc/lynx-&lynx-version;/lynx_doc</command>:
     This command corrects the improper group ownership of installed
     documentation files caused if <application>Lynx</application> is built
     by any user other than
     <systemitem class="username">root</systemitem>.</para>
 
+    <!-- This was fixed in the 2.8.6 release, though it still could
+         be considered an issue by some
     <note>
       <para>There has been a security vulnerability identified if you enable
-      support for CGI links by passing the <option>--enable-cgi-links</option>
+      support for CGI links by passing the <option>-enable-cgi-links</option>
       parameter to <command>configure</command>. See <ulink
       url="http://seclists.org/lists/vulnwatch/2005/Oct-Dec/0041.html"/> for
       details.</para>
     </note>
+    -->
 
   </sect2>
 
@@ -150,10 +157,10 @@ chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/doc</userinput></screen>
     <sect3 id="lynx-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/lynx.cfg</filename></para>
+      <para><filename>/etc/lynx/lynx.cfg</filename></para>
 
       <indexterm zone="lynx lynx-config">
-        <primary sortas="e-etc-lynx.cfg">/etc/lynx.cfg</primary>
+        <primary sortas="e-etc-lynx-lynx.cfg">/etc/lynx/lynx.cfg</primary>
       </indexterm>
 
     </sect3>
@@ -163,7 +170,7 @@ chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/doc</userinput></screen>
 
       <para>Various settings such as proxies can be set in the system-wide
       <filename>lynx.cfg</filename> file found in
-      <filename class="directory">/etc</filename>.</para>
+      <filename class="directory">/etc/lynx</filename>.</para>
 
     </sect3>
 
@@ -175,12 +182,12 @@ chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/doc</userinput></screen>
     <segmentedlist>
     <segtitle>Installed Program</segtitle>
     <segtitle>Installed Libraries</segtitle>
-    <segtitle>Installed Directory</segtitle>
+    <segtitle>Installed Directories</segtitle>
 
     <seglistitem>
       <seg>lynx</seg>
       <seg>None</seg>
-      <seg>/usr/share/doc/lynx-&lynx-version;</seg>
+      <seg>/etc/lynx and /usr/share/doc/lynx-&lynx-version;</seg>
     </seglistitem>
     </segmentedlist>
 
