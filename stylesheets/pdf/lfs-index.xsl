@@ -10,6 +10,11 @@
                 xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
     <!--Title-->
   <xsl:template match="index" mode="title.markup">
     <xsl:param name="allow-anchors" select="0"/>

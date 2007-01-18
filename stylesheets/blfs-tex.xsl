@@ -6,6 +6,11 @@ version='1.0'>
 <xsl:output method="text" encoding="ISO-8859-1" indent="yes"/>
 <xsl:variable name="latex.override">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
 \documentclass[12pt]{book}
 
 \usepackage{lfs}

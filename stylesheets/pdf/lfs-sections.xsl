@@ -4,6 +4,11 @@
                 xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
      <!-- Force section1's onto a new page -->
   <xsl:attribute-set name="section.level1.properties">
     <xsl:attribute name="break-after">

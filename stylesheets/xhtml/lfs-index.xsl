@@ -10,6 +10,11 @@
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
     <!--Filename-->
   <xsl:template match="index" mode="recursive-chunk-filename">
     <xsl:text>longindex.html</xsl:text>

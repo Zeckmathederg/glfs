@@ -4,6 +4,10 @@
                 xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
 
     <!-- This is a hack and isn't correct semantically. Theoretically, the beginpage
       tags should be placed in the XML source only to render the PDF output and

@@ -4,6 +4,11 @@
                 xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
     <!-- Header -->
   <xsl:template name="header.content">
     <xsl:param name="sequence" select="''"/>

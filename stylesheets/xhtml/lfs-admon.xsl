@@ -4,6 +4,11 @@
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
     <!-- Use graphics in admonitions -->
   <xsl:param name="admon.graphics" select="1"/>
   <xsl:param name="admon.graphics.path">../images/</xsl:param>

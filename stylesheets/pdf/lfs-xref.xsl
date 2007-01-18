@@ -4,6 +4,11 @@
                 xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
      <!-- Making a proper punctuation in xref (only for English language).-->
   <xsl:template match="xref" name="xref">
     <xsl:variable name="targets" select="key('id',@linkend)"/>

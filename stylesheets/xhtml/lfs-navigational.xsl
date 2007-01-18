@@ -4,6 +4,11 @@
                 xmlns="http://www.w3.org/1999/xhtml"
                 version="1.0">
 
+<!--
+$LastChangedBy$
+$Date$
+-->
+
     <!-- Dropping the HEAD links -->
   <xsl:template name="html.head">
     <head>
