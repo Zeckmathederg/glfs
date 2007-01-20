@@ -259,10 +259,42 @@
     url="&lfs-root;/chapter06/man-db.html"/>. However, some packages install
     translated manual pages in UTF-8 encoding (e.g., Shadow, already dealt
     with), or manual pages in languages not in the table. Not all BLFS packages
-    have been audited for conformance with the requirements put in LFS. If you
-    find a manual page installed by any of BLFS packages that is obviously in
-    the wrong encoding, please remove or convert it as needed, and report this
-    to BLFS team as a bug.</para> 
+    have been audited for conformance with the requirements put in LFS (the
+    large majority have been checked, and fixes placed in the book for packages
+    known to install non-conforming manual pages). If you find a manual page
+    installed by any of BLFS packages that is obviously in the wrong encoding,
+    please remove or convert it as needed, and report this to BLFS team as a
+    bug.</para> 
+
+    <para>You can easily check your system for any non-conforming manual pages
+    by copying the following short shell script to some accessible location,
+
+<screen><literal>#!/bin/sh
+# Begin checkman.sh
+# Usage: find /usr/share/man -type f | xargs checkman.sh
+for a in "$@"
+do
+    # echo "Checking $a..."
+    # Pure-ASCII manual page (possibly except comments) is OK
+    grep -v '.\\"' "$a" | iconv -f US-ASCII -t US-ASCII >/dev/null 2>&amp;1 &amp;&amp; continue
+    # Non-UTF-8 manual page is OK
+    iconv -f UTF-8 -t UTF-8 "$a" >/dev/null 2>&amp;1 || continue
+    # If we got here, we found UTF-8 manual page, bad.
+    echo "UTF-8 manual page: $a" >&amp;2
+done
+# End checkman.sh
+</literal></screen>
+
+    and then issuing the following command (modify the command below if the
+    <command>checkman.sh</command> script is not in your <envar>PATH</envar>
+    environment variable):</para>
+
+<screen><userinput>find /usr/share/man -type f | xargs checkman.sh</userinput></screen>
+
+    <para>Note that if you have manual pages installed in any location other
+    than <filename class='directory'>/usr/share/man</filename> (e.g.,
+    <filename class='directory'>/usr/local/share/man</filename>), you must
+    modify the above command to include this additional location.</para>
 
   </sect2>
 
