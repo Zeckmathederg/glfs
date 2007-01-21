@@ -317,6 +317,30 @@ EOF</userinput></screen>
       to have appropriate permissions to access the devices that
       <application>HAL</application> will invoke its methods on.</para>
 
+      <para>With the above configuration in place, authorized users now
+      have the ability to unmount disk partitions mounted at non-standard
+      locations such as <filename class='directory'>/pub</filename>. If
+      you'd like to restrict this policy to only drives which are considered
+      removable or hotpluggable, add the following configuration file as
+      the <systemitem class='username'>root</systemitem> user:</para>
+
+<screen role="root"><userinput>cat &gt; /etc/hal/fdi/policy/no-fixed-drives.fdi &lt;&lt; "EOF"
+<literal>&lt;?xml version="1.0" encoding="UTF-8"?&gt; &lt;!-- -*- SGML -*- --&gt;
+
+&lt;!-- Don't allow HAL methods on disks that are not
+     removable or hotpluggable --&gt;
+
+&lt;deviceinfo version="0.2"&gt;
+&lt;device&gt;
+  &lt;match key="@block.storage_device:storage.hotpluggable" bool="false"&gt;
+    &lt;match key="@block.storage_device:storage.removable" bool="false"&gt;
+      &lt;merge key="volume.ignore" type="bool"&gt;true&lt;/merge&gt;
+    &lt;/match&gt;
+  &lt;/match&gt;
+&lt;/device&gt;
+&lt;/deviceinfo&gt;</literal>
+EOF</userinput></screen>
+
       <para><application>HAL</application> only provides the methods such
       as Mount() to act on hardware. In order to take advantage of these,
       a <application>HAL</application> event handler such as
