@@ -6,10 +6,12 @@
 
   <!ENTITY zsh-download-http "http://downloads.sourceforge.net/zsh/zsh-&zsh-version;.tar.bz2">
   <!ENTITY zsh-download-ftp  " ">
-  <!ENTITY zsh-md5sum        "e2060f743dcdf3b383e80e862a6548fe">
+  <!ENTITY zsh-md5sum        "2cefebf742c190cbc611baded825db64">
   <!ENTITY zsh-size          "2.0 MB">
-  <!ENTITY zsh-buildsize     "24 MB">
+  <!ENTITY zsh-buildsize     "41 MB (includes installing all documentation)">
   <!ENTITY zsh-time          "0.5 SBU">
+
+  <!ENTITY zsh-doc-md5sum    "3ca3b7c199db6eb942f2a296e3fad270">
 ]>
 
 <sect1 id="zsh" xreflabel="ZSH-&zsh-version;">
@@ -35,6 +37,16 @@
     <application>ZSH</application> most closely resembles
     <application>KSH</application> but includes many enhancements.</para>
 
+    <warning>
+      <para>This version of <application>ZSH</application> does not work
+      properly with multibyte locales (e.g., UTF-8). A development version
+      is available that addresses many, but not all, locale related issues.
+      You can download the development version from the <ulink
+      url="http://sourceforge.net/project/showfiles.php?group_id=4068">
+      ZSH Sourceforge Download Page</ulink> and use the following BLFS
+      instructions to build and install.</para>
+    </warning>
+
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -57,6 +69,17 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact"> 
+      <listitem> 
+        <para>Optional Documentation: <ulink
+        url="http://downloads.sourceforge.net/zsh/zsh-&zsh-version;-doc.tar.bz2"/></para>
+      </listitem>
+      <listitem> 
+        <para>MD5 sum: &zsh-doc-md5sum;</para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">ZSH Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -70,18 +93,62 @@
   <sect2 role="installation">
     <title>Installation of ZSH</title>
 
+    <para>If you downloaded the optional documentation, unpack it the same
+    way you would the source tarball. The documentation will unpack into
+    the <filename class='directory'>Doc</filename> directory of the source
+    tree.</para>
+
     <para>Install <application>ZSH</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>./configure --prefix=/usr \
+            --sysconfdir=/etc/zsh \
+            --enable-etcdir=/etc/zsh &amp;&amp;
 make</userinput></screen>
+
+    <para>If you downloaded the optional documentation, and you have
+    <xref linkend="tetex"/> installed, you can build additional formats of the
+    documentation by issuing any or all of the following commands:</para>
+
+<screen><userinput>texi2pdf  Doc/zsh.texi -o Doc/zsh.pdf &amp;&amp;
+texi2html Doc/zsh.texi --output=Doc/zsh_1file_t.html &amp;&amp;
+makeinfo  Doc/zsh.texi --html --no-split --no-headers \
+                       -o Doc/zsh_1file_m.html &amp;&amp;
+makeinfo  Doc/zsh.texi --plaintext -o Doc/zsh.txt</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-make install.info</userinput></screen>
+make infodir=/usr/share/info install.info</userinput></screen>
+
+    <para>If you downloaded the optional documentation, install it by issuing
+    the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make htmldir=/usr/share/doc/zsh-&zsh-version;/html install.html &amp;&amp;
+install -v -m644 Doc/*.{ps,dvi} /usr/share/doc/zsh-&zsh-version;</userinput></screen>
+
+    <para>If you built any additional formats of the documentation, install
+    them by issuing the following command as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m644 Doc/{zsh_1file*,*.{pdf,txt}} \
+        /usr/share/doc/zsh-&zsh-version;</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+    
+    <para><parameter>--sysconfdir=/etc/zsh</parameter> and
+    <parameter>--enable-etcdir=/etc/zsh</parameter>: These parameters are
+    used so that all the <application>ZSH</application> configuration files
+    are consolidated into the <filename class='directory'>/etc/zsh</filename>
+    directory. Omit these parameters if you wish to retain historical
+    compatibility by having all the files located in the
+    <filename class='directory'>/etc</filename> directory.</para>
 
   </sect2>
 
@@ -92,30 +159,33 @@ make install.info</userinput></screen>
       <title>Config Files</title>
 
       <para>There are a whole host of configuration files for
-      <application>ZSH</application> including <filename>/etc/zshenv</filename>,
-      <filename>/etc/zprofile</filename>, <filename>/etc/zshrc</filename>,
-      <filename>/etc/zlogin</filename>, and <filename>/etc/zlogout</filename>.
+      <application>ZSH</application> including
+      <filename>/etc/zsh/zshenv</filename>,
+      <filename>/etc/zsh/zprofile</filename>,
+      <filename>/etc/zsh/zshrc</filename>,
+      <filename>/etc/zsh/zlogin</filename> and
+      <filename>/etc/zsh/zlogout</filename>.
       You can find more information on these in the <filename>zsh(1)</filename>
-      and related man pages.</para>
+      and related manual pages.</para>
 
       <indexterm zone="zsh zsh-config">
-        <primary sortas="e-etc-zshenv">/etc/zshenv</primary>
+        <primary sortas="e-etc-zsh-zshenv">/etc/zsh/zshenv</primary>
       </indexterm>
 
       <indexterm zone="zsh zsh-config">
-        <primary sortas="e-etc-zprofile">/etc/zprofile</primary>
+        <primary sortas="e-etc-zsh-zprofile">/etc/zsh/zprofile</primary>
       </indexterm>
 
       <indexterm zone="zsh zsh-config">
-        <primary sortas="e-etc-zshrc">/etc/zshrc</primary>
+        <primary sortas="e-etc-zsh-zshrc">/etc/zsh/zshrc</primary>
       </indexterm>
 
       <indexterm zone="zsh zsh-config">
-        <primary sortas="e-etc-zlogin">/etc/zlogin</primary>
+        <primary sortas="e-etc-zsh-zlogin">/etc/zsh/zlogin</primary>
       </indexterm>
 
       <indexterm zone="zsh zsh-config">
-        <primary sortas="e-etc-zlogout">/etc/zlogout</primary>
+        <primary sortas="e-etc-zsh-zlogout">/etc/zsh/zlogout</primary>
       </indexterm>
 
     </sect3>
@@ -129,7 +199,7 @@ make install.info</userinput></screen>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/shells &lt;&lt; "EOF"
 <literal>/usr/bin/zsh
-/usr/bin/zsh-4.2.5</literal>
+/usr/bin/zsh-&zsh-version;</literal>
 EOF</userinput></screen>
 
     </sect3>
@@ -145,9 +215,10 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>zsh and zsh-4.2.5</seg>
-        <seg>None</seg>
-        <seg>/usr/lib/zsh and /usr/share/zsh</seg>
+        <seg>zsh and zsh-&zsh-version;</seg>
+        <seg>Numerous plugin helper modules</seg>
+        <seg>/etc/zsh, /usr/lib/zsh, /usr/share/doc/zsh-&zsh-version; and
+        /usr/share/zsh</seg>
       </seglistitem>
     </segmentedlist>
 
