@@ -64,13 +64,14 @@
     <xref linkend="zip"/>,
     <xref linkend="unzip"/>,
     an <xref linkend="server-mail"/> (that provides a
-    <command>sendmail</command> command),
-    <xref linkend="slang"/>, and
+    <command>sendmail</command> command), and
     <!-- <ulink
     url="http://ftp.ibiblio.org/pub/linux/utils/compress/ncompress-4.2.4.tar.Z">
     ncompress</ulink> and -->
     <ulink url="http://www.gnu.org/software/sharutils/">sharutils</ulink>
     (for a <command>uudecode</command> program)</para>
+
+<!-- Attempt to utilize S-Lang (- -with-screen=slang) leads to a build failure -->
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/Lynx"/></para>
@@ -87,7 +88,9 @@
             --sysconfdir=/etc/lynx \
             --datadir=/usr/share/doc/lynx-&lynx-version; \
             --with-zlib \
-            --with-bzlib &amp;&amp;
+            --with-bzlib \
+            --with-screen=ncursesw \
+            --enable-locale-charset &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -120,6 +123,25 @@ chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/lynx_doc</userinput></screen
     <para><parameter>--with-bzlib</parameter>: This enables support for
     linking <filename class="libraryfile">libbz2</filename> into
     <application>Lynx</application>.</para>
+
+    <para><parameter>--with-screen=ncursesw</parameter>: This switch enables
+    the use of advanced wide-character support present in the system
+    <application>NCurses</application> library. This is needed for
+    proper display of characters and line wrapping in multibyte locales.</para>
+    
+    <para><parameter>--enable-locale-charset</parameter>: This switch allows
+    <application>Lynx</application> to deduce the proper character encoding
+    for terminal output from the current locale.
+    A configuration step is still needed (see below), but,
+    unlike the situation without this switch, the configuration step becomes
+    the same for all users (without the switch, one would have to specify the
+    display charcter set explicitly). This is important for environments such
+    as a LiveCD, where the amount of system-specific configuration steps has
+    to be reduced to the minimum.</para>
+
+    <para><parameter>--enable-nls</parameter>: This switch allows
+    <application>Lynx</application> to print translated messages (such as
+    questions about cookies and SSL certificates).</para>
 
     <para><option>--with-ssl</option>: This enables support for
     linking SSL into <application>Lynx</application>.</para>
@@ -168,9 +190,14 @@ chgrp -v -R root /usr/share/doc/lynx-&lynx-version;/lynx_doc</userinput></screen
     <sect3>
       <title>Configuration Information</title>
 
-      <para>Various settings such as proxies can be set in the system-wide
-      <filename>lynx.cfg</filename> file found in
-      <filename class="directory">/etc/lynx</filename>.</para>
+      <para>The proper way to get the display character set is to examine the
+      current locale. However, <application>Lynx</application> does not do
+      this by default. Change this setting:</para>
+
+<screen><userinput>sed -i 's/#\(LOCALE_CHARSET\):FALSE/\1:TRUE/' /etc/lynx/lynx.cfg</userinput></screen>
+
+      <para>Many other system-wide settings such as proxies can also be set
+      in the <filename>/etc/lynx/lynx.cfg</filename> file.</para>
 
     </sect3>
 
