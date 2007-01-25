@@ -114,6 +114,7 @@ test-links:
 	mkdir -p $(BASEDIR)
 	xsltproc --xinclude --nonet --stringparam list_mode full \
 	    stylesheets/wget-list.xsl index.xml > $(BASEDIR)/test-links
+	rm -f $(BASEDIR)/{good,bad,true_bad}_urls
 	for URL in `cat $(BASEDIR)/test-links`; do \
 	    wget --spider --tries=2 --timeout=60 $$URL >>/dev/null 2>&1; \
 	    if test $$? -ne 0 ; then echo $$URL >> $(BASEDIR)/bad_urls ; \
