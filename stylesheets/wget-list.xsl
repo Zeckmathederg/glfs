@@ -13,8 +13,21 @@ $Date$
 
   <xsl:output method="text"/>
 
+  <!-- Define the generated wget file type:
+       ftpmirror - the one used to check FTP mirrors (default)
+       full - the one used to test all download links found in the book
+  -->
+  <xsl:param name="list_mode" select="ftpmirror"/>
+
   <xsl:template match="/">
-    <xsl:apply-templates select="//itemizedlist"/>
+    <xsl:choose>
+      <xsl:when test="$list_mode = 'full'">
+       <xsl:apply-templates select="//ulink" mode="full"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates select="//itemizedlist"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="itemizedlist">
@@ -40,12 +53,14 @@ $Date$
   </xsl:template>
 
   <xsl:template match="listitem/para/ulink">
-      <!-- If some package don't have the predefined strings in their
-      name, the next test must be fixed to match it also. Skip possible
-      duplicated URLs due that may be splitted for PDF output -->
-    <xsl:if test="(contains(@url, '.tar.') or contains(@url, '.tgz')
-                  or contains(@url, '.zip') or contains(@url, '.patch')) and
-                  not(ancestor-or-self::*/@condition = 'pdf')">
+      <!-- The next strings need be revised periodically to add missing
+      files or to skip false positives. Skip also possible
+      duplicated URLs that may be splitted for PDF output -->
+    <xsl:if test="(contains(@url, '.gz') or contains(@url, '.bz2')
+                  or contains(@url, '.tgz') or contains(@url, '.tar')
+                  or contains(@url, 'patch.txt') or contains(@url, '.zip')
+                  or contains(@url, '.patch') or contains(@url, '/patch.'))
+                  and not(ancestor-or-self::*/@condition = 'pdf')">
       <xsl:choose>
         <!-- Fix SourceForge links-->
         <xsl:when test="contains(@url,'?download')">
@@ -59,5 +74,26 @@ $Date$
     </xsl:if>
   </xsl:template>
 
-</xsl:stylesheet>
+  <xsl:template match="ulink" mode="full">
+      <!-- The next strings need be revised periodically to add missing
+      files or to skip false positives. Skip also possible
+      duplicated URLs that may be splitted for PDF output -->
+    <xsl:if test="(contains(@url, '.gz') or contains(@url, '.bz2')
+                  or contains(@url, '.tgz') or contains(@url, '.tar')
+                  or contains(@url, '.txt') or contains(@url, 'compressdoc')
+                  or contains(@url, '.zip') or contains(@url, '.patch')
+                  or contains(@url, '/patch.') or contains(@url, 'md5sums')
+                  or contains(@url, 'mozconfig'))
+                  and not(contains(@url, '?url'))
+                  and not(ancestor-or-self::*/@condition = 'pdf')">
+      <!-- To list all URls, included html files, wiki pages, home pages, and
+      mailto: links, comment-out the above xsl:if and uncomment the next one. -->
+    <!--
+    <xsl:if test="not(ancestor-or-self::*/@condition = 'pdf')">
+    -->
+      <xsl:value-of select="@url"/>
+      <xsl:text>&#x0a;</xsl:text>
+    </xsl:if>
+  </xsl:template>
 
+</xsl:stylesheet>

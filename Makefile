@@ -44,9 +44,6 @@ blfs:
 	  sed -i -e "s@text/html@application/xhtml+xml@g" $$filename; \
 	done;
 
-wget-list:
-	mkdir -p $(BASEDIR)
-	xsltproc --xinclude --nonet stylesheets/wget-list.xsl index.xml > $(BASEDIR)/wget-list
 
 nochunks:
 	@echo "Generating nochunks version of BLFS..."
@@ -109,4 +106,25 @@ blfs-patch-list:
 	sort blfs-patches > blfs-patch-list
 	rm blfs-patches
 
-.PHONY : blfs-patch-list
+wget-list:
+	mkdir -p $(BASEDIR)
+	xsltproc --xinclude --nonet stylesheets/wget-list.xsl index.xml > $(BASEDIR)/wget-list
+
+test-links:
+	mkdir -p $(BASEDIR)
+	xsltproc --xinclude --nonet --stringparam list_mode full \
+	    stylesheets/wget-list.xsl index.xml > $(BASEDIR)/test-links
+	for URL in `cat $(BASEDIR)/test-links`; do \
+	    wget --spider --tries=2 --timeout=60 $$URL >>/dev/null 2>&1; \
+	    if test $$? -ne 0 ; then echo $$URL >> $(BASEDIR)/bad_urls ; \
+	    else echo $$URL >> $(BASEDIR)/good_urls 2>&1; \
+	    fi; \
+	done
+	for URL2 in `cat $(BASEDIR)/bad_urls`; do \
+	    wget --spider --tries=2 --timeout=60 $$URL2 >>/dev/null 2>&1; \
+	    if test $$? -ne 0 ; then echo $$URL2 >> $(BASEDIR)/true_bad_urls ; \
+	    else echo $$URL2 >> $(BASEDIR)/good_urls 2>&1; \
+	    fi; \
+	done
+
+.PHONY : blfs-patch-list wget-list test-links
