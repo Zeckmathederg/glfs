@@ -373,7 +373,6 @@ unset ALT_CACERTS_FILE PATH_HOLD</userinput></screen>
 
 # Set JAVA_HOME directory
 JAVA_HOME=/opt/jdk/jdk
-export JAVA_HOME
 
 # Adjust PATH
 pathappend ${JAVA_HOME}/bin PATH
@@ -381,21 +380,14 @@ pathappend ${JAVA_HOME}/bin PATH
 # Auto Java CLASSPATH
 # Copy jar files to, or create symlinks in this directory
 AUTO_CLASSPATH_DIR=/usr/lib/classpath
-# Check for jar files in AUTO_CLASSPATH_DIR (if empty, don't include)
-if [ `ls ${AUTO_CLASSPATH_DIR}/*.jar &amp;> /dev/null` ]; then
-  CLASSPATH=.:${AUTO_CLASSPATH_DIR}
-else
-  # Always have the current directory in the CLASSPATH
-  CLASSPATH=.
-fi
-
-# Add subdirectories
-ls -d ${AUTO_CLASSPATH_DIR}/*/ &amp;> /dev/null &amp;&amp;
-for i in `ls -d ${AUTO_CLASSPATH_DIR}/*/`
-  do CLASSPATH=${CLASSPATH}:"${i}"
+pathprepend . CLASSPATH
+for dir in `find ${AUTO_CLASSPATH_DIR} -type d 2>/dev/null`; do
+    pathappend $dir CLASSPATH
 done
 
-export CLASSPATH
+export JAVA_HOME CLASSPATH
+unset AUTO_CLASSPATH_DIR
+unset dir
 
 # End /etc/profile.d/jdk.sh</literal>
 EOF</userinput></screen>
