@@ -4,14 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY jdk-download-source "https://tiger.dev.java.net/jdk_5_0_08.html">
+  <!ENTITY jdk-download-source "http://download.java.net/tiger/">
   <!ENTITY jdk-download-binary "http://java.sun.com/j2se/1.5.0/download.jsp">
   <!ENTITY jdk-source-md5sum   "&sources-anduin-http;/j/jdk-&jdk-src-version;.md5sums">
-  <!ENTITY jdk-bin-md5sum      "4fb7972a819e9d5a5ecc902e017e8646">
+  <!ENTITY jdk-bin-md5sum      "d916c24bed9eef7aebc2626115e14a11">
   <!ENTITY jdk-bin-size        "47.2 MB">
-  <!ENTITY jdk-src-size        "64.1 MB (three .jar files)">
-  <!ENTITY jdk-src-buildsize   "1700 MB">
-  <!ENTITY jdk-time            "36 SBU">
+  <!ENTITY jdk-src-size        "64.2 MB (three .jar files)">
+  <!ENTITY jdk-src-buildsize   "1882 MB">
+  <!ENTITY jdk-time            "34 SBU">
 ]>
 
 <sect1 id="jdk" xreflabel="JDK-&jdk-src-version;">
@@ -70,23 +70,23 @@
       </listitem>
       <listitem>
         <para>Source download: <ulink url="&jdk-download-source;"/>
-        (to download jdk-&jdk-src-string;-fcs-src-b03-jrl-03_may_2006.jar (or
+        (to download jdk-&jdk-src-string;-fcs-src-b03-jrl-09_nov_2006.jar (or
          optionally the JIUL version),
-         jdk-&jdk-src-string;-fcs-bin-b03-03_may_2006.jar, and
-         jdk-&jdk-src-string;-mozilla_headers-b03-unix-03_may_2006.jar)</para>
+         jdk-&jdk-src-string;-fcs-bin-b03-09_nov_2006.jar, and
+         jdk-&jdk-src-string;-mozilla_headers-b03-unix-09_nov_2006.jar)</para>
       </listitem>
 
       <listitem>
         <para>Download MD5 sums (source):
           <simplelist>
-            <member>267653f0e425b4c8f37b918b73e47027
-                    jdk-&jdk-src-string;-fcs-bin-b03-08_aug_2006.jar
+            <member>09842a4e68040db473e04dbcc284f1d5
+                    jdk-&jdk-src-string;-fcs-bin-b03-09_nov_2006.jar
             </member>
-            <member>f83f8efe9dc82b4e16c382828d490031
-                    jdk-&jdk-src-string;-fcs-src-b03-jrl-08_aug_2006.jar
+            <member>b59335f620e7da524be168b07319fa3b
+                    jdk-&jdk-src-string;-fcs-src-b03-jrl-09_nov_2006.jar
             </member>
-            <member>d75c8dbf3383def458d107f557f95d98
-                    jdk-&jdk-src-string;-mozilla_headers-b03-unix-08_aug_2006.jar
+            <member>f49df1a1e7fe351b7fa9f66db121616e
+                    jdk-&jdk-src-string;-mozilla_headers-b03-unix-09_nov_2006.jar
             </member>
           </simplelist>
         </para>
@@ -247,7 +247,7 @@ done</userinput></screen>
 export CLASSPATH_HOLD=${CLASSPATH} &amp;&amp;
 unset JAVA_HOME CLASSPATH CFLAGS CXXFLAGS LDFLAGS &amp;&amp;
 export ALT_DEVTOOLS_PATH="/usr/bin" &amp;&amp;
-export BUILD_NUMBER="update-8" &amp;&amp;
+export BUILD_NUMBER="update-10" &amp;&amp;
 export DEV_ONLY=true &amp;&amp;
 export ALT_MOZILLA_HEADERS_PATH=${PWD}/share/plugin/ &amp;&amp;
 export INSANE=true &amp;&amp;
@@ -318,7 +318,7 @@ unset ALT_CACERTS_FILE PATH_HOLD</userinput></screen>
     <para><command>export ALT_DEVTOOLS_PATH="/usr/bin"</command>: This
     changes the location where the build finds the needed executables.</para>
 
-    <para><command>export BUILD_NUMBER="update-8"</command>:
+    <para><command>export BUILD_NUMBER="update-10"</command>:
     This will help you identify the compiled version of the runtime environment
     and virtual machine by appending this information to the version
     string.</para>
@@ -378,20 +378,23 @@ export JAVA_HOME
 # Adjust PATH
 pathappend ${JAVA_HOME}/bin PATH
 
-# Auto Java Classpath Updating
-# Create symlinks to this directory for auto classpath setting
+# Auto Java CLASSPATH
+# Copy jar files to, or create symlinks in this directory
 AUTO_CLASSPATH_DIR=/usr/lib/classpath
-if [ -z ${CLASSPATH} ]; then
+# Check for jar files in AUTO_CLASSPATH_DIR (if empty, don't include)
+if [ `ls ${AUTO_CLASSPATH_DIR}/*.jar &amp;> /dev/null` ]; then
   CLASSPATH=.:${AUTO_CLASSPATH_DIR}
 else
-  CLASSPATH="${CLASSPATH}:.:${AUTO_CLASSPATH_DIR}"
+  # Always have the current directory in the CLASSPATH
+  CLASSPATH=.
 fi
 
-# Check for empty AUTO_CLASSPATH_DIR
-ls ${AUTO_CLASSPATH_DIR}/*.jar &amp;> /dev/null &amp;&amp;
-for i in ${AUTO_CLASSPATH_DIR}/*.jar
+# Add subdirectories
+ls -d ${AUTO_CLASSPATH_DIR}/*/ &amp;> /dev/null &amp;&amp;
+for i in `ls -d ${AUTO_CLASSPATH_DIR}/*/`
   do CLASSPATH=${CLASSPATH}:"${i}"
 done
+
 export CLASSPATH
 
 # End /etc/profile.d/jdk.sh</literal>
