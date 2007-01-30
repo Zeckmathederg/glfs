@@ -36,7 +36,7 @@ xreflabel="desktop-file-utils-&desktop-file-utils-version;">
     entries</ulink>. These utilities are used by
     <application>GNOME</application>-2 and other applications
     to manipulate the MIME-types application databases and help
-    adhere to the desktop entries standards specification.</para>
+    adhere to the Desktop Entry Specification.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -96,13 +96,25 @@ make</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
-      <para>The default location for the MIME-types application database is
-      <filename>/usr/share/applications/mimeinfo.cache</filename>. If you are
-      going to install, or have already installed, a desktop environment such
-      as <application>GNOME</application> or <application>KDE</application> in
-      a prefix other than <filename class='directory'>/usr</filename>, you'll
-      need to update the <envar>XDG_DATA_DIRS</envar> variable with your prefix
-      setting. Update the <envar>XDG_DATA_DIRS</envar> (if necessary) and
+      <!-- Background for the XDG_* settings can be found in #2172 -->
+
+      <para>The <ulink
+      url="http://freedesktop.org/wiki/Standards/basedir-spec">XDG Base
+      Directory</ulink> specification defines the standard locations for
+      applications to place data and configuration files. These files can
+      be used, for instance, to define the menu structure and menu items
+      in a desktop environment.</para>
+
+      <para>The default location for configuration files to be installed
+      is <filename class="directory">/etc/xdg</filename>, and the default
+      locations for data files are <filename
+      class="directory">/usr/local/share</filename> and <filename
+      class="directory">/usr/share</filename>. These locations can be
+      extended with the environment variables <envar>XDG_CONFIG_DIRS</envar>
+      and <envar>XDG_DATA_DIRS</envar>, respectively. The
+      <application>GNOME</application>, <application>KDE</application> and
+      <application>XFCE</application> environments respect respect these
+      settings. Update the <envar>XDG_DATA_DIRS</envar> (if necessary) and
       <envar>XDG_CONFIG_DIRS</envar> environment variables so that the
       additional MIME-types application databases and desktop menu files are
       properly maintained and discovered by adding the following to the
@@ -110,16 +122,19 @@ make</userinput></screen>
 
       <para>For <application>GNOME</application>:</para>
 
-<screen><literal>XDG_DATA_DIRS=/usr/share:$GNOME_PREFIX/share
-XDG_CONFIG_DIRS=/usr/share:&gnome-etc-dir;/xdg
+<screen><literal>XDG_DATA_DIRS=$GNOME_PREFIX/share:/usr/local/share:/usr/share
+XDG_CONFIG_DIRS=&gnome-etc-dir;/xdg:/etc/xdg
 export XDG_DATA_DIRS XDG_CONFIG_DIRS</literal></screen>
 
       <para>For <application>KDE</application>:</para>
 
-<screen><literal>XDG_DATA_DIRS=/usr/share:$KDE_PREFIX/share
-XDG_CONFIG_DIRS=/usr/share:/etc/kde/xdg
+<screen><literal>XDG_DATA_DIRS=$KDE_PREFIX/share:/usr/local/share:/usr/share
+XDG_CONFIG_DIRS=/etc/kde/xdg:/etc/xdg
 export XDG_DATA_DIRS XDG_CONFIG_DIRS</literal></screen>
 
+      <para>For <application>XFCE</application>, the default locations
+      should be appropriate if the instructions in the BLFS book were
+      followed.</para>
 
 <!-- This ends up messing up the menus and the GNOME and KDE stuff is simply
      not yet interchangeable
@@ -131,6 +146,16 @@ export XDG_DATA_DIRS XDG_CONFIG_DIRS</literal></screen>
 export XDG_DATA_DIRS</literal></screen>
 
 -->
+
+      <para>When a package installs a <filename>.desktop</filename> file
+      to a location in one the base data directories, a database
+      mapping MIME-types to available applications can be updated. For
+      instance, the cache file at
+      <filename>/usr/share/applications/mimeinfo.cache</filename> can
+      be rebuilt by executing the following command as the <systemitem
+      class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>update-desktop-database /usr/share/applications</userinput></screen>
 
     </sect3>
 
