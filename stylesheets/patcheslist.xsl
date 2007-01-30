@@ -9,10 +9,10 @@ $LastChangedBy$
 $Date$
 -->
 
-<!-- 
+<!--
   This stylesheet creates a script to copy the patches referenced
   in the BLFS book from the patches repository to the blfs
-  download area.  It is very specific to the installation on 
+  download area.  It is very specific to the installation on
   the home server.
 -->
 
@@ -44,8 +44,8 @@ $Date$
     <xsl:apply-templates/>
       <!-- Ensure correct ownership -->
     <xsl:text>&#x0a;chgrp lfswww *.patch &amp;&amp;&#x0a;</xsl:text>
-    <xsl:text>if [ `wc -l copyerrs|sed 's/ *//' |cut -f1 -d' '` -gt 0 ]; then 
-  mail -s "Missing BLFS patches" blfs-book@linuxfromscratch.org &lt; copyerrs 
+    <xsl:text>if [ `wc -l copyerrs|sed 's/ *//' |cut -f1 -d' '` -gt 0 ]; then
+  mail -s "Missing BLFS patches" blfs-book@linuxfromscratch.org &lt; copyerrs
 fi</xsl:text>
     <xsl:text>&#x0a;exit&#x0a;</xsl:text>
   </xsl:template>
@@ -54,7 +54,7 @@ fi</xsl:text>
 
   <xsl:template match="//ulink">
       <!-- Match only local patches links and skip duplicated URLs splitted for PDF output-->
-    <xsl:if test="contains(@url, '.patch') and contains(@url, '&patch-root;') 
+    <xsl:if test="contains(@url, '.patch') and contains(@url, '&patch-root;')
             and not(ancestor-or-self::*/@condition = 'pdf')">
       <xsl:variable name="patch.name" select="substring-after(@url, '&patch-root;')"/>
       <xsl:text>copy /srv/www/www.linuxfromscratch.org/patches/downloads</xsl:text>
@@ -77,7 +77,7 @@ fi</xsl:text>
         </xsl:when>
           <!-- General rule -->
         <xsl:otherwise>
-          <xsl:variable name="cut" 
+          <xsl:variable name="cut"
                   select="translate(substring-after($patch.name, '-'), '0123456789', '0000000000')"/>
           <xsl:variable name="patch.name2">
             <xsl:value-of select="substring-before($patch.name, '-')"/>

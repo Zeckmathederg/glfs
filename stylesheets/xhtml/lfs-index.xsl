@@ -155,11 +155,11 @@ $Date$
       </xsl:for-each>
     	<xsl:if test="$refs/secondary">
         <ul>
-          <xsl:apply-templates select="$refs[secondary and count(.|key('secondary', 
+          <xsl:apply-templates select="$refs[secondary and count(.|key('secondary',
           				concat($key, &#34; &#34;, normalize-space(concat(secondary/@sortas,
                   secondary[not(@sortas)]))))[&scope;][1]) = 1]" mode="index-secondary">
             <xsl:with-param name="scope" select="$scope"/>
-            <xsl:sort select="translate(normalize-space(concat(secondary/@sortas, 
+            <xsl:sort select="translate(normalize-space(concat(secondary/@sortas,
             				secondary[not(@sortas)])), &lowercase;, &uppercase;)"/>
           </xsl:apply-templates>
      		</ul>
