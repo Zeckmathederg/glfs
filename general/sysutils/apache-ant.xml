@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY apache-ant-download-http "http://archive.apache.org/dist/ant/source/apache-ant-&apache-ant-version;-src.tar.bz2">
+  <!ENTITY apache-ant-download-http "http://apache.org/dist/ant/source/apache-ant-&apache-ant-version;-src.tar.bz2">
   <!ENTITY apache-ant-download-ftp  "ftp://ftp.oregonstate.edu/pub/apache/ant/source/apache-ant-&apache-ant-version;-src.tar.bz2">
-  <!ENTITY apache-ant-md5sum        "80a7ad191c40b7d8c82533524b282b6b">
-  <!ENTITY apache-ant-size          "6.2 MB">
-  <!ENTITY apache-ant-buildsize     "94.5 MB">
+  <!ENTITY apache-ant-md5sum        "22b378e27ab300e4d73bf09d91c7e2a6">
+  <!ENTITY apache-ant-size          "6.8 MB">
+  <!ENTITY apache-ant-buildsize     "109 MB">
   <!ENTITY apache-ant-time          "0.4 SBU">
 ]>
 
@@ -60,18 +60,19 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <!-- <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required Patch: <ulink
         url="&patch-root;/apache-ant-&apache-ant-version;-blfs_install-1.patch"/></para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist> -->
 
     <bridgehead renderas="sect3">Apache Ant Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="jdk"/></para>
+    <para role="required"><xref linkend="jdk"/> and
+    <xref linkend="junit"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/apache-ant"/></para>
@@ -86,7 +87,9 @@
       requirements of various packages installed using
       <application>Apache Ant</application>. Review the table at
       <ulink url="http://ant.apache.org/manual/install.html#librarydependencies"/>
-      for any prerequisite libraries you may need. One such library is the
+      for any prerequisite libraries you may need.</para>
+
+      <!-- <para>One such library is the
       <application>JUnit</application>-3.8.1 testing framework library. Many
       Ant-installed packages will use this library to perform the unit tests
       during the build process. To install the JUnit library along with the
@@ -95,15 +98,16 @@
       <xref linkend="unzip"/>) and copy the <filename>junit.jar</filename> file
       into the <filename class='directory'>lib</filename> subdirectory of the
       <application>Apache Ant</application> source tree before beginning the
-      <application>Apache Ant</application> build.</para>
+      <application>Apache Ant</application> build.</para> -->
     </note>
 
     <para>Install <application>Apache Ant</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../apache-ant-&apache-ant-version;-blfs_install-1.patch</userinput></screen>
+<screen><userinput>sed -i 's|${dist.dir}/etc|/etc/ant|'        build.xml
+sed -i 's|/etc/ant.conf|/etc/ant/ant.conf|' src/script/ant</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>The unit regression tests are performed in the build step below.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -116,17 +120,20 @@ ln -v -sf ant-&apache-ant-version; /opt/ant</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed ...</command>: These commands change the configuration
+    directory to <filename class='directory'>/etc/ant</filename> to conform
+    with FHS guidelines.</para>
+
     <para><command>./build.sh -Ddist.dir=/opt/ant-&apache-ant-version;
-    dist</command>: This command does everything. It builds, then
+    dist</command>: This command does everything. It builds, tests, then
     installs the package into
     <filename class='directory'>/opt/ant-&apache-ant-version;</filename>.</para>
 
     <para><command>ln -v -sf /etc/ant /opt/ant-&apache-ant-version;/etc</command>:
-    The patch changes the configuration directory to
-    <filename class='directory'>/etc/ant</filename> to conform with
-    FHS guidelines. This command creates a symlink from the
-    configuration directory back to the installation directory as the package is
-    expecting to find the files there.</para>
+    The <command>sed</command> commands change the configuration directory to
+    <filename class='directory'>/etc/ant</filename> and this command creates a
+    symlink from the configuration directory back to the installation directory
+    as the package is expecting to find some files there.</para>
 
     <para><command>ln -v -sf ant-&apache-ant-version; /opt/ant</command>: This
     command is optional, and creates a convenience symlink.</para>
@@ -183,7 +190,7 @@ export ANT_HOME=/opt/ant</literal></screen>
 
       <seglistitem>
         <seg>ant, antRun, antRun.pl, complete-ant-cmd.pl, runant.pl, and runant.py</seg>
-        <seg>ant-*.jar, xercesImpl.jar, and xml-apis.jar</seg>
+        <seg>ant.jar, ant-*.jar, xercesImpl.jar, and xml-apis.jar</seg>
         <seg>/etc/ant and /opt/ant-&apache-ant-version;</seg>
       </seglistitem>
     </segmentedlist>
