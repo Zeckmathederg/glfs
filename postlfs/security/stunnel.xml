@@ -6,9 +6,9 @@
 
   <!ENTITY stunnel-download-http "http://www.stunnel.org/download/stunnel/src/stunnel-&stunnel-version;.tar.gz">
   <!ENTITY stunnel-download-ftp  "ftp://stunnel.mirt.net/stunnel/stunnel-&stunnel-version;.tar.gz">
-  <!ENTITY stunnel-md5sum        "2c00153ad099a5f9c5609e8d1dbbe470">
-  <!ENTITY stunnel-size          "497 KB">
-  <!ENTITY stunnel-buildsize     "4.2 MB">
+  <!ENTITY stunnel-md5sum        "cf9940395d3503018f721c962528d2ec">
+  <!ENTITY stunnel-size          "513 KB">
+  <!ENTITY stunnel-buildsize     "4.5 MB">
   <!ENTITY stunnel-time          "0.1 SBU">
 ]>
 
@@ -109,13 +109,14 @@ install -v -m 1770 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></sc
     <para>Install <application>Stunnel</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i -e 's|nogroup|stunnel|' \
-       -e 's|$(prefix)/var/lib|$(localstatedir)|' \
-    tools/Makefile.in
+<screen><userinput>sed -i 's|nogroup|stunnel|g' configure &amp;&amp;
+sed -i 's|$(prefix)/var/lib|$(localstatedir)|' tools/Makefile.in &amp;&amp;
 sed -i 's|doc/stunnel|&amp;-$(VERSION)|' {,doc/,tools/}Makefile.in &amp;&amp;
 
-./configure --prefix=/usr --sysconfdir=/etc \
-    --localstatedir=/var/lib --disable-libwrap &amp;&amp;
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --localstatedir=/var/lib \
+            --disable-libwrap &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -129,14 +130,20 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i -e '...' -e '...' tools/Makefile.in</command>:
-    This <command>sed</command> command modifies the group and directory
-    used for the <command>chroot</command> jail to conform with the parameters
-    created earlier.</para>
+    <para><command>sed -i 's|nogroup|stunnel|g' configure</command>: This
+    command is used to change the default group for the installed files in
+    <filename class='directory'>/var/lib/stunnel</filename> from
+    <systemitem class="groupname">nogroup</systemitem> to
+    <systemitem class="groupname">stunnel</systemitem>.</para>
+
+    <para><command>sed -i '...' tools/Makefile.in</command>: This command
+    ensures that the chroot jail will be located in
+    <filename class='directory'>/var/lib/stunnel</filename> instead of
+    <filename class='directory'>/usr/var/lib/stunnel</filename>.</para>
 
     <para><command>sed -i '...' {,doc/,tools/}Makefile.in</command>: This
-    <command>sed</command> command modifies the location of the installed
-    docs to a versioned directory.</para>
+    command modifies the location of the installed documentation files to a
+    versioned directory.</para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: This parameter forces
     the configuration directory to <filename class='directory'>/etc</filename>
