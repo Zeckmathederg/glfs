@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz">
-  <!ENTITY openldap-download-ftp  "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz">
-  <!ENTITY openldap-md5sum        "0fbae4e9279aaa586adcd9f19b66a5ed">
-  <!ENTITY openldap-size          "3.6 MB">
-  <!ENTITY openldap-buildsize     "51.8 MB">
-  <!ENTITY openldap-time          "1.8 SBU and approximately 30 minutes to run the tests (processor independent)">
+  <!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-release/openldap-&openldap-download-version;.tgz">
+  <!ENTITY openldap-download-ftp  "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-&openldap-download-version;.tgz">
+  <!ENTITY openldap-md5sum        "143eeb6e3c163e5f52d8e744b43a5960">
+  <!ENTITY openldap-size          "3.7 MB">
+  <!ENTITY openldap-buildsize     "112 MB">
+  <!ENTITY openldap-time          "1.9 SBU and approximately 30 minutes to run the tests (processor independent)">
 ]>
 
 <sect1 id="openldap" xreflabel="OpenLDAP-&openldap-version;">
@@ -58,7 +58,9 @@
       <para>The <application>OpenLDAP</application> stable releases are
       packaged without version numbers in the tarball names. You can see the
       relationship between the version number and name of the tarball at <ulink
-      url="http://www.openldap.org/software/download/"/>.</para>
+      url="http://www.openldap.org/software/download/"/>. Currently, a 
+      version release is being used due to a mixup on the
+      <application>OpenLDAP</application> download page.</para>
     </note>
 
     <bridgehead renderas="sect3">OpenLDAP Dependencies</bridgehead>
@@ -98,21 +100,22 @@
             --enable-dynamic \
             --enable-crypt \
             --enable-modules \
-            --enable-ldap \
-            --enable-ldbm \
-            --enable-dyngroup \
-            --enable-dynlist \
-            --enable-ppolicy \
-            --enable-valsort &amp;&amp;
+            --enable-rlookups \
+            --enable-backends \
+            --enable-overlays &amp;&amp;
 make depend &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make test</command>.</para>
+    <para>To test the results, issue: <command>make test</command>. If you've
+    enabled <application>tcp_wrappers</application>, ensure you add 127.0.0.1
+    to the <parameter>slapd</parameter> line in the
+    <filename>/etc/hosts.allow</filename> file if you have a restrictive
+    <filename>/etc/hosts.deny</filename> file.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chmod -v 755 /usr/lib/libl*-2.3.so.0.2.15 &amp;&amp;
+chmod -v 755 /usr/lib/libl*-2.3.so.0.2.22 &amp;&amp;
 install -v -m755 -d /usr/share/doc/openldap-&openldap-version;/{drafts,guide,rfc} &amp;&amp;
 install -v -m644 doc/drafts/* /usr/share/doc/openldap-&openldap-version;/drafts &amp;&amp;
 install -v -m644 doc/rfc/*    /usr/share/doc/openldap-&openldap-version;/rfc &amp;&amp;
@@ -148,34 +151,22 @@ cp -v -R doc/guide/*          /usr/share/doc/openldap-&openldap-version;/guide</
     <para><parameter>--enable-modules</parameter>: Enables dynamic module
     support.</para>
 
-    <para><parameter>--enable-ldap</parameter>: Enables the
+    <!-- <para><parameter>-enable-ldap</parameter>: Enables the
     <command>slapd</command> LDAP backend.</para>
 
-    <para><parameter>--enable-ldbm</parameter>: Build <command>slapd</command>
+    <para><parameter>-enable-ldbm</parameter>: Build <command>slapd</command>
     with the primary database back end using either
     <application>Berkeley DB</application> or
-    <application>GNU Database Manager</application>.</para>
+    <application>GNU Database Manager</application>.</para> -->
 
-    <para><parameter>--enable-dyngroup</parameter>: Enables the
-    <command>slapd</command> dynamic group overlay.</para>
+    <para><parameter>--enable-rlookups</parameter>: This parameter enables
+    reverse lookups of client hostnames.</para>
 
-    <para><parameter>--enable-dynlist</parameter>: Enables the
-    <command>slapd</command> dynamic list overlay.</para>
+    <para><parameter>--enable-backends</parameter>: This parameter enables
+    all available backends.</para>
 
-    <para><parameter>--enable-ppolicy</parameter>: Enables the
-    <command>slapd</command> password policy overlay.</para>
-
-    <para><parameter>--enable-valsort</parameter>: Enables the
-    <command>slapd</command> value sorting overlay.</para>
-
-    <para><command>make test</command>: Validates the correct build of the
-    package. If you've enabled <application>tcp_wrappers</application>, ensure
-    you add 127.0.0.1 to the <parameter>slapd</parameter> line in the
-    <filename>/etc/hosts.allow</filename> file if you have a
-    restrictive <filename>/etc/hosts.deny</filename> file.</para>
-
-    <para><command>chmod -v 755 /usr/lib/libl*-2.3.so.0.2.15</command>: This command
-    adds the executable bit to the shared libraries.</para>
+    <para><parameter>--enable-overlays</parameter>: This parameter enables
+    all available overlays.</para>
 
     <para><option>--disable-bdb --disable-hdb --with-ldbm-api=gdbm</option>:
     Pass these parameters to the <command>configure</command> command if you
@@ -183,10 +174,13 @@ cp -v -R doc/guide/*          /usr/share/doc/openldap-&openldap-version;/guide</
     <application>Berkeley DB</application> as the primary backend
     database.</para>
 
+    <para><command>chmod -v 755 /usr/lib/libl*-2.3.so.0.2.22</command>: This
+    command adds the executable bit to the shared libraries.</para>
+
     <note>
-      <para>Run <command>./configure --help</command> to see if there are
-      other parameters you can pass to the <command>configure</command> command
-      to enable other options or dependency packages.</para>
+      <para>You can run <command>./configure --help</command> to see if there
+      are other parameters you can pass to the <command>configure</command>
+      command to enable other options or dependency packages.</para>
     </note>
 
   </sect2>
