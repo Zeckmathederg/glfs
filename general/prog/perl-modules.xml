@@ -123,17 +123,18 @@
     of the functionality provided by <application>Zlib</application> is
     available in Compress::Zlib. The module can be split into two general areas
     of functionality, namely in-memory compression/decompression and read/write
-    access to gzip files.</para>
+    access to gzip files. This module and all the dependencies are installed
+    using the standard <xref linkend="perl-standard-install"/>.</para>
 
     <note>
-      <para>The Compress::Zlib module requires the following
+      <para>The Compress::Raw::Zlib module requires the following
       <command>sed</command> after untarring the distribution tarball (before
       any other build commands) to use the system-installed copy of
       <application>Zlib</application>.</para>
 
-<screen><userinput>sed -i -e "s|BUILD_ZLIB = True|BUILD_ZLIB = False|" \
-       -e "s|INCLUDE    = ./zlib-src|INCLUDE    = /usr/include|" \
-       -e "s|LIB        = ./zlib-src|LIB        = /usr/lib|" \
+<screen><userinput>sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|" \
+       -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
+       -e "s|LIB\s*= ./zlib-src|LIB        = /usr/lib|" \
     config.in</userinput></screen>
     </note>
 
@@ -142,7 +143,35 @@
         <para><ulink
         url="http://cpan.org/authors/id/P/PM/PMQS/Compress-Zlib-&Compress-Zlib-version;.tar.gz">
         Compress-Zlib-&Compress-Zlib-version;</ulink>
-        (<xref linkend="perl-standard-install"/>)</para>
+        (uses the standard <xref linkend="perl-standard-install"/>)</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><ulink
+            url="http://cpan.org/authors/id/P/PM/PMQS/Compress-Raw-Zlib-&Compress-Raw-Zlib-version;.tar.gz">
+            Compress-Raw-Zlib-&Compress-Raw-Zlib-version;</ulink></para>
+          </listitem>
+          <listitem>
+            <para><ulink
+            url="http://cpan.org/authors/id/P/PM/PMQS/IO-Compress-Zlib-&IO-Compress-Zlib-version;.tar.gz">
+            IO-Compress-Zlib-&IO-Compress-Zlib-version;</ulink></para>
+
+            <itemizedlist>
+              <listitem>
+                <para><ulink
+                url="http://cpan.org/authors/id/P/PM/PMQS/IO-Compress-Base-&IO-Compress-Base-version;.tar.gz">
+                IO-Compress-Base-&IO-Compress-Base-version;</ulink></para>
+              </listitem>
+              <listitem>
+                <para><ulink
+                url="http://cpan.org/authors/id/P/PM/PMQS/IO-Compress-Bzip2-&IO-Compress-Bzip2-version;.tar.gz">
+                IO-Compress-Bzip2-&IO-Compress-Bzip2-version;</ulink> (used during the tests)</para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+        </itemizedlist>
+
       </listitem>
     </itemizedlist>
 
@@ -167,7 +196,7 @@
         <para><ulink
         url="http://cpan.org/authors/id/S/SB/SBECK/DateManip-&DateManip-version;.tar.gz">
         DateManip-&DateManip-version;</ulink>
-        (<xref linkend="perl-standard-install"/>)</para>
+        (uses the standard <xref linkend="perl-standard-install"/>)</para>
       </listitem>
     </itemizedlist>
 
@@ -517,6 +546,13 @@
               <listitem>
                 <para><xref linkend="openssl"/></para>
               </listitem>
+              <listitem>
+                <para>A <quote>testcover</quote> <filename>Makefile</filename>
+                target is created (which creates a
+                <command>/usr/bin/testcover</command> script) if the <ulink
+                url="http://cpan.org/authors/id/S/SM/SMPETERS/ExtUtils-MakeMaker-Coverage-0.05.tar.gz">
+                Extutils::MakeMaker::Coverage</ulink> module is installed.</para>
+              </listitem>
             </itemizedlist>
 
           </listitem>
@@ -524,16 +560,6 @@
 
       </listitem>
     </itemizedlist>
-
-    <note>
-      <para>Newer versions of <application>OpenSSL</application> expose a bug
-      in the <application>Crypt::SSLeay</application> sources. Issue the
-      following <command>sed</command> command (after unpacking the
-      <application>Crypt::SSLeay</application> tarball and changing directories
-      into the root of the source tree) to fix the problem:</para>
-
-      <screen><userinput>sed -i '/algorithms/ a\               SSL_library_init();' SSLeay.xs</userinput></screen>
-    </note>
 
     <!-- Module::Build -->
     <bridgehead renderas="sect3" id="perl-module-build"
@@ -689,10 +715,9 @@
     <application>Perl</application> installation. Additionally, Module::Info
     can tell you what version of a module is installed and what dependencies
     are required for it. You can even use Module::Info to gather dependencies
-    of uninstalled modules. The Module::Info module installs using the standard
-    <application>Perl</application> module
-    <xref linkend="perl-standard-install"/>. The version module requires using
-    the Module::Build <xref linkend="perl-module-build-install"/>.</para>
+    of uninstalled modules. The Module::Info module and dependencies install
+    using the standard <application>Perl</application> module
+    <xref linkend="perl-standard-install"/>.</para>
 
     <itemizedlist spacing='compact'>
       <listitem>
@@ -712,7 +737,7 @@
 
             <itemizedlist>
               <listitem>
-                <para><xref linkend="perl-module-build"/></para>
+                <para><xref linkend="perl-module-build"/> (optional)</para>
               </listitem>
             </itemizedlist>
 
@@ -891,6 +916,60 @@
       </listitem>
     </itemizedlist>
 
+
+    <!-- Pod::Coverage -->
+    <bridgehead renderas="sect3" id="perl-pod-coverage"
+    xreflabel="Pod::Coverage-&Pod-Coverage-version;">
+    Pod::Coverage-&Pod-Coverage-version;</bridgehead>
+
+    <indexterm zone="perl-modules perl-pod-coverage">
+      <primary sortas="g-Pod-Coverage">Pod::Coverage</primary>
+    </indexterm>
+
+    <para>The Pod::Coverage module is a <application>Perl</application> library
+    used to check if the documentation of a module is comprehensive. This
+    module can use the Module::Build
+    <xref linkend="perl-module-build-install"/>, but is not required. All the
+    dependencies are installed using the standard
+    <application>Perl</application> module
+    <xref linkend="perl-standard-install"/>.</para>
+
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para><ulink
+        url="http://cpan.org/authors/id/R/RC/RCLAMP/Pod-Coverage-&Pod-Coverage-version;.tar.gz">
+        Pod-Coverage-&Pod-Coverage-version;</ulink></para>
+
+        <itemizedlist>
+          <listitem>
+            <para id="perl-devel-symdump"><ulink
+            url="http://cpan.org/authors/id/A/AN/ANDK/Devel-Symdump-&Devel-Symdump-version;.tar.gz">
+            Devel-Symdump-&Devel-Symdump-version;</ulink></para>
+            <indexterm zone="perl-modules perl-devel-symdump">
+              <primary sortas="g-Devel-Symdump">Devel::Symdump</primary>
+            </indexterm>
+
+            <itemizedlist>
+              <listitem>
+                <para><xref linkend="perl-test-pod-coverage"/>
+                (optionally used during the tests, and is a circular
+                dependency)</para>
+              </listitem>
+              <listitem>
+                <para><xref linkend="perl-test-pod"/>
+                (optionally used during the tests)</para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+          <listitem>
+            <para><xref linkend="perl-module-build"/> (optional)</para>
+          </listitem>
+        </itemizedlist>
+
+      </listitem>
+    </itemizedlist>
+
     <!-- SGMLSpm -->
     <bridgehead renderas="sect3" id="perl-sgmlspm"
     xreflabel="SGMLSpm-&SGMLSpm-version;">
@@ -994,10 +1073,9 @@ install -v -m644 DOC/sample.pl /usr/share/doc/perl5/SGMLSpm</userinput></screen>
     <para>The Test::Pod::Coverage module is used to check files in a
     distribution for POD coverage. It is normally used by developers to
     ensure their projects are adequately covered with POD and it is also used
-    in the test suites of many module distributions. The Pod::Coverage module
-    can use the Module::Build
-    <xref linkend="perl-module-build-install"/>, all the other modules are
-    installed using the standard <application>Perl</application> module
+    in the test suites of many module distributions. This module and all the
+    dependencies are installed using the standard
+    <application>Perl</application> module
     <xref linkend="perl-standard-install"/>.</para>
 
     <itemizedlist spacing='compact'>
@@ -1018,40 +1096,7 @@ install -v -m644 DOC/sample.pl /usr/share/doc/perl5/SGMLSpm</userinput></screen>
             </indexterm>
           </listitem>
           <listitem>
-            <para id="perl-pod-coverage"><ulink
-            url="http://cpan.org/authors/id/R/RC/RCLAMP/Pod-Coverage-&Pod-Coverage-version;.tar.gz">
-            Pod-Coverage-&Pod-Coverage-version;</ulink></para>
-            <indexterm zone="perl-modules perl-pod-coverage">
-              <primary sortas="g-Pod-Coverage">Pod::Coverage</primary>
-            </indexterm>
-
-            <itemizedlist>
-              <listitem>
-                <para id="perl-devel-symdump"><ulink
-                url="http://cpan.org/authors/id/A/AN/ANDK/Devel-Symdump-&Devel-Symdump-version;.tar.gz">
-                Devel-Symdump-&Devel-Symdump-version;</ulink></para>
-                <indexterm zone="perl-modules perl-devel-symdump">
-                  <primary sortas="g-Devel-Symdump">Devel::Symdump</primary>
-                </indexterm>
-
-                <itemizedlist>
-                  <listitem>
-                    <para><xref linkend="perl-test-pod-coverage"/>
-                    (optionally used during the tests, and is a circular
-                    dependency)</para>
-                  </listitem>
-                  <listitem>
-                    <para><xref linkend="perl-test-pod"/>
-                    (optionally used during the tests)</para>
-                  </listitem>
-                </itemizedlist>
-
-              </listitem>
-              <listitem>
-                <para><xref linkend="perl-module-build"/></para>
-              </listitem>
-            </itemizedlist>
-
+            <para><xref linkend="perl-pod-coverage"/></para>
           </listitem>
         </itemizedlist>
 
@@ -1086,12 +1131,20 @@ install -v -m644 DOC/sample.pl /usr/share/doc/perl5/SGMLSpm</userinput></screen>
         <para><ulink
         url="http://cpan.org/authors/id/M/MS/MSCHWERN/Test-Simple-&Test-Simple-version;.tar.gz">
         Test-Simple-&Test-Simple-version;</ulink>
-        (<xref linkend="perl-standard-install"/>)</para>
+        (uses the standard <xref linkend="perl-standard-install"/>)</para>
 
         <itemizedlist>
           <listitem>
             <para><xref linkend="perl-module-signature"/>
             (optionally used during the tests)</para>
+          </listitem>
+          <listitem>
+            <para><xref linkend="perl-test-pod-coverage"/>
+            (optionally used during the tests, and is circular)</para>
+          </listitem>
+          <listitem>
+            <para><xref linkend="perl-pod-coverage"/>
+            (optionally used during the tests, and is circular)</para>
           </listitem>
         </itemizedlist>
 
@@ -1132,13 +1185,6 @@ install -v -m644 DOC/sample.pl /usr/share/doc/perl5/SGMLSpm</userinput></screen>
             <indexterm zone="perl-modules perl-algorithm-diff">
               <primary sortas="g-Algorithm-Diff">Algorithm::Diff</primary>
             </indexterm>
-
-            <itemizedlist>
-              <listitem>
-                <para><xref linkend="unzip"/></para>
-              </listitem>
-            </itemizedlist>
-
           </listitem>
         </itemizedlist>
 
@@ -1230,7 +1276,10 @@ install -v -m644 DOC/sample.pl /usr/share/doc/perl5/SGMLSpm</userinput></screen>
     <ulink url="http://www.yaml.org/spec/"/>.
     <application>YAML</application> is a generic data serialization language
     that is optimized for human readability. It can be used to express the data
-    structures of most modern programming languages.</para>
+    structures of most modern programming languages. The module and
+    dependencies are installed using the standard
+    <application>Perl</application> module
+    <xref linkend="perl-standard-install"/>.</para>
 
     <note>
       <para>The <application>YAML</application>,
