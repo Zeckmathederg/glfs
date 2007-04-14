@@ -6,10 +6,10 @@
 
   <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/stable/samba-&samba3-version;.tar.gz">
   <!ENTITY samba3-download-ftp  "ftp://us5.samba.org/pub/samba-ftp/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-md5sum        "afe6923d05fed5b5ccab593c7a407cd1">
+  <!ENTITY samba3-md5sum        "89273f67a6d8067cbbecefaa13747153">
   <!ENTITY samba3-size          "17.7 MB">
-  <!ENTITY samba3-buildsize     "257 MB">
-  <!ENTITY samba3-time          "2.8 SBU (additional 1.8 SBU to run the test suite)">
+  <!ENTITY samba3-buildsize     "222 MB">
+  <!ENTITY samba3-time          "2.8 SBU (additional 1.7 SBU to run the test suite)">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -59,16 +59,33 @@
       </listitem>
     </itemizedlist>
 
-    <!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Required patch if you have <application>Heimdal</application>
-        installed: <ulink
-        url="&patch-root;/samba-&samba3-version;-heimdal-1.patch"/></para>
+        <para>Required patch: <ulink
+        url="http://us3.samba.org/samba/patches/patches-&samba3-version;/share_security_ntlmv2.diff"/></para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="http://us3.samba.org/samba/patches/patches-&samba3-version;/spoolss.diff"/></para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="http://us3.samba.org/samba/patches/patches-&samba3-version;/vista_backup_acl.diff"/></para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="http://us3.samba.org/samba/patches/patches-&samba3-version;/variable_os_expansion.diff"/></para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="http://us3.samba.org/samba/patches/patches-&samba3-version;/dfs_referral.diff"/></para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="http://us3.samba.org/samba/patches/patches-&samba3-version;/directory_delete.diff"/></para>
       </listitem>
     </itemizedlist>
-    -->
 
     <bridgehead renderas="sect3">Samba Dependencies</bridgehead>
 
@@ -86,14 +103,6 @@
     and <ulink url="http://valgrind.kde.org/">Valgrind</ulink> (optionally
     used by the test suite)</para>
 
-    <!-- Removed starting in version 3.0.23
-    <bridgehead renderas="sect4">Optional
-    (To Build Experimental passdb Libraries)</bridgehead>
-    <para><xref linkend="libxml2"/>,
-    <xref linkend="mysql"/>, and
-    <xref linkend="postgresql"/></para>
-    -->
-
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/samba3"/></para>
 
@@ -101,17 +110,6 @@
 
   <sect2 role="installation">
     <title>Installation of Samba</title>
-
-    <!--
-    <para>A <application>Samba</application> <filename>include.h</filename>
-    header now does checks for C++ reserved names. The package will not build
-    if you have <application>Heimdal</application> installed as Heimdal uses
-    some of these reserved names inappropriately. If you have
-    <application>Heimdal</application> installed, apply the following patch to
-    disable these checks and allow the package to compile successfully:</para>
-
-<screen><userinput>patch -Np1 -i ../samba-&samba3-version;-heimdal-1.patch</userinput></screen>
-    -->
 
     <para>Install <application>Samba</application> by running the following
     commands:</para>
@@ -125,12 +123,16 @@
       optional dependencies.</para>
     </note>
 
-<screen><userinput>cd source &amp;&amp;
+<screen><userinput>for FILENAME in $(ls ../*.diff); do patch -Np1 -i $FILENAME; done &amp;&amp;
+
+cd source &amp;&amp;
+
 ./configure \
     --prefix=/usr \
     --sysconfdir=/etc \
     --localstatedir=/var \
     --with-piddir=/var/run \
+    --with-pammodulesdir=/lib/security \
     --with-fhs \
     --with-smbmount &amp;&amp;
 make</userinput></screen>
@@ -143,16 +145,6 @@ make</userinput></screen>
     <command>make test_pam_modules</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
-
-<!-- Commenting out the need for /var/cache/samba as my testing has
-     shown me that this directory is not used. Grepping the source
-     tree also turns up nothing about 'cache/samba'. -Randy
-<screen role="root"><userinput>install -v -m755 -d /var/cache/samba &amp;&amp;
--->
-<!-- if [ -f nsswitch/pam_winbind.so ]; then
-         install -v -m755 nsswitch/pam_winbind.so /lib/security
-     fi &amp;&amp;
--->
 
 <screen role="root"><userinput>make install &amp;&amp;
 mv -v /usr/lib/samba/libsmbclient.so /usr/lib &amp;&amp;
@@ -207,12 +199,6 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
     instructions on how to configure and use the
     <filename class='libraryfile'>pam_winbind.so</filename>module by running
     <command>man winbindd</command>.</para>
-
-    <!-- I am convinced that this command is no longer necessary. -Randy
-    <para><command>install -v -d /var/cache/samba</command>: This directory is
-    needed for proper operation of the <command>smbd</command> and
-    <command>nmbd</command> daemons.</para>
-    -->
 
     <para><command>mv -v /usr/lib/samba/libsmbclient.so ...; ln -v -sf
     ../libsmbclient.so ...</command>: The
