@@ -6,10 +6,16 @@
 
   <!ENTITY hal-download-http "http://freedesktop.org/~david/dist/hal-&hal-version;.tar.gz">
   <!ENTITY hal-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/hal-&hal-version;.tar.gz">
-  <!ENTITY hal-md5sum        "d7a7741808ba130f8aff3f5d3b5689e4">
+  <!ENTITY hal-md5sum        "a6f532770cf9286e1de38d6570cbc6bc">
   <!ENTITY hal-size          "1.5 MB">
-  <!ENTITY hal-buildsize     "19.0 MB">
-  <!ENTITY hal-time          "0.5 SBU">
+  <!ENTITY hal-buildsize     "20.2 MB">
+  <!ENTITY hal-time          "0.4 SBU">
+
+  <!ENTITY hal-info-version       "20070425">
+  <!ENTITY hal-info-download-http "http://freedesktop.org/~david/dist/hal-info-&hal-info-version;.tar.gz">
+  <!ENTITY hal-info-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/hal-info-&hal-info-version;.tar.gz">
+  <!ENTITY hal-info-md5sum        "69022cc562aa374c603d3ff8ca33569c">
+  <!ENTITY hal-info-size          "106 KB">
 ]>
 
 <sect1 id="hal" xreflabel="HAL-&hal-version;">
@@ -66,11 +72,33 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Download</bridgehead>
+    <itemizedlist spacing='compact'>
+      <title>Required Hardware Data</title>
+      <listitem>
+        <para>Download (HTTP): <ulink url="&hal-info-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download (FTP): <ulink url="&hal-info-download-ftp;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &hal-info-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &hal-info-size;</para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">HAL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="glib2"/>,
+    <para role="required"><xref linkend="pkgconfig"/>,
+    <xref linkend="glib2"/>,
     <xref linkend="dbus"/> (see the <xref linkend="hal-requirements"/>),
+    <!-- FIXME: Uncomment when the dbus bindings get in the book
+         and remove the hal-requirements blurb
+    <xref linkend="dbus-glib"/>,
+    -->
     <xref linkend="python"/>, and
     <xref linkend="perl-xml-parser"/></para>
 
@@ -80,12 +108,17 @@
     <xref linkend="usbutils"/>
     (with a current <filename>usb.ids</filename> file)</para>
 
+    <bridgehead renderas="sect4">Optional (to Create Documentation)</bridgehead>
+    <para role="optional"><xref linkend="libxml2"/> and
+    <ulink url="http://cyberelk.net/tim/xmlto/">xmlto</ulink></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="pkgconfig"/>,
-    <xref linkend="intltool"/>,
+    <para role="optional"><xref linkend="gtk-doc"/>
+    <ulink url="http://www.gnu.org/software/parted/index.shtml">Parted</ulink>,
     <xref linkend="libusb"/>,
-    <xref linkend="doxygen"/>, and
-    <xref linkend="docbook-utils"/></para>
+    <ulink url="http://linux.dell.com/libsmbios/main/index.html">libsmbios</ulink>,
+    <ulink url="http://gitweb.freedesktop.org/?p=PolicyKit.git;a=summary">PolicyKit</ulink>, and
+    <xref linkend="intltool"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/hal"/></para>
@@ -121,8 +154,17 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-install -v -m755 -d /var/run/hald</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>Prepare the <application>HAL</application> hardware data with the
+    following commands:</para>
+
+<screen><userinput>tar -xf ../hal-info-&hal-info-version;.tar.gz &amp;&amp;
+./configure --prefix=/usr</userinput></screen>
+
+    <para>Finally, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install</userinput></screen>
 
   </sect2>
 
@@ -139,10 +181,26 @@ install -v -m755 -d /var/run/hald</userinput></screen>
     <filename class='directory'>/var/run/hald</filename> instead of
     <filename class='directory'>/usr/var/run/hald</filename>.</para>
 
+    <para><parameter>--enable-docbook-docs
+    --docdir=/usr/share/doc/hal-&hal-version;</parameter>: If <xref
+    linkend="libxml2"/> and <ulink
+    url="http://cyberelk.net/tim/xmlto/">xmlto</ulink> are available, these
+    parameters enable the <application>HAL</application> specification
+    documentation to be built.</para>
+
   </sect2>
 
   <sect2 id="hal-runtime-dependencies" xreflabel="GNOME-Python">
     <title>Run-Time Dependencies</title>
+
+    <para>A few more packages enable more functionality in
+    <application>HAL</application> at run-time. These include <ulink
+    url="http://ca.geocities.com/jefftranter@rogers.com/eject.html">Eject</ulink>,
+    <ulink url="http://people.freedesktop.org/~mccann/dist/">ConsoleKit</ulink>,
+    <ulink url="http://www.nongnu.org/dmidecode/">dmidecode</ulink>,
+    <ulink url="http://sourceware.org/dm/">Device-mapper</ulink>,
+    <ulink url="http://luks.endorphin.org/dm-crypt">Cryptsetup-LUKS</ulink>, and
+    <ulink url="http://cvsweb.freedesktop.org/pm-utils/pm-utils/">pm-utils</ulink>.</para>
 
     <para>The <xref linkend="hal-device-manager"/> program requires several
     additional packages to be installed before it will run. The list is
@@ -489,13 +547,14 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>hal-device, hal-device-manager,
+        <seg>hal-device, hal-device-manager, hal-disable-polling,
         hal-find-by-capability, hal-find-by-property, hal-get-property,
-        hal-set-property, hald and lshal</seg>
+        hal-set-property, hal-is-caller-locked-out, hal-lock, hald and
+        lshal</seg>
         <seg>libhal.{so,a} and libhal-storage,{so,a}</seg>
         <seg>/etc/hal, /usr/include/hal, /usr/lib/hal,
-        /usr/share/doc/hal-&hal-version;, /usr/share/hal
-        and /var/run/hald</seg>
+        /usr/share/doc/hal-&hal-version;, /usr/share/hal, /var/cache/hald,
+        /var/lib/hal, and /var/run/hald</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -528,6 +587,17 @@ EOF</userinput></screen>
           object representing a hard disk.</para>
           <indexterm zone="hal hal-device-manager">
             <primary sortas="b-hal-device-manager">hal-device-manager</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-disable-polling">
+        <term><command>hal-disable-polling</command></term>
+        <listitem>
+          <para>can be used to to disable and enable media detection on
+          drives with removable storage.</para>
+          <indexterm zone="hal hal-disable-polling">
+            <primary sortas="b-hal-disable-polling">hal-disable-polling</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -574,6 +644,17 @@ EOF</userinput></screen>
           property.</para>
           <indexterm zone="hal hal-set-property">
             <primary sortas="b-hal-set-property">hal-set-property</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hal-is-caller-locked-out">
+        <term><command>hal-is-caller-locked-out</command></term>
+        <listitem>
+          <para>determines if a specific caller is locked out of a specific
+          <application>D-Bus</application> interface on a specific device.</para>
+          <indexterm zone="hal hal-is-caller-locked-out">
+            <primary sortas="b-hal-is-caller-locked-out">hal-is-caller-locked-out</primary>
           </indexterm>
         </listitem>
       </varlistentry>
