@@ -6,10 +6,10 @@
 
   <!ENTITY firefox-download-http "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
   <!ENTITY firefox-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
-  <!ENTITY firefox-md5sum        "383d3f3a17ba819ead94c2edc6739773">
-  <!ENTITY firefox-size          "34.0 MB">
-  <!ENTITY firefox-buildsize     "548 MB">
-  <!ENTITY firefox-time          "13.9 SBU">
+  <!ENTITY firefox-md5sum        "24398e3d98673a2a92a01a8f771ca12a">
+  <!ENTITY firefox-size          "35.4 MB">
+  <!ENTITY firefox-buildsize     "455 MB">
+  <!ENTITY firefox-time          "9.9 SBU">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -165,10 +165,6 @@ ac_add_options --enable-system-cairo
 # may not distribute binaries created using this option.
 ac_add_options --enable-official-branding
 
-# This option specifies to include support for rendering the HTML
-# &lt;canvas&gt;&lt;/canvas&gt; tag in the Firefox browser.
-ac_add_options --enable-canvas
-
 # This option is used to enable support for rendering SVG files in the
 # Firefox browser. Comment out the line to disable the option.
 ac_add_options --enable-svg
@@ -228,23 +224,15 @@ ac_add_options --disable-accessibility
 
 EOF</userinput></screen>
 
-    <para>If you wish to use <application>Pango</application> for font
-    rendering and have uncommented the appropriate option in
-    <filename>.mozconfig</filename>, apply the following patch:</para>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-pangoxft-1.patch</userinput></screen>
-
-    <para>If you have system-installed Network Security Services (NSS) and
-    Netscape Portable Runtime (NSPR) libraries and you uncommented the
-    appropriate lines in the <filename>.mozconfig</filename> file to utilize
-    them, apply the following patch:</para>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-system_nss-1.patch</userinput></screen>
-
     <para>Compile <application>Firefox</application> by issuing the
     following commands:</para>
 
-<screen><userinput>sed -i "s/^    enum$/&amp; xptinfo_enum_1/" \
+<screen><userinput>cat &gt;&gt; layout/build/Makefile.in &lt;&lt; "EOF" &amp;&amp;
+ifdef MOZ_ENABLE_CANVAS
+EXTRA_DSO_LDOPTS += -lX11 -lXrender
+endif
+EOF
+sed -i "s/^    enum$/&amp; xptinfo_enum_1/" \
     xpcom/reflect/xptinfo/public/xptinfo.h &amp;&amp;
 make -f client.mk build</userinput></screen>
 
@@ -301,6 +289,10 @@ cp -v -Lf ../firefox-build/dist/{private,public}/nss/*.h \
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>'EXTRA_DSO_LDOPTS' += -lX11 -lXrender ...</command>:
+    Building the layout backend will break when the canvas element is enabled
+    without adding these two required libraries.</para>
 
     <para><command>sed -i "s/^    enum$/&amp; xptinfo_enum_1/" ...</command>:
     This command is used to fix an anonymous enum in an external/public
