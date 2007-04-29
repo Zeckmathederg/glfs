@@ -6,9 +6,9 @@
 
   <!ENTITY fontconfig-download-http "http://fontconfig.org/release/fontconfig-&fontconfig-version;.tar.gz">
   <!ENTITY fontconfig-download-ftp  "ftp://ftp.fu-berlin.de/unix/linux/mirrors/gentoo/distfiles/fontconfig-&fontconfig-version;.tar.gz">
-  <!ENTITY fontconfig-md5sum        "7354f9f125ea78a8f2851cb9c31d4866">
-  <!ENTITY fontconfig-size          "942 KB">
-  <!ENTITY fontconfig-buildsize     "13.0 MB">
+  <!ENTITY fontconfig-md5sum        "108f9a03fa9ed9dd779cc7ca236da557">
+  <!ENTITY fontconfig-size          "1.2 MB">
+  <!ENTITY fontconfig-buildsize     "11.3 MB">
   <!ENTITY fontconfig-time          "0.2 SBU">
 ]>
 
@@ -54,6 +54,8 @@
       </listitem>
     </itemizedlist>
 
+    <!-- Since fontconfig is at 2.4.x, obviously it's more current
+         than 2.3.92. Uncomment when 2.4.9x is released
     <note>
       <para>The numbering system of <application>Fontconfig</application> is
       unusual. The beta versions of the package are numbered with a 9x in the
@@ -61,11 +63,14 @@
       release and the most current release is of the form
       &fontconfig-version;</para>
     </note>
+    -->
 
     <bridgehead renderas="sect3">Fontconfig Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="freetype2"/> and <xref linkend="expat"/></para>
+    <para role="required"><xref linkend="freetype2"/> and
+    <xref linkend="expat"/> or <xref linkend="libxml2"/> (requires
+    <xref linkend="pkgconfig"/>)</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="docbook-utils"/></para>
@@ -89,7 +94,8 @@
     <para>Install <application>Fontconfig</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
+<screen><userinput>./configure --prefix=/usr \
+    --sysconfdir=/etc --localstatedir=/var \
     --disable-docs --without-add-fonts \
     --with-docdir=/usr/share/doc/fontconfig-&fontconfig-version; &amp;&amp;
 make</userinput></screen>
@@ -112,6 +118,10 @@ install -v -m644 doc/fontconfig-devel/* \
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><parameter>--localstatedir=/var</parameter>: This switch places
+    the system font cache files in <filename
+    class='directory'>/var/cache/fontconfig</filename>.</para>
 
     <para><parameter>--disable-docs</parameter>: This switch avoids building
     the documentation (the release tarball includes pre-generated
@@ -137,7 +147,8 @@ install -v -m644 doc/fontconfig-devel/* \
     <sect3 id="fontconfig-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/fonts/* and /etc/fonts/conf.d/*</filename></para>
+      <para><filename>/etc/fonts/*, /etc/fonts/conf.avail/*, and
+      /etc/fonts/conf.d/*</filename></para>
 
       <indexterm zone="fontconfig fontconfig-config">
         <primary sortas="e-etc-fonts">/etc/fonts/*</primary>
@@ -147,17 +158,24 @@ install -v -m644 doc/fontconfig-devel/* \
         <primary sortas="e-etc-fonts-conf.d">/etc/fonts/conf.d/*</primary>
       </indexterm>
 
+      <indexterm zone="fontconfig fontconfig-config">
+        <primary sortas="e-etc-fonts-conf.avail">/etc/fonts/conf.avail/*</primary>
+      </indexterm>
+
     </sect3>
 
     <sect3>
       <title>Configuration Information</title>
 
-      <para>The configuration file for <application>Fontconfig</application> is
-      <filename>/etc/fonts/fonts.conf</filename>. Generally you do not want to
-      edit this file. To put a new font directory in the configuration, create
+      <para>The main configuration file for <application>Fontconfig</application>
+      is <filename>/etc/fonts/fonts.conf</filename>. Generally you do not want
+      to edit this file. It will also read <filename>/etc/fonts/local.conf</filename>
+      and any files in <filename class='directory'>/etc/fonts/conf.d</filename>.
+      To put a new font directory in the configuration, create
       (or update) the <filename>/etc/fonts/local.conf</filename> file with your
-      local information. The default location of fonts in
-      <application>Fontconfig</application> is:</para>
+      local information or add a new file in
+      <filename class='directory'>/etc/fonts/conf.d</filename>. The default
+      location of fonts in <application>Fontconfig</application> is:</para>
 
       <itemizedlist spacing='compact'>
         <listitem>
@@ -167,6 +185,14 @@ install -v -m644 doc/fontconfig-devel/* \
           <para>~/.fonts</para>
         </listitem>
       </itemizedlist>
+
+      <para><application>Fontconfig</application> also ships many example
+      configuration files in the <filename
+      class='directory'>/etc/fonts/conf.avail</filename> directory. Symlinking
+      to specific files from <filename class='directory'>/etc/fonts/conf.d</filename>
+      will enable them. The default setup is generally good enough for most
+      users. See <filename>/etc/fonts/conf.avail/README</filename> for a
+      description of the configuration files.</para>
 
       <indexterm zone="fontconfig fontconfig-config">
         <primary sortas="g-usr-share-fonts">/usr/share/fonts</primary>
@@ -178,20 +204,16 @@ install -v -m644 doc/fontconfig-devel/* \
 
       <para>More information about configuring
       <application>Fontconfig</application> can be found in the user's manual
-      at <ulink url="http://fontconfig.org/fontconfig-user.html"/>.  There are
-      additional configuration files shipped with
-      <application>Fontconfig</application> in <filename
-      class="directory">/etc/fonts/conf.d</filename> that will be enabled
-      if their names begin with 2 numbers, e.g.,
-      <filename>/etc/fonts/conf.d/10-autohint.conf</filename>.</para>
+      in <ulink
+      url="file:///usr/share/doc/fontconfig-&fontconfig-version;/fontconfig-user.html"/>.
+      </para>
 
       <note>
-        <para><application>X</application> also includes an internal (and
+        <para><application>XFree86</application> also includes an internal (and
         older) version of <application>Fontconfig</application> and unless it
-        is explicitly disabled when building <application>Xorg</application> or
-        <application>XFree86</application>, the internal version is created
-        leaving two slightly incompatible libraries on your system. It is
-        recommended that you only install one version.</para>
+        is explicitly disabled, the internal version is created leaving two
+        slightly incompatible libraries on your system. It is recommended that
+        you only install one version.</para>
       </note>
 
     </sect3>
@@ -207,7 +229,7 @@ install -v -m644 doc/fontconfig-devel/* \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>fc-cache, fc-list, and fc-match</seg>
+        <seg>fc-cache, fc-cat, fc-list, and fc-match</seg>
         <seg>libfontconfig.{so,a}</seg>
         <seg>/etc/fonts, /usr/include/fontconfig and
         /usr/share/doc/fontconfig-&fontconfig-version;</seg>
@@ -225,6 +247,16 @@ install -v -m644 doc/fontconfig-devel/* \
           <para>is used to create font information caches.</para>
           <indexterm zone="fontconfig fc-cache">
             <primary sortas="b-fc-cache">fc-cache</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="fc-cat">
+        <term><command>fc-cat</command></term>
+        <listitem>
+          <para>is used to read font information caches.</para>
+          <indexterm zone="fontconfig fc-cat">
+            <primary sortas="b-fc-cat">fc-cat</primary>
           </indexterm>
         </listitem>
       </varlistentry>
