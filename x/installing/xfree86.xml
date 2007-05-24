@@ -59,6 +59,14 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/XFree86-&xfree86-version;-freetype_internals-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">XFree86 Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -172,6 +180,28 @@
 
     <sect3>
 
+      <title>Preparing the Sources</title>
+
+      <para>Three fixes are needed for <application>XFree86</application>.
+      First, a patch is needed to build against newer <application>FreeType</application>
+      releases. Second, the macro "PAGE_MASK" is manually defined because
+      including <filename>asm/page.h</filename> from the Linux kernel headers
+      does not work when compiling with <parameter>-ansi</parameter>. Finally,
+      the Linux kernel headers no longer install the unneeded header
+      <filename>linux/config.h</filename>. A <command>sed</command> is used
+      to remove all usage of this header. Perform these actions with the
+      following commands:</para>
+
+<screen><userinput>patch -Np1 -i ../XFree86-&xfree86-version;-freetype_internals-1.patch &amp;&amp;
+sed -i '/page.h/c #define PAGE_MASK (~(getpagesize() - 1))' \
+    programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c &amp;&amp;
+grep -rl '^#include &lt;linux/config.h&gt;' . | \
+    xargs sed -i '\@^#include &lt;linux/config.h&gt;@d'</userinput></screen>
+
+    </sect3>
+
+    <sect3>
+
       <title>Setting Up a Shadow Directory</title>
 
       <para>When building <application>XFree86</application>, you should create
@@ -267,12 +297,7 @@ EOF</userinput></screen>
       <para>Install <application>XFree86</application> by running the
       following commands:</para>
 
-<screen><userinput>sed -i 's:^.*asm.*$:# define PAGE_MASK   (~(getpagesize() - 1)):' \
-    ../xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c &amp;&amp;
-sed -i -e "s@^#include &lt;linux/config.h&gt;@/* &amp; */@" \
-    `grep -lr linux/config.h ../xc` &amp;&amp;
-( make World 2&gt;&amp;1 | tee xfree-compile.log &amp;&amp; exit $PIPESTATUS )
-</userinput></screen>
+<screen><userinput>( make World 2&gt;&amp;1 | tee xfree-compile.log &amp;&amp; exit $PIPESTATUS )</userinput></screen>
 
       <para>This package does not come with a test suite.</para>
 
@@ -351,20 +376,6 @@ EOF</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>sed -i 's:^.*asm.* ... fbdevhw.c</command>: This sed fixes a
-    problem compiling against headers from kernels newer than linux-2.6.8.</para>
-
-    <para><command>sed -i -e "s@^#include &lt;linux/config.h&gt;@...</command>:
-    The <application>Linux-Libc-Headers</application> package installed in
-    LFS installs a <filename>/usr/include/linux/config.h</filename> file which
-    is not compatible with userspace applications. The recommended fix for
-    applications including this file is to remove it (see <ulink
-    url="http://ep09.pld-linux.org/~mmazur/linux-libc-headers/doc/FAQ">
-    linux-libc-headers FAQ</ulink>). The <command>sed</command> uses
-    <command>grep -lr</command> to replace all occurrences. If you desire, just
-    remove (comment) the line in the appropriate video driver file if you
-    customized <filename>host.def</filename>.</para>
 
     <para><command>( make World 2&gt;&amp;1 | tee xfree-compile.log
       &amp;&amp; exit $PIPESTATUS )</command>:
