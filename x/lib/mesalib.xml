@@ -7,12 +7,17 @@
   <!ENTITY mesalib-download-http "http://downloads.sourceforge.net/mesa3d/MesaLib-&mesalib-version;.tar.bz2">
   <!ENTITY mesalib-download-ftp  " ">
   <!ENTITY mesalib-md5sum        "61beda590bfc5b4a12e979d5f2d70d7a">
-  <!ENTITY mesalib-size          "3.3 MB">
-  <!ENTITY mesalib-buildsize     "157 MB">
-  <!ENTITY mesalib-time          "1.7 SBU">
+  <!ENTITY mesalib-size          "3.1 MB">
+  <!ENTITY mesalib-buildsize     "172 MB">
+  <!ENTITY mesalib-time          "1.6 SBU">
 
   <!ENTITY mesademos-download-http "http://downloads.sourceforge.net/mesa3d/MesaDemos-&mesalib-version;.tar.bz2">
+  <!ENTITY mesademos-md5sum        "e870efe98d3a50be01ab211b9b2e25d9">
+  <!ENTITY mesademos-size          "1.3 MB">
+
   <!ENTITY mesaglut-download-http  "http://downloads.sourceforge.net/mesa3d/MesaGLUT-&mesalib-version;.tar.bz2">
+  <!ENTITY mesaglut-md5sum         "e84edbb11c69c8e408dfadd2ed08e95b">
+  <!ENTITY mesaglut-size           "306 KB">
 
 ]>
 
@@ -61,6 +66,35 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+
+    <itemizedlist spacing="compact">
+      <title>Recommended demonstration and diagnostic utilities for
+      verifying OpenGL operation</title>
+      <listitem>
+        <para>Download (HTTP): <ulink url="&mesademos-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &mesademos-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &mesademos-size;</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist spacing="compact">
+      <title>Optional GLUT library (see also <xref linkend="freeglut"/>)</title>
+      <listitem>
+        <para>Download (HTTP): <ulink url="&mesaglut-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &mesaglut-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &mesaglut-size;</para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">MesaLib Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -75,21 +109,6 @@
       <para>It is not recommended to build a newer version of
       <application>Mesa</application> with <xref linkend="xfree86"/>.</para>
     </note> -->
-
-    <bridgehead renderas="sect3">Recommended Download</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Demonstration and diagnostic utilities used to verify that GL is
-        working properly: <ulink url="&mesademos-download-http;"/></para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Optional Download</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>MesaLib GLUT library: <ulink url="&mesaglut-download-http;"/></para>
-      </listitem>
-    </itemizedlist>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/mesalib"/></para>
@@ -112,19 +131,13 @@
     </caution>
     -->
 
-    <para>Fix an error with output redirection if <command>/bin/sh</command>
-    is not the <application>Bash</application> shell on your system:</para>
-
-<screen><userinput>sed -i 's%&gt;&amp; /dev/null%&gt;/dev/null%' src/mesa/drivers/dri/Makefile.template</userinput></screen>
-
     <para>Install <application>MesaLib</application> by running the following
-    commands:</para>
+    command:</para>
 
-<screen><userinput>find . -type f -exec sed -i "s@/usr/X11R6@$XORG_PREFIX@g" {} \; &amp;&amp;
-sed -i 's@lib/modules@lib/X11/modules@' \
-    src/glx/x11/dri_glx.c \
-    src/mesa/drivers/dri/Makefile.template &amp;&amp;
-make OPT_FLAGS="-O2 -fno-strict-aliasing" linux-dri-x86</userinput></screen>
+<screen><userinput>make linux-dri-x86 OPT_FLAGS="-O2 -fno-strict-aliasing" \
+    DRI_DRIVER_INSTALL_DIR=${XORG_PREFIX}/lib/modules/dri \
+    X11_INCLUDES=-I${XORG_PREFIX}/include \
+    EXTRA_LIB_PATH=-L${XORG_PREFIX}/lib</userinput></screen>
 
     <para>If you downloaded and extracted the Demos package, build the programs
     with the following commands:</para>
@@ -136,14 +149,15 @@ make -C progs/xdemos PROGS='glxinfo glxgears'</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>bin/installmesa $XORG_PREFIX &amp;&amp;
-install -v -m755 -d $XORG_PREFIX/lib/X11/modules/dri &amp;&amp;
-install -v -m755 lib/*dri* $XORG_PREFIX/lib/X11/modules/dri</userinput></screen>
+<screen role="root"><userinput>make install INSTALL_DIR=${XORG_PREFIX} \
+    DRI_DRIVER_INSTALL_DIR=${XORG_PREFIX}/lib/modules/dri &amp;&amp;
+install -dv ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version; &amp;&amp;
+install -v -m644 docs/* ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;</userinput></screen>
 
     <para>If you built the demo programs, install them using the following
     command as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m755 progs/xdemos/glx{info,gears} $XORG_PREFIX/bin</userinput></screen>
+<screen role="root"><userinput>install -v -m755 progs/xdemos/glx{info,gears} ${XORG_PREFIX}/bin</userinput></screen>
 
     <para>Finally, if installing to any prefix other than
     <filename class="directory">/usr</filename>, you should create symlinks
@@ -151,7 +165,7 @@ install -v -m755 lib/*dri* $XORG_PREFIX/lib/X11/modules/dri</userinput></screen>
     Execute the following command as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>ln -s -v $XORG_PREFIX/include/GL /usr/include</userinput></screen>
+<screen role="root"><userinput>ln -s -v ${XORG_PREFIX}/include/GL /usr/include</userinput></screen>
 
     <tip>
       <para>Do not remove the Mesa source tree yet, it will be required to
@@ -163,20 +177,20 @@ install -v -m755 lib/*dri* $XORG_PREFIX/lib/X11/modules/dri</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>find ... sed -i "s@/usr/X11R6@$XORG_PREFIX@" ...</command>:
-    This command corrects several hard coded references to the X11R6 default
-    installation path.</para>
-
-    <para><command>sed -i 's@lib/modules@lib/X11/modules@' ...</command>:
-    This command corrects a hard coded reference to the module directory.</para>
-
-    <para><command>make OPT_FLAGS=... linux-dri-x86</command>: A bug where
-    OpenGL applications are shifted to the left by 50% can be worked around
-    by adding <option>-fno-strict-aliasing</option> to the compiler flags.
-    Also, the <option>linux-dri-x86</option> target is specified to use a
+    <para><command>make ... linux-dri-x86</command>: The
+    <option>linux-dri-x86</option> target is specified to use a
     few other helpful flags in addition to the defaults. See the other
     targets in the <filename class="directory">configs</filename> directory
     if your architecture is not x86.</para>
+
+    <para><envar>OPT_FLAGS="-O2 -fno-strict-aliasing"</envar>: A bug where
+    OpenGL applications are shifted to the left by 50% can be worked around
+    by adding <option>-fno-strict-aliasing</option> to the compiler flags.</para>
+
+    <para><envar>DRI_DRIVER_INSTALL_DIR=${XORG_PREFIX}/lib/modules/dri</envar>:
+    This setting specifies the location that the DRI modules will be installed
+    to. This path is also built into <filename
+    class="libraryfile">libGL.so</filename>.</para>
 
     <para><command>sed -i 's@-l$(GLUT_LIB)@@g' configs/default</command>:
     Disables linking against the GLUT libraries for the demo programs, omit
@@ -186,14 +200,6 @@ install -v -m755 lib/*dri* $XORG_PREFIX/lib/X11/modules/dri</userinput></screen>
     the <command>glxinfo</command> and <command>glxgears</command>
     programs.</para>
 
-    <para><command>bin/installmesa</command>: Mesa uses a custom installation
-    script as opposed to the normal <parameter>install</parameter>
-    <command>make</command> target.</para>
-
-    <para><command>install -v -m755 lib/*dri*
-    $XORG_PREFIX/lib/X11/modules/dri</command>:
-    installs the DRI modules.</para>
-
   </sect2>
 
   <sect2 role="content">
@@ -202,13 +208,14 @@ install -v -m755 lib/*dri* $XORG_PREFIX/lib/X11/modules/dri</userinput></screen>
     <segmentedlist>
       <segtitle>Installed Programs (optional)</segtitle>
       <segtitle>Installed Libraries</segtitle>
-      <segtitle>Installed Directory</segtitle>
+      <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>glxgears and glxinfo</seg>
-        <seg>libGL.{so,a}, libGLU.{so,a}, libGLw.{so,a}, *_dri.so and
-        optionally, libglut.{so,a}</seg>
-        <seg>$XORG_PREFIX/lib/modules/dri</seg>
+        <seg>libGL.so, libGLU.so, libGLw.so, *_dri.so and
+        optionally, libglut.so</seg>
+        <seg><envar>$XORG_PREFIX</envar>/lib/modules/dri and
+        <envar>$XORG_PREFIX</envar>/share/doc/MesaLib-&mesalib-version;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -235,6 +242,46 @@ install -v -m755 lib/*dri* $XORG_PREFIX/lib/X11/modules/dri</userinput></screen>
           graphics hardware and installed GL libraries.</para>
           <indexterm zone="mesalib glxinfo">
             <primary sortas="b-glxinfo">glxinfo</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libGL">
+        <term><filename class='libraryfile'>libGL.so</filename></term>
+        <listitem>
+          <para>is the main OpenGL library.</para>
+          <indexterm zone="mesalib libGL">
+            <primary sortas="c-libGL">libGL.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libGLU">
+        <term><filename class='libraryfile'>libGLU.so</filename></term>
+        <listitem>
+          <para>is the OpenGL Utility library.</para>
+          <indexterm zone="mesalib libGLU">
+            <primary sortas="c-libGLU">libGLU.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libGLw">
+        <term><filename class='libraryfile'>libGLw.so</filename></term>
+        <listitem>
+          <para>is the Xt/Motif OpenGL drawing area widget library.</para>
+          <indexterm zone="mesalib libGLw">
+            <primary sortas="c-libGLw">libGLw.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libglut-mesa">
+        <term><filename class='libraryfile'>libglut.so</filename></term>
+        <listitem>
+          <para>is the OpenGL Utility Toolkit (GLUT) library.</para>
+          <indexterm zone="mesalib libglut-mesa">
+            <primary sortas="c-libglut">libglut.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
