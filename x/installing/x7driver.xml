@@ -85,21 +85,6 @@ wget -B http://xorg.freedesktop.org/releases/individual/driver/ \
   <sect2 role="installation">
     <title>Installation of Xorg Drivers</title>
 
-    <para>The <application>xf86-input-evdev</application>,
-    <application>xf86-video-ati</application>,
-    <application>xf86-video-fbdev</application>,
-    <application>xf86-video-glint</application>, and
-    <application>xf86-video-newport</application> packages install
-    man pages in UTF-8 encoding, and they will not display correctly
-    using <application>Man-DB</application>. Issue the following
-    command before building these packages to replace the offending
-    characters with ones that <command>man</command> can properly
-    display.</para>
-
-<screen><userinput>sed -i -e "s/\xc3\xb8/\\\\[\/o]/" \
-       -e "s/\xc3\xa4/\\\\[:a]/" \
-       -e "s/\xc3\x9c/\\\\[:U]/" man/*.man</userinput></screen>
-
     <warning><para>It is very important not to build display drivers that
     cannot be used with your hardware.  For instance, do not build Sun drivers
     for an x86 PC as the Sun drivers will expect to see SPARC symbols
@@ -110,7 +95,16 @@ wget -B http://xorg.freedesktop.org/releases/individual/driver/ \
     <para>Install the drivers by running the following commands for each
     package:</para>
 
-<screen><userinput>./configure $XORG_CONFIG \
+<screen><userinput>case $(basename "$PWD") in
+xf86-input-evdev-[0-9]* | xf86-video-ati-[0-9]* | \
+xf86-video-fbdev-[0-9]* | xf86-video-glint-[0-9]* | \
+xf86-video-newport-[0-9]* )
+    sed -i -e "s/\xc3\xb8/\\\\[\/o]/" \
+           -e "s/\xc3\xa4/\\\\[:a]/" \
+           -e "s/\xc3\x9c/\\\\[:U]/" man/*.man
+    ;;
+esac &amp;&amp;
+./configure $XORG_CONFIG \
     --with-xorg-module-dir=$XORG_PREFIX/lib/X11/modules &amp;&amp;
 make</userinput></screen>
 
@@ -125,6 +119,12 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed -i ... man/*.man</command>: A few packages install
+    man pages in UTF-8 encoding, and they will not display correctly
+    using <application>Man-DB</application>. This command converts the
+    offending characters to ones that <command>man</command> can properly
+    display.</para>
 
     <para><parameter>--with-xorg-module-dir=...</parameter>: This switch
     ensures that the drivers are installed into the correct directory.</para>

@@ -11,6 +11,10 @@
   <!ENTITY x7libs-buildsize     "186 MB">
   <!ENTITY x7libs-time          "6.6 SBU">
 
+  <!-- Versions for patches -->
+  <!ENTITY libX11-version       "1.1.1">
+  <!ENTITY libXfont-version     "1.2.7">
+
 ]>
 
 <sect1 id="xorg7-lib" xreflabel="Xorg Libraries">
@@ -61,11 +65,11 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/libX11-1.1.1-xinitimage-1.patch"/></para>
+        url="&patch-root;/libX11-&libX11-version;-xinitimage-1.patch"/></para>
       </listitem>
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/libXfont-1.2.7-bdf_fontsdir-1.patch"/></para>
+        url="&patch-root;/libXfont-&libXfont-version;-bdf_fontsdir-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -103,24 +107,18 @@ wget -B http://xorg.freedesktop.org/releases/individual/lib/ \
   <sect2 role="installation">
     <title>Installation of Xorg Libraries</title>
 
-    <para><ulink url='http://wiki.x.org/wiki/Development/Security'>Security
-    vulnerabilities</ulink> have been identified in the
-    <application>libX11</application> and <application>libXfont</application>
-    packages. Before building these packages with the commands shown below,
-    be sure to apply the supplied patches. For <application>libX11</application>,
-    this can be done by issuing the following command:</para>
-
-<screen><userinput>patch -Np1 -i ../libX11-1.1.1-xinitimage-1.patch</userinput></screen>
-
-    <para>For <application>libXfont</application>, the patch can be applied
-    with the following command:</para>
-
-<screen><userinput>patch -Np1 -i ../libXfont-1.2.7-bdf_fontsdir-1.patch</userinput></screen>
-
     <para>Install the libraries by running the following commands for each
-    of the chosen packages:</para>
+    package:</para>
 
-<screen><userinput>./configure $XORG_CONFIG --without-xcb &amp;&amp;
+<screen><userinput>case $(basename "$PWD") in
+libX11-&libX11-version; )
+    patch -Np1 -i ../libX11-&libX11-version;-xinitimage-1.patch
+    ;;
+libXfont-&libXfont-version; )
+    patch -Np1 -i ../libXfont-&libXfont-version;-bdf_fontsdir-1.patch
+    ;;
+esac &amp;&amp;
+./configure $XORG_CONFIG &amp;&amp;
 make</userinput></screen>
 
     <para>These packages do not provide test suites.</para>
@@ -140,6 +138,12 @@ ldconfig</userinput></screen>
     will try to use <ulink url="http://xcb.freedesktop.org/wiki/">XCB</ulink>
     for it's transport layer unless this parameter is supplied. This parameter
     will be ignored for other packages.</para>
+
+    <para><command>patch -Np1 -i ...</command>: These commands apply patches
+    to fix <ulink url='http://wiki.x.org/wiki/Development/Security'>security
+    vulnerabilities</ulink> identified in the
+    <application>libX11</application> and <application>libXfont</application>
+    packages.</para>
 
   </sect2>
 
