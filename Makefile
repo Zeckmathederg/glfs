@@ -76,9 +76,10 @@ nochunks: validxml profile-html
 	  $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
 tmpdir:
-	@echo "Creating and cleaning $(RENDERTMP)
+	@echo "Creating and cleaning $(RENDERTMP)"
 	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
-	$(Q)rm -f $(RENDERTMP)/blfs-{full,html,pdf,fo,}.xml
+	$(Q)rm -f $(RENDERTMP)/blfs-{full,html,pdf}.xml
+	$(Q)rm -f $(RENDERTMP)/blfs-pdf.fo
 	$(Q)rm -f $(RENDERTMP)/blfs-{patch-list,patches}
 
 validxml: tmpdir
@@ -143,4 +144,4 @@ all: blfs nochunks pdf
 world: all blfs-patch-list dump-commands wget-list test-links
 
 .PHONY : all blfs blfs-patch-list dump-commands nochunks pdf profile-html \
-	 test-links validate validxml wget-list world
+	 test-links tmpdir validate validxml wget-list world
