@@ -63,9 +63,9 @@ pdf: validxml
 
 nochunks: validxml profile-html
 	@echo "Generating non chunked XHTML file..."
-	$(Q)xsltproc --nonet -stringparam profile.condition html \
-	  -stringparam rootid $(ROOT_ID) --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
-	  stylesheets/blfs-nochunks.xsl /tmp/blfs-html.xml
+	$(Q)xsltproc --nonet -stringparam rootid $(ROOT_ID) \
+	  --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
+	  stylesheets/lfs-nochunks.xsl /tmp/blfs-html.xml
 
 	@echo "Running Tidy..."
 	$(Q)tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
