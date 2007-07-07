@@ -105,7 +105,7 @@ test-links: validxml
 	  --output $(BASEDIR)/test-links stylesheets/wget-list.xsl \
 	  /tmp/lfs-full.xml
 
-	@echo "Cheking URLs, first pass..."
+	@echo "Checking URLs, first pass..."
 	$(Q)rm -f $(BASEDIR)/{good,bad,true_bad}_urls
 	$(Q)for URL in `cat $(BASEDIR)/test-links`; do \
 	    wget --spider --tries=2 --timeout=60 $$URL >>/dev/null 2>&1; \
@@ -114,7 +114,7 @@ test-links: validxml
 	    fi; \
 	done
 
-	@echo "Cheking URLs, second pass..."
+	@echo "Checking URLs, second pass..."
 	$(Q)for URL2 in `cat $(BASEDIR)/bad_urls`; do \
 	    wget --spider --tries=2 --timeout=60 $$URL2 >>/dev/null 2>&1; \
 	    if test $$? -ne 0 ; then echo $$URL2 >> $(BASEDIR)/true_bad_urls ; \
