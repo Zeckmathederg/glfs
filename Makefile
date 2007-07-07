@@ -7,6 +7,7 @@
 # Adjust these to suit your installation
 BASEDIR= $(HOME)/public_html/blfs-book-xsl
 DUMPDIR= $(HOME)/blfs-commands
+TMPDIR= $(HOME)tmp
 CHUNK_QUIET=1
 ROOT_ID=""
 PDF_OUTPUT=BLFS-BOOK.pdf
@@ -22,7 +23,7 @@ blfs: validxml profile-html
 	@echo "Generating chunked XHTML files..."
 	$(Q)xsltproc --nonet -stringparam chunk.quietly $(CHUNK_QUIET) \
 	  -stringparam rootid $(ROOT_ID) -stringparam base.dir $(BASEDIR)/ \
-	  stylesheets/blfs-chunked.xsl /tmp/blfs-html.xml
+	  stylesheets/blfs-chunked.xsl $(TMPDIR)/blfs-html.xml
 
 	@echo "Copying CSS code and images..."
 	$(Q)if [ ! -e $(BASEDIR)/stylesheets ]; then \
@@ -47,25 +48,25 @@ blfs: validxml profile-html
 pdf: validxml
 	@echo "Generating profiled XML for PDF..."
 	$(Q)xsltproc --nonet --stringparam profile.condition pdf \
-	  --output /tmp/blfs-pdf.xml stylesheets/lfs-xsl/profile.xsl \
-	  /tmp/blfs-full.xml
+	  --output $(TMPDIR)/blfs-pdf.xml stylesheets/lfs-xsl/profile.xsl \
+	  $(TMPDIR)/blfs-full.xml
 
 	@echo "Generating FO file..."
 	$(Q)xsltproc --nonet -stringparam rootid $(ROOT_ID) \
-	  --output /tmp/blfs-pdf.fo stylesheets/blfs-pdf.xsl /tmp/blfs-pdf.xml
-	$(Q)sed -i -e 's/span="inherit"/span="all"/' /tmp/blfs-pdf.fo
+	  --output $(TMPDIR)/blfs-pdf.fo stylesheets/blfs-pdf.xsl $(TMPDIR)/blfs-pdf.xml
+	$(Q)sed -i -e 's/span="inherit"/span="all"/' $(TMPDIR)/blfs-pdf.fo
 
 	@echo "Generating PDF file..."
 	$(Q)if [ ! -e $(BASEDIR) ]; then \
 	  mkdir -p $(BASEDIR); \
 	fi;
-	$(Q)fop /tmp/blfs-pdf.fo $(BASEDIR)/$(PDF_OUTPUT)
+	$(Q)fop $(TMPDIR)/blfs-pdf.fo $(BASEDIR)/$(PDF_OUTPUT)
 
 nochunks: validxml profile-html
 	@echo "Generating non chunked XHTML file..."
 	$(Q)xsltproc --nonet -stringparam rootid $(ROOT_ID) \
 	  --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
-	  stylesheets/blfs-nochunks.xsl /tmp/blfs-html.xml
+	  stylesheets/blfs-nochunks.xsl $(TMPDIR)/blfs-html.xml
 
 	@echo "Running Tidy..."
 	$(Q)tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
@@ -74,36 +75,42 @@ nochunks: validxml profile-html
 	$(Q)sed -i -e "s@text/html@application/xhtml+xml@g"  \
 	  $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
-validxml:
+tmpdir:
+	@echo "Creating and cleaning $(TMPDIR)
+	$(Q)[ -d $(TMPDIR) ] || mkdir -p $(TMPDIR)
+	$(Q)rm -f $(TMPDIR)/blfs-{full,html,pdf,fo,}.xml
+	$(Q)rm -f $(TMPDIR)/blfs-{patch-list,patches}
+
+validxml: tmpdir
 	@echo "Validating the book..."
 	$(Q)xmllint --nonet --noent --xinclude --postvalid \
-	  -o /tmp/blfs-full.xml index.xml
+	  -o ~$(TMPDIR)/blfs-full.xml index.xml
 
 profile-html: validxml
 	@echo "Generating profiled XML for XHTML..."
 	$(Q)xsltproc --nonet --stringparam profile.condition html \
-	  --output /tmp/blfs-html.xml stylesheets/lfs-xsl/profile.xsl \
-	  /tmp/blfs-full.xml
+	  --output $(TMPDIR)/blfs-html.xml stylesheets/lfs-xsl/profile.xsl \
+	  $(TMPDIR)/blfs-full.xml
 
 blfs-patch-list: validxml
 	@echo "Generating blfs-patch-list..."
-	$(Q)xsltproc --nonet --output /tmp/blfs-patch-list \
-	  stylesheets/patcheslist.xsl /tmp/blfs-full.xml
-	$(Q)sed -e "s|^.*/||" /tmp/blfs-patch-list > /tmp/blfs-patches
-	$(Q)sort /tmp/blfs-patches > blfs-patch-list
+	$(Q)xsltproc --nonet --output $(TMPDIR)/blfs-patch-list \
+	  stylesheets/patcheslist.xsl $(TMPDIR)/blfs-full.xml
+	$(Q)sed -e "s|^.*/||" $(TMPDIR)/blfs-patch-list > $(TMPDIR)/blfs-patches
+	$(Q)sort $(TMPDIR)/blfs-patches > blfs-patch-list
 
 wget-list: validxml
 	@echo "Generating wget list..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --output $(BASEDIR)/wget-list \
-	  stylesheets/wget-list.xsl /tmp/blfs-full.xml
+	  stylesheets/wget-list.xsl $(TMPDIR)/blfs-full.xml
 
 test-links: validxml
 	@echo "Generating test-links file..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --stringparam list_mode full \
 	  --output $(BASEDIR)/test-links stylesheets/wget-list.xsl \
-	  /tmp/blfs-full.xml
+	  $(TMPDIR)/blfs-full.xml
 
 	@echo "Checking URLs, first pass..."
 	$(Q)rm -f $(BASEDIR)/{good,bad,true_bad}_urls
@@ -125,7 +132,7 @@ test-links: validxml
 dump-commands: validxml
 	@echo "Dumping book commands..."
 	$(Q)xsltproc --output $(DUMPDIR)/ \
-	   stylesheets/dump-commands.xsl /tmp/blfs-full.xml
+	   stylesheets/dump-commands.xsl $(TMPDIR)/blfs-full.xml
 
 validate:
 	@echo "Validating the book..."
