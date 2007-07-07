@@ -52,7 +52,7 @@ pdf: validxml
 
 	@echo "Generating FO file..."
 	$(Q)xsltproc --nonet -stringparam rootid $(ROOT_ID) \
-	  --output /tmp//blfs-pdf.fo stylesheets/blfs-pdf.xsl /tmp/blfs-pdf.xml
+	  --output /tmp/blfs-pdf.fo stylesheets/blfs-pdf.xsl /tmp/blfs-pdf.xml
 	$(Q)sed -i -e 's/span="inherit"/span="all"/' /tmp/blfs-pdf.fo
 
 	@echo "Generating PDF file..."
@@ -96,14 +96,14 @@ wget-list: validxml
 	@echo "Generating wget list..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --output $(BASEDIR)/wget-list \
-	  stylesheets/wget-list.xsl /tmp/lfs-full.xml
+	  stylesheets/wget-list.xsl /tmp/blfs-full.xml
 
 test-links: validxml
 	@echo "Generating test-links file..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --stringparam list_mode full \
 	  --output $(BASEDIR)/test-links stylesheets/wget-list.xsl \
-	  /tmp/lfs-full.xml
+	  /tmp/blfs-full.xml
 
 	@echo "Checking URLs, first pass..."
 	$(Q)rm -f $(BASEDIR)/{good,bad,true_bad}_urls
@@ -125,7 +125,7 @@ test-links: validxml
 dump-commands: validxml
 	@echo "Dumping book commands..."
 	$(Q)xsltproc --output $(DUMPDIR)/ \
-	   stylesheets/dump-commands.xsl /tmp/lfs-full.xml
+	   stylesheets/dump-commands.xsl /tmp/blfs-full.xml
 
 validate:
 	@echo "Validating the book..."
