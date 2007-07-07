@@ -84,7 +84,7 @@ tmpdir:
 validxml: tmpdir
 	@echo "Validating the book..."
 	$(Q)xmllint --nonet --noent --xinclude --postvalid \
-	  -o ~$(RENDERTMP)/blfs-full.xml index.xml
+	  -o $(RENDERTMP)/blfs-full.xml index.xml
 
 profile-html: validxml
 	@echo "Generating profiled XML for XHTML..."
