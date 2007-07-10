@@ -5,13 +5,13 @@
 # $Date$
 
 # Adjust these to suit your installation
-BASEDIR= $(HOME)/public_html/blfs-book-xsl
-DUMPDIR= $(HOME)/blfs-commands
-RENDERTMP= $(HOME)/tmp
-CHUNK_QUIET=1
-ROOT_ID=""
-PDF_OUTPUT=BLFS-BOOK.pdf
-NOCHUNKS_OUTPUT=BLFS-BOOK.html
+BASEDIR = $(HOME)/public_html/blfs-book-xsl
+DUMPDIR = $(HOME)/blfs-commands
+RENDERTMP = $(HOME)/tmp
+CHUNK_QUIET = 1
+ROOT_ID =
+PDF_OUTPUT = BLFS-BOOK.pdf
+NOCHUNKS_OUTPUT = BLFS-BOOK.html
 
 ifdef V
   Q =
@@ -22,7 +22,7 @@ endif
 blfs: validxml profile-html
 	@echo "Generating chunked XHTML files..."
 	$(Q)xsltproc --nonet -stringparam chunk.quietly $(CHUNK_QUIET) \
-	  -stringparam rootid $(ROOT_ID) -stringparam base.dir $(BASEDIR)/ \
+	  -stringparam rootid "$(ROOT_ID)" -stringparam base.dir $(BASEDIR)/ \
 	  stylesheets/blfs-chunked.xsl $(RENDERTMP)/blfs-html.xml
 
 	@echo "Copying CSS code and images..."
