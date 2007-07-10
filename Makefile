@@ -52,7 +52,7 @@ pdf: validxml
 	  $(RENDERTMP)/blfs-full.xml
 
 	@echo "Generating FO file..."
-	$(Q)xsltproc --nonet -stringparam rootid $(ROOT_ID) \
+	$(Q)xsltproc --nonet -stringparam rootid "$(ROOT_ID)" \
 	  --output $(RENDERTMP)/blfs-pdf.fo stylesheets/blfs-pdf.xsl $(RENDERTMP)/blfs-pdf.xml
 	$(Q)sed -i -e 's/span="inherit"/span="all"/' $(RENDERTMP)/blfs-pdf.fo
 
@@ -64,7 +64,7 @@ pdf: validxml
 
 nochunks: validxml profile-html
 	@echo "Generating non chunked XHTML file..."
-	$(Q)xsltproc --nonet -stringparam rootid $(ROOT_ID) \
+	$(Q)xsltproc --nonet -stringparam rootid "$(ROOT_ID)" \
 	  --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
 	  stylesheets/blfs-nochunks.xsl $(RENDERTMP)/blfs-html.xml
 
