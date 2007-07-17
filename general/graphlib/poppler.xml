@@ -6,10 +6,12 @@
 
   <!ENTITY poppler-download-http "http://poppler.freedesktop.org/poppler-&poppler-version;.tar.gz">
   <!ENTITY poppler-download-ftp  " ">
-  <!ENTITY poppler-md5sum        "2bb1c75aa3f9c42f0ba48b5492e6d32c">
-  <!ENTITY poppler-size          "783 KB">
-  <!ENTITY poppler-buildsize     "35.3 MB">
-  <!ENTITY poppler-time          "0.9 SBU">
+  <!ENTITY poppler-md5sum        "053fdfd70533ecce1a06353fa945f061">
+  <!ENTITY poppler-size          "1.0 MB">
+  <!ENTITY poppler-buildsize     "49 MB (additional 15 MB to install the encoding data package)">
+  <!ENTITY poppler-time          "1.0 SBU (includes building with all dependencies)">
+
+  <!ENTITY poppler-data-version  "0.1">
 ]>
 
 <sect1 id="poppler" xreflabel="Poppler-&poppler-version;">
@@ -30,8 +32,9 @@
     <title>Introduction to Poppler</title>
 
     <para>The <application>Poppler</application> package contains a PDF
-    rendering library. This is useful for providing PDF rendering
-    functionality as a shared library.</para>
+    rendering library and command line tools used to manipulate PDF files.
+    This is useful for providing PDF rendering functionality as a shared
+    library.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -55,12 +58,27 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Poppler Encoding Data: <ulink
+        url="http://poppler.freedesktop.org/poppler-data-&poppler-data-version;.tar.gz"/></para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The additional package consists of encoding files for use with
+    Poppler. The encoding files are optional and poppler will automatically
+    read them if they are present. When installed, they enable Poppler to
+    render CJK and Cyrillic properly.</para>
+
     <bridgehead renderas="sect3">Poppler Dependencies</bridgehead>
 
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required"><xref linkend="pkgconfig"/> and
+    <xref linkend="fontconfig"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="pkgconfig"/>,
-    <xref linkend="libjpeg"/>,
-    <xref linkend="fontconfig"/>,
+    <para role="optional"><xref linkend="libjpeg"/>,
     <xref linkend="cairo"/>,
     <xref linkend="gtk2"/>,
     <xref linkend="qt"/>, and
@@ -79,30 +97,27 @@
   <sect2 role="installation">
     <title>Installation of Poppler</title>
 
-    <note>
-      <para>If you are installing a version of
-      <application>Poppler</application> &gt;= 5.1 to support an installation
-      of <xref linkend="evince"/>, note that command-line utilities and man
-      pages are installed which will overwrite these same files installed by
-      the <application>Xpdf</application> package. If you'd prefer to keep the
-      <application>Xpdf</application> versions of these files, use the
-      <option>--bindir=</option> and <option>--mandir=</option> parameters
-      passed to the <command>configure</command> script to install these files
-      to a safe location (e.g., <envar>$HOME</envar> or
-      <filename class='directory'>/tmp</filename>. An alternative method to
-      not overwrite the command-line utilities is to use the
-      <option>--disable-utils</option> parameter.</para>
-    </note>
+    <caution>
+      <para><application>Poppler</application> will overwrite command-line
+      utilities and man pages previously installed by the
+      <application>Xpdf</application> package. If you prefer to keep the
+      <application>Xpdf</application> versions of these files, pass the
+      <option>--disable-utils</option> parameter to the
+      <command>configure</command> command below.</para>
+    </caution>
 
-    <para>Install <application>Poppler</application> by running the following
-    commands:</para>
+    <para>The <command>configure</command> command below includes three
+    parameters which disable various rendering back-ends. Ensure you remove
+    any of the parameters for which you have the corresponding dependency
+    installed. Install <application>Poppler</application> by running the
+    following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
-            --enable-opi \
+<screen><userinput>./configure --prefix=/usr \
+            --sysconfdir=/etc \
             --enable-zlib \
-            --disable-splash-output \
             --disable-cairo-output \
-            --disable-poppler-glib --disable-gtk-test &amp;&amp;
+            --disable-poppler-glib \
+            --disable-gtk-test &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -110,24 +125,25 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m644 -D README /usr/share/doc/poppler-&poppler-version;/README</userinput></screen>
+install -v -m755 -d      /usr/share/doc/poppler-&poppler-version; &amp;&amp;
+install -v -m644 README* /usr/share/doc/poppler-&poppler-version;</userinput></screen>
+
+    <para>If you downloaded the additional encoding data package, install
+    it by issuing the following command after unpacking the tarball and
+    changing into the newly-created package source directory (as the
+    <systemitem class="username">root</systemitem> user):</para>
+
+<screen role="root"><userinput>make prefix=/usr install</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--enable-opi</parameter>: This parameter forces the build
-    to include support for OPI comments.</para>
-
     <para><parameter>--enable-zlib</parameter>: This parameter forces the build
     to link with the system-installed
     <filename class='libraryfile'>libz</filename> library to enable compressed
     PDF functionality.</para>
-
-    <para><parameter>--disable-splash-output</parameter>: This parameter
-    disables building the Splash graphics backend. Remove this parameter if
-    you have <application>Fontconfig</application> installed.</para>
 
     <para><parameter>--disable-cairo-output</parameter>: This parameter
     disables building the <application>cairo</application> graphics backend.
@@ -156,12 +172,6 @@ install -v -m644 -D README /usr/share/doc/poppler-&poppler-version;/README</user
       </indexterm>
     </sect3>
 
-    <!-- <sect3><title>Configuration Information</title>
-
-      <para>No specific configuration is required.</para>
-
-    </sect3> -->
-
   </sect2>
 
   <sect2 role="content">
@@ -173,11 +183,13 @@ install -v -m644 -D README /usr/share/doc/poppler-&poppler-version;/README</user
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>None</seg>
+        <seg><xref linkend="xpdf-content"/></seg>
         <seg>libpoppler.{so,a}, libpoppler-glib.{so,a},
         libpoppler-qt.{so,a} and libpoppler-qt4.{so,a}</seg>
-        <seg>/usr/include/poppler and
-        /usr/share/doc/poppler-&poppler-version;</seg>
+        <seg>/usr/include/poppler,
+        /usr/share/doc/poppler-&poppler-version;,
+        /usr/share/gtk-doc/html/poppler and
+        /usr/share/poppler</seg>
       </seglistitem>
     </segmentedlist>
 
