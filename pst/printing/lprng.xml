@@ -4,18 +4,6 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
   <!ENTITY LPRng-download-http "http://www.lprng.com/DISTRIB/LPRng/LPRng-&LPRng-version;.tgz">
   <!ENTITY LPRng-download-ftp  "ftp://ftp.lprng.com/pub/LPRng/LPRng/LPRng-&LPRng-version;.tgz">
   <!ENTITY LPRng-md5sum        "1b3a0abd291b260eab6087ac0e61ed84">
@@ -72,8 +60,8 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="openssl"/>,
     <xref linkend="tcpwrappers"/>,
-    <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
-    and <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink></para>
+    <xref linkend="mitkrb"/>, and
+    <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/lprng"/></para>
@@ -86,16 +74,23 @@
     <para>Install <application>LPRng</application> by running
     the following commands:</para>
 
-<screen><userinput>sed -i 's@CLEAR,0@CLEAR,CLEAR,NULL@' src/common/lpq.c &amp;&amp;
-sed -i 's@\(fi\|done\) \\@\1; \\@' Makefile.in &amp;&amp;
-./configure --prefix=/usr --libexecdir=/usr/lib/lprng \
-    --sysconfdir=/etc --enable-shared &amp;&amp;
+<screen><userinput>sed -i    's@CLEAR,0@CLEAR,CLEAR,NULL@' src/common/lpq.c &amp;&amp;
+sed -i    's@ fd, l@ fd, (char*) l@'    src/common/krb5_auth.c &amp;&amp;
+sed -i -e 's@\(fi\|done\) \\@\1; \\@' \
+       -e 's/^SHELL/#&amp;/'                Makefile.in &amp;&amp;
+
+./configure --prefix=/usr \
+            --libexecdir=/usr/lib/lprng \
+            --sysconfdir=/etc \
+            --enable-shared &amp;&amp;
 make</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install
-install -v -d -m755 /usr/share/doc/lprng-&LPRng-version; &amp;&amp;
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d /usr/share/doc/lprng-&LPRng-version; &amp;&amp;
 cp -v -R DOCS/* PrintingCookbook \
     /usr/share/doc/lprng-&LPRng-version;</userinput></screen>
 
@@ -104,10 +99,14 @@ cp -v -R DOCS/* PrintingCookbook \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's@CLEAR ...'</command>:  This fixes a gcc-4.1 warning,
-    treated as an error.</para>
-    <para><command>sed -i 's@/\(fi ...'</command>:  This fixes a syntax bug for
-    newer makes.</para>
+    <para><command>sed -i 's@CLEAR ...'</command>:  This fixes a
+    <application>GCC</application>-4 warning, treated as an error.</para>
+
+    <para><command>sed -i 's@ fd, l ...'</command>:  This fixes a compilation
+    problem with using versions of <application>GCC</application>-4.</para>
+
+    <para><command>sed -i -e '...' -e '...'</command>:  This fixes a couple of
+    syntax bugs when using newer versions of <command>make</command>.</para>
 
   </sect2>
 
