@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY pilot-link-download-http "http://www.pilot-link.org/files/pilot-link-&pilot-link-version;.tar.bz2">
+  <!ENTITY pilot-link-download-http "http://downloads.pilot-link.org/pilot-link-&pilot-link-version;.tar.bz2">
   <!ENTITY pilot-link-download-ftp  "&gentoo-ftp-repo;/pilot-link-&pilot-link-version;.tar.bz2">
-  <!ENTITY pilot-link-md5sum        "586f84add601e8b86da3093ab784e997">
-  <!ENTITY pilot-link-size          "649 KB">
-  <!ENTITY pilot-link-buildsize     "15 MB">
-  <!ENTITY pilot-link-time          "0.5 SBU">
+  <!ENTITY pilot-link-md5sum        "c1f4db8f32a2ee916fedb9a2dac8aa26">
+  <!ENTITY pilot-link-size          "964 KB">
+  <!ENTITY pilot-link-buildsize     "20 MB">
+  <!ENTITY pilot-link-time          "0.4 SBU">
 ]>
 
 <sect1 id="pilot-link" xreflabel="pilot-link-&pilot-link-version;">
@@ -20,14 +20,14 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>Pilot-link-&pilot-link-version;</title>
+  <title>pilot-link-&pilot-link-version;</title>
 
   <indexterm zone="pilot-link">
     <primary sortas="a-Pilot-link">Pilot-link</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to Pilot-link</title>
+    <title>Introduction to pilot-link</title>
 
     <para>The <application>pilot-link</application> package provides a suite of
     tools containing a series of conduits, libraries, and language bindings for
@@ -64,13 +64,16 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Pilot-link Dependencies</bridgehead>
+    <bridgehead renderas="sect3">pilot-link Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="libpng"/>,
+    <xref linkend="popt"/>,
+    <xref linkend="libusb"/>,
     <xref linkend="jdk"/>,
     <xref linkend="tcl"/>,
-    <xref linkend="python"/> and
+    <xref linkend="python"/>,
+    <ulink url="http://www.bluez.org/">BlueZ</ulink>, and
     <ulink url="http://perens.com/FreeSoftware/">Electric Fence</ulink></para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -86,43 +89,58 @@
     </indexterm>
 
     <para>You may need to configure the <quote>USB_SERIAL_VISOR</quote> device
-    into the kernel before your system can communicate with your Palm device. Add
-    this device by enabling the following kernel parameter setting and
+    into the kernel before your system can communicate with your Palm device.
+    Add this device by enabling the following kernel parameter setting and
     rebuilding the kernel (and modules, if applicable):</para>
 
 <screen><literal>Device Drivers:
   USB support:
     USB Serial Converter support:
       USB Handspring Visor / Palm m50x / Sony Client Driver</literal></screen>
-<!-- This link is dead
-    <para>For additional information about connecting your USB
-    Palm device, see:
-    <ulink url="http://www.pilot-link.org/README.usb"/>.</para>
--->
+
+    <para>For additional information about connecting your USB Palm device,
+    see: <ulink url="http://www.pilot-link.org/README.usb"/>.</para>
+
   </sect2>
 
   <sect2 role="installation">
-    <title>Installation of Pilot-link</title>
+    <title>Installation of pilot-link</title>
 
     <para>Install <application>pilot-link</application> by running the following
     commands:</para>
 
 <screen><userinput>patch -Np1 -i ../pilot-link-&pilot-link-version;-bindings_fix-1.patch &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+./configure --prefix=/usr \
+            --enable-threads \
+            --enable-conduits \
+            --with-perl &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d /usr/share/doc/pilot-link-&pilot-link-version; &amp;&amp;
+install -v -m644 README doc/{README.*,TODO,CodingGuidelines} \
+                    /usr/share/doc/pilot-link-&pilot-link-version;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><option>--with-perl --with-java --with-tcl=/usr/lib
+    <para><parameter>--enable-threads</parameter>: This parameter is required
+    to link the threading library into the build.</para>
+
+    <para><parameter>--enable-conduits</parameter>: This parameter is required
+    to build the userspace programs. Omit it if you only need the
+    <application>pilot-link</application> libraries.</para>
+
+    <para><parameter>--with-perl</parameter>: This parameter is required to
+    build the <application>Perl</application> bindings.</para>
+
+    <para><option>--with-java --with-tcl=/usr/lib
     --with-python</option>: Use any or all of these options to enable the
     respective language bindings desired.</para>
 
@@ -138,21 +156,23 @@ make</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
     <seglistitem>
-      <seg>addresses, ccexample, debugsh, dlpsh, hinotes, ietf2datebook,
-      install-datebook, install-expenses, install-hinote, install-memo,
-      install-netsync, install-todo, install-todos, install-user, memos, money2qif,
-      pi-csd, pi-getram, pi-getrom, pi-getromtoken, pi-nredir, pilot-addresses,
-      pilot-archive, pilot-clip, pilot-datebook, pilot-dedupe, pilot-file,
-      pilot-foto, pilot-prc, pilot-schlep, pilot-undelete, pilot-xfer, pitclsh,
-      read-expenses, read-ical, read-notepad, read-palmpix, read-todos, reminders,
-      and sync-plan</seg>
-      <seg>libpisock.{so,a}, libpisock++.{so,a}, and libpisync.{so,a}</seg>
-      <seg>libjpisock.so JDK library, libpitcl.{so,a}
-      <application>Tcl</application> library,
-      <application>Python</application> and <application>Perl</application>
-      modules</seg>
-      <seg>/usr/lib/perl5/site_perl/&lfs-perl-version;/i686-linux/{,auto/}PDA,
-      /usr/share/pilot-link</seg>
+      <seg>pilot-650foto, pilot-addresses, pilot-clip, pilot-csd,
+      pilot-debugsh, pilot-dedupe, pilot-dlpsh, pilot-file, pilot-foto,
+      pilot-getram, pilot-getrom, pilot-getromtoken, pilot-hinotes,
+      pilot-ietf2datebook, pilot-install-datebook, pilot-install-expenses,
+      pilot-install-hinote, pilot-install-memo, pilot-install-netsync,
+      pilot-install-todo, pilot-install-todos, pilot-install-user,
+      pilot-memos, pilot-nredir, pilot-read-expenses, pilot-read-ical,
+      pilot-read-notepad, pilot-read-palmpix, pilot-read-screenshot,
+      pilot-read-todos, pilot-read-veo, pilot-reminders, pilot-schlep,
+      pilot-sync-plan, pilot-treofoto, pilot-undelete, pilot-wav,
+      pilot-xfer and optionally, pitclsh</seg>
+      <seg>libjpisock.so JDK library,
+      libpitcl.{so,a} <application>Tcl</application> library,
+      _pisock.so <application>Python</application> module and
+      Pilot.so <application>Perl</application> module</seg>
+      <seg>/usr/lib/perl5/site_perl/&lfs-perl-version;/i686-linux/auto/PDA,
+      /usr/share/doc/pilot-link-0.12.2 and/usr/share/pilot-link</seg>
     </seglistitem>
     </segmentedlist>
 
