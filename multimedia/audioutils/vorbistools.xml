@@ -61,6 +61,10 @@
         <para>Required Patch: <ulink
         url="&patch-root;/vorbis-tools-&vorbistools-version;-utf8-1.patch"/></para>
       </listitem>
+      <listitem>
+        <para>Required Patch: <ulink
+        url="&patch-root;/vorbis-tools-&vorbistools-version;-flac-1.patch"/></para>
+      </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">Vorbis Tools Dependencies</bridgehead>
@@ -85,11 +89,18 @@
   <sect2 role="installation">
     <title>Installation of Vorbis Tools</title>
 
-    <para>Install <application>Vorbis Tools</application> by running the following
-    commands:</para>
+    <para>Install <application>Vorbis Tools</application> by running the
+    following commands:</para>
+    
+<screen><userinput>sed -i '/MUTE/d' ogg123/http_transport.c &amp;&amp;
 
-<screen><userinput>patch -Np1 -i ../vorbis-tools-&vorbistools-version;-utf8-1.patch &amp;&amp;
-./configure --prefix=/usr --enable-vcut &amp;&amp;
+patch -Np1 -i ../vorbis-tools-&vorbistools-version;-utf8-1.patch &amp;&amp;
+patch -Np1 -i ../vorbis-tools-&vorbistools-version;-flac-1.patch &amp;&amp;
+
+autoconf &amp;&amp;
+./configure --prefix=/usr \
+            --enable-vcut \
+            --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -103,11 +114,32 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i '/MUTE/d' ogg123/http_transport.c </command>: This 
+    command fixes a build problem with new versions of
+    <application>cURL</application>.</para>
+
+    <para><command>patch -Np1 -i
+    ../vorbis-tools-&vorbistools-version;-utf8-1.patch</command>: This patch
+    fixes a bug in <command>vorbiscomment</command> in UTF-8 locales.</para>
+
+    <para><command>patch -Np1 -i
+    ../vorbis-tools-&vorbistools-version;-flac-1.patch</command>: This patch
+    allows <application>Vorbis-Tools</application> to link against new
+    versions of <application>FLAC</application>.</para>
+
+    <para><command>autoconf</command>: This command is used to regenerate the
+    <command>configure</command> script as the <application>FLAC</application>
+    patch modified the <filename>configure.ac</filename> file.</para>
+
     <para><parameter>--enable-vcut</parameter>: This parameter is used so that
-    the <command>vcut</command> program is built, as it is not by
+    the <command>vcut</command> program is built as it is not by
     default.</para>
 
-  </sect2>
+    <para><parameter>--mandir=/usr/share/man</parameter>: This parameter
+    ensures that the man pages are installed under
+    <filename class="directory">/usr/share/man</filename>.</para>
+ 
+ </sect2>
 
   <sect2 role="configuration">
     <title>Configuring Vorbis Tools</title>
