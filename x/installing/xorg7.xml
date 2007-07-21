@@ -83,7 +83,18 @@
   all packages in a wget file list:</para>
 
 <screen>bash -e #exit on all errors
-for package in $(grep -v '^#' ../wgetlist.wget)
+section=proto
+version=&xorg7-version;
+mkdir $section
+cd $section
+
+# download and check packages
+grep -v '^#' ../${section}-${version}.wget | wget -i- \
+    -B http://xorg.freedesktop.org/releases/individual/${section}/
+md5sum -c ../${section}-${version}.md5
+
+# build packages
+for package in $(grep -v '^#' ../${section}-${version}.wget)
 do
   packagedir=$(echo $package | sed 's/.tar.bz2//')
   tar -xf $package
@@ -94,7 +105,7 @@ do
   cd ..
   rm -rf $packagedir
   rm -f $package
-done 2&gt;&amp;1 | tee -a ../xorg-compile.log #log the entire loop</screen>
+done 2&gt;&amp;1 | tee -a ../xorg-${section}-compile.log #log the entire loop</screen>
 
   <para>The above shell will exit immediately on error.  If it runs to
   completion, you should manually exit the shell before continuing on to
