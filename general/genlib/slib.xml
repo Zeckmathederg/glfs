@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY slib-download-http "http://swiss.csail.mit.edu/ftpdir/scm/OLD/slib&slib-version;.tar.gz">
+  <!ENTITY slib-download-http "http://swiss.csail.mit.edu/ftpdir/scm/slib&slib-version;.tar.gz">
   <!ENTITY slib-download-ftp  " ">
-  <!ENTITY slib-md5sum        "eec6e9193c3c86254f7176dd8a833c4c">
-  <!ENTITY slib-size          "846 KB">
-  <!ENTITY slib-buildsize     "19.5 MB (includes building and installing all docs)">
-  <!ENTITY slib-time          "less than 0.1 SBU">
+  <!ENTITY slib-md5sum        "87bc0b62370c0bf8a510a2acf6868eb9">
+  <!ENTITY slib-size          "877 KB">
+  <!ENTITY slib-buildsize     "21 MB (includes building and installing docs)">
+  <!ENTITY slib-time          "0.1 SBU (includes building docs)">
 ]>
 
 <sect1 id="slib" xreflabel="SLIB-&slib-version;">
@@ -33,11 +33,12 @@
     the <application>Scheme</application> programming language. It provides a
     platform independent framework for using <quote>packages</quote> of
     <application>Scheme</application> procedures and syntax.
-    <application>SLIB</application> contains useful packages for all
-    <application>Scheme</application> implementations, including
-    <application>Guile</application>. Its catalog can be transparently extended
-    to accommodate packages specific to a site, implementation, user or
-    directory.</para>
+    Its catalog can be transparently extended to accommodate packages specific
+    to a site, implementation, user or directory. SLIB provides compatibility
+    and utility functions for all standard Scheme implementations including
+    Bigloo, Chez, ELK 3.0, GAMBIT 3.0, Guile, JScheme, MacScheme, MITScheme,
+    PLT Scheme (DrScheme and MzScheme), Pocket Scheme, RScheme, scheme->C,
+    Scheme48, SCM, SCM Mac, scsh, Stk, T3.1, umb-scheme, and VSCM.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -65,14 +66,18 @@
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required Patch: <ulink
-        url="&patch-root;/slib-&slib-version;-blfs_install-2.patch"/></para>
+        url="&patch-root;/slib-&slib-version;-guile_fixes-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">SLIB Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="guile"/></para>
+    <para>There are no build dependencies as this package is nothing but many
+    text script files which are copied to the system. If you are installing
+    this package to support a <application>GnuCash</application> installation,
+    you should ensure that <xref linkend="guile"/> is installed so the
+    <application>SLIB</application> catalog for <application>Guile</application>
+    can be created.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/slib"/></para>
@@ -85,44 +90,80 @@
     <para>Install <application>SLIB</application> by issuing the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../slib-&slib-version;-blfs_install-2.patch &amp;&amp;
-make</userinput></screen>
+<screen><userinput>patch -Np1 -i ../slib-&slib-version;-guile_fixes-1.patch &amp;&amp;
+sed -i 's|usr/lib|usr/share|' {RScheme,guile}.init</userinput></screen>
 
-    <para>If you have <application>teTeX</application> installed and wish to
-    build PDF, Postscript, HTML and text documentation, issue any or all of
+    <para>If you have <xref linkend="tetex"/> installed and wish to
+    build PDF, Postscript, HTML or text documentation, issue any or all of
     the following commands:</para>
 
-<screen><userinput>make pdfdocs &amp;&amp;
-make psdocs &amp;&amp;
-make htmldocs &amp;&amp;
-make txtdocs</userinput></screen>
+<screen><userinput>texi2pdf  slib.texi           &amp;&amp;
+texi2html slib.texi           &amp;&amp;
+texi2dvi  slib.texi           &amp;&amp;
+dvips    -o slib.ps  slib.dvi &amp;&amp;
+makeinfo -o slib.txt --plaintext slib.texi</userinput></screen>
 
     <para>This package does not come with a functional test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make prefix=/usr/ install &amp;&amp;
+<screen role="root"><userinput>make prefix=/usr/ \
+     libdir=/usr/share/ \
+     mandir=/usr/share/man/ \
+     infodir=/usr/share/info/ \
+  install installinfo &amp;&amp;
 
-ln -v -s ../slib /usr/share/guile/1.6 &amp;&amp;
+install -v -m755 -d                  /usr/share/doc/slib-&slib-version; &amp;&amp;
+install -v -m644 ANNOUNCE FAQ README /usr/share/doc/slib-&slib-version;</userinput></screen>
 
-make prefix=/usr/ catalogs &amp;&amp;
+    <para>If you have <xref linkend="guile"/> installed, create the following
+    symbolic link as the <systemitem class="username">root</systemitem> user to
+    satisfy <application>Guile</application>'s default
+    <quote>Implementation Vicinity</quote> directory.</para>
 
-mv -v /usr/share/guile/1.6/slibcat /usr/share/guile &amp;&amp;
-ln -v -s ../slibcat /usr/share/guile/1.6 &amp;&amp;
+<screen role="root"><userinput>ln -v -s ../slib /usr/share/guile</userinput></screen>
 
-make prefix=/usr/ installinfo</userinput></screen>
+    <para>If you built any of the documentation, install it using the following
+    command as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>install -v -m644 slib.{pdf,html,dvi,ps,txt,texi} \
+                 /usr/share/doc/slib-&slib-version;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>make prefix=/usr/ catalogs</command>: This command builds
-    the <application>SLIB</application> <application>Scheme</application>
-    implementation catalog.</para>
+    <para><command>sed -i 's|usr/lib|usr/share|' {RScheme,guile}.init</command>:
+    This command is used to change the <envar>libdir</envar> variable embedded
+    in the two scripts to match the installation variable.</para>
 
-    <para><command>make prefix=/usr/ installinfo</command>: This commands
-    installs the <command>info</command> documentation.</para>
+    <para><command>make ... install installinfo</command>: This command
+    installs the package and the <command>info</command> documentation into the
+    indicated directories.</para>
+
+  </sect2>
+
+  <sect2 role="configuration" id="slib-config">
+    <title>Configuring SLIB</title>
+
+    <para>For many of the Scheme implementations, an
+    <application>SLIB</application> Scheme implementation catalog  must be
+    created. If you have <xref linkend="guile"/> installed to support a
+    <application>GnuCash</application> installation, you must create a
+    catalog. You can use the <command>make catalogs</command> command, but
+    there will be many warnings and confusing messages as it tries to create
+    a catalog for many of the possible Scheme implementations which are
+    probably not installed on the system. To create a single catalog just
+    for the <application>Guile</application> installation, issue the following
+    command as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>guile -l guile.init \
+      -c "(use-modules (ice-9 slib)) (require 'new-catalog)"</userinput></screen>
+
+    <para>If there was no output from the previous command, and the file
+    <filename>/usr/share/guile/slibcat</filename> now exists, the catalog
+    was properly created.</para>
 
   </sect2>
 
@@ -137,7 +178,7 @@ make prefix=/usr/ installinfo</userinput></screen>
       <seglistitem>
         <seg>slib</seg>
         <seg>a <application>Scheme</application> library system</seg>
-        <seg>/usr/share/guile/slib and /usr/share/doc/slib-&slib-version;</seg>
+        <seg>/usr/share/slib and /usr/share/doc/slib-&slib-version;</seg>
       </seglistitem>
     </segmentedlist>
 
