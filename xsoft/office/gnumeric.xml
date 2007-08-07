@@ -62,20 +62,29 @@
     url="&gnome-download-http;/goffice/0.2/">GOffice &lt;0.3.0</ulink>)</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="python"/>,
-    <ulink url="http://www.pygtk.org/">PyGTK</ulink>,
+    <para role="optional"><ulink url="http://www.pygtk.org/">PyGTK</ulink>,
     <xref linkend="libgnomeui"/> (combined with the
     <filename class='libraryfile'>libgsf-gnome-1</filename> library from the
     <xref linkend="libgsf"/> package will provide GNOME-2 support),
-    <xref linkend="gnome-doc-utils"/> (to convert the XML help documentation
-    into HTML),
-    <ulink url="http://www.gnome-db.org/">libgnomedb</ulink>
+    <ulink url="http://www.gnome-db.org/">libgnomedb</ulink>*
     (requires <ulink url="http://www.gnome-db.org/">libgda</ulink>),
     <ulink url="http://pxlib.sourceforge.net/">pxlib</ulink>,
     <ulink url="http://www.frodol.dds.nl/psiconv/index.html">Psiconv</ulink>,
     <ulink url="http://www.maemo.org/">Hildon</ulink>, and
     <ulink url="http://packages.ubuntu.com/warty/libdevel/libgb-dev">Gnome
     Basic</ulink> (this package is no longer under active development)</para>
+
+    <para>* The
+    <application>libgda</application>/<application>libgnomedb</application>
+    stack required for <application>Gnumeric</application> database
+    access may conflict with the versions used by the
+    <xref linkend="abiword"/> database plugin. Though the libraries
+    themselves pose no conflict, the executables and support files will
+    overwrite one another. Note that the current (version 3.0.x) stack does not
+    pose a conflict with any of the previous versions (but does not support
+    <application>Gnumeric</application> or <application>AbiWord</application>
+    database access. <application>Gnumeric</application> requires versions
+    &gt;1.2.x and &lt;2.x.x (1.99.1 is known to work).</para>
 
     <note>
       <para>Though only a run-time dependency, if you don't install the
@@ -103,41 +112,39 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make install</userinput></screen>
+<screen role='root'><userinput>make install &amp;&amp;
+ln -v -s -f /usr/share/gnome/help/gnumeric \
+            /usr/share/gnumeric/&gnumeric-version;/doc</userinput></screen>
 
-    <para>There is a bug in the program. The help system looks for the docs in
-    one location, but they are actually installed in the wrong place. See
-    <ulink url="http://bugzilla.gnome.org/show_bug.cgi?id=330339"/>. If you have
-    <xref linkend="yelp"/> installed and would like to be able to use it to view
-    the help documentation from within <application>Gnumeric</application>, work
-    around the problem by creating a symbolic link. As
-    <systemitem class="username">root</systemitem>:</para>
+    <para>If you have a <application>GNOME</application> installation in any
+    prefix other than <filename class='directory'>/usr</filename>, issue
+    the following commands as the <systemitem class="username">root</systemitem>
+    user to move the <application>Gnumeric</application> Bonobo component
+    description file into the <envar>$GNOME_PREFIX</envar> heirarchy and
+    then remove the unneeded directories:</para>
 
-<screen role='root'><userinput>ln -vsf /usr/share/gnome/help/gnumeric \
-        /usr/share/gnumeric/&gnumeric-version;/doc</userinput></screen>
-
-    <para>If you have GNOME installed in a prefix other than /usr, as the
-    <systemitem class="username">root</systemitem> user create the
-    following symlink for the <application>Gnumeric</application>
-    <application>Bonobo</application> server file:</para>
-
-<screen role='root'><userinput>ln -v -s /usr/lib/bonobo/servers/GNOME_Gnumeric.server \
-    $(pkg-config --variable=prefix ORBit-2.0)/lib/bonobo/servers</userinput></screen>
+<screen role='root'><userinput>mv -v /usr/lib/bonobo/servers/GNOME_Gnumeric.server \
+    $(pkg-config --variable=prefix ORBit-2.0)/lib/bonobo/servers &amp;&amp;
+rmdir -v /usr/lib/{bonobo/servers,bonobo}</userinput></screen>
 
     <para>If you have <xref linkend="gnome-doc-utils"/> installed you can
-    convert the XML help files into HTML by issuing the following commands:</para>
+    create an HTML version of the Help documentation by issuing the following
+    commands:</para>
 
 <screen><userinput>./configure \
     --prefix=$(pkg-config --variable=prefix gnome-doc-utils) &amp;&amp;
 make -C doc html</userinput></screen>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user,
-    install the documentation files:</para>
+    <para>If you created the HTML documentation, install it by issuing the
+    following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>install -v -m755 -d /usr/share/doc/gnumeric-&gnumeric-version;/figures &amp;&amp;
-install -v -m644 doc/C/html/* /usr/share/doc/gnumeric-&gnumeric-version; &amp;&amp;
-install -v -m644 doc/C/figures/* \
-    /usr/share/doc/gnumeric-&gnumeric-version;/figures &amp;&amp;
+install -v -m644    doc/C/figures/* \
+                    /usr/share/doc/gnumeric-&gnumeric-version;/figures &amp;&amp;
+install -v -m644    doc/C/html/* \
+                    /usr/share/doc/gnumeric-&gnumeric-version; &amp;&amp;
+
 ln -v -s /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;/images \
     /usr/share/doc/gnumeric-&gnumeric-version;/stylesheet</userinput></screen>
 
@@ -146,8 +153,9 @@ ln -v -s /usr/share/xml/docbook/xsl-stylesheets-&docbook-xsl-version;/images \
     <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>install -v -m755 -d /usr/share/doc/gnumeric-&gnumeric-version;/developer &amp;&amp;
-install -v -m644 doc/developer/* \
-    /usr/share/doc/gnumeric-&gnumeric-version;/developer &amp;&amp;
+install -v -m644    doc/developer/* \
+                    /usr/share/doc/gnumeric-&gnumeric-version;/developer &amp;&amp;
+
 rm -v /usr/share/doc/gnumeric-&gnumeric-version;/developer/Makefile*</userinput></screen>
 
   </sect2>
@@ -161,14 +169,18 @@ rm -v /usr/share/doc/gnumeric-&gnumeric-version;/developer/Makefile*</userinput>
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/scrollkeeper-dir.xml"/>
 
+    <para><command>ln -v -s -f ...
+    /usr/share/gnumeric/&gnumeric-version;/doc</command>: There is a bug which
+    prevents the Help files from being properly displayed. The Help system
+    looks for the files in one location, but they are actually installed in
+    another. See
+    <ulink url="http://bugzilla.gnome.org/show_bug.cgi?id=330339"/>. Creating
+    the symbolic link works around this issue.</para>
+
     <para><parameter>--prefix=$(pkg-config
     --variable=prefix gnome-doc-utils)</parameter>:
-    This rebuilds the <filename>Makefile</filename>s with the same prefix as
-    <application>GNOME Doc Utils</application></para>
-
-    <para><command>make -C doc html</command>: This command runs
-    <command>make</command> in the <filename class="directory">doc</filename>
-    directory with html as the <filename>Makefile</filename> target.</para>
+    This rebuilds the <filename>Makefile</filename>s with the same prefix used 
+    in the <application>GNOME Doc Utils</application> installation.</para>
 
   </sect2>
 
