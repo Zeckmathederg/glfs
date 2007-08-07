@@ -6,10 +6,12 @@
 
   <!ENTITY AbiWord-download-http "http://www.abisource.com/downloads/abiword/&AbiWord-version;/source/abiword-&AbiWord-version;.tar.bz2">
   <!ENTITY AbiWord-download-ftp  " ">
-  <!ENTITY AbiWord-md5sum        "69dd69179b861a41613291afd10af9ab">
-  <!ENTITY AbiWord-size          "23.5 MB">
-  <!ENTITY AbiWord-buildsize     "217 MB">
-  <!ENTITY AbiWord-time          "3.6 SBU (to build and install the program, docs and all plugins)">
+  <!ENTITY AbiWord-md5sum        "8ed5fb282b9741aca75b9e47500d39a1">
+  <!ENTITY AbiWord-size          "25 MB">
+  <!ENTITY AbiWord-buildsize     "262 MB (additional 210 MB to build and install the API docs)">
+  <!ENTITY AbiWord-time          "4.5 SBU (to build and install the program, docs and all plugins)">
+  <!ENTITY AbiWord-minor-version "2.4">
+  <!ENTITY AbiWord-under-version "2_4">
 ]>
 
 <sect1 id="abiword" xreflabel="AbiWord-&AbiWord-version;">
@@ -62,27 +64,33 @@
     <xref linkend="libgnomeprintui"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional">
-    <ulink url="http://www.abisource.com/enchant/">Enchant</ulink>
-    (uses <xref linkend="aspell"/>), <xref linkend="gucharmap"/>,
-    <xref linkend="imagemagick"/> and
+    <para role="optional"><xref linkend="libgnomeui"/> (for GNOME-2 support),
+    <xref linkend="gucharmap"/>,
+    <ulink url="http://www.abisource.com/enchant/">Enchant</ulink> (uses
+    <xref linkend="aspell"/>),
     <ulink url="http://wvware.sourceforge.net/">wv</ulink> (with
-    <ulink url="http://sourceforge.net/projects/wvware">libwmf</ulink>
-    installed first)</para>
+    <ulink url="http://sourceforge.net/projects/wvware">libwmf</ulink> installed first), and
+    <ulink url="http://valgrind.org/">Valgrind</ulink></para>
 
     <bridgehead renderas="sect4">Optional for Plugins</bridgehead>
-    <para role="optional"><xref linkend="libgsf"/>
-    (needed to build the OpenDocument/OpenOffice plugin),
-    <xref linkend="poppler"/> (for the pdf plugin),
+    <para role="optional"><xref linkend="libgsf"/> (to build the OpenDocument/OpenOffice plugin),
+    <xref linkend="poppler"/> (for the pdf plugin, requires installing with unsupported xpdf headers),
     <xref linkend="librsvg"/>,
-    <xref linkend="gnome-utils"/>,
-    <xref linkend="goffice"/>,
+    <!-- Currently Broken <xref linkend="html-tidy"/>, -->
+    <!-- Currently Broken <ulink url="http://www.inter7.com/index.php?page=eps">EPS</ulink>, -->
+    <xref linkend="nautilus"/> (for GNOME-2 support),
+    <xref linkend="goffice"/> (you must use a version of
+    <ulink url="&gnome-download-http;/goffice/0.2/">GOffice &lt;0.3.0</ulink>),
+    <ulink url="http://www.abisource.com/projects/link-grammar/">Link Grammar</ulink>,
     <ulink url="http://aiksaurus.sourceforge.net/">Aiksaurus</ulink>,
-    <ulink url="http://www.gnome-db.org/">libgda</ulink>,
-    <ulink url="http://www.gnome-db.org/">libgnomedb</ulink>,
+    <ulink url="http://www.gnome-db.org/">libgnomedb version &lt;1.3.0</ulink> (requires
+    <ulink url="http://www.gnome-db.org/">libgda version &lt;1.3.0</ulink>),
     <ulink url="http://sourceforge.net/projects/wvware">libwmf</ulink>,
+    <ulink url="http://helm.cs.unibo.it/mml-widget/">GtkMathView</ulink> (requires
+    <ulink url="http://sourceforge.net/projects/gmetadom/">Gnome DOM Bindings</ulink> which requires
+    <ulink url="http://gdome2.cs.unibo.it/">gdome2</ulink>),
     <ulink url="http://libwpd.sourceforge.net/">libwpd</ulink>,
-    <ulink url="http://libots.sourceforge.net/">OTS</ulink> and
+    <ulink url="http://libots.sourceforge.net/">OTS</ulink>, and
     <ulink url="http://software.frodo.looijaard.name/psiconv/">Psiconv</ulink></para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -96,53 +104,96 @@
     <para>Install <application>AbiWord</application> by running the following
     commands:</para>
 
-<screen><userinput>cd abiword-plugins &amp;&amp;
+<screen><userinput>cd abi &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
+make &amp;&amp;
+
+cd ../abiword-plugins &amp;&amp;
+sed -i 's/dictionary_file)/reinterpret_cast&lt;const unsigned char *&gt;(&amp;)/' \
+        tools/ots/xp/AbiOts.cpp &amp;&amp;
+
 ./configure --prefix=/usr --without-inter7eps &amp;&amp;
 make &amp;&amp;
-cd ../abi &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
-make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+cd ..</userinput></screen>
+
+    <para>If you wish to create the API documentation,
+    <xref linkend="doxygen"/> must be installed and issue the following
+    commands:</para>
+
+<screen><userinput>pushd abi &amp;&amp;
+doxygen &amp;&amp;
+popd</userinput></screen>
+
+    <para>This package's test suite requires <ulink
+    url="http://valgrind.org/">Valgrind</ulink>. Though the end message will
+    indicate the tests failed, there will actually be many tests that run
+    to a successful completion. Run the tests by issuing the following
+    commands:</para>
+
+<screen><userinput>pushd abi &amp;&amp;
+make check &amp;&amp;
+popd</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-cp -v -R docs /usr/share/AbiSuite-2.4/AbiWord &amp;&amp;
+<screen role="root"><userinput>cd abi &amp;&amp;
+make install &amp;&amp;
+
+install -v -m755 -d /usr/share/doc/abiword-&AbiWord-version; &amp;&amp;
+install -v -m644    docs/*.* \
+                    /usr/share/doc/abiword-&AbiWord-version; &amp;&amp;
+
 cd ../abiword-plugins &amp;&amp;
-make install</userinput></screen>
+make install &amp;&amp;
 
-    <para>If you have a <application>GNOME-2</application> installation, issue
-    the following command as the <systemitem class="username">root</systemitem>
-    user to install the <application>AbiWord</application> Bonobo component
-    description file:</para>
+cd ..</userinput></screen>
 
-<screen role="root"><userinput>cd .. &amp;&amp;
-install -v -m644 abidistfiles/GNOME_AbiWord_Control_2_4.server \
-    $GNOME_PREFIX/lib/bonobo/servers</userinput></screen>
+    <para><application>AbiWord</application> is now installed and must be used
+    to build the Help files. Issue the following commands as an unprivileged
+    user:</para>
 
-  </sect2>
+<screen><userinput>pushd abiword-docs &amp;&amp;
+./make-html.sh &amp;&amp;
+cd ..</userinput></screen>
 
-  <sect2 role="installation">
-    <title>Install The Help Documentation</title>
+<!-- removing this as it does exactly the same thing as 
+     the make-html.sh does          ./make-gnome-html.sh &amp;&amp; -->
 
-    <para>Build the help files by issuing the following commands as an
-    unprivileged user:</para>
-
-<screen><userinput>cd abiword-docs &amp;&amp;
-sed -i 's@AbiWord-2.0@abiword@' make-gnome-html.sh &amp;&amp;
-./make-gnome-html.sh &amp;&amp;
-./make-html.sh</userinput></screen>
-
-    <para>Then, as the <systemitem class="username">root</systemitem> user,
+    <para>Then as the <systemitem class="username">root</systemitem> user,
     install the help files:</para>
 
 <screen role="root"><userinput>install -v -m644 man/abiword.1 /usr/share/man/man1 &amp;&amp;
 install -v -m644 Manual/en/Abiword_Manual.abw \
-    /usr/share/AbiSuite-2.4/AbiWord/docs  &amp;&amp;
-cp -v -R help /usr/share/AbiSuite-2.4/AbiWord &amp;&amp;
-find /usr/share/AbiSuite-2.4/AbiWord/help \
-    -type d -exec chmod -v 755 {} \;</userinput></screen>
+                 /usr/share/doc/abiword-&AbiWord-version; &amp;&amp;
+cp -v -Rf help   /usr/share/AbiSuite-&AbiWord-minor-version;/AbiWord &amp;&amp;
+find             /usr/share/AbiSuite-&AbiWord-minor-version;/AbiWord/help \
+                 -type d -exec chmod -v 755 {} \;</userinput></screen>
+
+    <para>If you have a <application>GNOME</application> installation, issue
+    the following command as the <systemitem class="username">root</systemitem>
+    user to install the <application>AbiWord</application> Bonobo component
+    description file:</para>
+
+<screen role="root"><userinput>install -v -m644 abidistfiles/GNOME_AbiWord_Control_&AbiWord-under-version;.server \
+                 $GNOME_PREFIX/lib/bonobo/servers</userinput></screen>
+
+    <para>If the <application>GNOME</application> installation is in any prefix
+    other than <filename class='directory'>/usr</filename>, remove unneeded
+    directories by issuing the following command as the
+    <systemitem class="username">root</systemitem> user:
+    <command>rmdir -v /usr/lib/{bonobo/servers,bonobo}</command>.</para>
+
+    <para>If you built the API documentation, install it by issuing the
+    following commands as the <systemitem class="username">root</systemitem>
+    user:</para>
+
+<screen role="root"><userinput>install -v -m755 -d  /usr/share/doc/abiword-&AbiWord-version;/api &amp;&amp;
+
+for FILENAME in $(ls abi/docs/dox/html); do
+    install -v -m644 abi/docs/dox/html/${FILENAME} \
+                     /usr/share/doc/abiword-&AbiWord-version;/api
+done</userinput></screen>
 
   </sect2>
 
@@ -154,9 +205,10 @@ find /usr/share/AbiSuite-2.4/AbiWord/help \
     <application>GCC</application>-&gcc-version;. This parameter prevents
     linking to the package and incurring a build failure.</para>
 
-    <para><command>sed -i 's@AbiWord-2.0@abiword@' make-gnome-html.sh</command>:
-    This command alters the <command>make-gnome-html.sh</command> script to
-    look for the current version of <command>abiword</command>.</para>
+    <para><command>sed -i '...' tools/ots/xp/AbiOts.cpp </command>:
+    This command is used to fix an incompatibility with
+    <application>GCC</application> and the
+    <application>libots</application> package.</para>
 
   </sect2>
 
@@ -180,18 +232,22 @@ find /usr/share/AbiSuite-2.4/AbiWord/help \
       <para>Choose the right template for your language and locale from the
       list produced by the following command:</para>
 
-<screen><userinput>ls /usr/share/AbiSuite-2.4/templates</userinput></screen>
+<screen><userinput>ls /usr/share/AbiSuite-&AbiWord-minor-version;/templates</userinput></screen>
 
       <para>Create the folder
       <filename class='directory'>~/.AbiSuite/templates</filename> then copy the
       <filename>normal.awt</filename> you want into it:</para>
 
-<screen><userinput>mkdir -p -v ~/.AbiSuite/templates &amp;&amp;
-cp -v /usr/share/AbiSuite-2.4/templates/normal.awt-<replaceable>&lt;lang&gt;</replaceable> \
-      ~/.AbiSuite/templates/normal.awt</userinput></screen>
+<screen><userinput>install -v -m750 -d ~/.AbiSuite/templates &amp;&amp;
+install -v -m640    /usr/share/AbiSuite-&AbiWord-minor-version;/templates/normal.awt-<replaceable>&lt;lang&gt;</replaceable> \
+                    ~/.AbiSuite/templates/normal.awt</userinput></screen>
 
       <para>Change <replaceable>&lt;lang&gt;</replaceable> in the above
       command to fit the name of the file you want.</para>
+
+      <para>If you have <xref linkend="desktop-file-utils"/> installed,
+      you should run the <command>update-desktop-database</command> command
+      to update the mimeminfo cache and allow the Help system to work.</para>
 
     </sect3>
 
@@ -206,10 +262,10 @@ cp -v /usr/share/AbiSuite-2.4/templates/normal.awt-<replaceable>&lt;lang&gt;</re
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>abiword, AbiWord-2.4, ttfadmin.sh, and ttftool</seg>
+        <seg>abiword, AbiWord-&AbiWord-minor-version;, ttfadmin.sh, and ttftool</seg>
         <seg>Numerous plugin library support modules</seg>
-        <seg>/usr/lib/AbiWord-2.4 and
-        /usr/share/AbiSuite-2.4</seg>
+        <seg>/usr/lib/AbiWord-&AbiWord-minor-version; and
+        /usr/share/AbiSuite-&AbiWord-minor-version;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -222,7 +278,7 @@ cp -v /usr/share/AbiSuite-2.4/templates/normal.awt-<replaceable>&lt;lang&gt;</re
         <term><command>abiword</command></term>
         <listitem>
           <para>is a symbolic link to the main
-          <command>AbiWord-2.4</command>
+          <command>AbiWord-&AbiWord-minor-version;</command>
           executable.</para>
           <indexterm zone="abiword abiword-prog">
             <primary sortas="g-abiword">abiword</primary>
@@ -230,12 +286,12 @@ cp -v /usr/share/AbiSuite-2.4/templates/normal.awt-<replaceable>&lt;lang&gt;</re
         </listitem>
       </varlistentry>
 
-      <varlistentry id="AbiWord-2.4">
-        <term><command>AbiWord-2.4</command></term>
+      <varlistentry id="AbiWord-version-number">
+        <term><command>AbiWord-&AbiWord-minor-version;</command></term>
         <listitem>
           <para>is the word-processing program executable.</para>
-          <indexterm zone="abiword AbiWord-2.4">
-            <primary sortas="b-AbiWord-2.4">AbiWord-2.4</primary>
+          <indexterm zone="abiword AbiWord-version-number">
+            <primary sortas="b-AbiWord-&AbiWord-minor-version;">AbiWord-&AbiWord-minor-version;</primary>
           </indexterm>
         </listitem>
       </varlistentry>
