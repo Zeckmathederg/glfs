@@ -113,19 +113,15 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
+
 ln -v -s -f /usr/share/gnome/help/gnumeric \
-            /usr/share/gnumeric/&gnumeric-version;/doc</userinput></screen>
+            /usr/share/gnumeric/&gnumeric-version;/doc &amp;&amp;
 
-    <para>If you have a <application>GNOME</application> installation in any
-    prefix other than <filename class='directory'>/usr</filename>, issue
-    the following commands as the <systemitem class="username">root</systemitem>
-    user to move the <application>Gnumeric</application> Bonobo component
-    description file into the <envar>$GNOME_PREFIX</envar> heirarchy and
-    then remove the unneeded directories:</para>
-
-<screen role='root'><userinput>mv -v /usr/lib/bonobo/servers/GNOME_Gnumeric.server \
-    $(pkg-config --variable=prefix ORBit-2.0)/lib/bonobo/servers &amp;&amp;
-rmdir -v /usr/lib/{bonobo/servers,bonobo}</userinput></screen>
+if [ $(pkg-config --variable=prefix ORBit-2.0) != "/usr" ]; then
+    mv -v /usr/lib/bonobo/servers/GNOME_Gnumeric.server \
+        $(pkg-config --variable=prefix ORBit-2.0)/lib/bonobo/servers &amp;&amp;
+    rmdir -v /usr/lib/{bonobo/servers,bonobo}
+fi</userinput></screen>
 
     <para>If you have <xref linkend="gnome-doc-utils"/> installed you can
     create an HTML version of the Help documentation by issuing the following
@@ -181,6 +177,13 @@ rm -v /usr/share/doc/gnumeric-&gnumeric-version;/developer/Makefile*</userinput>
     --variable=prefix gnome-doc-utils)</parameter>:
     This rebuilds the <filename>Makefile</filename>s with the same prefix used 
     in the <application>GNOME Doc Utils</application> installation.</para>
+
+    <para><command>if [ ... != "/usr" ]; then ...; fi</command>:
+    This command is used to move the <application>Gnumeric</application> Bonobo
+    component description file into the <envar>$GNOME_PREFIX</envar> heirarchy
+    and then remove the unneeded directories only if the
+    <application>GNOME</application> installation is in any
+    prefix other than <filename class='directory'>/usr</filename>.</para>
 
   </sect2>
 
