@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY ffmpeg-download-http "http://downloads.sourceforge.net/ffmpeg/ffmpeg-&ffmpeg-version;.tar.gz">
+  <!ENTITY ffmpeg-download-http "&files-anduin;/sources/ffmpeg-&ffmpeg-version;.tar.bz2">
   <!ENTITY ffmpeg-download-ftp  " ">
-  <!ENTITY ffmpeg-md5sum        "ea5587e3c66d50b1503b82ac4179c303">
-  <!ENTITY ffmpeg-size          "1.6 MB">
-  <!ENTITY ffmpeg-buildsize     "62.9 MB (built with all dependencies)">
-  <!ENTITY ffmpeg-time          "1.0 SBU">
+  <!ENTITY ffmpeg-md5sum        "abae526f04693c08684f0a18c28e3313">
+  <!ENTITY ffmpeg-size          "2.2 MB">
+  <!ENTITY ffmpeg-buildsize     "131 MB (built with all dependencies)">
+  <!ENTITY ffmpeg-time          "1.8 SBU">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -37,7 +37,10 @@
     from any sample rate to any other, and resize video on the fly with a high
     quality polyphase filter. <application>FFmpeg</application> can use a
     video4linux compatible video source and any Open Sound System audio
-    source.</para>
+    source. The developers of this package do not create or distribute package
+    tarballs any longer. BLFS created the tarball for this package by checking
+    out from upstream SVN the <application>FFmpeg</application> code dated
+    June 6, 2007.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -61,7 +64,7 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <!-- <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
@@ -71,26 +74,30 @@
         <para>Required patch: <ulink
         url="&patch-root;/ffmpeg-&ffmpeg-version;-amr_fixes-1.patch"/></para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist> -->
 
     <bridgehead renderas="sect3">FFmpeg Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libvorbis"/>,
-    <xref linkend="lame"/>,
-    <xref linkend="imlib2"/>,
-    <xref linkend="x-window-system"/>,
-    <xref linkend="sdl"/>,
-    <xref linkend="freetype2"/>,
-    <xref linkend="mplayer"/> (for the shared post-processing library),
+    <para role="optional">
+    <ulink url="http://www.penguin.cz/~utx/amr">AMR narrowband (floating point)</ulink>,
+    <ulink url="http://www.penguin.cz/~utx/amr">AMR wideband</ulink>,
     <ulink url="http://sourceforge.net/projects/faac">FAAC</ulink>,
     <ulink url="http://sourceforge.net/projects/faac">FAAD2</ulink>,
-    <ulink url="http://www.3gpp.org/ftp/Specs/latest/Rel-5/26_series/26104-540.zip">
-    AMR narrowband (floating point)</ulink> or
-    <ulink url="http://www.3gpp.org/ftp/Specs/latest/Rel-5/26_series/26073-530.zip">
-    AMR naarrowband (fixed point)</ulink>,
-    <ulink url="http://www.3gpp.org/ftp/Specs/latest/Rel-5/26_series/26204-530.zip">
-    AMR wideband</ulink>, and
+    <xref linkend="freetype2"/>,
+    <ulink url="http://kbs.cs.tu-berlin.de/~jutta/gsm/">GSM</ulink>,
+    <xref linkend="imlib2"/>,
+    <xref linkend="lame"/>,
+    <xref linkend="liba52"/>,
+    <ulink url="http://sourceforge.net/projects/libdc1394">libdc1394</ulink>,
+    <ulink url="http://svn.mplayerhq.hu/nut/src/trunk/">libnut</ulink> (SVN checkout),
+    <xref linkend="libvorbis"/>,
+    <ulink url="http://medialibrary.sourceforge.net/">MediaLibrary</ulink>,
+    <xref linkend="sdl"/>,
+    <ulink url="http://www.theora.org/">Theora</ulink>,
+    <xref linkend="x-window-system"/>,
+    <ulink url="http://www.videolan.org/developers/x264.html">x264</ulink>,
+    <xref linkend="xvid"/>, and
     <xref linkend="tetex"/> (to build HTML documentation)</para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -101,72 +108,74 @@
   <sect2 role="installation">
     <title>Installation of FFmpeg</title>
 
+      <para>Review the <filename>doc/optimization.txt</filename> file in the
+      source tree for information about optimizing the build.</para>
+
     <para>Install <application>FFmpeg</application> by running the following
     commands:</para>
 
-    <note>
-      <para>Review the <filename>doc/optimization.txt</filename> file in the
-      source tree for information about optimizing the build.</para>
-    </note>
+<screen><userinput>./configure --prefix=/usr \
+            --enable-shared \
+            --enable-pthreads \
+            --disable-ffplay &amp;&amp;
+sed -i 's|/man|/share/man|' config.mak &amp;&amp;
+make &amp;&amp;
+texi2html --version >/dev/null 2>&amp;1 || make doc/ff{mpeg,play,server}.1</userinput></screen>
 
-<screen><userinput>patch -Np1 -i ../ffmpeg-&ffmpeg-version;-gcc4-1.patch &amp;&amp;
-patch -Np1 -i ../ffmpeg-&ffmpeg-version;-amr_fixes-1.patch &amp;&amp;
-sed -i "s/static uint64/const uint64/" \
-    libavcodec/liba52/resample_mmx.c &amp;&amp;
-./configure --prefix=/usr --enable-shared \
-    --enable-pthreads --disable-ffplay &amp;&amp;
-make</userinput></screen>
+    <para>If you have <application>teTeX</application> installed, the HTML
+    documentation was built during the <command>make</command> process. If you
+    wish to create additional formats of the documentation, you must have
+    <application>teTeX</application> installed, then issue following
+    commands:</para>
 
-    <para>If you have <application>teTeX</application> installed, the man pages
-    and HTML documentation were built during the <command>make</command>
-    process. Skip to the <systemitem class="username">root</systemitem> user
-    installation steps if you don't need other formats of the documentation, or
-    issue any or all of the following commands to create the additional
-    formats.</para>
+<screen><userinput>cd doc &amp;&amp;
+for DOCNAME in faq ffmpeg-doc hooks ffserver-doc ffplay-doc; do
+    texi2dvi -b -p $DOCNAME.texi
+    texi2dvi -b    $DOCNAME.texi
+    dvips -o $DOCNAME.ps $DOCNAME.dvi
+    if [ $DOCNAME = ffserver-doc ] || [ $DOCNAME = ffplay-doc ]; then \
+        continue
+    fi
+    makeinfo --plaintext --force -o $DOCNAME.txt $DOCNAME.texi
+done &amp;&amp;
+cd .. &amp;&amp;
+unset DOCNAME</userinput></screen>
 
-<screen><userinput>for DOCFILE in faq ffmpeg-doc ffplay-doc ffserver-doc hooks
-do
-    texi2pdf -b $DOCFILE.texi
-    texi2dvi -b $DOCFILE.texi
-    dvips -o $DOCFILE.ps $DOCFILE.dvi
-    makeinfo --plaintext --force -o $DOCFILE.txt $DOCFILE.texi
-done</userinput></screen>
-
-    <para>If you do not have <application>teTeX</application> installed, use the
-    following command to build the man pages:</para>
-
-<screen><userinput>make -C doc ff{mpeg,play,server}.1</userinput></screen>
+    <para>If you have <xref linkend="doxygen"/> installed and wish to create
+    the API documentation (takes about 100 MB of space), issue
+    <command>doxygen</command>.</para>
 
     <para>This package does not come with a test suite that works.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d        /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
+install -v -m644 doc/*.txt /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
+texi2html --version >/dev/null 2>&amp;1 || install-man</userinput></screen>
 
-    <para>If you have <application>teTeX</application> installed on your system,
-    install the documentation by issuing the following commands as the
-    <systemitem class="username">root</systemitem> user (modify the command
-    appropriately to reflect the documentation formats you've created):</para>
+    <para>If you created additional formats of the documentation,
+    install it by issuing the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
-install -v -m644 doc/*.{html,dvi,pdf,ps,txt} \
+<screen role="root"><userinput>install -v -m644 doc/*.{html,dvi,pdf,ps} \
     /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
+
+    <para>If you created the API documentation, install it by issuing the
+    following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+ 
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/ffmpeg-&ffmpeg-version;/api &amp;&amp;
+cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i -e "s/static uint64/const uint64/"
-    libavcodec/liba52/resample_mmx.c</command>: This command fixes an issue
-    on machines with MMX capability and use <application>GCC</application> >=
-    3.4.x to compile in A52 support using the <option>--enable-a52</option>
-    parameter passed to the <command>configure</command> script.</para>
-
     <para><parameter>--enable-shared</parameter>: This switch is needed to
-    build the <filename class="libraryfile">libavcodec</filename> and
-    <filename class="libraryfile">libavformat</filename> shared
-    libraries.</para>
+    build the shared libraries, otherwise only static libraries are built
+    and installed.</para>
 
     <para><parameter>--enable-pthreads</parameter>: This switch enables the
     build to link against the Posix threads library.</para>
@@ -178,10 +187,15 @@ install -v -m644 doc/*.{html,dvi,pdf,ps,txt} \
 
     <para><option>--enable-<replaceable>&lt;codec&gt;</replaceable></option>: Review
     the available options and codecs using the
-    <command>./configure --help</command> command. Also review the information
-    at the end of the configure script (<command>cat</command> the file or view
-    it using a text editor) for information about building support for the AMR
-    codecs.</para>
+    <command>./configure --help</command> command. You must explicitly enable
+    each optional codec. Note that if you wish to build support for
+    postprocessing, liba52, xvid, x264, libfaad2, x11grab or swscaler, you
+    must pass <option>--enable-gpl</option> to the
+    <command>configure</command> script.</para>
+
+    <para><command>texi2html --version ...</command>: These commands are used
+    to check the presence of the <application>teTeX</application> package, and
+    builds/installs the man pages if it is not found.</para>
 
   </sect2>
 
@@ -220,8 +234,9 @@ install -v -m644 doc/*.{html,dvi,pdf,ps,txt} \
 
       <seglistitem>
         <seg>ffmpeg, ffserver, and optionally, ffplay</seg>
-        <seg>libavcodec.so, libavformat.so, and video hook modules</seg>
-        <seg>/usr/include/ffmpeg, /usr/lib/vhook, and
+        <seg>libavcodec.{so,a}, libavformat.{so,a}, libavutil.{so,a},
+        video hook modules and optionally, libpostproc.{so,a}</seg>
+        <seg>/usr/include/ffmpeg, /usr/include/postproc, /usr/lib/vhook, and
         /usr/share/doc/ffmpeg-&ffmpeg-version;</seg>
       </seglistitem>
     </segmentedlist>
