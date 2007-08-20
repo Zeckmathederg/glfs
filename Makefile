@@ -45,6 +45,8 @@ blfs: validxml profile-html
 	  sed -i -e "s@text/html@application/xhtml+xml@g" $$filename; \
 	done;
 
+	$(Q)$(MAKE) wget-list
+
 pdf: validxml
 	@echo "Generating profiled XML for PDF..."
 	$(Q)xsltproc --nonet --stringparam profile.condition pdf \
@@ -100,8 +102,9 @@ blfs-patch-list: validxml
 	$(Q)sed -e "s|^.*/||" $(RENDERTMP)/blfs-patch-list > $(RENDERTMP)/blfs-patches
 	$(Q)sort $(RENDERTMP)/blfs-patches > blfs-patch-list
 
-wget-list: validxml
+wget-list:
 	@echo "Generating wget list..."
+	$(Q)[ -f $(RENDERTMP)/blfs-full.xml ] || $(MAKE) validxml
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --output $(BASEDIR)/wget-list \
 	  stylesheets/wget-list.xsl $(RENDERTMP)/blfs-full.xml
@@ -141,7 +144,7 @@ validate:
 
 all: blfs nochunks pdf
 
-world: all blfs-patch-list dump-commands wget-list test-links
+world: all blfs-patch-list dump-commands test-links
 
 .PHONY : all blfs blfs-patch-list dump-commands nochunks pdf profile-html \
 	 test-links tmpdir validate validxml wget-list world
