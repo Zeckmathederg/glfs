@@ -6,10 +6,10 @@
 
   <!ENTITY cyrus-sasl-download-http "http://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-&cyrus-sasl-version;.tar.gz ">
   <!ENTITY cyrus-sasl-download-ftp  "ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-&cyrus-sasl-version;.tar.gz">
-  <!ENTITY cyrus-sasl-md5sum        "dde02db234dea892bee298390890502e">
-  <!ENTITY cyrus-sasl-size          "1.6 MB">
-  <!ENTITY cyrus-sasl-buildsize     "16 MB">
-  <!ENTITY cyrus-sasl-time          "0.3 SBU">
+  <!ENTITY cyrus-sasl-md5sum        "45dde9d19193ae9dd388eb68b2027bc9">
+  <!ENTITY cyrus-sasl-size          "1.5 MB">
+  <!ENTITY cyrus-sasl-buildsize     "14 MB">
+  <!ENTITY cyrus-sasl-time          "0.2 SBU">
 ]>
 
 <sect1 id="cyrus-sasl" xreflabel="Cyrus SASL-&cyrus-sasl-version;">
@@ -59,18 +59,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/cyrus-sasl-&cyrus-sasl-version;-openldap23-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/cyrus-sasl-&cyrus-sasl-version;-openssl98-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Cyrus SASL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -102,12 +90,9 @@
     running the following commands:</para>
 
 <screen><userinput>patch -Np1 -i ../cyrus-sasl-&cyrus-sasl-version;-openldap23-1.patch &amp;&amp;
-patch -Np1 -i ../cyrus-sasl-&cyrus-sasl-version;-openssl98-1.patch &amp;&amp;
-sed -i '/sasl_global/s/^static //' lib/client.c &amp;&amp;
-sed -i 's/cat8/man8/' saslauthd/Makefile.in &amp;&amp;
 ./configure --prefix=/usr --sysconfdir=/etc \
             --with-dbpath=/var/lib/sasl/sasldb2 \
-            --with-saslauthd=/var/run &amp;&amp;
+            --with-saslauthd=/var/run/saslauthd &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite. If you are planning
@@ -123,29 +108,26 @@ make</userinput></screen>
 install -v -m755 -d /usr/share/doc/cyrus-sasl-&cyrus-sasl-version; &amp;&amp;
 install -v -m644 doc/{*.{html,txt,fig},ONEWS,TODO} \
     saslauthd/LDAP_SASLAUTHD /usr/share/doc/cyrus-sasl-&cyrus-sasl-version; &amp;&amp;
-install -v -m700 -d /var/lib/sasl</userinput></screen>
+install -v -m700 -d /var/lib/sasl /var/run/saslauthd</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed ... lib/client.c</command>: This command fixes an issue
-    when compiling <application>Cyrus SASL</application> with
-    <application>GCC-4</application>.</para>
-
-    <para><command>sed 's/cat8/man8/' ...</command>: This command puts the
-    <command>saslauthd</command> man page in a more standard location.</para>
-
     <para><parameter>--with-dbpath=/var/lib/sasl/sasldb2</parameter>: This
-    parameter forces the <command>saslauthd</command> database to be created
+    parameter forces the <command>sasldb</command> database to be created
     in <filename class='directory'>/var/lib/sasl</filename> instead of
     <filename class='directory'>/etc</filename>.</para>
 
-    <para><parameter>--with-saslauthd=/var/run</parameter>: This parameter
-    forces <command>saslauthd</command> to use the FHS compliant
-    directory <filename class='directory'>/var/run</filename> for variable
-    run-time data.</para>
+    <para><parameter>--with-saslauthd=/var/run/saslauthd</parameter>: This
+    parameter forces <command>saslauthd</command> to use the FHS compliant
+    directory <filename class='directory'>/var/run/saslauthd</filename> for
+    variable run-time data.</para>
+
+    <para><parameter>--with-dblib=gdbm</parameter>: This parameter forces
+    <application>GDBM</application> to be used instead of
+    <application>Berkeley DB</application>.</para>
 
     <para><option>--with-ldap</option>: This parameter enables use
     with <application>OpenLDAP</application>.</para>
@@ -159,9 +141,10 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
     install documentation which is not installed by the
     <command>make install</command> command.</para>
 
-    <para><command>install -v -m700 -d /var/lib/sasl</command>: This directory
-    must exist when starting <command>saslauthd</command>. If you're not going
-    to be running the daemon, you may omit the creation of this directory.</para>
+    <para><command>install -v -m700 -d /var/lib/sasl /var/run/saslauthd</command>:
+    These directories must exist when starting <command>saslauthd</command> or
+    using the sasldb plugin. If you're not going to be running the daemon or
+    using the plugins, you may omit the creation of this directory.</para>
 
   </sect2>
 
@@ -173,7 +156,7 @@ install -v -m700 -d /var/lib/sasl</userinput></screen>
 
       <para><filename>/etc/saslauthd.conf</filename> (for
       <command>saslauthd</command> LDAP configuration)
-      and <filename>/usr/lib/sasl2/Appname.conf</filename> (where "Appname"
+      and <filename>/etc/sasl2/Appname.conf</filename> (where "Appname"
       is the application defined name of the application)</para>
 
       <indexterm zone="cyrus-sasl cyrus-sasl-config">
