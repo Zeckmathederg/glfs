@@ -6,10 +6,10 @@
 
   <!ENTITY heimdal-download-http "http://ftp.vc-graz.ac.at/mirror/crypto/kerberos/heimdal/heimdal-&heimdal-version;.tar.gz">
   <!ENTITY heimdal-download-ftp  "ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-&heimdal-version;.tar.gz">
-  <!ENTITY heimdal-md5sum        "c937580d6f8b11bf7f0e540530e1dc18">
-  <!ENTITY heimdal-size          "4.5 MB">
-  <!ENTITY heimdal-buildsize     "101 MB">
-  <!ENTITY heimdal-time          "2.4 SBU">
+  <!ENTITY heimdal-md5sum        "7ff8c4850bce9702d9d3cf9eff05abaa">
+  <!ENTITY heimdal-size          "3.1 MB">
+  <!ENTITY heimdal-buildsize     "127 MB">
+  <!ENTITY heimdal-time          "3.7 SBU (additional 1.5 SBU to run the test suite)">
 ]>
 
 <sect1 id="heimdal" xreflabel="Heimdal-&heimdal-version;">
@@ -65,14 +65,14 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
-      <listitem>
+      <!-- <listitem>
         <para>Required Patch: <ulink
         url="ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-0.7.2-setuid-patch.txt"/></para>
       </listitem>
       <listitem>
         <para>Required Patch: <ulink
         url="&patch-root;/heimdal-&heimdal-version;-fhs_compliance-1.patch"/></para>
-      </listitem>
+      </listitem> -->
       <listitem>
         <para>Required patch for <application>CrackLib</application> support: <ulink
         url="&patch-root;/heimdal-&heimdal-version;-cracklib-1.patch"/></para>
@@ -94,8 +94,8 @@
     <para role="optional"><xref linkend="linux-pam"/>,
     <xref linkend="openldap"/>,
     <xref linkend="x-window-system"/>,
-    <xref linkend="cracklib"/> (compiled with the <filename>heimdal</filename>
-    patch), and
+    <xref linkend="cracklib"/> (compiled with the <filename>heimdal</filename> patch),
+    <ulink url="http://packages.debian.org/stable/source/libcap">libcap</ulink>, and
     <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink></para>
 
     <note>
@@ -145,17 +145,17 @@
     <para>Install <application>Heimdal</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../heimdal-&heimdal-version;-setuid-patch.txt &amp;&amp;
-patch -Np1 -i ../heimdal-&heimdal-version;-fhs_compliance-1.patch &amp;&amp;
+<screen><userinput>sed -i 's|/var/heimdal|/var/lib/heimdal|' $(grep -lr /var/heimdal *) &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc/heimdal \
             --libexecdir=/usr/sbin \
             --datadir=/var/lib/heimdal \
             --localstatedir=/var/lib/heimdal \
-            --enable-shared \
-            --with-readline=/usr &amp;&amp;
+            --with-readline=/usr \
+            --enable-kcm &amp;&amp;
 make</userinput></screen>
 
+    <!-- Docs building is broken - when fixec, insert hyphens in the makeinfo commands
     <para>If you have <xref linkend="tetex"/> installed and wish to create
     alternate forms of the documentation, issue any or all of the following
     commands:</para>
@@ -164,29 +164,19 @@ make</userinput></screen>
 mv doc/heimdal.html doc/html &amp;&amp;
 make -C doc pdf &amp;&amp;
 make -C doc ps &amp;&amp;
-makeinfo --html --no-split -o doc/heimdal.html doc/heimdal.texi &amp;&amp;
-makeinfo --plaintext       -o doc/heimdal.txt  doc/heimdal.texi</userinput></screen>
+makeinfo -html -no-split -o doc/heimdal.html doc/heimdal.texi &amp;&amp;
+makeinfo -plaintext       -o doc/heimdal.txt  doc/heimdal.texi</userinput></screen>
+    -->
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><?dbfo keep-together="auto"?><userinput>mv -v /usr/include/fnmatch.h /usr/include/fnmatch.h.glibc &amp;&amp;
-mv -v /usr/include/glob.h    /usr/include/glob.h.glibc &amp;&amp;
-
-mv -v /usr/include/ss/ss.h   /usr/include/ss/ss.h.e2fsprogs &amp;&amp;
+<screen role="root"><?dbfo keep-together="auto"?><userinput>mv -v /usr/include/ss/ss.h   /usr/include/ss/ss.h.e2fsprogs &amp;&amp;
 mv -v /usr/lib/libss.a       /usr/lib/libss.a.e2fsprogs &amp;&amp;
 mv -v /usr/lib/libss.so      /usr/lib/libss.so.e2fsprogs &amp;&amp;
-if [ -f /usr/lib/libss.la ]; then 
-    mv -v /usr/lib/libss.la  /usr/lib/libss.la.e2fsprogs
-done &amp;&amp;
 
 make install &amp;&amp;
-
-mv -v /usr/include/fnmatch.h       /usr/include/fnmatch.h.heimdal &amp;&amp;
-mv -v /usr/include/fnmatch.h.glibc /usr/include/fnmatch.h &amp;&amp;
-mv -v /usr/include/glob.h          /usr/include/glob.h.heimdal &amp;&amp;
-mv -v /usr/include/glob.h.glibc    /usr/include/glob.h &amp;&amp;
 
 mv -v /usr/include/ss/ss.h            /usr/include/ss/ss.h.heimdal &amp;&amp;
 mv -v /usr/include/ss/ss.h.e2fsprogs  /usr/include/ss/ss.h &amp;&amp;
@@ -195,24 +185,13 @@ mv -v /usr/lib/libss.a.e2fsprogs      /usr/lib/libss.a &amp;&amp;
 mv -v /usr/lib/libss.so               /usr/lib/libss.so.heimdal &amp;&amp;
 mv -v /usr/lib/libss.so.e2fsprogs     /usr/lib/libss.so &amp;&amp;
 mv -v /usr/lib/libss.la               /usr/lib/libss.la.heimdal &amp;&amp;
-if [ -e   /usr/lib/libss.la.e2fsprogs ]; then 
-    mv -v /usr/lib/libss.la.e2fsprogs /usr/lib/libss.la
-fi &amp;&amp;
-
-if [ -e /usr/lib/libss.so.2 ]; then rm -v /usr/lib/libss.so.2; fi &amp;&amp;
-
-install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;/standardisation &amp;&amp;
-install -v -m644 doc/{init-creds,layman.asc} \
-                 /usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
-install -v -m644 doc/standardisation/* \
-                 /usr/share/doc/heimdal-&heimdal-version;/standardisation &amp;&amp;
 
 mv -v /bin/login          /bin/login.shadow &amp;&amp;
 mv -v /bin/su             /bin/su.shadow &amp;&amp;
 mv -v /usr/bin/{login,su} /bin &amp;&amp;
 ln -v -sf ../../bin/login /usr/bin &amp;&amp;
 
-for LINK in   lib{otp,kafs,krb5,asn1,roken,crypto}; do
+for LINK in   lib{otp,kafs,krb5,hx509,asn1,roken,crypto}; do
     mv -v     /usr/lib/${LINK}.so.* /lib &amp;&amp;
     ln -v -sf ../../lib/$(readlink  /usr/lib/${LINK}.so) \
               /usr/lib/${LINK}.so
@@ -226,26 +205,30 @@ ln -v -sf ../../lib/$(readlink /usr/lib/libdb.so) \
 
 ldconfig</userinput></screen>
 
-    <para>If you built any of the alternate forms of documentation, install it
+    <!-- <para>If you built any of the alternate forms of documentation, install it
     using the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>
-install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
 install -v -m644    doc/html/* \
                     /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
 install -v -m644    doc/heimdal.{dvi,ps,pdf,html,txt} \
-                    /usr/share/doc/heimdal-&heimdal-version;</userinput></screen>
+                    /usr/share/doc/heimdal-&heimdal-version;</userinput></screen> -->
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i '...' $(grep -lr /var/heimdal *)</command>:
+    This command is used to change all occurances of hard-coded
+    <filename class='directory'>/var/heimdal</filename> to
+    <filename class='directory'>/var/lib/heimdal</filename> so the
+    installation will be FHS compliant.</para>
+
     <para><command>mv -v /usr/include/...</command> and
     <command>mv -v /usr/lib/libss.*</command>: The
-    <application>Heimdal</application> installation will overwrite two
-    interface headers from the <application>Glibc</application> package and an
+    <application>Heimdal</application> installation will overwrite an
     interface header, static library and library symbolic link from the
     <application>E2fsprogs</application> package. These commands rename the
     original files before the installation, and then restore them (after
@@ -524,18 +507,20 @@ kx              <replaceable>&lt;49150&gt;</replaceable>/udp   # Heimdal kerbero
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>afslog, dump_log, ftp, ftpd, hprop, hpropd, ipropd-master,
-        ipropd-slave, kadmin, kadmind, kauth, kcm, kdc, kdestroy, kf, kfd,
-        kgetcred, kinit, klist, kpasswd, kpasswdd, krb5-config, kstash,
-        ktutil, kx, kxd, login, mk_cmds, otp, otpprint, pagsh, pfrom, popper,
-        push, rcp, replay_log, rsh, rshd, rxtelnet, rxterm, string2key, su,
-        telnet, telnetd, tenletxr, truncate-log, verify_krb5_conf
-        and xnlock</seg>
+        <seg>afslog, ftp, ftpd, gss, hprop, hpropd, hxtool, iprop-log,
+        ipropd-master, ipropd-slave, kadmin, kadmind, kauth, kcm, kdc,
+        kdestroy, kdigest, kf, kfd, kgetcred, kimpersonate, kinit, klist,
+        kpasswd, kpasswdd, krb5-config, kstash, ktutil, kx, kxd, login,
+        mk_cmds, otp, otpprint, pagsh, pfrom, popper, push, rcp, rsh, rshd,
+        rxtelnet, rxterm, string2key, su, telnet, telnetd, tenletxr,
+        verify_krb5_conf and xnlock</seg>
         <seg>libasn1.{so,a}, libeditline.{so,a}, libgssapi.{so,a},
-        libhdb.{so,a}, libkadm5clnt.{so,a}, libkadm5srv.{so,a}, libkafs.{so,a},
-        libkrb5.{so,a}, libotp.{so,a}, libroken.{so,a}, libsl.{so,a}
-        and libss.{so,a}</seg>
-        <seg>/etc/heimdal, /usr/include/kadm5,
+        libhdb.{so,a}, libheimntlm.{so,a}, libhx509.{so,a},
+        libkadm5clnt.{so,a}, libkadm5srv.{so,a}, libkafs.{so,a},
+        libkdc.{so,a}, libkrb5.{so,a}, libotp.{so,a}, libroken.{so,a},
+        libsl.{so,a}, libss.{so,a} and windc.{so,a}</seg>
+        <seg>/etc/heimdal, /usr/include/gssapi, /usr/include/kadm5,
+        /usr/include/krb5, /usr/include/roken, /usr/include/ss,
         /usr/share/doc/heimdal-&heimdal-version; and /var/lib/heimdal</seg>
       </seglistitem>
     </segmentedlist>
@@ -594,6 +579,16 @@ kx              <replaceable>&lt;49150&gt;</replaceable>/udp   # Heimdal kerbero
           <command>hprop</command> and writes it as a local database.</para>
           <indexterm zone="heimdal hpropd">
             <primary sortas="b-hpropd">hpropd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="iprop-log">
+        <term><command>iprop-log</command></term>
+        <listitem>
+          <para>is used to maintain the iprop log file.</para>
+          <indexterm zone="heimdal iprop-log">
+            <primary sortas="b-iprop-log">iprop-log</primary>
           </indexterm>
         </listitem>
       </varlistentry>
