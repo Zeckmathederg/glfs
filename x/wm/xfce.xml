@@ -4,27 +4,23 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
   <!ENTITY xfce-download-http "http://downloads.sourceforge.net/xfce/xfce-&xfce-version;-src.tar.bz2">
   <!ENTITY xfce-download-ftp  " ">
-  <!ENTITY xfce-md5sum        "44e126e47657969657ff86fb558d54ea">
-  <!ENTITY xfce-size          "25 MB">
-  <!ENTITY xfce-buildsize     "219 MB (to build and install everything without deleting any sources)">
-  <!ENTITY xfce-time          "3.5 SBU">
+  <!ENTITY xfce-md5sum        "5dd0ee362dd5782324b88da3cd5b9f1b">
+  <!ENTITY xfce-size          "25 MB">        
+  <!ENTITY xfce-buildsize     "330 MB (to build and install everything without deleting any sources)">
+  <!ENTITY xfce-time          "5 SBU">
+
+  <!ENTITY Terminal-version   "0.2.8">
+  <!ENTITY Thunar-version     "0.9.0">
+  <!ENTITY exo-version        "0.3.4">
+  <!ENTITY gtk-xfce-engine-version "2.4.2">
+  <!ENTITY mousepad-version   "0.2.13">
+  <!ENTITY xfce4-dev-tools-version "4.4.0.1">
+
 ]>
 
-<sect1 id="xfce" xreflabel="XFce-&xfce-version;">
+<sect1 id="xfce" xreflabel="Xfce-&xfce-version;">
   <?dbhtml filename="xfce.html" ?>
 
   <sect1info>
@@ -32,16 +28,16 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>XFce-&xfce-version;</title>
+  <title>Xfce-&xfce-version;</title>
 
   <indexterm zone="xfce">
-    <primary sortas="a-xfce">XFce</primary>
+    <primary sortas="a-xfce">Xfce</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to XFce</title>
+    <title>Introduction to Xfce</title>
 
-    <para>The <application>XFce</application> package contains a lightweight
+    <para>The <application>Xfce</application> package contains a lightweight
     desktop environment.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -66,148 +62,329 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">XFce Dependencies</bridgehead>
+    <bridgehead renderas="sect3">Xfce General Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="gtk2"/> and
     <xref linkend="libxml2"/></para>
-
+    
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="gdm"/>,
-    <xref linkend="librsvg"/>
-    (<application>xffm</application> links to <application>librsvg</application>
-    automatically if <application>librsvg</application> is installed),
-    <xref linkend="libgtkhtml"/>,
+    <para role="optional"><xref linkend="libxslt"/>,
+    <xref linkend="intltool"/>,
     <xref linkend="startup-notification"/>, and
-    <xref linkend="a2ps"/>
-    (required to build <application>xfprint</application>).</para>
+    <xref linkend="gtk-doc"/> (untested by BLFS editors)</para>
+    
+    
+    
+    <para>Xfce components have additional dependencies upon each other
+    and upon external packages. They are summarized below.</para>
 
+    <bridgehead renderas="sect3" id="libxfce4util"
+      xreflabel="libxfce4util-&xfce-version;">libxfce4util</bridgehead>
+    <para>Libxfce4util is a basic utility library for Xfce4.</para>
+    <para>Libxfce4util has no external dependencies.</para>
+    
+    <bridgehead renderas="sect3" id="libxfcegui4"
+      xreflabel="libxfcegui4-&xfce-version;">libxfcegui4</bridgehead>
+    <para>Libxfcegui4 is a library that contains various <xref linkend="gtk2"/> widgets for Xfce.</para>
+    <para>Libxfcegui4 depends on <xref linkend="libxfce4util"/>.</para>
+    
+    <bridgehead renderas="sect3" id="libxfce4mcs"
+      xreflabel="libxfce4mcs-&xfce-version;">libxfce4mcs</bridgehead>
+    <para>Libxfce4mcs is a library that provides multi-channel settings management support for Xfce.</para>
+    <para>Libxfce4mcs depends on <xref linkend="libxfce4util"/>.</para>
+    
+    <bridgehead renderas="sect3" id="xfce-mcs-manager"
+      xreflabel="xfce-mcs-manager-&xfce-version;">xfce-mcs-manager</bridgehead>
+    <para>Xfce-mcs-manager is a graphical settings manager for Xfce.</para>
+    <para>Xfce-mcs-manager depends on <xref linkend="libxfcegui4"/>, and
+    <xref linkend="libxfce4mcs"/>.</para>
+
+    <bridgehead renderas="sect3" id="xfce-mcs-plugins"
+      xreflabel="xfce-mcs-plugins-&xfce-version;">xfce-mcs-plugins</bridgehead>
+    <para>Xfce-mcs-plugins is a set of plugins for the multi channel settings manager.
+    With these plugins, a user can change display settings, themes, fonts and similar
+    desktop parameters.</para>
+    <para>Xfce-mcs-plugins depend on <xref linkend="libxfcegui4"/>,
+    <xref linkend="xfce-mcs-manager"/>,
+    <!-- aumix (runtime, optional, patched out below), --> and
+    <xref linkend="dbus"/> (optional, needed only at runtime, to send commands
+    to the <xref linkend="Thunar"/> file manager).</para>
+    
+    <bridgehead renderas="sect3" id="xfwm4"
+      xreflabel="xfwm4-&xfce-version;">xfwm4</bridgehead>
+    <para>Xfwm4 is a window manager.</para>
+    <para>Xfwm4 depends on <xref linkend="intltool"/>,
+    <xref linkend="libxfce4util"/>,
+    <xref linkend="libxfcegui4"/>, and
+    <xref linkend="xfce-mcs-manager"/>.</para>
+
+    <bridgehead renderas="sect3" id="xfwm4-themes"
+      xreflabel="xfwm4-themes-&xfce-version;">xfwm4-themes</bridgehead>
+    <para>The xfwm4-themes package contains extra themes for xfwm4.</para>
+    <para>xfwm4-themes have no external dependencies.</para>
+
+    <bridgehead renderas="sect3" id="xfce4-panel"
+      xreflabel="xfce4-panel-&xfce-version;">xfce4-panel</bridgehead>
+    <para>Xfce4-panel is the panel for the Xfce desktop environment. It
+    contains launchers for programs, the clock, and other applets.</para>
+    <para>Xfce4-panel depends on <xref linkend="intltool"/>,
+    <xref linkend="libxfce4util"/>,and
+    <xref linkend="xfce-mcs-manager"/>.</para>
+
+    <bridgehead renderas="sect3" id="xfce4-session"
+      xreflabel="xfce4-session-&xfce-version;">xfce4-session</bridgehead>
+    <para>Xfce4-session is the session manager for the Xfce desktop environment.</para>
+    <para>Xfce4-session depends on <xref linkend="libxfce4util"/>,
+    <xref linkend="xfce-mcs-manager"/>,
+    <xref linkend="dbus"/> (optional, untested by BLFS editors, needed
+    for <xref linkend="hal"/>-based shutdown support, which also needs
+    <ulink url="http://hal.freedesktop.org/releases/">PolicyKit</ulink> and
+    <ulink url="http://www.freedesktop.org/wiki/Software/ConsoleKit">ConsoleKit</ulink>
+    packages, which are not in BLFS), <xref linkend="sudo"/>
+    (optional, needed at runtime for non-HAL-based shutdown support), and
+    <xref linkend="GConf"/> (optional, needed for Assistive Technologies support,
+    untested by BLFS editors).</para>
+
+    <bridgehead renderas="sect3" id="xfce4-mixer"
+      xreflabel="xfce4-mixer-&xfce-version;">xfce4-mixer</bridgehead>
+    <para>Xfce4-mixer contains an applet that controls sound volume levels.</para>
+    <para>Xfce4-mixer depends on <xref linkend="libxfcegui4"/>,
+    <xref linkend="libxfce4util"/>,
+    <xref linkend="xfce-mcs-manager"/>,
+    <xref linkend="xfce4-panel"/> (optional), and
+    <xref linkend="alsa-lib"/> (optional but highly recommended, because not all
+    controls on modern sound cards are accessible to OSS applications).</para>
+
+    <bridgehead renderas="sect3" id="gtk-xfce-engine"
+      xreflabel="gtk-xfce-engine-&gtk-xfce-engine-version;">gtk-xfce-engine</bridgehead>
+    <para>Gtk-xfce-engine contains <xref linkend="gtk2"/> themes.</para>
+    <para>Gtk-xfce-engine has no external dependencies.</para>
+
+    <bridgehead renderas="sect3" id="orage"
+      xreflabel="orage-&xfce-version;">orage</bridgehead>
+    <para>Orage is a time-managing application for the Xfce desktop environment.</para>
+    <para>Orage depends on <xref linkend="libxfce4mcs"/>,
+    <xref linkend="libxfcegui4"/>,
+    <xref linkend="xfce4-panel"/>,
+    <xref linkend="xfce-mcs-manager"/>,
+    <ulink url="http://sourceforge.net/projects/freeassociation/">libical</ulink>
+    (optional, an internal copy is used if external libical is not found,
+    external libical-0.27 is known to
+    <ulink url="http://www.nabble.com/Re:--Libical--libical-0.27-is-now-available-t3444157.html">misinterpret</ulink>
+    <!-- FIXME: what about the internal version? -->
+    daylight time saving rules in the USA), and
+    <xref linkend="db"/> (optional, part of LFS).</para>
+    
+    <bridgehead renderas="sect3" id="xfce4-appfinder"
+      xreflabel="xfce4-appfinder-&xfce-version;">xfce4-appfinder</bridgehead>
+    <para>Xfce4-appfinder shows system-wide installed applications.</para>
+    <para>Xfce4-appfinder depends on <xref linkend="libxfcegui4"/>.</para>
+
+    <bridgehead renderas="sect3" id="xfce4-icon-theme"
+      xreflabel="xfce4-icon-theme-&xfce-version;">xfce4-icon-theme</bridgehead>
+    <para>Xfce4-icon-theme contains more than 500 48x48 and scalable icons for
+    <xref linkend="gtk2"/> applications.</para>
+    <para>Xfce4-icon-theme depends on <xref linkend="intltool"/>.</para>
+
+    <bridgehead renderas="sect3" id="exo"
+      xreflabel="exo-&exo-version;">EXO</bridgehead>
+    <para>EXO is an extension library for Xfce, targeted at application development.
+    It contains some additional <xref linkend="gtk2"/> widgets and helpers that run
+    the preferred applications.</para>
+    <para>EXO depends on <ulink url="http://cpan.org/authors/id/G/GA/GAAS/URI-1.35.tar.gz">URI-1.35</ulink>,
+    <xref linkend="libxfce4util"/>,
+    <xref linkend="xfce-mcs-manager"/>,
+    <xref linkend="hal"/> (optional, not recommended, see explanation below),
+    <ulink url="http://www.galago-project.org/">libnotify</ulink> (optional, 
+    useless without <xref linkend="hal"/>, see explanation below), and
+    <ulink url="http://www.pygtk.org/">PyGTK</ulink> (optional, untested).</para>
+
+    <bridgehead renderas="sect3" id="Terminal"
+      xreflabel="Terminal-&Terminal-version;">Terminal</bridgehead>
+    <para>Terminal is a VT-100 terminal emulator for xfce.</para>
+    <para>Terminal depends on <xref linkend="exo"/>,
+    <xref linkend="vte"/>,
+    <xref linkend="dbus"/> (optional, with <xref linkend="glib2"/> bindings).</para>
+
+    <bridgehead renderas="sect3" id="xfprint"
+      xreflabel="xfprint-&xfce-version;">xfprint</bridgehead>
+    <para>Xfprint contains a print dialog and a printer manager for Xfce.</para>
+    <para>Xfprint depends on <xref linkend="libxfcegui4"/>, and
+    <xref linkend="xfce-mcs-manager"/>,
+    <xref linkend="a2ps"/> (optional),
+    <xref linkend="enscript"/>, and
+    <xref linkend="cups"/> or <xref linkend="LPRng"/>. Due to the use of
+    <xref linkend="a2ps"/> and <xref linkend="enscript"/>, it
+    <ulink url="http://bugzilla.xfce.org/show_bug.cgi?id=783">cannot</ulink>
+    print UTF-8 encoded text files.</para>
+
+    <bridgehead renderas="sect3" id="mousepad"
+      xreflabel="mousepad-&mousepad-version;">mousepad</bridgehead>
+    <para>Mousepad is a plain text editor for Xfce.</para>
+    <para>Mousepad depends on <xref linkend="libxfcegui4"/>, printing support requires
+    <xref linkend="xfprint"/> at runtime.</para>
+    
+    <bridgehead renderas="sect3" id="xfce-utils"
+      xreflabel="xfce-utils-&xfce-version;">xfce-utils</bridgehead>
+    <para>The xfce-utils package contains files needed to start Xfce from
+    <xref linkend="gdm"/>,
+    and the <command>startxfce4</command>, <command>xfbrowser4</command>,
+    <command>xfhelp4</command>, <command>xflock4</command>
+    (needs <xref linkend="xscreensaver"/> or
+    <ulink url="http://www.tux.org/~bagleyd/xlockmore.html">xlockmore</ulink> at runtime),
+    <command>xfmountdev4</command>, <command>xfterm4</command>,
+    <command>xfce4-about</command>, and <command>xfrun</command>
+    utilities.</para>
+    <para>Xfce-utils depend on <xref linkend="xfce-mcs-manager"/>,
+    <xref linkend="libxfcegui4"/>,
+    <xref linkend="libxfce4util"/>,
+    <xref linkend="dbus"/> with <xref linkend="glib2"/> bindings (optional), and
+    <xref linkend="gdm"/> (optional, untested by BLFS editors).</para>
+    
+    <bridgehead renderas="sect3" id="Thunar"
+      xreflabel="Thunar-&Thunar-version;">Thunar</bridgehead>
+    <para>Thunar is a file manager for Xfce.</para>
+    <para>Thunar depends on <xref linkend="exo"/>,
+    <xref linkend="libxfce4util"/>,
+    <xref linkend="xfce4-panel"/> (optional, for trash can support),
+    <xref linkend="libjpeg"/>,
+    <xref linkend="libexif"/> (optional, for the "Image" properties page),
+    <xref linkend="pcre"/> (optional, for the "Search &amp; Replace" renamer),
+    <!-- <xref linkend="fam"/> or --><xref linkend="gamin"/> (optional)
+    <xref linkend="dbus"/> with <xref linkend="glib2"/> bindings (optional),
+    <xref linkend="hal"/> (optional, not recommended), and
+    <xref linkend="GConf"/> (optional, for support of GNOME thumbnailers,
+    untested by BLFS editors).</para>
+    
+    <bridgehead renderas="sect3" id="xfdesktop"
+      xreflabel="xfdesktop-&xfce-version;">xfdesktop</bridgehead>
+    <para>The xfdesktop package contains a desktop manager for Xfce.</para>
+    <para>Xfdesktop depends on <xref linkend="intltool"/>,
+    <xref linkend="libxfce4util"/>,
+    <xref linkend="libxfcegui4"/>,
+    <xref linkend="xfce-mcs-manager"/>,
+    <xref linkend="Thunar"/> (optional, for file icons on desktop),
+    <xref linkend="dbus"/> (optional, for file icons on desktop),
+    <xref linkend="exo"/> (optional, for nifty icon effects),
+    <xref linkend="xfce4-panel"/> (optional).</para>
+    
+    <bridgehead renderas="sect3" id="xfce4-dev-tools"
+      xreflabel="xfce4-dev-tools-&xfce4-dev-tools-version;">xfce4-dev-tools</bridgehead>
+    <para>The xfce4-dev-tools package contains common tools required by Xfce developers and people
+    that want to build Xfce from SVN. In addition, this package contains the
+    Xfce developer's handbook.</para>
+    <para>The xfce4-dev-tools package has no external dependencies.</para>
+
+    <bridgehead renderas="sect3" id="xfce4-unwanted">Unwanted dependencies</bridgehead>
+
+    <para>Some of Xfce components have optional dependencies on HAL. E.g.,
+    <xref linkend="exo"/> and <xref linkend="Thunar"/> use HAL as a volume
+    manager in order to mount removable media. However, HAL-based volume
+    manager is currently very buggy, so it is a good idea to disable it.</para>
+
+    <para>E.g., in non-English
+    environments, it is often needed to pass <quote>iocharset</quote>
+    and <quote>codepage</quote> mount options.
+    The need for non-default mount options also exists for English users:
+    the kernel version in LFS (2.6.22.x) has a
+    <ulink url="https://launchpad.net/bugs/133567">bug</ulink> that causes the
+    statfs(2) syscall (used in order to determine the amount of free space) to take
+    too much time (up to a minute for a filesystem on a 80 GB video iPod) unless
+    the <quote>usefree</quote> option is passed at mount time.
+    However, this is currently
+    <ulink url="http://bugzilla.xfce.org/show_bug.cgi?id=2891">impossible</ulink>
+    to achieve without adding all possible removable devices into
+    <filename>/etc/fstab</filename>, because default mount options are
+    hard-coded in the <command>exo-mount</command> program.</para>
+    
+    <para>Also, the automounter throws cryptic HAL error messages at the user
+    when the user
+    <ulink url="http://bugzilla.xfce.org/show_bug.cgi?id=2968">presses
+    the Eject button on a CD-ROM drive</ulink>.</para>
+    
+    <para>Installation instructions below make sure that HAL is not used as a
+    volume manager even if found.</para>
+    
+    <para><ulink url="http://www.galago-project.org/">libnotify</ulink> provides
+    support for desktop notifications. The only source of such notifications in
+    Xfce itself is <command>Thunar</command>, which (if compiled with HAL)
+    notifies the user when it is safe to remove the media. However, HAL
+    dependency is unwanted, as explained above. Additionally, in order to
+    actually see the notifications, one needs to compile
+    <ulink url="http://goodies.xfce.org/projects/applications/notification-daemon-xfce">notification-daemon-xfce</ulink>,
+    which depends upon <ulink url="http://www.chipx86.com/wiki/Libsexy">libsexy</ulink>.</para>
+
+    <para>The <command>xfce4-tips</command> command from
+    the <xref linkend="xfce4-session"/> package uses
+    <ulink url="http://www.redellipse.net/code/fortune">Fortune</ulink>
+    in order to display tips and funny quotes on startup. However,
+    it is buggy:
+    <ulink url="http://bugzilla.xfce.org/show_bug.cgi?id=2020">does not remember</ulink>
+    the preference what to display
+    (tips or quotes), and does not display non-English quotes correctly
+    in non-UTF-8 locales. For these reasons, installation of this
+    nearly-useless program is disabled below.</para>
+    
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/xfce"/></para>
 
   </sect2>
 
   <sect2 role="installation">
-    <title>Installation of XFce</title>
+    <title>Installation of Xfce</title>
 
-    <para>A bare minimum <application>XFce</application> setup requires
-    installation of the following packages:</para>
+    <para>Build and install the Xfce components in the order listed above by issuing
+    the following commands for each package:</para>
 
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>libxfce4util-&xfce-version;.2</para>
-      </listitem>
-      <listitem>
-        <para>dbh-1.0.24</para>
-      </listitem>
-      <listitem>
-        <para>libxfcegui4-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>libxfce4mcs-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce-mcs-manager-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfwm4-&xfce-version;.2</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-panel-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfdesktop-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce-utils-&xfce-version;</para>
-      </listitem>
-    </itemizedlist>
-
-    <para>Install the minimum applications by issuing the following
-    commands:</para>
-
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc &amp;&amp;
+<screen><userinput>sed -i '/xfce4-tips/d' Makefile.in &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc \
+    --libexecdir=/usr/lib/xfce4 --enable-debug=no \
+    --disable-python --enable-session-screenshots \
+    --with-sound=alsa --disable-hal --with-volume-manager=none &amp;&amp;
 make</userinput></screen>
 
+    <para>Arguments that make no sense for a package (e.g.,
+    <parameter>--with-sound=alsa</parameter> for
+    <xref linkend="xfce4-dev-tools"/>) are slently ignored, and thus
+    they are harmless.</para>
+    
     <para>If you use <xref linkend="gdm"/> as your display manager and would
-    like to be able to log into an <application>XFce</application> session from
-    the login prompt, pass the <parameter>--enable-gdm</parameter> option to
+    like to be able to log into an <application>Xfce</application> session from
+    the GDM login screen, pass the <parameter>--enable-gdm</parameter> option to
     the <application>xfce-utils</application>-&xfce-version;
     <command>configure</command> script (requires <xref linkend="which"/> to be
     installed at run time).</para>
-
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>make install</userinput></screen>
-
-    <para>In addition, you may choose to install:</para>
-
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>gtk-xfce-engine-2.2.8</para>
-      </listitem>
-      <listitem>
-        <para>xfcalendar-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce-mcs-plugins-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-appfinder-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-icon-theme-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-iconbox-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-mixer-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-session-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-systray-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-toys-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfce4-trigger-launcher-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xffm-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfprint-&xfce-version;</para>
-      </listitem>
-      <listitem>
-        <para>xfwm4-themes-&xfce-version;</para>
-      </listitem>
-    </itemizedlist>
-
-    <para>Install the remaining applications using the following
-    commands:</para>
-
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
-     --libexecdir=/usr/lib/xfce4 &amp;&amp;
-make</userinput></screen>
 
     <para>Also, <application>xfprint</application> can be configured with
     <parameter>--enable-cups</parameter> if you have <xref linkend="cups"/>
     installed.</para>
 
-    <para>And then as <systemitem class="username">root</systemitem>:</para>
+    <para>After building a package, run as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
-    <para>As the <systemitem class="username">root</systemitem> user, move the
+    <para>When all packages are built and installed, 
+    as the <systemitem class="username">root</systemitem> user, move the
     help documentation to the standard BLFS location and modify the help script to
     look for it there:</para>
 
 <screen role="root"><userinput>mv -vf /usr/share/xfce4/doc /usr/share/doc/xfce4 &amp;&amp;
 sed -i 's@xfce4/doc@doc/xfce4@' /usr/bin/xfhelp4</userinput></screen>
+
+      <para>Run the following command as the
+      <systemitem class="username">root</systemitem> user in order
+      to change the actions bound to multimedia keys
+      to use the <command>amixer</command> command from <xref linkend="alsa-utils"/>
+      instead of the old OSS-only
+      <command>aumix</command> program:</para>
+      
+<screen role="root"><userinput>sed -i 's/aumix -v\([+-]\?\)\([^"]*\)/amixer set Master \2%\1/' \
+    /usr/share/xfce-mcs-plugins/shortcuts/default.xml</userinput></screen>
+
+      <note><para>Users of Intel HD Audio onboard sound chips should replace
+      <quote>Master</quote> with <quote>PCM</quote> in the command above,
+      because such chips have no Master control.</para></note>
 
   </sect2>
 
@@ -227,32 +404,62 @@ sed -i 's@xfce4/doc@doc/xfce4@' /usr/bin/xfhelp4</userinput></screen>
     <application>xfce4-session</application> requires this parameter to
     install some utility programs to the correct location.</para>
 
+    <para><parameter>--disable-hal</parameter>: disables <xref linkend="hal"/>
+    support in <xref linkend="exo"/>.</para>
+
+    <para><parameter>--with-volume-manager=none</parameter>: disables <xref linkend="hal"/>
+    support in <xref linkend="Thunar"/>.</para>
+
+    <para><parameter>--disable-python</parameter>: disables building <xref linkend="python"/>
+    bindings in <xref linkend="exo"/>.</para>
+
+    <para><parameter>--enable-session-screenshots</parameter>: allows <xref linkend="xfce4-session"/>
+    to create screenshots on logout.</para>
+
+    <para><parameter>--with-sound=alsa</parameter>: tells <xref linkend="xfce4-mixer"/>
+    to use the sound system native to Linux.</para>
+
+    <para><command>sed -i '/xfce4-tips/d' Makefile.in</command>: disables the build
+    of the useless <command>xfce4-tips</command> program.</para>
   </sect2>
 
   <sect2 role="configuration">
-    <title>Configuring XFce</title>
+    <title>Configuring Xfce</title>
 
     <sect3 id='xfce-config'>
+      <title>Config files</title>
+      <para><application>Xfce</application> looks for its configuration files
+      in <filename class="directory">~/.config</filename> and
+      <filename class="directory">/etc/xdg</filename> directories. Thus, for
+      changing system-wide default preferences, create or edit files in
+      <filename class="directory">/etc/xdg</filename>, using the contents
+      of <filename class="directory">~/.config</filename> as a model.</para>
+    </sect3>
+    
+    <sect3>
       <title>Configuration Information</title>
 
-      <para><application>XFce</application> will look for the theme index from
+      <para><application>Xfce</application> will look for the theme index from
       <xref linkend="hicolor-icon-theme"/> at run-time. Ensure you install the
-      package before launching <application>XFce</application>.</para>
+      package before launching <application>Xfce</application>. Also, Xfce comes
+      with SVG icons specific to it. Installation of <xref linkend="librsvg"/> is
+      required in order to avoid broken icons.</para>
 
       <para>Issue the command below to create an <filename>.xinitrc</filename>
       file which will automatically run the appropriate
-      <application>XFce</application> programs when the
+      <application>Xfce</application> programs when the
       <application>X</application> Window system is launched. Be sure to backup
       your existing <filename>.xinitrc</filename> file before
       proceeding.</para>
 
-<screen><userinput>cat &gt; ~/.xinitrc &lt;&lt; "EOF"
-<literal>xfce-mcs-manager
-xfwm4 --daemon
-xftaskbar4 &amp;
-xfdesktop &amp;
-exec xfce4-panel</literal>
-EOF</userinput></screen>
+<screen><userinput>echo "exec startxfce4" >~/.xinitrc</userinput></screen>
+
+      <para>In order to allow all users to shut down and reboot the computer
+      from Xfce, install <xref linkend="sudo"/> and, using the
+      <command>visudo</command> command, add the following line to the
+      <filename>/etc/sudoers</filename> file:</para>
+
+<screen>ALL	ALL=NOPASSWD:/usr/sbin/xfsm-shutdown-helper ""</screen>
 
       <indexterm zone="xfce xfce-config">
         <primary sortas="e-AA.xinitrc">~/.xinitrc</primary>
@@ -262,6 +469,45 @@ EOF</userinput></screen>
 
   </sect2>
 
+  <sect2>
+    <title>Further steps</title>
+    <para>Many useful programs, panel plugins, and themes for
+    Xfce4 are available from the
+    <ulink url="http://goodies.xfce.org/">Xfce Goodies Project</ulink>
+    web site. You may want to install:</para>
+    <itemizedlist>
+
+      <listitem><para><ulink url="http://goodies.xfce.org/projects/panel-plugins/xfce4-mount-plugin">Xfce4 mount plugin</ulink>:
+      a panel plugin that allows to mount and unmount filesystems
+      listed in <filename>/etc/fstab</filename>, and also shows
+      the amount of free disk space.</para></listitem>
+
+      <listitem><para><ulink url="http://goodies.xfce.org/projects/panel-plugins/xfce4-netload-plugin">Xfce4 Net Load plugin</ulink>:
+      a panel plugin that shows the current load of the network
+      interfaces of your choice.</para></listitem>
+
+      <listitem><para><ulink url="http://goodies.xfce.org/projects/panel-plugins/xfce4-xkb-plugin">Xfce4 XKB plugin</ulink>:
+      a panel plugin that displays the current keyboard layout
+      and allows to change it with a single mouse click.</para></listitem>
+
+<!--  uncomment when they update for libburn-0.4.0
+
+      <listitem><para><ulink url="http://www.xfce.org/projects/xfburn/">Xfburn</ulink>:
+      a data CD burner for Xfce
+      (needs <ulink url="http://libburnia.pykix.org/">libburn and libisofs</ulink>).<para></listitem>
+
+-->
+
+      <listitem><para><ulink url="http://xarchiver.xfce.org/">Xarchiver</ulink>:
+      a graphical front-end for most archivers.</para></listitem>
+
+      <listitem><para><ulink url="http://spuriousinterrupt.org/projects/xfmedia">Xfmedia</ulink>:
+      a media player based on <xref linkend="xine-lib"/>. Video support is buggy,
+      compiling with CFLAGS="-O0" may or may not help.</para></listitem>
+      
+    </itemizedlist>
+  </sect2>
+  
   <sect2 role="content">
     <title>Contents</title>
 
@@ -271,278 +517,23 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>fgr, scramble, startxfce4, xfbook, xfbook4, xfcalendar,
-        xfce-mcs-manager, xfce-setting-show, xfce4-about,
-        xfce4-appfinder, xfce4-iconbox, xfce4-kiosk-query,
-        xfce4-menueditor, xfce4-mixer, xfce4-panel, xfce4-session,
-        xfce4-session-logout, xfce4-tips, xfdesktop, xfdiff4, xffm,
-        xffrequent, xffrequent4, xffstab, xffstab4, xfglob4, xfhelp4,
-        xflock4, xfmime-edit, xfmountdev4, xfrecent, xfrecent4,
-        xfprint-manager, xfprint4, xfrun4, xfsamba4, xftaskbar4,
-        xfterm4, xftrash4, xftree4, and xfwm4</seg>
-        <seg id='xfcelibs'>libxfce4util.{a,so}, libdbh.{a,so}, libxfcegui4.{a,so},
-        libxfce4mcs.{a,so}, libxffm_actions.so, libxffm_basic.so, libxffm_calls.so,
-        libxffm_cpy.so, libxffm_on_demand.so, libxffm_secondary.so, libxffm_tubo.so,
+        <seg>more than 50 binaries and scripts</seg>
+        <seg id='xfcelibs'>libexo-0.3.{a,so},
+        libexo-hal-0.3.{a,so},
+        libthunar-vfs-1.{a,so},
+        libthunarx-1.{a,so},
+        libxfce4mcs-client.{a,so},
+        libxfce4mcs-manager.{a,so},
+        libxfce4panel.{a,so},
+        libxfce4util.{a,so},
+        libxfcegui4.{a,so},
         libxfsm-4.2.{a,so}</seg>
-        <seg>/usr/lib/xfce4, /usr/share/doc/xfce4, /usr/share/xfce4, /usr/share/xffm
+        
+        <seg>/usr/lib/thunarx-1, /usr/lib/xfce4, /usr/share/doc/xfce4, /usr/share/xfce4, /usr/share/Terminal,
+        /usr/share/Thunar, /usr/share/orage, /usr/share/xfce-mcs-plugins, /usr/share/xfce4-menueditor,
         and /usr/share/xfwm4</seg>
       </seglistitem>
     </segmentedlist>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxfce4util">libxfce4util.[a,so]</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libdbh">libdbh.[a,so]</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxfcegui4">libxfcegui4.[a,so]</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxfce4mcs">libxfce4mcs.[a,so]</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_actions.so">libxffm_actions.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_basic.so">libxffm_basic.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_calls.so">libxffm_calls.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_cpy.so">libxffm_cpy.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_on_demand.so">libxffm_on_demand.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_secondary.so">libxffm_secondary.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxffm_tubo.so">libxffm_tubo.so</primary>
-    </indexterm>
-
-    <indexterm zone="xfce xfcelibs">
-      <primary sortas="c-libxfsm-4.2.so">libxfsm-4.2.[a,so]</primary>
-    </indexterm>
-
-    <variablelist>
-      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
-      <?dbfo list-presentation="list"?>
-      <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="fgr">
-        <term><command>fgr</command></term>
-        <listitem>
-          <para>is a file content search engine for
-          <command>xffm</command>.</para>
-          <indexterm zone="xfce fgr">
-            <primary sortas="b-fgr">fgr</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="startxfce4">
-        <term><command>startxfce4</command></term>
-        <listitem>
-          <para>is a script which starts up the <application>XFce</application> Desktop
-          Environment.</para>
-          <indexterm zone="xfce startxfce4">
-            <primary sortas="b-startxfce4">startxfce4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfce-mcs-manager">
-        <term><command>xfce-mcs-manager</command></term>
-        <listitem>
-          <para>is the settings manager for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfce-mcs-manager">
-            <primary sortas="b-xfce-mcs-manager">xfce-mcs-manager</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfce4-about">
-        <term><command>xfce4-about</command></term>
-        <listitem>
-          <para>displays the about box.</para>
-          <indexterm zone="xfce xfce4-about">
-            <primary sortas="b-xfce4-about">xfce4-about</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfce4-session">
-        <term><command>xfce4-session</command></term>
-        <listitem>
-          <para>saves the state of your desktop and restores it when you next start
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfce4-session">
-            <primary sortas="b-xfce4-session">xfce4-session</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfce-setting-show">
-        <term><command>xfce-setting-show</command></term>
-        <listitem>
-          <para>displays the settings for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfce-setting-show">
-            <primary sortas="b-xfce-setting-show">xfce-setting-show</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfce4-panel">
-        <term><command>xfce4-panel</command></term>
-        <listitem>
-          <para>is the panel manager for <application>XFce</application>.
-          It contains the launcher, clock, mail check, desktop switcher and
-          separator programs.</para>
-          <indexterm zone="xfce xfce4-panel">
-            <primary sortas="b-xfce4-panel">xfce4-panel</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfdesktop">
-        <term><command>xfdesktop</command></term>
-        <listitem>
-          <para> is the desktop manager for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfdesktop">
-            <primary sortas="b-xfdesktop">xfdesktop</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfhelp4">
-        <term><command>xfhelp4</command></term>
-        <listitem>
-          <para>is script that launches a HTML browser to
-          display online documentation. It requires <command>which</command> to
-          run.</para>
-          <indexterm zone="xfce xfhelp4">
-            <primary sortas="b-xfhelp4">xfhelp4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xflock4">
-        <term><command>xflock4</command></term>
-        <listitem>
-          <para>is a script used to lock the current screen during drag
-          and drop actions.</para>
-          <indexterm zone="xfce xflock4">
-            <primary sortas="b-xflock4">xflock4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfmountdev4">
-        <term><command>xfmountdev4</command></term>
-        <listitem>
-          <para>mounts a device on the specified mount point and launches
-          <command>xftree4</command>, then unmounts the device when
-          <command>xftree4</command> finishes.</para>
-          <indexterm zone="xfce xfmountdev4">
-            <primary sortas="b-xfmountdev4">xfmountdev4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfrun4">
-        <term><command>xfrun4</command></term>
-        <listitem>
-          <para>is the program launcher for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfrun4">
-            <primary sortas="b-xfrun4">xfrun4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfsamba4">
-        <term><command>xfsamba4</command></term>
-        <listitem>
-          <para> is the <application>Samba</application> front end for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfsamba4">
-            <primary sortas="b-xfsamba4">xfsamba4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xftaskbar4">
-        <term><command>xftaskbar4</command></term>
-        <listitem>
-          <para>is the taskbar manager for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xftaskbar4">
-            <primary sortas="b-xftaskbar4">xftaskbar4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfterm4">
-        <term><command>xfterm4</command></term>
-        <listitem>
-          <para>is a small terminal wrapper to be used as a drag and drop
-          action for the <application>XFce</application> front panel. It requires
-          <command>which</command> to run.</para>
-          <indexterm zone="xfce xfterm4">
-            <primary sortas="b-xfterm4">xfterm4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xftrash4">
-        <term><command>xftrash4</command></term>
-        <listitem>
-          <para>is a small binary to be used as a drag and drop action for the
-          <application>XFce</application> front panel.</para>
-          <indexterm zone="xfce xftrash4">
-            <primary sortas="b-xftrash4">xftrash4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xffm">
-        <term><command>xffm</command></term>
-        <listitem>
-          <para>is the file manager for <application>XFce</application>.</para>
-          <indexterm zone="xfce xffm">
-            <primary sortas="b-xftree4">xffm</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="xfwm4">
-        <term><command>xfwm4</command></term>
-        <listitem>
-          <para>is an <application>X11</application> window manager for
-          <application>XFce</application>.</para>
-          <indexterm zone="xfce xfwm4">
-            <primary sortas="b-xfwm4">xfwm4</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
 
   </sect2>
 
