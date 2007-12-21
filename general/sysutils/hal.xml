@@ -309,39 +309,86 @@ EOF</userinput></screen>
       <xref linkend="gnome-volume-manager"/> or <ulink
       url="http://ivman.sourceforge.net/">Ivman</ulink> should be
       installed.</para>
+      <!-- FIXME: is Ivman still alive? -->
 
-      <!-- Following note is only relevant for HAL-0.5.7.x.
-           Fixed upstream. -->
-      <note>
-        <para><application>HAL</application> will ignore any devices listed
-        in <filename>/etc/fstab</filename> for the purpose of automounting.
-        You must remove any listings for devices that you would like
-        automounted such as CD-ROMs or USB keys.</para>
-      </note>
+      <para>In some cases, it is necessary to specify some default mount
+      options for filesystems. E.g., in non-English environments, the
+      <option>iocharset</option> and <option>codepage</option> options
+      are needed for filesystems with Windows origin in order to show
+      national characters correctly. Also, due to a
+      <ulink url="https://launchpad.net/bugs/133567">bug</ulink> in the
+      Linux kernel version in LFS (2.6.22.x), you may want to pass the
+      <option>usefree</option> options to vfat filesystems in order to reduce
+      the time needed to determine the amount of free space on the
+      filesystem.</para>
 
-    <!-- This section commented out for now until it is determined what should
-         be placed in this section
+      <para>Google search results for <quote>hal default mount options</quote>
+      are still full of recommendations to create <filename>*.fdi</filename>
+      files mentioning either
+      <option>volume.policy</option> or <option>storage.ploicy</option> keys.
+      Such recommendations worked for HAL-0.4.x only and are invalid now.
+      For HAL-&hal-version;, mount options are expected to be handled
+      as follows:</para>
 
-         FIXME: I think this information is still relevant with the
-         exception of its interaction with /etc/fstab. Needs investigation.
+      <itemizedlist>
+        <listitem>
+          <para>An event handler from the desktop environment receives an
+          event describing the newly-added storage device.</para>
+        </listitem>
+        <listitem>
+          <para>If the storage device is not already mentioned in
+          <filename>/etc/fstab</filename>, mount options are fetched from
+          a database of user preferences, which is specific to the desktop
+          environment, and passed back to HAL.
+          This process can be influenced by the filesystem type
+          and possibly other volume properties available from HAL.</para>
+        </listitem>
+        <listitem>
+          <para>If the options are in the list of permitted ones, HAL
+          mounts the volume.</para>
+        </listitem>
+      </itemizedlist>
 
-      <para>No configuration is necessary for the majority of installations
-      on systems configured with ISO-8859-1 compatible locales. The defaults
-      should work just fine. For some installations, tweaking of the various
-      policies may be required. One such configuration change necessary in some
-      locales is identifying the <option>iocharset</option> and
-      <option>codepage</option> variables in the
-      <filename>/etc/fstab</filename> entries created by the
-      <command>fstab-sync</command> program. If changes are required to the
-      configuration so that your locale is properly identified in the entries
-      created in <filename>/etc/fstab</filename>, issue the following commands
-      as the <systemitem class="username">root</systemitem> user (you must
-      substitute the proper data for the
-      <replaceable>&lt;iocharset&gt;</replaceable> and
-      <replaceable>&lt;codepage&gt;</replaceable> info):</para>
+      <para>The important point above is that the configuration procedure is
+      desktop-specific. However, as of December, 2007, only GNOME allows the
+      user to set default mount options on a per-filesystem basis. To do so,
+      change the
+      <systemitem>/system/storage/default_options/[fs_type]/mount_options</systemitem>
+      GConf key either using <xref linkend="gconf-editor"/>, or from the
+      command line, as demonstrated in the following example:</para>
+
+<screen><userinput>gconftool-2 --type list --list-type=string \
+    --set /system/storage/default_options/vfat/mount_options \
+    "[shortname=mixed,uid=,usefree,iocharset=koi8-r,codepage=866]"</userinput></screen>
+
+      <para>See more details in the gnome-mount(1) manual page.</para>
+      
+      <para>KDE allows the mount options to be set only on a per-volume basis,
+      not per-filesystem, which is a
+      <ulink url="http://bugs.kde.org/show_bug.cgi?id=133456">bug</ulink>,
+      because, as mentioned in the report, <quote>for every new device (let's
+      say your friend USB stick) you have to first not mount it, then change
+      options and then mount</quote>. Xfce, if compiled with HAL support,
+      <ulink url="http://bugzilla.xfce.org/show_bug.cgi?id=2891">hard-codes</ulink>
+      the mount options without any means to override them,
+      which is even worse.
+      <!-- (for BLFS editors only: they mention policy-kit as a future
+           solution, but, from the description, policy-kit looks like
+           an XML-ized sudo-like confguration parser, which has nothing
+           common with the "default mount options" problem. -->
+      In these desktop environments, if the built-in
+      default mount options are not suitable, it is needed to mention every
+      possible removable storage device in <filename>/etc/fstab</filename>
+      with the correct options, thus mostly defeating the point of
+      installing HAL.</para>
+
+      <para>If HAL does not accept new mount options by default,
+      (in the above example, this happens with the <option>usefree</option>
+      option), as <systemitem class="username">root</systemitem> user,
+      create a custom policy file that mentions unknown mount options:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /etc/hal/fdi/policy/30user &amp;&amp;
-cat &gt; /etc/hal/fdi/policy/30user/30user-policy.fdi &lt;&lt; "EOF"
+cat &gt; /etc/hal/fdi/policy/30user/30user-options.fdi &lt;&lt; "EOF"
 <literal>&lt;?xml version="1.0" encoding="UTF-8"?&gt; &lt;!- -*- SGML -*- -&gt;
 
 &lt;!-
@@ -352,52 +399,27 @@ should be in files contained in the /etc/hal/fdi/policy directories.
 -&gt;
 
 &lt;deviceinfo version="0.2"&gt;
-
   &lt;device&gt;
-    &lt;match key="info.udi"
-        string="/org/freedesktop/Hal/devices/computer"&gt;
 
-      &lt;!- Set the iocharset variable in the /etc/fstab file entry -&gt;
-      &lt;merge
-        key="storage.policy.default.mount_option.iocharset=<replaceable>&lt;iocharset&gt;</replaceable>"
-        type="bool"&gt;true&lt;/merge&gt;
-
-      &lt;!- Set the codepage variable in the /etc/fstab file entry -&gt;
-      &lt;merge
-        key="storage.policy.default.mount_option.codepage=<replaceable>&lt;codepage&gt;</replaceable>"
-        type="bool"&gt;true&lt;/merge&gt;
-
+    &lt;!-- this is to be able to mount media in drives we cannot poll,
+         e.g. IDE Zip Drives and PC style floppy drives --&gt;
+    &lt;match key="storage.media_check_enabled" bool="false"&gt;
+      &lt;match key="storage.no_partitions_hint" bool="true"&gt;
+        &lt;append key="volume.mount.valid_options" type="strlist"&gt;usefree&lt;/append&gt;
+      &lt;/match&gt;
     &lt;/match&gt;
+
+    &lt;match key="volume.fsusage" string="filesystem"&gt;
+
+      &lt;!-- allow these mount options for vfat --&gt;
+      &lt;match key="volume.fstype" string="vfat"&gt;
+        &lt;append key="volume.mount.valid_options" type="strlist"&gt;usefree&lt;/append&gt;
+      &lt;/match&gt;
+    &lt;/match&gt;
+
   &lt;/device&gt;
-
 &lt;/deviceinfo&gt;</literal>
-
 EOF</userinput></screen>
-
-      <note>
-        <para>The previous commands created a file named
-        <filename>/etc/hal/fdi/policy/30user/30user-policy.fdi</filename>. To
-        ease readability of the file, put everything between the
-        &lt;angle brackets&gt; and &lt;merge&gt;&lt;/merge&gt; tags on one
-        line. You must have at least one space character
-        where the ends of the lines were. The file would then look like this
-        (trimmed at the top and bottom for brevity):</para>
-
-<screen><literal>  &lt;device&gt;
-    &lt;match key="<replaceable>&lt;text&gt;</replaceable>" string="<replaceable>&lt;text&gt;</replaceable>"&gt;
-
-      &lt;!- Set the iocharset variable in the /etc/fstab file entry -&gt;
-      &lt;merge key="<replaceable>&lt;iocharset text&gt;</replaceable>" type="bool"&gt;true&lt;/merge&gt;
-
-      &lt;!- Set the codepage variable in the /etc/fstab file entry -&gt;
-      &lt;merge key="<replaceable>&lt;codepage text&gt;</replaceable>" type="bool"&gt;true&lt;/merge&gt;
-
-    &lt;/match&gt;
-  &lt;/device&gt;</literal></screen>
-
-      </note>
-
-    -->
 
     </sect3>
 
