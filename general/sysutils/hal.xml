@@ -244,6 +244,7 @@ cd hal-info-&hal-info-version; &amp;&amp;
     </sect3>
 
     <sect3><title>Configuration Information</title>
+    <sect4><title>Allowing users to invoke HAL methods</title>
 
       <para>The default setup for <application>HAL</application> is to allow
       only certain users to invoke methods such as Mount(). These are
@@ -302,7 +303,9 @@ EOF</userinput></screen>
 &lt;/device&gt;
 &lt;/deviceinfo&gt;</literal>
 EOF</userinput></screen>
+      </sect4>
 
+      <sect4><title>Installing mount helpers</title>
       <para><application>HAL</application> only provides the methods such
       as Mount() to act on hardware. In order to take advantage of these,
       a <application>HAL</application> event handler such as
@@ -310,7 +313,11 @@ EOF</userinput></screen>
       url="http://ivman.sourceforge.net/">Ivman</ulink> should be
       installed.</para>
       <!-- FIXME: is Ivman still alive? -->
+      <!-- FIXME: explicitly name the mount helpers
+           from KDE (???) and Xfce (exo-mount) -->
+      </sect4>
 
+      <sect4><title>Changing default mount options</title>
       <para>In some cases, it is necessary to specify some default mount
       options for filesystems. E.g., in non-English environments, the
       <option>iocharset</option> and <option>codepage</option> options
@@ -351,19 +358,9 @@ EOF</userinput></screen>
 
       <para>The important point above is that the configuration procedure is
       desktop-specific. However, as of December, 2007, only GNOME allows the
-      user to set default mount options on a per-filesystem basis. To do so,
-      change the
-      <systemitem>/system/storage/default_options/[fs_type]/mount_options</systemitem>
-      GConf key either using <xref linkend="gconf-editor"/>, or from the
-      command line, as demonstrated in the following example:</para>
-
-<screen><userinput>gconftool-2 --type list --list-type=string \
-    --set /system/storage/default_options/vfat/mount_options \
-    "[shortname=mixed,uid=,usefree,iocharset=koi8-r,codepage=866]"</userinput></screen>
-
-      <para>See more details in the gnome-mount(1) manual page.</para>
-      
-      <para>KDE allows the mount options to be set only on a per-volume basis,
+      user to set default mount options on a per-filesystem basis,
+      as described in the next paragraph.
+      KDE allows the mount options to be set only on a per-volume basis,
       not per-filesystem, which is a
       <ulink url="http://bugs.kde.org/show_bug.cgi?id=133456">bug</ulink>,
       because, as mentioned in the report, <quote>for every new device (let's
@@ -376,16 +373,33 @@ EOF</userinput></screen>
            solution, but, from the description, policy-kit looks like
            an XML-ized sudo-like confguration parser, which has nothing
            common with the "default mount options" problem. -->
-      In these desktop environments, if the built-in
-      default mount options are not suitable, it is needed to mention every
-      possible removable storage device in <filename>/etc/fstab</filename>
-      with the correct options, thus mostly defeating the point of
-      installing HAL.</para>
+      In KDE and Xfce, if the built-in default mount options are not suitable,
+      it is needed to mention every possible removable storage device in
+      <filename>/etc/fstab</filename> with the correct options, thus mostly
+      defeating the point of installing HAL.</para>
+      
+      <para>In order to adjust the default mount options, GNOME users should
+      change the
+      <systemitem>/system/storage/default_options/[fs_type]/mount_options</systemitem>
+      GConf key either using <xref linkend="gconf-editor"/>, or from the
+      command line, as demonstrated in the following example:</para>
 
-      <para>If HAL does not accept new mount options by default,
-      (in the above example, this happens with the <option>usefree</option>
-      option), as <systemitem class="username">root</systemitem> user,
-      create a custom policy file that mentions unknown mount options:</para>
+<screen><userinput>gconftool-2 --type list --list-type=string \
+    --set /system/storage/default_options/vfat/mount_options \
+    "[shortname=mixed,uid=,usefree,iocharset=koi8-r,codepage=866]"</userinput></screen>
+
+      <para>See more details in the gnome-mount(1) manual page.</para>
+      </sect4>
+
+      <sect4><title>Adding allowed mount options</title>
+      <para>The list of mount options permitted in the default HAL
+      configuration resides in the
+      <filename>/usr/share/hal/fdi/policy/10osvendor/20-storage-methods.fdi</filename>
+      file. GNOME and KDE users may want to use options not in this
+      list (in the above example, this applies to the <option>usefree</option>
+      option). In this case, as <systemitem class="username">root</systemitem>
+      user, create a custom policy file that mentions unknown mount
+      options:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /etc/hal/fdi/policy/30user &amp;&amp;
 cat &gt; /etc/hal/fdi/policy/30user/30user-options.fdi &lt;&lt; "EOF"
@@ -406,6 +420,7 @@ should be in files contained in the /etc/hal/fdi/policy directories.
     &lt;match key="storage.media_check_enabled" bool="false"&gt;
       &lt;match key="storage.no_partitions_hint" bool="true"&gt;
         &lt;append key="volume.mount.valid_options" type="strlist"&gt;usefree&lt;/append&gt;
+        &lt;!-- Insert other options here --&gt;
       &lt;/match&gt;
     &lt;/match&gt;
 
@@ -414,6 +429,7 @@ should be in files contained in the /etc/hal/fdi/policy directories.
       &lt;!-- allow these mount options for vfat --&gt;
       &lt;match key="volume.fstype" string="vfat"&gt;
         &lt;append key="volume.mount.valid_options" type="strlist"&gt;usefree&lt;/append&gt;
+        &lt;!-- Insert other options here --&gt;
       &lt;/match&gt;
     &lt;/match&gt;
 
@@ -421,6 +437,7 @@ should be in files contained in the /etc/hal/fdi/policy directories.
 &lt;/deviceinfo&gt;</literal>
 EOF</userinput></screen>
 
+    </sect4>
     </sect3>
 
     <sect3  id="hal-init">
