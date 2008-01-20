@@ -6,9 +6,9 @@
 
   <!ENTITY xterm-download-http " ">
   <!ENTITY xterm-download-ftp  "ftp://invisible-island.net/xterm/xterm-&xterm-version;.tgz">
-  <!ENTITY xterm-md5sum        "dbd31341a9ccb982647416e8d27b0f00">
-  <!ENTITY xterm-size          "803 KB">
-  <!ENTITY xterm-buildsize     "7.0 MB">
+  <!ENTITY xterm-md5sum        "b767d702e1464e16802b90c2187252c6">
+  <!ENTITY xterm-size          "830 KB">
+  <!ENTITY xterm-buildsize     "8.0 MB">
   <!ENTITY xterm-time          "0.1 SBU">
 ]>
 
@@ -60,7 +60,10 @@
     <para role="required"><xref linkend="xorg7-lib"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="luit"/></para>
+    <para role="optional"><xref linkend="luit"/> (required in non-UTF-8 locales
+    if the user wants TrueType fonts, and always required in Chinese, Japanese,
+    and Korean locales). Configuration instructions below assume that Luit
+    is installed.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url='&blfs-wiki;/Xterm'/></para>
@@ -76,7 +79,9 @@
     <para>Install <application>xterm</application> by running the
     following commands:</para>
 
-<screen><userinput>TERMINFO=/usr/lib/terminfo ./configure $XORG_CONFIG \
+<screen><userinput>sed -i '/v0/,+1s/new:/new:kb=^?:/' termcap &amp;&amp;
+echo -e '\tkbs=\\177,' &gt;&gt;terminfo &amp;&amp;
+TERMINFO=/usr/lib/terminfo ./configure $XORG_CONFIG \
     --enable-luit --enable-wide-chars \
     --with-app-defaults=$XORG_PREFIX/share/X11/app-defaults &amp;&amp;
 make</userinput></screen>
@@ -93,6 +98,11 @@ make install-ti</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+    
+    <para><command>sed -i ... termcap</command>,
+    <command>echo ... >>terminfo</command>: these commands modify the terminal
+    description, so that the Backspace key is expected to send the character
+    with ASCII code 127, for consistency with the Linux console.</para>
 
     <para><parameter>TERMINFO=/usr/lib/terminfo</parameter>: This ensures
     that the <command>xterm</command> terminfo file is installed to the
@@ -104,8 +114,10 @@ make install-ti</userinput></screen>
     directory.</para>
 
     <para><parameter>--enable-luit</parameter>: Enables the luit filter for
-    Unicode translation. If <command>luit</command> is not found in the PATH,
-    the default of <filename>/usr/X11R6/bin/luit</filename> will be used.</para>
+    translation between Unicode (used by xterm internally in the configuration
+    below) and the locale encoding. If <command>luit</command> is not found
+    in the PATH, the default of
+    <filename>/usr/X11R6/bin/luit</filename> will be used.</para>
 
     <para><parameter>--enable-wide-chars</parameter>: Adds support for wide
     characters.</para>
@@ -124,14 +136,17 @@ make install-ti</userinput></screen>
     add them to the system-wide
     <filename>$XORG_PREFIX/share/X11/app-defaults/Xterm</filename> file.</para>
 
-    <para>In order for xterm to follow the locale settings in the environment
-    and use TrueType fonts, add the following definitions as the
+    <para>In order for xterm to follow the locale settings in the environment,
+    use TrueType fonts, and follow the Linux convention about the code sent by
+    the Backspace key, add the following definitions as the
     <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>cat &gt;&gt; $XORG_PREFIX/share/X11/app-defaults/XTerm &lt;&lt; "EOF"
 *VT100*locale: true
 *VT100*faceName: Monospace
 *VT100*faceSize: 10
+*backarrowKeyIsErase: true
+*ptyInitialErase: true
 EOF</userinput></screen>
 
   </sect2>
@@ -167,8 +182,8 @@ EOF</userinput></screen>
       <varlistentry id="uxterm">
         <term><filename>uxterm</filename></term>
         <listitem>
-          <para>is a wrapper script to start xterm with the proper settings in
-          UTF-8 locales.</para>
+          <para>is a wrapper script that modifies the current locale to use UTF-8
+          and starts xterm with the proper settings.</para>
           <indexterm zone="xterm2 uxterm">
             <primary sortas="b-uxterm">uxterm</primary>
           </indexterm>
