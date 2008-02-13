@@ -6,10 +6,10 @@
 
   <!ENTITY openssh-download-http "http://sunsite.ualberta.ca/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
   <!ENTITY openssh-download-ftp  "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
-  <!ENTITY openssh-md5sum        "6a7fa99f44d9e1b5b04d15256e1405bb">
-  <!ENTITY openssh-size          "967 KB">
-  <!ENTITY openssh-buildsize     "18 MB">
-  <!ENTITY openssh-time          "0.5 SBU (additional 0.3 SBU to run the test suite)">
+  <!ENTITY openssh-md5sum        "50a800fd2c6def9e9a53068837e87b91">
+  <!ENTITY openssh-size          "968 KB">
+  <!ENTITY openssh-buildsize     "16.2 MB">
+  <!ENTITY openssh-time          "0.5 SBU (additional 1.2 SBU to run the test suite)">
 ]>
 
 <sect1 id="openssh" xreflabel="OpenSSH-&openssh-version;">
@@ -66,7 +66,6 @@
     <xref linkend="tcpwrappers"/>,
     <xref linkend="x-window-system"/>,
     <xref linkend="mitkrb"/> or <xref linkend="heimdal"/>,
-    <xref linkend="jdk"/>,
     <xref linkend="net-tools"/>,
     <xref linkend="sysstat"/>,
     <ulink url="http://www.opensc-project.org/">OpenSC</ulink>, and
@@ -102,13 +101,13 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
     <application>OpenSSL</application> library. To link against the static
     library, execute the following command:</para>
 
-<screen><userinput>sed -i "s:-lcrypto:/usr/lib/libcrypto.a -ldl:g" configure</userinput></screen>
+<screen><userinput>sed -i 's@-lcrypto@/usr/lib/libcrypto.a -ldl@' configure</userinput></screen>
 
     <para>Install <application>OpenSSH</application> by running
     the following commands:</para>
 
-<screen><userinput>sed -i "s/lkrb5 -ldes/lkrb5/" configure &amp;&amp;
-./configure --prefix=/usr --sysconfdir=/etc/ssh \
+<screen><userinput>sed -i 's@ -ldes@@' configure &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc/ssh --datadir=/usr/share/sshd \
     --libexecdir=/usr/lib/openssh --with-md5-passwords \
     --with-privsep-path=/var/lib/sshd &amp;&amp;
 make</userinput></screen>
@@ -132,7 +131,7 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i "s/lkrb5 -ldes/lkrb5/" configure</command>:
+    <para><command>sed -i 's@ -ldes@@' configure</command>:
     This command fixes a build crash if you used the
     <option>--with-kerberos5</option> parameter and you built the
     <application>Heimdal</application> package in accordance with the BLFS
@@ -142,11 +141,22 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
     the configuration files from being installed in
     <filename class="directory">/usr/etc</filename>.</para>
 
-    <para><parameter>--with-md5-passwords</parameter>: This is required
+    <para><parameter>--datadir=/usr/share/sshd</parameter>: This switch
+    puts the Ssh.bin file (used for SmartCard authentication) in 
+    <filename class="directory">/usr/share/sshd</filename>.</para>
+
+<!-- WOW, this description is really old, IIRC it was obsolete shortly
+     before I was an editor, as the hint became a part of both books.
+     I'll leave it in for now JIC - Delete Later
+    <para><parameter>- -with-md5-passwords</parameter>: This is required
     if you made the changes recommended by the shadowpasswd_plus
     LFS hint on your SSH server when you installed the Shadow Password
     Suite or if you access a SSH server that authenticates by
     user passwords encrypted with md5.</para>
+-->
+
+    <para><parameter>--with-md5-passwords</parameter>: This is required
+    with the default configuration of Shadow password suite in LFS.</para>
 
     <para><parameter>--libexecdir=/usr/lib/openssh</parameter>: This parameter
     changes the installation path of some programs to
@@ -187,7 +197,15 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
       <systemitem class='username'>root</systemitem> login via
       <command>ssh</command>:</para>
 
-<screen role="root"><userinput>echo "PermitRootLogin no" >> /etc/ssh/sshd_config</userinput></screen>
+<screen role="root"><userinput>echo "PermitRootLogin no" &gt;&gt; /etc/ssh/sshd_config</userinput></screen>
+
+      <para>If you added <application>LinuxPAM</application> support, then you
+      will need to add a configuration file for 
+      <application>sshd</application>.  Issue the following commands as the
+      <systemitem class='username'>root</systemitem> user:</para>
+
+<screen role="root"><userinput>sed 's@d/login@d/sshd@g' /etc/pam.d/login &gt; /etc/pam.d/sshd &amp;&amp;
+chmod 644 /etc/pam.d/sshd</userinput></screen>
 
       <para>Additional configuration information can be found in the man
       pages for <command>sshd</command>, <command>ssh</command> and
