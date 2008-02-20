@@ -116,21 +116,29 @@ make</userinput></screen>
     build using the <option>--with-tcp-wrappers</option> parameter, ensure
     you add 127.0.0.1 to the sshd line in <filename>/etc/hosts.allow</filename>
     if you have a restrictive <filename>/etc/hosts.deny</filename> file, or the
-    test suite will fail. To run the test suite, as the
-    <systemitem class="username">root</systemitem> user, issue: 
-    <command>make -k tests 2&gt;&amp;1 | tee check.log</command>.  Review the
-    <filename>check.log</filename> file for 'FATAL' tests.</para>
+    test suite will fail. Additionally, the testsuite requires an installed
+    copy of <command>scp</command> to complete the mulitplexing tests.  To
+    run the test suite, issue the following commnds as the 
+    <systemitem class="username">root</systemitem> user:</para>
 
-    <note><para>The test suite is currently broken, in that it will try to
-    test against the installed <filename>sshd</filename>, which is why we
-    pass <parameter>-k</parameter> to the <command>make</command> command
-    above.  You should run the test suite again after completing the 
-    installation and configuration, without the <parameter>-k</parameter>
-    flag.</para></note>
+<screen role="root"><userinput>if test -f /usr/bin/scp
+then
+    mv /usr/bin/scp /usr/bin/scp-bak
+fi &amp;&amp;
+cp scp /usr/bin/scp &amp;&amp;
+make tests 2&gt;&amp;1 | tee check.log
+grep "FATAL" check.log</userinput></screen>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>If the above command produces no 'FATAL' errors, then proceed
+    with the installation, again as the 
+    <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>rm /usr/bin/scp &amp;&amp;
+if test -f /usr/bin/scp-bak
+then
+    rm /usr/bin/scp-bak
+fi &amp;&amp;
+make install &amp;&amp;
 install -v -m755 -d /usr/share/doc/openssh-&openssh-version; &amp;&amp;
 install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
     /usr/share/doc/openssh-&openssh-version;</userinput></screen>
