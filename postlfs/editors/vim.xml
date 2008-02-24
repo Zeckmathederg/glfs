@@ -71,7 +71,7 @@
       </listitem>
       <listitem>
         <para>Required Patch: <ulink
-          url="&patch-root;/vim-&vim-version;-fixes-3.patch"/></para>
+          url="&patch-root;/vim-&vim-version;-fixes-6.patch"/></para>
       </listitem>
       <listitem>
         <para>Translated Vim messages: <ulink
@@ -91,8 +91,10 @@
     <xref linkend="GTK"/>,
     <xref linkend="python"/>,
     <xref linkend="tcl"/>,
-    <xref linkend="ruby"/>, and
-    <xref linkend="gpm"/></para>
+    <xref linkend="ruby"/>,
+    <xref linkend="gpm"/> and
+    <xref linkend="rsync"/> (to update the runtime files) 
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/vim"/></para>
@@ -146,14 +148,25 @@ make</userinput></screen>
     <para>By default, Vim's documentation is installed in <filename
     class="directory">/usr/share/vim</filename>.  The following symlink allows
     the documentation to be accessed via <filename
-    class="directory">/usr/share/doc/vim-&vim-version;</filename>, making it consistent
-    with the location of documentation for other packages:</para>
-
+    class="directory">/usr/share/doc/vim-&vim-version;</filename>, making it
+    consistent with the location of documentation for other packages:</para>
 
 <!-- When updating, be sure to change the line below for the proper 'vimxx' unpacked 
      directory -->
 
 <screen role="root"><userinput>ln -snfv ../vim/vim71/doc /usr/share/doc/vim-&vim-version;</userinput></screen>
+
+    <para>If you wish to update the runtime files issue the
+    following command (requires <application>rsync</application>):</para>
+      
+<screen><userinput>
+rsync -avzcP --delete --exclude="/dos/" --exclude="/spell/" ftp.nluug.nl::Vim/runtime/ ./runtime/
+</userinput></screen>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make -C src installruntime
+</userinput></screen>
 
   </sect2>
 
@@ -169,8 +182,8 @@ make</userinput></screen>
 
     <para><option>--enable-gui=no</option>: This will prevent compilation of the
     GUI. <application>Vim</application> will still link against
-    <application>X</application> so that some nice eye-candy such as updating the
-    title bar of an <application>Xterm</application> window are available.</para>
+    <application>X</application>, so that some features such as the client-server
+    model or the x11-selection (clipboard) are still available.</para>
 
     <para><option>--without-x</option>: If you prefer not to link
     <application>Vim</application> against <application>X</application>, use
@@ -205,38 +218,37 @@ make</userinput></screen>
     <sect3 id='vim-init'>
       <title>Configuration Information</title>
 
-      <para><application>Vim-7.0</application> introduced an
-      integrated spell checker that doesn't require additional libraries to be
-      installed.  To enable the spell checker you can set the following in
-      one of the configuration files: </para>
+      <para><application>Vim</application> has an integrated spell checker
+      which you can enable it if you issue the following in a vim window:
+      </para>
 
-<screen><literal>set spell
-spelllang=en,ru</literal></screen>
+<screen><literal>:setlocal spell spelllang=ru</literal></screen>
+      
+      <para>This setting will enable spell checking for the Russian
+      language for the current session.</para>
 
       <para>By default, <application>Vim</application> only installs spell
-      files for the English language.  If a spell file is not available for
-      your language, then <application>Vim</application> will call
-      <filename>$VIMRUNTIME/plugin/spellfile.vim</filename> and will try to
-      obtain the *.spl and optionally *.sug from the vim ftp server, using the
-      <filename>$VIMRUNTIME/plugin/netrw</filename> plugin.</para>
+      files for the English language. If a spell file is not available for
+      a language, then <application>Vim</application> will call the
+      <filename>$VIMRUNTIME/plugin/spellfile.vim</filename> plugin and will try
+      to obtain the *.spl and optionally *.sug from the vim ftp server,
+      by using the <filename>$VIMRUNTIME/plugin/netrwPlugin.vim</filename>
+      plugin.</para>
 
       <para>Alternatively you can manually download the *.spl and *.sug files
       from: <ulink url="ftp://ftp.vim.org/pub/vim/runtime/spell/"/> and save
       them to <filename class="directory"> ~/.vim/spell </filename> or in
-      <filename class="directory">
-      /usr/share/vim/vim71/spell/</filename>.</para>
+      <filename class="directory">/usr/share/vim/vim71/spell/</filename>.</para>
 
-      <para>For more information about the spell checker and some other
-      features in  <application>Vim-&vim-version;</application> (such us
-      vimgrep, tab-pages, and omni-completion), issue the following command inside
-      <application>Vim</application>:</para>
+      <para>To find out what's new in <application>Vim-&vim-version;</application>
+      issue the following command:</para>
 
-<screen><literal>:help version7</literal></screen>
+<screen><literal>:help version-&vim-version;</literal></screen>
 
       <para>For additional information on setting up
       <application>Vim</application> configuration files, see <xref
       linkend="postlfs-config-vimrc"/> and <ulink
-      url='http://www.vi-improved.org/vimrc.php'/>.  </para>
+      url='http://www.vi-improved.org/vimrc.php'/>.</para>
 
     </sect3>
 
