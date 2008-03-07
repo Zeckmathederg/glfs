@@ -34,22 +34,6 @@
     tables and frames, features background downloads, can display colors
     and has many other features.</para>
     
-    <caution>
-      <para>In the text mode, <application>Links</application> cannot be
-      configured to use UTF-8 encoding for the terminal output. This
-      limitation renders <application>Links</application> useless as a
-      text-based browser in UTF-8 locales. See general discussion of this
-      type of issue in the <xref linkend="locale-not-valid-option"/> section
-      on the <xref linkend="locale-issues"/> page.</para>
-
-      <para>In the graphical mode,
-      <application>Links</application> displays text correctly even in
-      UTF-8 locales, if all characters exist in the built-in font used by
-      <application>Links</application>. Form submission in UTF-8 locales
-      is handled correctly when running in X11-based (but not framebuffer-based)
-      graphical mode.</para>
-    </caution>
-
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -71,6 +55,36 @@
         <para>Estimated build time: &links-time;</para>
       </listitem>
     </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para>Recommended patch: <ulink
+          url="&gentoo-ftp-repo;/links-&Links-version;-utf8.diff.bz2"/></para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Do I Need the Patch and Do I Have to Enable
+    Graphics Support?</bridgehead>
+
+      <para>In text mode, <application>Links</application> cannot be
+      configured to use UTF-8 encoding for the terminal input/output. This
+      limitation renders <application>Links</application> useless as a
+      text-based browser in UTF-8 locales. See general discussion of this
+      type of issue in the <xref linkend="locale-not-valid-option"/> section
+      on the <xref linkend="locale-issues"/> page.
+      The patch fixes all these issues with an exception of Chinese locale,
+      when there isn't an available character set.
+      Note: You have to check the "UTF-8 I/O" box in "Terminal options" and
+      set the character set (probably an 8-bit) in the Setup menu.
+      </para>
+
+      <para>In graphical mode,
+      <application>Links</application> displays text correctly even in
+      UTF-8 locales, if all characters exist in the built-in font used by
+      <application>Links</application>. Form submission in UTF-8 locales
+      is handled correctly when running in X11-based (but not framebuffer-based)
+      graphical mode.</para>
 
     <bridgehead renderas="sect3">Links Dependencies</bridgehead>
 
@@ -95,11 +109,19 @@
 
   <sect2 role="installation">
     <title>Installation of Links</title>
+   
+   <para>If desired, apply the patch:</para>
 
-    <para>Install <application>Links</application> by running the following
+<screen><userinput>bzcat ../links-&Links-version;-utf8.diff.bz2 | patch -p1 &amp;&amp;
+cd intl &amp;&amp;
+./gen-intl &amp;&amp; ./synclang &amp;&amp;
+cd ..
+</userinput></screen>
+   
+   <para>Install <application>Links</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --enable-graphics &amp;&amp;
+<screen><userinput>./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -115,7 +137,10 @@ install -v -m644 doc/links_cal/* KEYS BRAILLE_HOWTO \
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
+    
+    <para><command>./gen-intl &amp;&amp; ./synclang</command>: These commands
+    regenerate the language table.</para>
+    
     <para><option>--enable-graphics</option>: This switch enables support
     for graphics mode. You will either need to install the
     <application>X</application> Window System or enable frame buffer support in
