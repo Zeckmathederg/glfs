@@ -3,25 +3,12 @@
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
-
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
-  <!ENTITY autofs-patch-dir     "http://ftp.kernel.org/pub/linux/daemons/autofs/v4/">
-  <!ENTITY autofs-download-http "http://ftp.kernel.org/pub/linux/daemons/autofs/v4/autofs-&autofs-version;.tar.bz2">
-  <!ENTITY autofs-download-ftp "ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/autofs-&autofs-version;.tar.bz2">
-  <!ENTITY autofs-md5sum        "7e3949114c00665b4636f0c318179657">
-  <!ENTITY autofs-size          "168 KB">
-  <!ENTITY autofs-buildsize     "2.3 MB">
+  <!ENTITY autofs-patch-dir     "http://ftp.kernel.org/pub/linux/daemons/autofs/v5">
+  <!ENTITY autofs-download-http "http://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-&autofs-version;.tar.bz2">
+  <!ENTITY autofs-download-ftp "ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-&autofs-version;.tar.bz2">
+  <!ENTITY autofs-md5sum        "27839fe6fa8105b2b7d31bc922fd7cf6">
+  <!ENTITY autofs-size          "221 KB">
+  <!ENTITY autofs-buildsize     "8.9 MB">
   <!ENTITY autofs-time          "less than 0.1 SBU">
 ]>
 
@@ -44,9 +31,14 @@
 
     <para>The <application>autofs</application> package contains userspace
     tools that work with the kernel to mount and un-mount removable file
-    systems. This is useful for allowing users to mount floppies, cdroms and
+    systems. The primary use is to mount external network file systems like
+    nfs (see <xref linkend="nfs-utils"/>) or Samba (see <xref linkend="samba3"/>)
+    on demand.</para>
+    
+    <para>It may also be useful for allowing users to mount floppies, cdroms and
     other removable storage devices without requiring the system
-    administrator to mount the devices.  This may not be ideal for all
+    administrator to mount the devices although this capability is now generally
+    provided by HAL (see <xref linkend="hal"/>).  This may not be ideal for all
     installations, so be aware of the risks before implementing this feature.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -72,13 +64,14 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Recommended Patch: <ulink
-        url="&patch-root;/autofs-&autofs-version;-consolidated-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
+        <para>Recommended Patches: There are frequent patches issued
+        for <application>autofs</application>.  To get the current patches, 
+        start in the same directory as the main tar file and run:</para>
+        
+<screen><userinput>wget &autofs-patch-dir;/patch_order-&autofs-version; &amp;&amp;
+sed 's;autofs;&autofs-patch-dir;/autofs;' patch_order-&autofs-version; &gt; wget-list &amp;&amp;
+wget -i wget-list</userinput></screen>
+    
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/autofs"/></para>
 
@@ -111,28 +104,31 @@
     <para>Install <application>autofs</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../autofs-&autofs-version;-consolidated-1.patch &amp;&amp;
+<screen><userinput>for f in `cat ../patch_order-&autofs-version;`; do 
+  patch -Np1 -i ../$f
+done &amp;&amp;
 ./configure --prefix=/ --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
+
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-rm /etc/rc.d/init.d/autofs</userinput></screen>
+ln -sf  ../init.d/autofs $(EXTDIR)/rc.d/rcsysinit.d/S52autofs</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>patch -Np1 -i
-    ../autofs-&autofs-version;-consolidated-1.patch</command>: This patch
-    is a consolidation of nine small patches available at <ulink
-    url="http://ftp.kernel.org/pub/linux/daemons/autofs/v4/"/>.  The patches
-    can be applied individually if desired.</para>
+    <para><command>for f in `cat ../patch_order-&autofs-version;`; do
+      patch -Np1 -i ../$f;  done</command>: This command applies all the 
+      patches fetched earlier in the correct order.</para>
 
-    <para><command>rm /etc/rc.d/init.d/autofs</command>: This command removes
-    the installed script which only works on specific distributions.</para>
+    <para><command>ln -sf  ../init.d/autofs 
+    $(EXTDIR)/rc.d/rcsysinit.d/S52autofs</command>: This command sets the 
+    link to properly start autofs upon boot.</para>
 
   </sect2>
 
@@ -169,23 +165,28 @@ rm /etc/rc.d/init.d/autofs</userinput></screen>
       <title>Configuration Information</title>
 
       <para>The installation process creates <filename>auto.master</filename>,
-      <filename>auto.misc</filename> and <filename>auto.net</filename>. You
-      will replace the <filename>auto.master</filename> with the following
-      commands:</para>
+      <filename>auto.misc</filename>,  <filename>auto.smb</filename>, and
+      <filename>auto.net</filename>. You will replace the
+      <filename>auto.master</filename> with the following commands:</para>
 
 <screen role="root"><userinput>mv /etc/auto.master /etc/auto.master.bak &amp;&amp;
 cat &gt; /etc/auto.master &lt;&lt; "EOF"
 <literal># Begin /etc/auto.master
 
-/media  /etc/auto.misc
+/media/cdrom  /etc/auto.misc
 
 # End /etc/auto.master</literal>
 EOF</userinput></screen>
 
       <note>
-        <para>This file mounts a new media directory over the one created by
-        LFS and will therefore hide any mounts made by the
-        <filename>fstab</filename> file into that directory.</para>
+
+        <para>This file mounts a new media directory but is not visible until
+        it is automounted by autofs.  An alternative method would be to
+        automount into another location such as
+        <filename>/var/lib/autofs/cdrom</filename> and create a sysbolic
+        link from <filename>/media/cdrom</filename> to the other
+        location.</para>
+      
       </note>
 
       <para>While this package could be used to mount NFS shares and SMB
@@ -200,7 +201,7 @@ EOF</userinput></screen>
       <command>man 5 autofs</command> command.</para>
 
     </sect3>
-
+<!--
     <sect3  id="autofs-init">
       <title>Boot Script</title>
 
@@ -222,7 +223,7 @@ EOF</userinput></screen>
       if users tend to remove the media prior to the timeout setting.</para>
 
     </sect3>
-
+-->
   </sect2>
 
   <sect2 role="content">
@@ -235,7 +236,11 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>automount</seg>
-        <seg>autofs modules</seg>
+        <seg>lookup_file.so, lookup_hosts.so, lookup_multi.so,
+        lookup_nisplus.so, lookup_program.so, lookup_userhome.so,
+        lookup_yp.so, mount_afs.so, mount_autofs.so, mount_bind.so,
+        mount_changer.so, mount_ext2.so, mount_generic.so, 
+        mount_nfs.so, parse_sun.so</seg>
         <seg>/lib/autofs and /var/run/autofs</seg>
       </seglistitem>
     </segmentedlist>
