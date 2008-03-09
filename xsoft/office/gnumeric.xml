@@ -6,10 +6,10 @@
 
   <!ENTITY gnumeric-download-http "&gnome-download-http;/gnumeric/1.6/gnumeric-&gnumeric-version;.tar.bz2">
   <!ENTITY gnumeric-download-ftp  "&gnome-download-ftp;/gnumeric/1.6/gnumeric-&gnumeric-version;.tar.bz2">
-  <!ENTITY gnumeric-md5sum        "78ffd75ae6abc3bb20dd04407a082a26">
-  <!ENTITY gnumeric-size          "12.0 MB">
-  <!ENTITY gnumeric-buildsize     "187.0 MB">
-  <!ENTITY gnumeric-time          "2.8 SBU (includes creating HTML documentation)">
+  <!ENTITY gnumeric-md5sum        "a80ae52484b07d772297dcde6c0dab47">
+  <!ENTITY gnumeric-size          "14.0 MB">
+  <!ENTITY gnumeric-buildsize     "205.1 MB">
+  <!ENTITY gnumeric-time          "2.6 SBU (includes creating HTML documentation)">
 ]>
 
 <sect1 id="gnumeric" xreflabel="Gnumeric-&gnumeric-version;">
@@ -58,8 +58,7 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="libgnomeprintui"/> and
-    <xref linkend="goffice"/> (you must use a version of <ulink
-    url="&gnome-download-http;/goffice/0.2/">GOffice &lt;0.3.0</ulink>)</para>
+    <xref linkend="goffice"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="pygtk"/>,
@@ -72,7 +71,9 @@
     <ulink url="http://www.frodol.dds.nl/psiconv/index.html">Psiconv</ulink>,
     <ulink url="http://www.maemo.org/">Hildon</ulink>, and
     <ulink url="http://packages.ubuntu.com/warty/libdevel/libgb-dev">Gnome
-    Basic</ulink> (this package is no longer under active development)</para>
+    Basic</ulink> (this package is no longer under active development),
+    <ulink url="http://www.valgrind.org/">Valgrind</ulink> to run some of the
+    testsuite</para>
 
     <para>* The
     <application>libgda</application>/<application>libgnomedb</application>
@@ -108,20 +109,13 @@
             --localstatedir=/var/lib &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>This package requires that it is installed before the test suite is
+    run. The commands to run the tests are located a bit later in the
+    instructions.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make install &amp;&amp;
-
-ln -v -s -f /usr/share/gnome/help/gnumeric \
-            /usr/share/gnumeric/&gnumeric-version;/doc &amp;&amp;
-
-if [ $(pkg-config --variable=prefix ORBit-2.0) != "/usr" ]; then
-    mv -v /usr/lib/bonobo/servers/GNOME_Gnumeric.server \
-        $(pkg-config --variable=prefix ORBit-2.0)/lib/bonobo/servers &amp;&amp;
-    rmdir -v /usr/lib/{bonobo/servers,bonobo}
-fi</userinput></screen>
+<screen role='root'><userinput>make install &amp;&amp;</userinput></screen>
 
     <para>If you have <xref linkend="gnome-doc-utils"/> installed you can
     create an HTML version of the Help documentation by issuing the following
@@ -135,9 +129,11 @@ make -C doc html</userinput></screen>
     following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>install -v -m755 -d /usr/share/doc/gnumeric-&gnumeric-version;/figures &amp;&amp;
-install -v -m644    doc/C/figures/* \
+<screen role='root'><userinput>install -v -m755 -d /usr/share/doc/gnumeric-&gnumeric-version;/figures/icons &amp;&amp;
+install -v -m644    doc/C/figures/*.png \
                     /usr/share/doc/gnumeric-&gnumeric-version;/figures &amp;&amp;
+install -v -m644    doc/C/figures/icons/*.png \
+                    /usr/share/doc/gnumeric-&gnumeric-version;/figures/icons &amp;&amp;
 install -v -m644    doc/C/html/* \
                     /usr/share/doc/gnumeric-&gnumeric-version; &amp;&amp;
 
@@ -165,25 +161,20 @@ rm -v /usr/share/doc/gnumeric-&gnumeric-version;/developer/Makefile*</userinput>
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/scrollkeeper-dir.xml"/>
 
-    <para><command>ln -v -s -f ...
-    /usr/share/gnumeric/&gnumeric-version;/doc</command>: There is a bug which
-    prevents the Help files from being properly displayed. The Help system
-    looks for the files in one location, but they are actually installed in
-    another. See
-    <ulink url="http://bugzilla.gnome.org/show_bug.cgi?id=330339"/>. Creating
-    the symbolic link works around this issue.</para>
-
     <para><parameter>--prefix=$(pkg-config
     --variable=prefix gnome-doc-utils)</parameter>:
     This rebuilds the <filename>Makefile</filename>s with the same prefix used 
     in the <application>GNOME Doc Utils</application> installation.</para>
 
-    <para><command>if [ ... != "/usr" ]; then ...; fi</command>:
-    This command is used to move the <application>Gnumeric</application> Bonobo
-    component description file into the <envar>$GNOME_PREFIX</envar> heirarchy
-    and then remove the unneeded directories only if the
-    <application>GNOME</application> installation is in any
-    prefix other than <filename class='directory'>/usr</filename>.</para>
+  </sect2>
+
+  <sect2 role="testing">
+    <title>Testing gnumeric</title>
+
+    <para>If you wish to run the testuite, issue:</para>
+<screen><userinput>make check</userinput></screen>
+    <para>2 of the 7 tests appear to fail because the csv files they use are
+    missing, 2 others fail for unknown reasons.</para>
 
   </sect2>
 
@@ -196,12 +187,12 @@ rm -v /usr/share/doc/gnumeric-&gnumeric-version;/developer/Makefile*</userinput>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gnumeric, gnumeric-&gnumeric-version;, and ssconvert</seg>
-        <seg>numerous filters, plugins and <application>GNOME</application>
+        <seg>gnumeric, gnumeric-&gnumeric-version;, ssconvert, and ssindex</seg>
+        <seg>ilibspreadsheet and numerous filters, plugins and <application>GNOME</application>
         components</seg>
         <seg>/usr/lib/gnumeric,
         /usr/share/doc/gnumeric-&gnumeric-version;, and
-        /usr/share/{{,gnome/help/, omf/, pixmaps/}gnumeric,mc}</seg>
+        /usr/share/{,gnome/help/, omf/, pixmaps/}gnumeric</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -239,6 +230,17 @@ rm -v /usr/share/doc/gnumeric-&gnumeric-version;/developer/Makefile*</userinput>
           between various spreadsheet file formats.</para>
           <indexterm zone="gnumeric ssconvert">
             <primary sortas="b-ssconvert">ssconvert</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ssindex">
+        <term><command>ssindex</command></term>
+        <listitem>
+          <para>is a command line utility to generate index data for
+          spreadsheet files.</para>
+          <indexterm zone="gnumeric ssindex">
+            <primary sortas="b-ssindex">ssindex</primary>
           </indexterm>
         </listitem>
       </varlistentry>
