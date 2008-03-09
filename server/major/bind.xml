@@ -54,16 +54,23 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/bind-&bind-version;-use_iproute2-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">BIND Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="openssl"/></para>
 
-    <bridgehead renderas="sect4">Optional (to Run the Test Suite)</bridgehead>
-    <para role="optional"><xref linkend="net-tools"/> (for <command>ifconfig</command>)
-    and <xref linkend="perl-net-dns"/></para>
+    <bridgehead renderas="sect4">Optional (to run the test suite)</bridgehead>
+    <para role="optional"><xref linkend="perl-net-dns"/></para>
 
-    <bridgehead renderas="sect4">Optional to [Re]Build Documentation</bridgehead>
+    <bridgehead renderas="sect4">Optional (to rebuild documentation)</bridgehead>
     <para role="optional"><xref linkend="tetex"/> and
     <xref linkend="libxslt"/></para>
 
@@ -78,12 +85,15 @@
     <para>Install <application>BIND</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
+<screen><userinput>patch -Np1 -i ../bind-&bind-version;-use_iproute2-1.patch &amp;&amp;
+./configure --prefix=/usr \
             --sysconfdir=/etc \
             --localstatedir=/var \
             --mandir=/usr/share/man \
             --enable-threads \
             --with-libtool &amp;&amp;
+sed -i "s@198.32.64.12@199.7.83.42@" \
+    lib/dns/rootns.c &amp;&amp;
 make</userinput></screen>
 
     <para>Issue the following commands to run the complete suite of tests.
@@ -101,7 +111,7 @@ make</userinput></screen>
 
 <screen role="root"><userinput>bin/tests/system/ifconfig.sh down</userinput></screen>
 
-    <para>Issue the following command to check that all 146 tests
+    <para>Issue the following command to check that all 148 tests
     ran successfully:</para>
 
 <screen><userinput>grep "R:PASS" check.log | wc -l</userinput></screen>
@@ -140,6 +150,10 @@ install -v -m644 \
     <para><parameter>--with-libtool</parameter>: This parameter forces the
     building of dynamic libraries and links the installed binaries to these
     libraries.</para>
+    
+    <para><command>sed -i "s@198.32.64.12@199.7.83.42@"
+    lib/dns/rootns.c</command>: Use updated address for
+    L.ROOT-SERVERS.NET.</para>
 
     <para><command>chmod 755
     /usr/lib/{lib{bind9,isc{,cc,cfg},lwres,dns}.so.*.?.?}</command>:
@@ -200,7 +214,7 @@ install -v -m644 \
       class="username">named</systemitem>:</para>
 
 <screen role="root"><userinput>groupadd -g 20 named &amp;&amp;
-useradd -c "BIND Owner" -g named -s /bin/false -u 20 named
+useradd -c "BIND Owner" -g named -s /bin/false -u 20 named &amp;&amp;
 install -d -m770 -o named -g named /srv/named</userinput></screen>
 
       <para>Set up some files, directories and devices needed by
@@ -218,7 +232,8 @@ cp /etc/localtime /srv/named/etc</userinput></screen>
       and <filename>rdnc.conf</filename> files using the
       <command>rndc-confgen</command> command:</para>
 
-<screen role="root"><userinput>rndc-confgen -b 512 | grep -m 1 "secret" | cut -d '"' -f 2</userinput></screen>
+<screen role="root"><userinput>rndc-confgen -r /dev/urandom -b 512 | \
+    grep -m 1 "secret" | cut -d '"' -f 2</userinput></screen>
 
       <para>Create the <filename>named.conf</filename> file from which
       <command>named</command> will read the location of zone files, root
@@ -352,7 +367,7 @@ H.ROOT-SERVERS.NET.     6D  IN      A       128.63.2.53
 I.ROOT-SERVERS.NET.     6D  IN      A       192.36.148.17
 J.ROOT-SERVERS.NET.     6D  IN      A       192.58.128.30
 K.ROOT-SERVERS.NET.     6D  IN      A       193.0.14.129
-L.ROOT-SERVERS.NET.     6D  IN      A       198.32.64.12
+L.ROOT-SERVERS.NET.     6D  IN      A       199.7.83.42
 M.ROOT-SERVERS.NET.     6D  IN      A       202.12.27.33</literal>
 EOF</userinput></screen>
 
