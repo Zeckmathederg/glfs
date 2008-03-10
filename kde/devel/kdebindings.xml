@@ -5,9 +5,9 @@
   %general-entities;
   <!ENTITY kdebindings-download-http "&kde-download-http;/kdebindings-&kde-version;.tar.bz2">
   <!ENTITY kdebindings-download-ftp  "&kde-download-ftp;/kdebindings-&kde-version;.tar.bz2">
-  <!ENTITY kdebindings-md5sum        "d26b5f54f062b765a949d66657c2ab3c">
-  <!ENTITY kdebindings-size          "5.2 MB">
-  <!ENTITY kdebindings-buildsize     "407 MB">
+  <!ENTITY kdebindings-md5sum        "ba780920f6b810a30a61b1ffa888706b">
+  <!ENTITY kdebindings-size          "5.5 MB">
+  <!ENTITY kdebindings-buildsize     "489.5 MB">
   <!ENTITY kdebindings-time          "18.1 SBU">
 ]>
 
@@ -72,10 +72,11 @@
     <xref linkend="ruby"/>,
     <xref linkend="jdk"/>,
     <xref linkend="seamonkey"/>,
+    <ulink url="http://http://www.riverbankcomputing.co.uk/qscintilla/index.php">QScintilla</ulink>,
     <ulink url="http://go-mono.org">Mono</ulink>,
     <ulink url="http://www.southern-storm.com.au/portable_net.html">DotGNU Portable.NET</ulink>, and
     <ulink url="http://www.microsoft.com/downloads/details.aspx?FamilyId=3A1C93FA-7462-47D0-8E56-8DD34C6292F0&amp;displaylang=en">Rotor</ulink></para>
-
+    
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/kdebindings"/></para>
 
@@ -95,7 +96,8 @@
 
 <screen><userinput>sed -i -e '/configure.*pyqt/s/-c//' \
     -e '/configure.*pykde/s/-c/-i/' python/Makefile.in
-./configure --prefix=&kde-dir; --disable-debug \
+sed -i 's%echo "yes" | @PYTHON@ configure.py%&amp; -y qt-mt%' python/Makefile.in
+DO_NOT_COMPILE="smoke" ./configure --prefix=&kde-dir; --disable-debug \
     --disable-dependency-tracking &amp;&amp;
 make</userinput></screen>
 
@@ -114,6 +116,14 @@ make</userinput></screen>
     '/configure.*pykde/s/-c/-i/' python/Makefile.in </command>: Remove a switch
     that causes concatenation of multiple files for compilation.  This fix
     reduces build time by a factor of five.</para>
+
+    <para><command>sed -i 's%echo "yes" | @PYTHON@ configure.py%&amp; -y qt-mt%' python/Makefile.in</command>: 
+    Specifies that the libqt-mt.so library should be used to build the pyqt bindings.
+    <command>configure.py</command> will fail if it finds both libqt-mt.so and libqt.so.</para>
+
+    <para><command>DO_NOT_COMPILE="smoke" ./configure</command>: Disables the building 
+    of the smoke module of <application>kdebindings</application>, as the build is
+    currently broken and no workaround has been found.</para>
 
   </sect2>
 
