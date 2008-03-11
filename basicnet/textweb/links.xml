@@ -64,39 +64,62 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Do I Need the Patch and Do I Have to Enable
-    Graphics Support?</bridgehead>
+    <bridgehead renderas="sect3">Do I Need the Patch?</bridgehead>
 
-      <para>In text mode, <application>Links</application> cannot be
-      configured to use UTF-8 encoding for the terminal input/output. This
-      limitation renders <application>Links</application> useless as a
-      text-based browser in UTF-8 locales. See general discussion of this
-      type of issue in the <xref linkend="locale-not-valid-option"/> section
-      on the <xref linkend="locale-issues"/> page. The patch fixes all these
-      issues with an exception of Chinese locale, when there isn't an available
-      character set.</para>
+      <para>In text mode, unpatched <application>Links</application> cannot be
+      configured to use UTF-8 or other multibyte encodings for the terminal
+      input/output. This limitation renders <application>Links</application>
+      useless as a text-based browser in multibyte locales. See general
+      discussion of this type of issue in the
+      <xref linkend="locale-not-valid-option"/> section
+      on the <xref linkend="locale-issues"/> page.</para>
 
+      <para>The patch adds the <quote>UTF-8 I/O</quote> configuration option.
+      With this option enabled, <application>Links</application> first renders
+      the page using an 8-bit character set configured by the user, and then
+      converts from this character set to UTF-8. The opposite conversion is
+      applied to user input. This approach works if there is an 8-bit character
+      set that contains all the characters that the user considers to be
+      important. Such character set does not exist, e.g., for Chinese
+      hieroglyphs, or when it is required to display both Cyrillic and Greek
+      characters.</para>
+
+    <bridgehead renderas="sect3">Do I Have to Enable Graphics Support?</bridgehead>
       <para>In graphical mode, <application>Links</application> displays text
       correctly even in UTF-8 locales, if all characters exist in the built-in
-      font used by <application>Links</application>. Form submission in UTF-8
-      locales is handled correctly when running in X11-based (but not 
-      framebuffer-based) graphical mode.</para>
+      font used by <application>Links</application>. This font contains
+      Basic Latin, Latin-1 Supplement (without superscripts and vulgar
+      fractions), Latin Extended-A, Latin Extended-B (partially), Greek,
+      Cyrillic and Hebrew characters. Form submission in non-ISO-8859-1
+      locales is handled correctly when running in X11-based graphical mode.
+      Input handlers for other graphics drivers (fb, directfb, svgalib) either
+      misinterpret non-ASCII characters in the input, or don't allow them
+      at all.</para>
+
+      <para>The patch has no effect on <application>Links</application>
+      behavior in graphical mode.</para>
 
     <bridgehead renderas="sect3">Links Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="gpm"/>,
-    <xref linkend="openssl"/>,
-    <xref linkend="libpng"/>,
-    <xref linkend="libjpeg"/>,
-    <xref linkend="libtiff"/>,
-    <xref linkend="pcre"/>,
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="gpm"/>, and
+    <xref linkend="openssl"/>.</para>
+    <!-- pcre was used in previous versions only, for javascript
+    <xref linkend="pcre"/>
+    -->
+   <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">Support of graphical mode requires at least one of
+    <xref linkend="gpm"/> (to be used with a framebuffer-based console),
+    <ulink url="http://www.svgalib.org/">SVGAlib</ulink>,
     <!-- SDL support is removed upstream until someone fixes it
     <xref linkend="sdl"/>,
     -->
-    <ulink url="http://www.svgalib.org/">SVGAlib</ulink>,
     <ulink url="http://www.directfb.org/">DirectFB</ulink>, and
-    <xref linkend="x-window-system"/></para>
+    <xref linkend="x-window-system"/>. For decoding various image formats,
+    <application>Links</application> can utilize
+    <xref linkend="libpng"/>,
+    <xref linkend="libjpeg"/>, and
+    <xref linkend="libtiff"/>.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/LinksBrowser"/></para>
@@ -138,9 +161,7 @@ install -v -m644 doc/links_cal/* KEYS BRAILLE_HOWTO \
     regenerate the language table.</para>
     
     <para><option>--enable-graphics</option>: This switch enables support
-    for graphics mode. You will either need to install the
-    <application>X</application> Window System or enable frame buffer support in
-    your kernel and install <xref linkend="gpm"/>.</para>
+    for graphics mode.</para>
 
   </sect2>
 
