@@ -74,16 +74,23 @@
 
     <note id="ppp-kernel">
       <para><application>PPP</application> support (CONFIG_PPP),
-      the asynchronous line discipline (CONFIG_PPP_ASYNC), and the
-      driver for your serial port device must be
-      compiled into the kernel or loaded as a kernel module.
-      Udev doesn't load the ppp_generic module automatically, it must be
-      mentioned in the <filename>/etc/sysconfig/modules</filename> file.</para>
+      the asynchronous line discipline (CONFIG_PPP_ASYNC), the
+      driver for your serial port device and/or the PPP over Ethernet
+      (PPPoE) protocol driver (CONGIG_PPPOE) must be compiled into the
+      kernel or loaded as kernel modules.
+      Udev doesn't load the ppp_generic and pppoe modules automatically, they
+      must be mentioned in the <filename>/etc/sysconfig/modules</filename>
+      file.</para>
     </note>
 
     <indexterm zone="ppp ppp-kernel">
       <primary sortas="d-PPP-support">PPP support</primary>
     </indexterm>
+
+    <para>Create (as <systemitem class="username">root</systemitem>)
+    the group for users who may run <application>PPP</application>:</para>
+
+<screen role="root"><userinput>groupadd -g 52 pppusers</userinput></screen>
 
     <para>Install <application>PPP</application> by running the
     following commands:</para>
@@ -95,8 +102,7 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>groupadd -g 52 pppusers &amp;&amp;
-make install &amp;&amp;
+<screen role='root'><userinput>make install &amp;&amp;
 <!-- FIXME: is "make install-etcppp" needed for KPPP/WvDial?
 The example configuration below overwrites two of three files, and
 already includes the "lock" option in each peer file
@@ -154,13 +160,17 @@ instal -m644 scripts/pon.1 /usr/share/man/man1</userinput></screen>
       this package, or by using external tools such as <xref linkend="wvdial"/>
       or <application>KPPP</application> from
       <xref linkend="kdenetwork"/>. The text below explains how to set up
-      <!-- PPPoE, --> dialup and GPRS connections using only tools provided with
+      PPPoE, dialup and GPRS connections using only tools provided with
       the <application>PPP</application> package. All configuration steps
       in this section are executed as
       <systemitem class="username">root</systemitem> user.</para>
 
     <sect4>
       <title>Setting the passwords</title>
+
+      <warning><para>Instructions in this section result in your password
+      appearing on the screen in a visible clear-text form. Make sure that
+      nobody else looks at the screen.</para></warning>
 
       <para>Passwords are stored in <filename>/etc/ppp/pap-secrets</filename>
       and <filename>/etc/ppp/chap-secrets</filename> files, depending on the
@@ -226,7 +236,7 @@ chmod 755 /etc/ppp/ip-up</userinput></screen>
       (common for all dialup accounts), and a peer file that provides
       configuration information about a specific connection to
       <command>pppd</command>:</para>
-<screen role="root"><userinput>cat $gt;/etc/ppp/dialup.chat &lt;&lt;"EOF"</userinput>
+<screen role="root"><userinput>cat &gt;/etc/ppp/dialup.chat &lt;&lt;"EOF"</userinput>
 <literal>ABORT BUSY ABORT 'NO CARRIER' ABORT VOICE ABORT 'NO DIALTONE'
 ABORT 'NO DIAL TONE' ABORT 'NO ANSWER' ABORT DELAYED
 ABORT ERROR ABORT BLACKLISTED
@@ -289,9 +299,9 @@ usepeerdns</literal>
 
       <!-- FIXME: watch for new standards! SkyLink is already offering
            3.1 megabits per second with CDMA mobile phones, and
-	   the configuration below doesn't work. It is reported that
-	   a regular dialup setup with the telephone number "#777",
-	   username "mobile" and password "internet" works with SkyLink. -->
+           the configuration below doesn't work. It is reported that
+           a regular dialup setup with the telephone number "#777",
+           username "mobile" and password "internet" works with SkyLink. -->
 
       The maximum possible data transfer rate is 170 kilobits per second
       for GPRS and 474 kilobits per second for EDGE, but many cellular
@@ -320,7 +330,7 @@ TIMEOUT 5
 OK-+++\dATH0-OK ATZ
 # \T is the APN, passed from /etc/ppp/peers/<replaceable>gprs</replaceable>
 # This example stores the APN as profile #1 in the phone.
-# The telephone number, *99***&lt;profile_number&gt;#, is always the same
+# The "telephone number", *99***&lt;profile_number&gt;#, is always the same.
 # If you want to store this as profile #2, change 1 to 2 in the
 # following two lines.
 OK AT+CGDCONT=<replaceable>1</replaceable>,"IP","\T"
@@ -352,7 +362,52 @@ usepeerdns</literal>
     </sect4>
 
     <sect4>
-      <title>Establishing the connection</title>
+      <title>PPPoE connections</title>
+
+      <!-- This section has been tested with the "USI" ISP in Yekaterinburg,
+      Russia. Other editors can test it as described in
+      http://linuxfromscratch.org/pipermail/blfs-dev/2008-March/018290.html
+      - Alexander E. Patrakov -->
+
+      <para>PPPoE connections are established over Ethernet, typically between
+      a computer and an ADSL router (usually installed in the same room)
+      that forwards the packets down the telephone line using frequencies
+      25-2500 kHz, thus not interfering with voice calls. Although the router
+      can, in theory, forward any Ethernet packet, PPP encapsulation is used
+      for password-based authentication, so that the ISP can limit the
+      bandwidth and charge money according to the chosen tariff. The maximum
+      data transfer rate on ADSL is 24 megabits per second, and the gateway
+      ping time is typically less than 10 ms. In order to configure a PPPoE
+      connection, it is required to know the username, the password, and,
+      sometimes, the service name and/or the access concentrator name.</para>
+
+      <para>In order to configure a PPPoE connection, only the peer file
+      has to be created:</para>
+<screen role="root"><userinput>cat &gt;/etc/ppp/peers/adsl &lt;&lt;"EOF"</userinput>
+<literal>plugin rp-pppoe.so
+# Ethernet interface name
+<replaceable>eth0</replaceable>
+# Your username at the ISP
+user "<replaceable>jdoe</replaceable>"
+# What should be in the second column in /etc/ppp/*-secrets
+remotename "<replaceable>adsl</replaceable>"
+# If needed, specify the service and the access concentrator name
+# rp_pppoe_service "<replaceable>internet</replaceable>"
+# rp_pppoe_ac "<replaceable>ac1</replaceable>"
+
+# The settings below usually don't need to be changed
+noauth
+hide-password
+updetach
+debug
+defaultroute
+noipdefault
+usepeerdns</literal>
+<userinput>EOF</userinput></screen>
+    </sect4>
+
+    <sect4>
+      <title>Establishing the connection manually</title>
 
       <para>In order to establish a PPP connection described by the
       <filename>/etc/ppp/peers/<replaceable>peername</replaceable></filename>
@@ -362,6 +417,50 @@ usepeerdns</literal>
 
       <para>In order to tear the connection down, run:</para>
 <screen><userinput>poff <replaceable>peername</replaceable></userinput></screen>
+
+    </sect4>
+
+    <sect4>
+      <title>Bringing up PPPoE connection at boot time</title>
+      <para>If your service provider does not charge by the minute, it is
+      usually good to have a bootscript handle the connection for you.
+      You can, of course, choose not to install the following script, and
+      start your connection manually with the <command>pon</command> command,
+      as described above. If you wish your PPPoE connection to be brought
+      up at boot time, run:</para>
+
+<screen role='root'><userinput>make install-service-pppoe</userinput></screen>
+
+      <para>The above command installs the <filename>pppoe</filename>
+      service script and the <filename>/etc/ppp/peers/pppoe</filename>
+      file with some settings that make sense for most PPPoE connections.
+      The bootscript calls <command>pppd</command> with the the following
+      options:</para>
+
+<screen>pppd call pppoe ${1} linkname ${1} ${PPP_OPTS}</screen>
+
+      <para>Here <quote>${1}</quote> is the network interface name,
+      <quote>linkname ${1}</quote> is added for creation of the
+      <filename>/var/run/ppp-${1}.pid</filename> file with the
+      <command>pppd</command> process ID (to be used when bringing
+      the connection down), and the <quote>${PPP_OPTS}</quote> variable
+      contains user-specified options such as <quote>user</quote> and
+      <quote>remotename</quote>.</para>
+
+      <para>Now create the config file for use with the <filename>pppoe</filename>
+      service script:</para>
+
+<screen role='root'><userinput>install -v -d /etc/sysconfig/network-devices/ifconfig.eth0 &amp;&amp;
+cat &gt; /etc/sysconfig/network-devices/ifconfig.eth0/pppoe &lt;&lt; "EOF"
+<literal>ONBOOT="yes"
+SERVICE="pppoe"
+PPP_OPTS="user <replaceable>jdoe</replaceable> remotename <replaceable>adsl</replaceable>"</literal>
+EOF</userinput></screen>
+
+      <note><para>Instead of specifying additional options in the $PPP_OPTS
+      variable, you can also edit the <filename>/etc/ppp/peers/pppoe</filename>
+      file, but then your configuration will be lost when upgrading
+      BLFS bootscripts.</para></note>
 
     </sect4>
     </sect3>
