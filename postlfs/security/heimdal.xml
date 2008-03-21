@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY heimdal-download-http "http://ftp.vc-graz.ac.at/mirror/crypto/kerberos/heimdal/heimdal-&heimdal-version;.tar.gz">
+  <!ENTITY heimdal-download-http "http://www.h5l.org/dist/src/heimdal-&heimdal-version;.tar.gz">
   <!ENTITY heimdal-download-ftp  "ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-&heimdal-version;.tar.gz">
-  <!ENTITY heimdal-md5sum        "7ff8c4850bce9702d9d3cf9eff05abaa">
-  <!ENTITY heimdal-size          "3.1 MB">
-  <!ENTITY heimdal-buildsize     "127 MB">
-  <!ENTITY heimdal-time          "3.7 SBU (additional 1.5 SBU to run the test suite)">
+  <!ENTITY heimdal-md5sum        "7892e97b346534cc9afeeee461fe3bab">
+  <!ENTITY heimdal-size          "3.6 MB">
+  <!ENTITY heimdal-buildsize     "136 MB">
+  <!ENTITY heimdal-time          "4.0 SBU (additional 1.5 SBU to run the test suite)">
 ]>
 
 <sect1 id="heimdal" xreflabel="Heimdal-&heimdal-version;">
@@ -30,16 +30,18 @@
     <title>Introduction to Heimdal</title>
 
     <para><application>Heimdal</application> is a free implementation
-    of Kerberos 5 that aims to be compatible with MIT krb5 and is
-    backward compatible with krb4. Kerberos is a network authentication
+    of Kerberos 5 that aims to be compatible with MIT Kerberos 5 and is
+    backward compatible with Kerberos 4. Kerberos is a network authentication
     protocol. Basically it preserves the integrity of passwords in any
     untrusted network (like the Internet). Kerberized applications work
     hand-in-hand with sites that support Kerberos to ensure that passwords
     cannot be stolen or compromised. A Kerberos installation will make changes
     to the authentication mechanisms on your network and will overwrite several
-    programs and daemons from the <application>Coreutils</application>,
-    <application>Inetutils</application>, <application>Qpopper</application>
-    and <application>Shadow</application> packages.</para>
+    programs and daemons from the <application>Shadow</application>,
+    <application>Inetutils</application> and
+    <application>Qpopper</application> packages. See
+    <ulink url="&files-anduin;/heimdal-overwrites"/> for a complete list of
+    all the files and commands to rename each of them.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -65,17 +67,13 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
-      <!-- <listitem>
+      <listitem>
         <para>Required Patch: <ulink
-        url="ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-0.7.2-setuid-patch.txt"/></para>
+        url="&patch-root;/heimdal-&heimdal-version;-blfs_docs-1.patch"/></para>
       </listitem>
       <listitem>
         <para>Required Patch: <ulink
-        url="&patch-root;/heimdal-&heimdal-version;-fhs_compliance-1.patch"/></para>
-      </listitem> -->
-      <listitem>
-        <para>Required patch for <application>CrackLib</application> support: <ulink
-        url="&patch-root;/heimdal-&heimdal-version;-cracklib-1.patch"/></para>
+        url="&patch-root;/heimdal-&heimdal-version;-libss-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -93,10 +91,8 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="linux-pam"/>,
     <xref linkend="openldap"/>,
-    <xref linkend="x-window-system"/>,
-    <xref linkend="cracklib"/> (compiled with the <filename>heimdal</filename> patch),
-    <ulink url="http://packages.debian.org/stable/source/libcap">libcap</ulink>, and
-    <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink></para>
+    <xref linkend="x-window-system"/>, and
+    <ulink url="http://packages.debian.org/stable/source/libcap">libcap</ulink></para>
 
     <note>
       <para>Some sort of time synchronization facility on your system
@@ -113,86 +109,72 @@
   <sect2 role="installation">
     <title>Installation of Heimdal</title>
 
-    <!-- This doesn't appear to be needed any longer as testing has
-         shown that the ftp client now works without issues
-
-    <para>Before installing the package, you may want to preserve the
-    <command>ftp</command> program from the <application>Inetutils</application>
-    package. This is because using the <application>Heimdal</application>
-    <command>ftp</command> program to connect to non-kerberized ftp servers may
-    not work properly. It will allow you to connect (letting you know that
-    transmission of the password is clear text) but will have problems doing
-    puts and gets. Issue the following command as the
-    <systemitem class="username">root</systemitem> user.</para>
-
-<screen role="root"><userinput>mv -v /usr/bin/ftp /usr/bin/ftpn</userinput></screen>
-    -->
-
     <warning>
       <para>Ensure you really need a Kerberos installation before you decide
       to install this package. Failure to install and configure the package
       correctly can alter your system so that users cannot log in.</para>
     </warning>
 
-    <para>If you wish the <application>Heimdal</application> package to
-    link against the <application>CrackLib</application> library to provide
-    enforcement of strong passwords (requires <xref linkend="cracklib"/>
-    installed with the <filename>heimdal</filename> patch), you must apply a
-    patch:</para>
-
-<screen><userinput>patch -Np1 -i ../heimdal-&heimdal-version;-cracklib-1.patch</userinput></screen>
-
     <para>Install <application>Heimdal</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i 's|/var/heimdal|/var/lib/heimdal|' $(grep -lr /var/heimdal *) &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --sysconfdir=/etc/heimdal \
             --libexecdir=/usr/sbin \
-            --datadir=/var/lib/heimdal \
             --localstatedir=/var/lib/heimdal \
+            --datadir=/var/lib/heimdal \
+            --with-hdbdir=/var/lib/heimdal \
             --with-readline=/usr \
             --enable-kcm &amp;&amp;
 make</userinput></screen>
 
-    <!-- Docs building is broken - when fixec, insert hyphens in the makeinfo commands
     <para>If you have <xref linkend="tetex"/> installed and wish to create
-    alternate forms of the documentation, issue any or all of the following
-    commands:</para>
+    alternate forms of the documentation, change into the
+    <filename class='directory'>doc</filename> directory and issue any or all
+    of the following commands:</para>
 
-<screen><userinput>make -C doc html &amp;&amp;
-mv doc/heimdal.html doc/html &amp;&amp;
-make -C doc pdf &amp;&amp;
-make -C doc ps &amp;&amp;
-makeinfo -html -no-split -o doc/heimdal.html doc/heimdal.texi &amp;&amp;
-makeinfo -plaintext       -o doc/heimdal.txt  doc/heimdal.texi</userinput></screen>
-    -->
+<screen><userinput>pushd doc                                        &amp;&amp;
 
-    <para>To test the results, issue: <command>make check</command>.</para>
+make html                                        &amp;&amp; 
+
+texi2pdf                            heimdal.texi &amp;&amp;
+texi2dvi                            heimdal.texi &amp;&amp;
+dvips                -o heimdal.ps  heimdal.dvi  &amp;&amp;
+makeinfo --plaintext -o heimdal.txt heimdal.texi &amp;&amp;
+
+texi2pdf                            hx509.texi   &amp;&amp;
+texi2dvi                            hx509.texi   &amp;&amp;
+dvips                -o hx509.ps    hx509.dvi    &amp;&amp;
+makeinfo --plaintext -o hx509.txt   hx509.texi   &amp;&amp;
+
+popd</userinput></screen>
+
+    <para>To test the results, issue: <command>make -k check</command>. The
+    <command>ipropd</command> test is known to fail but all others should
+    pass.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><?dbfo keep-together="auto"?><userinput>mv -v /usr/include/ss/ss.h   /usr/include/ss/ss.h.e2fsprogs &amp;&amp;
+<!-- <screen role="root"><?dbfo keep-together="auto"?><userinput>mv -v /usr/include/ss/ss.h   /usr/include/ss/ss.h.e2fsprogs &amp;&amp;
 mv -v /usr/lib/libss.a       /usr/lib/libss.a.e2fsprogs &amp;&amp;
 mv -v /usr/lib/libss.so      /usr/lib/libss.so.e2fsprogs &amp;&amp;
 mv -v /usr/bin/mk_cmds       /usr/bin/mk_cmds.e2fsprogs &amp;&amp;
+-->
 
-make install &amp;&amp;
+<screen role="root"><userinput>make install &amp;&amp;
 
-mv -v /usr/include/ss/ss.h            /usr/include/ss/ss.h.heimdal &amp;&amp;
-mv -v /usr/include/ss/ss.h.e2fsprogs  /usr/include/ss/ss.h &amp;&amp;
-mv -v /usr/lib/libss.a                /usr/lib/libss.a.heimdal &amp;&amp;
-mv -v /usr/lib/libss.a.e2fsprogs      /usr/lib/libss.a &amp;&amp;
-mv -v /usr/lib/libss.so               /usr/lib/libss.so.heimdal &amp;&amp;
-mv -v /usr/lib/libss.so.e2fsprogs     /usr/lib/libss.so &amp;&amp;
-mv -v /usr/lib/libss.la               /usr/lib/libss.la.heimdal &amp;&amp;
-mv -v /usr/bin/mk_cmds                /usr/bin/mk_cmds.heimdal &amp;&amp;
-mv -v /usr/bin/mk_cmds.e2fsprogs      /usr/bin/mk_cmds &amp;&amp;
+install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
+install -v -m644    doc/{init-creds,layman.asc} \
+                    /usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
 
-mv -v /bin/login          /bin/login.shadow &amp;&amp;
-mv -v /bin/su             /bin/su.shadow &amp;&amp;
-mv -v /usr/bin/{login,su} /bin &amp;&amp;
-ln -v -sf ../../bin/login /usr/bin &amp;&amp;
+ln -sfv         mech.5 /usr/share/man/man5/qop.5  &amp;&amp;
+ln -sfv ../man5/mech.5 /usr/share/man/cat5/qop.5  &amp;&amp;
+ln -sfv ../man5/mech.5 /usr/share/man/cat5        &amp;&amp;
+
+mv -v /bin/login          /bin/login.SHADOW &amp;&amp;
+mv -v /bin/su             /bin/su.SHADOW    &amp;&amp;
+mv -v /usr/bin/{login,su} /bin              &amp;&amp;
+ln -v -sf ../../bin/login /usr/bin          &amp;&amp;
 
 for LINK in   lib{otp,kafs,krb5,hx509,asn1,roken,crypto}; do
     mv -v     /usr/lib/${LINK}.so.* /lib &amp;&amp;
@@ -208,28 +190,41 @@ ln -v -sf ../../lib/$(readlink /usr/lib/libdb.so) \
 
 ldconfig</userinput></screen>
 
-    <!-- <para>If you built any of the alternate forms of documentation, install it
+<!-- mv -v /usr/include/ss/ss.h            /usr/include/ss/ss.h.heimdal &amp;&amp;
+mv -v /usr/include/ss/ss.h.e2fsprogs  /usr/include/ss/ss.h &amp;&amp;
+mv -v /usr/lib/libss.a                /usr/lib/libss.a.heimdal &amp;&amp;
+mv -v /usr/lib/libss.a.e2fsprogs      /usr/lib/libss.a &amp;&amp;
+mv -v /usr/lib/libss.so               /usr/lib/libss.so.heimdal &amp;&amp;
+mv -v /usr/lib/libss.so.e2fsprogs     /usr/lib/libss.so &amp;&amp;
+mv -v /usr/lib/libss.la               /usr/lib/libss.la.heimdal &amp;&amp;
+mv -v /usr/bin/mk_cmds                /usr/bin/mk_cmds.heimdal &amp;&amp;
+mv -v /usr/bin/mk_cmds.e2fsprogs      /usr/bin/mk_cmds &amp;&amp; -->
+
+    <para>If you built any of the alternate forms of documentation, install it
     using the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
-install -v -m644    doc/html/* \
-                    /usr/share/doc/heimdal-&heimdal-version;/html &amp;&amp;
-install -v -m644    doc/heimdal.{dvi,ps,pdf,html,txt} \
-                    /usr/share/doc/heimdal-&heimdal-version;</userinput></screen> -->
+<screen role="root"><userinput>install -v -m644 doc/{heimdal,hx509}.{dvi,ps,pdf,html,txt} \
+                 /usr/share/doc/heimdal-&heimdal-version;</userinput></screen>
+
+    <para>If you wish to use the <xref linkend="cracklib"/> library to enforce
+    strong passwords in the KDC database, issue the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>sed -e 's|/usr/pkg|/usr|' \
+    -e 's|/usr/lib/cracklib_dict|/lib/cracklib/pw_dict|' \
+    -e 's|/var/heimdal|/var/lib/heimdal|' \
+        lib/kadm5/check-cracklib.pl \
+    > /bin/krb5-check-cracklib.pl &amp;&amp;
+
+chmod -v 755 /bin/krb5-check-cracklib.pl</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i '...' $(grep -lr /var/heimdal *)</command>:
-    This command is used to change all occurances of hard-coded
-    <filename class='directory'>/var/heimdal</filename> to
-    <filename class='directory'>/var/lib/heimdal</filename> so the
-    installation will be FHS compliant.</para>
-
-    <para><command>mv -v /usr/include/...</command>,
+    <!-- <para><command>mv -v /usr/include/...</command>,
     <command>mv -v /usr/lib/libss.* ...</command> and
     <command>mv -v /usr/bin/mk_cmds ...</command>: The
     <application>Heimdal</application> installation will overwrite an
@@ -238,7 +233,7 @@ install -v -m644    doc/heimdal.{dvi,ps,pdf,html,txt} \
     <application>E2fsprogs</application> package. These commands rename the
     original files before the installation, and then restore them (after
     renaming the new <application>Heimdal</application> files) after the
-    installation.</para>
+    installation.</para> -->
 
     <para><parameter>--libexecdir=/usr/sbin</parameter>: This switch causes
     the daemon programs to be installed into
@@ -260,26 +255,45 @@ install -v -m644    doc/heimdal.{dvi,ps,pdf,html,txt} \
       in the privileged user's default <envar>PATH</envar>.</para>
     </tip>
 
-    <para><command>mv ... .shadow; mv ... /bin; ln -v -sf ../../bin...</command>:
-    The <command>login</command> and <command>su</command> programs installed by
+    <para><parameter>--localstatedir=/var/lib/heimdal</parameter>,
+    <parameter>--datadir=/var/lib/heimdal</parameter> and
+    <parameter>--with-hdbdir=/var/lib/heimdal</parameter>: These parameters
+    are used so that the KDC database and associated files will all reside
+    in <filename class='directory'>/var/lib/heimdal</filename>.</para>
+
+    <para><parameter>--with-readline=/usr</parameter>: This parameter must be
+    used so that the <command>configure</command> script properly locates the
+    installed <application>Readline</application> package.</para>
+
+    <para><parameter>--enable-kcm</parameter>: This parameter enables building
+    the Kerberos Credentials Manager.</para>
+
+    <para><command>ln -sfv .../mech.5 /usr/share/man/...</command>: These
+    commands are used to fix some broken symbolic links.</para>
+
+    <para><command>mv ... ...SHADOW</command>, <command>mv ... /bin</command>
+    and <command> ln ... /usr/bin</command>: The <command>login</command>
+    and <command>su</command> programs installed by
     <application>Heimdal</application> belong in the
     <filename class="directory">/bin</filename> directory. The
     <command>login</command> program is symlinked because
     <application>Heimdal</application> is expecting to find it in
-    <filename class="directory">/usr/bin</filename>. The old executables are
-    preserved before the move so that they can be restored if you experience
-    problems logging into the system after the
-    <application>Heimdal</application> package is installed and
-    configured.</para>
+    <filename class="directory">/usr/bin</filename>. The old executables from
+    the <application>Shadow</application> package are preserved before the move
+    so that they can be restored if you experience problems logging into the
+    system after the <application>Heimdal</application> package is installed
+    and configured.</para>
 
-    <para><command>mv ... /lib; ln -v -sf ../../lib/lib... /usr/lib...</command>:
-    The <command>login</command> and <command>su</command> programs installed
-    by <application>Heimdal</application> link against
+    <para><command>for LINK in ...; do ...; done</command>,
+    <command>mv ... /lib</command> and
+    <command>ln ... /usr/lib/libdb.so</command>: The <command>login</command>
+    and <command>su</command> programs previously moved into the
+    <filename class='directory'>/lib</filename> directory link against
     <application>Heimdal</application> libraries as well as libraries provided
     by the <application>OpenSSL</application> and
     <application>Berkeley DB</application> packages. These
-    libraries are moved to <filename class="directory">/lib</filename> to be
-    FHS compliant and also in case
+    libraries are also moved to <filename class="directory">/lib</filename>
+    so they are FHS compliant and also in case
     <filename class="directory">/usr</filename> is located on a separate
     partition which may not always be mounted.</para>
 
@@ -311,11 +325,17 @@ install -v -m644    doc/heimdal.{dvi,ps,pdf,html,txt} \
       <sect4>
         <title>Master KDC Server Configuration</title>
 
-        <para>Create the Kerberos configuration file with the
-        following commands:</para>
+        <para>Many of the commands below use
+        <replaceable>&lt;replaceable&gt;</replaceable> tags to identify places
+        where you need to substitute information specific to your network.
+        Ensure you replace everything in these tags (there will be no angle
+        brackets when you are done) with your site-specific information.</para>
+
+        <para>Create the Kerberos configuration file with the following
+        commands:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /etc/heimdal &amp;&amp;
-cat &gt; /etc/heimdal/krb5.conf &lt;&lt; "EOF"
+cat &gt; /etc/heimdal/krb5.conf &lt;&lt; "EOF" &amp;&amp;
 <literal># Begin /etc/heimdal/krb5.conf
 
 [libdefaults]
@@ -348,18 +368,15 @@ chmod -v 644 /etc/heimdal/krb5.conf</userinput></screen>
         <para><option>default_realm</option> should be the name of your
         domain changed to ALL CAPS. This isn't required, but both
         <application>Heimdal</application> and <application>MIT
-        krb5</application> recommend it.</para>
+        Kerberos</application> recommend it.</para>
 
         <para><option>encrypt = true</option> provides encryption of all
         traffic between kerberized clients and servers. It's not necessary
         and can be left off. If you leave it off, you can encrypt all traffic
         from the client to the server using a switch on the client program
-        instead.</para>
-
-        <para>The <option>[realms]</option> parameters tell the client
-        programs where to look for the KDC authentication services.</para>
-
-        <para>The <option>[domain_realm]</option> section maps a domain
+        instead. The <option>[realms]</option> parameters tell the client
+        programs where to look for the KDC authentication services. The
+        <option>[domain_realm]</option> section maps a domain
         to a realm.</para>
 
         <para>Store the master password in a key file using the following
@@ -452,6 +469,32 @@ kstash</userinput></screen>
         of your new <application>Heimdal</application> Kerberos 5
         installation.</para>
 
+        <para>If you wish to use the <xref linkend="cracklib"/> library to
+        enforce strong passwords in the KDC database, you must do two things.
+        First, add the following lines to the
+        <filename>/etc/heimdal/krb5.conf</filename> configuration file:</para>
+
+<screen><literal>[password_quality]
+    policies = builtin:external-check
+    external_program = /bin/krb5-check-cracklib.pl</literal></screen>
+
+        <para>Next you must install the
+        <application>Crypt::Cracklib</application>
+        <application>Perl</application> module. Download it from the CPAN
+        site. The URL at the time of this writing is <ulink
+        url="http://cpan.org/authors/id/D/DA/DANIEL/Crypt-Cracklib-1.2.tar.gz"/>.
+        After unpacking the tarball and changing into the newly created
+        directory, issue the following command to add the BLFS
+        <application>Cracklib</application> dictionary location to one of the
+        source files:</para>
+
+<screen><userinput>sed -i 's|pw_dict|&amp;\n\t\t/lib/cracklib/pw_dict|' Cracklib.pm</userinput></screen>
+
+        <para>Then use the standard <command>perl Makefile.PL</command>;
+        <command>make</command>; <command>make test</command>;
+        <command>make install</command> commands. Note that one test fails
+        due to an unknown reason.</para>
+
         <para id="heimdal-init">Install the
         <filename>/etc/rc.d/init.d/heimdal</filename> init script included
         in the <xref linkend="bootscripts"/> package:</para>
@@ -515,15 +558,17 @@ kx              <replaceable>&lt;49150&gt;</replaceable>/udp   # Heimdal kerbero
         <seg>afslog, ftp, ftpd, gss, hprop, hpropd, hxtool, iprop-log,
         ipropd-master, ipropd-slave, kadmin, kadmind, kauth, kcm, kdc,
         kdestroy, kdigest, kf, kfd, kgetcred, kimpersonate, kinit, klist,
-        kpasswd, kpasswdd, krb5-config, kstash, ktutil, kx, kxd, login,
-        mk_cmds, otp, otpprint, pagsh, pfrom, popper, push, rcp, rsh, rshd,
-        rxtelnet, rxterm, string2key, su, telnet, telnetd, tenletxr,
-        verify_krb5_conf and xnlock</seg>
-        <seg>libasn1.{so,a}, libeditline.{so,a}, libgssapi.{so,a},
-        libhdb.{so,a}, libheimntlm.{so,a}, libhx509.{so,a},
+        kpasswd, kpasswdd, krb5-check-cracklib.pl, krb5-config, kstash,
+        ktutil, kx, kxd, login, mk_cmds-krb5, otp, otpprint, pagsh, pfrom,
+        popper, push, rcp, rsh, rshd, rxtelnet, rxterm, string2key, su,
+        telnet, telnetd, tenletxr, verify_krb5_conf and xnlock</seg>
+
+        <seg>hdb_ldap.{so,a}, libasn1.{so,a}, libeditline.{so,a},
+        libgssapi.{so,a}, libhdb.{so,a}, libheimntlm.{so,a}, libhx509.{so,a},
         libkadm5clnt.{so,a}, libkadm5srv.{so,a}, libkafs.{so,a},
         libkdc.{so,a}, libkrb5.{so,a}, libotp.{so,a}, libroken.{so,a},
-        libsl.{so,a}, libss.{so,a} and windc.{so,a}</seg>
+        libsl.{so,a}, libss-krb5.{so,a} and windc.{so,a}</seg>
+
         <seg>/etc/heimdal, /usr/include/gssapi, /usr/include/kadm5,
         /usr/include/krb5, /usr/include/roken, /usr/include/ss,
         /usr/share/doc/heimdal-&heimdal-version; and /var/lib/heimdal</seg>
