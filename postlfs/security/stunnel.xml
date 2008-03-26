@@ -6,9 +6,9 @@
 
   <!ENTITY stunnel-download-http "http://www.stunnel.org/download/stunnel/src/stunnel-&stunnel-version;.tar.gz">
   <!ENTITY stunnel-download-ftp  "ftp://stunnel.mirt.net/stunnel/stunnel-&stunnel-version;.tar.gz">
-  <!ENTITY stunnel-md5sum        "cf9940395d3503018f721c962528d2ec">
-  <!ENTITY stunnel-size          "513 KB">
-  <!ENTITY stunnel-buildsize     "4.5 MB">
+  <!ENTITY stunnel-md5sum        "1eaec5228979beca4d548f453304e311">
+  <!ENTITY stunnel-size          "528 KB">
+  <!ENTITY stunnel-buildsize     "5 MB">
   <!ENTITY stunnel-time          "0.1 SBU">
 ]>
 
@@ -60,6 +60,14 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch: <ulink
+        url="ftp://stunnel.mirt.net/stunnel/setuid.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Stunnel Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -78,14 +86,12 @@
 
     <para>The <command>stunnel</command> daemon will be run in a
     <command>chroot</command> jail by an unprivileged user. Create the
-    new user, group and <command>chroot</command> home directory structure
-    using the following commands as the
+    new user and group using the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>groupadd -g 51 stunnel &amp;&amp;
 useradd -c "Stunnel Daemon" -d /var/lib/stunnel \
-        -g stunnel -s /bin/false -u 51 stunnel &amp;&amp;
-install -v -m 1770 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></screen>
+        -g stunnel -s /bin/false -u 51 stunnel</userinput></screen>
 
     <note>
       <para>A signed SSL Certificate and a Private Key is necessary to run
@@ -109,9 +115,12 @@ install -v -m 1770 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></sc
     <para>Install <application>Stunnel</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i 's|nogroup|stunnel|g' configure &amp;&amp;
+<screen><userinput>pushd src
+    patch -Np0 -i ../../setuid.patch
+popd
+
+sed -i 's|nogroup|stunnel|g' configure &amp;&amp;
 sed -i 's|$(prefix)/var/lib|$(localstatedir)|' tools/Makefile.in &amp;&amp;
-sed -i 's|doc/stunnel|&amp;-$(VERSION)|' {,doc/,tools/}Makefile.in &amp;&amp;
 
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
@@ -123,7 +132,7 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make docdir=/usr/share/doc/stunnel-&stunnel-version; install</userinput></screen>
 
   </sect2>
 
@@ -141,10 +150,6 @@ make</userinput></screen>
     <filename class='directory'>/var/lib/stunnel</filename> instead of
     <filename class='directory'>/usr/var/lib/stunnel</filename>.</para>
 
-    <para><command>sed -i '...' {,doc/,tools/}Makefile.in</command>: This
-    command modifies the location of the installed documentation files to a
-    versioned directory.</para>
-
     <para><parameter>--sysconfdir=/etc</parameter>: This parameter forces
     the configuration directory to <filename class='directory'>/etc</filename>
     instead of <filename class='directory'>/usr/etc</filename>.</para>
@@ -159,8 +164,10 @@ make</userinput></screen>
     if you don't have <application>tcpwrappers</application> installed. Remove
     the parameter if <application>tcpwrappers</application> is installed.</para>
 
-    <para><command>make install</command>: This command installs the package
-    and, if you did not copy an <filename>stunnel.pem</filename> file to the
+    <para><command>make docdir=... install</command>: This command installs the
+    package, changes the documentation installation directory to standard
+    naming conventions and, if you did not copy an
+    <filename>stunnel.pem</filename> file to the
     <filename class='directory'>/etc/stunnel</filename> directory, prompts you
     for the necessary information to create one. Ensure you reply to the</para>
 
@@ -188,13 +195,21 @@ make</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
-      <para>Create a basic <filename>/etc/stunnel/stunnel.conf</filename>
-      configuration file using the following commands:</para>
+      <para>As the <systemitem class="username">root</systemitem> user,
+      create the directory used for the
+      <filename class='extension'>.pid</filename> file that is created
+      when the <application>Stunnel</application> daemon starts:</para>
+
+<screen role="root"><userinput>install -v -m750 -o stunnel -g stunnel -d /var/lib/stunnel/run</userinput></screen>
+
+      <para>Next, create a basic <filename>/etc/stunnel/stunnel.conf</filename>
+      configuration file using the following commands as the
+      <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>cat &gt;/etc/stunnel/stunnel.conf &lt;&lt; "EOF" &amp;&amp;
-<literal># File: /etc/stunnel/stunnel.conf
+<literal>; File: /etc/stunnel/stunnel.conf
 
-pid = /run/stunnel.pid
+pid    = /run/stunnel.pid
 chroot = /var/lib/stunnel
 client = no
 setuid = stunnel
@@ -203,8 +218,8 @@ setgid = stunnel</literal>
 EOF
 chmod -v 644 /etc/stunnel/stunnel.conf</userinput></screen>
 
-    <para>Next, you need to add the service(s) you wish to encrypt to the
-    configuration file. The format is as follows:</para>
+      <para>Finally, you need to add the service(s) you wish to encrypt to the
+      configuration file. The format is as follows:</para>
 
 <screen><literal>[<replaceable>&lt;service&gt;</replaceable>]
 accept  = <replaceable>&lt;hostname:portnumber&gt;</replaceable>
@@ -254,8 +269,9 @@ connect = <replaceable>&lt;hostname:portnumber&gt;</replaceable></literal></scre
       <seglistitem>
         <seg>stunnel and stunnel3</seg>
         <seg>libstunnel.so</seg>
-        <seg>/etc/stunnel, /var/lib/stunnel and
-        /usr/share/doc/stunnel-&stunnel-version;</seg>
+        <seg>/etc/stunnel, /usr/lib/stunnel,
+        /usr/share/doc/stunnel-&stunnel-version; and
+        /var/lib/stunnel</seg>
       </seglistitem>
     </segmentedlist>
 
