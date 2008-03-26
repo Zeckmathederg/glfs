@@ -75,15 +75,15 @@
 <para>Install <application>Tk</application> by running the following
 commands:</para>
 
-<!-- This is removed per discussion and fairly vigorous testing
-sed -i -e "s:${PWD}:/usr/lib:" \
-       -e "s:$(dirname ${PWD}):/usr/include/tk&tk-ver;:" \
-    tkConfig.sh</userinput></screen>
--->
-
 <screen><userinput>cd unix &amp;&amp;
 ./configure --prefix=/usr --enable-threads &amp;&amp;
-make</userinput></screen>
+make &amp;&amp;
+sed -i \
+    -e "s@^\(TK_SRC_DIR='\).*@\1/usr/include'@" \
+    -e "/TK_B/s@='\(-L\)\?.*unix@='\1/usr/lib@" \
+    -e "/SEARCH/s/=.*/=''/" \
+    tkConfig.sh
+</userinput></screen>
 
     <para>Running the tests is not recommended. Some tests may crash your X
     Server. To test the results anyway, issue: <command>make test</command>.
@@ -124,13 +124,13 @@ ln -v -sf wish&tk-ver; /usr/bin/wish</userinput></screen>
     <command>wish&tk-ver;</command> file as many packages expect a file
     named <command>wish</command>.</para>
 
-    <!-- This is removed per discussion and fairly vigorous testing
     <para><command>sed -i -e ... tkConfig.sh</command>: The
     <application>Tk</application> package expects that its source tree is
     preserved so that packages depending on it for their compilation
     can utilize it. This <command>sed</command> removes the references to the
     build directory and replaces them with saner system-wide locations.</para>
 
+    <!-- 
     <para><command>install ...</command>: These commands install the internal
     headers into a system-wide location.</para>
 
