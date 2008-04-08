@@ -19,7 +19,12 @@ else
   Q = @
 endif
 
-blfs: validxml profile-html
+blfs: html wget-list
+all: blfs nochunks pdf
+world: all blfs-patch-list dump-commands test-links
+
+html: $(BASEDIR)/index.html
+$(BASEDIR)/index.html: $(RENDERTMP)/blfs-html.xml
 	@echo "Generating chunked XHTML files..."
 	$(Q)xsltproc --nonet -stringparam chunk.quietly $(CHUNK_QUIET) \
 	  -stringparam rootid "$(ROOT_ID)" -stringparam base.dir $(BASEDIR)/ \
@@ -45,26 +50,29 @@ blfs: validxml profile-html
 	  sed -i -e "s@text/html@application/xhtml+xml@g" $$filename; \
 	done;
 
-	$(Q)$(MAKE) wget-list
-
-pdf: validxml
+pdf: $(BASEDIR)/$(PDF_OUTPUT)
+$(RENDERTMP)/blfs-pdf.xml: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating profiled XML for PDF..."
 	$(Q)xsltproc --nonet --stringparam profile.condition pdf \
 	  --output $(RENDERTMP)/blfs-pdf.xml stylesheets/lfs-xsl/profile.xsl \
 	  $(RENDERTMP)/blfs-full.xml
 
+$(RENDERTMP)/blfs-pdf.fo: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating FO file..."
 	$(Q)xsltproc --nonet -stringparam rootid "$(ROOT_ID)" \
-	  --output $(RENDERTMP)/blfs-pdf.fo stylesheets/blfs-pdf.xsl $(RENDERTMP)/blfs-pdf.xml
+	  --output $(RENDERTMP)/blfs-pdf.fo stylesheets/blfs-pdf.xsl \
+	  $(RENDERTMP)/blfs-pdf.xml
 	$(Q)sed -i -e 's/span="inherit"/span="all"/' $(RENDERTMP)/blfs-pdf.fo
 
+$(BASEDIR)/$(PDF_OUTPUT): $(RENDERTMP)/blfs-pdf.fo
 	@echo "Generating PDF file..."
 	$(Q)if [ ! -e $(BASEDIR) ]; then \
 	  mkdir -p $(BASEDIR); \
 	fi;
 	$(Q)fop $(RENDERTMP)/blfs-pdf.fo $(BASEDIR)/$(PDF_OUTPUT)
 
-nochunks: validxml profile-html
+nochunks: $(BASEDIR)/$(NOCHUNKS_OUTPUT)
+$(BASEDIR)/$(NOCHUNKS_OUTPUT): $(RENDERTMP)/blfs-html.xml
 	@echo "Generating non chunked XHTML file..."
 	$(Q)xsltproc --nonet -stringparam rootid "$(ROOT_ID)" \
 	  --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
@@ -77,39 +85,47 @@ nochunks: validxml profile-html
 	$(Q)sed -i -e "s@text/html@application/xhtml+xml@g"  \
 	  $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
-tmpdir:
-	@echo "Creating and cleaning $(RENDERTMP)"
+tmpdir: $(RENDERTMP)
+$(RENDERTMP):
+	@echo "Creating $(RENDERTMP)"
 	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
+
+clean:
+	@echo "Cleaning $(RENDERTMP)"
 	$(Q)rm -f $(RENDERTMP)/blfs-{full,html,pdf}.xml
 	$(Q)rm -f $(RENDERTMP)/blfs-pdf.fo
 	$(Q)rm -f $(RENDERTMP)/blfs-{patch-list,patches}
 
-validxml: tmpdir
+validxml: $(RENDERTMP)/blfs-full.xml
+$(RENDERTMP)/blfs-full.xml: index.xml general.ent
 	@echo "Validating the book..."
+	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
 	$(Q)xmllint --nonet --noent --xinclude --postvalid \
 	  -o $(RENDERTMP)/blfs-full.xml index.xml
 
-profile-html: validxml
+profile-html: $(RENDERTMP)/blfs-html.xml
+$(RENDERTMP)/blfs-html.xml: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating profiled XML for XHTML..."
 	$(Q)xsltproc --nonet --stringparam profile.condition html \
 	  --output $(RENDERTMP)/blfs-html.xml stylesheets/lfs-xsl/profile.xsl \
 	  $(RENDERTMP)/blfs-full.xml
 
-blfs-patch-list: validxml
+blfs-patch-list: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating blfs-patch-list..."
 	$(Q)xsltproc --nonet --output $(RENDERTMP)/blfs-patch-list \
 	  stylesheets/patcheslist.xsl $(RENDERTMP)/blfs-full.xml
 	$(Q)sed -e "s|^.*/||" $(RENDERTMP)/blfs-patch-list > $(RENDERTMP)/blfs-patches
 	$(Q)sort $(RENDERTMP)/blfs-patches > blfs-patch-list
 
-wget-list:
+wget-list: $(BASEDIR)/wget-list
+$(BASEDIR)/wget-list: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating wget list..."
-	$(Q)[ -f $(RENDERTMP)/blfs-full.xml ] || $(MAKE) validxml
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --output $(BASEDIR)/wget-list \
 	  stylesheets/wget-list.xsl $(RENDERTMP)/blfs-full.xml
 
-test-links: validxml
+test-links: $(RENDERTMP)/blfs-full.xml
+$(BASEDIR)/test-links: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating test-links file..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet --stringparam list_mode full \
@@ -133,18 +149,16 @@ test-links: validxml
 	    fi; \
 	done
 
-dump-commands: validxml
+dump-commands: $(DUMPDIR)
+$(DUMPDIR): $(RENDERTMP)/blfs-full.xml
 	@echo "Dumping book commands..."
 	$(Q)xsltproc --output $(DUMPDIR)/ \
 	   stylesheets/dump-commands.xsl $(RENDERTMP)/blfs-full.xml
+	$(Q)touch $(DUMPDIR)
 
 validate:
 	@echo "Validating the book..."
 	$(Q)xmllint --noout --nonet --xinclude --postvalid index.xml
 
-all: blfs nochunks pdf
-
-world: all blfs-patch-list dump-commands test-links
-
-.PHONY : all blfs blfs-patch-list dump-commands nochunks pdf profile-html \
-	 test-links tmpdir validate validxml wget-list world
+.PHONY: blfs all world html pdf nochunks tmpdir clean validxml \
+	profile-html wget-list test-links dump-commands validate
