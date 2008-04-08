@@ -111,12 +111,15 @@ $(RENDERTMP)/blfs-html.xml: $(RENDERTMP)/blfs-full.xml
 	  --output $(RENDERTMP)/blfs-html.xml stylesheets/lfs-xsl/profile.xsl \
 	  $(RENDERTMP)/blfs-full.xml
 
-blfs-patch-list: $(RENDERTMP)/blfs-full.xml
-	@echo "Generating blfs-patch-list..."
-	$(Q)xsltproc --nonet --output $(RENDERTMP)/blfs-patch-list \
+blfs-patch-list: blfs-patches.sh
+	@echo "Generating blfs patch list..."
+	$(Q)awk '{if ($$1 == "copy") {sub(/.*\//, "", $$2); print $$2}}' \
+	  blfs-patches.sh > blfs-patch-list
+
+blfs-patches.sh: $(RENDERTMP)/blfs-full.xml
+	@echo "Generating blfs patch script..."
+	$(Q)xsltproc --nonet --output blfs-patches.sh \
 	  stylesheets/patcheslist.xsl $(RENDERTMP)/blfs-full.xml
-	$(Q)sed -e "s|^.*/||" $(RENDERTMP)/blfs-patch-list > $(RENDERTMP)/blfs-patches
-	$(Q)sort $(RENDERTMP)/blfs-patches > blfs-patch-list
 
 wget-list: $(BASEDIR)/wget-list
 $(BASEDIR)/wget-list: $(RENDERTMP)/blfs-full.xml
