@@ -95,6 +95,7 @@ clean:
 	$(Q)rm -f $(RENDERTMP)/blfs-{full,html,pdf}.xml
 	$(Q)rm -f $(RENDERTMP)/blfs-pdf.fo
 	$(Q)rm -f $(RENDERTMP)/blfs-{patch-list,patches}
+	$(Q)rmdir $(RENDERTMP) 2>/dev/null || :
 
 validxml: $(RENDERTMP)/blfs-full.xml
 $(RENDERTMP)/blfs-full.xml: index.xml general.ent
