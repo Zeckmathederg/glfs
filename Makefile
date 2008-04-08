@@ -5,9 +5,9 @@
 # $Date$
 
 # Adjust these to suit your installation
-BASEDIR = $(HOME)/public_html/blfs-book-xsl
-DUMPDIR = $(HOME)/blfs-commands
-RENDERTMP = tmp
+BASEDIR ?= $(HOME)/public_html/blfs-book-xsl
+DUMPDIR ?= $(HOME)/blfs-commands
+RENDERTMP ?= tmp
 CHUNK_QUIET = 1
 ROOT_ID =
 PDF_OUTPUT = BLFS-BOOK.pdf
