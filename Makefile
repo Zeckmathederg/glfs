@@ -42,7 +42,7 @@ $(BASEDIR)/index.html: $(RENDERTMP)/blfs-html.xml
 	$(Q)cd $(BASEDIR)/; sed -i -e "s@../stylesheets@stylesheets@g" *.html
 	$(Q)cd $(BASEDIR)/; sed -i -e "s@../images@images@g" *.html
 
-	@echo "Running Tidy and obfuscate.sh..."
+	@echo "Running Tidy and obfuscate.sh on chunked XHTML..."
 	$(Q)for filename in `find $(BASEDIR) -name "*.html"`; do \
 	  tidy -config tidy.conf $$filename; \
 	  true; \
@@ -73,16 +73,15 @@ $(BASEDIR)/$(PDF_OUTPUT): $(RENDERTMP)/blfs-pdf.fo
 
 nochunks: $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 $(BASEDIR)/$(NOCHUNKS_OUTPUT): $(RENDERTMP)/blfs-html.xml
-	@echo "Generating non chunked XHTML file..."
+	@echo "Generating non-chunked XHTML file..."
 	$(Q)xsltproc --nonet -stringparam rootid "$(ROOT_ID)" \
 	  --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
 	  stylesheets/blfs-nochunks.xsl $(RENDERTMP)/blfs-html.xml
 
-	@echo "Running Tidy..."
+	@echo "Running Tidy and obfuscate.sh on non-chunked XHTML..."
 	$(Q)tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
-	@echo "Running obfuscate.sh..."
 	$(Q)sh obfuscate.sh $(BASEDIR)/$(NOCHUNKS_OUTPUT)
-	$(Q)sed -i -e "s@text/html@application/xhtml+xml@g"  \
+	$(Q)sed -i -e "s@text/html@application/xhtml+xml@g" \
 	  $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
 tmpdir: $(RENDERTMP)
