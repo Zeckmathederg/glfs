@@ -13,6 +13,11 @@ ROOT_ID =
 PDF_OUTPUT = BLFS-BOOK.pdf
 NOCHUNKS_OUTPUT = BLFS-BOOK.html
 
+ALLXML := $(filter-out $(RENDERTMP)/%, \
+	$(wildcard *.xml */*.xml */*/*.xml */*/*/*.xml */*/*/*/*.xml))
+ALLXSL := $(filter-out $(RENDERTMP)/%, \
+	$(wildcard *.xsl */*.xsl */*/*.xsl */*/*/*.xsl */*/*/*/*.xsl))
+
 ifdef V
   Q =
 else
@@ -97,7 +102,7 @@ clean:
 	$(Q)rmdir $(RENDERTMP) 2>/dev/null || :
 
 validxml: $(RENDERTMP)/blfs-full.xml
-$(RENDERTMP)/blfs-full.xml: index.xml general.ent
+$(RENDERTMP)/blfs-full.xml: general.ent $(ALLXML) $(ALLXSL)
 	@echo "Validating the book..."
 	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
 	$(Q)xmllint --nonet --noent --xinclude --postvalid \
