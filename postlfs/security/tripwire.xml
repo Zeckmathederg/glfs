@@ -4,23 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-
   <!ENTITY tripwire-download-http "http://downloads.sourceforge.net/tripwire/tripwire-&tripwire-version;-src.tar.bz2">
   <!ENTITY tripwire-download-ftp  " ">
-  <!ENTITY tripwire-md5sum        "b371f79ac23cacc9ad40b1da76b4a0c4">
-  <!ENTITY tripwire-size          "1.2 MB">
-  <!ENTITY tripwire-buildsize     "37 MB">
+  <!ENTITY tripwire-md5sum        "1147c278b528ed593023912c4b649a">
+  <!ENTITY tripwire-size          "700 KB">
+  <!ENTITY tripwire-buildsize     "28 MB">
   <!ENTITY tripwire-time          "1.6 SBU">
 ]>
 
@@ -66,15 +54,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch:
-          <ulink url="&patch-root;/tripwire-&tripwire-version;-gcc4_build_fixes-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Tripwire Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -95,9 +74,7 @@
     <para>Compile <application>Tripwire</application> by running the following
     commands:</para>
 
-<screen><userinput>ln -s contrib install &amp;&amp;
-patch -Np1 -i ../tripwire-&tripwire-version;-gcc4_build_fixes-1.patch &amp;&amp;
-sed -i -e 's@TWDB="${prefix}@TWDB="/var@' install/install.cfg &amp;&amp;
+<screen><userinput>sed -i -e 's@TWDB="${prefix}@TWDB="/var@' install/install.cfg &amp;&amp;
 ./configure --prefix=/usr --sysconfdir=/etc/tripwire &amp;&amp;
 make</userinput></screen>
 
@@ -106,18 +83,17 @@ make</userinput></screen>
     one, modify <filename>install/install.cfg</filename> to use an SMTP
     server instead.  Otherwise the install will fail.</para></warning>
 
+    <para>This package does not come with a test suite.</para>
+
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-cp -v policy/*.txt /usr/share/doc/tripwire</userinput></screen>
+cp -v policy/*.txt /usr/doc/tripwire</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>ln -s contrib install</command>: This command creates
-    a symbolic link in the build directory needed for installation.</para>
 
     <para><command>sed -i -e 's@TWDB="${prefix}@TWDB="/var@'
     install/install.cfg</command>: This command tells the package to install
@@ -129,8 +105,9 @@ cp -v policy/*.txt /usr/share/doc/tripwire</userinput></screen>
     the binaries. There are two keys: a site key and a local key which are
     stored in <filename class="directory">/etc/tripwire/</filename>.</para>
 
-    <para><command>cp -v policy/*.txt /usr/share/doc/tripwire</command>: This
-    command installs the documentation.</para>
+		<para><command>cp -v policy/*.txt /usr/doc/tripwire</command>: This command
+		installs the <application>tripwire</application> sample policy files with
+		the other <application>tripwire</application> documentation.</para>
 
   </sect2>
 
@@ -154,69 +131,76 @@ cp -v policy/*.txt /usr/share/doc/tripwire</userinput></screen>
       <para><application>Tripwire</application> uses a policy file to
       determine which files are integrity checked. The default policy
       file (<filename>/etc/tripwire/twpol.txt</filename>) is for a
-      default Redhat installation and will need to be updated for your
+      default installation and will need to be updated for your
       system.</para>
 
-      <para>Policy files should be tailored to each individual distribution
-      and/or installation. Some custom policy files can be found below:</para>
+			<para>Policy files should be tailored to each individual distribution
+			and/or installation. Some example policy files can be found in <filename
+			class="directory">/usr/doc/tripwire/</filename> (Note that <filename
+			class="directory">/usr/doc/</filename> is a symbolic link on LFS systems
+			to <filename class="directory">/usr/share/doc/</filename>).</para>
 
-<literallayout><ulink url="http://home.iprimus.com.au/glombowski/blfs/twpol-all.txt"/>
-Checks integrity of all files
-<ulink url="http://home.iprimus.com.au/glombowski/blfs/twpol-lfs.txt"/>
-Custom policy file for Base LFS 3.0 system
-<ulink url="http://home.iprimus.com.au/glombowski/blfs/twpol-suse7.2.txt"/>
-Custom policy file for SuSE 7.2 system</literallayout>
+			<para>If desired, copy the policy file you'd like to try into <filename
+			class="directory">/etc/tripwire/</filename> instead of using the default
+			policy file, <filename>twpol.txt</filename>.  It is, however, recommended
+			that you edit your policy file. Get ideas from the examples above and
+			read <filename>/usr/doc/tripwire/policyguide.txt</filename> for
+			additional information. <filename>twpol.txt</filename> is a good policy
+			file for learning about  <application>Tripwire</application> as it will
+			note any changes to the file system and can even be used as an annoying
+			way of keeping track of changes for uninstallation of software.</para>
 
-      <para>Download the custom policy file you'd like to try, copy it into
-      <filename class="directory">/etc/tripwire/</filename>, and use it instead
-      of <filename>twpol.txt</filename>. It is, however, recommended that you
-      make your own policy file. Get ideas from the examples above and read
-      <filename>/usr/share/doc/tripwire/policyguide.txt</filename> for
-      additional information. <filename>twpol.txt</filename> is a good policy
-      file for beginners as it will note any changes to the file system and can
-      even be used as an annoying way of keeping track of changes for
-      uninstallation of software.</para>
-
-      <para>After your policy file has been transferred to
-      <filename class="directory">/etc/tripwire/</filename> you may begin
-      the configuration steps (perform as the
-      <systemitem class='username'>root</systemitem>):</para>
+			<para>After your policy file has been edited to your satisfaction you may
+			begin the configuration steps (perform as the <systemitem
+			class='username'>root</systemitem>):</para>
 
 <screen role="root"><userinput>twadmin --create-polfile --site-keyfile /etc/tripwire/site.key \
     /etc/tripwire/twpol.txt &amp;&amp;
 tripwire --init</userinput></screen>
+
+    <para>Depending on your system and the contents of the policy file, the
+		initialization phase above can take a relatively long time.</para>
 
     </sect3>
 
     <sect3>
       <title>Usage Information</title>
 
-      <para>To use <application>Tripwire</application> after creating a policy
-      file to run a report, use the following command:</para>
+			<para><application>Tripwire</application> will identify file changes in
+			the critical system files specified in the policy file.  Using
+			<application>Tripwire</application> while making frequent changes to
+			these directories will flag all these changes.  It is most useful after a
+			system has reached a configuration that the user considers stable.</para>
+
+			<para>To use <application>Tripwire</application> after creating a policy
+			file to run a report, use the following command:</para>
 
 <screen role="root"><userinput>tripwire --check &gt; /etc/tripwire/report.txt</userinput></screen>
 
-      <para>View the output to check the integrity of your files. An automatic
-      integrity report can be produced by using a cron facility to schedule
-      the runs.</para>
+			<para>View the output to check the integrity of your files. An automatic
+			integrity report can be produced by using a cron facility to schedule the
+			runs.</para>
 
-      <para>Please note that after you run an integrity check, you must
-      examine the report (or email) and then modify the
-      <application>Tripwire</application> database to reflect the changed
-      files on your system. This is so that <application>Tripwire</application>
-      will not continually notify you that files you intentionally changed are
-      a security violation. To do this you must first <command>ls -l
-      /var/lib/tripwire/report/</command> and note the name of the newest file
-      which starts with <filename>linux-</filename> and ends in
-      <filename>.twr</filename>. This encrypted file was created during the
-      last report creation and is needed to update the
-      <application>Tripwire</application> database of your system. Then, as the
-      <systemitem class='username'>root</systemitem> user, type
-      in the following command making the appropriate substitutions for
-      <replaceable>&lt;?&gt;</replaceable>:</para>
+			<para>Reports are stored in binary and, if desired, encrypted.  View reports, 
+			as the <systemitem class="username">root</systemitem> user, with:</para>
 
-<screen role="root"><userinput>tripwire --update -twrfile \
-    /var/lib/tripwire/report/linux-<replaceable>&lt;???????&gt;</replaceable>-<replaceable>&lt;??????&gt;</replaceable>.twr</userinput></screen>
+<screen role="root">twprint --print-report -r /var/lib/tripwire/report/<replaceable>&lt;report-name.twr&gt;</replaceable></screen>
+
+			<para>After you run an integrity check, you should examine the
+			report (or email) and then modify the <application>Tripwire</application>
+			database to reflect the changed files on your system. This is so that
+			<application>Tripwire</application> will not continually notify you that
+			files you intentionally changed are a security violation. To do this you
+			must first <command>ls -l /var/lib/tripwire/report/</command> and note
+			the name of the newest file which starts with your system name as
+			presented by the command <userinput>uname -n</userinput>
+			and ends in <filename>.twr</filename>. These files were created
+			during report creation and the most current one is needed to update the
+			<application>Tripwire</application> database of your system. As the
+			<systemitem class='username'>root</systemitem> user, type in the
+			following command making the appropriate report name:</para>
+
+<screen role="root"><userinput>tripwire --update --twrfile /var/lib/tripwire/report/<replaceable>&lt;report-name.twr&gt;</replaceable></userinput></screen>
 
       <para>You will be placed into <application>vim</application> with a copy
       of the report in front of you. If all the changes were good, then just
@@ -224,7 +208,6 @@ tripwire --init</userinput></screen>
       will be updated. If there are files which you still want to be warned
       about, remove the 'x' before the filename in the report and type
       <command>:x</command>.</para>
-
 
       <para>A good summary of tripwire operations can be found at
       <ulink url="http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/ref-guide/ch-tripwire.html"/>.</para>
@@ -254,9 +237,9 @@ tripwire --init</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>siggen, tripwire, twadmin, and twprint.</seg>
+        <seg>siggen, tripwire, twadmin, and twprint</seg>
         <seg>None</seg>
-        <seg>/etc/tripwire, /usr/share/doc/tripwire, and /var/lib/tripwire</seg>
+        <seg>/etc/tripwire, /var/lib/tripwire, and /usr/share/doc/tripwire</seg>
       </seglistitem>
     </segmentedlist>
 
