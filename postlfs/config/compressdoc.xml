@@ -32,7 +32,7 @@
 
 <screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /usr/sbin/compressdoc &lt;&lt; "EOF"
 <literal>#!/bin/bash
-# VERSION: 20080421.1121
+# VERSION: 20080421.1320
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -65,12 +65,13 @@
 # Modified 20080421 by Dan Nicholson to be more robust with directories
 # that don't exist or don't have sufficient permissions.
 #
+# Modified 20080421 by Lars Bamberger to (sort of) automatically choose
+# a compression method based on the size of the manpage. A couple bug
+# fixes were added by Dan Nicholson.
+#
 # TODO:
 #     - choose a default compress method to be based on the available
 #       tool : gzip or bzip2;
-#     - offer an option to automagically choose the best compression
-#       methed on a per page basis (eg. check which of
-#       gzip/bzip2/whatever is the most effective, page per page);
 #     - when a MANPATH env var exists, use this instead of /etc/man_db.conf
 #       (useful for users to (de)compress their man pages;
 #     - offer an option to restore a previous backup;
@@ -88,6 +89,11 @@ Where comp_method is one of :
   --gzip, --gz, -g
   --bzip2, --bz2, -b
                 Compress using gzip or bzip2.
+  --automatic
+                Compress using either gzip or bzip2, depending on the
+                size of the file to be compressed. Files larger than 5
+                kB are bzipped, files larger than 1 kB are gzipped and
+                files smaller than 1 kB are not compressed.
 
   --decompress, -d
                 Decompress the man pages.
@@ -219,6 +225,11 @@ while [ -n "$1" ]; do
       COMP_METHOD=$1
       shift
       ;;
+    --automatic)
+      COMP_SUF=TBD
+      COMP_METHOD=$1
+      shift
+      ;;
     --decompress|-d)
       COMP_SUF=
       COMP_LVL=
@@ -332,7 +343,8 @@ if [ "$FAKE" != "no" ]; then
   echo -n "Compression.......: "
   case $COMP_METHOD in
     --bzip2|--bz2|-b) echo -n "bzip2";;
-    --gzip|__gz|-g) echo -n "gzip";;
+    --gzip|--gz|-g) echo -n "gzip";;
+    --automatic) echo -n "compressing";;
     --decompress|-d) echo -n "decompressing";;
     *) echo -n "unknown";;
   esac
@@ -414,6 +426,28 @@ for DIR in $MAN_DIR; do
 
     else # !dir
       if ! check_unique "$DIR" "$FILE"; then continue; fi
+
+      # With automatic compression, get the uncompressed file size of
+      # the file (dereferencing symlinks), and choose an appropriate
+      # compression method.
+      if [ "$COMP_METHOD" = "--automatic" ]; then
+        declare -i SIZE
+        case "$FILE" in
+          *.bz2)
+            SIZE=$(bzcat "$FILE" | wc -c) ;;
+          *.gz)
+            SIZE=$(zcat "$FILE" | wc -c) ;;
+          *)
+            SIZE=$(wc -c &lt; "$FILE") ;;
+        esac
+        if (( $SIZE &gt;= (5 * 2**10) )); then
+          COMP_SUF=.bz2
+        elif (( $SIZE &gt;= (1 * 2**10) )); then
+          COMP_SUF=.gz
+        else
+          COMP_SUF=
+        fi
+      fi
 
       # Check if the file is already compressed with the specified method
       BASE_FILE=`basename "$FILE" .gz`
