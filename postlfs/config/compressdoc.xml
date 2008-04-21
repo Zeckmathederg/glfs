@@ -32,7 +32,7 @@
 
 <screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /usr/sbin/compressdoc &lt;&lt; "EOF"
 <literal>#!/bin/bash
-# VERSION: 20060311.0028
+# VERSION: 20080421.1112
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -57,6 +57,10 @@
 #
 # Modified 20060311 by Archaic to use Man-DB manpath utility which is a
 # replacement for man --path from Man.
+#
+# Modified 20080421 by Dan Nicholson to properly execute the correct
+# compressdoc when working recursively. This means the same compressdoc
+# will be used whether a full path was given or it was resolved from PATH.
 #
 # TODO:
 #     - choose a default compress method to be based on the available
@@ -380,16 +384,14 @@ for DIR in $MAN_DIR; do
     if [ "$FILE" = "whatis" ]; then continue; fi
 
     if [ -d "$FILE" ]; then
-      cd "${MEM_DIR}"  # Go back to where we ran "$0",
-                       # in case "$0"=="./compressdoc" ...
       # We are going recursive to that directory
       echo "-&gt; Entering ${DIR}/${FILE}..." &gt; $DEST_FD0
       # I need not pass --conf, as I specify the directory to work on
-      # But I need exit in case of error
-      "$MY_NAME" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} ${VERBOSE_OPT} \
-      ${FORCE_OPT} "${DIR}/${FILE}" || exit 1
+      # But I need exit in case of error. We must change back to the
+      # original directory so $0 is resolved correctly.
+      (cd "$MEM_DIR" &amp;&amp; eval "$0" ${COMP_METHOD} ${COMP_LVL} ${LN_OPT} \
+        ${VERBOSE_OPT} ${FORCE_OPT} "${DIR}/${FILE}") || exit $?
       echo "&lt;- Leaving ${DIR}/${FILE}." &gt; $DEST_FD1
-      cd "$DIR"  # Needed for the next iteration of the loop
 
     else # !dir
       if ! check_unique "$DIR" "$FILE"; then continue; fi
