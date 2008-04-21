@@ -32,7 +32,7 @@
 
 <screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /usr/sbin/compressdoc &lt;&lt; "EOF"
 <literal>#!/bin/bash
-# VERSION: 20080421.1320
+# VERSION: 20080421.1623
 #
 # Compress (with bzip2 or gzip) all man pages in a hierarchy and
 # update symlinks - By Marc Heerdink &lt;marc @ koelkast.net&gt;
@@ -69,11 +69,13 @@
 # a compression method based on the size of the manpage. A couple bug
 # fixes were added by Dan Nicholson.
 #
+# Modified 20080421 by Dan Nicholson to suppress warnings from manpath
+# since these are emitted when $MANPATH is set. Removed the TODO for
+# using the $MANPATH variable since manpath(1) handles this already.
+#
 # TODO:
 #     - choose a default compress method to be based on the available
 #       tool : gzip or bzip2;
-#     - when a MANPATH env var exists, use this instead of /etc/man_db.conf
-#       (useful for users to (de)compress their man pages;
 #     - offer an option to restore a previous backup;
 #     - add other compression engines (compress, zip, etc?). Needed?
 
@@ -316,7 +318,7 @@ esac
 # Note: on my machine, 'man --path' gives /usr/share/man twice, once
 # with a trailing '/', once without.
 if [ -z "$MAN_DIR" ]; then
-  MAN_DIR=`manpath -C "$MAN_CONF"/man_db.conf \
+  MAN_DIR=`manpath -q -C "$MAN_CONF"/man_db.conf \
             | sed 's/:/\\n/g' \
             | while read foo; do dirname "$foo"/.; done \
             | sort -u \
