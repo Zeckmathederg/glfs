@@ -89,9 +89,11 @@
 
 patch -Np1 -i ../lesstif-&lesstif-version;-testsuite_fix-1.patch &amp;&amp;
 ./configure --prefix=/usr \
+            --sysconfdir=/etc/X11 \
             --disable-debug \
             --enable-production \
             --with-xdnd &amp;&amp;
+sed -i "s@libdir)/X11/mwm@sysconfdir)/mwm@" clients/Motif-2.1/mwm/Makefile &amp;&amp;
 make rootdir=/usr/share/doc/lesstif-&lesstif-version;</userinput></screen>
 
     <para>This package requires that it is installed before the test suite is
@@ -103,12 +105,13 @@ make rootdir=/usr/share/doc/lesstif-&lesstif-version;</userinput></screen>
 <screen role="root"><userinput>make rootdir=/usr/share/doc/lesstif-&lesstif-version; install &amp;&amp;
 ldconfig</userinput></screen>
 
-    <para>You will need to change the <application>X</application> prefix in
-    the commands below if your X Window System is installed anywhere other than
-    <filename class='directory'>/usr/X11R6</filename>.</para>
+    <para>Applicatons that utilize Xorg libraries often, and incorrectly,
+    expect to find configuration files in 
+    <filename class="directory">$XORG_PREFIX/lib/X11</filename>.  While still
+    the <systemitem class="username">root</systemitem> user, create a
+    compatibility symlink with the following command:</para>
 
-<screen role="root"><userinput>mv -v <replaceable>&lt;/usr/X11R6&gt;</replaceable>/lib/X11/mwm /etc/X11 &amp;&amp;
-ln -v -s /etc/X11/mwm <replaceable>&lt;/usr/X11R6&gt;</replaceable>/lib/X11</userinput></screen>
+<screen role="root"><userinput>ln -v -sf /etc/X11/mwm $XORG_PREFIX/lib/X11</userinput></screen>
 
   </sect2>
 
@@ -134,12 +137,9 @@ ln -v -s /etc/X11/mwm <replaceable>&lt;/usr/X11R6&gt;</replaceable>/lib/X11</use
     non-FHS compliant <filename class="directory">/usr/LessTif</filename>
     directory.</para>
 
-    <para><command>mv -v <replaceable>&lt;/usr/X11R6&gt;</replaceable>/lib/X11/mwm
-    /etc/X11</command>:
-    The FHS requires that configuration files exist only in the
-    <filename class="directory">/etc/X11</filename> directory.  The
-    configuration directory (<filename class="directory">mwm</filename>)
-    is moved, and a symlink is created at the original location.</para>
+    <para><command>sed -i "s@libdir)/X11/mwm@sysconfdir)/mwm@" 
+    clients/Motif-2.1/mwm/Makefile</command>: This corrects the installation
+    prefix for the mwm directory for FHS compliance.</para>
 
   </sect2>
 
