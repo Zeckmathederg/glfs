@@ -261,7 +261,7 @@
         <xsl:otherwise><xsl:value-of select="''"/></xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-  
+
     <xsl:variable name="level">
       <xsl:choose>
         <xsl:when test="$renderas != ''">

@@ -817,7 +817,7 @@ Custom stylesheets may override it to get more selective behavior.</para>
     <xsl:otherwise>1</xsl:otherwise>
   </xsl:choose>  
 </xsl:template>
-  
+
 <xsl:template name="autolabel.format">
   <xsl:param name="context" select="."/>
   <xsl:param name="format"/>

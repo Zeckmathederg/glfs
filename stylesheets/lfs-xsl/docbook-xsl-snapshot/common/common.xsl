@@ -847,7 +847,7 @@ in the list is appropriate.</para>
   <xsl:param name="olist"
              select="imageobject|imageobjectco
                      |videoobject|audioobject|textobject"/>
-  
+
   <xsl:variable name="mediaobject.index">
     <xsl:call-template name="select.mediaobject.index">
       <xsl:with-param name="olist" select="$olist"/>
@@ -917,7 +917,7 @@ recursive process.</para>
     <xsl:when test="$use.role.for.mediaobject != 0 
                and $preferred.mediaobject.role != ''
                and $olist[@role = $preferred.mediaobject.role]"> 
-      
+
       <!-- Get the first hit's position index -->
       <xsl:for-each select="$olist">
         <xsl:if test="@role = $preferred.mediaobject.role and
@@ -959,7 +959,7 @@ recursive process.</para>
       <!-- Otherwise select first acceptable object -->
       <xsl:if test="$count &lt;= count($olist)">
         <xsl:variable name="object" select="$olist[position()=$count]"/>
-    
+
         <xsl:variable name="useobject">
           <xsl:choose>
             <!-- The phrase is used only when contains TeX Math and output is FO -->
@@ -1013,7 +1013,7 @@ recursive process.</para>
             </xsl:otherwise>
           </xsl:choose>
         </xsl:variable>
-    
+
         <xsl:choose>
           <xsl:when test="$useobject='1'">
             <xsl:value-of select="$count"/>
@@ -1671,7 +1671,7 @@ node location.</para>
 <xsl:template name="relative-uri">
   <xsl:param name="filename" select="."/>
   <xsl:param name="destdir" select="''"/>
-  
+
   <xsl:variable name="srcurl">
     <xsl:call-template name="strippath">
       <xsl:with-param name="filename">

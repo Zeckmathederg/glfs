@@ -80,23 +80,23 @@
             </xsl:otherwise>
           </xsl:choose>
         </xsl:when>
-  
+
         <xsl:when test="$target/@xreflabel">
           <xsl:call-template name="xref.xreflabel">
             <xsl:with-param name="target" select="$target"/>
           </xsl:call-template>
         </xsl:when>
-  
+
         <xsl:when test="$target">
           <xsl:if test="not(parent::citation)">
             <xsl:apply-templates select="$target" mode="xref-to-prefix"/>
           </xsl:if>
-  
+
           <xsl:apply-templates select="$target" mode="xref-to">
             <xsl:with-param name="referrer" select="."/>
             <xsl:with-param name="xrefstyle" select="$xrefstyle"/>
           </xsl:apply-templates>
-  
+
           <xsl:if test="not(parent::citation)">
             <xsl:apply-templates select="$target" mode="xref-to-suffix"/>
           </xsl:if>
@@ -1023,7 +1023,7 @@
           <xsl:with-param name="xref-context" select="true()"/>
         </xsl:call-template>
       </xsl:variable>
-    
+
       <xsl:variable name="target.database.filename">
         <xsl:call-template name="select.target.database">
           <xsl:with-param name="targetdoc.att" select="$targetdoc.att"/>
@@ -1031,10 +1031,10 @@
           <xsl:with-param name="olink.lang" select="$olink.lang"/>
         </xsl:call-template>
       </xsl:variable>
-    
+
       <xsl:variable name="target.database" 
           select="document($target.database.filename, /)"/>
-    
+
       <xsl:if test="$olink.debug != 0">
         <xsl:message>
           <xsl:text>Olink debug: root element of target.database is '</xsl:text>
@@ -1042,7 +1042,7 @@
           <xsl:text>'.</xsl:text>
         </xsl:message>
       </xsl:if>
-    
+
       <xsl:variable name="olink.key">
         <xsl:call-template name="select.olink.key">
           <xsl:with-param name="targetdoc.att" select="$targetdoc.att"/>
@@ -1051,7 +1051,7 @@
           <xsl:with-param name="target.database" select="$target.database"/>
         </xsl:call-template>
       </xsl:variable>
-    
+
       <xsl:if test="string-length($olink.key) = 0">
         <xsl:message>
           <xsl:text>Error: unresolved olink: </xsl:text>
@@ -1164,7 +1164,7 @@
 
 <xsl:template match="*" mode="insert.olink.docname.markup">
   <xsl:param name="docname" select="''"/>
-  
+
   <fo:inline font-style="italic">
     <xsl:value-of select="$docname"/>
   </fo:inline>

@@ -384,7 +384,7 @@
       </xsl:call-template>
     </xsl:otherwise>
   </xsl:choose>
-  
+
 </xsl:template>
 
 <xsl:template name="hyphenate.verbatim">

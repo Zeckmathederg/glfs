@@ -1118,7 +1118,7 @@
 	    <xsl:call-template name="inline.charseq"/>
 	  </xsl:otherwise>
 	</xsl:choose>
-     
+
       </fo:basic-link>
       <xsl:text>]</xsl:text>
     </xsl:when>

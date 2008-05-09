@@ -415,7 +415,7 @@
       <xsl:attribute name="margin-left">
         <xsl:call-template name="set.toc.indent"/>
       </xsl:attribute>
-      
+
       <xsl:apply-templates select="$nodes" mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -449,7 +449,7 @@
       <xsl:attribute name="margin-left">
         <xsl:call-template name="set.toc.indent"/>
       </xsl:attribute>
-              
+
       <xsl:apply-templates select="refentry" mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -497,7 +497,7 @@
       <xsl:attribute name="margin-left">
         <xsl:call-template name="set.toc.indent"/>
       </xsl:attribute>
-              
+
       <xsl:apply-templates select="$nodes" mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -531,7 +531,7 @@
       <xsl:attribute name="margin-left">
         <xsl:call-template name="set.toc.indent"/>
       </xsl:attribute>
-              
+
       <xsl:apply-templates select="sect2|qandaset[$qanda.in.toc != 0]" 
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
@@ -571,7 +571,7 @@
           <xsl:with-param name="reldepth" select="$reldepth"/>
         </xsl:call-template>
       </xsl:attribute>
-              
+
       <xsl:apply-templates select="sect3|qandaset[$qanda.in.toc != 0]" 
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
@@ -611,7 +611,7 @@
           <xsl:with-param name="reldepth" select="$reldepth"/>
         </xsl:call-template>
       </xsl:attribute>
-              
+
       <xsl:apply-templates select="sect4|qandaset[$qanda.in.toc != 0]" 
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
@@ -651,7 +651,7 @@
           <xsl:with-param name="reldepth" select="$reldepth"/>
         </xsl:call-template>
       </xsl:attribute>
-              
+
       <xsl:apply-templates select="sect5|qandaset[$qanda.in.toc != 0]" 
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
@@ -726,7 +726,7 @@
             <xsl:with-param name="reldepth" select="$reldepth"/>
           </xsl:call-template>
         </xsl:attribute>
-                
+
         <xsl:apply-templates select="section|qandaset[$qanda.in.toc != 0]" 
                            mode="toc">
           <xsl:with-param name="toc-context" select="$toc-context"/>
@@ -842,7 +842,7 @@
             <xsl:with-param name="reldepth" select="$reldepth"/>
           </xsl:call-template>
         </xsl:attribute>
-                
+
         <xsl:apply-templates select="qandadiv|qandaentry" mode="toc">
           <xsl:with-param name="toc-context" select="$toc-context"/>
         </xsl:apply-templates>

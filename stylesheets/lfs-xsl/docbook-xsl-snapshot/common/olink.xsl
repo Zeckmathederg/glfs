@@ -73,7 +73,7 @@
         <xsl:with-param name="olink.lang" select="$olink.lang"/>
       </xsl:call-template>
     </xsl:variable>
-  
+
     <!-- Recurse through the languages until you find a match -->
     <xsl:call-template name="select.olink.key.in.lang">
       <xsl:with-param name="targetdoc.att" select="$targetdoc.att"/>
@@ -85,7 +85,7 @@
                       select="$olink.fallback.sequence"/>
     </xsl:call-template>
   </xsl:if>
-  
+
 </xsl:template>
 
 <!-- Locate olink key in a particular language -->
@@ -96,7 +96,7 @@
   <xsl:param name="target.database"/>
   <xsl:param name="fallback.index" select="1"/>
   <xsl:param name="olink.fallback.sequence" select="''"/>
-  
+
   <xsl:variable name="target.lang">
     <xsl:call-template name="select.target.lang">
       <xsl:with-param name="fallback.index" select="$fallback.index"/>
@@ -450,11 +450,11 @@
         <xsl:value-of select="key('targetptr-key', $olink.key)/@href" />
       </xsl:for-each>
     </xsl:variable>
-  
+
     <xsl:variable name="targetdoc">
       <xsl:value-of select="substring-before($olink.key, '/')"/>
     </xsl:variable>
-  
+
     <!-- Does the target database use a sitemap? -->
     <xsl:variable name="use.sitemap">
       <xsl:choose>
@@ -462,8 +462,8 @@
         <xsl:otherwise>0</xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-  
-  
+
+
     <!-- Get the baseuri for this targetptr -->
     <xsl:variable name="baseuri" >
       <xsl:choose>
@@ -530,7 +530,7 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-  
+
     <!-- Form the href information -->
     <xsl:if test="$baseuri != ''">
       <xsl:value-of select="$baseuri"/>
@@ -1023,14 +1023,14 @@
                 and $current.docid != '' 
                 and $current.docid != $targetdoc
                 and $insert.olink.page.number = 'yes' ">
-  
+
       <xsl:variable name="page-number">
         <xsl:for-each select="$target.database" >
           <xsl:value-of 
                  select="key('targetptr-key', $olink.key)/@page" />
         </xsl:for-each>
       </xsl:variable>
-  
+
       <xsl:if test="$page-number != ''">
         <xsl:call-template name="substitute-markup">
           <xsl:with-param name="template">
@@ -1043,7 +1043,7 @@
           <xsl:with-param name="pagenumber" select="$page-number"/>
         </xsl:call-template>
       </xsl:if>
-  
+
     </xsl:when>
   </xsl:choose>
 </xsl:template>

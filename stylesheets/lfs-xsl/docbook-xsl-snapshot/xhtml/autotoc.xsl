@@ -312,7 +312,7 @@
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:call-template>
     </xsl:attribute>
-    
+
   <!-- * if $autotoc.label.in.hyperlink is non-zero, then output the label -->
   <!-- * as part of the hyperlinked title -->
   <xsl:if test="not($autotoc.label.in.hyperlink = 0)">

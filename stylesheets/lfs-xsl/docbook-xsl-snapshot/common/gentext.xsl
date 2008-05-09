@@ -766,7 +766,7 @@
       </xsl:when>
     </xsl:choose>
   </xsl:if>
-  
+
   <!-- special case: use regular xref template if just turning off page -->
   <xsl:if test="($pagetype = 'nopage' or $docnametype = 'nodocname')
                   and local-name($referrer) != 'olink'
@@ -825,7 +825,7 @@
     </xsl:choose>
 
   </xsl:if>
-  
+
 </xsl:template>
 
 </xsl:stylesheet>

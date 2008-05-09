@@ -66,7 +66,7 @@
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
-      
+
 <xsl:template name="generate-basic-index">
   <xsl:param name="scope" select="NOTANODE"/>
 
@@ -365,7 +365,7 @@
   <xsl:param name="role" select="''"/>
   <xsl:param name="type" select="''"/>
   <xsl:param name="position"/>
-  
+
   <xsl:variable name="term.separator">
     <xsl:call-template name="index.separator">
       <xsl:with-param name="key" select="'index.term.separator'"/>

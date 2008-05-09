@@ -87,7 +87,7 @@
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
-      
+
 <xsl:template name="generate-basic-index">
   <xsl:param name="scope" select="NOTANODE"/>
 
@@ -754,13 +754,13 @@
                                        ancestor::refsect3|ancestor::refsection|ancestor::refsynopsisdiv|
                                        ancestor::sect1|ancestor::sect2|ancestor::sect3|ancestor::sect4|ancestor::sect5|
                                        ancestor::section|ancestor::setindex|ancestor::set|ancestor::sidebar)[&scope;]"/>
-  
+
   <xsl:variable name="id">
     <xsl:call-template name="object.id">
       <xsl:with-param name="object" select="$target[1]"/>
     </xsl:call-template>
   </xsl:variable>
-  
+
   <fo:basic-link internal-destination="{$id}"
                  xsl:use-attribute-sets="index.page.number.properties">
     <fo:page-number-citation ref-id="{$id}"/>

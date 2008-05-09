@@ -243,7 +243,7 @@
       <xsl:otherwise>[could not find document title]</xsl:otherwise>
     </xsl:choose>
   </xsl:variable>
-  
+
   <!-- Include all id values in XEP output -->
   <xsl:if test="$xep.extensions != 0">
     <xsl:processing-instruction 

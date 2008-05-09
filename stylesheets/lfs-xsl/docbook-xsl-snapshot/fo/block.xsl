@@ -280,7 +280,7 @@
           </xsl:otherwise>
         </xsl:choose>
       </xsl:variable>
-    
+
       <xsl:call-template name="floater">
         <xsl:with-param name="content" select="$content"/>
         <xsl:with-param name="position" select="$position"/>

@@ -430,7 +430,7 @@ in the context named "</xsl:text>
       <xsl:with-param name="verbose" select="0"/>
     </xsl:call-template>
   </xsl:variable>
-  
+
   <xsl:choose>
     <xsl:when test="string-length($template) != 0">1</xsl:when>
     <xsl:otherwise>0</xsl:otherwise>

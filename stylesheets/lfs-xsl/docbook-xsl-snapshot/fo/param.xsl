@@ -348,7 +348,7 @@ set       toc,title
 <xsl:attribute-set name="itemizedlist.label.properties">
 </xsl:attribute-set>
     <xsl:param name="itemizedlist.label.width">1.0em</xsl:param>
-  
+
 
 <xsl:param name="keep.relative.image.uris" select="0"/>
 <xsl:param name="l10n.gentext.default.language">en</xsl:param>

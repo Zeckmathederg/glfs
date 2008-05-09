@@ -147,7 +147,7 @@
           <xsl:apply-templates select="$target" mode="html.title.attribute"/>
 
           <xsl:copy-of select="$content"/>
-          
+
         </a>
       </xsl:when>
       <xsl:otherwise>

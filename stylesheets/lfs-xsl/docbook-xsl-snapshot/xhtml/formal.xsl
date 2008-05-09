@@ -28,7 +28,7 @@
       <xsl:call-template name="anchor">
         <xsl:with-param name="conditional" select="0"/>
       </xsl:call-template>
-    
+
       <xsl:choose>
         <xsl:when test="$placement = 'before'">
           <xsl:call-template name="formal.object.heading"/>
@@ -41,7 +41,7 @@
           <xsl:if test="local-name(.) = 'table'">
             <xsl:call-template name="table.longdesc"/>
           </xsl:if>
-    
+
           <xsl:if test="$spacing.paras != 0"><p/></xsl:if>
         </xsl:when>
         <xsl:otherwise>
@@ -53,7 +53,7 @@
           <xsl:if test="local-name(.) = 'table'">
             <xsl:call-template name="table.longdesc"/>
           </xsl:if>
-    
+
           <xsl:call-template name="formal.object.heading"/>
         </xsl:otherwise>
       </xsl:choose>
@@ -105,14 +105,14 @@
       <xsl:if test="$spacing.paras != 0"><p/></xsl:if>
       <xsl:call-template name="anchor"/>
       <xsl:apply-templates/>
-  
+
       <!-- HACK: This doesn't belong inside formal.object; it 
            should be done by the table template, but I want 
            the link to be inside the DIV, so... -->
       <xsl:if test="local-name(.) = 'informaltable'">
         <xsl:call-template name="table.longdesc"/>
       </xsl:if>
-  
+
       <xsl:if test="$spacing.paras != 0"><p/></xsl:if>
     </div>
   </xsl:variable>

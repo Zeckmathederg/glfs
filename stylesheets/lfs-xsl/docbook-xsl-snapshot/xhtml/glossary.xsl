@@ -16,7 +16,7 @@
 <!-- ==================================================================== -->
 
 <xsl:template match="glossary">
-  
+
 <xsl:variable name="language">
   <xsl:call-template name="l10n.language"/>
 </xsl:variable>
@@ -95,7 +95,7 @@
 <!-- ==================================================================== -->
 
 <xsl:template match="glosslist">
-  
+
 <xsl:variable name="language">
   <xsl:call-template name="l10n.language"/>
 </xsl:variable>
@@ -136,7 +136,7 @@
 <!-- ==================================================================== -->
 
 <xsl:template match="glossdiv">
-  
+
 <xsl:variable name="language">
   <xsl:call-template name="l10n.language"/>
 </xsl:variable>
@@ -390,7 +390,7 @@ GlossEntry ::=
 <!-- Glossary collection -->
 
 <xsl:template match="glossary[@role='auto']" priority="2">
-  
+
 <xsl:variable name="language">
   <xsl:call-template name="l10n.language"/>
 </xsl:variable>
@@ -497,7 +497,7 @@ GlossEntry ::=
 <xsl:template match="glossdiv" mode="auto-glossary">
   <xsl:param name="terms" select="."/>
 
-  
+
 <xsl:variable name="language">
   <xsl:call-template name="l10n.language"/>
 </xsl:variable>

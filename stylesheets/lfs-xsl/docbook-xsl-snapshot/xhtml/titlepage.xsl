@@ -757,7 +757,7 @@
       </table>
     </div>
   </xsl:variable>
-  
+
   <xsl:choose>
     <xsl:when test="$generate.revhistory.link != 0">
       <xsl:variable name="filename">

@@ -170,7 +170,7 @@
         <xsl:with-param name="master-reference" select="$master-reference"/>
       </xsl:call-template>
     </xsl:attribute>
-    
+
     <xsl:attribute name="initial-page-number">
       <xsl:call-template name="initial.page.number">
         <xsl:with-param name="master-reference" select="$master-reference"/>

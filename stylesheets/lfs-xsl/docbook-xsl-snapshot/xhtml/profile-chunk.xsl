@@ -41,7 +41,7 @@
      to add a priority="1" to such customized templates to resolve
      its conflict with the original, since they have the
      same import precedence.
-     
+
      Using xsl:include prevents adding another layer
      of import precedence, which would cause any
      customizations that use xsl:apply-imports to wrongly

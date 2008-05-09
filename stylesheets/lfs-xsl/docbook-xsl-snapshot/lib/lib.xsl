@@ -388,7 +388,7 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:template>
-  
+
 <xsl:template name="count.uri.path.depth">
   <xsl:param name="filename" select="''"/>
   <xsl:param name="count" select="0"/>
