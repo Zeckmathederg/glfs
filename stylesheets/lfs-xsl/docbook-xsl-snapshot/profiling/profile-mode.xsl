@@ -33,7 +33,7 @@
       </xsl:call-template>
     </xsl:if>
   </xsl:variable>
-  <xsl:variable name="audience.ok" 
+  <xsl:variable name="audience.ok"
                         select="not(@audience) or not($profile.audience) or
                                 $audience.content != '' or @audience = ''"/>
 
@@ -166,7 +166,7 @@
       </xsl:call-template>
     </xsl:if>
   </xsl:variable>
-  <xsl:variable name="wordsize.ok" 
+  <xsl:variable name="wordsize.ok"
                         select="not(@wordsize) or not($profile.wordsize) or
                                 $wordsize.content != '' or @wordsize = ''"/>
 
@@ -178,26 +178,26 @@
       </xsl:call-template>
     </xsl:if>
   </xsl:variable>
-  <xsl:variable name="attribute.ok" 
-                select="not(@*[local-name()=$profile.attribute]) or 
-                        not($profile.value) or $attribute.content != '' or 
-                        @*[local-name()=$profile.attribute] = '' or 
+  <xsl:variable name="attribute.ok"
+                select="not(@*[local-name()=$profile.attribute]) or
+                        not($profile.value) or $attribute.content != '' or
+                        @*[local-name()=$profile.attribute] = '' or
                         not($profile.attribute)"/>
 
-  <xsl:if test="$arch.ok and 
-                $audience.ok and 
-                $condition.ok and 
-                $conformance.ok and 
-                $lang.ok and 
-                $os.ok and 
-                $revision.ok and 
-                $revisionflag.ok and 
-                $role.ok and 
-                $security.ok and 
-                $status.ok and 
-                $userlevel.ok and 
-                $vendor.ok and 
-                $wordsize.ok and 
+  <xsl:if test="$arch.ok and
+                $audience.ok and
+                $condition.ok and
+                $conformance.ok and
+                $lang.ok and
+                $os.ok and
+                $revision.ok and
+                $revisionflag.ok and
+                $role.ok and
+                $security.ok and
+                $status.ok and
+                $userlevel.ok and
+                $vendor.ok and
+                $wordsize.ok and
                 $attribute.ok">
     <xsl:copy>
       <xsl:copy-of select="@*"/>

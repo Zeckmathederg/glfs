@@ -34,7 +34,7 @@
     </xsl:choose>
   </xsl:variable>
 
-  <xsl:variable name="target.database" 
+  <xsl:variable name="target.database"
       select="document($target.database.filename,/)"/>
 
   <xsl:choose>
@@ -124,8 +124,8 @@
     <xsl:if test="$targetdoc.att != '' and
                   $targetptr.att != ''">
       <xsl:for-each select="$target.database">
-        <xsl:variable name="key" 
-                      select="concat($targetdoc.att, '/', 
+        <xsl:variable name="key"
+                      select="concat($targetdoc.att, '/',
                                      $targetptr.att, '/',
                                      $target.lang)"/>
         <xsl:choose>
@@ -147,15 +147,15 @@
     <!-- targetdoc.att = not blank
          targetptr.att = not blank
          prefer.internal.olink = not zero
-         current.docid = not blank 
+         current.docid = not blank
     -->
     <xsl:if test="$targetdoc.att != '' and
                   $targetptr.att != '' and
                   $current.docid != '' and
                   $prefer.internal.olink != 0">
       <xsl:for-each select="$target.database">
-        <xsl:variable name="key" 
-                      select="concat($current.docid, '/', 
+        <xsl:variable name="key"
+                      select="concat($current.docid, '/',
                                      $targetptr.att, '/',
                                      $target.lang)"/>
         <xsl:choose>
@@ -176,15 +176,15 @@
   <xsl:variable name="CaseC">
     <!-- targetdoc.att = blank
          targetptr.att = not blank
-         current.docid = not blank 
+         current.docid = not blank
     -->
     <xsl:if test="string-length($targetdoc.att) = 0 and
                   $targetptr.att != '' and
                   $current.docid != ''">
       <!-- Must use a for-each to change context for keys to work -->
       <xsl:for-each select="$target.database">
-        <xsl:variable name="key" 
-                      select="concat($current.docid, '/', 
+        <xsl:variable name="key"
+                      select="concat($current.docid, '/',
                                      $targetptr.att, '/',
                                      $target.lang)"/>
         <xsl:choose>
@@ -205,7 +205,7 @@
   <xsl:variable name="CaseD">
     <!-- targetdoc.att = blank
          targetptr.att = not blank
-         current.docid = blank 
+         current.docid = blank
     -->
     <!-- This is possible if only one document in the database -->
     <xsl:if test="string-length($targetdoc.att) = 0 and
@@ -213,8 +213,8 @@
                   string-length($current.docid) = 0 and
                   count($target.database//document) = 1">
       <xsl:for-each select="$target.database">
-        <xsl:variable name="key" 
-                      select="concat(.//document/@targetdoc, '/', 
+        <xsl:variable name="key"
+                      select="concat(.//document/@targetdoc, '/',
                                      $targetptr.att, '/',
                                      $target.lang)"/>
         <xsl:choose>
@@ -252,8 +252,8 @@
       </xsl:variable>
 
       <xsl:for-each select="$target.database">
-        <xsl:variable name="key" 
-                      select="concat($targetdoc.att, '/', 
+        <xsl:variable name="key"
+                      select="concat($targetdoc.att, '/',
                                      $rootid, '/',
                                      $target.lang)"/>
         <xsl:choose>
@@ -275,7 +275,7 @@
     <!-- targetdoc.att = not blank
          targetptr.att = blank
          prefer.internal.olink = not zero
-         current.docid = not blank 
+         current.docid = not blank
     -->
     <xsl:if test="$targetdoc.att != '' and
                   string-length($targetptr.att) = 0 and
@@ -294,8 +294,8 @@
       </xsl:variable>
 
       <xsl:for-each select="$target.database">
-        <xsl:variable name="key" 
-                      select="concat($current.docid, '/', 
+        <xsl:variable name="key"
+                      select="concat($current.docid, '/',
                                      $rootid, '/',
                                      $target.lang)"/>
         <xsl:choose>
@@ -386,7 +386,7 @@
     <xsl:when test="$selected.key != ''">
       <xsl:value-of select="$selected.key"/>
     </xsl:when>
-    <xsl:when test="string-length($selected.key) = 0 and 
+    <xsl:when test="string-length($selected.key) = 0 and
                     string-length($target.lang) = 0">
       <!-- No match on last try, and we are done -->
     </xsl:when>
@@ -411,9 +411,9 @@
   <xsl:param name="olink.fallback.sequence" select="''"/>
 
   <!-- recurse backwards to find the lang matching the index -->
-  <xsl:variable name="firstlang" 
+  <xsl:variable name="firstlang"
                 select="substring-before($olink.fallback.sequence, ' ')"/>
-  <xsl:variable name="rest" 
+  <xsl:variable name="rest"
                 select="substring-after($olink.fallback.sequence, ' ')"/>
   <xsl:choose>
     <xsl:when test="$fallback.index = 1">
@@ -435,7 +435,7 @@
   <xsl:param name="olink.lang" select="''"/>
 
   <!-- Prefer language of the olink element -->
-  <xsl:value-of select="concat(normalize-space(concat($olink.lang, ' ', 
+  <xsl:value-of select="concat(normalize-space(concat($olink.lang, ' ',
                         $olink.lang.fallback.sequence)), ' ')"/>
 </xsl:template>
 
@@ -483,7 +483,7 @@
                 <xsl:when test="$currentdoc.key != ''">
                   <xsl:for-each select="$target.database" >
                     <xsl:call-template name="targetpath" >
-                      <xsl:with-param name="dirnode" 
+                      <xsl:with-param name="dirnode"
                           select="key('targetdoc-key', $current.docid)/parent::dir"/>
                       <xsl:with-param name="targetdoc" select="$targetdoc"/>
                     </xsl:call-template>
@@ -505,7 +505,7 @@
                 <xsl:text>sitemap path without $current.docid parameter</xsl:text>
               </xsl:message>
             </xsl:otherwise>
-          </xsl:choose> 
+          </xsl:choose>
           <!-- In either case, add baseuri from its document entry-->
           <xsl:variable name="docbaseuri">
             <xsl:for-each select="$target.database" >
@@ -553,7 +553,7 @@
   <xsl:param name="target.database"/>
   <xsl:param name="object" select="NotAnElement"/>
   <xsl:param name="object.targetdoc" select="$current.docid"/>
-  <xsl:param name="object.lang" 
+  <xsl:param name="object.lang"
            select="concat($object/ancestor::*[last()]/@lang,
                           $object/ancestor::*[last()]/@xml:lang)"/>
 
@@ -607,7 +607,7 @@
   <xsl:param name="referrer" select="."/>
   <xsl:param name="xrefstyle">
     <xsl:choose>
-      <xsl:when test="@role and not(@xrefstyle) 
+      <xsl:when test="@role and not(@xrefstyle)
                       and $use.role.as.xrefstyle != 0">
         <xsl:value-of select="@role"/>
       </xsl:when>
@@ -626,7 +626,7 @@
       <!-- Get the xref text for this record -->
       <xsl:variable name="xref.text" >
         <xsl:for-each select="$target.database" >
-          <xsl:copy-of 
+          <xsl:copy-of
                   select="key('targetptr-key', $olink.key)/xreftext/node()" />
         </xsl:for-each>
       </xsl:variable>
@@ -646,7 +646,7 @@
       <xsl:variable name="lang">
         <xsl:variable name="candidate">
           <xsl:for-each select="$target.database" >
-            <xsl:value-of 
+            <xsl:value-of
                       select="key('targetptr-key', $olink.key)/@lang" />
           </xsl:for-each>
         </xsl:variable>
@@ -670,7 +670,7 @@
                         (contains($xrefstyle, 'nodocname') or
                         contains($xrefstyle, 'nopage')) and
                         not(contains($xrefstyle, 'title')) and
-                        not(contains($xrefstyle, 'label'))"> 
+                        not(contains($xrefstyle, 'label'))">
           <xsl:copy-of select="$xref.text"/>
         </xsl:when>
         <xsl:when test="$xrefstyle != ''">
@@ -738,7 +738,7 @@
 
                 <xsl:variable name="xref-number-and-title-context">
                   <xsl:call-template name="gentext.template">
-                    <xsl:with-param name="context" 
+                    <xsl:with-param name="context"
                                     select="'xref-number-and-title'"/>
                     <xsl:with-param name="name" select="$target.elem"/>
                     <xsl:with-param name="lang" select="$lang"/>
@@ -747,7 +747,7 @@
 
                 <xsl:variable name="styled-xref-number-and-title-context">
                   <xsl:call-template name="gentext.template">
-                    <xsl:with-param name="context" 
+                    <xsl:with-param name="context"
                                     select="'xref-number-and-title'"/>
                     <xsl:with-param name="name" select="$target.elem"/>
                     <xsl:with-param name="lang" select="$lang"/>
@@ -756,14 +756,14 @@
                 </xsl:variable>
 
                 <xsl:choose>
-                  <xsl:when test="$xref-number-and-title-context != 
+                  <xsl:when test="$xref-number-and-title-context !=
                                  $styled-xref-number-and-title-context and
                                  $xref.number != '' and
                                  $xref.with.number.and.title != 0">
-                    <xsl:value-of 
+                    <xsl:value-of
                             select="$styled-xref-number-and-title-context"/>
                   </xsl:when>
-                  <xsl:when test="$xref-number-context != 
+                  <xsl:when test="$xref-number-context !=
                                  $styled-xref-number-context and
                                  $xref.number != ''">
                     <xsl:value-of select="$styled-xref-number-context"/>
@@ -774,7 +774,7 @@
                   <xsl:when test="$xref-number-and-title-context != '' and
                                  $xref.number != '' and
                                  $xref.with.number.and.title != 0">
-                    <xsl:value-of 
+                    <xsl:value-of
                             select="$xref-number-and-title-context"/>
                     <xsl:if test="$olink.debug">
                       <xsl:message>
@@ -858,19 +858,19 @@
             </xsl:with-param>
             <xsl:with-param name="label">
               <xsl:for-each select="$target.database" >
-                <xsl:value-of 
+                <xsl:value-of
                         select="key('targetptr-key', $olink.key)/@number" />
               </xsl:for-each>
             </xsl:with-param>
             <xsl:with-param name="pagenumber">
               <xsl:for-each select="$target.database" >
-                <xsl:value-of 
+                <xsl:value-of
                         select="key('targetptr-key', $olink.key)/@page" />
               </xsl:for-each>
             </xsl:with-param>
             <xsl:with-param name="docname">
               <xsl:for-each select="$target.database" >
-                <xsl:value-of 
+                <xsl:value-of
                        select="key('targetdoc-key', $targetdoc)/div[1]/ttl" />
               </xsl:for-each>
             </xsl:with-param>
@@ -896,7 +896,7 @@
             </xsl:with-param>
             <xsl:with-param name="label">
               <xsl:for-each select="$target.database" >
-                <xsl:value-of 
+                <xsl:value-of
                           select="key('targetptr-key', $olink.key)/@number" />
               </xsl:for-each>
             </xsl:with-param>
@@ -947,7 +947,7 @@
   <xsl:param name="dirnode" />
   <xsl:param name="targetdoc" select="''"/>
 
-<!-- 
+<!--
 <xsl:message>dirnode is <xsl:value-of select="$dirnode/@name"/></xsl:message>
 <xsl:message>targetdoc is <xsl:value-of select="$targetdoc"/></xsl:message>
 -->
@@ -994,7 +994,7 @@
   <xsl:param name="linkend" select="''"/>
   <xsl:param name="xrefstyle">
     <xsl:choose>
-      <xsl:when test="@role and not(@xrefstyle) 
+      <xsl:when test="@role and not(@xrefstyle)
                       and $use.role.as.xrefstyle != 0">
         <xsl:value-of select="@role"/>
       </xsl:when>
@@ -1017,16 +1017,16 @@
       </xsl:call-template>
     </xsl:when>
     <xsl:when test="not(starts-with(normalize-space($xrefstyle),
-                        'select:') 
+                        'select:')
                 and (contains($xrefstyle, 'page')
                      or contains($xrefstyle, 'Page')))
-                and $current.docid != '' 
+                and $current.docid != ''
                 and $current.docid != $targetdoc
                 and $insert.olink.page.number = 'yes' ">
 
       <xsl:variable name="page-number">
         <xsl:for-each select="$target.database" >
-          <xsl:value-of 
+          <xsl:value-of
                  select="key('targetptr-key', $olink.key)/@page" />
         </xsl:for-each>
       </xsl:variable>
@@ -1054,7 +1054,7 @@
   <xsl:param name="target.database"/>
   <xsl:param name="xrefstyle">
     <xsl:choose>
-      <xsl:when test="@role and not(@xrefstyle) 
+      <xsl:when test="@role and not(@xrefstyle)
                       and $use.role.as.xrefstyle != 0">
         <xsl:value-of select="@role"/>
       </xsl:when>
@@ -1066,7 +1066,7 @@
 
   <xsl:variable name="page">
     <xsl:for-each select="$target.database" >
-      <xsl:value-of 
+      <xsl:value-of
              select="key('targetptr-key', $olink.key)/@page" />
     </xsl:for-each>
   </xsl:variable>
@@ -1076,29 +1076,29 @@
   </xsl:variable>
 
   <xsl:variable name="targetptr">
-    <xsl:value-of 
+    <xsl:value-of
           select="substring-before(substring-after($olink.key, '/'), '/')"/>
   </xsl:variable>
 
   <!-- Don't add docname if pointing to root element -->
   <xsl:variable name="rootptr">
     <xsl:for-each select="$target.database" >
-      <xsl:value-of 
+      <xsl:value-of
              select="key('targetdoc-key', $targetdoc)/div[1]/@targetptr" />
     </xsl:for-each>
   </xsl:variable>
 
   <xsl:variable name="docname">
     <xsl:for-each select="$target.database" >
-      <xsl:value-of 
+      <xsl:value-of
              select="key('targetdoc-key', $targetdoc)/div[1]/ttl" />
     </xsl:for-each>
   </xsl:variable>
 
-  <xsl:if test="not(starts-with(normalize-space($xrefstyle), 'select:') 
+  <xsl:if test="not(starts-with(normalize-space($xrefstyle), 'select:')
               and (contains($xrefstyle, 'docname')))
               and ($olink.doctitle = 'yes' or $olink.doctitle = '1')
-              and $current.docid != '' 
+              and $current.docid != ''
               and $rootptr != $targetptr
               and $current.docid != $targetdoc
               and $docname != ''">
@@ -1123,7 +1123,7 @@
   <xsl:param name="target" select="key('id', $linkend)"/>
   <xsl:param name="xrefstyle">
     <xsl:choose>
-      <xsl:when test="@role and not(@xrefstyle) 
+      <xsl:when test="@role and not(@xrefstyle)
                       and $use.role.as.xrefstyle != 0">
         <xsl:value-of select="@role"/>
       </xsl:when>
@@ -1136,7 +1136,7 @@
   <xsl:if test="not(starts-with(normalize-space($xrefstyle),'select:')
                     and (contains($xrefstyle, 'page')
                          or contains($xrefstyle, 'Page')))
-                and ( $insert.xref.page.number = 'yes' 
+                and ( $insert.xref.page.number = 'yes'
                    or $insert.xref.page.number = '1')
                 or local-name($target) = 'para'">
     <xsl:apply-templates select="$target" mode="page.citation">

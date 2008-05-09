@@ -352,13 +352,13 @@
 
       <xsl:variable name="toc.params">
         <xsl:call-template name="find.path.params">
-          <xsl:with-param name="table" 
+          <xsl:with-param name="table"
                           select="normalize-space($generate.toc)"/>
         </xsl:call-template>
       </xsl:variable>
       <xsl:if test="contains($toc.params, 'toc')">
         <xsl:call-template name="component.toc">
-          <xsl:with-param name="toc.title.p" 
+          <xsl:with-param name="toc.title.p"
                           select="contains($toc.params, 'title')"/>
         </xsl:call-template>
         <xsl:call-template name="component.toc.separator"/>
@@ -450,7 +450,7 @@
       </xsl:variable>
       <xsl:if test="contains($toc.params, 'toc')">
         <xsl:call-template name="component.toc">
-          <xsl:with-param name="toc.title.p" 
+          <xsl:with-param name="toc.title.p"
                           select="contains($toc.params, 'title')"/>
         </xsl:call-template>
         <xsl:call-template name="component.toc.separator"/>
@@ -542,7 +542,7 @@
 
       <xsl:if test="contains($toc.params, 'toc')">
         <xsl:call-template name="component.toc">
-          <xsl:with-param name="toc.title.p" 
+          <xsl:with-param name="toc.title.p"
                           select="contains($toc.params, 'title')"/>
         </xsl:call-template>
         <xsl:call-template name="component.toc.separator"/>
@@ -634,7 +634,7 @@
 
       <xsl:if test="contains($toc.params, 'toc')">
         <xsl:call-template name="component.toc">
-          <xsl:with-param name="toc.title.p" 
+          <xsl:with-param name="toc.title.p"
                           select="contains($toc.params, 'title')"/>
         </xsl:call-template>
         <xsl:call-template name="component.toc.separator"/>
@@ -676,8 +676,8 @@
     </xsl:if>
 
     <xsl:if test="$passivetex.extensions != 0">
-      <fotex:bookmark xmlns:fotex="http://www.tug.org/fotex" 
-                      fotex-bookmark-level="{count(ancestor::*)+2}" 
+      <fotex:bookmark xmlns:fotex="http://www.tug.org/fotex"
+                      fotex-bookmark-level="{count(ancestor::*)+2}"
                       fotex-bookmark-label="{$id}">
         <xsl:value-of select="$titleabbrev"/>
       </fotex:bookmark>

@@ -35,7 +35,7 @@
           <xsl:attribute name="format">
             <xsl:call-template name="page.number.format">
               <xsl:with-param name="element" select="'toc'"/>
-              <xsl:with-param name="master-reference" 
+              <xsl:with-param name="master-reference"
                               select="$master-reference"/>
             </xsl:call-template>
           </xsl:attribute>
@@ -43,14 +43,14 @@
           <xsl:attribute name="initial-page-number">
             <xsl:call-template name="initial.page.number">
               <xsl:with-param name="element" select="'toc'"/>
-              <xsl:with-param name="master-reference" 
+              <xsl:with-param name="master-reference"
                               select="$master-reference"/>
             </xsl:call-template>
           </xsl:attribute>
 
           <xsl:attribute name="force-page-count">
             <xsl:call-template name="force.page.count">
-              <xsl:with-param name="master-reference" 
+              <xsl:with-param name="master-reference"
 	                      select="$master-reference"/>
             </xsl:call-template>
           </xsl:attribute>
@@ -81,7 +81,7 @@
           <fo:flow flow-name="xsl-region-body">
             <xsl:call-template name="set.flow.properties">
               <xsl:with-param name="element" select="local-name(.)"/>
-              <xsl:with-param name="master-reference" 
+              <xsl:with-param name="master-reference"
                               select="$master-reference"/>
             </xsl:call-template>
 
@@ -103,7 +103,7 @@
           <xsl:attribute name="format">
             <xsl:call-template name="page.number.format">
               <xsl:with-param name="element" select="'toc'"/>
-              <xsl:with-param name="master-reference" 
+              <xsl:with-param name="master-reference"
                               select="$master-reference"/>
             </xsl:call-template>
           </xsl:attribute>
@@ -111,7 +111,7 @@
           <xsl:attribute name="initial-page-number">
             <xsl:call-template name="initial.page.number">
               <xsl:with-param name="element" select="'toc'"/>
-              <xsl:with-param name="master-reference" 
+              <xsl:with-param name="master-reference"
                               select="$master-reference"/>
             </xsl:call-template>
           </xsl:attribute>

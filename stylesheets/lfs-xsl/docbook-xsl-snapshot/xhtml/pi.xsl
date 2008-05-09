@@ -200,7 +200,7 @@
     <xsl:with-param name="pis" select="$node/processing-instruction('dbhtml')"/>
     <xsl:with-param name="attribute" select="'class'"/>
   </xsl:call-template>
-</xsl:template> 
+</xsl:template>
 
 <doc:pi xmlns="" name="dbhtml_dir">
   <refpurpose xmlns="http://www.w3.org/1999/xhtml">Specifies a directory name in which to write files</refpurpose>
@@ -377,7 +377,7 @@
     <xsl:with-param name="pis" select="$node/processing-instruction('dbhtml')"/>
     <xsl:with-param name="attribute" select="'label-width'"/>
   </xsl:call-template>
-</xsl:template> 
+</xsl:template>
 
 <doc:pi xmlns="" name="dbhtml_linenumbering.everyNth">
   <refpurpose xmlns="http://www.w3.org/1999/xhtml">Specifies interval for lines numbers in verbatims</refpurpose>
@@ -592,7 +592,7 @@
     <xsl:with-param name="pis" select="$node/processing-instruction('dbhtml')"/>
     <xsl:with-param name="attribute" select="'row-height'"/>
   </xsl:call-template>
-</xsl:template> 
+</xsl:template>
 
 <doc:pi xmlns="" name="dbhtml_start">
   <refpurpose xmlns="http://www.w3.org/1999/xhtml">(obsolete) Sets the starting number on an ordered list</refpurpose>

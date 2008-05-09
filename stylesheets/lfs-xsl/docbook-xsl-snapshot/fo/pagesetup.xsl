@@ -1245,7 +1245,7 @@
                                               page-position="first"/>
         <fo:conditional-page-master-reference master-reference="titlepage-odd"
                                               odd-or-even="odd"/>
-        <fo:conditional-page-master-reference 
+        <fo:conditional-page-master-reference
                                               odd-or-even="even">
           <xsl:attribute name="master-reference">
             <xsl:choose>
@@ -1266,7 +1266,7 @@
                                               page-position="first"/>
         <fo:conditional-page-master-reference master-reference="lot-odd"
                                               odd-or-even="odd"/>
-        <fo:conditional-page-master-reference 
+        <fo:conditional-page-master-reference
                                               odd-or-even="even">
           <xsl:attribute name="master-reference">
             <xsl:choose>
@@ -1287,7 +1287,7 @@
                                               page-position="first"/>
         <fo:conditional-page-master-reference master-reference="front-odd"
                                               odd-or-even="odd"/>
-        <fo:conditional-page-master-reference 
+        <fo:conditional-page-master-reference
                                               odd-or-even="even">
           <xsl:attribute name="master-reference">
             <xsl:choose>
@@ -1308,7 +1308,7 @@
                                               page-position="first"/>
         <fo:conditional-page-master-reference master-reference="body-odd"
                                               odd-or-even="odd"/>
-        <fo:conditional-page-master-reference 
+        <fo:conditional-page-master-reference
                                               odd-or-even="even">
           <xsl:attribute name="master-reference">
             <xsl:choose>
@@ -1329,7 +1329,7 @@
                                               page-position="first"/>
         <fo:conditional-page-master-reference master-reference="back-odd"
                                               odd-or-even="odd"/>
-        <fo:conditional-page-master-reference 
+        <fo:conditional-page-master-reference
                                               odd-or-even="even">
           <xsl:attribute name="master-reference">
             <xsl:choose>
@@ -1350,7 +1350,7 @@
                                               page-position="first"/>
         <fo:conditional-page-master-reference master-reference="index-odd"
                                               odd-or-even="odd"/>
-        <fo:conditional-page-master-reference 
+        <fo:conditional-page-master-reference
                                               odd-or-even="even">
           <xsl:attribute name="master-reference">
             <xsl:choose>
@@ -1372,7 +1372,7 @@
                                                 page-position="first"/>
           <fo:conditional-page-master-reference master-reference="titlepage-odd-draft"
                                                 odd-or-even="odd"/>
-          <fo:conditional-page-master-reference 
+          <fo:conditional-page-master-reference
                                                 odd-or-even="even">
             <xsl:attribute name="master-reference">
               <xsl:choose>
@@ -1393,7 +1393,7 @@
                                                 page-position="first"/>
           <fo:conditional-page-master-reference master-reference="lot-odd-draft"
                                                 odd-or-even="odd"/>
-          <fo:conditional-page-master-reference 
+          <fo:conditional-page-master-reference
                                                 odd-or-even="even">
             <xsl:attribute name="master-reference">
               <xsl:choose>
@@ -1414,7 +1414,7 @@
                                                 page-position="first"/>
           <fo:conditional-page-master-reference master-reference="front-odd-draft"
                                                 odd-or-even="odd"/>
-          <fo:conditional-page-master-reference 
+          <fo:conditional-page-master-reference
                                                 odd-or-even="even">
             <xsl:attribute name="master-reference">
               <xsl:choose>
@@ -1435,7 +1435,7 @@
                                                 page-position="first"/>
           <fo:conditional-page-master-reference master-reference="body-odd-draft"
                                                 odd-or-even="odd"/>
-          <fo:conditional-page-master-reference 
+          <fo:conditional-page-master-reference
                                                 odd-or-even="even">
             <xsl:attribute name="master-reference">
               <xsl:choose>
@@ -1456,7 +1456,7 @@
                                                 page-position="first"/>
           <fo:conditional-page-master-reference master-reference="back-odd-draft"
                                                 odd-or-even="odd"/>
-          <fo:conditional-page-master-reference 
+          <fo:conditional-page-master-reference
                                                 odd-or-even="even">
             <xsl:attribute name="master-reference">
               <xsl:choose>
@@ -1477,7 +1477,7 @@
                                                 page-position="first"/>
           <fo:conditional-page-master-reference master-reference="index-odd-draft"
                                                 odd-or-even="odd"/>
-          <fo:conditional-page-master-reference 
+          <fo:conditional-page-master-reference
                                                 odd-or-even="even">
             <xsl:attribute name="master-reference">
               <xsl:choose>
@@ -2202,7 +2202,7 @@
 
   <!-- Select the first content that the stylesheet places
        after the TOC -->
-  <xsl:variable name="first.book.content" 
+  <xsl:variable name="first.book.content"
                 select="ancestor::book/*[
                           not(self::title or
                               self::subtitle or
@@ -2222,7 +2222,7 @@
         <!-- preface typically continues TOC roman numerals -->
         <!-- Change page.number.format if not -->
         <xsl:when test="$element = 'preface'">auto-odd</xsl:when>
-        <xsl:when test="($element = 'dedication' or $element = 'article') 
+        <xsl:when test="($element = 'dedication' or $element = 'article')
                     and not(preceding::chapter
                             or preceding::preface
                             or preceding::appendix

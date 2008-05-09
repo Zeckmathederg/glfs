@@ -22,7 +22,7 @@
 <refpurpose>Collects information for potential cross reference targets</refpurpose>
 <refdescription id="collect.targets-desc">
 <para>Processing the root element in the
-<literal role="mode">collect.targets</literal> mode produces 
+<literal role="mode">collect.targets</literal> mode produces
 a set of target database elements that can be used by
 the olink mechanism to resolve external cross references.
 The collection process is controlled by the <literal>
@@ -34,7 +34,7 @@ only collect the targets, and <literal>no</literal>
 </para>
 <para>
 A <literal>targets.filename</literal> parameter must be
-specified to receive the output if 
+specified to receive the output if
 <literal>collect.xref.targets</literal> is
 set to <literal>yes</literal> so as to
 redirect the target data to a file separate from the
@@ -53,7 +53,7 @@ document output.
         $collect.xref.targets is set to 'yes'.
         The xref targets were not collected.
       </xsl:message>
-    </xsl:when> 
+    </xsl:when>
     <xsl:otherwise>
       <xsl:choose>
         <xsl:when test="$targets.filename">
@@ -265,7 +265,7 @@ document output.
 <xsl:template match="*" mode="olink.mode">
   <xsl:if test="@id or @xml:id">
     <xsl:call-template name="obj"/>
-  </xsl:if> 
+  </xsl:if>
   <xsl:apply-templates mode="olink.mode"/>
 </xsl:template>
 

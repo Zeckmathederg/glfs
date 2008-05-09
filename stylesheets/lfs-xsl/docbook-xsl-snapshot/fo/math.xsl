@@ -65,7 +65,7 @@
   </xsl:if>
 </xsl:template>
 
-<xsl:template match="inlineequation/alt[@role='tex'] | 
+<xsl:template match="inlineequation/alt[@role='tex'] |
                      inlineequation/inlinemediaobject/textobject[@role='tex']" priority="1">
   <xsl:param name="output.delims" select="1"/>
   <xsl:if test="$passivetex.extensions != 0 and $tex.math.in.alt != ''">

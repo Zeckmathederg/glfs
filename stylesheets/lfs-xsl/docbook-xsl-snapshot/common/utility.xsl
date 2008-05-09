@@ -281,7 +281,7 @@
       </xsl:call-template>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:value-of 
+      <xsl:value-of
         select="substring($padVar,string-length($padVar) - $length + 1)"/>
     </xsl:otherwise>
   </xsl:choose>

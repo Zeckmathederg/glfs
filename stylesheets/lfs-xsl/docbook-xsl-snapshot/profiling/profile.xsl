@@ -10,13 +10,13 @@
 <!-- In the two pass processing there is no need for base URI fixup -->
 <xsl:param name="profile.baseuri.fixup" select="false()"/>
 
-<!-- If you need to validate profiled content against DTD, 
+<!-- If you need to validate profiled content against DTD,
      create customization that will import this stylesheet and
-     will use xsl:output (see example bellow) to output reference 
-     to the desired DTD version. --> 
+     will use xsl:output (see example bellow) to output reference
+     to the desired DTD version. -->
 <!-- Generate DocBook instance with correct DOCTYPE -->
 <!--
-<xsl:output method="xml" 
+<xsl:output method="xml"
             doctype-public="-//OASIS//DTD DocBook XML V4.5//EN"
             doctype-system="http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"/>
 -->

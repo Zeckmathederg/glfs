@@ -131,7 +131,7 @@
   </refparameter>
   <refsee role="params">
     <para><parameter>sidebar.float.type parameter</parameter>,
-      <parameter>sidebar.float.width parameter</parameter>, 
+      <parameter>sidebar.float.width parameter</parameter>,
       <parameter>sidebar.properties attribute-set</parameter>,
       <parameter>sidebar.title.properties</parameter>
     </para>
@@ -340,7 +340,7 @@
     <xsl:with-param name="pis" select="$node/processing-instruction('dbfo')"/>
     <xsl:with-param name="attribute" select="'label-width'"/>
   </xsl:call-template>
-</xsl:template> 
+</xsl:template>
 
 <doc:pi name="dbfo_linenumbering.everyNth" xmlns="">
   <refpurpose>Specifies interval for lines numbers in verbatims</refpurpose>
@@ -656,7 +656,7 @@
   </refparameter>
   <refsee role="params">
     <para><parameter>sidebar.float.type parameter</parameter>,
-      <parameter>sidebar.float.width parameter</parameter>, 
+      <parameter>sidebar.float.width parameter</parameter>,
       <parameter>sidebar.properties attribute-set</parameter>,
       <parameter>sidebar.title.properties</parameter>
     </para>
@@ -897,7 +897,7 @@
       </fo:block>
     </xsl:when>
     <xsl:when test="following-sibling::para">
-      <fo:block space-after="0pt" 
+      <fo:block space-after="0pt"
         xsl:use-attribute-sets="normal.para.spacing">
         <xsl:copy-of select="$spacer"/>
       </fo:block>
@@ -906,7 +906,7 @@
       following-sibling::figure or
       following-sibling::example or
       following-sibling::equation">
-      <fo:block space-after="0pt" 
+      <fo:block space-after="0pt"
         xsl:use-attribute-sets="formal.object.properties">
         <xsl:copy-of select="$spacer"/>
       </fo:block>
@@ -915,7 +915,7 @@
       following-sibling::informalfigure or
       following-sibling::informalexample or
       following-sibling::informalequation">
-      <fo:block space-after="0pt" 
+      <fo:block space-after="0pt"
         xsl:use-attribute-sets="informal.object.properties">
         <xsl:copy-of select="$spacer"/>
       </fo:block>
@@ -924,14 +924,14 @@
       following-sibling::orderedlist or
       following-sibling::variablelist or
       following-sibling::simplelist">
-      <fo:block space-after="0pt" 
+      <fo:block space-after="0pt"
         xsl:use-attribute-sets="informal.object.properties">
         <xsl:copy-of select="$spacer"/>
       </fo:block>
     </xsl:when>
     <xsl:when test="following-sibling::listitem or
       following-sibling::step">
-      <fo:list-item space-after="0pt" 
+      <fo:list-item space-after="0pt"
         xsl:use-attribute-sets="informal.object.properties">
         <fo:list-item-label/>
         <fo:list-item-body start-indent="0pt" end-indent="0pt">
@@ -945,7 +945,7 @@
       following-sibling::sect4 or
       following-sibling::sect5 or
       following-sibling::section">
-      <fo:block space-after="0pt" 
+      <fo:block space-after="0pt"
         xsl:use-attribute-sets="section.title.properties">
         <xsl:copy-of select="$spacer"/>
       </fo:block>

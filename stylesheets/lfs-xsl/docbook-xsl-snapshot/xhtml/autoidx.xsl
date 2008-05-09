@@ -97,7 +97,7 @@
         </h3>
         <dl>
           <xsl:apply-templates select="$others[count(.|key('primary',                                        normalize-space(concat(primary/@sortas, primary[not(@sortas) or @sortas = &quot;&quot;])))[count(ancestor::node()|$scope) = count(ancestor::node()) and ($role = @role or $type = @type or (string-length($role) = 0 and string-length($type) = 0))][1]) = 1]" mode="index-symbol-div">
-            <xsl:with-param name="position" select="position()"/>                                
+            <xsl:with-param name="position" select="position()"/>
             <xsl:with-param name="scope" select="$scope"/>
             <xsl:with-param name="role" select="$role"/>
             <xsl:with-param name="type" select="$type"/>

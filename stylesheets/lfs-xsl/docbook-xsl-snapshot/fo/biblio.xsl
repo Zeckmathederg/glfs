@@ -327,7 +327,7 @@
   </fo:inline>
 </xsl:template>
 
-<xsl:template match="artheader|articleinfo|article/info" 
+<xsl:template match="artheader|articleinfo|article/info"
               mode="bibliography.mode">
   <fo:inline>
     <xsl:apply-templates mode="bibliography.mode"/>
@@ -392,7 +392,7 @@
   </fo:inline>
 </xsl:template>
 
-<xsl:template match="biblioset/title|biblioset/citetitle" 
+<xsl:template match="biblioset/title|biblioset/citetitle"
               mode="bibliography.mode">
   <xsl:variable name="relation" select="../@relation"/>
   <xsl:choose>
@@ -564,7 +564,7 @@
 </xsl:template>
 
 <xsl:template match="indexterm" mode="bibliography.mode">
-  <xsl:apply-templates select="."/> 
+  <xsl:apply-templates select="."/>
 </xsl:template>
 
 <xsl:template match="invpartnumber" mode="bibliography.mode">
@@ -885,7 +885,7 @@
   </fo:inline>
 </xsl:template>
 
-<xsl:template match="bibliomset/title|bibliomset/citetitle" 
+<xsl:template match="bibliomset/title|bibliomset/citetitle"
               mode="bibliomixed.mode">
   <xsl:variable name="relation" select="../@relation"/>
   <xsl:choose>
@@ -1010,7 +1010,7 @@
 </xsl:template>
 
 <xsl:template match="indexterm" mode="bibliomixed.mode">
-  <xsl:apply-templates select="."/> 
+  <xsl:apply-templates select="."/>
 </xsl:template>
 
 <xsl:template match="invpartnumber" mode="bibliomixed.mode">

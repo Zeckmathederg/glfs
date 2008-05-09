@@ -112,7 +112,7 @@
       <xsl:when test="$format = 'GIF87a'">image/gif</xsl:when>
       <xsl:when test="$format = 'GIF89a'">image/gif</xsl:when>
       <xsl:otherwise>
-          <xsl:value-of select="concat('image/', 
+          <xsl:value-of select="concat('image/',
             translate($format, &uppercase;, &lowercase;))"/>
       </xsl:otherwise>
     </xsl:choose>
@@ -145,7 +145,7 @@
     <xsl:choose>
       <xsl:when test="$ignore.image.scaling != 0">0</xsl:when>
       <xsl:when test="@contentwidth">0</xsl:when>
-      <xsl:when test="@contentdepth and 
+      <xsl:when test="@contentdepth and
                       @contentdepth != '100%'">0</xsl:when>
       <xsl:when test="@scale">0</xsl:when>
       <xsl:when test="@scalefit"><xsl:value-of select="@scalefit"/></xsl:when>
@@ -169,7 +169,7 @@
     <xsl:choose>
       <xsl:when test="local-name(.) = 'graphic'
                       or local-name(.) = 'inlinegraphic'">
-        <!-- handle legacy graphic and inlinegraphic by new template --> 
+        <!-- handle legacy graphic and inlinegraphic by new template -->
         <xsl:call-template name="mediaobject.filename">
           <xsl:with-param name="object" select="."/>
         </xsl:call-template>
@@ -378,7 +378,7 @@
 	<xsl:otherwise>
 	  <xsl:message terminate="yes">
 	    <xsl:text>Cannot insert </xsl:text><xsl:value-of select="$filename"/>
-	    <xsl:text>. Check use.extensions and textinsert.extension parameters.</xsl:text> 
+	    <xsl:text>. Check use.extensions and textinsert.extension parameters.</xsl:text>
 	  </xsl:message>
         </xsl:otherwise>
       </xsl:choose>
@@ -498,7 +498,7 @@
         <xsl:otherwise>
 	  <xsl:message terminate="yes">
 	    <xsl:text>Cannot insert </xsl:text><xsl:value-of select="$filename"/>
-	    <xsl:text>. Check use.extensions and textinsert.extension parameters.</xsl:text> 
+	    <xsl:text>. Check use.extensions and textinsert.extension parameters.</xsl:text>
 	  </xsl:message>
 	</xsl:otherwise>
       </xsl:choose>
@@ -580,7 +580,7 @@
     <xsl:otherwise>
       <xsl:message terminate="yes">
 	<xsl:text>Cannot insert </xsl:text><xsl:value-of select="$filename"/>
-	<xsl:text>. Check use.extensions and textinsert.extension parameters.</xsl:text> 
+	<xsl:text>. Check use.extensions and textinsert.extension parameters.</xsl:text>
       </xsl:message>
     </xsl:otherwise>
   </xsl:choose>

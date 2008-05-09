@@ -35,8 +35,8 @@
           <div class="{$class}-contents">
             <xsl:apply-templates/>
           </div>
-          <!-- HACK: This doesn't belong inside formal.object; it 
-               should be done by the table template, but I want 
+          <!-- HACK: This doesn't belong inside formal.object; it
+               should be done by the table template, but I want
                the link to be inside the DIV, so... -->
           <xsl:if test="local-name(.) = 'table'">
             <xsl:call-template name="table.longdesc"/>
@@ -47,8 +47,8 @@
         <xsl:otherwise>
           <xsl:if test="$spacing.paras != 0"><p/></xsl:if>
           <div class="{$class}-contents"><xsl:apply-templates/></div>
-          <!-- HACK: This doesn't belong inside formal.object; it 
-               should be done by the table template, but I want 
+          <!-- HACK: This doesn't belong inside formal.object; it
+               should be done by the table template, but I want
                the link to be inside the DIV, so... -->
           <xsl:if test="local-name(.) = 'table'">
             <xsl:call-template name="table.longdesc"/>
@@ -106,8 +106,8 @@
       <xsl:call-template name="anchor"/>
       <xsl:apply-templates/>
 
-      <!-- HACK: This doesn't belong inside formal.object; it 
-           should be done by the table template, but I want 
+      <!-- HACK: This doesn't belong inside formal.object; it
+           should be done by the table template, but I want
            the link to be inside the DIV, so... -->
       <xsl:if test="local-name(.) = 'informaltable'">
         <xsl:call-template name="table.longdesc"/>

@@ -281,7 +281,7 @@
               </xsl:when>
               <xsl:when test="starts-with($base, 'file:/')
                               and substring($base, 8, 1) = ':'">
-                <xsl:value-of select="concat('file:///', 
+                <xsl:value-of select="concat('file:///',
                                       substring-after($base,'file:/'))"/>
               </xsl:when>
               <xsl:when test="starts-with($base, 'file:///')">

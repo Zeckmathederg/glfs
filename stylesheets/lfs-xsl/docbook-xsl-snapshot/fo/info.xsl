@@ -17,7 +17,7 @@
      elements.  Even if you don't process the *info wrappers,
      some of these elements are needed because the elements are
      processed from named templates that are called with modes.
-     Since modes aren't sticky, these rules apply. 
+     Since modes aren't sticky, these rules apply.
      (TODO: clarify this comment) -->
 
 <!-- ==================================================================== -->

@@ -56,7 +56,7 @@
         </xsl:when>
         <xsl:otherwise>
           <xsl:message>
-            Unsupported TeX math notation: 
+            Unsupported TeX math notation:
             <xsl:value-of select="$tex.math.in.alt"/>
           </xsl:message>
         </xsl:otherwise>
@@ -69,12 +69,12 @@
 <!-- PlainTeX -->
 
 <xsl:template name="tex.math.plain.head">
-  <xsl:text>\nopagenumbers 
+  <xsl:text>\nopagenumbers
 </xsl:text>
 </xsl:template>
 
 <xsl:template name="tex.math.plain.tail">
-  <xsl:text>\bye 
+  <xsl:text>\bye
 </xsl:text>
 </xsl:template>
 
@@ -100,17 +100,17 @@
   <xsl:if test="$tex">
     <xsl:text>\special{dvi2bitmap outputfile </xsl:text>
     <xsl:value-of select="$filename"/>
-    <xsl:text>} 
+    <xsl:text>}
 </xsl:text>
     <xsl:if test="$output.delims != 0">
       <xsl:text>$</xsl:text>
     </xsl:if>
     <xsl:value-of select="$tex"/>
     <xsl:if test="$output.delims != 0">
-      <xsl:text>$ 
+      <xsl:text>$
 </xsl:text>
     </xsl:if>
-    <xsl:text>\vfill\eject 
+    <xsl:text>\vfill\eject
 </xsl:text>
   </xsl:if>
 </xsl:template>
@@ -137,17 +137,17 @@
   <xsl:if test="$tex">
     <xsl:text>\special{dvi2bitmap outputfile </xsl:text>
     <xsl:value-of select="$filename"/>
-    <xsl:text>} 
+    <xsl:text>}
 </xsl:text>
     <xsl:if test="$output.delims != 0">
       <xsl:text>$$</xsl:text>
     </xsl:if>
     <xsl:value-of select="$tex"/>
     <xsl:if test="$output.delims != 0">
-      <xsl:text>$$ 
+      <xsl:text>$$
 </xsl:text>
     </xsl:if>
-    <xsl:text>\vfill\eject 
+    <xsl:text>\vfill\eject
 </xsl:text>
   </xsl:if>
 </xsl:template>
@@ -157,16 +157,16 @@
 <!-- LaTeX -->
 
 <xsl:template name="tex.math.latex.head">
-  <xsl:text>\documentclass{article} 
+  <xsl:text>\documentclass{article}
 </xsl:text>
-  <xsl:text>\pagestyle{empty} 
+  <xsl:text>\pagestyle{empty}
 </xsl:text>
-  <xsl:text>\begin{document} 
+  <xsl:text>\begin{document}
 </xsl:text>
 </xsl:template>
 
 <xsl:template name="tex.math.latex.tail">
-  <xsl:text>\end{document} 
+  <xsl:text>\end{document}
 </xsl:text>
 </xsl:template>
 
@@ -192,17 +192,17 @@
   <xsl:if test="$tex">
     <xsl:text>\special{dvi2bitmap outputfile </xsl:text>
     <xsl:value-of select="$filename"/>
-    <xsl:text>} 
+    <xsl:text>}
 </xsl:text>
-    <xsl:if test="$output.delims != 0">  
+    <xsl:if test="$output.delims != 0">
       <xsl:text>$</xsl:text>
     </xsl:if>
     <xsl:value-of select="$tex"/>
-    <xsl:if test="$output.delims != 0">  
-      <xsl:text>$ 
+    <xsl:if test="$output.delims != 0">
+      <xsl:text>$
 </xsl:text>
     </xsl:if>
-    <xsl:text>\newpage 
+    <xsl:text>\newpage
 </xsl:text>
   </xsl:if>
 </xsl:template>
@@ -229,17 +229,17 @@
   <xsl:if test="$tex">
     <xsl:text>\special{dvi2bitmap outputfile </xsl:text>
     <xsl:value-of select="$filename"/>
-    <xsl:text>} 
+    <xsl:text>}
 </xsl:text>
     <xsl:if test="$output.delims != 0">
       <xsl:text>$$</xsl:text>
     </xsl:if>
     <xsl:value-of select="$tex"/>
     <xsl:if test="$output.delims != 0">
-      <xsl:text>$$ 
+      <xsl:text>$$
 </xsl:text>
     </xsl:if>
-    <xsl:text>\newpage 
+    <xsl:text>\newpage
 </xsl:text>
   </xsl:if>
 </xsl:template>

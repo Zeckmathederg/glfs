@@ -107,7 +107,7 @@
     <xsl:text>&lt;</xsl:text>
     <xsl:value-of select="name(.)"/>
     <xsl:text>&gt;</xsl:text>
-    <xsl:apply-templates/> 
+    <xsl:apply-templates/>
     <xsl:text>&lt;/</xsl:text>
     <xsl:value-of select="name(.)"/>
     <xsl:text>&gt;</xsl:text>
@@ -246,7 +246,7 @@
 
   <!-- Include all id values in XEP output -->
   <xsl:if test="$xep.extensions != 0">
-    <xsl:processing-instruction 
+    <xsl:processing-instruction
      name="xep-pdf-drop-unused-destinations">false</xsl:processing-instruction>
   </xsl:if>
 
@@ -273,7 +273,7 @@
 
     <xsl:if test="$fop1.extensions != 0">
       <xsl:variable name="bookmarks">
-        <xsl:apply-templates select="$document.element" 
+        <xsl:apply-templates select="$document.element"
                              mode="fop1.outline"/>
       </xsl:variable>
       <xsl:if test="string($bookmarks) != ''">

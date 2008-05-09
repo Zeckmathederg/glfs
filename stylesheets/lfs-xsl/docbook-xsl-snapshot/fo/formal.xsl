@@ -45,7 +45,7 @@
   </xsl:variable>
 
   <xsl:choose>
-    <!-- tables have their own templates and 
+    <!-- tables have their own templates and
          are not handled by formal.object -->
     <xsl:when test="self::figure">
       <fo:block id="{$id}"
@@ -131,7 +131,7 @@
   </xsl:variable>
 
   <xsl:choose>
-    <!-- informaltables have their own templates and 
+    <!-- informaltables have their own templates and
          are not handled by formal.object -->
     <xsl:when test="local-name(.) = 'equation'">
       <fo:block id="{$id}"
@@ -180,7 +180,7 @@
       </fo:block>
     </xsl:when>
     <xsl:otherwise>
-      <fo:block id="{$id}" 
+      <fo:block id="{$id}"
                 xsl:use-attribute-sets="informal.object.properties">
         <xsl:if test="$keep.together != ''">
           <xsl:attribute name="keep-together.within-column"><xsl:value-of
@@ -377,7 +377,7 @@
     <xsl:message terminate="yes">
       <xsl:text>Broken table: tr descendent of CALS Table.</xsl:text>
       <xsl:text>The text in the first tr is:&#10;</xsl:text>
-      <xsl:value-of 
+      <xsl:value-of
                select="(tgroup//tr)[1]"/>
     </xsl:message>
   </xsl:if>
@@ -385,7 +385,7 @@
     <xsl:message terminate="yes">
       <xsl:text>Broken table: row descendent of HTML table.</xsl:text>
       <xsl:text>The text in the first row is:&#10;</xsl:text>
-      <xsl:value-of 
+      <xsl:value-of
                select=".//row[1]"/>
     </xsl:message>
   </xsl:if>

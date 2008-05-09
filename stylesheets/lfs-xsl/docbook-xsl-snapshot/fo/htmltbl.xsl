@@ -117,7 +117,7 @@
           <xsl:if test="@width">
             <xsl:attribute name="column-width">
               <xsl:choose>
-                <xsl:when test="$fop.extensions != 0 and 
+                <xsl:when test="$fop.extensions != 0 and
                                 contains(@width, '%')">
                   <xsl:value-of select="concat('proportional-column-width(',
                                                substring-before(@width, '%'),

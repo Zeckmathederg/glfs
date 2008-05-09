@@ -210,7 +210,7 @@
                  leader-pattern-width="3pt"
                  leader-alignment="reference-area"
                  keep-with-next.within-line="always"/>
-      <xsl:text> </xsl:text> 
+      <xsl:text> </xsl:text>
       <fo:basic-link internal-destination="{$id}">
         <fo:page-number-citation ref-id="{$id}"/>
       </fo:basic-link>
@@ -337,7 +337,7 @@
                  leader-pattern-width="3pt"
                  leader-alignment="reference-area"
                  keep-with-next.within-line="always"/>
-      <xsl:text> </xsl:text> 
+      <xsl:text> </xsl:text>
       <fo:basic-link internal-destination="{$id}">
         <fo:page-number-citation ref-id="{$id}"/>
       </fo:basic-link>
@@ -370,7 +370,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 0 
+  <xsl:if test="$toc.section.depth > 0
                 and $toc.max.depth > $depth.from.context
                 and $nodes">
     <fo:block id="toc.{$cid}.{$id}">
@@ -408,7 +408,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 0 
+  <xsl:if test="$toc.section.depth > 0
                 and $toc.max.depth > $depth.from.context
                 and $nodes">
     <fo:block id="toc.{$cid}.{$id}">
@@ -490,7 +490,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 0 
+  <xsl:if test="$toc.section.depth > 0
                 and $toc.max.depth > $depth.from.context
                 and $nodes">
     <fo:block id="toc.{$cid}.{$id}">
@@ -524,7 +524,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 1 
+  <xsl:if test="$toc.section.depth > 1
                 and $toc.max.depth > $depth.from.context
                 and sect2">
     <fo:block id="toc.{$cid}.{$id}">
@@ -532,7 +532,7 @@
         <xsl:call-template name="set.toc.indent"/>
       </xsl:attribute>
 
-      <xsl:apply-templates select="sect2|qandaset[$qanda.in.toc != 0]" 
+      <xsl:apply-templates select="sect2|qandaset[$qanda.in.toc != 0]"
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -562,7 +562,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 2 
+  <xsl:if test="$toc.section.depth > 2
                 and $toc.max.depth > $depth.from.context
                 and sect3">
     <fo:block id="toc.{$cid}.{$id}">
@@ -572,7 +572,7 @@
         </xsl:call-template>
       </xsl:attribute>
 
-      <xsl:apply-templates select="sect3|qandaset[$qanda.in.toc != 0]" 
+      <xsl:apply-templates select="sect3|qandaset[$qanda.in.toc != 0]"
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -602,7 +602,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 3 
+  <xsl:if test="$toc.section.depth > 3
                 and $toc.max.depth > $depth.from.context
                 and sect4">
     <fo:block id="toc.{$cid}.{$id}">
@@ -612,7 +612,7 @@
         </xsl:call-template>
       </xsl:attribute>
 
-      <xsl:apply-templates select="sect4|qandaset[$qanda.in.toc != 0]" 
+      <xsl:apply-templates select="sect4|qandaset[$qanda.in.toc != 0]"
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -642,7 +642,7 @@
 
   <xsl:variable name="depth.from.context" select="count(ancestor::*)-count($toc-context/ancestor::*)"/>
 
-  <xsl:if test="$toc.section.depth > 4 
+  <xsl:if test="$toc.section.depth > 4
                 and $toc.max.depth > $depth.from.context
                 and sect5">
     <fo:block id="toc.{$cid}.{$id}">
@@ -652,7 +652,7 @@
         </xsl:call-template>
       </xsl:attribute>
 
-      <xsl:apply-templates select="sect5|qandaset[$qanda.in.toc != 0]" 
+      <xsl:apply-templates select="sect5|qandaset[$qanda.in.toc != 0]"
                            mode="toc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
       </xsl:apply-templates>
@@ -717,7 +717,7 @@
       <xsl:with-param name="toc-context" select="$toc-context"/>
     </xsl:call-template>
 
-    <xsl:if test="$toc.section.depth > $depth 
+    <xsl:if test="$toc.section.depth > $depth
                   and $toc.max.depth > $depth.from.context
                   and section">
       <fo:block id="toc.{$cid}.{$id}">
@@ -727,7 +727,7 @@
           </xsl:call-template>
         </xsl:attribute>
 
-        <xsl:apply-templates select="section|qandaset[$qanda.in.toc != 0]" 
+        <xsl:apply-templates select="section|qandaset[$qanda.in.toc != 0]"
                            mode="toc">
           <xsl:with-param name="toc-context" select="$toc-context"/>
         </xsl:apply-templates>
@@ -833,7 +833,7 @@
       <xsl:with-param name="toc-context" select="$toc-context"/>
     </xsl:call-template>
 
-    <xsl:if test="$toc.section.depth > $depth 
+    <xsl:if test="$toc.section.depth > $depth
                   and $toc.max.depth > $depth.from.context
                   and (child::qandadiv or child::qandaentry)">
       <fo:block id="toc.{$cid}.{$id}">

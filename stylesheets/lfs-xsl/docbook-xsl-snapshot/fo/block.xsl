@@ -156,7 +156,7 @@
       <xsl:variable name="float">
         <fo:float float="{$position}"
                   clear="{$clear}">
-          <fo:block-container 
+          <fo:block-container
                     start-indent="{$start.indent}"
                     end-indent="{$end.indent}">
             <xsl:if test="$width != ''">
@@ -179,11 +179,11 @@
             <xsl:copy-of select="$float"/>
           </fo:block>
         </xsl:when>
-        <xsl:when test="$axf.extensions != 0 and 
+        <xsl:when test="$axf.extensions != 0 and
                         ($position = 'left' or $position = 'start')">
           <fo:float float="{$position}"
                     clear="{$clear}">
-            <fo:block-container 
+            <fo:block-container
                       inline-progression-dimension=".001mm"
                       end-indent="{$start.indent} + {$width} + {$end.indent}">
               <xsl:attribute name="start-indent">
@@ -204,12 +204,12 @@
           </fo:float>
 
         </xsl:when>
-        <xsl:when test="$axf.extensions != 0 and 
+        <xsl:when test="$axf.extensions != 0 and
                         ($position = 'right' or $position = 'end')">
           <!-- Special case for handling inline floats in Antenna House-->
           <fo:float float="{$position}"
                     clear="{$clear}">
-            <fo:block-container 
+            <fo:block-container
                       inline-progression-dimension=".001mm"
                       end-indent="-{$body.end.indent}"
                       start-indent="{$start.indent} + {$width} + {$end.indent}">
@@ -296,18 +296,18 @@
         </xsl:with-param>
         <xsl:with-param name="start.indent">
           <xsl:choose>
-            <xsl:when test="$position = 'start' or 
+            <xsl:when test="$position = 'start' or
                             $position = 'left'">0pt</xsl:when>
-            <xsl:when test="$position = 'end' or 
+            <xsl:when test="$position = 'end' or
                             $position = 'right'">0.5em</xsl:when>
             <xsl:otherwise>0pt</xsl:otherwise>
           </xsl:choose>
         </xsl:with-param>
         <xsl:with-param name="end.indent">
           <xsl:choose>
-            <xsl:when test="$position = 'start' or 
+            <xsl:when test="$position = 'start' or
                             $position = 'left'">0.5em</xsl:when>
-            <xsl:when test="$position = 'end' or 
+            <xsl:when test="$position = 'end' or
                             $position = 'right'">0pt</xsl:when>
             <xsl:otherwise>0pt</xsl:otherwise>
           </xsl:choose>
@@ -360,18 +360,18 @@
     </xsl:with-param>
     <xsl:with-param name="start.indent">
       <xsl:choose>
-        <xsl:when test="$position = 'start' or 
+        <xsl:when test="$position = 'start' or
                         $position = 'left'">0pt</xsl:when>
-        <xsl:when test="$position = 'end' or 
+        <xsl:when test="$position = 'end' or
                         $position = 'right'">0.5em</xsl:when>
         <xsl:otherwise>0pt</xsl:otherwise>
       </xsl:choose>
     </xsl:with-param>
     <xsl:with-param name="end.indent">
       <xsl:choose>
-        <xsl:when test="$position = 'start' or 
+        <xsl:when test="$position = 'start' or
                         $position = 'left'">0.5em</xsl:when>
-        <xsl:when test="$position = 'end' or 
+        <xsl:when test="$position = 'end' or
                         $position = 'right'">0pt</xsl:when>
         <xsl:otherwise>0pt</xsl:otherwise>
       </xsl:choose>

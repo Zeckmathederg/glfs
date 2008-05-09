@@ -191,7 +191,7 @@
   <xsl:variable name="filename">
     <xsl:choose>
       <xsl:when test="local-name(.) = 'graphic'                       or local-name(.) = 'inlinegraphic'">
-        <!-- handle legacy graphic and inlinegraphic by new template --> 
+        <!-- handle legacy graphic and inlinegraphic by new template -->
         <xsl:call-template name="mediaobject.filename">
           <xsl:with-param name="object" select="."/>
         </xsl:call-template>
@@ -803,13 +803,13 @@ valign: <xsl:value-of select="@valign"/></xsl:message>
                       <xsl:text>      </xsl:text>
                       <xsl:value-of select="$units"/>
                       <xsl:text> </xsl:text>
-                      <xsl:value-of 
+                      <xsl:value-of
                             select="round($x1p * $intrinsicwidth div 100.0)"/>
                       <xsl:text>,</xsl:text>
                       <xsl:value-of select="round($intrinsicdepth
                                        - ($y2p * $intrinsicdepth div 100.0))"/>
                       <xsl:text>,</xsl:text>
-                      <xsl:value-of select="round($x2p * 
+                      <xsl:value-of select="round($x2p *
                                             $intrinsicwidth div 100.0)"/>
                       <xsl:text>,</xsl:text>
                       <xsl:value-of select="round($intrinsicdepth

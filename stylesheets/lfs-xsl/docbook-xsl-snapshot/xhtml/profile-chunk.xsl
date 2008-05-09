@@ -26,8 +26,8 @@
 
 <!-- chunk-common.xsl contains all the named templates for chunking.
      In a customization file, you import chunk-common.xsl, then
-     add any customized chunking templates of the same name. 
-     They will have import precedence over the original 
+     add any customized chunking templates of the same name.
+     They will have import precedence over the original
      chunking templates in chunk-common.xsl. -->
 <xsl:import href="chunk-common.xsl"/>
 

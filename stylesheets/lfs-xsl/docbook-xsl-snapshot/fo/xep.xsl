@@ -18,14 +18,14 @@
 
 <xsl:template name="xep-document-information">
   <rx:meta-info>
-    <xsl:variable name="authors" 
+    <xsl:variable name="authors"
                   select="(//author|//editor|//corpauthor|//authorgroup)[1]"/>
     <xsl:if test="$authors">
       <xsl:variable name="author">
         <xsl:choose>
           <xsl:when test="$authors[self::authorgroup]">
             <xsl:call-template name="person.name.list">
-              <xsl:with-param name="person.list" 
+              <xsl:with-param name="person.list"
                         select="$authors/*[self::author|self::corpauthor|
                                self::othercredit|self::editor]"/>
             </xsl:call-template>

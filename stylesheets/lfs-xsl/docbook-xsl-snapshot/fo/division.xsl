@@ -87,21 +87,21 @@
       </xsl:attribute>
       <xsl:attribute name="format">
         <xsl:call-template name="page.number.format">
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$titlepage-master-reference"/>
         </xsl:call-template>
       </xsl:attribute>
 
       <xsl:attribute name="initial-page-number">
         <xsl:call-template name="initial.page.number">
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$titlepage-master-reference"/>
         </xsl:call-template>
       </xsl:attribute>
 
       <xsl:attribute name="force-page-count">
         <xsl:call-template name="force.page.count">
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$titlepage-master-reference"/>
         </xsl:call-template>
       </xsl:attribute>
@@ -133,7 +133,7 @@
       <fo:flow flow-name="xsl-region-body">
         <xsl:call-template name="set.flow.properties">
           <xsl:with-param name="element" select="local-name(.)"/>
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$titlepage-master-reference"/>
         </xsl:call-template>
 
@@ -203,7 +203,7 @@
       <fo:flow flow-name="xsl-region-body">
         <xsl:call-template name="set.flow.properties">
           <xsl:with-param name="element" select="local-name(.)"/>
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$lot-master-reference"/>
         </xsl:call-template>
 
@@ -299,7 +299,7 @@
       <xsl:with-param name="gentext-key" select="'TableofContents'"/>
       <xsl:with-param name="content">
         <xsl:call-template name="division.toc">
-          <xsl:with-param name="toc.title.p" 
+          <xsl:with-param name="toc.title.p"
                           select="contains($toc.params, 'title')"/>
         </xsl:call-template>
       </xsl:with-param>
@@ -351,7 +351,7 @@
     </xsl:call-template>
   </xsl:if>
 
-  <xsl:if test="contains($toc.params,'equation') and 
+  <xsl:if test="contains($toc.params,'equation') and
                  .//equation[title or info/title]">
     <xsl:call-template name="page.sequence">
       <xsl:with-param name="master-reference"
@@ -361,14 +361,14 @@
       <xsl:with-param name="content">
         <xsl:call-template name="list.of.titles">
           <xsl:with-param name="titles" select="'equation'"/>
-          <xsl:with-param name="nodes" 
+          <xsl:with-param name="nodes"
                           select=".//equation[title or info/title]"/>
         </xsl:call-template>
       </xsl:with-param>
     </xsl:call-template>
   </xsl:if>
 
-  <xsl:if test="contains($toc.params,'procedure') and 
+  <xsl:if test="contains($toc.params,'procedure') and
                  .//procedure[title or info/title]">
     <xsl:call-template name="page.sequence">
       <xsl:with-param name="master-reference"
@@ -378,7 +378,7 @@
       <xsl:with-param name="content">
         <xsl:call-template name="list.of.titles">
           <xsl:with-param name="titles" select="'procedure'"/>
-          <xsl:with-param name="nodes" 
+          <xsl:with-param name="nodes"
                           select=".//procedure[title or info/title]"/>
         </xsl:call-template>
       </xsl:with-param>
@@ -416,21 +416,21 @@
     </xsl:attribute>
     <xsl:attribute name="format">
       <xsl:call-template name="page.number.format">
-        <xsl:with-param name="master-reference" 
+        <xsl:with-param name="master-reference"
                         select="$titlepage-master-reference"/>
       </xsl:call-template>
     </xsl:attribute>
 
     <xsl:attribute name="initial-page-number">
       <xsl:call-template name="initial.page.number">
-        <xsl:with-param name="master-reference" 
+        <xsl:with-param name="master-reference"
                         select="$titlepage-master-reference"/>
       </xsl:call-template>
     </xsl:attribute>
 
     <xsl:attribute name="force-page-count">
       <xsl:call-template name="force.page.count">
-        <xsl:with-param name="master-reference" 
+        <xsl:with-param name="master-reference"
                         select="$titlepage-master-reference"/>
       </xsl:call-template>
     </xsl:attribute>
@@ -462,7 +462,7 @@
     <fo:flow flow-name="xsl-region-body">
       <xsl:call-template name="set.flow.properties">
         <xsl:with-param name="element" select="local-name(.)"/>
-        <xsl:with-param name="master-reference" 
+        <xsl:with-param name="master-reference"
                         select="$titlepage-master-reference"/>
       </xsl:call-template>
 
@@ -516,20 +516,20 @@
       <xsl:attribute name="format">
         <xsl:call-template name="page.number.format">
           <xsl:with-param name="element" select="'toc'"/>
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$lot-master-reference"/>
         </xsl:call-template>
       </xsl:attribute>
       <xsl:attribute name="initial-page-number">
         <xsl:call-template name="initial.page.number">
           <xsl:with-param name="element" select="'toc'"/>
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$lot-master-reference"/>
          </xsl:call-template>
       </xsl:attribute>
       <xsl:attribute name="force-page-count">
         <xsl:call-template name="force.page.count">
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$lot-master-reference"/>
         </xsl:call-template>
       </xsl:attribute>
@@ -561,13 +561,13 @@
       <fo:flow flow-name="xsl-region-body">
         <xsl:call-template name="set.flow.properties">
           <xsl:with-param name="element" select="local-name(.)"/>
-          <xsl:with-param name="master-reference" 
+          <xsl:with-param name="master-reference"
                           select="$lot-master-reference"/>
         </xsl:call-template>
 
         <xsl:call-template name="division.toc">
           <xsl:with-param name="toc-context" select="$part"/>
-          <xsl:with-param name="toc.title.p" 
+          <xsl:with-param name="toc.title.p"
                           select="contains($toc.params, 'title')"/>
         </xsl:call-template>
 

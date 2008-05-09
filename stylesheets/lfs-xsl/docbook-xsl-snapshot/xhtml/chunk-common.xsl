@@ -949,7 +949,7 @@
                 <xsl:text>sitemap path without $current.docid parameter</xsl:text>
               </xsl:message>
             </xsl:otherwise>
-          </xsl:choose> 
+          </xsl:choose>
           <!-- In either case, add baseuri from its document entry-->
           <xsl:variable name="docbaseuri">
             <xsl:for-each select="$target.database">
@@ -997,7 +997,7 @@
 <!-- Computes "../" to reach top -->
 <xsl:template name="upward.path">
   <xsl:param name="path" select="''"/>
-  <xsl:choose> 
+  <xsl:choose>
     <!-- Don't bother with absolute uris -->
     <xsl:when test="contains($path, ':')"/>
     <xsl:when test="starts-with($path, '/')"/>

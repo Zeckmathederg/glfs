@@ -65,7 +65,7 @@
         </xsl:otherwise>
       </xsl:choose>
 
-      <xsl:if test="(contains($toc.params, 'toc') and $toc != '0') 
+      <xsl:if test="(contains($toc.params, 'toc') and $toc != '0')
                     or $toc = '1'">
         <xsl:call-template name="qandaset.toc">
           <xsl:with-param name="toc.title.p"
@@ -263,7 +263,7 @@
     <fo:list-item-label id="{$id}" end-indent="label-end()">
         <xsl:if test="string-length($label.content) &gt; 0">
 			<fo:block font-weight="bold">
-			  <xsl:copy-of select="$label.content"/>          
+			  <xsl:copy-of select="$label.content"/>
 			</fo:block>
         </xsl:if>
     </fo:list-item-label>

@@ -645,7 +645,7 @@
       <!-- * for a name to use -->
       <xsl:choose>
         <xsl:when test="refmeta/refmiscinfo[@class = 'source' or @class = 'software']">
-          <xsl:apply-templates 
+          <xsl:apply-templates
               select="refmeta/refmiscinfo[@class = 'source' or @class='software'][1]/node()"/>
         </xsl:when>
         <xsl:otherwise>
@@ -829,7 +829,7 @@
       <!-- * for a name to use -->
       <xsl:choose>
         <xsl:when test="refmeta/refmiscinfo[@class = 'version']">
-          <xsl:apply-templates 
+          <xsl:apply-templates
               select="refmeta/refmiscinfo[@class = 'version'][1]/node()"/>
         </xsl:when>
         <xsl:otherwise>
@@ -1011,7 +1011,7 @@
       <xsl:otherwise>
         <xsl:choose>
           <xsl:when test="refmeta/refmiscinfo[@class = 'manual' or @class = 'sectdesc']">
-            <xsl:apply-templates 
+            <xsl:apply-templates
                 select="refmeta/refmiscinfo[@class = 'manual' or @class = 'sectdesc'][1]/node()"/>
           </xsl:when>
           <xsl:otherwise>

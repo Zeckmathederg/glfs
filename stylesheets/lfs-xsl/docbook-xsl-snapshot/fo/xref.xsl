@@ -17,7 +17,7 @@
      ******************************************************************** -->
 
 <!-- Use internal variable for olink xlink role for consistency -->
-<xsl:variable 
+<xsl:variable
       name="xolink.role">http://docbook.org/xlink/role/olink</xsl:variable>
 
 <!-- ==================================================================== -->
@@ -50,7 +50,7 @@
 
   <xsl:variable name="xrefstyle">
     <xsl:choose>
-      <xsl:when test="@role and not(@xrefstyle) 
+      <xsl:when test="@role and not(@xrefstyle)
                       and $use.role.as.xrefstyle != 0">
         <xsl:value-of select="@role"/>
       </xsl:when>
@@ -123,15 +123,15 @@
     <xsl:when test="not($target)">
       <!-- page numbers only for local targets -->
     </xsl:when>
-    <xsl:when test="starts-with(normalize-space($xrefstyle), 'select:') 
+    <xsl:when test="starts-with(normalize-space($xrefstyle), 'select:')
                   and contains($xrefstyle, 'nopage')">
       <!-- negative xrefstyle in instance turns it off -->
     </xsl:when>
     <!-- positive xrefstyle already handles it -->
-    <xsl:when test="not(starts-with(normalize-space($xrefstyle), 'select:') 
+    <xsl:when test="not(starts-with(normalize-space($xrefstyle), 'select:')
                   and (contains($xrefstyle, 'page')
                        or contains($xrefstyle, 'Page')))
-                  and ( $insert.xref.page.number = 'yes' 
+                  and ( $insert.xref.page.number = 'yes'
                      or $insert.xref.page.number = '1')
                   or local-name($target) = 'para'">
       <xsl:apply-templates select="$target" mode="page.citation">
@@ -787,7 +787,7 @@
 
   <xsl:variable name="xrefstyle">
     <xsl:choose>
-      <xsl:when test="@role and not(@xrefstyle) 
+      <xsl:when test="@role and not(@xrefstyle)
                       and $use.role.as.xrefstyle != 0">
         <xsl:value-of select="@role"/>
       </xsl:when>
@@ -851,14 +851,14 @@
     <xsl:when test="not($linkend)">
     </xsl:when>
     <!-- negative xrefstyle in instance turns it off -->
-    <xsl:when test="starts-with(normalize-space($xrefstyle), 'select:') 
+    <xsl:when test="starts-with(normalize-space($xrefstyle), 'select:')
                   and contains($xrefstyle, 'nopage')">
     </xsl:when>
-    <xsl:when test="(starts-with(normalize-space($xrefstyle), 'select:') 
-                  and $insert.link.page.number = 'maybe'  
+    <xsl:when test="(starts-with(normalize-space($xrefstyle), 'select:')
+                  and $insert.link.page.number = 'maybe'
                   and (contains($xrefstyle, 'page')
                        or contains($xrefstyle, 'Page')))
-                  or ( $insert.link.page.number = 'yes' 
+                  or ( $insert.link.page.number = 'yes'
                      or $insert.link.page.number = '1')
                   or local-name($target) = 'para'">
       <xsl:apply-templates select="$target" mode="page.citation">
@@ -938,9 +938,9 @@
     </xsl:choose>
     <xsl:variable name="fnum">
       <!-- FIXME: list in @from is probably not complete -->
-      <xsl:number level="any" 
-                  from="chapter|appendix|preface|article|refentry|bibliography[not(parent::article)]" 
-                  count="footnote[not(@label)][not(ancestor::tgroup)]|ulink[node()][@url != .][not(ancestor::footnote)]" 
+      <xsl:number level="any"
+                  from="chapter|appendix|preface|article|refentry|bibliography[not(parent::article)]"
+                  count="footnote[not(@label)][not(ancestor::tgroup)]|ulink[node()][@url != .][not(ancestor::footnote)]"
                   format="1"/>
     </xsl:variable>
     <xsl:choose>
@@ -1032,7 +1032,7 @@
         </xsl:call-template>
       </xsl:variable>
 
-      <xsl:variable name="target.database" 
+      <xsl:variable name="target.database"
           select="document($target.database.filename, /)"/>
 
       <xsl:if test="$olink.debug != 0">
@@ -1185,14 +1185,14 @@
   </xsl:variable>
 
   <xsl:variable name="targetptr">
-    <xsl:value-of 
+    <xsl:value-of
        select="substring-before(substring-after($olink.key, '/'), '/')"/>
   </xsl:variable>
 
   <xsl:variable name="target.lang">
     <xsl:variable name="candidate">
       <xsl:for-each select="$target.database" >
-        <xsl:value-of 
+        <xsl:value-of
                   select="key('targetptr-key', $olink.key)/@lang" />
       </xsl:for-each>
     </xsl:variable>
@@ -1206,7 +1206,7 @@
     </xsl:choose>
   </xsl:variable>
 
-  <xsl:if test="$current.docid = $targetdoc and 
+  <xsl:if test="$current.docid = $targetdoc and
                 $olink.lang = $target.lang">
     <xsl:variable name="targets" select="key('id',$targetptr)"/>
     <xsl:variable name="target" select="$targets[1]"/>
@@ -1394,7 +1394,7 @@
     </xsl:call-template>
   </xsl:variable>
 
-  <xsl:variable name="target.database" 
+  <xsl:variable name="target.database"
       select="document($target.database.filename, /)"/>
 
   <xsl:if test="$olink.debug != 0">

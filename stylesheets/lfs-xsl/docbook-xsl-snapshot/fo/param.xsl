@@ -412,7 +412,7 @@ set       toc,title
   <xsl:attribute name="space-before.minimum">0.8em</xsl:attribute>
   <xsl:attribute name="space-before.maximum">1.2em</xsl:attribute>
 </xsl:attribute-set>
-<xsl:param name="olink.doctitle">no</xsl:param> 
+<xsl:param name="olink.doctitle">no</xsl:param>
 <xsl:param name="olink.base.uri"/>
 <xsl:param name="olink.debug" select="0"/>
 <xsl:attribute-set name="olink.properties">
@@ -854,7 +854,7 @@ set       toc,title
 <xsl:param name="ulink.hyphenate.chars">/</xsl:param>
 <xsl:param name="ulink.show" select="1"/>
 <xsl:param name="use.extensions" select="0"/>
-<xsl:param name="use.local.olink.style" select="0"/> 
+<xsl:param name="use.local.olink.style" select="0"/>
 <xsl:param name="use.role.as.xrefstyle" select="1"/>
 <xsl:param name="use.role.for.mediaobject" select="1"/>
 <xsl:param name="use.svg" select="1"/>

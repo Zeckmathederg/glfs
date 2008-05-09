@@ -40,7 +40,7 @@
   </xsl:if>
 
   <!-- Preserve order of PIs and comments -->
-  <xsl:apply-templates 
+  <xsl:apply-templates
       select="*[not(self::listitem
                 or self::title
                 or self::titleabbrev)]
@@ -48,7 +48,7 @@
               |processing-instruction()[not(preceding-sibling::listitem)]"/>
 
   <xsl:variable name="content">
-    <xsl:apply-templates 
+    <xsl:apply-templates
           select="listitem
                   |comment()[preceding-sibling::listitem]
                   |processing-instruction()[preceding-sibling::listitem]"/>
@@ -171,7 +171,7 @@
     <xsl:when test="$itemsymbol='whitebullet'">&#x25E6;</xsl:when>
     <xsl:when test="$itemsymbol='triangle'">&#x2023;</xsl:when>
     <xsl:when test="$itemsymbol='point'">&#x203A;</xsl:when>
-    <xsl:when test="$itemsymbol='hand'"><fo:inline 
+    <xsl:when test="$itemsymbol='hand'"><fo:inline
                          font-family="Wingdings 2">A</fo:inline></xsl:when>
     -->
     <xsl:otherwise>&#x2022;</xsl:otherwise>
@@ -203,7 +203,7 @@
   </xsl:if>
 
   <!-- Preserve order of PIs and comments -->
-  <xsl:apply-templates 
+  <xsl:apply-templates
       select="*[not(self::listitem
                 or self::title
                 or self::titleabbrev)]
@@ -211,7 +211,7 @@
               |processing-instruction()[not(preceding-sibling::listitem)]"/>
 
   <xsl:variable name="content">
-    <xsl:apply-templates 
+    <xsl:apply-templates
           select="listitem
                   |comment()[preceding-sibling::listitem]
                   |processing-instruction()[preceding-sibling::listitem]"/>
@@ -306,17 +306,17 @@
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="listitem/*[1][local-name()='para' or 
-                                   local-name()='simpara' or 
+<xsl:template match="listitem/*[1][local-name()='para' or
+                                   local-name()='simpara' or
                                    local-name()='formalpara']
-                     |glossdef/*[1][local-name()='para' or 
-                                   local-name()='simpara' or 
+                     |glossdef/*[1][local-name()='para' or
+                                   local-name()='simpara' or
                                    local-name()='formalpara']
-                     |step/*[1][local-name()='para' or 
-                                   local-name()='simpara' or 
+                     |step/*[1][local-name()='para' or
+                                   local-name()='simpara' or
                                    local-name()='formalpara']
-                     |callout/*[1][local-name()='para' or 
-                                   local-name()='simpara' or 
+                     |callout/*[1][local-name()='para' or
+                                   local-name()='simpara' or
                                    local-name()='formalpara']"
               priority="2">
   <fo:block>
@@ -428,7 +428,7 @@
   </xsl:if>
 
   <!-- Preserve order of PIs and comments -->
-  <xsl:apply-templates 
+  <xsl:apply-templates
     select="*[not(self::varlistentry
               or self::title
               or self::titleabbrev)]
@@ -483,7 +483,7 @@
     </xsl:when>
     <xsl:when test="string-length($term.text) &gt; $longest">
       <xsl:call-template name="longest.term">
-        <xsl:with-param name="longest" 
+        <xsl:with-param name="longest"
             select="string-length($term.text)"/>
         <xsl:with-param name="maxlength" select="$maxlength"/>
         <xsl:with-param name="terms" select="$terms[position() &gt; 1]"/>
@@ -544,7 +544,7 @@
   </xsl:if>
 
   <!-- Preserve order of PIs and comments -->
-  <xsl:apply-templates 
+  <xsl:apply-templates
     select="*[not(self::varlistentry
               or self::title
               or self::titleabbrev)]
@@ -576,8 +576,8 @@
 <xsl:template match="varlistentry" mode="vl.as.blocks">
   <xsl:variable name="id"><xsl:call-template name="object.id"/></xsl:variable>
 
-  <fo:block id="{$id}" xsl:use-attribute-sets="list.item.spacing"  
-      keep-together.within-column="always" 
+  <fo:block id="{$id}" xsl:use-attribute-sets="list.item.spacing"
+      keep-together.within-column="always"
       keep-with-next.within-column="always">
     <xsl:apply-templates select="term"/>
   </fo:block>
@@ -654,13 +654,13 @@
       <xsl:when test="$axf.extensions != 0 or $xep.extensions != 0">
 	<xsl:attribute name="table-layout">auto</xsl:attribute>
         <xsl:if test="$explicit.table.width != ''">
-          <xsl:attribute name="width"><xsl:value-of 
+          <xsl:attribute name="width"><xsl:value-of
 	  select="$explicit.table.width"/></xsl:attribute>
         </xsl:if>
       </xsl:when>
       <xsl:otherwise>
         <xsl:attribute name="table-layout">fixed</xsl:attribute>
-        <xsl:attribute name="width"><xsl:value-of 
+        <xsl:attribute name="width"><xsl:value-of
                                       select="$table.width"/></xsl:attribute>
       </xsl:otherwise>
     </xsl:choose>
@@ -747,13 +747,13 @@
       <xsl:when test="$axf.extensions != 0 or $xep.extensions != 0">
         <xsl:attribute name="table-layout">auto</xsl:attribute>
         <xsl:if test="$explicit.table.width != ''">
-          <xsl:attribute name="width"><xsl:value-of 
+          <xsl:attribute name="width"><xsl:value-of
                              select="$explicit.table.width"/></xsl:attribute>
         </xsl:if>
       </xsl:when>
       <xsl:otherwise>
         <xsl:attribute name="table-layout">fixed</xsl:attribute>
-        <xsl:attribute name="width"><xsl:value-of 
+        <xsl:attribute name="width"><xsl:value-of
                                       select="$table.width"/></xsl:attribute>
       </xsl:otherwise>
     </xsl:choose>
@@ -928,7 +928,7 @@
                 |comment()[not(preceding-sibling::step)]
                 |processing-instruction()[not(preceding-sibling::step)]"/>
 
-  <xsl:variable name="steps" 
+  <xsl:variable name="steps"
                 select="step
                         |comment()[preceding-sibling::step]
                         |processing-instruction()[preceding-sibling::step]"/>
@@ -1024,7 +1024,7 @@
 
 <xsl:template match="step/title">
   <fo:block font-weight="bold"
-            keep-together.within-column="always" 
+            keep-together.within-column="always"
             keep-with-next.within-column="always">
     <xsl:apply-templates/>
   </fo:block>
@@ -1158,12 +1158,12 @@
             text-align="{$alignment}">
     <!-- The above restores alignment altered by image align attribute -->
     <xsl:if test="title|info/title">
-      <xsl:apply-templates select="(title|info/title)[1]" 
+      <xsl:apply-templates select="(title|info/title)[1]"
                            mode="list.title.mode"/>
     </xsl:if>
 
     <!-- Preserve order of PIs and comments -->
-    <xsl:apply-templates 
+    <xsl:apply-templates
          select="*[not(self::callout or self::title or self::titleabbrev)]
                    |comment()[not(preceding-sibling::callout)]
                    |processing-instruction()[not(preceding-sibling::callout)]"/>

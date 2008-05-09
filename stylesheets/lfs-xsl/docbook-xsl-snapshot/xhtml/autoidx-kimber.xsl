@@ -51,9 +51,9 @@
   <xsl:if test="not(function-available('k:getIndexGroupKey'))">
     <xsl:message terminate="yes">
       <xsl:text>ERROR: the 'kimber' index method requires the </xsl:text>
-      <xsl:text>Innodata Isogen 
+      <xsl:text>Innodata Isogen
 Java extensions for </xsl:text>
-      <xsl:text>internationalized indexes. 
+      <xsl:text>internationalized indexes.
 Install those </xsl:text>
       <xsl:text>extensions, or use a different index method.
 </xsl:text>

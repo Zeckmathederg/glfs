@@ -88,9 +88,9 @@
     <xsl:otherwise>
       <xsl:variable name="fnum">
         <!-- FIXME: list in @from is probably not complete -->
-        <xsl:number level="any" 
-                    from="chapter|appendix|preface|article|refentry|bibliography" 
-                    count="footnote[not(@label)][not(ancestor::table) and not(ancestor::informaltable)]|ulink[$ulink.footnotes != 0][node()][@url != .][not(ancestor::footnote)][$ulink.show != 0]" 
+        <xsl:number level="any"
+                    from="chapter|appendix|preface|article|refentry|bibliography"
+                    count="footnote[not(@label)][not(ancestor::table) and not(ancestor::informaltable)]|ulink[$ulink.footnotes != 0][node()][@url != .][not(ancestor::footnote)][$ulink.show != 0]"
                     format="1"/>
       </xsl:variable>
       <xsl:choose>

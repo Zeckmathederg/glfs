@@ -38,7 +38,7 @@
 
   <xsl:choose>
     <xsl:when test="$xhref
-                    and (not($node/@xlink:type) or 
+                    and (not($node/@xlink:type) or
                          $node/@xlink:type='simple')">
 
       <!-- Is it a local idref? -->
@@ -770,7 +770,7 @@
 
       <xsl:choose>
         <xsl:when test="$target">
-          <fo:basic-link internal-destination="{@linkend}" 
+          <fo:basic-link internal-destination="{@linkend}"
                          xsl:use-attribute-sets="xref.properties">
             <xsl:call-template name="inline.italicseq"/>
           </fo:basic-link>

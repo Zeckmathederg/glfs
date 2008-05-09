@@ -196,8 +196,8 @@
   </xsl:variable>
 
   <xsl:choose>
-    <xsl:when test="not(parent::*) or 
-                    (parent::reference and $refentry.pagebreak != 0) or 
+    <xsl:when test="not(parent::*) or
+                    (parent::reference and $refentry.pagebreak != 0) or
                     parent::part">
       <!-- make a page sequence -->
       <fo:page-sequence hyphenate="{$hyphenate}"
@@ -562,8 +562,8 @@
 <!--       <xsl:with-param name="gentext.key" select="'RefName'"/> -->
 <!--     </xsl:call-template> -->
 <!-- -->
-  <xsl:param name="section" 
-             select="(ancestor::refsynopsysdiv 
+  <xsl:param name="section"
+             select="(ancestor::refsynopsysdiv
                      |ancestor::refsection
                      |ancestor::refsect1
                      |ancestor::refsect2
@@ -603,8 +603,8 @@
     </xsl:variable>
 
     <xsl:if test="$passivetex.extensions != 0">
-      <fotex:bookmark xmlns:fotex="http://www.tug.org/fotex" 
-                      fotex-bookmark-level="{$level + 2 + $offset}" 
+      <fotex:bookmark xmlns:fotex="http://www.tug.org/fotex"
+                      fotex-bookmark-level="{$level + 2 + $offset}"
                       fotex-bookmark-label="{$id}">
         <xsl:value-of select="$title"/>
       </fotex:bookmark>
