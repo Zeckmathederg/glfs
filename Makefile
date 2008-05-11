@@ -62,7 +62,7 @@ $(RENDERTMP)/blfs-pdf.xml: $(RENDERTMP)/blfs-full.xml
 	  --output $(RENDERTMP)/blfs-pdf.xml stylesheets/lfs-xsl/profile.xsl \
 	  $(RENDERTMP)/blfs-full.xml
 
-$(RENDERTMP)/blfs-pdf.fo: $(RENDERTMP)/blfs-full.xml
+$(RENDERTMP)/blfs-pdf.fo: $(RENDERTMP)/blfs-pdf.xml
 	@echo "Generating FO file..."
 	$(Q)xsltproc --nonet -stringparam rootid "$(ROOT_ID)" \
 	  --output $(RENDERTMP)/blfs-pdf.fo stylesheets/blfs-pdf.xsl \
