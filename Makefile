@@ -132,7 +132,7 @@ $(BASEDIR)/wget-list: $(RENDERTMP)/blfs-full.xml
 	$(Q)xsltproc --nonet --output $(BASEDIR)/wget-list \
 	  stylesheets/wget-list.xsl $(RENDERTMP)/blfs-full.xml
 
-test-links: $(RENDERTMP)/blfs-full.xml
+test-links: $(BASEDIR)/test-links
 $(BASEDIR)/test-links: $(RENDERTMP)/blfs-full.xml
 	@echo "Generating test-links file..."
 	$(Q)mkdir -p $(BASEDIR)
