@@ -51,7 +51,7 @@ $(BASEDIR)/index.html: $(RENDERTMP)/blfs-html.xml
 	$(Q)for filename in `find $(BASEDIR) -name "*.html"`; do \
 	  tidy -config tidy.conf $$filename; \
 	  true; \
-	  sh obfuscate.sh $$filename; \
+	  bash obfuscate.sh $$filename; \
 	  sed -i -e "s@text/html@application/xhtml+xml@g" $$filename; \
 	done;
 
@@ -85,7 +85,7 @@ $(BASEDIR)/$(NOCHUNKS_OUTPUT): $(RENDERTMP)/blfs-html.xml
 
 	@echo "Running Tidy and obfuscate.sh on non-chunked XHTML..."
 	$(Q)tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
-	$(Q)sh obfuscate.sh $(BASEDIR)/$(NOCHUNKS_OUTPUT)
+	$(Q)bash obfuscate.sh $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 	$(Q)sed -i -e "s@text/html@application/xhtml+xml@g" \
 	  $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
