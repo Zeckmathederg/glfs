@@ -12,9 +12,10 @@
   <!ENTITY fop-buildsize     "216 MB">
   <!ENTITY fop-time          "0.9 SBU">
 
-  <!ENTITY jai-download      "http://javashoplm.sun.com/ECom/docs/Welcome.jsp?StoreId=22&amp;PartDetailId=jai-1_1_2_01-oth-JPR&amp;SiteId=JSC&amp;TransactionId=noreg">
-  <!ENTITY jai-md5sum        "f2be3619a8d002eff3874355e96327eb">
-  <!ENTITY jai-size          "2.6 MB">
+  <!ENTITY jai-version       "1_1_3">
+  <!ENTITY jai-download      "http://download.java.net/media/jai/builds/release/&jai-version;/jai-&jai-version;-lib-linux-i586-jdk.bin">
+  <!ENTITY jai-md5sum        "a63b661c4940582aa1679233e5f518b2">
+  <!ENTITY jai-size          "3.4 MB">
 
   <!ENTITY offo-download     "&sourceforge-repo;/offo/offo-hyphenation.zip">
   <!ENTITY offo-md5sum       "0b8c1657ef70285ad7fd514061b08c3e">
@@ -84,16 +85,9 @@
       <listitem>
         <para>Java Advanced Imaging (JAI) API components:
           <simplelist>
-            <member>
-              <ulink url="&jai-download;">
-              http://javashoplm.sun.com/ECom/docs/Welcome.jsp?StoreId=22&amp;</ulink>
-              <ulink url="&jai-download;">
-              PartDetailId=jai-1_1_2_01-oth-JPR&amp;SiteId=JSC&amp;TransactionId=noreg</ulink>
-            </member>
+            <member><ulink url="&jai-download;"/></member>
             <member>&jai-md5sum;</member>
             <member>&jai-size;</member>
-            <member>Choose the <quote>Linux JDK Install</quote> file after
-            accepting the license agreement.</member>
           </simplelist>
         </para>
       </listitem>
@@ -155,7 +149,7 @@ rm -rf ../offo-hyphenation</userinput></screen>
       <title>Installing JAI</title>
 
       <tip>
-        <para>The <command>$FOP_BUILD_DIR/JAI.bin</command>
+        <para>The <command>$FOP_PKG_DIR/jai-&jai-version;-lib-linux-i586-jdk.bin</command>
         command below installs the JAI components in the JDK tree. You will be
         required to view, and then accept (by entering a <keycap>y</keycap>
         keypress), a license agreement before the installation will continue.
@@ -170,35 +164,39 @@ rm -rf ../offo-hyphenation</userinput></screen>
       the <systemitem class="username">root</systemitem> user while in the
       root of the <application>FOP</application> source tree:</para>
 
-<screen role="root"><userinput>install -m755 ../jai-1_1_2_01-lib-linux-i586-jdk.bin JAI.bin &amp;&amp;
+<!-- JAI make tail +nnn only for SunOS now
+<screen role="root"><userinput>install -m755 ../jai-&jai-version;-lib-linux-i586-jdk.bin JAI.bin &amp;&amp;
 sed -i 's/tail +122/tail -n +122/' JAI.bin &amp;&amp;
-
-FOP_BUILD_DIR=$(pwd) &amp;&amp;
-cd $JAVA_HOME &amp;&amp;
-
-$FOP_BUILD_DIR/JAI.bin &amp;&amp;
-
-cd $FOP_BUILD_DIR &amp;&amp;
-rm JAI.bin</userinput></screen>
+-->
+<screen role="root"><userinput>FOP_PKG_DIR=$(pwd)/.. &amp;&amp;
+pushd $JAVA_HOME &amp;&amp;
+sh $FOP_PKG_DIR/jai-&jai-version;-lib-linux-i586-jdk.bin &amp;&amp;
+popd</userinput></screen>
 
     </sect3>
 
     <sect3>
       <title>Installing FOP Components</title>
 
-      <para>Install <application>FOP</application> by running the
+      <para>In case of not having <application>forrest</application> installed, remove
+      a reference to it in the build.xml:</para>
+<screen><userinput>sed -i -e "s/all,javadocs,docs/all,javadocs/" \
+           -e '\#${dist.bin.result.dir}/docs#,\#&lt;/copy&gt;#d' build.xml</userinput></screen>
+
+      <para>Compile <application>FOP</application> by running the
       following commands:</para>
 
-<screen><userinput>ant &amp;&amp;
-ant javadocs</userinput></screen>
+<screen><userinput>ant dist</userinput></screen>
 
       <para>The unit regression tests were performed in the build step
       above.</para>
 
-      <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+      <para>Now install FOP as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>install -v -d -m755 /opt/fop-&fop-version; &amp;&amp;
+pushd dist-bin/fop-&fop-version; &amp;&amp;
 cp -v -R * /opt/fop-&fop-version; &amp;&amp;
+popd &amp;&amp;
 ln -v -sf fop-&fop-version; /opt/fop</userinput></screen>
 
     </sect3>
@@ -277,18 +275,16 @@ install -v -m644 lib/{xml-apis,xerces,xalan}.LICENSE.txt \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's/tail +122/tail -n +122/' ...</command>:
-    The <application>JAI</application> binary file has a <command>tail</command>
-    command imbedded in the file which uses obsolete syntax and causes the
-    file to unpack incorrectly. This command fixes the obsolete
-    syntax.</para>
+    <para><command>FOP_PKG_DIR=$(pwd)/..</command>: Assuming that the source packages
+    are stored one level above of the current working directory. This is the allways default - but
+    may be different because of personal tast. Change this to match the directory where the
+    FOP tarball can be found.</para>
 
-    <para><command>$FOP_BUILD_DIR/JAI.bin</command>: This
+    <para><command>sh $FOP_PKG_DIR/jai-&jai-version;-lib-linux-i586-jdk.bin</command>: This
     command installs the <application>JAI</application> components
     into the <application>JDK</application> file structure.
-    <envar>$FOP_BUILD_DIR</envar> is used as a reference point to the source
-    executable and as a method to return back to the
-    <application>FOP</application> source tree.</para>
+    <envar>$FOP_PKG_DIR</envar> is used as a reference point to the source
+    executable.</para>
 
     <!-- <para><command>sed -i "s/build/lib/" ...</command>: These commands modify
     the installed shell scripts so that the location of the installed
@@ -298,12 +294,11 @@ install -v -m644 lib/{xml-apis,xerces,xalan}.LICENSE.txt \
     script provided by the <application>FOP</application>
     package. These commands install the package.</para> -->
 
-    <para><command>ant</command>: This reads the <filename>build.xml</filename>
-    file and performs the default <option>all</option> target which builds the
-    package and runs the unit regression tests.</para>
-
-    <para><command>ant javadocs</command>: This builds the Java API
-    documentation. Omit this step if desired.</para>
+    <para><command>ant dist</command>: This reads the <filename>build.xml</filename>
+    file and performs the <option>dist</option> target which builds the
+    package and runs the unit regression tests. It also creates the Java API documentation
+    and a directory where the newly created binaries are placed into. This directory is
+    used to install <application>FOP</application> to its final place.</para>
 
     <para><command>ln -v -sf fop-&fop-version; /opt/fop</command>: This is
     optional and creates a convenience symlink so that <envar>$FOP_HOME</envar>
