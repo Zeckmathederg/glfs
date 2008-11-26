@@ -6,18 +6,18 @@
 
   <!ENTITY mesalib-download-http "&sourceforge-repo;/mesa3d/MesaLib-&mesalib-version;.tar.bz2">
   <!ENTITY mesalib-download-ftp  " ">
-  <!ENTITY mesalib-md5sum        "e4d894181f1859651658b3704633e10d">
-  <!ENTITY mesalib-size          "3.1 MB">
-  <!ENTITY mesalib-buildsize     "172 MB">
-  <!ENTITY mesalib-time          "1.6 SBU">
+  <!ENTITY mesalib-md5sum        "04d379292e023df0b0266825cb0dbde5">
+  <!ENTITY mesalib-size          "3.2 MB">
+  <!ENTITY mesalib-buildsize     "175 MB">
+  <!ENTITY mesalib-time          "2.7 SBU">
 
   <!ENTITY mesademos-download-http "&sourceforge-repo;/mesa3d/MesaDemos-&mesalib-version;.tar.bz2">
-  <!ENTITY mesademos-md5sum        "e870efe98d3a50be01ab211b9b2e25d9">
-  <!ENTITY mesademos-size          "1.3 MB">
+  <!ENTITY mesademos-md5sum        "22e03dc4038cd63f32c21eb60994892b">
+  <!ENTITY mesademos-size          "1.4 MB">
 
   <!ENTITY mesaglut-download-http  "&sourceforge-repo;/mesa3d/MesaGLUT-&mesalib-version;.tar.bz2">
-  <!ENTITY mesaglut-md5sum         "e84edbb11c69c8e408dfadd2ed08e95b">
-  <!ENTITY mesaglut-size           "306 KB">
+  <!ENTITY mesaglut-md5sum         "f67daf93e12c4a459703bbf3e4004e31">
+  <!ENTITY mesaglut-size           "328 KB">
 
 ]>
 
@@ -95,6 +95,11 @@
       </listitem>
     </itemizedlist>
 
+    <warning><para>Mesa's GLUT library in not released under a free software
+    license.  Permission is grated by the copyright holder for its use with
+    in the Mesa distribution. <xref linkend="freeglut"/> is strongly
+    recommended over Mesa.</para></warning>
+
     <bridgehead renderas="sect3">MesaLib Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -103,15 +108,8 @@
     <xref linkend="libdrm"/>, and
     <xref linkend="expat"/></para>
 
-<!-- XFREE86
-     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
-    href="../../xincludes/xorg7-only.xml"/>
-
-    <note>
-      <para>It is not recommended to build a newer version of
-      <application>Mesa</application> with <xref linkend="xfree86"/>.</para>
-    </note>
-XFREE86 -->
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional"><xref linkend="libxcb"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/mesalib"/></para>
@@ -126,37 +124,18 @@ XFREE86 -->
     <filename class="directory">Mesa-&mesalib-version;</filename>
     directory.</para>
 
-<!-- XFREE86
-    Commenting this out as there is already mention of this
-    <caution>
-      <para>You should ensure that the <envar>XORG_PREFIX</envar> variable in
-      the commands below is the same as the one used in the installation prefix
-      of <application>Xorg</application>.</para>
-    </caution>
-XFREE86 -->
+    <para>Build <application>MesaLib</application> by running the following
+    commands:</para>
 
-    <para>Install <application>MesaLib</application> by running the following
-    command:</para>
-
-<screen><userinput>make linux-dri-x86 OPT_FLAGS="-O2 -fno-strict-aliasing" \
-    DRI_DRIVER_INSTALL_DIR=${XORG_PREFIX}/lib/X11/modules/dri \
-    X11_INCLUDES=-I${XORG_PREFIX}/include \
-    EXTRA_LIB_PATH=-L${XORG_PREFIX}/lib</userinput></screen>
-
-    <para>If you downloaded and extracted the Demos package, build the programs
-    with the following commands:</para>
-
-<screen><userinput>sed -i 's@-l$(GLUT_LIB)@@g' configs/default &amp;&amp;
-make -C progs/xdemos PROGS='glxinfo glxgears'</userinput></screen>
+<screen><userinput>sed 's@FLAGS=\"-g@FLAGS=\"@' -i configure &amp;&amp;
+./configure $XORG_CONFIG &amp;&amp;
+make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install INSTALL_DIR=${XORG_PREFIX} \
-    DRI_DRIVER_INSTALL_DIR=${XORG_PREFIX}/lib/X11/modules/dri &amp;&amp;
-install -dv ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version; &amp;&amp;
-install -v -m644 docs/* ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
     <para>If you built the demo programs, install them using the following
     command as the <systemitem class="username">root</systemitem> user:</para>
@@ -171,38 +150,18 @@ install -v -m644 docs/* ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;</user
 
 <screen role="root"><userinput>ln -s -v ${XORG_PREFIX}/include/GL /usr/include</userinput></screen>
 
-    <tip>
-      <para>Do not remove the Mesa source tree yet, it will be required to
-      build the <xref linkend="xorg7-server"/>.</para>
-    </tip>
-
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>make ... linux-dri-x86</command>: The
-    <option>linux-dri-x86</option> target is specified to use a
-    few other helpful flags in addition to the defaults. See the other
-    targets in the <filename class="directory">configs</filename> directory
-    if your architecture is not x86.</para>
+    <para><command>sed 's@FLAGS=\"-g@FLAGS=\"@' -i configure</command>: by
+    default, Mesa builds with debugging symbols.  Remove the -g switch from
+    both <envar>CFLAGS</envar> and <envar>CXXFLAGS</envar> with this
+    command.</para>
 
-    <para><envar>OPT_FLAGS="-O2 -fno-strict-aliasing"</envar>: A bug where
-    OpenGL applications are shifted to the left by 50% can be worked around
-    by adding <option>-fno-strict-aliasing</option> to the compiler flags.</para>
-
-    <para><envar>DRI_DRIVER_INSTALL_DIR=${XORG_PREFIX}/lib/X11/modules/dri</envar>:
-    This setting specifies the location that the DRI modules will be installed
-    to. This path is also built into <filename
-    class="libraryfile">libGL.so</filename>.</para>
-
-    <para><command>sed -i 's@-l$(GLUT_LIB)@@g' configs/default</command>:
-    Disables linking against the GLUT libraries for the demo programs, omit
-    this command if you downloaded and extracted the GLUT tarball.</para>
-
-    <para><command>make ... PROGS='glxinfo glxgears'</command>: Only builds
-    the <command>glxinfo</command> and <command>glxgears</command>
-    programs.</para>
+    <para><option>--enable-xcb</option>: use the XCB backend instead of the
+    default XLib backend for GLX.</para>
 
   </sect2>
 
