@@ -5,11 +5,12 @@
   %general-entities;
 
   <!ENTITY dbus-download-http "http://dbus.freedesktop.org/releases/dbus/dbus-&dbus-version;.tar.gz">
-  <!ENTITY dbus-download-ftp  "&gentoo-ftp-repo;/dbus-&dbus-version;.tar.gz">
-  <!ENTITY dbus-md5sum        "0552a9b54beb4a044951b7cdbc8fc855">
-  <!ENTITY dbus-size          "1.3 MB">
-  <!ENTITY dbus-buildsize     "39.5 MB (includes building and installing all docs)">
-  <!ENTITY dbus-time          "0.3 SBU (additional 0.7 SBU to run the test suite)">
+  <!--<!ENTITY dbus-download-ftp  "&gentoo-ftp-repo;/dbus-&dbus-version;.tar.gz">-->
+  <!ENTITY dbus-download-ftp  " ">
+  <!ENTITY dbus-md5sum        "2e643910a09f44b000a0d76038637999">
+  <!ENTITY dbus-size          "1.5 MB">
+  <!ENTITY dbus-buildsize     "24 MB">
+  <!ENTITY dbus-time          "0.5 SBU">
 ]>
 
 <sect1 id="dbus" xreflabel="D-BUS-&dbus-version;">
@@ -70,9 +71,8 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="x-window-system"/>,
-    <xref linkend="doxygen"/> (to generate the API documentation), and
-    <ulink url="http://cyberelk.net/tim/xmlto/">xmlto</ulink>
-    (to generate HTML documentation and manuals)</para>
+    <xref linkend="doxygen"/> (to generate the API documentation)
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/dbus"/></para>
@@ -111,7 +111,7 @@ useradd -c "D-BUS Message Daemon User" -d /dev/null \
     will have to be built twice in this situation. If you would like to run
     the unit tests, issue the following commands:</para>
 
-<screen><userinput>./configure --enable-tests &amp;&amp;
+<screen><userinput>./configure --enable-tests --enable-asserts &amp;&amp;
 make &amp;&amp;
 make check &amp;&amp;
 make distclean</userinput></screen>
@@ -129,19 +129,14 @@ make</userinput></screen>
     <para>The <option>--enable-doxygen-docs</option> parameter does not work
     properly. If you have <application>Doxygen</application> installed and you
     wish to build the API documentation, issue
-    <command>doxygen</command>.</para>
+    <command>doxygen Doxyfile</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 install -v -m755 -d /usr/share/doc/dbus-&dbus-version; &amp;&amp;
-install -v -m644 doc/{TODO,*.{dtd,xml,xsl,txt,c}} \
-    /usr/share/doc/dbus-&dbus-version;</userinput></screen>
-
-    <para>If you built the HTML documentation, install it by issuing the
-    following commands as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>install -v -m644 doc/*.html /usr/share/doc/dbus-&dbus-version;</userinput></screen>
+install -v -m644 doc/{TODO,*.{dtd,html,xml,xsl,txt,c}} \
+    /usr/share/doc/dbus-&dbus-version; &amp;&amp;</userinput></screen>
 
     <para>If you built the API documentation, install it by issuing the
     following commands as the <systemitem class="username">root</systemitem> user:</para>
@@ -163,6 +158,19 @@ install -v -m644 doc/api/man/man3dbus/* \
     created in the <filename class="directory">/var</filename> directory
     instead of the <filename class="directory">/usr/var</filename>
     directory.</para>
+
+    <para><parameter>--enable-tests</parameter>: Build extra parts of the code
+    to support testing. Configure will end with a NOTE warning about this.</para>
+
+    <para><parameter>--enable-asserts</parameter>: Enable debugging code to run
+    assertions for statements normally assumed to be true. This prevents a
+    warning that '<parameter>--enable-tests</parameter>' on its own is only useful
+    for profiling and might not give true results for all tests, but adds its own
+    NOTE that this should not be used in a production build.
+    </para>
+
+    <para><parameter>--disable-static</parameter>: Prevent the static libraries
+    being built.</para>
 
   </sect2>
 
@@ -219,6 +227,16 @@ install -v -m644 doc/api/man/man3dbus/* \
 
 &lt;/busconfig&gt;</literal>
 EOF</userinput></screen>
+
+      <para>Many packages will refuse to run if the file
+      <literal>/var/lib/dbus/machine-id</literal> does not exist, and
+      complain that <application>dbus</application> has not been properly
+      installed. To prevent this, run the following command as the
+       <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput>dbus-uuidgen --ensure</userinput></screen>
+
+      <para>This will create a unique identifier for the machine.</para>
 
     </sect3>
 
