@@ -4,10 +4,10 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY dhcpcd-download-http "http://download.berlios.de/dhcpcd/dhcpcd-&dhcpcd-version;.tar.bz2">
+  <!ENTITY dhcpcd-download-http "http://roy.marples.name/downloads/dhcpcd/dhcpcd-&dhcpcd-version;.tar.bz2">
   <!ENTITY dhcpcd-download-ftp  "ftp://ftp.osuosl.org/pub/gentoo/distfiles/dhcpcd-&dhcpcd-version;.tar.bz2">
-  <!ENTITY dhcpcd-md5sum        "90d6df62d663bdea65d5905023377b39">
-  <!ENTITY dhcpcd-size          "32.5 KB">
+  <!ENTITY dhcpcd-md5sum        "f57a9614e592814485c47495c53e4c30">
+  <!ENTITY dhcpcd-size          "50 KB">
   <!ENTITY dhcpcd-buildsize     "0.3 MB">
   <!ENTITY dhcpcd-time          "less than 0.1 SBU">
 ]>
@@ -65,15 +65,22 @@
     <title>Installation of dhcpcd</title>
 
     <para>Install <application>dhcpcd</application> by running the following
-    commands:</para>
+    commands as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen><userinput>make</userinput></screen>
+<screen><userinput>make PREFIX= \
+         LIBEXECDIR=/lib/dhcpcd \
+         DBDIR=/var/lib \
+         SYSCONFDIR=/etc/dhcpcd install</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>By default, a plain text lease info file isn't created but the 
+      <application>dhcpcd</application> provides a hook which can be used for creating
+      such a file. Install the hook by running the following
+      commands as the <systemitem class="username">root</systemitem> user:</para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>make install</userinput></screen>
+<screen><userinput>sed -i "s;/var/lib/dhcpcd-;/var/lib/dhcpcd/dhcpcd-;g" \
+       /lib/dhcpcd/dhcpcd-hooks/50-dhcpcd-compat &amp;&amp;
+make LIBEXECDIR=/lib/dhcpcd \
+     HOOKSCRIPTS=50-dhcpcd-compat install</userinput></screen>
 
   </sect2>
 
@@ -83,10 +90,10 @@
     <sect3 id="dhcpcd-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/dhcpcd.sh</filename></para>
+      <para><filename>/etc/dhcpcd/dhcpcd.conf</filename></para>
 
       <indexterm zone="dhcpcd dhcpcd-config">
-        <primary sortas="e-etc-dhcpcd-sh">/etc/dhcpcd.sh</primary>
+        <primary sortas="e-etc-dhcpcd-dhcpcd-conf">/etc/dhcpcd/dhcpcd.conf</primary>
       </indexterm>
 
     </sect3>
@@ -107,12 +114,9 @@
 <screen role='root'><userinput>make install-service-dhcpcd</userinput></screen>
 
       <para>Whenever <command>dhcpcd</command> configures or shuts down
-      a network interface, it executes the script
-      <filename>/etc/dhcpcd.sh</filename>. This script can be
-      customized to perform additional actions for the network interface.
-      See the man page of <command>dhcpcd</command> for more details. An
-      example file is shipped in the tarball which can be used to send
-      the interface details to syslog.</para>
+      a network interface, it executes hook scripts. For more details
+      about those scripts, see the <command>dhcpcd-run-hooks</command> as
+      well as the <command>dhcpcd</command> man page.</para>
 
       <para id="dhcpcd-config2">Finally, as the <systemitem
       class="username">root</systemitem> user create the
@@ -145,19 +149,21 @@ EOF</userinput></screen>
       <command>dhcpcd</command>.</para>
 
       <note>
-        <para id="dhcpcd-config3">The default behavior of
-        <command>dhcpcd</command> is to overwrite (after making backup copies)
-        <filename>/etc/resolv.conf</filename>, <filename>/etc/yp.conf</filename> and
-        <filename>/etc/ntp.conf</filename> with new files containing information from
-        the DHCP server. If this is undesirable, review the
-        <command>dhcpcd</command> man page for switches to add to the
+        <para id="dhcpcd-config3">The default behavior of <command>dhcpcd</command>
+        is to overwrite <filename>/etc/resolv.conf</filename>. All modifications on
+        system configuration files like <filename>/etc/resolv.conf</filename>, 
+        <filename>/etc/yp.conf</filename> and <filename>/etc/ntp.conf</filename> are
+        done by hooks which are stored in <filename>/lib/dhcpcd/dhcpcd-hooks</filename>.
+        Setup <command>dhcpcd</command> by removing or adding hooks from/to that directory.
+        The execution of hooks can be disabled by using the -C command line option.
+        Rewiew the <command>dhcpcd</command> man page for switches to add to the
         <envar>DHCP_START</envar> value.</para>
       </note>
 
       <indexterm zone="dhcpcd dhcpcd-config3">
         <primary sortas="e-etc-resolv.conf">/etc/resolv.conf</primary>
       </indexterm>
-
+<!--  These are not modified by default with version 4 of dhcpcd
       <indexterm zone="dhcpcd dhcpcd-config3">
         <primary sortas="e-etc-yp.conf">/etc/yp.conf</primary>
       </indexterm>
@@ -165,7 +171,7 @@ EOF</userinput></screen>
       <indexterm zone="dhcpcd dhcpcd-config3">
         <primary sortas="e-etc-ntp.conf">/etc/ntp.conf</primary>
       </indexterm>
-
+-->
     </sect3>
 
   </sect2>
