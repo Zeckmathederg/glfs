@@ -6,10 +6,10 @@
 
   <!ENTITY openssh-download-http "http://sunsite.ualberta.ca/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
   <!ENTITY openssh-download-ftp  "ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-&openssh-version;.tar.gz">
-  <!ENTITY openssh-md5sum        "50a800fd2c6def9e9a53068837e87b91">
-  <!ENTITY openssh-size          "968 KB">
-  <!ENTITY openssh-buildsize     "16.2 MB">
-  <!ENTITY openssh-time          "0.5 SBU (additional 1.2 SBU to run the test suite)">
+  <!ENTITY openssh-md5sum        "03f2d0c1b5ec60d4ac9997a146d2faec">
+  <!ENTITY openssh-size          "1.0 MB">
+  <!ENTITY openssh-buildsize     "29 MB">
+  <!ENTITY openssh-time          "0.5 SBU (additional 1.3 SBU to run the test suite)">
 ]>
 
 <sect1 id="openssh" xreflabel="OpenSSH-&openssh-version;">
@@ -66,13 +66,16 @@
     <xref linkend="tcpwrappers"/>,
     <xref linkend="x-window-system"/>,
     <xref linkend="mitkrb"/> or <xref linkend="heimdal"/>,
-    <xref linkend="net-tools"/>,
-    <xref linkend="sysstat"/>,
     <ulink url="http://www.thrysoee.dk/editline/">libedit</ulink>
     (provides a command-line history feature to <command>sftp</command>),
     <ulink url="http://www.opensc-project.org/">OpenSC</ulink>, and
     <ulink
     url="http://www.citi.umich.edu/projects/smartcard/sectok.html">libsectok</ulink></para>
+
+    <bridgehead renderas="sect4">Optional Runtime (Used only to gather entropy)</bridgehead>
+    <para role="optional"><xref linkend="jdk"/>,
+    <xref linkend="net-tools"/>, and
+    <xref linkend="sysstat"/>.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url='&blfs-wiki;/OpenSSH'/></para>
@@ -99,7 +102,7 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
     <para><application>OpenSSH</application> is very sensitive to changes in
     the linked <application>OpenSSL</application> libraries. If you recompile
     <application>OpenSSL</application>, <application>OpenSSH</application> may
-    fail to startup. An alternative is to link against the static
+    fail to start up. An alternative is to link against the static
     <application>OpenSSL</application> library. To link against the static
     library, execute the following command:</para>
 
@@ -108,11 +111,9 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
     <para>Install <application>OpenSSH</application> by running
     the following commands:</para>
 
-<screen><userinput>sed -i 's@ -ldes@@' configure &amp;&amp;
-./configure --prefix=/usr --sysconfdir=/etc/ssh --datadir=/usr/share/sshd \
+<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc/ssh --datadir=/usr/share/sshd \
     --libexecdir=/usr/lib/openssh --with-md5-passwords \
-    --with-privsep-path=/var/lib/sshd \
-    --with-xauth=/usr/bin/xauth &amp;&amp;
+    --with-privsep-path=/var/lib/sshd &amp;&amp;
 make</userinput></screen>
 
     <para>If you linked <application>tcp_wrappers</application> into the
@@ -120,28 +121,21 @@ make</userinput></screen>
     you add 127.0.0.1 to the sshd line in <filename>/etc/hosts.allow</filename>
     if you have a restrictive <filename>/etc/hosts.deny</filename> file, or the
     test suite will fail. Additionally, the testsuite requires an installed
-    copy of <command>scp</command> to complete the mulitplexing tests.  To
-    run the test suite, issue the following commnds as the
-    <systemitem class="username">root</systemitem> user:</para>
+    copy of <command>scp</command> to complete the multiplexing tests.  To
+    run the test suite, first copy the scp program to  
+    <filename class="directory">/usr/bin</filename>, making sure that you 
+    back up any existing copy first.</para>
 
-<screen role="root"><userinput>if test -f /usr/bin/scp
-then
-    mv /usr/bin/scp /usr/bin/scp-bak
-fi &amp;&amp;
-cp scp /usr/bin/scp &amp;&amp;
-make tests 2&gt;&amp;1 | tee check.log
-grep "FATAL" check.log</userinput></screen>
+    <para>To run the test suite, issue the following commnds:</para>
+
+<screen role="root"><userinput>make tests 2&gt;&amp;1 | tee check.log
+grep FATAL check.log</userinput></screen>
 
     <para>If the above command produces no 'FATAL' errors, then proceed
-    with the installation, again as the
+    with the installation, as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>rm /usr/bin/scp &amp;&amp;
-if test -f /usr/bin/scp-bak
-then
-    rm /usr/bin/scp-bak
-fi &amp;&amp;
-make install &amp;&amp;
+<screen role="root"><userinput>make install &amp;&amp;
 install -v -m755 -d /usr/share/doc/openssh-&openssh-version; &amp;&amp;
 install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
     /usr/share/doc/openssh-&openssh-version;</userinput></screen>
@@ -151,12 +145,6 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's@ -ldes@@' configure</command>:
-    This command fixes a build crash if you used the
-    <option>--with-kerberos5</option> parameter and you built the
-    <application>Heimdal</application> package in accordance with the BLFS
-    instructions. The command is harmless in all other instances.</para>
-
     <para><parameter>--sysconfdir=/etc/ssh</parameter>: This prevents
     the configuration files from being installed in
     <filename class="directory">/usr/etc</filename>.</para>
@@ -164,16 +152,6 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
     <para><parameter>--datadir=/usr/share/sshd</parameter>: This switch
     puts the Ssh.bin file (used for SmartCard authentication) in
     <filename class="directory">/usr/share/sshd</filename>.</para>
-
-<!-- WOW, this description is really old, IIRC it was obsolete shortly
-     before I was an editor, as the hint became a part of both books.
-     I'll leave it in for now JIC - Delete Later
-    <para><parameter>- -with-md5-passwords</parameter>: This is required
-    if you made the changes recommended by the shadowpasswd_plus
-    LFS hint on your SSH server when you installed the Shadow Password
-    Suite or if you access a SSH server that authenticates by
-    user passwords encrypted with md5.</para>
--->
 
     <para><parameter>--with-md5-passwords</parameter>: This is required
     with the default configuration of Shadow password suite in LFS.</para>
@@ -194,6 +172,9 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
     You can omit this switch if <application>Xorg</application> is already
     installed.
     </para>
+
+    <para><parameter>--with-kerberos5=/usr</parameter>: This option is used to 
+    include Heimdal support in the build.</para>
 
   </sect2>
 
@@ -274,7 +255,7 @@ chmod 644 /etc/pam.d/sshd</userinput></screen>
         <seg>scp, sftp, sftp-server, slogin, ssh, sshd, ssh-add, ssh-agent,
         ssh-keygen, ssh-keyscan, and ssh-keysign</seg>
         <seg>None</seg>
-        <seg>/etc/ssh, /var/lib/sshd and
+        <seg>/etc/ssh, /var/lib/sshd, /usr/lib/openssh, and
         /usr/share/doc/openssh-&openssh-version;</seg>
       </seglistitem>
     </segmentedlist>
