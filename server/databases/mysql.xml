@@ -8,10 +8,10 @@
   <!ENTITY mysql-download-ftp  "ftp://ftp.fu-berlin.de/unix/databases/mysql/Downloads/MySQL-5.0/mysql-&mysql-version;.tar.gz"> -->
   <!ENTITY mysql-download-http "&sources-anduin-http;/m/mysql-&mysql-version;.tar.gz">
   <!ENTITY mysql-download-ftp  "&sources-anduin-ftp;/m/mysql-&mysql-version;.tar.gz">
-  <!ENTITY mysql-md5sum        "b45cd6c89e35dfc1cdbe1a1f782aefbf">
-  <!ENTITY mysql-size          "24 MB">
-  <!ENTITY mysql-buildsize     "405 MB (additional 65 MB to run the test suite)">
-  <!ENTITY mysql-time          "6.0 SBU (Test suite is an additional 52 minutes, only partially CPU dependent)">
+  <!ENTITY mysql-md5sum        "b658e58887a74dce65224ae0fc8ee06a">
+  <!ENTITY mysql-size          "28 MB">
+  <!ENTITY mysql-buildsize     "386 MB (additional 250 MB to run the test suite)">
+  <!ENTITY mysql-time          "5.1 SBU (Test suite is an additional 100 minutes, only partially CPU dependent)">
 ]>
 
 <sect1 id="mysql" xreflabel="MySQL-&mysql-version;">
@@ -63,6 +63,15 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required Patch: <ulink
+         url="&patch-root;/mysql-&mysql-version;-limit-test-1.patch"/></para>
+       </listitem>
+    </itemizedlist>
+
+
     <bridgehead renderas="sect3">MySQL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -91,10 +100,15 @@
 useradd -c "MySQL Server" -d /dev/null -g mysql -s /bin/false \
         -u 40 mysql</userinput></screen>
 
+    <note><para>There are a great many options available to
+    <userinput>./configure</userinput>.  Check the output of the
+    <option>--help</option> option for additional customization
+    options.</para></note>
+
     <para>Build and install <application>MySQL</application> by
     running the following commands:</para>
 
-<screen><userinput>C_EXTRA_FLAGS=-fno-strict-aliasing \
+<screen><userinput>patch -Np1 -i ../mysql-&mysql-version;-limit-test-1.patch &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --libexecdir=/usr/sbin \
@@ -104,35 +118,21 @@ useradd -c "MySQL Server" -d /dev/null -g mysql -s /bin/false \
             --enable-local-infile \
             --with-unix-socket-path=/var/run/mysql/mysql.sock \
             --without-debug \
-            --without-bench \
             --without-readline \
-            --with-berkeley-db \
-            --with-extra-charsets=all &amp;&amp;
-make testdir=/tmp/mysql</userinput></screen>
-
-<!--
-    <para>Some of the tests in the test suite are known to fail and this will
-    cause the test suite to abort at that point. Issue the following command
-    to disable the tests known to fail:</para>
-
-<screen><userinput>for TESTFILE in information_schema innodb join mysql_client_test \
-                ps_2myisam ps_3innodb ps_4heap ps_5merge \
-                sp-error strict type_float type_ranges
-do
-  mv mysql-test/t/$TESTFILE.test mysql-test/t/$TESTFILE.test.disabled
-done
-unset TESTFILE</userinput></screen>
--->
+            --with-plugins=innobase,myisam \
+            --with-extra-charsets=all \
+            --with-ssl &amp;&amp;
+make</userinput></screen>
 
     <para>To test the results, issue: <command>make test</command>. Note that
     if you have a restrictive <filename>/etc/hosts.deny</filename> file, you
     will need to add an appropriate entry to the
     <filename>/etc/hosts.allow</filename> file for the
-    <command>mysqld</command> daemon, else many of the tests will fail.</para>
+    <command>mysqld</command> daemon. Otherwise many of the tests will fail.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make testdir=/tmp/mysql install &amp;&amp;
+<screen role="root"><userinput>make benchdir_root=/tmp/mysql-bench install &amp;&amp;
 rm -rf /tmp/mysql &amp;&amp;
 cd /usr/lib &amp;&amp;
 ln -v -sf mysql/libmysqlclient{,_r}.so* .</userinput></screen>
@@ -149,10 +149,6 @@ ln -v -sf mysql/libmysqlclient{,_r}.so* .</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><parameter>C_EXTRA_FLAGS=-fno-strict-aliasing</parameter>: This
-    environment variable adjusts the compiler optimization to avoid failures in
-    the testsuite and other operations.</para>
 
     <para><parameter>--libexecdir=/usr/sbin</parameter>: This switch installs
     the <command>mysqld</command> daemon and the
@@ -178,23 +174,19 @@ ln -v -sf mysql/libmysqlclient{,_r}.so* .</userinput></screen>
     <filename class="directory">/var/run/mysql</filename> directory instead of
     the default <filename class="directory">/tmp</filename>.</para>
 
-    <para><parameter>--without-bench</parameter>: This switch skips building
-    the benchmark suite.</para>
-
     <para><parameter>--without-readline</parameter>: This switch forces the
     build to use the system copy of <application>readline</application> instead
     of the bundled copy.</para>
 
-    <para><parameter>--with-berkeley-db</parameter>: This switch enables
-    using <application>Berkeley DB</application> tables as a back end.</para>
-
     <para><parameter>--with-extra-charsets=all</parameter>: This switch enables
     international character sets within the suite.</para>
 
-    <para><command>make testdir=...</command>: This installs the test suite in
-    <filename class='directory'>/tmp/mysql</filename>. The test suite is not
-    required, nor does it function properly on an installed version of
-    <application>MySQL</application>, so it is removed in the next step.</para>
+    <para><parameter>--with-plugins=innobase,myisam</parameter>: This switch enables
+    two useful table types.  Check <command>./configure --help</command> for
+    other table types.</para>
+
+    <para><command>make  benchdir_root=...</command>: This installs the benchmark
+    and test suites in a non-system location.</para>
 
     <para><command>ln -v -sf mysql/libmysqlclient{,_r}.so* .</command>: This
     command makes the <application>MySQL</application> shared libraries
@@ -235,7 +227,11 @@ ln -v -sf mysql/libmysqlclient{,_r}.so* .</userinput></screen>
       use. Create <filename>/etc/my.cnf</filename> using the following command
       as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m644 /usr/share/mysql/my-medium.cnf /etc/my.cnf</userinput></screen>
+<screen role="root"><userinput>install -v -m644 /usr/share/mysql/my-medium.cnf /etc/my.cnf
+sed -i -e s/^skip-federated/#skip-federated/ /etc/my.cnf</userinput></screen>
+
+      <para>The change to <filename>/etc/my.cnf</filename> can be omitted if the
+      option <option>--with-plugins=federated</option> is used.</para>
 
       <para>You can now install a database and change the ownership to the
       unprivileged user and group (perform as the <systemitem
