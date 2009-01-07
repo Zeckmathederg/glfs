@@ -5,10 +5,10 @@
   %general-entities;
   <!ENTITY kdepim-download-http "&kde-download-http;/kdepim-&kde-version;.tar.bz2">
   <!ENTITY kdepim-download-ftp  "&kde-download-ftp;/kdepim-&kde-version;.tar.bz2">
-  <!ENTITY kdepim-md5sum        "ba27b06599556c572a26f03608471ee2">
-  <!ENTITY kdepim-size          "14.0 MB">
-  <!ENTITY kdepim-buildsize     "281 MB (additional 251 MB for API docs)">
-  <!ENTITY kdepim-time          "22 SBU (additional 1 SBU for API docs)">
+  <!ENTITY kdepim-md5sum        "fc93e458a8eec8131ede56cff30c28b2">
+  <!ENTITY kdepim-size          "13.9 MB">
+  <!ENTITY kdepim-buildsize     "267 MB (additional 245 MB for API docs)">
+  <!ENTITY kdepim-time          "24 SBU (additional 0.9 SBU for API docs)">
 ]>
 
 <sect1 id="kdepim" xreflabel="kdepim-&kde-version;">
@@ -91,10 +91,15 @@
 
     <para>Install <application>kdepim</application> with:</para>
 
-<screen><userinput>./configure --prefix=&kde-dir; --disable-debug \
-    --disable-dependency-tracking &amp;&amp;
-sed -i "s@ \*/@&amp;\n#define HAVE_FOPENCOOKIE@" \
+<screen><userinput>sed -i "s@ \*/@&amp;\n#define HAVE_FOPENCOOKIE@" \
     libkdenetwork/libgpgme-copy/{assuan,gpgme}/funopen.c &amp;&amp;
+sed -i -e 's|linux/inotify|sys/inotify|'                 \
+       -e '/^static inline int inotify_init/,/^}/d'      \
+       -e '/^static inline int inotify_add_watch/,/^}/d' \
+       -e '/^static inline int inotify_rm_watch/,/^}/d'  \
+       kmail/editorwatcher.cpp &amp;&amp;
+./configure --prefix=&kde-dir; --disable-debug \
+    --disable-dependency-tracking &amp;&amp;
 make</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
@@ -105,6 +110,20 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed -i ... funopen.c</command>: This prevents an error
+    during build that is caused by <command>configure</command> not 
+    properly detecting a capability built into <filename>glibc</filename>.
+    </para>
+
+    <para><command>sed -i ... kmail/editorwatcher.cpp</command>: This This
+    command is necessary to prevent a conflict in linux headers. The equivalent
+    instructions that are deleted are now within glibc.</para>
 
   </sect2>
 

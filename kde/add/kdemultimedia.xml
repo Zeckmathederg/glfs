@@ -6,10 +6,10 @@
 
   <!ENTITY kdemultimedia-download-http "&kde-download-http;/kdemultimedia-&kde-version;.tar.bz2">
   <!ENTITY kdemultimedia-download-ftp  "&kde-download-ftp;/kdemultimedia-&kde-version;.tar.bz2">
-  <!ENTITY kdemultimedia-md5sum        "fdfafe38d2c7e3019dafc80c177add15">
-  <!ENTITY kdemultimedia-size          "6.1 MB">
-  <!ENTITY kdemultimedia-buildsize     "125 MB (additional 1 MB for API docs)">
-  <!ENTITY kdemultimedia-time          "9.8 SBU (additional 0.2 SBU for API docs)">
+  <!ENTITY kdemultimedia-md5sum        "8e8cd7f41d37f7da8bd239048abf3516">
+  <!ENTITY kdemultimedia-size          "6.0 MB">
+  <!ENTITY kdemultimedia-buildsize     "122 MB">
+  <!ENTITY kdemultimedia-time          "9.7 SBU">
 
   <!ENTITY akode-version       "2.0.2">
   <!ENTITY akode-download-http "http://www.kde-apps.org/CONTENT/content-files/30375-akode-&akode-version;.tar.bz2">
@@ -108,10 +108,19 @@
 
     <bridgehead renderas="sect3">Installation of Akode</bridgehead>
 
-    <para>Install <application>Akode</application> by issuing the following
-    commands:</para>
+<screen><userinput>sed -i "s/#include &lt;iostream&gt;/&amp;\n#include &lt;cstdlib&gt;/" \
+    akode/lib/auto_sink.cpp  &amp;&amp;
 
-<screen><userinput>./configure --prefix=&kde-dir; --without-ffmpeg \
+sed -i 's/#include "../lib/decoder.h"/&amp;\n#include &lt;cstdlib&gt;/' \
+    akode/akodeplay/akodeplay.cpp  &amp;&amp;
+
+sed -i "s/&lt;assert.h&gt;/&amp;\n#include &lt;string.h&gt;\n/" \
+    akode/lib/player.cpp  &amp;&amp;
+
+sed -i "s/&lt;iostream&gt;/&amp;\n#include &lt;string.h&gt;\n/" \
+     akode/lib/magic.cpp  &amp;&amp;
+
+./configure --prefix=&kde-dir; --without-ffmpeg \
     --disable-debug --disable-dependency-tracking &amp;&amp;
 make</userinput></screen>
 
@@ -125,6 +134,10 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed ...</command>: The four sed commands insert headers
+    needed by <application>gcc-4.3</application> and above because the C++ header
+    dependencies have been cleaned up.</para>
 
     <para><parameter>--without-ffmpeg</parameter>: This option disables the
     experimental <application>FFmpeg</application> support in
@@ -235,8 +248,12 @@ make</userinput></screen>
     --disable-debug --disable-dependency-tracking &amp;&amp;
 make</userinput></screen>
 
+<!--
+    The apidox target has been removed from this package.
+
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/kde-apidocs.xml"/>
+-->
 
      <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 

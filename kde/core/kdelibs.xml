@@ -6,10 +6,10 @@
 
   <!ENTITY kdelibs-download-http "&kde-download-http;/kdelibs-&kde-version;.tar.bz2">
   <!ENTITY kdelibs-download-ftp  "&kde-download-ftp;/kdelibs-&kde-version;.tar.bz2">
-  <!ENTITY kdelibs-md5sum        "55e5f00874933d1a7ba7c95e369a205e">
-  <!ENTITY kdelibs-size          "15.0 MB">
-  <!ENTITY kdelibs-buildsize     "276 MB (additional 431 MB for API docs)">
-  <!ENTITY kdelibs-time          "15 SBU (additional 1.25 SBU for API docs)">
+  <!ENTITY kdelibs-md5sum        "43cd55ed15f63b5738d620ef9f9fd568">
+  <!ENTITY kdelibs-size          "14.9 MB">
+  <!ENTITY kdelibs-buildsize     "254 MB (additional 426 MB for API docs)">
+  <!ENTITY kdelibs-time          "13.1 SBU (additional 3.0 SBU for API docs)">
 ]>
 
 <sect1 id="kdelibs" xreflabel="kdelibs-&kde-version;">
@@ -115,18 +115,36 @@
 
     <para>Install <application>kdelibs</application> with:</para>
 
-<screen><userinput>./configure --prefix=&kde-dir; \
+<screen><userinput>patch -Np1 -i ../kdelibs-&kde-version;-charset-1.patch &amp;&amp;
+sed -i -e 's|linux/inotify|sys/inotify|'                 \
+       -e '/^static inline int inotify_init/,/^}/d'      \
+       -e '/^static inline int inotify_add_watch/,/^}/d' \
+       -e '/^static inline int inotify_rm_watch/,/^}/d'  \
+       kio/kio/kdirwatch.cpp &amp;&amp;
+./configure --prefix=$KDE_PREFIX  \
             --sysconfdir=/etc/kde \
-            --disable-debug \
+            --disable-debug       \
             --disable-dependency-tracking &amp;&amp;
-LD_LIBRARY_PATH="$QTDIR/lib" make</userinput></screen>
+make</userinput></screen>
 
     <note>
+
       <para>If you wish to create the API documentation and you have
-      <application>Doxygen</application> and <application>Graphviz</application>
-      installed, <command>make apidox</command> must be done before
-      <command>make install</command>. This applies to all packages which
-      can utilize <application>Doxygen</application>.</para>
+      <application>Doxygen</application> and
+      <application>Graphviz</application> installed, it must be done before the
+      <command>make install</command>. This applies to all packages which can
+      utilize <application>Doxygen</application>.</para>
+
+      <para><emphasis>The usual building the API documentation in this package
+      will run forever because of a bug in
+      <application>doxygen</application>.</emphasis>  There is a symbolic link
+      in the <filename class='directory'>kdeprint</filename> directory that is
+      not handled properly.  To fix this, delete the link, generate the 
+      documentation, and recreate the symbolic link:</para>
+
+      <screen><userinput>rm kdeprint/kdeprint &amp;&amp;
+make apidox &amp;&amp;
+ln -s  management kdeprint/kdeprint</userinput></screen>
 
       <para>The <command>make apidox</command> command generates a lot of
       errors and warnings.  In some cases it complains that Helvetica fonts are
@@ -154,6 +172,10 @@ LD_LIBRARY_PATH="$QTDIR/lib" make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i ... kio/kio/kdirwatch.cpp</command>: This command is
+    necessary to prevent a conflict in linux headers.  The equivalent
+    instructions that are deleted are now within glibc.</para> 
+
     <para><parameter>--prefix=&kde-dir;</parameter>: This option tells the process
     to install the package in <filename class="directory">&kde-dir;</filename>.</para>
 
@@ -163,12 +185,6 @@ LD_LIBRARY_PATH="$QTDIR/lib" make</userinput></screen>
     <para><parameter>--disable-dependency-tracking</parameter>: This option
     speeds up one time builds.</para>
 
-<!--
-    <para><parameter>- -enable-fast-malloc=full</parameter>: This option tells
-    <application>KDE</application> programs to use an internal memory
-    allocation scheme optimized for <application>KDE</application>.</para>
--->
-
     <para><parameter>--sysconfdir=/etc/kde</parameter>: This option places
     configuration files in compliance with the <ulink
     url='http://www.pathname.com/fhs/pub/fhs-2.3.html#ETCHOSTSPECIFICSYSTEMCONFIGURATION'
@@ -176,12 +192,6 @@ LD_LIBRARY_PATH="$QTDIR/lib" make</userinput></screen>
     configuration files will be placed in <filename
     class='directory'>$KDE_PREFIX/etc</filename> which may be desirable if
     you have multiple versions of <application>KDE</application> installed.</para>
-
-    <para><parameter>LD_LIBRARY_PATH="$QTDIR/lib" make</parameter>: A bug in the
-    <application>kdelibs</application> build system prevents <application>Qt</application>
-    from being found by the Makefiles if <application>Qt</application> was
-    installed in <filename class='directory'>/opt</filename>. Setting LD_LIBRARY_PATH
-    works around the problem.</para>
 
   </sect2>
 
