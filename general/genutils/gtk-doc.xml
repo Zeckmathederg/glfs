@@ -6,9 +6,9 @@
 
   <!ENTITY gtk-doc-download-http "&gnome-download-http;/gtk-doc/&gtk-doc-version;/gtk-doc-&gtk-doc-version;.tar.bz2">
   <!ENTITY gtk-doc-download-ftp  "&gnome-download-ftp;/gtk-doc/&gtk-doc-version;/gtk-doc-&gtk-doc-version;.tar.bz2">
-  <!ENTITY gtk-doc-md5sum        "e61595df21431db28c83fe4c7d4a4fa8">
-  <!ENTITY gtk-doc-size          "186 KB">
-  <!ENTITY gtk-doc-buildsize     "2 MB">
+  <!ENTITY gtk-doc-md5sum        "b5e268c71fa90aad890cf53715664d0a">
+  <!ENTITY gtk-doc-size          "443 KB">
+  <!ENTITY gtk-doc-buildsize     "4.8 MB">
   <!ENTITY gtk-doc-time          "less than 0.1 SBU">
 ]>
 
@@ -67,12 +67,16 @@
     <xref linkend="DocBook"/>, and
     <xref linkend="docbook-xsl"/></para>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="optional"><xref linkend="python"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="pkgconfig"/>,
     <xref linkend="scrollkeeper"/>,
     <xref linkend="openjade"/>,
-    <xref linkend="sgml-dtd"/>, and
-    <xref linkend="docbook-dsssl"/></para>
+    <xref linkend="sgml-dtd"/>,
+    <xref linkend="docbook-dsssl"/>, also
+    <xref linkend="glib2"/> (for the testsuite)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gtk-doc"/></para>
@@ -85,22 +89,32 @@
     <para>Install <application>GTK-Doc</application> by running
     the following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --localstatedir=/var/lib &amp;&amp;
+<screen><userinput>sed -i '/^pkgconfigdir/s/datadir/libdir/' &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
-
-    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+    <para>The test suite requires that the package has been installed first, and
+    in any case it fails because of a missing file, so there is little point
+    in running it.  If you insist on seeing the results, as a normal user run:
+    <command>make check</command>.</para>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i '/^pkgconfigdir/s/datadir/libdir/'</command>:
+    this installs the pkgconfig file in a place which is on
+    <envar>PKG_CONFIG_PATH</envar> instead of in
+    <filename class='directory'>/usr/share/pkgconfig</filename>.</para>
+
+    <!-- no scrollkeeper files with this version
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
-    href="../../xincludes/scrollkeeper-dir.xml"/>
+    href="../../xincludes/scrollkeeper-dir.xml"/>-->
 
   </sect2>
 
@@ -113,11 +127,12 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gtkdocize, gtkdoc-fixxref, gtkdoc-mkdb, gtkdoc-mkhtml, gtkdoc-mkman,
-        gtkdoc-mktmpl, gtkdoc-scan, gtkdoc-scangobj, and gtkdoc-scanobj</seg>
+        <seg>gtkdocize, gtkdoc-check, gtkdoc-depscan, gtkdoc-fixxref, gtkdoc-mkdb,
+        gtkdoc-mkhtml, gtkdoc-mkman, gtkdoc-mktmpl, gtkdoc-rebase, gtkdoc-scan,
+        gtkdoc-scangobj, and gtkdoc-scanobj</seg>
         <seg>None</seg>
         <seg>The following subdirectories of /usr/share/:
-        doc/gtk-doc-&gtk-doc-version;,
+        <!--doc/gtk-doc-&gtk-doc-version;, -->
         gnome/help/gtk-doc-manual,
         gtk-doc/data and
         {omf,sgml}/gtk-doc</seg>
@@ -132,7 +147,8 @@ make</userinput></screen>
       <varlistentry id="gtkdoc">
         <term><command>gtkdoc*</command></term>
         <listitem>
-          <para>these are all <application>Perl</application> scripts used by
+          <para>these are all shell, <application>Perl</application>, or
+          <application>Python</application> scripts used by
           package <filename>Makefile</filename> scripts to generate
           documentation for the package being built.</para>
           <indexterm zone="gtk-doc gtkdoc">
