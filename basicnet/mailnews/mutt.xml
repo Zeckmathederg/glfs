@@ -6,10 +6,10 @@
 
   <!ENTITY mutt-download-http "&sourceforge-repo;/mutt/mutt-&mutt-version;.tar.gz">
   <!ENTITY mutt-download-ftp  "ftp://ftp.mutt.org/mutt/devel/mutt-&mutt-version;.tar.gz">
-  <!ENTITY mutt-md5sum        "27c30037120189b9f9c0d3e76361b8f8">
-  <!ENTITY mutt-size          "3.5 MB">
-  <!ENTITY mutt-buildsize     "25.4 MB">
-  <!ENTITY mutt-time          "0.4 SBU">
+  <!ENTITY mutt-md5sum        "73b3747bc7f7c805921e8d24ebac693f">
+  <!ENTITY mutt-size          "3.4 MB">
+  <!ENTITY mutt-buildsize     "28.5 MB">
+  <!ENTITY mutt-time          "0.3 SBU">
 ]>
 
 <sect1 id="mutt" xreflabel="Mutt-&mutt-version;">
@@ -51,6 +51,14 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/mutt-&mutt-version;-imap_hook_fix-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Mutt Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -64,7 +72,8 @@
     <xref linkend="libidn"/>,
     <!-- <xref linkend="db"/> -->
     <xref linkend="gdbm"/> or
-    <ulink url="http://qdbm.sourceforge.net/">QDBM</ulink>, and
+    <ulink url="http://qdbm.sourceforge.net/">QDBM</ulink> or
+    <ulink url="http://tokyocabinet.sourceforge.net/index.html">Tokyo Cabinet</ulink>, and
     <ulink url="http://www.gnu.org/software/gdb/gdb.html">GDB</ulink>
     </para>
 
@@ -98,24 +107,6 @@
       <ulink url="http://www.mutt.org/">Mutt home page</ulink>.</para>
     </note>
 
-    <!-- [ag] 
-    This got fixed with http://dev.mutt.org/hg/mutt/rev/fe615fd5e0de
-    which closed #2911 in mutt's tracker.
-    I have no gnutls to test. I will comment out the note for now and keep an 
-    eye for any reports.
-
-    <caution>
-      <para>If you choose to link <application>Mutt</application> against
-      <xref linkend="gnutls"/>,
-      you won't have SSL client certificate support. Specifically the
-      <envar>ssl_client_cert</envar> configuration variable is recognized
-      as invalid. That means you will lose the ability to use
-      <command>mutt</command> via SMTP over TLS or in the case when
-      a client certification is required for authentication on an IMAP server.
-      For these reasons it is recommended to link <application>Mutt</application>
-      against <xref linkend="openssl"/> if you want SSL/TLS support.</para>
-    </caution> -->
-
     <para><application>Mutt</application> requires a group named
     <systemitem class="groupname">mail</systemitem>.  You can
     add this group, if it does not exist, with this command:</para>
@@ -131,11 +122,13 @@
     <para>Install <application>Mutt</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
-    --with-docdir=/usr/share/doc/mutt-&mutt-version; \
-    --enable-pop --enable-imap \
-    --enable-hcache --without-qdbm \
-    --without-gdbm --with-bdb &amp;&amp;
+<screen><userinput>patch -Np1 -i ../mutt-&mutt-version;-imap_hook_fix-1.patch &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc \
+            --with-docdir=/usr/share/doc/mutt-&mutt-version; \
+            --enable-pop --enable-imap \
+            --enable-hcache --without-qdbm \
+            --without-tokyocabinet \
+            --without-gdbm --with-bdb &amp;&amp;
 make</userinput></screen>
 
     <para>If you have the necessary dependencies installed and would like
@@ -178,6 +171,9 @@ make -C doc</userinput></screen>
 
     <para><parameter>--without-qdbm</parameter>: This switch disables
     <application>QDBM</application> as the header cache backend.</para>
+
+    <para><parameter>--without-tokyocabinet</parameter>: This switch disables
+    <application>Tokyo Cabinet</application> as the header cache backend.</para>
 
     <para><parameter>--without-gdbm</parameter>: This switch disables
     <application>GDBM</application> as the header cache backend.</para>
