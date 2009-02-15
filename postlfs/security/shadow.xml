@@ -4,14 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!-- <!ENTITY shadow-download-http "http://ftp.pld.org.pl/software/shadow/old/shadow-&shadow-version;.tar.bz2"> -->
-  <!-- <!ENTITY shadow-download-ftp  "ftp://ftp.pld.org.pl/software/shadow/shadow-&shadow-version;.tar.bz2"> -->
-  <!-- <!ENTITY shadow-download-http "http://cross-lfs.org/files/packages/svn/shadow-&shadow-version;.tar.bz2"> -->
-  <!ENTITY shadow-download-http "http://anduin.linuxfromscratch.org/sources/LFS/lfs-packages/development/shadow-&shadow-version;.tar.bz2">
-  <!ENTITY shadow-download-ftp  " ">
-  <!ENTITY shadow-md5sum        "e7751d46ecf219c07ae0b028ab3335c6">
-  <!ENTITY shadow-size          "1.5 MB">
-  <!ENTITY shadow-buildsize     "18 MB">
+  <!ENTITY shadow-download-http " ">
+  <!ENTITY shadow-download-ftp  "ftp://pkg-shadow.alioth.debian.org/pub/pkg-shadow/shadow-&shadow-version;.tar.bz2">
+  <!ENTITY shadow-md5sum        "3d26d990d4c3add1b7f8387eec1d1fde">
+  <!ENTITY shadow-size          "1.6 MB">
+  <!ENTITY shadow-buildsize     "22 MB">
   <!ENTITY shadow-time          "0.3 SBU">
 ]>
 
@@ -64,13 +61,13 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <!-- <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required patch: <ulink
         url="&patch-root;/shadow-&shadow-version;-useradd_fix-2.patch"/></para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist> -->
 
     <bridgehead renderas="sect3">Shadow Dependencies</bridgehead>
 
@@ -87,44 +84,46 @@
     <title>Installation of Shadow</title>
 
     <important>
-      <para>The installation shown below is for a situation where
+      <para>The installation commands shown below are for installations where
       <application>Linux-PAM</application> has been installed (with or
       without a <application>CrackLib</application> installation) and
       <application>Shadow</application> is being reinstalled to support the
-      <application>Linux-PAM</application> installation. If you are
-      reinstalling <application>Shadow</application> to provide strong
-      password support via the <application>CrackLib</application> library
-      and you have not installed <application>Linux-PAM</application>, ensure
-      you add the <parameter>--with-libcrack</parameter> parameter to the
-      <command>configure</command> script below.</para>
+      <application>Linux-PAM</application> installation.</para>
+
+      <para> If you are reinstalling <application>Shadow</application> to
+      provide strong password support using the
+      <application>CrackLib</application> library without using
+      <application>Linux-PAM</application>, ensure you add the
+      <parameter>--with-libcrack</parameter> parameter to the
+      <command>configure</command> script below and also issue the following
+      command:</para>
+
+<screen><userinput>sed -i 's@DICTPATH.*@DICTPATH\t/lib/cracklib/pw_dict@' etc/login.defs</userinput></screen>
     </important>
 
     <para>Reinstall <application>Shadow</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../shadow-&shadow-version;-useradd_fix-2.patch &amp;&amp;
-
-./configure --libdir=/lib \
-            --sysconfdir=/etc \
-            --enable-shared \
-            --without-selinux &amp;&amp;
-
-sed -i 's/groups$(EXEEXT) //' src/Makefile &amp;&amp;
-find man -name Makefile -exec sed -i 's/groups\.1 / /' {} \; &amp;&amp;
-sed -i -e 's/ ko//' -e 's/ zh_CN zh_TW//' man/Makefile &amp;&amp;
+<screen><userinput>sed -i 's/groups$(EXEEXT) //' src/Makefile.in                   &amp;&amp;
+find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \; &amp;&amp;
+sed -i -e 's/ ko//' -e 's/ zh_CN zh_TW//' man/Makefile.in       &amp;&amp;
 
 for i in de es fi fr id it pt_BR; do
     convert-mans UTF-8 ISO-8859-1 man/${i}/*.?
-done &amp;&amp;
+done                                                            &amp;&amp;
 
 for i in cs hu pl; do
     convert-mans UTF-8 ISO-8859-2 man/${i}/*.?
-done &amp;&amp;
+done                                                            &amp;&amp;
 
-convert-mans UTF-8 EUC-JP man/ja/*.? &amp;&amp;
-convert-mans UTF-8 KOI8-R man/ru/*.? &amp;&amp;
-convert-mans UTF-8 ISO-8859-9 man/tr/*.? &amp;&amp;
+convert-mans UTF-8 EUC-JP man/ja/*.?                            &amp;&amp;
+convert-mans UTF-8 KOI8-R man/ru/*.?                            &amp;&amp;
+convert-mans UTF-8 ISO-8859-9 man/tr/*.?                        &amp;&amp;
 
+sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD MD5@' \
+       -e 's@/var/spool/mail@/var/mail@' etc/login.defs         &amp;&amp;
+
+./configure --sysconfdir=/etc                                   &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -132,44 +131,25 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-mv -v /usr/bin/passwd /bin &amp;&amp;
-mv -v /lib/libshadow.*a /usr/lib &amp;&amp;
-rm -v /lib/libshadow.so &amp;&amp;
-ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
+mv -v /usr/bin/passwd /bin</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <!-- Removed the -with-libpam and -without-libcrack options from the
-         default as these are the defaults. Pam will automatically be picked
-         up if it is installed, and CrackLib won't be used unless specifically
-         requested via -with-libcrack
-    <para><parameter>-without-libcrack</parameter>: This switch tells
-    <application>Shadow</application> not to use
-    <filename class='libraryfile'>libcrack</filename>. This is desired as
-    <application>Linux-PAM</application> will provide
-    <filename class='libraryfile'>libcrack</filename> functionality.</para>
-    -->
-
-    <para><parameter>--without-selinux</parameter>: Support for selinux is
-    enabled by default, but selinux is not built in a base LFS system. The
-    <command>configure</command> script will fail if this option is not
-    used.</para>
-
-    <para><command>sed -i 's/groups$(EXEEXT) //' src/Makefile</command>: This
-    command is used to suppress the installation of the
+    <para><command>sed -i 's/groups$(EXEEXT) //' src/Makefile.in</command>:
+    This command is used to suppress the installation of the
     <command>groups</command> program as the version from the
     <application>Coreutils</application> package installed during LFS is
     preferred.</para>
 
-    <para><command>find man -name Makefile -exec ... {} \;</command>: This
+    <para><command>find man -name Makefile.in -exec ... {} \;</command>: This
     command is used to suppress the installation of the
     <command>groups</command> man pages so the existing ones installed from
     the <application>Coreutils</application> package are not replaced.</para>
 
-    <para><command>sed -i -e '...' -e '...' man/Makefile</command>: This
+    <para><command>sed -i -e '...' -e '...' man/Makefile.in</command>: This
     command disables the installation of Chinese and Korean manual pages, since
     <application>Man-DB</application> cannot format them properly.</para>
 
@@ -177,15 +157,20 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
     convert some of the man pages so that <application>Man-DB</application>
     will display them in the expected encodings.</para>
 
+    <para><command>sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD MD5@'
+    -e 's@/var/spool/mail@/var/mail@' etc/login.defs</command>:
+    Instead of using the default 'crypt' method, this command modifies the
+    installation to use the more secure 'MD5' method of password encryption,
+    which also allows passwords longer than eight characters. It also changes
+    the obsolete <filename class="directory">/var/spool/mail</filename>
+    location for user mailboxes that <application>Shadow</application> uses by
+    default to the <filename class="directory">/var/mail</filename>
+    location.</para>
+
     <para><command>mv -v /usr/bin/passwd /bin</command>: The
     <command>passwd</command> program may be needed during times when the
     <filename class='directory'>/usr</filename> filesystem is not mounted so
     it is moved into the root partition.</para>
-
-    <para><command>mv -v ...; rm -v ...; ln -v ...</command>: These commands
-    are used to move the <filename class='libraryfile'>libshadow</filename>
-    library to the root partition to support the moving of the
-    <command>passwd</command> program earlier.</para>
 
   </sect2>
 
@@ -193,13 +178,16 @@ ln -v -sf ../../lib/libshadow.so.0 /usr/lib/libshadow.so</userinput></screen>
     <title>Configuring Shadow</title>
 
     <para><application>Shadow</application>'s stock configuration for the
-    <command>useradd</command> utility is not suitable for LFS systems. Use the
-    following commands as the <systemitem class="username">root</systemitem>
-    user to change the default home directory for new users and prevent the
-    creation of mail spool files:</para>
+    <command>useradd</command> utility may not be desireable for your
+    installation. One default parameter causes <command>useradd</command> to
+    create a mailbox file for any newly created user.
+    <command>useradd</command> will make the group ownership of this file to
+    the <systemitem class="groupname">mail</systemitem> group with 0660
+    permissions. If you would prefer that these mailbox files are not created
+    by <command>useradd</command>, issue the
+    following command as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>useradd -D -b /home &amp;&amp;
-sed -i 's/yes/no/' /etc/default/useradd</userinput></screen>
+<screen role="root"><userinput>sed -i 's/yes/no/' /etc/default/useradd</userinput></screen>
 
   </sect2>
 
@@ -220,7 +208,7 @@ sed -i 's/yes/no/' /etc/default/useradd</userinput></screen>
       <title>Config Files</title>
 
       <para><filename>/etc/pam.d/*</filename> or alternatively
-      <filename>/etc/pam.conf, /etc/login.defs and
+      <filename>/etc/pam.conf, /etc/login.defs, and
       /etc/security/*</filename></para>
 
       <indexterm zone="shadow pam.d">
@@ -297,22 +285,6 @@ do
     sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
 
-        <!-- Moved the commenting of these four parameters into the section
-        above. If PAM is installed, it complains if these are not commented
-        regardless if CrackLib is installed.
-
-        <para>If you have <application>CrackLib</application> installed,
-        also comment out four more lines using the following command as the
-        <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>for FUNCTION in OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
-                PASS_CHANGE_TRIES PASS_ALWAYS_WARN
-do
-    sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
-done</userinput></screen>
-
-        -->
-
       </sect4>
 
       <sect4>
@@ -329,16 +301,10 @@ done</userinput></screen>
         additional first field for each line.</para>
 
         <para>As the <systemitem class="username">root</systemitem> user,
-        create the <filename class="directory">/etc/pam.d</filename>
-        directory with the following command:</para>
-
-        <screen role="root"><userinput>install -v -d -m755 /etc/pam.d</userinput></screen>
-
-        <para>While still the <systemitem class="username">root</systemitem>
-        user, add the following <application>Linux-PAM</application>
-        configuration files to the
+        replace the following <application>Linux-PAM</application>
+        configuration files in the
         <filename class="directory">/etc/pam.d/</filename> directory (or
-        add the contents to the <filename>/etc/pam.conf</filename> file) with
+        add the contents to the <filename>/etc/pam.conf</filename> file) using
         the following commands:</para>
 
       </sect4>
@@ -467,11 +433,12 @@ EOF</userinput></screen>
       </sect4>
 
       <sect4>
-        <title>'chpasswd', 'chgpasswd', 'groupadd', 'groupdel', 'groupmems',
-        'groupmod', 'newusers', 'useradd', 'userdel', and 'usermod'</title>
+        <title>'chfn', 'chgpasswd', 'chgpasswd', 'chsh', 'groupadd',
+        'groupdel', 'groupmems', 'groupmod', 'newusers', 'useradd', 'userdel'
+        and 'usermod'</title>
 
-<screen role="root"><userinput>for PROGRAM in chpasswd chgpasswd groupadd groupdel groupmems \
-               groupmod newusers useradd userdel usermod
+<screen role="root"><userinput>for PROGRAM in chfn chgpasswd chpasswd chsh groupadd groupdel \
+               groupmems groupmod newusers useradd userdel usermod
 do
     install -v -m644 /etc/pam.d/chage /etc/pam.d/$PROGRAM
     sed -i "s/chage/$PROGRAM/" /etc/pam.d/$PROGRAM
@@ -514,19 +481,14 @@ done</userinput></screen>
 auth        required        pam_deny.so
 auth        required        pam_warn.so
 account     required        pam_deny.so
-session     required        pam_deny.so
+account     required        pam_warn.so
 password    required        pam_deny.so
 password    required        pam_warn.so
+session     required        pam_deny.so
+session     required        pam_warn.so
 
 # End /etc/pam.d/other</literal>
 EOF</userinput></screen>
-
-      <para>If you preserved the source tree from the
-      <application>Linux-PAM</application> package (or you feel like unpacking
-      that tarball, then running <command>configure</command> and
-      <command>make</command>), now would be a good time to run the test
-      suite from this package. This test suite will use the configuration you
-      just finished during the tests. All the tests should pass.</para>
 
       </sect4>
 
