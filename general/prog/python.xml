@@ -7,9 +7,9 @@
   <!ENTITY python-download-http "http://www.python.org/ftp/python/&Python-version;/Python-&Python-version;.tar.bz2">
   <!ENTITY python-download-ftp  "&gentoo-ftp-repo;/Python-&Python-version;.tar.bz2">
   <!ENTITY python-md5sum        "e81c2f0953aa60f8062c05a4673f2be0">
-  <!ENTITY python-size          "10.5 MB">
-  <!ENTITY python-buildsize     "186 MB (additional 13M to run the test suite)">
-  <!ENTITY python-time          "1.2 SBU (additional 2.6 SBU to run the test suite)">
+  <!ENTITY python-size          "10.9 MB">
+  <!ENTITY python-buildsize     "227 MB">
+  <!ENTITY python-time          "1.4 SBU (additional 2.9 SBU to run the test suite)">
 ]>
 
 <sect1 id="python" xreflabel="Python-&Python-version;">
@@ -58,6 +58,7 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
 
+    <!-- replaced with seds
     <bridgehead renderas="sect4">Required Patch</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
@@ -72,7 +73,7 @@
         <para><ulink
         url="&patch-root;/Python-&Python-version;-testing-1.patch"/></para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist> -->
 
     <bridgehead renderas="sect4">Optional HTML Documentation</bridgehead>
     <itemizedlist spacing='compact'>
@@ -85,7 +86,11 @@
     <bridgehead renderas="sect3">Python Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="pth"/></para>
+    <para role="optional"><xref linkend="pth"/>,
+    <xref linkend="gcc"/> (install JAVA for the
+    <filename class="libraryfile">libffi</filename> library) or
+    <ulink url="http://sourceware.org/libffi/">libffi</ulink>, and
+    <ulink url="http://www.bluez.org/">BlueZ</ulink></para>
 
     <bridgehead renderas="sect4">Optional
     (to create package-specific support modules)</bridgehead>
@@ -106,8 +111,12 @@
     <para>Install <application>Python</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../Python-&Python-version;-gdbm-1.patch &amp;&amp;
-patch -Np1 -i ../Python-&Python-version;-testing-1.patch &amp;&amp;
+<screen><userinput>sed -i "s/ndbm_libs = \[\]/ndbm_libs = ['gdbm', 'gdbm_compat']/" \
+     setup.py &amp;&amp;
+sed -i "s/www.python.invalid./sadflkjsasf.i.nvali.d/" \
+     Lib/test/test_urllib2_localnet.py \
+     Lib/test/test_urllibnet.py &amp;&amp;
+
 ./configure --prefix=/usr --enable-shared &amp;&amp;
 make</userinput></screen>
 
@@ -140,6 +149,24 @@ tar --strip-components=1 \
     -C /usr/share/doc/Python-&Python-version;/html \
     -xvf ../python-&python-majorver;-docs-html.tar.bz2</userinput></screen>
 
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed -i "s/ndbm_libs = ..." setup.py</command>: This command
+    is used to fix a build problem with the <application>GDBM</application>
+    library.</para>
+
+    <para><command>sed -i "s/www.python.invalid./ ..."</command>: This command
+    is copied from upstream and used to fix an intermittent problem with a
+    couple of the test suite programs.</para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring Python</title>
+
     <para>In order for <command>python</command> to find the installed
     documentation, you must add the following environment variable to
     individual user's or the system's profile:</para>
@@ -157,7 +184,8 @@ tar --strip-components=1 \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>pydoc, python, python&python-majorver;, smtpd.py, and optionally if
+        <seg>2to3, pydoc, python, python-config, python&python-majorver;,
+        python&python-majorver;-config, smtpd.py, and optionally if
         <application>Tk</application> is installed, idle</seg>
         <seg>libpython&python-majorver;.so and numerous modules installed in
         /usr/lib/python&python-majorver;/lib-dynload</seg>
