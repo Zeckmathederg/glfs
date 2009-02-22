@@ -80,6 +80,7 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="gperf"/></para>
+
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended"><xref linkend="psutils"/>, and
     <xref linkend="cups"/> or <xref linkend="LPRng"/>
@@ -107,23 +108,12 @@
   <sect2 role="installation">
     <title>Installation of a2ps</title>
 
-    <para>First run <command>autoconf</command> to recreate the
-    <filename>configure</filename> script. This is required cause
-    there is an issue in the mktime test which would cause the
-    <filename>configure</filename> to hang for 60 seconds and than
-    report that there is no working mktime function.</para>
-
-<screen><userinput>autoconf</userinput></screen>
-
-    <para>Fix a bug in the handling of the version output of
-    <command>gperf</command>:</para>
-
-<screen><userinput>sed -i "s;GPERF --version |;&amp; head -n 1 |;" configure</userinput></screen>
-
     <para>Install <application>a2ps</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i "s;/usr/local/share;/usr/share;" configure &amp;&amp;
+<screen><userinput>autoconf &amp;&amp;
+sed -i "s/GPERF --version |/&amp; head -n 1 |/" configure &amp;&amp;
+sed -i "s|/usr/local/share|/usr/share|" configure &amp;&amp;
 ./configure --prefix=/usr \
     --sysconfdir=/etc/a2ps \
     --enable-shared \
@@ -157,12 +147,15 @@ mv fonts.map.new fonts.map</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i 's/+0 -1/-k 1,2/' afm/make_fonts_map.sh</command>:
-    The <filename>make_fonts_map.sh</filename> script uses an option that is
-    invalid with the version of <command>sort</command> installed as part of
-    <application>Coreutils-&lfs-coreutils-version;</application>.
-    If you are using an older version of <application>Coreutils</application>,
-    skip this step.</para>
+    <para><command>autoconf</command>: This command is to recreate the
+    <filename>configure</filename> script. This is required because there is
+    an issue in the mktime test which would cause the configure command to
+    hang for 60 seconds and than report that there is no working mktime
+    function.</para>
+
+    <para><command>sed -i "s/GPERF --version |/&amp; head -n 1 |/" configure</command>: 
+    Fix a bug in the handling of the version output of
+    <command>gperf</command>.</para>
 
     <para><command>sed -i -e "s|/usr/local/share|/usr/share|" configure</command>:
     This command modifies the <command>configure</command> script to search for
