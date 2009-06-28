@@ -158,28 +158,41 @@ install -v -m644 Doc/zsh.dvi /usr/share/doc/zsh-&zsh-version;</userinput></scree
     <para><parameter>--enable-cap</parameter>: This parameter enables
     POSIX capabilities.</para>
 
+    <para><parameter>--disable-gdbm</parameter>: This parameter disables the
+    use of the <application>GDBM</application> library.</para>
+
     <para><parameter>--enable-pcre</parameter>: This parameter allows to use
     the <application>PCRE</application> regular expression library in shell
-    builtins. Note: Linking <application>ZSH</application> dynamically against
-    <application>PCRE</application>, produces a runtime dependency on
-    <filename class='libraryfile'>libpcre.so</filename>. If
-    <filename class='directory'>/usr</filename> is a separate mount point and
-    <command>zsh</command> needs to be available at boot time, either you
-    have to statically link <application>ZSH</application> against
-    <application>PCRE</application> (you can examine the
-    <filename>config.modules</filename> file on how to link statically the
-    module), or move the library to <filename class='directory'>/lib</filename>
-    as follows:</para>
+    builtins.</para>
+      
+    <sect3 id="mountpoints">
+      <title>Multiple partitions</title>
+     
+      <para>Linking <application>ZSH</application> dynamically against
+      <application>PCRE</application> and/or <application>GDBM</application>
+      produces runtime dependencies on <filename class='libraryfile'>
+      libpcre.so</filename> and/or <filename class='libraryfile'>libgdbm.so
+      </filename>respectively, which both reside in
+      <filename class='directory'>/usr</filename> hierarchy. If
+      <filename class='directory'>/usr</filename> is a separate mount point
+      and <application>ZSH</application> needs to be available in boot time,
+      then its supporting libraries should be in
+      <filename class='directory'>/lib</filename> too. You can move the
+      libraries as follows:</para>
 
-<screen role="root"><userinput>mv -v /usr/lib/libpcre.so.* /lib/ &amp;&amp;
-ln -v -sf ../../lib/libpcre.so.0 /usr/lib/libpcre.so</userinput></screen>
+<screen role="root"><userinput>mv -v /usr/lib/libpcre.so.* /lib &amp;&amp;
+ln -v -sf ../../lib/libpcre.so.0 /usr/lib/libpcre.so
 
-    <para><parameter>--disable-gdbm</parameter>: This parameter disables the
-    use of the <application>GDBM</application> library. Note: This is only
-    necessary if you use multiple partitions as <application>GDBM</application>
-    resides in <filename class='directory'>/usr</filename> and 
-    <command>zsh</command> will be installed to <filename class='directory'>/bin
-    </filename></para>
+mv -v /usr/lib/libgdbm.so.* /lib &amp;&amp;
+ln -v -sf ../../lib/libgdbm.so.3 /usr/lib/libgdbm.so</userinput>
+</screen>
+
+      <para>Alternatively you can statically link <application>ZSH</application> 
+      against <application>PCRE</application> and <application>GDBM</application>
+      if you modify the <filename>config.modules</filename> file (you need first
+      to run configure to generate it).</para>
+
+    </sect3>
 
   </sect2>
 
