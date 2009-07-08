@@ -27,7 +27,7 @@
   <xsl:if test="$chunk.fast != 0">
     <xsl:choose>
       <xsl:when test="function-available('exsl:node-set')">
-        <xsl:message>Computing chunks...</xsl:message>
+        <!-- <xsl:message>Computing chunks...</xsl:message> -->
         <xsl:apply-templates select="/*" mode="find.chunks"/>
       </xsl:when>
       <xsl:otherwise>
