@@ -5,23 +5,22 @@
   %general-entities;
 
   <!ENTITY gs-download-http "&sourceforge-repo;/ghostscript/ghostscript-&gs-version;.tar.bz2">
-  <!-- <!ENTITY gs-download-ftp  "ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs851/ghostscript-&gs-version;.tar.bz2"> -->
-  <!ENTITY gs-download-ftp  " ">
-  <!ENTITY gs-md5sum        "e65e0c40213a616174572faa639e04d6">
-  <!ENTITY gs-size          "9.3 MB">
-  <!ENTITY gs-buildsize     "104 MB (includes installing libgs.so and both font tarballs)">
-  <!ENTITY gs-time          "2.4 SBU (includes building and installing libgs.so)">
+  <!ENTITY gs-download-ftp  "ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/GPL/gs864/ghostscript-&gs-version;.tar.bz2">
+  <!ENTITY gs-md5sum        "b13289cb2115f38f40c5e064f87e228a">
+  <!ENTITY gs-size          "17 MB">
+  <!ENTITY gs-buildsize     "232 MB (includes installing libgs.so and both font tarballs)">
+  <!ENTITY gs-time          "3.2 SBU (includes building and installing libgs.so)">
 
   <!ENTITY gs-standard-fonts-download "ftp://ftp.imagemagick.org/pub/ImageMagick/delegates/ghostscript-fonts-std-8.11.tar.gz">
   <!ENTITY gs-standard-fonts-md5sum   "6865682b095f8c4500c54b285ff05ef6">
-  <!ENTITY gs-standard-fonts-size     "3.7 MB">
+  <!ENTITY gs-standard-fonts-size     "3.6 MB">
 
   <!ENTITY gs-other-fonts-download "http://ftp.gnu.org/pub/gnu/ghostscript/gnu-gs-fonts-other-6.0.tar.gz">
   <!ENTITY gs-other-fonts-md5sum   "33457d3f37de7ef03d2eea05a9e6aa4f">
-  <!ENTITY gs-other-fonts-size     "796 KB">
+  <!ENTITY gs-other-fonts-size     "778 KB">
 ]>
 
-<sect1 id="gs" xreflabel="AFPL Ghostscript-&gs-version;">
+<sect1 id="gs" xreflabel="GPL Ghostscript-&gs-version;">
   <?dbhtml filename="gs.html"?>
 
   <sect1info>
@@ -29,10 +28,10 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>AFPL Ghostscript-&gs-version;</title>
+  <title>GPL Ghostscript-&gs-version;</title>
 
   <indexterm zone="gs">
-    <primary sortas="a-AFPL-Ghostscript">AFPL Ghostscript</primary>
+    <primary sortas="a-GPL-Ghostscript">GPL Ghostscript</primary>
   </indexterm>
 
   <sect2 role="package">
@@ -41,6 +40,8 @@
     <para><application>Ghostscript</application> is a versatile processor
     for PostScript data with the ability to render PostScript to different
     targets.</para>
+
+    &lfs65_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -92,20 +93,28 @@
       </listitem>
     </itemizedlist>
 
+    <itemizedlist spacing="compact">
+      <title>Patches</title>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/ghostscript-&gs-version;-security_fixes-1.patch"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>Optional patch: <ulink
+        url="&patch-root;/ghostscript-&gs-version;-system_jasper-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Ghostscript Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="libjpeg"/>,
     <xref linkend="libpng"/>,
-    <xref linkend="GTK"/>, and
+    <xref linkend="jasper"/>,
+    <xref linkend="gtk2"/>, and
     <xref linkend="x-window-system"/></para>
-
-    <bridgehead renderas="sect3">Conflicts</bridgehead>
-    <para>This version of Ghostscript does not work with
-    <application>CUPS</application> due to missing generic "cups" raster
-    image driver. The necessary support cannot be patched in due to
-    incompatible licenses. Use <xref linkend="espgs"/> instead if you have
-    <application>CUPS</application>.</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gs"/></para>
@@ -115,10 +124,19 @@
   <sect2 role="installation">
     <title>Installation of Ghostscript</title>
 
-    <para>Install <application>Ghostscript</application> by running the
+    <para>If you have <application>JasPer</application> installed on your system
+    and you would like to use it with <application>GPL Ghostscript</application>,
+    then we must first remove the local copy and apply a patch:</para>
+
+<screen><userinput>rm -rf jasper &amp;&amp;
+patch -Np1 -i ghostscript-&gs-version;-system_jasper-1.patch
+</userinput></screen>
+
+    <para>Install <application>GPL Ghostscript</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>patch -Np1 -i ghostscript-&gs-version;-security_fixes-1.patch &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -137,12 +155,11 @@ make</userinput></screen>
     user:</para>
 
 <screen role="root"><userinput>make soinstall &amp;&amp;
-install -v -d -m755 /usr/include/ps &amp;&amp;
-install -v -m644 src/*.h /usr/include/ps &amp;&amp;
-ln -v -s ps /usr/include/ghostscript</userinput></screen>
+install -v -m644 base/*.h /usr/include/ghostscript &amp;&amp;
+ln -v -s ghostscript /usr/include/ps</userinput></screen>
 
     <note>
-      <para>The shared library depends on <xref linkend="GTK"/>. It is
+      <para>The shared library depends on <xref linkend="gtk2"/>. It is
       only used in external programs like <xref linkend="gsview"/> and
       <xref linkend="imagemagick"/>.</para>
     </note>
@@ -166,7 +183,7 @@ chown -v -R root:root /usr/share/ghostscript/fonts</userinput></screen>
     <application>Ghostscript</application> interface headers in place to link
     to the shared library. These commands install the headers.</para>
 
-    <para><command>ln -v -s ps /usr/include/ghostscript</command>: Some
+    <para><command>ln -v -s ghostscript /usr/include/ps</command>: Some
     packages expect to find the interface headers in an alternate
     location.</para>
 
@@ -180,13 +197,13 @@ chown -v -R root:root /usr/share/ghostscript/fonts</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>bdftops, dumphint, ddvipdf, eps2eps, fixmswrd.pl, font2c, gs, gsbj,
-        gsc, gsdj, gsdj500, gslj, gslp, gsnd, gsx, lprsetup.sh, pdf2dsc, pdf2ps,
-        pdfopt, pf2afm, pfbtopfa, pj-gs.sh, printafm, ps2ascii, ps2epsi, ps2pdf,
-        ps2pdf12, ps2pdf13, ps2pdf14, ps2pdfwr, ps2ps, pv.sh, unix-lpr.sh, and
+        <seg>bdftops, dumphint, dvipdf, eps2eps, fixmswrd.pl, font2c, gs, gsbj,
+        gsdj, gsdj500, gslj, gslp, gsnd, lprsetup.sh, pdf2dsc, pdf2ps, pdfopt, 
+        pf2afm, pfbtopfa, printafm, ps2ascii, ps2epsi, ps2pdf, ps2pdf12, 
+        ps2pdf13, ps2pdf14, ps2pdfwr, ps2ps, ps2ps2, pv.sh, unix-lpr.sh, and
         wftopfa</seg>
         <seg>libgs.so </seg>
-        <seg>/usr/include/ps and /usr/share/ghostscript</seg>
+        <seg>/usr/include/ghostscript and /usr/share/ghostscript</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -209,7 +226,7 @@ chown -v -R root:root /usr/share/ghostscript/fonts</userinput></screen>
 
    </variablelist>
 
-    <para><application>AFPL Ghostscript</application> provides many different
+    <para><application>GPL Ghostscript</application> provides many different
     scripts used to render PostScript/PDF files back and forth. Please refer
     to the HTML documentation or try <command>man gs</command> for information
     about the capabilities provided by the package.</para>
