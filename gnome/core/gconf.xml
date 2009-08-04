@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY GConf-download-http "&gnome-download-http;/GConf/&gnome-old-version;/GConf-&GConf-version;.tar.bz2">
-  <!ENTITY GConf-download-ftp  "&gnome-download-http;/GConf/&gnome-old-version;/GConf-&GConf-version;.tar.bz2">
-  <!ENTITY GConf-md5sum        "aa0e0a0729fb021bab72b4166fd392f9">
-  <!ENTITY GConf-size          "1.3 MB">
-  <!ENTITY GConf-buildsize     "32 MB">
+  <!ENTITY GConf-download-http "&gnome-download-http;/GConf/&gnome-version;/GConf-&GConf-version;.tar.bz2">
+  <!ENTITY GConf-download-ftp  "&gnome-download-ftp;/GConf/&gnome-version;/GConf-&GConf-version;.tar.bz2">
+  <!ENTITY GConf-md5sum        "8b55d58dab13e821e048627aa4f92b8b">
+  <!ENTITY GConf-size          "1.4 MB">
+  <!ENTITY GConf-buildsize     "38 MB">
   <!ENTITY GConf-time          "0.4 SBU">
 ]>
 
@@ -57,12 +57,15 @@
     <bridgehead renderas="sect3">GConf Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="ORBit2"/> and
-    <xref linkend="libxml2"/></para>
+    <para role="required"><xref linkend="ORBit2"/>,
+    <xref linkend="libxml2"/>, and
+    <xref linkend="policykit"/></para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="gtk2"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="gtk2"/>,
-    <xref linkend="openldap"/>,
+    <para role="optional"><xref linkend="openldap"/>,
     <xref linkend="intltool"/>, and
     <xref linkend="gtk-doc"/></para>
 
@@ -91,6 +94,25 @@ make</userinput></screen>
     user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+    <para>Still as the <systemitem class="username">root</systemitem> user,
+    configure <application>D-Bus</application> so that it can search for
+    <application>GNOME</application> installed .conf files (This is assuming
+    that system-local.conf does not exist yet. If it does, then you will need
+    to merge in the changes):</para>
+
+<screen role="root"><userinput>cat &gt; /etc/dbus-1/system-local.conf &lt;&lt; "EOF"
+<literal>&lt;!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
+&lt;busconfig&gt;
+
+  &lt;!-- Search for .conf files in /etc/gnome/&GConf-version;/dbus-1/system.d --&gt;
+  &lt;includedir&gt;/etc/gnome/&GConf-version;/dbus-1/system.d&lt;/includedir&gt;
+
+&lt;/busconfig&gt;
+EOF</literal>
+</userinput></screen>
 
   </sect2>
 
@@ -135,11 +157,8 @@ make</userinput></screen>
       <seglistitem>
         <seg>gconf-merge-tree and gconftool-2</seg>
         <seg>libgconf-2.{so,a}</seg>
-        <seg>&gnome-etc-dir;/gconf and the following subdirectories of
-        <envar>$GNOME_PREFIX</envar>/:
-        include/gconf,
-        lib/GConf and
-        share/{GConf, gtk-doc/html/gconf, sgml/gconf}</seg>
+        <seg>&gnome-etc-dir;/gconf{gconf.xml.defaults,2,gconf.xml.mandatory} and
+        <envar>$GNOME_PREFIX</envar>/{lib/GConf/2,share/sgml/gconf,share/gtk-doc/html/gconf,include/gconf/2/gconf}</seg>
       </seglistitem>
     </segmentedlist>
 
