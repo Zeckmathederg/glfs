@@ -58,7 +58,8 @@
     in the original location with the commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>for file in $XORG_PREFIX/{lib/X11/xinit,share/X11/{app-defaults,twm,xkb}}
+<screen role="root"><userinput>mkdir -p /etc/X11 &amp;&amp;
+for file in $XORG_PREFIX/{lib/X11/xinit,share/X11/{app-defaults,twm,xkb}}
 do
      mv -v $file /etc/X11/ 2&gt; /dev/null &amp;&amp;
      ln -v -s /etc/X11/$(basename $file) $file
@@ -69,26 +70,6 @@ done
 
   <sect2 role="configuration" id='xconfig'>
     <title>Configuring The X Window System</title>
-
-    <para>If you've installed the X Window System in any prefix other than
-    <filename>/usr</filename>, become the <systemitem
-    class="username">root</systemitem> user and update the library linker's
-    cache by adding <filename class='directory'>/usr/X11R6/lib</filename>
-    to <filename>/etc/ld.so.conf</filename> and running
-    <command>ldconfig</command>.</para>
-
-    <para>Additionally, while still the <systemitem
-    class="username">root</systemitem> user, ensure
-    <filename class="directory">/usr/X11R6/bin</filename> and
-    <filename class="directory">/usr/X11R6/lib/pkgconfig</filename> are added
-    to the <envar>PATH</envar> and <envar>PKG_CONFIG_PATH</envar>
-    environment variables, respectively. Instructions for doing this are
-    described in the section <xref linkend="postlfs-config-profile"/>.</para>
-
-    <para>Ensure you replace
-    <filename class="directory">/usr/X11R6</filename> with
-    <envar>$XORG_PREFIX</envar> in the previous two paragraphs if you did not
-    create the compatibility symlink in the previous step.</para>
 
     <para>As the <systemitem class="username">root</systemitem> user
     create a basic X Window System configuration file with the following
@@ -105,6 +86,7 @@ Xorg -configure</userinput></screen>
     monitor.  This command will create a file,
     <filename>xorg.conf.new</filename>, in your home directory.</para>
 
+<!--
     <para>Recent versions of <application>xorg-server</application> force the
     use of the evdev input driver, and ignore legacy input devices defined in
     <filename>xorg.conf</filename>.  This will result in an X display that
@@ -118,6 +100,7 @@ Section "ServerFlags"
 	Option "AllowEmptyInput" "false"
 EndSection
 EOF</userinput></screen>
+-->
 
     <para>Edit the newly created configuration file to suit your system. The
     details of the files are located in the <filename>xorg.conf.5x</filename>
@@ -126,8 +109,8 @@ EOF</userinput></screen>
     <itemizedlist>
       <listitem>
         <para>Section "Files". Change the order of the font paths searched.
-        You may want to put 100dpi fonts ahead of 75dpi fonts if your system
-        normally comes up closer to 100 dots per inch. You may want to remove
+        You may want to put 75dpi fonts ahead of 100dpi fonts if your system
+        normally comes up closer to 75 dots per inch. You may want to remove
         some font directories completely.</para>
       </listitem>
       <listitem>
@@ -167,11 +150,10 @@ EOF</userinput></screen>
     a look at <filename>/var/log/Xorg.0.log</filename> to see what went
     wrong.</para>
 
-    <para>As the <systemitem class="username">root</systemitem> user, create
-    the configuration directory and move the configuration file to the new
-    directory:</para>
+    <para>As the <systemitem class="username">root</systemitem> user, move the
+    configuration file to the new directory:</para>
 
-<screen role="root"><userinput>install -v -m644 -D ~/xorg.conf.new /etc/X11/xorg.conf</userinput></screen>
+<screen role="root"><userinput>install -v -m644 ~/xorg.conf.new /etc/X11/xorg.conf</userinput></screen>
 
     <para>As the <systemitem class="username">root</systemitem> user, create
     <filename>.xinitrc</filename>:</para>
@@ -471,11 +453,7 @@ EndSection</literal></screen>
         <listitem>
           <para><ulink url="http://dejavu.sourceforge.net/">DejaVu fonts</ulink>
           - These fonts are replacements for the Bitstream Vera fonts and
-          provide Latin-based scripts with accents and Cyrillic glyphs.
-          The DejaVu fonts by are not aliased to the generic family names
-          by default, so <filename>/etc/fonts/fonts.conf</filename> will
-          have to be edited for it to be recognized by the generic names such
-          as "Sans".  This will be described below.</para>
+          provide Latin-based scripts with accents and Cyrillic glyphs.</para>
         </listitem>
         <listitem>
           <para><ulink
