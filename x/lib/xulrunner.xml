@@ -7,10 +7,10 @@
   <!ENTITY xulrunner-download-http "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
   <!ENTITY xulrunner-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;-source.tar.bz2">
   <!-- md5sum and size should match firefox, but the buildize and time will differ -->
-  <!ENTITY xulrunner-md5sum        "9875c9237b532009df8e91c3785539a3">
-  <!ENTITY xulrunner-size          "35.3 MB">
-  <!ENTITY xulrunner-buildsize     "663 MB">
-  <!ENTITY xulrunner-time          "13.2 SBU">
+  <!ENTITY xulrunner-md5sum        "136867f95c86f3988b7f825e874b85de">
+  <!ENTITY xulrunner-size          "45 MB">
+  <!ENTITY xulrunner-buildsize     "318 MB">
+  <!ENTITY xulrunner-time          "11 SBU">
 ]>
 
 <sect1 id="xulrunner" xreflabel="Xulrunner-&xulrunner-version;">
@@ -36,15 +36,6 @@
     files so that applications such as <application>Epiphany</application> and
     <application>Yelp</application> can use it.</para>
 
-   <note>
-    <para>If you later build a newer version of <application>xulrunner</application>
-    to pick up the latest security fixes, you <emphasis>must</emphasis> update the
-    symlinks (including for nss, nspr if you are using the versions in
-    <application>xulrunner</application>) and rebuild every application which uses
-    gecko, including upgrading <application>firefox</application> if you have installed
-    that.</para>
-   </note>
-
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -56,7 +47,7 @@
 	released, sometimes a corresponding new version of
 	<application>xulrunner</application> appears at the same time. At other
 	times it appears several days later or not at all. So far in the
-	<application>firefox-3.0</application> series, every new release has
+	<application>firefox-3.x</application> series, every new release has
 	created xulrunner libraries with a corresponding new version. Whenever
 	a separate xulrunner tarball has been released, it has been bitwise
 	identical to the corresponding firefox tarball. So, we will use the
@@ -70,19 +61,32 @@
         <para>Download size: &xulrunner-size;</para>
       </listitem>
       <listitem>
-        <para>Estimated disk space required: &xulrunner-buildsize;</para>
+        <para>Estimated disk space required: &xulrunner-buildsize; (using
+        recommended dependencies)</para>
       </listitem>
       <listitem>
-        <para>Estimated build time: &xulrunner-time;</para>
+        <para>Estimated build time: &xulrunner-time; (using recommended
+        dependencies)</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Optional patch: <ulink
+        url="&patch-root;/firefox-&firefox-version;-provide_system_nspr_nss-1.patch"/>
+        (Required if using the included NSPR and NSS libs as system versions for
+        other packages)</para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">Xulrunner Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="gtk2"/>,
-    <xref linkend="libidl"/>
-    <xref linkend="pango"/>
+    <para role="required"><xref linkend="alsa-lib"/>
+    <xref linkend="gtk2"/>,
+    <xref linkend="libidl"/>,
+    <xref linkend="pango"/>,
     <xref linkend="python"/>, and
     <xref linkend="zip"/></para>
 
@@ -92,6 +96,10 @@
     you should remove the <option>--with-system-jpeg</option> option from the
     <filename>.mozconfig</filename> file created below.</para>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="sqlite"/> (internal sqlite is
+    incompatable with existing or future installations)</para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="dbus-glib"/>,
     <xref linkend="doxygen"/>,
@@ -100,7 +108,10 @@
     (for gnome integration),
     <xref linkend="lcms"/>,
     <xref linkend="libpng"/> (patched for apng support),
-    <xref linkend="sqlite"/>,
+    <xref linkend="nspr"/> (recommended if you build any other Mozilla.org
+    packages),
+    <xref linkend="nss"/> (recommended if you build any other Mozilla.org
+    packages),
     <xref linkend="startup-notification"/>.
     <xref linkend="unzip"/>,
     <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing the
@@ -115,26 +126,16 @@
   <sect2 role="installation">
     <title>Installation of Xulrunner</title>
 
-  <!-- FIXME : I assume current OOo can't use xulrunner ?
-    lines near the bottom of the file. If you are going to build the
-    <application>OpenOffice</application> package and you want to use this
-    <application>Xulrunner</application> installation as the default
-    <application>Mozilla</application> source, ensure you uncomment the
-	+ substitutions to stop the comment breaking the syntax
-    <option>++enable-ldap+/option+ option in the file created below. -->
     <para>The configuration of <application>Xulrunner</application> is
     accomplished by creating a <filename>.mozconfig</filename> file containing
     the desired configuration options. A default <filename>.mozconfig</filename>
     is created below. To see the entire list of available configuration options
     (and an abbreviated description of each one), issue
-    <command>./configure --help</command>.  If you are going to use
-    system-installed versions of the <application>NSS</application> and
-    <application>NSPR</application> libraries, ensure you uncomment the two
-    lines near the bottom of the file.
-    You should review the entire file and comment or uncomment options as
-    necessary. If you would prefer to download the file instead of creating
-    it by typing or cut-and-pasting, you can find it at <ulink
-    url="&files-anduin;/xulrunner-&xulrunner-version;-mozconfig"/>
+    <command>./configure --help</command>. You should review the entire file
+    and comment or uncomment options as necessary. If you would prefer to
+    download the file instead of creating it by typing or cut-and-pasting, you
+    can find it at
+    <ulink url="&files-anduin;/xulrunner-&xulrunner-version;-mozconfig"/>
     (the file must be installed in the root of the source tree
     <filename class='directory'>mozilla</filename> directory, and named
     <filename>.mozconfig</filename>).</para>
@@ -168,57 +169,54 @@ ac_add_options --enable-optimize
 
 # These options are used so that the Xulrunner binaries are linked to
 # the system-installed copies of the specified libraries instead of
-# the source tree code which may not be the most recent versions (or,
-# for cairo, may contain additional patches) : with the exception of
-# libsqlite3, the libraries are statically linked - using the shipped
-# version of libsqlite3 has been reported to cause problems with other
-# applications which were using sqlite3.
+# the source tree code which may not be the most recent versions.
+# With the exception of libsqlite3, the libraries are statically linked.
 
-# (the --enable-system options)
-# comment this if you want to use whatever patched version of cairo
+# (Options to use system installed libraries)
+# Using the shipped version of libsqlite3 has been reported to cause
+# problems with other applications which were using sqlite3.
+# Only comment this line if you know excatly what you are doing!
+ac_add_options --enable-system-sqlite
+
+# Comment this only if you want to use whatever patched version of cairo
 # is in the shipped mozilla tree, together with the system headers.
 ac_add_options --enable-system-cairo
 
-# comment this if you have not installed lcms
+# Comment this if you have not installed lcms.
 ac_add_options --enable-system-lcms
 
-# comment this if you have not installed sqlite
-ac_add_options --enable-system-sqlite
-
-# (the --with-system options)
-# comment this if you did not build libjpeg before gtk+-2
+# Comment this if you did not build libjpeg before GTK+-2.
 ac_add_options --with-system-jpeg
 
 # These two options enable support for building Xulrunner with
 # system-installed versions of the Network Security Services (NSS)
-# and Netscape Portable Runtime (NSPR) libraries. Uncomment both
-# lines to enable support for system-installed NSS/NSPR instead of
-# building the versions shipped with xulrunner.
-#ac_add_options --with-system-nspr
-#ac_add_options --with-system-nss
+# and Netscape Portable Runtime (NSPR) libraries. Comment them if
+# you wish to use the included copies (not recommended).
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
 
-# comment this if you have not built png with the apng patch
+# Comment this if you have not built png with the apng patch.
 ac_add_options --with-system-png
 
 # The pthreads option is only used when building nspr
-# so you can comment this if you enable --with-system-nspr
-ac_add_options --with-pthreads
+# Uncomment this if you build the included nspr.
+#ac_add_options --with-pthreads
 
-# zlib is in LFS
+# zlib is included in LFS. Do not comment this line.
 ac_add_options --with-system-zlib
 
-# (options to disable parts of the package)
+# (Options to disable parts of the package)
 # This option is used to disable the a11y support in the Xulrunner
 # binaries. Comment out this option if you require a11y support.
 ac_add_options --disable-accessibility
 
-# uncomment this if you did not build curl
-#ac_add_options --disable-crashreporter
+# Uncomment this if you did not build curl.
+ac_add_options --disable-crashreporter
 
-# comment this if you have built dbus-glib
-ac_add_options --disable-dbus
+# Comment this if you have built dbus-glib.
+#ac_add_options --disable-dbus
 
-# comment this if you have gnome-vfs and libgnomeui, and wish to
+# Comment this if you have gnome-vfs and libgnomeui, and wish to
 # integrate xulrunner into your gnome desktop
 ac_add_options --disable-gnomevfs
 
@@ -248,13 +246,14 @@ ac_add_options --disable-updater
 # NOTE: You must uncomment this option if there is any chance of
 # compiling the OpenOffice package from source code using this copy
 # of Xulrunner for your Mozilla support.
-# This has NOT been tested, current versions of OpenOffice are
-# assumed not to compile against this version of xulrunner!
+#
+# This has NOT been tested, the current status of OpenOffice
+# and xulrunner is unknown! (Remove this comment before release)
 #
 ###################################################################
 #ac_add_options --enable-ldap
 
-# Use the anti-phishing measures (a blacklist of sites)
+# Use the anti-phishing measures (a blacklist of sites).
 ac_add_options --enable-safe-browsing
 
 # This option is used so that the debugging symbols are removed from
@@ -268,14 +267,18 @@ ac_add_options --enable-strip
 # display using the X-Window Xinerama libraries.
 #ac_add_options --enable-xinerama
 
-# ('with' options)
 # This option identifies the default binary directory of the Xulrunner
 # installation and is used to locate Xulrunner's installed files. This
-# option is not required for end-user browsing, and is only used for
-# development purposes.
+# option is is only used for development purposes.
 #ac_add_options --with-default-mozilla-five-home=/usr/lib/xulrunner-&xulrunner-version;</literal>
 
 EOF</userinput></screen>
+
+    <para>If you did not install <xref linkend="nspr"/> and 
+    <xref linkend="nss"/>, then apply the patch with the following
+    command:</para>
+
+<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-provide_system_nss_nspr-1.patch</userinput></screen>
 
     <para>Compile <application>Xulrunner</application> by issuing the
     following commands:</para>
@@ -289,14 +292,20 @@ make -f client.mk build</userinput></screen>
     install the package:</para>
 
 <screen role="root"><userinput>make -f client.mk install &amp;&amp;
-for DL in \
-    libnss3.so libnssutil3.so libsmime3.so libssl3.so libsoftokn3.so \
-    libplds4.so libplc4.so libnspr4.so ; do
-        ln -sv xulrunner-&xulrunner-version;/$DL /usr/lib/$DL
-done &amp;&amp;
-ln -sv mozilla-nspr.pc /usr/lib/pkgconfig/nspr.pc &amp;&amp;
 mkdir /usr/lib/mozilla &amp;&amp;
-ln -sv /usr/lib/xulrunner-&xulrunner-version;/plugins /usr/lib/mozilla/plugins</userinput></screen>
+ln -sv /usr/lib/xulrunner-&xulrunner-version;/plugins \
+    /usr/lib/mozilla/plugins</userinput></screen>
+
+    <para>If you've elected to use the included NSPR and NSS, while still the 
+    <systemitem class="username">root</systemitem> user, complete the
+    installation with the following commands:</para>
+
+<screen role="root"><userinput>for DL in \
+    libnss3.so libnssutil3.so libsmime3.so libssl3.so libsoftokn3.so \
+    libplds4.so libplc4.so libnspr4.so
+do
+    ln -sv xulrunner-&xulrunner-version;/$DL /usr/lib/$DL
+done</userinput></screen>
 
   </sect2>
 
