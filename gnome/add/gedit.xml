@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gedit-download-http "&gnome-download-http;/gedit/&gnome-old-version;/gedit-&gedit-version;.tar.bz2">
-  <!ENTITY gedit-download-ftp  "&gnome-download-ftp;/gedit/&gnome-old-version;/gedit-&gedit-version;.tar.bz2">
-  <!ENTITY gedit-md5sum        "7e8bf29bd6bf0d17ceaf42d9bd5d94e6">
-  <!ENTITY gedit-size          "3.4 MB">
-  <!ENTITY gedit-buildsize     "80 MB">
-  <!ENTITY gedit-time          "1.1 SBU (includes spell-check support and Python plugins)">
+  <!ENTITY gedit-download-http "&gnome-download-http;/gedit/&gnome-version;/gedit-&gedit-version;.tar.bz2">
+  <!ENTITY gedit-download-ftp  "&gnome-download-ftp;/gedit/&gnome-version;/gedit-&gedit-version;.tar.bz2">
+  <!ENTITY gedit-md5sum        "562b2e15cf4d3cef068caf7a25843ccd">
+  <!ENTITY gedit-size          "4.4 MB">
+  <!ENTITY gedit-buildsize     "86 MB">
+  <!ENTITY gedit-time          "1.1 SBU">
 ]>
 
 <sect1 id="gedit" xreflabel="gedit-&gedit-version;">
@@ -57,31 +57,22 @@
     <bridgehead renderas="sect3">gedit Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="libgnomeui"/>,
-    <xref linkend="libgnomeprintui"/>,
+    <para role="required"><xref linkend="GConf"/>,
     <xref linkend="gnome-doc-utils"/>,
-    <xref linkend="gtksourceview"/>, and
-    <xref linkend="which"/></para>
+    <xref linkend="gtk2"/>, and
+    <xref linkend="gtksourceview"/></para>
 
-    <bridgehead renderas="sect4">Optional (to Provide Spell-Checking Capability)</bridgehead>
-    <para role="optional"><xref linkend="iso-codes"/> and
-    <xref linkend="enchant"/>*</para>
-
-    <bridgehead renderas="sect4">Optional (to Provide Python Bindings and Plugins)</bridgehead>
-    <para role="optional"><xref linkend="pygtk"/> (including the gtk, pango
-    and gtk.libglade modules) and
-    <xref linkend="gnome-python-desktop"/> (including the gtksourceview
-    module)</para>
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="enchant"/> and
+    <xref linkend="iso-codes"/> (to Provide Spell-Checking Capability), and
+    <xref linkend="rarian"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="intltool"/>,
+    <para role="optional"><xref linkend="attr"/>,
     <xref linkend="gtk-doc"/>,
-    <ulink url="ftp://oss.sgi.com/projects/xfs/cmd_tars/">libattr</ulink></para>
-
-    <para>* <xref linkend="aspell"/> is just one of many backend spell libraries
-    <application>Enchant</application> can use. See the
-    <application>Enchant</application> project page (URL above) for additional
-    information about the available backends.</para>
+    <xref linkend="libsoup"/>,
+    <xref linkend="pygtk"/> (including the gtk and pango modules), and
+    <xref linkend="pygtksourceview"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gedit"/></para>
@@ -96,8 +87,9 @@
 
 <screen><userinput>./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) \
             --sysconfdir=&gnome-etc-dir; \
-            --localstatedir=/var/lib \
-            --disable-spell &amp;&amp;
+            --libexecdir=$(pkg-config \
+                --variable=prefix ORBit-2.0)/lib/gedit-2 \
+            --localstatedir=/var/lib &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -120,49 +112,32 @@ make</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/scrollkeeper-dir.xml"/>
 
-    <para><parameter>--disable-spell</parameter>: This parameter disables
+    <para><option>--disable-spell</option>: Use this parameter to disables
     spell-checking capability and is required if
-    <application>Enchant</application> is not installed. Remove the
-    parameter if <application>Enchant</application> is installed.</para>
+    <application>Enchant</application> is not installed.</para>
 
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/gtk-doc-rebuild.xml"/>
 
+    <para><option>--disable-scrollkeeper</option>: Use this parameter if you
+    wish to disable the updates to the scrollkeeper database.</para>
+
   </sect2>
-
-  <!-- <sect2 role="configuration">
-    <title>Configuring gedit</title>
-
-    <sect3>
-      <title>Configuration Information</title>
-
-      <para>There is no way in the preferences to change the color of
-      highlighted (such as when you search for text and it is found) text.
-      If you wish to change the color, issue the following command as the
-      <systemitem class="username">root</systemitem> user (substitute your
-      color of choice):</para>
-
-<screen role="root"><userinput>sed -i 's/FFFF78/<replaceable>&lt;some-color-you-like&gt;</replaceable>/' gedit/gedit-document.c</userinput></screen>
-
-    </sect3>
-
-  </sect2> -->
 
   <sect2 role="content">
     <title>Contents</title>
 
     <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Program</segtitle>
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gedit and gnome-text-editor</seg>
+        <seg>gedit</seg>
         <seg><application>gedit</application> plugin modules</seg>
-        <seg>The following subdirectories of <envar>$GNOME_PREFIX</envar>/:
-        include/gedit-2.16,
-        lib/gedit-2,
-        share/{gedit-2, {gnome/help, omf}/gedit}</seg>
+        <seg><envar>$GNOME_PREFIX</envar>/{include/gedit-2.20/gedit,
+        usr/lib/gedit-2/{gedit-2,plugin-loaders,plugins},share/{gedit-2/{icons,
+        logo,plugins/*},gnome/help/gedit/*,omf/gedit}}</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -178,16 +153,6 @@ make</userinput></screen>
           GNOME desktop.</para>
           <indexterm zone="gedit gedit-prog">
             <primary sortas="b-gedit">gedit</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gnome-text-editor">
-        <term><command>gnome-text-editor</command></term>
-        <listitem>
-          <para>is a symlink to <command>gedit</command>.</para>
-          <indexterm zone="gedit gnome-text-editor">
-            <primary sortas="g-gnome-text-editor">gnome-text-editor</primary>
           </indexterm>
         </listitem>
       </varlistentry>
