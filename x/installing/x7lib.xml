@@ -73,7 +73,11 @@
     <xref linkend="libXdmcp"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libxcb"/></para>
+    <para role="optional"><xref linkend="libxcb"/> (a modern Xlib replacement)
+    and <xref linkend="xmlto"/> with one or more of the following:
+    <xref linkend="fop"/>, <xref linkend="Links"/>, <xref linkend="lynx"/>,
+    and <xref linkend="w3m"/> (to generate additional PDF or text
+    documentation for the libXfont package).</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url='&blfs-wiki;/Xorg7Libraries'/></para>
@@ -100,7 +104,17 @@ md5sum -c ../lib-&xorg7-release;.md5</userinput></screen>
     <para>Install the libraries by running the following commands for each
     package:</para>
 
-<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+<screen><userinput>case $(basename "$PWD") in
+libXfont-[0-9]* )
+                 ./configure $XORG_CONFIG --disable-devel-docs
+                 ;;
+  libX11-[0-9]* )
+                 ./configure $XORG_CONFIG --without-xcb
+                 ;;
+              * )
+                 ./configure $XORG_CONFIG
+                 ;;
+esac &amp;&amp;
 make</userinput></screen>
 
     <para>These packages do not provide test suites.</para>
@@ -118,10 +132,17 @@ ldconfig</userinput></screen>
 
     <para><parameter>--without-xcb</parameter>: By default,
     <application>libX11</application> will use <xref linkend="libxcb"/>
-    for its transport layer. This parameter is necessary in the
-    <command>./configure</command> command if <xref linkend="libxcb"/>
-    is not installed.</para>
+    for its transport layer. Omit this parameter (or the <command>case</command>
+    statement) if you've installed <xref linkend="libxcb"/>.</para>
 
+    <para><parameter>--with-fop</parameter>: Use <xref linkend="fop"/> to
+    generate PDF documentation (only for the libXfont package).</para>
+
+    <para><parameter>--disable-devel-docs</parameter>: Diable generation of
+    text documentation in the libXfont package if
+    <xref linkend="xmlto"/> is installed without a text browser. Omit
+    this parameter (or the entire <command>case</command> statement) if a text
+    browser is installed.</para>
   </sect2>
 
   <sect2 role="configuration">
