@@ -4,19 +4,20 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY thunderbird-download-http     "&sources-anduin-http;/t/thunderbird-&thunderbird-version;-source.tar.bz2">
-  <!ENTITY thunderbird-download-ftp      " ">
-  <!-- <!ENTITY thunderbird-download-http     "http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;-source.tar.bz2">
-  <!ENTITY thunderbird-download-ftp      "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;-source.tar.bz2"> -->
-  <!ENTITY thunderbird-md5sum            "c23f576a8fd0ceee5135829c8ae5168b">
-  <!ENTITY thunderbird-size              "37 MB">
-  <!ENTITY thunderbird-buildsize         "629 MB">
-  <!ENTITY thunderbird-time              "18 SBU">
+  <!ENTITY thunderbird-download-http     "http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
+  <!ENTITY thunderbird-download-ftp      "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
+  <!ENTITY thunderbird-md5sum            "f004aa5ddf2a30b5df96e06df416b0c9">
+  <!ENTITY thunderbird-size              "58 MB">
+  <!ENTITY thunderbird-buildsize         "624 MB">
+  <!ENTITY thunderbird-time              "14 SBU">
 
   <!ENTITY thunderbird-enigmail-version  "0.95.6">
+
+<!-- The instructions are still good to install enigmail, just use version 1.0.1
+
   <!ENTITY thunderbird-enigmail-download "http://www.mozilla-enigmail.org/download/source/enigmail-&thunderbird-enigmail-version;.tar.gz">
   <!ENTITY thunderbird-enigmail-md5sum   "cfbe6ff77f80a349b396829757ad952a">
-  <!ENTITY thunderbird-enigmail-size     "1.1 MB">
+  <!ENTITY thunderbird-enigmail-size     "1.1 MB"> -->
 ]>
 
 <sect1 id="thunderbird" xreflabel="Thunderbird-&thunderbird-version;">
@@ -62,13 +63,13 @@
       </listitem>
     </itemizedlist>
 
-    <para>To enable the <application>Enigmail</application> extension to the
+<!--    <para>To enable the <application>Enigmail</application> extension to the
     <application>Thunderbird</application> mail client, you'll need to download
     the tarball shown below. The <application>Enigmail</application> extension
     allows users to access the authentication and encryption features provided
     by the <application>GnuPG</application> package. The Enigmail extension
     will not operate correctly unless you have <xref linkend="gnupg"/> or
-    <xref linkend="gnupg2"/> installed.</para>
+    <xref linkend="gnupg2"/> installed.</para> 
 
     <itemizedlist spacing='compact'>
       <listitem>
@@ -80,7 +81,7 @@
       <listitem>
         <para>Download size: &thunderbird-enigmail-size;</para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist> -->
 
     <bridgehead renderas="sect3">Thunderbird Dependencies</bridgehead>
 
@@ -119,16 +120,11 @@
     the desired configuration options. A default <filename>.mozconfig</filename>
     is created below. To see the entire list of available configuration options
     (and an abbreviated description of each one), issue
-    <command>./configure --help</command>. If you are going to use
-    system-installed versions of the <application>NSS</application> and
-    <application>NSPR</application> libraries, ensure you uncomment the two
-    lines near the bottom of the file. You may also wish to review the entire
-    file and uncomment any other desired options. If you would prefer to
-    download the file instead of creating it by typing or cut-and-pasting, you
-    can find it at <ulink
-    url="&files-anduin;/thunderbird-&thunderbird-version;-mozconfig"/>
+    <command>./configure --help</command>. If you would prefer to download the
+    file instead of creating it by typing or cut-and-pasting, you can find it
+    at <ulink url="&files-anduin;/thunderbird-&thunderbird-version;-mozconfig"/>
     (the file must be installed in the root of the source tree
-    <filename class='directory'>mozilla</filename> directory, and named
+    <filename class='directory'>comm-1.9.1</filename> directory, and named
     <filename>.mozconfig</filename>). Create the file by issuing the following
     command:</para>
 
@@ -139,11 +135,15 @@
 # help you determine if you need to add any additional options.
 # Some additional options can be added by uncommenting the examples
 # in this file or adding options by inserting a line containing
-# 'ac_add_options --some-option-you-need'.
+# 'ac_add_options --some-option-you-need'.  Be aware that some accepted
+# options, such as '--with-system-bz2', do not affect the build.
 
+# specify that we want to build thunderbird
+ac_add_options --enable-application=mail
 
-# Use the default settings specified in the source tree
-. $topsrcdir/mail/config/mozconfig
+# sepcify that we want to build the Lightning calendar extension as per the
+# Mozilla distributed Thunderbird.
+ac_add_options --enable-calendar
 
 # Create an object directory and specify to build the package in that
 # directory. If desired, modify the location of the object directory
@@ -151,98 +151,126 @@
 # line below.
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../thunderbird-build
 
-# Specify the installation prefix. If you would prefer Thunderbird
+# Specify the installation prefix. If you would prefer Xulrunner
 # installed in a different prefix, modify the line below to fit
-# your needs. You'll also need to modify some of the instructions in
-# the BLFS book to point to your desired prefix.
+# your needs (the config will always be written to /etc/gre.d)
 ac_add_options --prefix=/usr
 
-# These options are used so that the Thunderbird binaries are linked to
+# apply a minimal level of optimization (-O)
+ac_add_options --enable-optimize
+
+# These options are used so that the Xulrunner binaries are linked to
 # the system-installed copies of the specified libraries instead of
 # the source tree code which may not be the most recent versions.
-ac_add_options --with-system-zlib
-ac_add_options --with-system-png
-ac_add_options --with-system-jpeg
+# With the exception of libsqlite3, the libraries are statically linked.
+
+# (Options to use system installed libraries)
+# Using the shipped version of libsqlite3 has been reported to cause
+# problems with other applications which were using sqlite3.
+# Only comment this line if you know exactly what you are doing!
+ac_add_options --enable-system-sqlite
+
+# Comment this only if you want to use whatever patched version of cairo
+# is in the shipped mozilla tree, together with the system headers.
 ac_add_options --enable-system-cairo
 
-# This option causes the installed binaries to have the official
-# Thunderbird name embedded in them. Due to license restrictions, you
-# may not distribute binaries created using this option.
-ac_add_options --enable-official-branding
+# Comment this if you have not installed lcms.
+ac_add_options --enable-system-lcms
 
-# This option specifies to include support for rendering the HTML
-# &lt;canvas&gt;&lt;/canvas&gt; tag in the Thunderbird mail client.
-#ac_add_options --enable-canvas
+# Comment this if you did not build libjpeg before GTK+-2.
+ac_add_options --with-system-jpeg
 
-# This option is used so that the debugging symbols are removed from
-# the installed binaries during the installation process. Comment out
-# this option if you may have a need to retain the debugging symbols
-# in the installed binaries. Note that this can substantially
-# increase the size of the installed binaries.
-ac_add_options --enable-strip
+# These two options enable support for building Thunderbird with
+# system-installed versions of the Network Security Services (NSS)
+# and Netscape Portable Runtime (NSPR) libraries. Comment them if
+# you wish to use the included copies (not recommended).
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+
+# Comment this if you have not built png with the apng patch.
+ac_add_options --with-system-png
+
+# The pthreads option is only used when building nspr
+# Uncomment this if you build the included nspr.
+#ac_add_options --with-pthreads
+
+# zlib is included in LFS. Do not comment this line.
+ac_add_options --with-system-zlib
+
+# (Options to disable parts of the package)
+# This option is used to disable the a11y support in the Xulrunner
+# binaries. Comment out this option if you require a11y support.
+ac_add_options --disable-accessibility
+
+# Uncomment this if you did not build curl.
+#ac_add_options --disable-crashreporter
+
+# Comment this if you have built dbus-glib.
+ac_add_options --disable-dbus
+
+# Comment this if you have gnome-vfs and libgnomeui, and wish to
+# integrate thunderbird into your gnome desktop
+ac_add_options --disable-gnomevfs
+
+# This option is added so that the Mozilla Installer program is not
+# built or installed. The program is not required for a BLFS
+# installation of Xulrunner.
+ac_add_options --disable-installer
+
+# Enable the build of static internal libs (this is currently required, until
+# Thunderbird 3.1, DO NOT COMMENT, see note below about XulRunner).
+ac_add_options --enable-static
 
 # This option is added so that test libraries and programs are not
 # built. These would only be required for debugging purposes.
 ac_add_options --disable-tests
 
-# This option is added so that the Mozilla Installer program is not
-# built or installed. The program is not required for a BLFS
-# installation of Thunderbird.
-ac_add_options --disable-installer
+# Disable the updater, which is not appropriate if you build from source
+ac_add_options --disable-updater
 
-# This option is used to disable the a11y support in the Thunderbird
-# binaries. Comment out this option if you require a11y support.
-ac_add_options --disable-accessibility
+# (options to add extra parts of the package)
+# This option causes the installed binaries to have the official
+# Thunderbird name embedded in them. Due to license restrictions, you
+# may not distribute binaries created using this option.  It also
+# means you get a popup EULA when you first run thunderbird.
+ac_add_options --enable-official-branding
 
 # This option is used to enable source tree included LDAP support in
-# the Thunderbird binaries.
+# the Firefox binaries.  This used to be required for mozab support in
+# OpenOffice.  Current requirement status is unknown ATM.
 ac_add_options --enable-ldap
 
-# This option is used to enable support for rendering SVG files in the
-# Thunderbird mail client. Uncomment the line below to enable the option.
-#ac_add_options --enable-svg
+# This option is used so that the debugging symbols are removed from
+# the installed binaries during the installation process. Comment out
+# this option if you may have a need to retain the debugging symbols
+# in the installed binaries (the resulting binaries will be about 7MB
+# bigger).
+ac_add_options --enable-strip
 
 # Uncomment this option if you desire support for dual-monitor
-# display of Thunderbird using the X-Window Xinerama libraries.
+# display using the X-Window Xinerama libraries.
 #ac_add_options --enable-xinerama
 
-# Complex scripts such as Thai can only be rendered in Thunderbird with
-# the help of Pango. This option significantly slows rendering, so only
-# use it if necessary.
-#ac_add_options --enable-pango
+# Enable strong cryptography (This is explicitly required if you plan to use
+the enigmail extension for Thunderbird).
+ac_add_options --enable-crypto
 
-# These two options enable support for building Thunderbird with
-# system-installed versions of the Network Security Services (NSS)
-# and Netscape Portable Runtime (NSPR) libraries. Uncomment both
-# lines to enable support for system-installed NSS/NSPR.
-#ac_add_options --with-system-nss
-#ac_add_options --with-system-nspr
-
-# This option identifies the default binary directory of the Thunderbird
-# installation and is used to locate Thunderbird's installed files. This
-# option is not required for end-user use, and is only used for
-# development purposes.
-#ac_add_options --with-default-mozilla-five-home=/usr/lib/thunderbird-&thunderbird-version;</literal>
+# Point to the xulrunner libraries - comment these for a standalone client
+# DO NOT UNCOMMENT THESE - System XULRunner is broken until Thunderbird
+# development catches up with XULRunner-1.9.2 (TB-3.1, est. April 6, 2010).
+#ac_add_options --with-system-libxul
+#ac_add_options --with-default-mozilla-five-home=/usr/lib/xulrunner-devel-&xulrunner-version;</literal>
 
 EOF</userinput></screen>
 
     <para>Compile <application>Thunderbird</application> by
     issuing the following commands:</para>
 
-<screen><userinput>cat &gt;&gt; layout/build/Makefile.in &lt;&lt; "EOF" &amp;&amp;
-ifdef MOZ_ENABLE_CANVAS
-EXTRA_DSO_LDOPTS += $(XLDFLAGS) -lX11 -lXrender
-endif
-EOF
-
-sed -i "s/^    enum$/&amp; xptinfo_enum_1/" \
-    xpcom/reflect/xptinfo/public/xptinfo.h &amp;&amp;
-
-make -f client.mk build</userinput></screen>
+<screen><userinput>make -f client.mk build</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
-    <para>If you're building the <application>Enigmail</application> extension,
+<!--    <para>If you're building the <application>Enigmail</application> extension,
     issue the following commands:</para>
 
 <screen><userinput>tar -xf ../enigmail-&thunderbird-enigmail-version;.tar.gz -C mailnews/extensions &amp;&amp;
@@ -251,9 +279,11 @@ make -f client.mk build</userinput></screen>
 make -C ../thunderbird-build/mailnews/extensions/enigmail &amp;&amp;
 make -C ../thunderbird-build/mailnews/extensions/enigmail \
         XPIFILE=enigmail-&thunderbird-enigmail-version;.xpi xpi</userinput></screen>
+-->
 
-    <para>Install <application>Thunderbird</application> by running the following
-    commands as the <systemitem class="username">root</systemitem> user:</para>
+    <para>Install <application>Thunderbird</application> by running the
+    following commands as the <systemitem class="username">root</systemitem>
+    user:</para>
 
 <screen role="root"><userinput>make -f client.mk install &amp;&amp;
 
@@ -264,27 +294,7 @@ install -v -m644 ../thunderbird-build/dist/bin/isp/{movemail,rss}.rdf \
     /usr/lib/thunderbird-&thunderbird-version;/isp &amp;&amp;
 rm -rvf /usr/lib/thunderbird-&thunderbird-version;/defaults/isp</userinput></screen>
 
-    <para>If you built <application>Thunderbird</application> utilizing
-    system-installed NSS and NSPR libraries, the
-    <filename>thunderbird-ns*.pc</filename> <application>pkgconfig</application>
-    files are broken as they point to the wrong directories where the actual
-    libraries and interface headers are located. Issue the following commands
-    as the <systemitem class="username">root</systemitem> user to replace the
-    broken files with symbolic links to known good files:</para>
-
-<screen role="root"><userinput>ln -v -sf nss.pc /usr/lib/pkgconfig/thunderbird-nss.pc &amp;&amp;
-ln -v -sf nspr.pc /usr/lib/pkgconfig/thunderbird-nspr.pc</userinput></screen>
-
-    <para>If you did <emphasis role="strong">NOT</emphasis> build
-    <application>Thunderbird</application> utilizing system-installed NSS and
-    NSPR libraries, issue the following commands as the
-    <systemitem class="username">root</systemitem> user to install the NSS
-    interface headers:</para>
-
-<screen role="root"><userinput>install -v -m755 -d /usr/include/thunderbird-&thunderbird-version;/nss &amp;&amp;
-cp -v -Lf ../thunderbird-build/dist/{private,public}/nss/*.h \
-    /usr/include/thunderbird-&thunderbird-version;/nss</userinput></screen>
-
+<!--
     <para>If you built the <application>Enigmail</application> extension,
     issue the following commands as the <systemitem
     class="username">root</systemitem> user to install the
@@ -309,10 +319,6 @@ cp -v -Lf ../thunderbird-build/dist/{private,public}/nss/*.h \
     configuring <application>Enigmail</application> for individual users if you
     did not not install it globally.</para>
 
-    <!-- This appears to not be required any longer. The regchrome program
-         is not built any longer, and multi-user access to Thunderbird appears
-         to work fine without running regxpcom and touching the files. -Randy
-
     <para>To enable multi-user operation, execute the following as the
     <systemitem class="username">root</systemitem> user:</para>
 
@@ -323,7 +329,7 @@ export MOZILLA_FIVE_HOME="$PWD" &amp;&amp;
 ./regchrome &amp;&amp;
 touch `find . -name *.rdf`</userinput></screen>
 
-    -->
+
 
     <note>
       <para>You should run <command>/usr/bin/thunderbird</command> once as the
@@ -332,19 +338,11 @@ touch `find . -name *.rdf`</userinput></screen>
       <filename class='directory'>/usr/lib/thunderbird-&thunderbird-version;</filename>
       directory.</para>
     </note>
-
+-->
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>'EXTRA_DSO_LDOPTS' += -lX11 -lXrender ...</command>:
-    Building the layout backend will break when the canvas element is enabled
-    without adding these two required libraries.</para>
-
-    <para><command>sed -i "s/^    enum$/&amp; xptinfo_enum_1/" ...</command>:
-    This command is used to fix an anonymous enum in an external/public
-    interface header file.</para>
 
     <para><command>make -f client.mk ...</command>: Mozilla products are
     packaged to allow the use of a configuration file which can be used to
@@ -356,6 +354,7 @@ touch `find . -name *.rdf`</userinput></screen>
     <command>configure</command> script and compiles the package or installs
     the package.</para>
 
+<!--
     <para><command>( cd mailnews/... &amp;&amp; ./makemake -r )</command>:
     This command is used to recursively create <filename>Makefile</filename>s
     in the <filename class='directory'>enigmail</filename> directory.</para>
@@ -364,10 +363,7 @@ touch `find . -name *.rdf`</userinput></screen>
     <application>Enigmail</application>
     <filename class='extension'>.xpi</filename> file which is used to install
     <application>Enigmail</application>.</para>
-
-    <para><command>install .../{movemail,rss}.rdf</command>: These commands
-    are used to install two mail extensions inadvertently left out of the
-    installation script or installed to the wrong location.</para>
+-->
 
   </sect2>
 
@@ -382,7 +378,7 @@ touch `find . -name *.rdf`</userinput></screen>
       location, then make a symlink to the <command>thunderbird</command>
       script in the <filename class="directory">/usr/bin</filename>
       directory.</para>
-
+<!--
       <para>If you don't have privileges to install extensions globally, or
       you prefer to not install global extensions, you can configure
       <application>Thunderbird</application> on an individual user basis for
@@ -401,7 +397,7 @@ touch `find . -name *.rdf`</userinput></screen>
       click on <quote>Install now</quote>. The
       <application>Enigmail</application> extension will install and you will
       be prompted to restart <application>Thunderbird</application>.</para>
-
+-->
       <para>If your Window or Desktop Manager does not allow you to configure
       a default browser, you can add a configuration parameter to
       <application>Thunderbird</application> so that a browser will start when
@@ -413,7 +409,7 @@ touch `find . -name *.rdf`</userinput></screen>
       <para>First, open the configuration dialog by opening the
       <quote>Edit</quote> drop-down menu. Choose <quote>Preferences</quote>
       and then click on the <quote>Advanced</quote> icon on the top menu
-      bar. Choose the <quote>General</quote> tab and click on the
+      bar. Choose the <quote>Advanced</quote> tab and click on the
       <quote>Config Editor</quote> button. This will display a list of the
       configuration preferences and information related to each one. You can
       use the <quote>Filter:</quote> bar to enter search criteria and narrow
@@ -434,8 +430,8 @@ touch `find . -name *.rdf`</userinput></screen>
 
     <tip>
       <para>There is a multitude of configuration parameters you can tweak to
-      customize <application>Thunderbird</application>. A very extensive and
-      up-to-date list of these parameters can be found at <ulink
+      customize <application>Thunderbird</application>. A very extensive, but
+      not so up-to-date list of these parameters can be found at <ulink
       url="http://preferential.mozdev.org/preferences.html"/>.</para>
     </tip>
 
