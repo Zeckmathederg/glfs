@@ -4,20 +4,22 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gs-download-http "&sourceforge-repo;/ghostscript/ghostscript-&gs-version;.tar.bz2">
-  <!ENTITY gs-download-ftp  "ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/GPL/gs870/ghostscript-&gs-version;.tar.bz2">
-  <!ENTITY gs-md5sum        "526366f8cb4fda0d3d293597cc5b984b">
-  <!ENTITY gs-size          "17 MB">
-  <!ENTITY gs-buildsize     "232 MB (includes installing libgs.so and both font tarballs)">
-  <!ENTITY gs-time          "3.2 SBU (includes building and installing libgs.so)">
+  <!-- <!ENTITY gs-download-http "&sourceforge-repo;/ghostscript/ghostscript-&gs-version;.tar.bz2"> -->
+  <!ENTITY gs-download-http "http://ghostscript.com/releases/ghostscript-&gs-version;.tar.gz">
+  <!ENTITY gs-download-ftp  "ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/GPL/gs871/ghostscript-&gs-version;.tar.gz">
+  <!ENTITY gs-md5sum        "51a522a5b4818bd3dc7c1c0e9dd22bad">
+  <!ENTITY gs-size          "25.2 MB">
+  <!ENTITY gs-buildsize     "255 MB (includes installing libgs.so and both font tarballs)">
+  <!ENTITY gs-time          "3.3 SBU (includes building and installing libgs.so)">
 
-  <!ENTITY gs-standard-fonts-download "ftp://ftp.imagemagick.org/pub/ImageMagick/delegates/ghostscript-fonts-std-8.11.tar.gz">
+  <!-- <!ENTITY gs-standard-fonts-download "ftp://ftp.imagemagick.org/pub/ImageMagick/delegates/ghostscript-fonts-std-8.11.tar.gz"> -->
+  <!ENTITY gs-standard-fonts-download "&sourceforge-repo;/gs-fonts/ghostscript-fonts-std-8.11.tar.gz">
   <!ENTITY gs-standard-fonts-md5sum   "6865682b095f8c4500c54b285ff05ef6">
-  <!ENTITY gs-standard-fonts-size     "3.6 MB">
+  <!ENTITY gs-standard-fonts-size     "3.7 MB">
 
-  <!ENTITY gs-other-fonts-download "http://ftp.gnu.org/pub/gnu/ghostscript/gnu-gs-fonts-other-6.0.tar.gz">
-  <!ENTITY gs-other-fonts-md5sum   "33457d3f37de7ef03d2eea05a9e6aa4f">
-  <!ENTITY gs-other-fonts-size     "778 KB">
+  <!ENTITY gs-other-fonts-download    "&sourceforge-repo;/gs-fonts/gnu-gs-fonts-other-6.0.tar.gz">
+  <!ENTITY gs-other-fonts-md5sum      "33457d3f37de7ef03d2eea05a9e6aa4f">
+  <!ENTITY gs-other-fonts-size        "796 KB">
 ]>
 
 <sect1 id="gs" xreflabel="GPL Ghostscript-&gs-version;">
@@ -107,9 +109,15 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="libjpeg"/>,
     <xref linkend="libpng"/>,
+    <xref linkend="libtiff"/>,
     <xref linkend="jasper"/>,
-    <xref linkend="gtk2"/>, and
-    <xref linkend="x-window-system"/></para>
+    <xref linkend="cairo"/>,
+    <xref linkend="fontconfig"/>,
+    <xref linkend="gtk2"/>,
+    <xref linkend="cups"/>,
+    <xref linkend="x-window-system"/>,
+    <ulink url="http://www.linuxprinting.org/ijs/">IJS</ulink>, and
+    <ulink url="http://packages.debian.org/unstable/source/libpaper">libpaper</ulink></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gs"/></para>
@@ -119,17 +127,44 @@
   <sect2 role="installation">
     <title>Installation of Ghostscript</title>
 
-    <para>If you have <application>JasPer</application> installed on your system
-    and you would like to use it with <application>GPL Ghostscript</application>,
-    first remove the local copy and apply a patch:</para>
+    <note>
+      <para>The <application>Ghostscript</application> build system is not
+      user-friendly. In order to use system copies of various graphics
+      libraries, you must do it using unconventional methods.</para>
+
+      <para>First, if you wish to use the system-installed version of
+      <application>JasPer</application>, remove the local copy from the
+      source tree and apply a patch:</para>
 
 <screen><userinput>rm -rf jasper &amp;&amp;
 patch -Np1 -i ../ghostscript-&gs-version;-system_jasper-1.patch</userinput></screen>
 
+      <para>Next, if you wish to use the system-installed copies of
+      <application>libjpeg</application> and <application>libpng</application>,
+      remove the local copies from the source tree:</para>
+
+<screen><userinput>rm -rf jpeg &amp;&amp;
+rm -rf libpng</userinput></screen>
+
+      <para>If you wish to use the system-installed copy of
+      <application>libtiff</application>, add the parameter
+      <option>--with-system-libtiff</option> to the <command>./configure</command>
+      command shown below. Also remove the
+      <filename class='directory'>tiff</filename> directory from the source tree
+      to prevent the <application>Ghostscript</application> build from using any
+      of its local copy.</para>
+
+      <para>Unfortunately, <application>Ghostscript</application> will use local
+      copies of <application>Expat</application> and
+      <application>Zlib</application> from the source tree. There doesn't
+      appear to be an easy way to use system-installed copies of these libraries
+      without doing some hacking of the sources.</para>      
+    </note>
+
     <para>Install <application>GPL Ghostscript</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>./configure --prefix=/usr --enable-dynamic &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite. However, you may test
@@ -140,8 +175,19 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-ln -sv /usr/share/ghostscript/&gs-version;/doc /usr/share/doc/ghostscript-&gs-version;</userinput></screen>
+<screen role="root"><userinput>make install docdir=/usr/share/doc/ghostscript-&gs-version; &amp;&amp;
+
+for INSTFILE in `ls doc`
+do
+  if [ ! -f          /usr/share/doc/ghostscript-&gs-version;/$INSTFILE ]; then
+    install -v -m644 doc/$INSTFILE \
+                     /usr/share/doc/ghostscript-&gs-version;
+  fi
+done &amp;&amp;
+
+install -v -m755 -d /usr/share/doc/ghostscript-&gs-version;/figures &amp;&amp;
+install -v -m644    doc/figures/* \
+                    /usr/share/doc/ghostscript-&gs-version;/figures</userinput></screen>
 
     <para>To install the shared library
     <filename class='libraryfile'>libgs.so</filename>, run the
@@ -149,10 +195,10 @@ ln -sv /usr/share/ghostscript/&gs-version;/doc /usr/share/doc/ghostscript-&gs-ve
 
 <screen><userinput>make so</userinput></screen>
 
-    <para>And again, as the <systemitem class="username">root</systemitem>
+    <para>And again as the <systemitem class="username">root</systemitem>
     user:</para>
 
-<screen role="root"><userinput>make soinstall &amp;&amp;
+<screen role="root"><userinput>make soinstall docdir=/usr/share/doc/ghostscript-&gs-version; &amp;&amp;
 install -v -m644 base/*.h /usr/include/ghostscript &amp;&amp;
 ln -v -s ghostscript /usr/include/ps</userinput></screen>
 
@@ -164,12 +210,14 @@ ln -v -s ghostscript /usr/include/ps</userinput></screen>
 
     <para>To finish the installation, unpack all fonts you've downloaded to
     <filename class="directory">/usr/share/ghostscript</filename> and ensure
-    the ownerships of the files are root:root. Substitute
+    the ownerships of the files are
+    <systemitem class="username">root</systemitem>:<systemitem
+    class="groupname">root</systemitem>. Substitute
     <replaceable>&lt;font-tarball&gt;</replaceable> appropriately in
     the command below for the fonts you wish to install:</para>
 
-<screen role="root"><userinput>tar -xvf ../<replaceable>&lt;font-tarball&gt;</replaceable> -C /usr/share/ghostscript &amp;&amp;
-chown -v -R root:root /usr/share/ghostscript/fonts</userinput></screen>
+<screen role="root"><userinput>tar -xvf ../<replaceable>&lt;font-tarball&gt;</replaceable> \
+    -C /usr/share/ghostscript --no-same-user</userinput></screen>
 
   </sect2>
 
@@ -181,8 +229,8 @@ chown -v -R root:root /usr/share/ghostscript/fonts</userinput></screen>
     <application>Ghostscript</application> interface headers in place to link
     to the shared library. These commands install the headers.</para>
 
-    <para><command>ln -sv ... /usr/share/doc/ghostscript-&gs-version;</command>: This puts
-    the documentation where it is expected to be found.</para>
+    <!-- <para><command>ln -sv ... /usr/share/doc/ghostscript-&gs-version;</command>: This puts
+    the documentation where it is expected to be found.</para> -->
 
     <para><command>ln -v -s ghostscript /usr/include/ps</command>: Some
     packages expect to find the interface headers in an alternate
@@ -204,7 +252,8 @@ chown -v -R root:root /usr/share/ghostscript/fonts</userinput></screen>
         ps2pdf13, ps2pdf14, ps2pdfwr, ps2ps, ps2ps2, pv.sh, unix-lpr.sh, and
         wftopfa</seg>
         <seg>libgs.so </seg>
-        <seg>/usr/include/ghostscript and /usr/share/ghostscript</seg>
+        <seg>/usr/include/ghostscript, /usr/lib/ghostscript, /usr/share/ghostscript,
+        and /usr/share/doc/ghostscript-&gs-version;</seg>
       </seglistitem>
     </segmentedlist>
 
