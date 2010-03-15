@@ -6,10 +6,10 @@
 
   <!ENTITY php-download-http "http://us2.php.net/distributions/php-&php-version;.tar.bz2">
   <!ENTITY php-download-ftp  "ftp://ftp.isu.edu.tw/pub/Unix/Web/PHP/distributions/php-&php-version;.tar.bz2">
-  <!ENTITY php-md5sum        "eb50b751c8e1ced05bd012d5a0e4dec3">
-  <!ENTITY php-size          "7.4 MB">
-  <!ENTITY php-buildsize     "250 MB (includes installing all documentation)">
-  <!ENTITY php-time          "2.5 SBU (additional 2.7 SBU to run the test suite)">
+  <!ENTITY php-md5sum        "46f500816125202c48a458d0133254a4">
+  <!ENTITY php-size          "10.4 MB">
+  <!ENTITY php-buildsize     "390 MB (includes installing all documentation)">
+  <!ENTITY php-time          "3.4 SBU (additional 10.5 SBU to run the test suite)">
 ]>
 
 <sect1 id="php" xreflabel="PHP-&php-version;">
@@ -80,6 +80,7 @@
     <!-- <xref linkend="gamin"/>, -->
     <xref linkend="pcre"/>,
     <xref linkend="aspell"/>,
+    <xref linkend="enchant"/>,
     <!-- <xref linkend="pkgconfig"/>, -->
     <xref linkend="recode"/>,
     <xref linkend="expat"/> (deprecated alternative to <xref linkend="libxml2"/>),
@@ -100,8 +101,8 @@
     <xref linkend="freetype2"/>,
     <xref linkend="x-window-system"/>,
     <ulink url="http://www.fastio.com/">ClibPDF</ulink>,
-    <ulink url="http://www.boutell.com/gd/">GD</ulink>,
-    <ulink url="http://gd.tuwien.ac.at/visual/ibiblio/libs/graphics/t1lib-5.1.0.tar.gz">
+    <ulink url="http://www.libgd.org/Main_Page">GD</ulink>,
+    <ulink url="http://www.sfr-fresh.com/linux/misc/t1lib-5.1.2.tar.gz/">
     t1lib</ulink>, and
     <ulink url="http://partners.adobe.com/asn/acrobat/forms.jsp">FDF Toolkit</ulink></para>
 
@@ -197,24 +198,20 @@
     <para>Install <application>PHP</application> by
     running the following commands:</para>
 
-<screen><userinput>sed -i 's/const char \*errpfx,/const DB_ENV *dbenv, &amp; const/' \
-    ext/dba/dba_db4.c &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --sysconfdir=/etc \
             --with-apxs2 \
-            --enable-force-cgi-redirect \
-            --enable-discard-path \
             --with-config-file-path=/etc \
             --with-zlib \
             --enable-bcmath \
             --with-bz2 \
             --enable-calendar \
-            --enable-dba \
-            --enable-exif \
+            --enable-dba=shared \
+            --with-gdbm \
+            --with-gmp \
             --enable-ftp \
             --with-gettext \
             --enable-mbstring \
-            --with-ncurses \
             --with-readline &amp;&amp;
 make</userinput></screen>
 
@@ -232,14 +229,16 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m644 php.ini-recommended /etc/php.ini &amp;&amp;
+install -v -m644 php.ini-production /etc/php.ini &amp;&amp;
 
 install -v -m755 -d /usr/share/doc/php-&php-version; &amp;&amp;
 install -v -m644 CODING_STANDARDS EXTENSIONS INSTALL NEWS \
                  README* TODO* UPGRADING php.gif \
     /usr/share/doc/php-&php-version; &amp;&amp;
 ln -v -s /usr/lib/php/doc/Archive_Tar/docs/Archive_Tar.txt \
-    /usr/share/doc/php-&php-version;</userinput></screen>
+         /usr/share/doc/php-&php-version; &amp;&amp;
+ln -v -s /usr/lib/php/doc/Structures_Graph/docs \
+         /usr/share/doc/php-&php-version;</userinput></screen>
 
     <para>The pre-built HTML documentation is packaged in two forms: a tarball
     containing many individual files, useful for quick loading into your
@@ -258,16 +257,16 @@ gunzip -v /usr/share/doc/php-&php-version;/php_manual_en.html.gz</userinput></sc
 
     <para>For the <quote>Many HTML files</quote> tarball:</para>
 
-<screen role="root"><userinput>tar -xvf ../php_manual_en.tar.gz -C /usr/share/doc/php-&php-version; &amp;&amp;
-chown -v -R root:root /usr/share/doc/php-&php-version;/html</userinput></screen>
+<screen role="root"><userinput>tar -xvf ../php_manual_en.tar.gz \
+    -C /usr/share/doc/php-&php-version; --no-same-user</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
       <title>Command Explanations</title>
 
-      <para><command>sed -i '...' ext/dba/dba_db4.c</command>: This command is
-      used to fix an issue with the use of Berkeley DB &gt;= 4.3.x.</para>
+      <!-- <para><command>sed -i '...' ext/dba/dba_db4.c</command>: This command is
+      used to fix an issue with the use of Berkeley DB &gt;= 4.3.x.</para> -->
 
       <para><parameter>--with-apxs2</parameter>: This parameter
       builds the Apache HTTPD 2.0 module.</para>
@@ -289,11 +288,8 @@ chown -v -R root:root /usr/share/doc/php-&php-version;/html</userinput></screen>
       <para><parameter>--enable-calendar</parameter>: This parameter
       provides support for calendar conversion.</para>
 
-      <para><parameter>--enable-dba</parameter>: This parameter enables
+      <para><parameter>--enable-dba=shared</parameter>: This parameter enables
       support for database (dbm-style) abstraction layer functions.</para>
-
-      <para><parameter>--enable-exif</parameter>: Enables functions
-      to access metadata from images.</para>
 
       <para><parameter>--enable-ftp</parameter>: This parameter
       enables FTP functions.</para>
@@ -303,9 +299,6 @@ chown -v -R root:root /usr/share/doc/php-&php-version;/html</userinput></screen>
 
       <para><parameter>--enable-mbstring</parameter>: This parameter
       enables multibyte string support.</para>
-
-      <para><parameter>--with-ncurses</parameter>: Provides ncurses
-      terminal independent cursor handling.</para>
 
       <para><parameter>--with-readline</parameter>: This parameter
       enables command line <application>Readline</application> support.</para>
