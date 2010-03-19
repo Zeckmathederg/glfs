@@ -111,9 +111,13 @@ useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd \
     <para>Install <application>OpenSSH</application> by running
     the following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc/ssh --datadir=/usr/share/sshd \
-    --libexecdir=/usr/lib/openssh --with-md5-passwords \
-    --with-privsep-path=/var/lib/sshd &amp;&amp;
+<screen><userinput>sed -i.bak 's/ -ldes//' configure &amp;&amp;
+./configure --prefix=/usr \
+            --sysconfdir=/etc/ssh \
+            --datadir=/usr/share/sshd \
+            --libexecdir=/usr/lib/openssh \
+            --with-md5-passwords \
+            --with-privsep-path=/var/lib/sshd &amp;&amp;
 make</userinput></screen>
 
     <para>If you linked <application>tcp_wrappers</application> into the
@@ -144,6 +148,12 @@ install -v -m644 INSTALL LICENCE OVERVIEW README* WARNING.RNG \
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed -i.bak 's/ -ldes//' configure</command>:
+    This command fixes a build crash if you used the
+    <option>--with-kerberos5</option> parameter and you built the
+    <application>Heimdal</application> package in accordance with the BLFS
+    instructions. The command is harmless in all other instances.</para>
 
     <para><parameter>--sysconfdir=/etc/ssh</parameter>: This prevents
     the configuration files from being installed in
