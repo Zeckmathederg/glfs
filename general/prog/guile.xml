@@ -8,8 +8,8 @@
   <!ENTITY guile-download-ftp  "ftp://ftp.gnu.org/pub/gnu/guile/guile-&guile-version;.tar.gz">
   <!ENTITY guile-md5sum        "991b5b3efcbbc3f7507d05bc42f80a5e">
   <!ENTITY guile-size          "3.9 MB">
-  <!ENTITY guile-buildsize     "47 MB (additional 40 MB to install all the docs)">
-  <!ENTITY guile-time          "0.7 SBU">
+  <!ENTITY guile-buildsize     "47 MB (additional 50 MB to install all the docs)">
+  <!ENTITY guile-time          "1.2 SBU">
 ]>
 
 <sect1 id="guile" xreflabel="Guile-&guile-version;">
@@ -86,9 +86,18 @@
     <para>Install <application>Guile</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --enable-posix \
-    --disable-static --enable-networking --enable-regex &amp;&amp;
-make</userinput></screen>
+<!-- <screen><userinput>./configure -prefix=/usr -enable-posix \
+    -disable-static -enable-networking -enable-regex &amp;&amp;
+make</userinput></screen> -->
+
+<screen><userinput>./configure --prefix=/usr &amp;&amp;
+make &amp;&amp;
+
+makeinfo --plaintext -o doc/goops/goops.txt doc/goops/goops.texi &amp;&amp;
+makeinfo --plaintext -o doc/r5rs/r5rs.txt   doc/r5rs/r5rs.texi   &amp;&amp;
+makeinfo --plaintext -o doc/ref/guile.txt   doc/ref/guile.texi   &amp;&amp;
+makeinfo --plaintext -o doc/tutorial/guile-tut.txt \
+                        doc/tutorial/guile-tut.texi</userinput></screen>
 
     <para>If you have <xref linkend="tetex"/> installed and wish to
     build alternate formats of the documentation, issue the following
@@ -98,13 +107,6 @@ make</userinput></screen>
 do
   make -k -C doc/$DIRNAME pdf ps html
 done &amp;&amp;
-
-makeinfo --plaintext -o doc/goops/goops.txt doc/goops/goops.texi &amp;&amp;
-makeinfo --plaintext -o doc/r5rs/r5rs.txt doc/r5rs/r5rs.texi &amp;&amp;
-makeinfo --plaintext -o doc/ref/guile.txt doc/ref/guile.texi &amp;&amp;
-makeinfo --plaintext -o doc/tutorial/guile-tut.txt \
-    doc/tutorial/guile-tut.texi &amp;&amp;
-
 unset DIRNAME</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
@@ -115,7 +117,15 @@ unset DIRNAME</userinput></screen>
 
 find examples -name "Makefile*" -exec rm {} \; &amp;&amp;
 install -v -m755 -d /usr/share/doc/guile-&guile-version; &amp;&amp;
-cp -v -R examples   /usr/share/doc/guile-&guile-version;</userinput></screen>
+cp -v -R examples   /usr/share/doc/guile-&guile-version; &amp;&amp;
+
+for DIRNAME in goops r5rs ref tutorial
+do
+  install -v -m755 -d /usr/share/doc/${PACKAGE_NAME}-${PACKAGE_VERSION}/$DIRNAME &amp;&amp;
+  install -v -m644    doc/$DIRNAME/*.txt \
+                      /usr/share/doc/${PACKAGE_NAME}-${PACKAGE_VERSION}/$DIRNAME &amp;&amp;
+done &amp;&amp;
+unset DIRNAME</userinput></screen>
 
     <para>If you built the alternate formats of the documentation, install them
     using the following commands issued by the
@@ -123,33 +133,37 @@ cp -v -R examples   /usr/share/doc/guile-&guile-version;</userinput></screen>
 
 <screen role="root"><userinput>for DIRNAME in goops r5rs ref tutorial
 do
-  install -v -m755 -d /usr/share/doc/guile-&guile-version;/$DIRNAME/html
-  install -v -m644 doc/$DIRNAME/*.{pdf,ps,dvi,txt} \
-      /usr/share/doc/guile-&guile-version;/$DIRNAME
-  if [ -d doc/$DIRNAME/$DIRNAME.html ]; then
-    install -v -m644 doc/$DIRNAME/$DIRNAME.html/* \
-        /usr/share/doc/guile-&guile-version;/$DIRNAME/html
+  install -v -m755 -d /usr/share/doc/guile-&guile-version;/$DIRNAME/html &amp;&amp;
+  install -v -m644    doc/$DIRNAME/*.{pdf,ps,dvi} \
+                      /usr/share/doc/guile-&guile-version;/$DIRNAME      &amp;&amp;
+  if [ -d             doc/$DIRNAME/$DIRNAME.html ]; then
+    install -v -m644  doc/$DIRNAME/$DIRNAME.html/* \
+                      /usr/share/doc/guile-&guile-version;/$DIRNAME/html &amp;&amp;
   fi
 done &amp;&amp;
 
 install -v -m644 doc/goops/hierarchy.{eps,png} \
-    /usr/share/doc/guile-&guile-version;/goops &amp;&amp;
+                 /usr/share/doc/guile-&guile-version;/goops    &amp;&amp;
 install -v -m644 doc/ref/guile.html/* \
-    /usr/share/doc/guile-&guile-version;/ref/html &amp;&amp;
+                 /usr/share/doc/guile-&guile-version;/ref/html &amp;&amp;
 install -v -m644 doc/tutorial/guile-tut.html/* \
-    /usr/share/doc/guile-&guile-version;/tutorial/html</userinput></screen>
+                 /usr/share/doc/guile-&guile-version;/tutorial/html</userinput></screen>
   </sect2>
 
+  <!-- Commenting these out (as well as the actual build command) because they
+       are the default. Examine configure.(ac,in) and you will see that if not
+       specified, all 3 of these options are enabled by default.
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><option>--enable-posix</option>: Enable Posix interfaces.</para>
+    <para><option>-enable-posix</option>: Enable Posix interfaces.</para>
 
-    <para><option>--enable-networking</option>: Enable networking interfaces.</para>
+    <para><option>-enable-networking</option>: Enable networking interfaces.</para>
 
-    <para><option>--enable-regex</option>: Enable regular expression interfaces.</para>    
+    <para><option>-enable-regex</option>: Enable regular expression interfaces.</para>    
 
   </sect2>
+  -->
 
   <sect2 role="content">
     <title>Contents</title>
