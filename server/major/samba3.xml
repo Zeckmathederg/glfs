@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY samba3-download-http "http://us1.samba.org/samba/ftp/stable/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-download-ftp  "ftp://us5.samba.org/pub/samba-ftp/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-md5sum        "d647ec1f34414fa8691f74536dcccfb5">
-  <!ENTITY samba3-size          "20 MB">
-  <!ENTITY samba3-buildsize     "238 MB">
-  <!ENTITY samba3-time          "2.3 SBU (additional 1.0 SBU to run the test suite)">
+  <!ENTITY samba3-download-http "http://samba.org/samba/ftp/stable/samba-&samba3-version;.tar.gz">
+  <!ENTITY samba3-download-ftp  "ftp://samba.org/pub/samba/samba-&samba3-version;.tar.gz">
+  <!ENTITY samba3-md5sum        "60811195b0507fa151b602684cece743">
+  <!ENTITY samba3-size          "30 MB">
+  <!ENTITY samba3-buildsize     "510 MB">
+  <!ENTITY samba3-time          "5 SBU (additional 1.5 SBU to run the test suite)">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -76,11 +76,23 @@
     <xref linkend="openldap"/>,
     <xref linkend="gamin"/>,
     <xref linkend="acl"/>,
+    <xref linkend="xfs"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
-    <xref linkend="python"/> (to build Samba API bindings for the
-    <application>Python</application> installation),
+    <!-- <xref linkend="python"/> (to build Samba API bindings for the
+    <application>Python</application> installation), -->
+    <ulink url="http://tdb.samba.org/">tdb</ulink>,
+    <ulink url="http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/">libcap2</ulink>,
+    <ulink url="http://www.nongnu.org/libunwind/">libunwind</ulink>,
+    <ulink url="http://people.redhat.com/dhowells/keyutils/">keyutils</ulink>
+    (required to build the <command>cifs.upcall</command> program),
+    <ulink url="http://www.avahi.org">Avahi</ulink>,
+    <ulink url="http://www.openafs.org/">OpenAFS</ulink>,
     and <ulink url="http://valgrind.org/">Valgrind</ulink> (optionally
     used by the test suite)</para>
+
+    <bridgehead renderas="sect4">Optional for Samba4 Support</bridgehead>
+    <para role="optional"><xref linkend="gnutls"/> (recommended) and
+    <xref linkend="sqlite"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/samba3"/></para>
@@ -104,7 +116,7 @@
 
 <!-- <screen><userinput>for FILENAME in $(ls ../*.diff); do patch -Np1 -i $FILENAME; done &amp;&amp; -->
 
-<screen><userinput>cd source &amp;&amp;
+<screen><userinput>cd source3 &amp;&amp;
 
 ./configure \
     --prefix=/usr \
@@ -113,12 +125,13 @@
     --with-piddir=/var/run \
     --with-pammodulesdir=/lib/security \
     --with-fhs \
-    --with-smbmount &amp;&amp;
+    --with-automount \
+    --with-cifsumount \
+    --enable-nss-wrapper \
+    --with-pthreads &amp;&amp;
 make</userinput></screen>
 
-    <para>You must become the <systemitem class="username">root</systemitem>
-    user to run the test framework. To run the tests, issue:
-    <command>make test</command>. If you have
+    <para>To test the results, issue: <command>make test</command>. If you have
     <application>Linux-PAM</application> installed and built the PAM library
     modules, you can perform a dlopen test by issuing:
     <command>make test_pam_modules</command>.</para>
@@ -126,33 +139,32 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-mv -v /usr/lib/samba/libsmbclient.so /usr/lib &amp;&amp;
-ln -v -sf ../libsmbclient.so /usr/lib/samba &amp;&amp;
-ln -v -sf libsmbclient.so /usr/lib/libsmbclient.so.0 &amp;&amp;
 
-chmod -v 644 /usr/include/lib{smbclient,msrpc}.h &amp;&amp;
+install -v -m755 ../nsswitch/libnss_win{s,bind}.so /lib   &amp;&amp;
+ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2      &amp;&amp;
+ln -v -sf libnss_wins.so    /lib/libnss_wins.so.2         &amp;&amp;
 
-install -v -m755 nsswitch/libnss_win{s,bind}.so /lib &amp;&amp;
-ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2 &amp;&amp;
-ln -v -sf libnss_wins.so /lib/libnss_wins.so.2 &amp;&amp;
-
-install -v -m644 ../examples/smb.conf.default /etc/samba &amp;&amp;
+install -v -m644 ../examples/smb.conf.default /etc/samba  &amp;&amp;
 
 install -v -m755 -d /usr/share/doc/samba-&samba3-version; &amp;&amp;
-install -v -m644 ../docs/*.pdf /usr/share/doc/samba-&samba3-version; &amp;&amp;
+install -v -m644    ../docs/*.pdf \
+                    /usr/share/doc/samba-&samba3-version; &amp;&amp;
 ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></screen>
 
-  <para>If you passed the <option>--with-python</option> option to the
+  <!-- <para>If you passed the <option>-with-python</option> option to the
   <command>configure</command> script, issue the following command as the
   <systemitem class="username">root</systemitem> user to install the
   <application>Python</application> extensions:</para>
 
-<screen role="root"><userinput>make python_install</userinput></screen>
+<screen role="root"><userinput>make python_install</userinput></screen> -->
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><option>--enable-merged-build</option>: Use this parameter to build
+    the Samba4 components (GnuTLS is recommended).</para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration
     file directory to avoid the default of
@@ -165,10 +177,21 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
     <para><parameter>--with-fhs</parameter>: Assigns all other file paths in
     a manner compliant with the Filesystem Hierarchy Standard (FHS).</para>
 
-    <para><parameter>--with-smbmount</parameter>: Orders the creation of an
+    <para><parameter>--with-automount</parameter>: Includes automounting
+    support.</para>
+
+    <para><parameter>--with-cifsumount</parameter>: Builds the
+    <command>umount.cifs</command> program.</para>
+
+    <para><parameter>--enable-nss-wrapper</parameter>: Builds the nss-wrapper
+    library.</para>
+
+    <para><parameter>--with-pthreads</parameter>: Adds threading support.</para>
+
+    <!-- <para><parameter>-with-smbmount</parameter>: Orders the creation of an
     extra binary for use by the <command>mount</command> command so that
     mounting remote SMB (Windows) shares becomes no more complex than
-    mounting remote NFS shares.</para>
+    mounting remote NFS shares.</para> -->
 
     <para><option>--with-pam</option>: Use this parameter to link
     <application>Linux-PAM</application> into the build. This
@@ -179,11 +202,11 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
     <filename class='libraryfile'>pam_winbind.so</filename>module by running
     <command>man winbindd</command>.</para>
 
-    <para><command>mv -v /usr/lib/samba/libsmbclient.so ...; ln -v -sf
+    <!-- <para><command>mv -v /usr/lib/samba/libsmbclient.so ...; ln -v -sf
     ../libsmbclient.so ...</command>: The
     <filename class='libraryfile'>libsmbclient.so</filename> library is needed
     by other packages. This command moves it to a location where other packages
-    can find it.</para>
+    can find it.</para> -->
 
     <para><command>install -v -m755 nsswitch/libnss_win{s,bind}.so /lib</command>:
     The nss libraries are not installed by default.  If you intend to use
@@ -222,18 +245,16 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
       <title>Mounting Shares by Unprivileged Users</title>
 
       <para>If it is desired for unprivileged users to directly mount (and
-      unmount) SMB and CIFS shares, the <command>smbmnt</command>,
-      <command>smbumount</command>, <command>mount.cifs</command> and
+      unmount) CIFS shares, the <command>mount.cifs</command> and
       <command>umount.cifs</command> commands must be setuid
       <systemitem class='username'>root</systemitem>. Note that users can
-      only mount SMB/CIFS shares on a mount point owned by that user (requires
+      only mount CIFS shares on a mount point owned by that user (requires
       write access also). If desired, change these programs to setuid
       <systemitem class='username'>root</systemitem> by issuing the following
       command as the <systemitem class='username'>root</systemitem>
       user:</para>
 
-<screen role="root"><userinput>chmod -v 4755 /usr/bin/smb{mnt,umount} \
-              /usr/sbin/{,u}mount.cifs</userinput></screen>
+<screen role="root"><userinput>chmod -v 4755 /usr/sbin/{,u}mount.cifs</userinput></screen>
 
     </sect3>
 
@@ -665,10 +686,10 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
 <!--newprogs: eventlogadm smbget-->
 
       <seglistitem>
-        <seg>eventlogadm, findsmb, mount.cifs, mount.smbfs, net, nmbd,
+        <seg>cifs.upcall, eventlogadm, findsmb, mount.cifs, mount.smbfs, net, nmbd,
         nmblookup, ntlm_auth, pdbedit, profiles, rpcclient, smbcacls,
-        smbclient, smbcontrol, smbcquotas, smbd, smbget, smbmnt, smbmount,
-        smbpasswd, smbspool, smbstatus, smbtar, smbtree, smbumount, swat,
+        smbclient, smbcontrol, smbcquotas, smbd, smbget,
+        smbpasswd, smbspool, smbstatus, smbtar, smbtree, swat,
         tdbbackup, tdbdump, tdbtool, testparm, umount.cifs, wbinfo
         and winbindd</seg>
         <seg>libnss_winbind.so, libnss_wins.so, libsmbclient.so, libmsrpc.so,
@@ -874,7 +895,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
         </listitem>
       </varlistentry>
 
-      <varlistentry id="smbmnt">
+      <!-- <varlistentry id="smbmnt">
         <term><command>smbmnt</command></term>
         <listitem>
           <para>is a helper application used by the
@@ -899,7 +920,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
             <primary sortas="b-smbmount">smbmount</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry> -->
 
       <varlistentry id="smbpasswd">
         <term><command>smbpasswd</command></term>
@@ -954,7 +975,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
         </listitem>
       </varlistentry>
 
-      <varlistentry id="smbumount">
+      <!-- <varlistentry id="smbumount">
         <term><command>smbumount</command></term>
         <listitem>
           <para>is used by unprivileged users to unmount SMB filesystems,
@@ -963,7 +984,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
             <primary sortas="b-smbumount">smbumount</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry> -->
 
       <varlistentry id="swat">
         <term><command>swat</command></term>
