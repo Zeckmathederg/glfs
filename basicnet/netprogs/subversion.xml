@@ -6,14 +6,14 @@
 
   <!ENTITY subversion-download-http "http://subversion.tigris.org/downloads/subversion-&subversion-version;.tar.bz2">
   <!ENTITY subversion-download-ftp  " ">
-  <!ENTITY subversion-md5sum        "037d1ed7a313631d50defdc3cf727415">
-  <!ENTITY subversion-size          "4.7 MB">
+  <!ENTITY subversion-md5sum        "9c30a47b1d48664e7afef68bb4834c53">
+  <!ENTITY subversion-size          "5.4 MB">
 
-  <!ENTITY subversion-buildsize     "111 MB (additional 74 MB to install all bindings and 592 MB to run all test suites)">
-  <!ENTITY subversion-time          "1.6 SBU (add 1.8 SBU for bindings and 6.7 SBU to run test suites)">
+  <!ENTITY subversion-buildsize     "170 MB (additional 43 MB to install all bindings and 740 MB to run all test suites)">
+  <!ENTITY subversion-time          "2.8 SBU (add 2.3 SBU for bindings and 6.0 SBU to run test suites)">
 
   <!ENTITY svn-neon-version         "0.28.3">
-  <!ENTITY svn-swig-version         "1.3.31">
+  <!ENTITY svn-swig-version         "1.3.36">
 ]>
 
 <sect1 id="subversion" xreflabel="Subversion-&subversion-version;">
@@ -98,19 +98,23 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="python"/> (required to run the test suite),
     <xref linkend="db"/>,
+    <xref linkend="sqlite"/>,
+    <xref linkend="cyrus-sasl"/>,
+    <xref linkend="openssl"/>,
+    <xref linkend="dbus-glib"/>,
     <xref linkend="apache"/> (if you have <application>Apache Portable
-    Runtime</application> installed),
-    <ulink url="http://www.webdav.org/neon/">neon</ulink>*, and
+    Runtime</application> installed), and
+    <ulink url="http://www.webdav.org/neon/">neon</ulink> or 
     <ulink url="http://code.google.com/p/serf/">serf</ulink></para>
 
-    <para>* The <command>configure</command> script will warn that the
+    <!-- <para>* The <command>configure</command> script will warn that the
     installed <application>neon</application> version is not supported if the
     version is greater than &svn-neon-version;. You can circumvent this
-    warning by passing <option>--disable-neon-version-check</option> to the
+    warning by passing <option>-disable-neon-version-check</option> to the
     <command>configure</command> command. Note that this may or may not work,
     depending on the version of <application>neon</application> you have
     installed, but <application>neon</application>-0.26.3 is known to
-    work.</para>
+    work.</para> -->
 
     <bridgehead renderas="sect4">Optional to Build the Java Bindings</bridgehead>
     <para role="optional"><xref linkend="jdk"/> or
@@ -127,7 +131,7 @@
     the installed version of <application>SWIG</application> is greater than
     &svn-swig-version;, but will attempt to use it anyway if you build the
     <application>SWIG</application> bindings. Versions of
-    <application>SWIG</application> up to 1.3.37 are known to work.</para>
+    <application>SWIG</application> up to 1.3.40 are known to work.</para>
 
     <!-- <para>Note that the <application>Python</application>,
     <application>Perl</application> and <application>Ruby</application>
@@ -171,10 +175,7 @@
     <para>Install <application>Subversion</application> by running the
     following commands:</para>
 
-<screen><userinput>sed -i 's/@SVN_APR_INCLUDES@/&amp; @CPPFLAGS@/' \
-    subversion/bindings/swig/perl/native/Makefile.PL.in
-
-./configure --prefix=/usr &amp;&amp;
+<screen><userinput>./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>If you have <xref linkend="doxygen"/> installed and you wish to
@@ -215,12 +216,6 @@ make swig-rb</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
-    <!-- <note>
-      <para>The <computeroutput>fs-base-test</computeroutput> is known to fail
-      with issues surrounding the Berkeley database installation. As mentioned
-      earlier, it is not yet fully understood why this test fails.</para>
-    </note> -->
-
     <para>To test the results of the Java bindings build, issue
     <command>make check-javahl</command>. Note you must have the
     <application>JUnit</application> testing framework installed.</para>
@@ -237,7 +232,8 @@ make check-swig-rb</userinput></screen>
 
 <screen role='root'><userinput>make install &amp;&amp;
 install -v -m755 -d /usr/share/doc/subversion-&subversion-version; &amp;&amp;
-cp -v -R doc/* /usr/share/doc/subversion-&subversion-version;</userinput></screen>
+cp      -v -R       doc/* \
+                    /usr/share/doc/subversion-&subversion-version;</userinput></screen>
 
     <para>If you built the Java bindings, issue the following command
     as the <systemitem class="username">root</systemitem> user to install
@@ -250,12 +246,14 @@ cp -v -R doc/* /usr/share/doc/subversion-&subversion-version;</userinput></scree
     <systemitem class="username">root</systemitem> user to install them:</para>
 
 <screen role='root'><userinput>make install-swig-pl &amp;&amp;
-
 make install-swig-py &amp;&amp;
-echo /usr/lib/svn-python \
-    &gt; /usr/lib/python&python-majorver;/site-packages/subversion.pth &amp;&amp;
-
 make install-swig-rb</userinput></screen>
+
+    <para>In order for <application>Python</application> to automatically
+    discover the bindings, add
+    <filename class='directory'>/usr/lib/svn-python</filename> to the
+    <envar>PYTHONPATH</envar> environment variable to the system or
+    personal profiles.</para>
 
   </sect2>
 
@@ -283,12 +281,12 @@ make install-swig-rb</userinput></screen>
     <command>apxs</command> might not be in an unprivileged user's
     <envar>PATH</envar> and won't be properly discovered.</para>
 
-    <para><parameter>--with-installbuilddir=/usr/lib/apr-0</parameter>:
+    <!-- <para><parameter>-with-installbuilddir=/usr/lib/apr-0</parameter>:
     This parameter is used (and only has an effect if you used the
     <application>Subversion dependencies</application> package) to force the
     installation of some APR-related support programs to
     <filename class="directory">/usr/lib/apr-0</filename> instead of
-    <filename class="directory">/usr/build</filename>.</para>
+    <filename class="directory">/usr/build</filename>.</para> -->
 
   </sect2>
 
