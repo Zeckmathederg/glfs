@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY evince-download-http "&gnome-download-http;/evince/0.8/evince-&evince-version;.tar.bz2">
-  <!ENTITY evince-download-ftp  "&gnome-download-ftp;/evince/0.8/evince-&evince-version;.tar.bz2">
-  <!ENTITY evince-md5sum        "0603d3f3f5648c88f10f75c89807c3d1">
-  <!ENTITY evince-size          "1.5 MB">
-  <!ENTITY evince-buildsize     "44 MB">
-  <!ENTITY evince-time          "0.7 SBU">
+  <!ENTITY evince-download-http "&gnome-download-http;/evince/&gnome-version;/evince-&evince-version;.tar.bz2">
+  <!ENTITY evince-download-ftp  "&gnome-download-ftp;/evince/&gnome-version;/evince-&evince-version;.tar.bz2">
+  <!ENTITY evince-md5sum        "f8b9a1ee6fe8cd0a1b7a51ad4db96e59">
+  <!ENTITY evince-size          "1.9 MB">
+  <!ENTITY evince-buildsize     "46 MB">
+  <!ENTITY evince-time          "1.1 SBU">
 ]>
 
 <sect1 id="evince" xreflabel="Evince-&evince-version;">
@@ -70,25 +70,24 @@
     <bridgehead renderas="sect3">Evince Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="libgnomeui"/>,
+    <para role="required"><xref linkend="gnome-doc-utils"/>,
     <xref linkend="gnome-icon-theme"/>, and
-    <xref linkend="gnome-doc-utils"/></para>
+    <xref linkend="gtk2"/></para>
 
     <bridgehead renderas="sect4">Run-Time Requirement</bridgehead>
     <para><xref linkend="shared-mime-info"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="intltool"/>,
+    <para role="optional"><xref linkend="GConf"/>,
+    <xref linkend="gnome-keyring"/>,
     <xref linkend="gtk-doc"/>,
-    <xref linkend="libgnomeprintui"/> (only used as an alternate method
-      for printing),
     <xref linkend="libtiff"/>,
     <xref linkend="tetex"/> (required to build the DVI viewer),
     <xref linkend="nautilus"/>
       (required to build the <application>Nautilus</application> plugin),
     <xref linkend="poppler"/> (required for PDF support and must be built
       with <application>GTK+</application> support),
-    <!-- <xref linkend="espgs"/> or --><xref linkend="gs"/>
+    <ulink url="http://libspectre.freedesktop.org/wiki/">libspectre</ulink>
     (required for Postscript ability from <application>Evince</application>),
     <ulink url="http://djvulibre.djvuzone.org/">DjVuLibre</ulink>
     (required for DjVu graphics from <application>Evince</application>), and
@@ -111,8 +110,10 @@
             --localstatedir=/var/lib \
             --mandir=$(pkg-config \
               --variable=prefix ORBit-2.0)/share/man \
-            --disable-ps \
-            --enable-pixbuf &amp;&amp;
+            --enable-pixbuf \
+            --without-keyring \
+            --without-gconf \
+            --disable-nautilus &amp;&amp;
 make</userinput></screen>
 
     <para>The test suite for this package requires a functional
@@ -142,14 +143,30 @@ make</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
     href="../../xincludes/gnome-mandir.xml"/>
 
-    <para><option>--disable-ps</option>: This parameter is required if you
-    don't have a Ghostscript package installed. Remove the parameter if you
-    do have a Ghostscript package installed and wish to build the DVI
-    viewer which provides Postscript support.</para>
+    <para><parameter>--enable-pixbuf</parameter>: This parameter enables the
+    Pixbuf Backend.</para>
 
-    <para><option>--enable-djvu</option>: Use this parameter if you have the
-    <application>DjVuLibre</application> package installed and you wish to
-    build support to view DjVu graphic files.</para>
+    <para><parameter>--without-keyring</parameter>: This parameter disables the
+    use of <application>gnome-keyring</application>. Remove parameter if
+    <application>gnome-keyring</application> is installed.</para>
+
+    <para><parameter>--without-gconf</parameter>: This parameter disables
+    <application>GConf</application> Support. Remove parameter if
+    <application>GConf</application> is installed.</para>
+
+    <para><parameter>--disable-nautilus</parameter>: This parameter disables the
+    <application>Nautilus</application> Plugin. Remove parameter if
+    <application>Nautilus</application> is installed.</para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2003/XInclude"
+    href="../../xincludes/gtk-doc-rebuild.xml"/>
+
+    <para><option>--enable-introspection</option>: Use this parameter if you
+    have the <application>gobject-introspection</application> package installed
+    and you wish to enable GObject introspection.</para>
+
+    <para><option>--enable-impress</option>: Use this parameter if you wish to
+    compile with support for impress presentations.</para>
 
     <para><option>--enable-dvi</option>: Use this parameter if you have the
     <application>teTeX</application> package installed and you wish to build
@@ -170,10 +187,16 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>evince and evince-thumbnailer</seg>
-        <seg>libevince-properties-page.{so,a}
-        <application>Nautilus</application> extension</seg>
-        <seg><envar>$GNOME_PREFIX</envar>/share/{,gnome/help/ ,omf/}evince</seg>
+        <seg>evince, evince-previewer,  and evince-thumbnailer</seg>
+        <seg>libevdocument.{so,a}, libevview.{so,a}, the following backends:
+        libcomicsdocument.{so,a}, libimpressdocument.{so,a},
+        libpixbufdocument.{so,a}, libtiffdocument.{so,a}, and
+        libevince-properties-page.{so,a}, a <application>Nautilus</application>
+        extension.</seg>
+        <seg><envar>$GNOME_PREFIX</envar>/{include/evince/2.25/{libdocument,
+        libview},lib/evince/1/backends,share/{evince/icons/hicolor/*,
+        gnome/help/evince/*,gtk-doc/html/{evince,libevdocument,libevview},
+        omf/evince}}</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -188,6 +211,16 @@ make</userinput></screen>
           <para>is a multiple format document viewer.</para>
           <indexterm zone="evince evince-prog">
             <primary sortas="b-evince">evince</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="evince-previewer">
+        <term><command>evince-previewer</command></term>
+        <listitem>
+          <para>is an applicaton that implements the printing preview.</para>
+          <indexterm zone="evince evince-previewer">
+            <primary sortas="b-evince-previewer">evince-previewer</primary>
           </indexterm>
         </listitem>
       </varlistentry>
