@@ -6,10 +6,10 @@
 
   <!ENTITY qt4-download-http "http://ftp.silug.org/mirrors/ftp.trolltech.com/qt/source/qt-x11-opensource-src-&qt4-version;.tar.gz">
   <!ENTITY qt4-download-ftp  "ftp://ftp.trolltech.com/qt/source/qt-x11-opensource-src-&qt4-version;.tar.gz">
-  <!ENTITY qt4-md5sum        "376c003317c4417326ba2116370227d0">
-  <!ENTITY qt4-size          "108 MB">
-  <!ENTITY qt4-buildsize     "1044 MB (full), 943 (essential)">
-  <!ENTITY qt4-time          "40 SBU (full), 29 SBU (essential)">
+  <!ENTITY qt4-md5sum        "3988cf9af68be2df8a8000ede231de9b">
+  <!ENTITY qt4-size          "125 MB">
+  <!ENTITY qt4-buildsize     "1100 MB (full), 980 (essential)">
+  <!ENTITY qt4-time          "47 SBU (full), 36 SBU (essential)">
 ]>
 
 <sect1 id="qt4" xreflabel="Qt-&qt4-version;">
@@ -71,6 +71,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="nas"/>,
       <xref linkend="dbus"/>,
+      <xref linkend="gst-plugins-base"/>,
       <xref linkend="glib2"/>,
       <xref linkend="openssl"/>,
       <xref linkend="cups"/>,
@@ -135,14 +136,14 @@
       other Qt bin directory.  </para>
     </note>
 
-    <note>
+    <caution>
       <para>If <application>Qt4</application> is being reinstalled and the
       <filename class='directory'>/usr</filename>
       directory is used as the prefix, run the following commands from a
       console or non-Qt4 based window manager.  It overwrites
       <application>Qt4</application> libraries that should not be in use during
       the install process.</para>
-    </note>
+    </caution>
 
     <note>
       <para>The build time and space required for the full
@@ -168,7 +169,6 @@
     following commands:</para>
 
 <screen><userinput>./configure -prefix /opt/qt-&qt4-version;  \
-            -release                 \
             -nomake examples         \
             -nomake demos            \
             -no-separate-debug-info &amp;&amp;
@@ -191,10 +191,10 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>-release, -no-separate-debug-info</parameter>: These
-    switches minimizes the time and space used to build
+    <para><parameter>-no-separate-debug-info</parameter>: This parameter
+    minimizes the time and space used to build
     <application>Qt4</application> by not adding debug information to the
-    libraries.</para>
+    libraries and executables.</para>
 
     <para><parameter>-nomake examples, -nomake demos</parameter>:
     These switches disable building programs that are only of interest
@@ -205,7 +205,6 @@ make</userinput></screen>
     <option>-bindir</option>, <option>-libdir</option>,
     <option>-docdir</option>, and <option>-headerdir</option>.  For a complete
     list, run <command>./configure -help</command>.</para>
-
 
     <para><parameter>-plugin-sql-<replaceable>&lt;driver&gt;</replaceable></parameter>
     or <parameter>-qt-sql-<replaceable>&lt;driver&gt;</replaceable></parameter>:
@@ -232,8 +231,9 @@ make</userinput></screen>
       that <application>Qt4</application> is correctly found by other packages
       and system processes.</para>
 
-      <para>Update the <filename>/etc/ld.so.conf</filename> and
-      <filename>/etc/man_db.conf</filename> files:</para>
+      <para>As the <systemitem class="username">root</systemitem> user, update
+      the <filename>/etc/ld.so.conf</filename> file and the dynamic linker's
+      run-time cache file:</para>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; "EOF" &amp;&amp;
 <literal># Begin qt addition to /etc/ld.so.conf
@@ -242,21 +242,10 @@ make</userinput></screen>
 
 # End qt addition</literal>
 EOF
-ldconfig &amp;&amp;
-cat &gt;&gt; /etc/man_db.conf &lt;&lt; "EOF"
-<literal># Begin qt addition to man_db.conf
-
-MANDATORY_MANPATH /opt/qt/doc/man
-
-# End qt addition to man_db.conf</literal>
-EOF</userinput></screen>
+ldconfig</userinput></screen>
 
       <indexterm zone="qt qt4-config">
         <primary sortas="e-etc-ld.so.conf">/etc/ld.so.conf</primary>
-      </indexterm>
-
-      <indexterm zone="qt qt4-config">
-        <primary sortas="e-etc-man_db.conf">/etc/man_db.conf</primary>
       </indexterm>
 
       <para>Update the <envar>PKG_CONFIG_PATH</envar> environment variable
@@ -271,11 +260,6 @@ EOF</userinput></screen>
       <filename>/etc/profile</filename> to include
       <filename class='directory'>/opt/qt/bin</filename>.</para>
 
-      <para>As with most libraries, there is no explicit configuration to do.
-      After updating <filename>/etc/ld.so.conf</filename> as explained above,
-      run <command>/sbin/ldconfig</command> so that <command>ldd</command>
-      can find the shared libraries.</para>
-
     </sect3>
   </sect2>
 
@@ -288,13 +272,18 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>assistant, designer, linguist, lrelease, lupdate, moc,
-        pixeltool, qmake, qt3to4, qtconfig, qtdemo, rcc, uic, and uic3</seg>
+        <seg>assistant, assistant_adp, designer, lconvert, linguist, lrelease,
+        lupdate, moc, pixeltool, qcollectiongenerator, qdbus, qdbuscpp2xml,
+        qdbusviewer, qdbusxml2cpp, qhelpconverter, qhelpgenerator,qmake,
+        qt3to4, qtconfig, qtdemo, rcc, uic, uic3, and xmlpatterns</seg>
 
-        <seg>libQt3Support.so, libQtAssistantClient.so, libQtCore.so,
-        libQtDesigner.so, libQtDesignerComponents.so, libQtGui.so,
-        libQtNetwork.so, libQtOpenGL.so, libQtScript.so, libQtSql.so,
-        libQtSvg.so, libQtTest.so, and libQtXml.so</seg>
+        <seg>libphonon.so, libQt3Support.so, libQtAssistantClient.so,
+        libQtCLucene.so, libQtCore.so, libQtDesigner.so, libQtDBus.so,
+        libQtDesignerComponents.so, libQtGui.so, libQtHelp.so, libQtNetwork.so,
+        libQtOpenGL.so, libQtScript.so, libQtScriptTools.so, libQtSql.so,
+        libQtSvg.so, libQtTest.so, libQtUiTools.a, libQtWebKit.so, libQtXml.so,
+        libQtXmlPatterns.so, and numerous plugin modules installed in
+        <filename class='directory'>/opt/qt/plugins</filename></seg>
 
         <seg>/opt/qt-&qt4-version;</seg>
       </seglistitem>
