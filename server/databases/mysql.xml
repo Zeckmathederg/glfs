@@ -8,9 +8,9 @@
   <!ENTITY mysql-download-ftp  "ftp://ftp.fu-berlin.de/unix/databases/mysql/Downloads/MySQL-5.0/mysql-&mysql-version;.tar.gz"> -->
   <!ENTITY mysql-download-http "&sources-anduin-http;/m/mysql-&mysql-version;.tar.gz">
   <!ENTITY mysql-download-ftp  "&sources-anduin-ftp;/m/mysql-&mysql-version;.tar.gz">
-  <!ENTITY mysql-md5sum        "b644b219e130b7c6bca81948f75d72d7">
-  <!ENTITY mysql-size          "21 MB">
-  <!ENTITY mysql-buildsize     "419 MB (additional 250 MB to run the test suite)">
+  <!ENTITY mysql-md5sum        "a90d87a71fa3c23dff6d78afc8e3184c">
+  <!ENTITY mysql-size          "23 MB">
+  <!ENTITY mysql-buildsize     "492 MB (additional 250 MB to run the test suite)">
   <!ENTITY mysql-time          "4.7 SBU (Test suite is an additional 61 minutes, only partially CPU dependent)">
 ]>
 
@@ -63,29 +63,27 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Download</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Required Patches:
-        <ulink  url="&patch-root;/mysql-&mysql-version;-logevent-1.patch"/>
-         <ulink url="&patch-root;/mysql-&mysql-version;-client-1.patch"/>
-         </para>
+        <para>Required Patch:
+          <ulink  url="&patch-root;/mysql-&mysql-version;-makefile-1.patch"/>
+        </para>
        </listitem>
     </itemizedlist>
 
-
     <bridgehead renderas="sect3">MySQL Dependencies</bridgehead>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="optional"><xref linkend="openssl"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openssl"/> and
-    <xref linkend="tcpwrappers"/>
+    <para role="optional"><xref linkend="tcpwrappers"/></para>
 
     <!-- Removing libedit because it causes more problems than it solves.
 
     <ulink url="http://sourceforge.net/projects/libedit/">libedit</ulink>
     (as an alternative to readline)-->
-
-    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/mysql"/></para>
@@ -110,8 +108,10 @@ useradd -c "MySQL Server" -d /dev/null -g mysql -s /bin/false \
     <para>Build and install <application>MySQL</application> by
     running the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../mysql-&mysql-version;-logevent-1.patch &amp;&amp;
-patch -Np1 -i ../mysql-&mysql-version;-client-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../mysql-&mysql-version;-makefile-1.patch &amp;&amp;
+CFLAGS="-O3" \
+CXX=gcc \
+CXXFLAGS="-O3 -felide-constructors -fno-exceptions -fno-rtti" \
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --libexecdir=/usr/sbin \
@@ -130,10 +130,11 @@ make</userinput></screen>
     <para>To test the results, issue: <command>make test-force 2>&amp;1 | tee
     test.log</command>.  This forces the test to run to completion and logs all
     the test output.  There will be many tests that are not run due to
-    configuration options and developer considerations.  Note that if you have
-    a restrictive <filename>/etc/hosts.deny</filename> file, you will need to
-    add an appropriate entry to the <filename>/etc/hosts.allow</filename> file
-    for the <command>mysqld</command> daemon. Otherwise many of the tests will
+    configuration options and developer considerations.  Note that if you use
+    TCP Wrappers and have a restrictive <filename>/etc/hosts.deny</filename>
+    file, you will need to add an appropriate entry to the
+    <filename>/etc/hosts.allow</filename> file for the
+    <command>mysqld</command> daemon. Otherwise many of the tests will
     fail.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
@@ -153,8 +154,7 @@ popd</userinput></screen>
 
     <tip>
       <para>The only documentation shipped in the source tarball are
-      <filename>mysql.info</filename>, <filename>manual.chm</filename>
-      (Microsoft Help format) files, and man pages. You can download various
+      <filename>mysql.info</filename> and man pages. You can download various
       formats of the <application>MySQL</application> Reference Manual
       from <ulink url="http://dev.mysql.com/doc/"/>.</para>
     </tip>
@@ -163,6 +163,10 @@ popd</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><parameter>CFLAGS="-O3" CXX=gcc CXXFLAGS="-O3 -felide-constructors 
+    -fno-exceptions -fno-rtti"</parameter>: These optimizations are recommended
+    by th edevelopers.</para>
 
     <para><parameter>--libexecdir=/usr/sbin</parameter>: This switch installs
     the <command>mysqld</command> daemon and the
