@@ -6,10 +6,10 @@
 
   <!ENTITY firefox-download-http "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
   <!ENTITY firefox-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
-  <!ENTITY firefox-md5sum        "458051557ff49e6a352c1d56eee5782a">
-  <!ENTITY firefox-size          "47 MB">
-  <!ENTITY firefox-buildsize     "321 MB (stand-alone) or 303 MB (on xulrunner)">
-  <!ENTITY firefox-time          "12 SBU (stand-alone) or 0.1 SBU (on xulrunner)">
+  <!ENTITY firefox-md5sum        "0ee5f14fd8be07513d16131027ebcb61">
+  <!ENTITY firefox-size          "49 MB">
+  <!ENTITY firefox-buildsize     "836 MB (stand-alone) or 425 MB (on xulrunner)">
+  <!ENTITY firefox-time          "13 SBU (stand-alone) or 0.3 SBU (on xulrunner)">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -35,12 +35,13 @@
     <para>With the introduction of firefox-3.x, the
     <application>pkgconfig</application> files for the Gecko engine (and for
     <application>nss</application> and <application>nspr</application>) are not
-    installed.  This means that applications such as
-    <application>Epiphany</application> can no longer be built against firefox,
-    and must instead be built against xulrunner (which is actually the same
-    code, but built in a different way).  If you wish to build other packages
-    which use Gecko (for the moment, probably only gnome-2.24 or later versions
-    will recognize xulrunner), build <xref linkend="xulrunner"/> first.</para>
+    installed.  This means that applications such as <application>Yelp
+    </application> can no longer be built against firefox, and must instead be
+    built against xulrunner (which is actually the same code, but built in a
+    different way).  If you wish to build other packages which use Gecko (of the
+    applications in this book, probably only some sundry gnome-2.28 applications
+    will recognize this version of xulrunner, build <xref linkend="xulrunner"/>
+    first.</para>
 
    <tip>
     <para>Firefox is updated frequently as new vulnerabilities are found.
@@ -48,7 +49,7 @@
     <ulink url="http://www.mozilla.org/security/known-vulnerabilities/">mozilla security</ulink>
     for details of what is fixed in newer releases.  The editors cannot guess
     what will differ in newer versions: it should be straightforward to upgrade
-    within the same series (3.5), but it is always possible that newer versions
+    within the same series (3.6), but it is always possible that newer versions
     will have increased dependencies, or that something using the nss or gecko
     libraries will break.  If you update, begin by updating
     <application>xulrunner</application> if you use that, then update firefox
@@ -114,7 +115,7 @@
     <xref linkend="curl"/> (only for crash-reporter),
     <xref linkend="gnome-vfs"/> and <xref linkend="libgnomeui"/>
     (for gnome integration),
-    <xref linkend="lcms"/>,
+    <xref linkend="libnotify"/>,
     <xref linkend="libpng"/> (patched for apng support),
     <xref linkend="nspr"/>,
     <xref linkend="nss"/>,
@@ -282,13 +283,6 @@ ac_add_options --with-system-libxul
 ac_add_options --with-libxul-sdk=/usr/lib/xulrunner-devel-&xulrunner-version;</literal>
 EOF</userinput></screen>
 
-    <para>If you did not install <xref linkend="xulrunner"/> or
-    <xref linkend="nspr"/> and <xref linkend="nss"/>, then fix a couple of build
-    errors with the following commands:</para>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-provide_system_nss_nspr-1.patch &amp;&amp;
-sed 's@stable@unstable@' -i xulrunner/installer/mozilla-js.pc.in </userinput></screen>
-
     <para>Compile <application>Firefox</application> by issuing the
     following commands:</para>
 
@@ -307,17 +301,6 @@ sed 's@stable@unstable@' -i xulrunner/installer/mozilla-js.pc.in </userinput></s
 
 <screen role="root"><userinput>ln -sv /usr/lib/xulrunner-&xulrunner-version;/plugins \
     /usr/lib/firefox-&firefox-version;/plugins</userinput></screen>
-
-    <para>If you've elected to use the included NSPR and NSS, while still the
-    <systemitem class="username">root</systemitem> user, complete the
-    installation with the following commands:</para>
-
-<screen role="root"><userinput>for DL in \
-    libnss3.so libnssutil3.so libsmime3.so libssl3.so libsoftokn3.so \
-    libplds4.so libplc4.so libnspr4.so
-do
-    ln -sv xulrunner-&xulrunner-version;/$DL /usr/lib/$DL
-done</userinput></screen>
 
   </sect2>
 
@@ -338,7 +321,9 @@ done</userinput></screen>
     /usr/lib/firefox-&firefox-version;/plugins</command>:
     <application>Firefox</application> looks for plugins in its own directory,
     but when building on <application>xulrunner</application> the plugins were
-    installed by that package.</para>
+    installed by that package.  Note that any plugins in
+    <filename class="directory">/usr/lib/mozilla/plugins</filename> will also be
+    found.</para>
 
    <tip>
     <para>If you upgrade firefox, ensure that any additional plugins are moved
@@ -393,9 +378,9 @@ done</userinput></screen>
       url="http://preferential.mozdev.org/preferences.html"/>.</para>
     </tip>
 
-    <para>Many applications look for <command>netscape</command> when they
-    need to open a browser. You may wish to make the following symlink for
-    convenience (as the <systemitem class="username">root</systemitem>
+    <para>Many old applications used to look for <command>netscape</command>
+    when they needed to open a browser. You may wish to make the following
+    symlink for convenience (as the <systemitem class="username">root</systemitem>
     user).</para>
 
 <screen role="root"><userinput>ln -v -sf firefox /usr/bin/netscape</userinput></screen>
