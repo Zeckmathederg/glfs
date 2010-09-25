@@ -232,7 +232,7 @@ mv -v /usr/bin/passwd /bin</userinput></screen>
       <itemizedlist spacing="compact">
       <listitem>
         <para><ulink
-        url="http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/pam-6.html#ss6.3"/></para>
+        url="http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/sag-pam_cracklib.html"/></para>
       </listitem>
       <listitem>
         <para><ulink
@@ -296,68 +296,48 @@ done</userinput></screen>
       </sect4>
 
       <sect4>
-        <title>'login' (with CrackLib)</title>
+        <title>'system-account'</title>
 
-<screen role="root"><userinput>cat &gt; /etc/pam.d/login &lt;&lt; "EOF"
-<literal># Begin /etc/pam.d/login
+<screen role="root"><userinput>cat &gt; /etc/pam.d/system-account &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-account
 
-auth        requisite      pam_nologin.so
-auth        required       pam_securetty.so
-auth        required       pam_unix.so
-account     required       pam_access.so
-account     required       pam_unix.so
-session     required       pam_env.so
-session     required       pam_motd.so
-session     required       pam_limits.so
-session     optional       pam_mail.so      dir=/var/mail standard
-session     optional       pam_lastlog.so
-session     required       pam_unix.so
-password    required       pam_cracklib.so  retry=3
-password    required       pam_unix.so      md5 shadow use_authtok
+account   required    pam_unix.so
 
-# End /etc/pam.d/login</literal>
+# End /etc/pam.d/system-account</literal>
 EOF</userinput></screen>
 
       </sect4>
 
       <sect4>
-        <title>'login' (without CrackLib)</title>
+        <title>'system-auth'</title>
 
-<screen role="root"><userinput>cat &gt; /etc/pam.d/login &lt;&lt; "EOF"
-<literal># Begin /etc/pam.d/login
+<screen role="root"><userinput>cat &gt; /etc/pam.d/system-auth &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-auth
 
-auth        requisite      pam_nologin.so
-auth        required       pam_securetty.so
-auth        required       pam_env.so
-auth        required       pam_unix.so
-account     required       pam_access.so
-account     required       pam_unix.so
-session     required       pam_motd.so
-session     required       pam_limits.so
-session     optional       pam_mail.so      dir=/var/mail standard
-session     optional       pam_lastlog.so
-session     required       pam_unix.so
-password    required       pam_unix.so      md5 shadow
+auth      required    pam_unix.so
 
-# End /etc/pam.d/login</literal>
+# End /etc/pam.d/system-auth</literal>
 EOF</userinput></screen>
 
       </sect4>
 
       <sect4>
-        <title>'passwd' (with CrackLib)</title>
+        <title>'system-passwd' (with cracklib)</title>
 
-<screen role="root"><userinput>cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"
-<literal># Begin /etc/pam.d/passwd
+<screen role="root"><userinput>cat &gt; /etc/pam.d/system-password &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-password
 
-password    required       pam_cracklib.so  type=Linux retry=1 \
-                                            difok=5 diffignore=23 minlen=9 \
-                                            dcredit=1 ucredit=1 lcredit=1 \
-                                            ocredit=1 \
-                                            dictpath=/lib/cracklib/pw_dict
-password    required       pam_unix.so      md5 shadow use_authtok
+# check new passwords for strength (man pam_cracklib)
+password  required    pam_cracklib.so   type=Linux retry=3 difok=5 \
+                                        difignore=23 minlen=9 dcredit=1 \
+                                        ucredit=1 lcredit=1 ocredit=1 \
+                                        dictpath=/lib/cracklib/pw_dict
+# use sha512 hash for encryption, use shadow, and use the
+# authentication token (chosen password) set by pam_cracklib
+# above (or any previous modules)
+password  required    pam_unix.so       sha512 shadow use_authtok
 
-# End /etc/pam.d/passwd</literal>
+# End /etc/pam.d/system-password</literal>
 EOF</userinput></screen>
 
         <note><para>In its default configuration, owing to credits,
@@ -368,14 +348,96 @@ EOF</userinput></screen>
         of your system.</para></note>
 
       </sect4>
+      
+      <sect4>
+        <title>'system-passwd' (without cracklib)</title>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/system-password &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-password
+
+# use sha512 hash for encryption, use shadow, and try to use any perviously
+# defined authentication token (chosen password) set by any prior module
+password  required    pam_unix.so       sha512 shadow try_first_pass
+
+# End /etc/pam.d/system-password</literal>
+EOF</userinput></screen>
+
+      </sect4>
 
       <sect4>
-        <title>'passwd' (without CrackLib)</title>
+        <title>'system-session'</title>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/system-session &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-session
+
+session   required    pam_unix.so
+
+# End /etc/pam.d/system-session</literal>
+EOF</userinput></screen>
+
+      </sect4>
+
+      <sect4>
+        <title>'login'</title>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/login &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/login
+
+# Set failure delay before next prompt to 3 seconds
+auth      optional    pam_faildelay.so  delay=3000000
+
+# Check to make sure that the user is allowed to login
+auth      requisite   pam_nologin.so
+
+# Check to make sure that root is allowed to login
+auth      required    pam_securetty.so
+
+# Additional group memberships - disabled by default
+#auth      optional    pam_group.so
+
+# include the default auth settings
+auth      include     system-auth
+
+# check access for the user
+account   required    pam_access.so
+
+# include the default account settings
+account   include     system-account
+
+# Set default environment variables for the user
+session   required    pam_env.so
+
+# Set resource limits for the user
+session   required    pam_limits.so
+
+# Display date of last login - Disabled by default
+#session   optional    pam_lastlog.so
+
+# Display the message of the day - Disabled by default
+#session   optional    pam_motd.so
+
+# Check user's mail - Disabled by default
+#session   optional    pam_mail.so      standard quiet
+
+# Use xauth keys (if available)
+session   optional    pam_xauth.so
+
+# include the default session and password settings
+session   include     system-session
+password  include     system-password
+
+# End /etc/pam.d/login</literal>
+EOF</userinput></screen>
+
+      </sect4>
+
+      <sect4>
+        <title>'passwd'</title>
 
 <screen role="root"><userinput>cat &gt; /etc/pam.d/passwd &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/passwd
 
-password    required       pam_unix.so      md5 shadow
+password  include     system-password
 
 # End /etc/pam.d/passwd</literal>
 EOF</userinput></screen>
@@ -388,13 +450,20 @@ EOF</userinput></screen>
 <screen role="root"><userinput>cat &gt; /etc/pam.d/su &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/su
 
-auth        sufficient      pam_rootok.so
-auth        required        pam_unix.so
-account     required        pam_unix.so
-session     optional        pam_mail.so     dir=/var/mail standard
-session     optional        pam_xauth.so
-session     required        pam_env.so
-session     required        pam_unix.so
+# always allow root
+auth      sufficient  pam_rootok.so
+
+# include the default account settings
+account   include     system-account
+
+# Use xauth keys (if available)
+session   optional    pam_xauth.so
+
+# Set default environment variables for the service user
+session   required    pam_env.so
+
+# include system session defaults
+session   include     system-session
 
 # End /etc/pam.d/su</literal>
 EOF</userinput></screen>
@@ -405,13 +474,18 @@ EOF</userinput></screen>
         <title>'chage'</title>
 
 <screen role="root"><userinput>cat &gt; /etc/pam.d/chage &lt;&lt; "EOF"
-<literal># Begin /etc/pam.d/chage
+<literal>#Begin /etc/pam.d/chage
 
-auth        sufficient      pam_rootok.so
-auth        required        pam_unix.so
-account     required        pam_unix.so
-session     required        pam_unix.so
-password    required        pam_permit.so
+# always allow root
+auth      sufficient  pam_rootok.so
+
+# include system defaults for auth account and session
+auth      include     system-auth
+account   include     system-account
+session   include     system-session
+
+# Always permit for authentication updates
+password  required    pam_permit.so
 
 # End /etc/pam.d/chage</literal>
 EOF</userinput></screen>
@@ -464,14 +538,14 @@ done</userinput></screen>
 <screen role="root"><userinput>cat &gt; /etc/pam.d/other &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/other
 
-auth        required        pam_deny.so
 auth        required        pam_warn.so
-account     required        pam_deny.so
+auth        required        pam_deny.so
 account     required        pam_warn.so
-password    required        pam_deny.so
+account     required        pam_deny.so
 password    required        pam_warn.so
-session     required        pam_deny.so
+password    required        pam_deny.so
 session     required        pam_warn.so
+session     required        pam_deny.so
 
 # End /etc/pam.d/other</literal>
 EOF</userinput></screen>
