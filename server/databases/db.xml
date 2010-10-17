@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY db-download-http "http://download-east.oracle.com/berkeley-db/db-&db-version;.tar.gz">
-  <!ENTITY db-download-ftp  " ">
-  <!ENTITY db-md5sum        "76fcbfeebfcd09ba0b4d96bfdf8d884d">
-  <!ENTITY db-size          "30 MB">
-  <!ENTITY db-buildsize     "267 MB (additional 170 MB to run parallel standard test suite with all bindings)">
-  <!ENTITY db-time          "2.1 SBU (builds all bindings, add an additional 160 SBU to run parallel standard test suite)">
+  <!ENTITY db-download-ftp  "&gentoo-ftp-repo;/db-&db-version;.tar.gz">
+  <!ENTITY db-md5sum        "3476bac9ec0f3c40729c8a404151d5e3">
+  <!ENTITY db-size          "22.8 MB">
+  <!ENTITY db-buildsize     "250 MB (additional 100 MB to run parallel standard test suite)">
+  <!ENTITY db-time          "1.9 SBU (builds all bindings, add an additional 145 SBU to run parallel standard test suite)">
 ]>
 
 <sect1 id="db" xreflabel="Berkeley DB-&db-version;">
@@ -78,8 +78,10 @@
     <bridgehead renderas="sect3">Berkeley DB Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="tcl"/>, and
-    <xref linkend="icedtea6"/> or <xref linkend="jdk"/></para>
+    <para role="optional"><xref linkend="tcl"/>,
+    <xref linkend="icedtea6"/> or <xref linkend="jdk"/>, and
+    <ulink url="http://www.gnu.org/software/sharutils/">sharutils</ulink>
+    (for the <command>uudecode</command> command)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/db"/></para>
@@ -97,22 +99,26 @@
     Note that you must have <application>Tcl</application> installed to run the
     test suite.</para>
 
-    <para>Build for the <application>Berkeley DB</application> test suite by
-    running the following commands (add <parameter>--enable-java</parameter> if
-    you wish to test the java bindings):</para>
+    <para>Build for the <application>Berkeley DB</application> test by running
+    the following commands:</para>
 
 <screen><userinput>cd build_unix &amp;&amp;
-uudecode="no" ../dist/configure --prefix=/usr \
+../dist/configure --prefix=/usr \
                   --enable-test \
                   --enable-tcl  \
-                  --enable-sql  \
                   --with-tcl=/usr/lib &amp;&amp;
 make</userinput></screen>
 
-    <para>To test <application>Berkeley DB</application>, issue the following
-    command:</para>
+    <para>To test the results, start <command>tclsh</command>:</para>
 
-<screen><userinput>echo "source ../test/tcl/test.tcl; run_parallel 5 run_std; exit;" | tclsh</userinput></screen>
+<screen><userinput>tclsh</userinput></screen>
+
+    <para>From the <command>tclsh</command> prompt (<prompt>%&nbsp;</prompt>),
+    run:</para>
+
+<screen><userinput>source ../test/test.tcl
+run_parallel 5 run_std
+exit</userinput></screen>
 
     <para>Clean up the source tree with the following command:</para>
 
@@ -129,7 +135,7 @@ cd ..</userinput></screen>
     in LFS, and you don't add anything to the <command>configure</command>
     script, you'll end up with exactly what you already have. The additional
     parameters you can use are listed in the Command Explanations section
-    below.</para> 
+    below.</para> -->
 
     <note>
       <para>If you plan on installing <application>Berkeley DB</application>
@@ -140,65 +146,34 @@ cd ..</userinput></screen>
       <application>GMime</application> program is on the system, the build will
       fail (unless you run the modified <command>./configure</command> command
       shown below). You can run two commands (<command>javac -version</command>
-      and <command>uudecode - -version</command>) to determine what versions are
+      and <command>uudecode --version</command>) to determine what versions are
       installed. You can also download and run a shell script from
       <ulink url="&files-anduin;/jdk-uudecode-check.sh"/> that will alert
       you to a non-working condition. If the identified programs exist on the
       system, you must modify the
-      <command>./configure</command> command as shown below.</para> 
+      <command>./configure</command> command as shown below.</para>
 
-<screen><userinput>uudecode="no" ../dist/configure - -(use the parameters shown below)</userinput></screen>
-    </note> -->
+<screen><userinput>uudecode="no" ../dist/configure --(use the parameters shown below)</userinput></screen>
+    </note>
 
     <para>Install <application>Berkeley DB</application> by running the
     following commands:</para>
 
 <screen><userinput>cd build_unix &amp;&amp;
-uudecode="no" ../dist/configure --prefix=/usr \
+../dist/configure --prefix=/usr \
                   --enable-compat185 \
-                  --enable-cxx \
-                  --enable-sql &amp;&amp;
+                  --enable-cxx &amp;&amp;
 make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make docdir=/usr/share/doc/db-&db-version; install &amp;&amp;
-touch /usr/include/sqlite.h
 chown -v -R root:root \
+      /usr/bin/berkeley_db_svc \
       /usr/bin/db_* \
-      /usr/bin/dbsql \
-      /usr/include/db{,_185,_cxx,sql}.h \
-      /usr/lib/libdb{,_cxx,_sql}{.a,.so,-5.so,-5.1.{a,la,so}} \
+      /usr/include/db{,_185,_cxx}.h \
+      /usr/lib/libdb{{,_cxx}.a,{,_cxx,_java,_tcl}-4.8.{so,a,la}} \
       /usr/share/doc/db-&db-version;</userinput></screen>
-
-    <para>If you compiled <application>Berkeley DB</application> with
-    <application>TCL</application> support, complete the
-    <application>TCL</application> installation with the following commands
-    while still the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>chown -v root:root \
-      /usr/lib/libdb_tcl{.a,.so,-5.so,-5.1.{a,la,so}}</userinput></screen>
-
-    <para>If you compiled <application>Berkeley DB</application> with
-    <application>Java</application> support, complete the
-    <application>Java</application> installation with the following commands
-    while still the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>chown -v root:root \
-      /usr/lib/libdb_java{.so,-5.so,-5.1{.a,.la,.so,_g.so}} \
-      /usr/lib/db.jar</userinput></screen>
-
-    <para>Finaly, if you've configured <application>Berkeley DB</application>
-    with the <parameter>--enable-sql_compat</parameter> parameter to provide
-    <application>SQLite3</application> compatibility, complete the installation
-    with the following commands while still the
-    <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>touch /usr/include/sqlite3.h &amp;&amp;
-chown -v root:root \
-      /usr/bin/sqlite3 \
-      /usr/include/sqlite3.h \
-      /usr/lib/libsqlite3.{a,la,so}</userinput></screen>
 
   </sect2>
 
@@ -206,12 +181,10 @@ chown -v root:root \
     <title>Command Explanations</title>
 
     <para><command>cd build_unix &amp;&amp;
-    uudecode="no" ../dist/configure --prefix=/usr...</command>:
+    ../dist/configure --prefix=/usr...</command>:
     This replaces the normal <command>./configure</command> command, as
     <application>Berkeley DB</application> comes with various
-    build directories for different platforms.  The additional
-    <envar>uudecode="no"</envar> environment variable ensures that
-    the build will complete if <xref linkend="gmime"/> is intsalled.</para>
+    build directories for different platforms.</para>
 
     <para><parameter>--enable-compat185</parameter>: This switch enables
     building the DB-1.85 compatibility API.</para>
@@ -227,24 +200,14 @@ chown -v root:root \
     <application>Java</application> support in DB and creates the
     <filename class='libraryfile'>libdb_java</filename> libraries.</para>
 
-    <para><parameter>--enable-sql</parameter>: Enables SQL support in
-    DB and creates the <filename class='libraryfile'>libdb_sql</filename>
-    libraries.</para>
-
-    <para><parameter>--enable-sql_compat</parameter>: enables building of the
-    <application>SQLite3</application> compatible binaries and libs.</para>
-
     <para><command>make docdir=/usr/share/doc/db-&db-version;
     install</command>: This installs the documentation in
     the standard location instead of
     <filename class='directory'>/usr/docs</filename>.</para>
 
-    <para><command>chown -v -R root:root ...</command>:These commands change
+    <para><command>chown -v -R root:root ...</command>:This command changes
     the ownership of various installed files from the uid:gid of the
     builder to root:root.</para>
-
-    <para><command>touch /usr/include/sqlite3.h</command>: This command updates
-    the timestamp of the installed sqlite3 header.</para>
 
   </sect2>
 
@@ -263,10 +226,9 @@ chown -v root:root \
 
       <seglistitem>
         <seg>db_archive, db_checkpoint, db_deadlock, db_dump,
-        db_load, db_printlog, db_recover, db_stat, db_upgrade, db_verify, 
-        dbsql, sqlite3</seg>
-        <seg>libdb.{so,a}, libdb_cxx.{so,a}, libdb_java{_g.so,.{so,a},
-        libdb_tcl.{so,a}, libdb_sql.{so.a} and db.jar</seg>
+        db_load, db_printlog, db_recover, db_stat, db_upgrade, db_verify</seg>
+        <seg>libdb.{so,a}, libdb_cxx.{so,a}, libdb_java.{so,a},
+        libdb_tcl.{so,a} and db.jar</seg>
         <seg>/usr/share/doc/db-&db-version;</seg>
       </seglistitem>
     </segmentedlist>
@@ -379,27 +341,6 @@ chown -v root:root \
           <para>is used to run consistency checks on database files.</para>
           <indexterm zone="db db_verify">
             <primary sortas="b-db_verify">db_verify</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="dbsql">
-        <term><command>dbsql</command></term>
-        <listitem>
-          <para>is a terminal-based front-end to the dbsql library that can
-          evaluate queries interactively and display the results.</para>
-          <indexterm zone="db dbsql">
-            <primary sortas="b-dbsql">dbsql</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="db_sqlite3">
-        <term><command>sqlite3</command></term>
-        <listitem>
-          <para>is a SQLite3 compatable inteface for dbsql.</para>
-          <indexterm zone="db sqlite3">
-            <primary sortas="b-sqlite3">sqlite3</primary>
           </indexterm>
         </listitem>
       </varlistentry>
