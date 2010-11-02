@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY ffmpeg-download-http "&files-anduin;/sources/ffmpeg-&ffmpeg-version;.tar.bz2">
+  <!ENTITY ffmpeg-download-http "http://ffmpeg.org/releases/ffmpeg-&ffmpeg-version;.tar.bz2">
   <!ENTITY ffmpeg-download-ftp  " ">
-  <!ENTITY ffmpeg-md5sum        "abae526f04693c08684f0a18c28e3313">
-  <!ENTITY ffmpeg-size          "2.2 MB">
-  <!ENTITY ffmpeg-buildsize     "131 MB (built with all dependencies)">
-  <!ENTITY ffmpeg-time          "1.8 SBU">
+  <!ENTITY ffmpeg-md5sum        "4f5d732d25eedfb072251b5314ba2093">
+  <!ENTITY ffmpeg-size          "3.5 MB">
+  <!ENTITY ffmpeg-buildsize     "328 MB (built with recommended dependencies)">
+  <!ENTITY ffmpeg-time          "2.1 SBU">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -37,10 +37,13 @@
     from any sample rate to any other, and resize video on the fly with a high
     quality polyphase filter. <application>FFmpeg</application> can use a
     video4linux compatible video source and any Open Sound System audio
-    source. The developers of this package do not create or distribute package
-    tarballs any longer. BLFS created the tarball for this package by checking
-    out from upstream SVN the <application>FFmpeg</application> code dated
-    June 6, 2007.</para>
+    source.</para>
+    <para>The developers of this package do not make releases very often, so you
+    may wish to use a snapshot instead of this release.  If you do that, you must
+    expect the acceptable <command>configure</command> switches, and the
+    dependencies, to change.</para>
+
+    &lfs67_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -78,27 +81,39 @@
 
     <bridgehead renderas="sect3">FFmpeg Dependencies</bridgehead>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+    <xref linkend="faad2"/>,
+    <xref linkend="lame"/>,
+    <xref linkend="libtheora"/>,
+    <xref linkend="libvorbis"/>,
+    <xref linkend="libvpx"/>,
+    <xref linkend="x-window-system"/>,
+    <ulink url="http://www.videolan.org/developers/x264.html">x264</ulink>
+    (tested with the 20100615-2245 snapshot),
+    <xref linkend="xvid"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
     <ulink url="http://www.penguin.cz/~utx/amr">AMR narrowband (floating point)</ulink>,
     <ulink url="http://www.penguin.cz/~utx/amr">AMR wideband</ulink>,
     <xref linkend="faac"/>,
-    <xref linkend="faad2"/>,
     <xref linkend="freetype2"/>,
     <ulink url="http://kbs.cs.tu-berlin.de/~jutta/gsm/">GSM</ulink>,
     <xref linkend="imlib2"/>,
-    <xref linkend="lame"/>,
     <xref linkend="liba52"/>,
     <ulink url="http://sourceforge.net/projects/libdc1394">libdc1394</ulink>,
     <ulink url="http://svn.mplayerhq.hu/nut/src/trunk/">libnut</ulink> (SVN checkout),
-    <xref linkend="libvorbis"/>,
+    <ulink url="http://sourceforge.net/projects/librtmp">librtmp</ulink>,
+    <ulink url="http://diracvideo.org/">libschroedinger</ulink>,
     <ulink url="http://medialibrary.sourceforge.net/">MediaLibrary</ulink>,
+    <ulink url="http://www.openjpeg.org">OpenJPEG</ulink>,
     <xref linkend="sdl"/>,
-    <xref linkend="libtheora"/>,
-    <xref linkend="x-window-system"/>,
-    <ulink url="http://www.videolan.org/developers/x264.html">x264</ulink>,
-    <xref linkend="xvid"/>, and
-    <xref linkend="tetex"/> (to build HTML documentation)</para>
+    <xref linkend="speex"/>,
+    <ulink url="http://www.tortall.net/projects/yasm/">yasm</ulink>, and
+    <xref linkend="tetex"/> or
+    <ulink url="http://www.nongnu.org/texi2html">texi2html</ulink>
+   (to build HTML documentation)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/ffmpeg"/></para>
@@ -108,36 +123,32 @@
   <sect2 role="installation">
     <title>Installation of FFmpeg</title>
 
-    <para>Review the <filename>doc/optimization.txt</filename> file in the
-    source tree for information about optimizing the build. Additionally, you
-    may want to build the postprocessing library as other packages such as
-    <xref linkend='mplayer'/> and <xref linkend='transcode'/> can utilize it,
-    and <xref linkend='xine-lib'/> depends on it.  See the <quote>Command
-    Explanations</quote> section for additional information.</para>
-
     <para>Install <application>FFmpeg</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
-            --enable-shared \
-            --enable-pthreads \
-            --disable-ffplay &amp;&amp;
-sed -i 's|/man|/share/man|' config.mak &amp;&amp;
-make &amp;&amp;
-texi2html --version >/dev/null 2>&amp;1 || make doc/ff{mpeg,play,server}.1</userinput></screen>
+<screen><userinput>sed -i 's/-number//' Makefile &amp;&amp;
+./configure --prefix=/usr --enable-shared \
+            --enable-pthreads --enable-gpl \
+            --enable-swscale --enable-postproc \
+            --enable-libfaad --enable-libmp3lame \
+            --enable-libtheora --enable-libvorbis \
+            --enable-libvpx --enable-libx264 \
+            --enable-libxvid &amp;&amp;
+make</userinput></screen>
 
-    <para>If you have <application>teTeX</application> installed, the HTML
+    <para>If you have <application>teTeX</application> or
+    <application>texi2html</application> installed, the HTML
     documentation was built during the <command>make</command> process. If you
     wish to create additional formats of the documentation, you must have
-    <application>teTeX</application> installed, then issue following
+    <application>teTeX</application> installed, and issue the following
     commands:</para>
 
 <screen><userinput>cd doc &amp;&amp;
-for DOCNAME in faq ffmpeg-doc hooks ffserver-doc ffplay-doc; do
+for DOCNAME in faq ffmpeg-doc ffplay-doc ffprobe-doc ffserver-doc general libavfilter; do
     texi2dvi -b -p $DOCNAME.texi
     texi2dvi -b    $DOCNAME.texi
     dvips -o $DOCNAME.ps $DOCNAME.dvi
-    if [ $DOCNAME = ffserver-doc ] || [ $DOCNAME = ffplay-doc ]; then \
+    if [ $DOCNAME = ffserver-doc ] || [ $DOCNAME = ffplay-doc ] || [ $DOCNAME = ffprobe-doc ]; then \
         continue
     fi
     makeinfo --plaintext --force -o $DOCNAME.txt $DOCNAME.texi
@@ -146,10 +157,11 @@ cd .. &amp;&amp;
 unset DOCNAME</userinput></screen>
 
     <para>If you have <xref linkend="doxygen"/> installed and wish to create
-    the API documentation (takes about 100 MB of space), issue
+    the API documentation (takes about 150 MB of space), issue
     <command>doxygen</command>.</para>
 
-    <para>This package does not come with a test suite that works.</para>
+    <para>If you wish to run the tests, issue: <command>make check</command> -
+    that will take about 0.9 SBU and use another 365 MB of space.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -177,6 +189,14 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><parameter>sed -i 's/-number//' Makefile</parameter>: Recent versions
+    of gnu <command>texi2html</command> error out because
+    <command>-number</command> is now ambiguous (for number-footnote or
+    number-sections).  Neither choice makes any difference to what is created
+    here, and the same is true with older versions of
+    <command>texi2html</command>, e.g. from application
+    <application>teTeX</application>.</para>
+
     <para><parameter>--enable-shared</parameter>: This switch is needed to
     build the shared libraries, otherwise only static libraries are built
     and installed.</para>
@@ -184,28 +204,31 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
     <para><parameter>--enable-pthreads</parameter>: This switch enables the
     build to link against the Posix threads library.</para>
 
-    <para><parameter>--disable-ffplay</parameter>: Only installs the server part.
-    <command>ffplay</command> requires <application>X</application> for
-    building. Remove this option if <application>X</application> is
-    installed.</para>
+    <para><parameter>--enable-gpl</parameter>: This switch enables the
+    use of GPL code and permits support for postprocessing, swscale, liba54,
+    xvid, x264, libfaad2 and x11grab to be selected.</para>
+
+    <para><parameter>--enable-swscale</parameter>: This switch causes libswscale
+    to be built.</para>
+
+    <para><parameter>--enable-postprocessing</parameter>: This switch causes
+    libpostproc to be built.</para>
 
     <para><option>--enable-<replaceable>&lt;codec&gt;</replaceable></option>: Review
     the available options and codecs using the
     <command>./configure --help</command> command. You must explicitly enable
-    each optional codec. Note that if you wish to build support for
-    postprocessing, liba52, xvid, x264, libfaad2, x11grab or swscaler, you
-    must pass <option>--enable-gpl</option> to the
-    <command>configure</command> script.</para>
+    each optional codec. If you have not installed some of the recommended
+    dependencies, do not enable those you have omitted.</para>
 
-    <para><parameter>--enable-pp</parameter>: This switch enables
-    postprocessing support.</para>
+    <para><option>--disable-ffplay</option>: Only installs the server part.
+    Use this option if <application>X</application> is not installed.</para>
 
-    <para><parameter>--enable-gpl</parameter>: This switch enables the
-    use of GPL code for postprocessing support.</para>
+    <para><option>--disable-static</option>: This switch prevents the static
+    libraries from being built.</para>
 
-    <para><command>texi2html --version ...</command>: These commands are used
-    to check the presence of the <application>teTeX</application> package, and
-    builds/installs the man pages if it is not found.</para>
+    <para><command>if [ $DOCNAME = ffserver-doc ] ...</command> These three
+    .texi files are rejected by <command>makeinfo</command> because of syntax
+    errors.</para>
 
   </sect2>
 
@@ -243,10 +266,12 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>ffmpeg, ffserver, and optionally, ffplay</seg>
-        <seg>libavcodec.{so,a}, libavformat.{so,a}, libavutil.{so,a},
-        video hook modules and optionally, libpostproc.{so,a}</seg>
-        <seg>/usr/include/ffmpeg, /usr/include/postproc, /usr/lib/vhook, and
+        <seg>ffmpeg, ffplay, ffprobe, and ffserver</seg>
+        <seg>libavcodec.{so,a}, libavdevice.{so,a}, libavformat.{so,a},
+        libavutil.{so,a}, libpostproc.{so,a}, and libswscale.{so,a}</seg>
+        <seg>/usr/include/libavcodec, /usr/include/libavdevice,
+        /usr/include/libavformat, /usr/include/libavutil, /usr/include/postproc,
+        /usr/include/libswscale, /usr/share/ffmpeg, and
         /usr/share/doc/ffmpeg-&ffmpeg-version;</seg>
       </seglistitem>
     </segmentedlist>
@@ -290,24 +315,74 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
       </varlistentry>
 
       <varlistentry id="libavcodec">
-        <term><filename class='libraryfile'>libavcodec.so</filename></term>
+        <term><filename class='libraryfile'>libavcodec.{so,a}</filename></term>
         <listitem>
           <para>is a library containing the <application>FFmpeg</application>
           codecs (both encoding and decoding).</para>
           <indexterm zone="ffmpeg libavcodec">
-            <primary sortas="c-libavcodec">libavcodec.so</primary>
+            <primary sortas="c-libavcodec">libavcodec.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libavdevice">
+        <term><filename class='libraryfile'>libavdevice.{so,a}</filename></term>
+        <listitem>
+          <para>is the <application>FFmpeg</application> device handling
+          library.</para>
+          <indexterm zone="ffmpeg libavdevice">
+            <primary sortas="c-libavdevice">libavdevice.{so,a}</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libavformat">
-        <term><filename class='libraryfile'>libavformat.so</filename></term>
+        <term><filename class='libraryfile'>libavformat.{so,a}</filename></term>
         <listitem>
           <para>is a library containing the file formats handling (mux and demux code
           for several formats) used by <command>ffplay</command> as well as
           allowing the generation of  audio or video streams.</para>
           <indexterm zone="ffmpeg libavformat">
-            <primary sortas="c-libavformat">libavformat.so</primary>
+            <primary sortas="c-libavformat">libavformat.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libavutil">
+        <term><filename class='libraryfile'>libavutil.{so,a}</filename></term>
+        <listitem>
+          <para>is the <application>FFmpeg</application> utility library.</para>
+          <indexterm zone="ffmpeg libavutil">
+            <primary sortas="c-libavutil">libavutil.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <!-- Both mplayer and ffmpeg now create libpostproc.  The validation
+      for the book is not impressed by that, and it falls apart without giving
+      any useful information if the id is changed to "libpostproc (from ffmpeg)"
+      or any other variant using spaces or parenthesis or square brackets, so
+      try this variant : mmm, bizarrely, it accepts this but drops everything from
+      the first hyphen, so that in longindex.html it looks just right (one library,
+      two packages)  -->
+      <varlistentry id="libpostproc-from-ffmpeg">
+        <term><filename class='libraryfile'>libpostproc.{so,a}</filename></term>
+        <listitem>
+          <para>is the <application>FFmpeg</application> post processing
+          library.</para>
+          <indexterm zone="ffmpeg libpostproc">
+            <primary sortas="c-libpostproc">libpostproc.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libswscale">
+        <term><filename class='libraryfile'>libswscale.{so,a}</filename></term>
+        <listitem>
+          <para>is the <application>FFmpeg</application> image rescaling
+          library.</para>
+          <indexterm zone="ffmpeg libswscale">
+            <primary sortas="c-libswscale">libswscale.{so,a}</primary>
           </indexterm>
         </listitem>
       </varlistentry>
