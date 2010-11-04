@@ -67,7 +67,12 @@
     <para>Install <application>attr</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --libexecdir=/usr/lib &amp;&amp;
+<screen><userinput>sed -i -e 's|doc/@pkg_name@|&amp;-@pkg_version@|' \
+       -e 's|@prefix|$(DESTDIR)&amp;|'            \
+       -e 's|@libexec|$(DESTDIR)&amp;|'           \
+    include/builddefs.in
+
+./configure --prefix=/usr --libexecdir=/usr/lib &amp;&amp;
 make</userinput></screen>
 
     <para>There are three sets of tests that come with this package. Issue the
@@ -80,7 +85,19 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install install-dev install-lib &amp;&amp;
-mv /usr/share/doc/attr /usr/share/doc/attr-&attr-version;</userinput></screen>
+chmod -v 755 /usr/lib/libattr.{la,so.1.1.0}</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed ... include/builddefs.in</command>: This command
+    modifies the documentation directory so that it is a versioned
+    directory and also adds support for a DESTDIR installation.</para>
+
+    <para><command>chmod ...</command>: This command modifies the permissions
+    of installed library files to standards.</para>
 
   </sect2>
 
@@ -93,7 +110,7 @@ mv /usr/share/doc/attr /usr/share/doc/attr-&attr-version;</userinput></screen>
       needs to support extended attributes.</para>
 
       <para>One way to achieve this is to add the user_xattr option to an ext3
-      filesystem in the /etc/fstab file as shown below.</para>
+      filesystem in the /etc/fstab file as shown below:</para>
 
 <screen># file system  mount-point  type   options                 dump  fsck
 #                                                                order
