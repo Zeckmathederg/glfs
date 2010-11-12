@@ -7,19 +7,19 @@
   <!ENTITY fop-download-http "http://archive.apache.org/dist/xmlgraphics/fop/source/fop-&fop-version;-src.tar.gz">
   <!-- <!ENTITY fop-download-ftp  "ftp://apache.mirrors.pair.com/xmlgraphics/fop/fop-&fop-version;-src.tar.gz"> -->
   <!ENTITY fop-download-ftp  "&sources-anduin-ftp;/f/fop-&fop-version;-src.tar.gz">
-  <!ENTITY fop-md5sum        "58593e6c86be17d7dc03c829630fd152">
-  <!ENTITY fop-size          "13.1 MB">
-  <!ENTITY fop-buildsize     "356 MB">
-  <!ENTITY fop-time          "1.4 SBU">
+  <!ENTITY fop-md5sum        "95dcc4c2dd08b4bc88ce9ce1ee88c439">
+  <!ENTITY fop-size          "16.1 MB">
+  <!ENTITY fop-buildsize     "360 MB">
+  <!ENTITY fop-time          "2.8 SBU">
 
   <!ENTITY jai-version       "1_1_3">
   <!ENTITY jai-download      "http://download.java.net/media/jai/builds/release/&jai-version;/jai-&jai-version;-lib-linux-i586-jdk.bin">
   <!ENTITY jai-md5sum        "a63b661c4940582aa1679233e5f518b2">
   <!ENTITY jai-size          "3.4 MB">
 
-  <!ENTITY offo-download     "&sourceforge-repo;/offo/offo-hyphenation_v1.2.zip">
-  <!ENTITY offo-md5sum       "b2e64872ab0b5e6ada1d37778f8a1935">
-  <!ENTITY offo-size         "378 KB">
+  <!ENTITY offo-download     "&sourceforge-repo;/offo/offo-hyphenation_v2.0.zip">
+  <!ENTITY offo-md5sum       "a78171d47c9af223c51bbd42df36f26d">
+  <!ENTITY offo-size         "858 KB">
 ]>
 
 <sect1 id="fop" xreflabel="FOP-&fop-version;">
@@ -111,9 +111,13 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><ulink url="http://java.sun.com/products/jimi/">JIMI SDK</ulink>,
-    <ulink url="http://xmlunit.sourceforge.net/">XMLUnit</ulink>, and
-    <ulink url="http://forrest.apache.org/">Forrest</ulink> (only used to rebuild
-    the documentation)</para>
+    <ulink url="http://xmlunit.sourceforge.net/">XMLUnit</ulink>,
+    <ulink url="https://jai-imageio.dev.java.net/">JAI Image I/O Tools</ulink>,
+    <ulink url="http://jeuclid.sourceforge.net/">JEuclid</ulink>,
+    <ulink url="http://pmd.sourceforge.net">PMD</ulink>
+    (requires <ulink url="http://jaxen.codehaus.org/">Jaxen</ulink>), and
+    <ulink url="http://forrest.apache.org/">Forrest</ulink> (Forrest used only
+    to rebuild the documentation)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/fop"/></para>
@@ -123,9 +127,12 @@
   <sect2 role="installation">
     <title>Installation of FOP</title>
 
-    <para>You must run this installation from an X-window using a GL-aware
-    Xorg server or some of the JUnit tests will hang. Using an X-window from
-    the console is the preferred method.</para>
+    <important>
+      <para>You must run this installation from an X-window using a GL-aware
+      <application>Xorg</application> server or some of the
+      <application>JUnit</application> tests will hang. Using an X-window from
+      the console is the preferred method.</para>
+    </important>
 
     <para>Ensure <envar>$JAVA_HOME</envar> is set correctly before beginning
     the build. To build the <application>JIMI SDK</application> and/or
@@ -133,18 +140,14 @@
     corresponding <filename class='extension'>.jar</filename> files are
     identified in the <envar>CLASSPATH</envar> environment variable.</para>
 
-    <!-- <para>Some versions of tar will display a message similar to
-    <quote><computeroutput>tar: A lone zero block at 33476</computeroutput></quote>
-    when unpacking the source tarball. You may safely ignore this message.</para> -->
-
     <sect3>
       <title>Installing OFFO Hyphenation Patterns</title>
 
       <para>Before beginning the build, unpack the
       <application>FOP</application> source tarball and the hyphenation zipfile
       from the same directory, then change directories into the root of the
-      <application>FOP</application> source tree. The XML Hyphenation patterns
-      will be copied into the <application>FOP</application> source tree by
+      <application>FOP</application> source tree. Copy the XML hyphenation
+      patterns into the <application>FOP</application> source tree by
       running the following commands:</para>
 
 <screen><userinput>cp ../offo-hyphenation/hyph/* hyph &amp;&amp;
@@ -185,10 +188,11 @@ popd</userinput></screen>
     <sect3>
       <title>Installing FOP Components</title>
 
-      <para>If <application>forrest</application> is not installed, remove
+      <para>If <application>Forrest</application> is not installed, remove
       a reference to it in the build.xml:</para>
+
 <screen><userinput>sed -i -e "s/all,javadocs,docs/all,javadocs/" \
-           -e '\#${dist.bin.result.dir}/docs#,\#&lt;/copy&gt;#d' build.xml</userinput></screen>
+       -e '\#${dist.bin.result.dir}/docs#,\#&lt;/copy&gt;#d' build.xml</userinput></screen>
 
       <para>Compile <application>FOP</application> by running the
       following commands:</para>
@@ -198,84 +202,14 @@ popd</userinput></screen>
       <para>The unit regression tests were performed in the build step
       above.</para>
 
-      <para>Now install FOP as the <systemitem class="username">root</systemitem> user:</para>
+      <para>Now, as the <systemitem class="username">root</systemitem>
+      user:</para>
 
-<screen role="root"><userinput>install -v -d -m755 /opt/fop-&fop-version; &amp;&amp;
-pushd dist-bin/fop-&fop-version; &amp;&amp;
-cp -v -R * /opt/fop-&fop-version; &amp;&amp;
-popd &amp;&amp;
+<screen role="root"><userinput>install -v -d -m755      /opt/fop-&fop-version; &amp;&amp;
+mv -v dist-bin/fop-&fop-version;/* /opt/fop-&fop-version; &amp;&amp;
 ln -v -sf fop-&fop-version; /opt/fop</userinput></screen>
 
     </sect3>
-
-    <!-- <sect3>
-      <title>Installing the Batik JAR</title>
-
-      <para>You'll need to install one additional <application>Java</application>
-      class library to process SVG objects. This library is part of the
-      <ulink url="http://xml.apache.org/batik/">Batik</ulink> package, but is
-      also included with the <application>FOP</application> package. If you
-      have <application>Batik</application> installed, ensure the
-      <filename>batik.jar</filename> library is included in your
-      <envar>$CLASSPATH</envar> environment variable. Alternatively, create a
-      symbolic link from <filename>/opt/fop-&fop-version;/lib/batik.jar</filename>
-      pointing to the full path of the installed <filename>batik.jar</filename>
-      file so that the <command>fop.sh</command> script will automatically pick it
-      up.</para>
-
-      <para>If you don't have the <application>Batik</application> package
-      installed, run the following commands as the <systemitem
-      class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>install -v -m644 lib/batik.jar /opt/fop-&fop-version;/lib &amp;&amp;
-install -v -m644 lib/batik.LICENSE.txt \
-    /opt/fop-&fop-version;/docs/lib</userinput></screen>
-
-    </sect3>
-
-    <sect3>
-      <title>Installing the Xalan-Java components</title>
-
-      <para>The components of <application>FOP</application> required to
-      process FO files created by an XSL transformation engine (also known
-      as an XSLT processor) is now complete. An XSL transformation engine
-      (<command>xsltproc</command>) is included with the
-      <xref linkend="libxslt"/> package in BLFS. The
-      <application>FOP</application> package includes components of
-      <ulink url="http://xml.apache.org/xalan-j/">Xalan-Java</ulink> to
-      accomplish XSL transformations. If you have the
-      <application>Xalan-Java</application> package installed, skip to
-      the next section.</para>
-
-      <para>If you wish to install the <application>Xalan-Java</application>
-      components provided by the <application>FOP</application>
-      package, run the following commands as the <systemitem
-      class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>sed -i "s/build/lib/" xalan.sh &amp;&amp;
-install -v -m755 xalan.sh /opt/fop-&fop-version;/bin &amp;&amp;
-install -v -m644 lib/xml-apis.jar \
-                 lib/xercesImpl-2.2.1.jar \
-                 lib/xalan-2.4.1.jar \
-    /opt/fop-&fop-version;/lib &amp;&amp;
-install -v -m644 lib/{xml-apis,xerces,xalan}.LICENSE.txt \
-                 lib/xml-apis.README.txt \
-    /opt/fop-&fop-version;/docs/lib</userinput></screen>
-
-    </sect3>
-
-    <sect3>
-      <title>Installing the Jimi SDK JAR</title>
-
-      <para>If you installed the Java Image I/O class library
-      (<application>Jimi SDK</application>) into the
-      <application>FOP</application> source tree
-      <filename class='directory'>lib</filename> directory before building
-      <application>FOP</application> (this will enable Jimi
-      support), ensure you also install this JAR file into
-      <filename class='directory'>/opt/fop-&fop-version;/lib</filename>.</para>
-
-    </sect3> -->
 
   </sect2>
 
@@ -288,26 +222,19 @@ install -v -m644 lib/{xml-apis,xerces,xalan}.LICENSE.txt \
     taste. If necessary, change this to match the directory where the
     <application>FOP</application> tarball can be found.</para>
 
-    <para><command>sh $FOP_PKG_DIR/jai-&jai-version;-lib-linux-i586-jdk.bin</command>: This
+    <para><command>sh
+    $FOP_PKG_DIR/jai-&jai-version;-lib-linux-i586-jdk.bin</command>: This
     command installs the <application>JAI</application> components
     into the <application>JDK</application> file structure.
     <envar>$FOP_PKG_DIR</envar> is used as a reference point to the source
     executable.</para>
 
-    <!-- <para><command>sed -i "s/build/lib/" ...</command>: These commands modify
-    the installed shell scripts so that the location of the installed
-    <filename>fop.jar</filename> file is correctly identified.</para> -->
-
-    <!-- <para><command>install -v ...; cp -v ...</command>: There is no installation
-    script provided by the <application>FOP</application>
-    package. These commands install the package.</para> -->
-
-    <para><command>ant dist</command>: This reads the <filename>build.xml</filename>
-    file and performs the <option>dist</option> target that builds the
-    package and runs the unit regression tests. It also creates the Java API
-    documentation and a directory where the newly created binaries are placed
-    into. This directory is used to install <application>FOP</application>
-    to its final place.</para>
+    <para><command>ant dist</command>: This reads the
+    <filename>build.xml</filename> file's <option>dist</option> target,
+    builds the package and runs the unit regression tests. It also creates the
+    Java API documentation and a directory where the newly created binaries
+    are placed. This directory is used to install <application>FOP</application>
+    into its final place.</para>
 
     <para><command>ln -v -sf fop-&fop-version; /opt/fop</command>: This is
     optional and creates a convenience symlink so that <envar>$FOP_HOME</envar>
