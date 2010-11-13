@@ -8,10 +8,10 @@
   <!ENTITY mysql-download-ftp  "ftp://ftp.fu-berlin.de/unix/databases/mysql/Downloads/MySQL-5.0/mysql-&mysql-version;.tar.gz"> -->
   <!ENTITY mysql-download-http "&sources-anduin-http;/m/mysql-&mysql-version;.tar.gz">
   <!ENTITY mysql-download-ftp  "&sources-anduin-ftp;/m/mysql-&mysql-version;.tar.gz">
-  <!ENTITY mysql-md5sum        "a90d87a71fa3c23dff6d78afc8e3184c">
-  <!ENTITY mysql-size          "23 MB">
-  <!ENTITY mysql-buildsize     "492 MB (additional 250 MB to run the test suite)">
-  <!ENTITY mysql-time          "4.7 SBU (Test suite is an additional 61 minutes, only partially CPU dependent)">
+  <!ENTITY mysql-md5sum        "43c11ad3dded693393c4815d24e2b0a5">
+  <!ENTITY mysql-size          "23.8 MB">
+  <!ENTITY mysql-buildsize     "500 MB (additional 200 MB to run the test suite)">
+  <!ENTITY mysql-time          "5.3 SBU (Test suite is an additional 55 minutes, only partially CPU dependent)">
 ]>
 
 <sect1 id="mysql" xreflabel="MySQL-&mysql-version;">
@@ -41,7 +41,7 @@
     existing BLFS instructions. Note that versions other than the one shown
     in the download URLs have not been tested in a BLFS environment.</para>
 
-    <para>&lfssvn_checked;20100806&lfssvn_checked2;</para>
+    <para>&lfssvn_checked;20101029&lfssvn_checked2;</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -65,11 +65,16 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Download</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required Patch:
-          <ulink  url="&patch-root;/mysql-&mysql-version;-makefile-1.patch"/>
+          <ulink url="&patch-root;/mysql-&mysql-version;-makefile-1.patch"/>
+        </para>
+       </listitem>
+      <listitem>
+        <para>Optional Documentation (see tip below):
+          <ulink url="http://dev.mysql.com/doc/"/>
         </para>
        </listitem>
     </itemizedlist>
@@ -126,7 +131,7 @@ CXXFLAGS="-O3 -felide-constructors -fno-exceptions -fno-rtti" \
             --without-readline \
             --with-plugins=innobase,myisam \
             --with-extra-charsets=all \
-            --with-ssl &amp;&amp;
+            --with-ssl=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make test-force 2>&amp;1 | tee
@@ -141,8 +146,9 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make benchdir_root=/tmp/mysql-bench install &amp;&amp;
-rm -rf /tmp/mysql &amp;&amp;
+<screen role="root"><userinput>make benchdir_root=/tmp \
+          testroot=/tmp install &amp;&amp;
+rm -rf /tmp/mysql-test /tmp/sql-bench &amp;&amp;
 pushd /usr/lib &amp;&amp;
 ln -v -sf mysql/libmysqlclient{,_r}.so* . &amp;&amp;
 popd &amp;&amp;
@@ -205,18 +211,15 @@ popd</userinput></screen>
     two useful table types.  Check <command>./configure --help</command> for
     other table types.</para>
 
-    <para><parameter>--with-ssl</parameter>: This switch enables encrypted
-    communication between client and server.</para>
+    <para><parameter>--with-ssl=/usr</parameter>: This switch enables encrypted
+    communication between client and server using OpenSSL.</para>
 
-    <para><command>make  benchdir_root=...</command>: This installs the benchmark
-    and test suites in a non-system location.</para>
+    <para><command>make  benchdir_root=... install</command>: This installs the
+    benchmark and test suites in a non-system location.</para>
 
     <para><command>ln -v -sf mysql/libmysqlclient{,_r}.so* .</command>: This
     command makes the <application>MySQL</application> shared libraries
     available to other packages at run-time.</para>
-
-    <para><option>--with-openssl</option>: This switch adds OpenSSL support
-    to <application>MySQL</application>.</para>
 
     <para><option>--with-libwrap</option>: This switch adds tcpwrappers
     support to <application>MySQL</application>.</para>
@@ -254,11 +257,7 @@ popd</userinput></screen>
       use. Create <filename>/etc/my.cnf</filename> using the following command
       as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m644 /usr/share/mysql/my-medium.cnf /etc/my.cnf
-sed -i -e 's/^skip-federated/#skip-federated/' /etc/my.cnf</userinput></screen>
-
-      <para>The change to <filename>/etc/my.cnf</filename> can be omitted if the
-      option <option>--with-plugins=federated</option> is used.</para>
+<screen role="root"><userinput>install -v -m644 /usr/share/mysql/my-medium.cnf /etc/my.cnf</userinput></screen>
 
       <para>You can now install a database and change the ownership to the
       unprivileged user and group (perform as the <systemitem
@@ -342,7 +341,7 @@ mysqld_safe --user=mysql 2&gt;&amp;1 &gt;/dev/null &amp;</userinput></screen>
     <para>Descriptions of all the programs and libraries would be several
     pages long. Instead, consult the <filename>mysql.info</filename>
     documentation or the on-line reference manual at <ulink
-    url="http://dev.mysql.com/doc/refman/5.0/en/index.html"/>.</para>
+    url="http://dev.mysql.com/doc/refman/5.1/en/index.html"/>.</para>
 
     <para>The <application>Perl</application> DBI modules must be installed
     for some of the <application>MySQL</application> support programs to
