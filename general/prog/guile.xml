@@ -55,17 +55,13 @@
       </listitem>
     </itemizedlist>
 
-    <!-- <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/guile-&guile-version;-gcc4-1.patch"/></para>
+        url="&patch-root;/guile-&guile-version;-snarf-1.patch"/></para>
       </listitem>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/guile-&guile-version;-slib-1.patch"/></para>
-      </listitem>
-    </itemizedlist> -->
+    </itemizedlist>
 
     <bridgehead renderas="sect3">Guile Dependencies</bridgehead>
 
@@ -90,22 +86,29 @@
     -disable-static -enable-networking -enable-regex &amp;&amp;
 make</userinput></screen> -->
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>patch -Np1 -i ../guile-&guile-version;-snarf-1.patch &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
 make &amp;&amp;
 
 makeinfo --plaintext -o doc/goops/goops.txt doc/goops/goops.texi &amp;&amp;
 makeinfo --plaintext -o doc/r5rs/r5rs.txt   doc/r5rs/r5rs.texi   &amp;&amp;
 makeinfo --plaintext -o doc/ref/guile.txt   doc/ref/guile.texi   &amp;&amp;
 makeinfo --plaintext -o doc/tutorial/guile-tut.txt \
-                        doc/tutorial/guile-tut.texi</userinput></screen>
+                        doc/tutorial/guile-tut.texi              &amp;&amp;
+
+for DIRNAME in goops r5rs ref tutorial
+do
+  make -k -C doc/${DIRNAME} html
+done &amp;&amp;
+unset DIRNAME</userinput></screen>
 
     <para>If you have <xref linkend="tetex"/> installed and wish to
-    build alternate formats of the documentation, issue the following
-    commands:</para>
+    build alternate formats (PDF and postscript) of the documentation, issue
+    the following commands:</para>
 
 <screen><userinput>for DIRNAME in goops r5rs ref tutorial
 do
-  make -k -C doc/$DIRNAME pdf ps html
+  make -k -C doc/${DIRNAME} pdf ps 
 done &amp;&amp;
 unset DIRNAME</userinput></screen>
 
@@ -121,10 +124,21 @@ cp -v -R examples   /usr/share/doc/guile-&guile-version; &amp;&amp;
 
 for DIRNAME in goops r5rs ref tutorial
 do
-  install -v -m755 -d /usr/share/doc/${PACKAGE_NAME}-${PACKAGE_VERSION}/$DIRNAME &amp;&amp;
-  install -v -m644    doc/$DIRNAME/*.txt \
-                      /usr/share/doc/${PACKAGE_NAME}-${PACKAGE_VERSION}/$DIRNAME
+  install -v -m755 -d /usr/share/doc/guile-&guile-version;/${DIRNAME} &amp;&amp;
+  install -v -m644    doc/${DIRNAME}/*.txt \
+                      /usr/share/doc/guile-&guile-version;/${DIRNAME} &amp;&amp;
+  if [ -d             doc/${DIRNAME}/${DIRNAME}.html ]; then
+    cp -v -R          doc/${DIRNAME}/${DIRNAME}.html \
+                      /usr/share/doc/guile-&guile-version;/${DIRNAME}
+  fi &amp;&amp;
 done &amp;&amp;
+
+install -v -m644  doc/goops/hierarchy.* \
+                  /usr/share/doc/guile-&guile-version;/goops          &amp;&amp;
+cp -v -R          doc/ref/guile.html \
+                  /usr/share/doc/guile-&guile-version;/ref            &amp;&amp;
+cp -v -R          doc/tutorial/guile-tut.html \
+                  /usr/share/doc/guile-&guile-version;/tutorial       &amp;&amp;
 unset DIRNAME</userinput></screen>
 
     <para>If you built the alternate formats of the documentation, install them
@@ -133,37 +147,11 @@ unset DIRNAME</userinput></screen>
 
 <screen role="root"><userinput>for DIRNAME in goops r5rs ref tutorial
 do
-  install -v -m755 -d /usr/share/doc/guile-&guile-version;/$DIRNAME/html &amp;&amp;
-  install -v -m644    doc/$DIRNAME/*.{pdf,ps,dvi} \
-                      /usr/share/doc/guile-&guile-version;/$DIRNAME      &amp;&amp;
-  if [ -d             doc/$DIRNAME/$DIRNAME.html ]; then
-    install -v -m644  doc/$DIRNAME/$DIRNAME.html/* \
-                      /usr/share/doc/guile-&guile-version;/$DIRNAME/html
-  fi
-done &amp;&amp;
-
-install -v -m644 doc/goops/hierarchy.{eps,png} \
-                 /usr/share/doc/guile-&guile-version;/goops    &amp;&amp;
-install -v -m644 doc/ref/guile.html/* \
-                 /usr/share/doc/guile-&guile-version;/ref/html &amp;&amp;
-install -v -m644 doc/tutorial/guile-tut.html/* \
-                 /usr/share/doc/guile-&guile-version;/tutorial/html</userinput></screen>
-  </sect2>
-
-  <!-- Commenting these out (as well as the actual build command) because they
-       are the default. Examine configure.(ac,in) and you will see that if not
-       specified, all 3 of these options are enabled by default.
-  <sect2 role="commands">
-    <title>Command Explanations</title>
-
-    <para><option>-enable-posix</option>: Enable Posix interfaces.</para>
-
-    <para><option>-enable-networking</option>: Enable networking interfaces.</para>
-
-    <para><option>-enable-regex</option>: Enable regular expression interfaces.</para>
+  install -v -m644 doc/${DIRNAME}/*.{pdf,ps,dvi} \
+                   /usr/share/doc/guile-&guile-version;/${DIRNAME}
+done</userinput></screen>
 
   </sect2>
-  -->
 
   <sect2 role="content">
     <title>Contents</title>
