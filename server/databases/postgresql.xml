@@ -8,10 +8,10 @@
   <!ENTITY postgresql-download-ftp  "ftp://ftp5.us.postgresql.org/pub/PostgreSQL/source/v&postgresql-version;/postgresql-&postgresql-version;.tar.bz2">
   <!-- <!ENTITY postgresql-download-http "&sources-anduin-http;/p/postgresql-&postgresql-version;.tar.bz2">
   <!ENTITY postgresql-download-ftp  "&sources-anduin-ftp;/p/postgresql-&postgresql-version;.tar.bz2"> -->
-  <!ENTITY postgresql-md5sum        "315118130e1800a87f0effe69b947810">
-  <!ENTITY postgresql-size          "14.1 MB">
-  <!ENTITY postgresql-buildsize     "180 MB (additional 125 MB to run the testsuite)">
-  <!ENTITY postgresql-time          "2.1 SBU">
+  <!ENTITY postgresql-md5sum        "57ba57e43cfe29e16dacbf5789be98d1">
+  <!ENTITY postgresql-size          "14 MB">
+  <!ENTITY postgresql-buildsize     "173 MB (additional 138 MB to run the testsuite)">
+  <!ENTITY postgresql-time          "1.5 SBU">
 ]>
 
 <sect1 id="postgresql" xreflabel="PostgreSQL-&postgresql-version;">
@@ -41,10 +41,7 @@
     existing BLFS instructions. Note that versions other than the one shown
     in the download URLs have not been tested in a BLFS environment.</para>
 
-    <!-- FIXME -->
-    <para>If you intend to link this application to <xref linkend="openssl"/>
-    you will need to move to a newer version of <application>PostgreSQL</application>,
-    1.9.0.1 is known to build.</para>
+    &lfs67_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -99,9 +96,18 @@
     <para>Install <application>PostgreSQL</application> with the
     following commands: </para>
 
+    <!-- commented : regeneration is unnecessary, and we don't tell people the
+    command to do it.
+    <para>If you intend to regenerate the html documentation, issue the
+    following command:</para>
 <screen><userinput>sed -i "s|dsssl-stylesheets|&amp; \\\\\n        sgml/docbook/&amp;-&docbook-dsssl-version;|" \
-    configure &amp;&amp;
-./configure --prefix=/usr --enable-thread-safety &amp;&amp;
+    configure</userinput></screen>-->
+
+    <para>Now configure and build the package:</para>
+
+<screen><userinput>./configure --prefix=/usr \
+  --docdir=/usr/share/doc/postgresql-&postgresql-version; \
+  --enable-thread-safety &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
@@ -109,17 +115,8 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chown -v root:root /usr/share/doc/postgresql/html/* &amp;&amp;
-
-install -v -m755 -d /usr/share/doc/postgresql/{FAQ/html,TODO.detail} &amp;&amp;
-install -v -m644    doc/TODO \
-                    /usr/share/doc/postgresql &amp;&amp;
-install -v -m644    doc/FAQ* \
-                    /usr/share/doc/postgresql/FAQ &amp;&amp;
-install -v -m644    doc/src/FAQ/* \
-                    /usr/share/doc/postgresql/FAQ/html &amp;&amp;
-install -v -m644    doc/TODO.detail/* \
-                    /usr/share/doc/postgresql/TODO.detail</userinput></screen>
+make install-docs &amp;&amp;
+chown -v root:root /usr/share/doc/postgresql-&postgresql-version;/html/*</userinput></screen>
 
     <note>
       <para>If you are upgrading an existing system and are going to install
@@ -164,14 +161,29 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <!-- commented : regeneration is unnecessary, and we don't tell people the
+    command to do it.
     <para><command>sed -i "s|dsssl-stylesheets|..."</command>: This command
     puts an extra line in the <command>configure</command> script so that the
-    BLFS installed version of the DSSSL stylesheets are discovered.</para>
+    BLFS installed version of the DSSSL stylesheets are discovered.</para> -->
+
+    <para><parameter>--docdir=/usr/share/doc/postgresql-&postgresql-version;</parameter>:
+    This switch puts the html (and pdf, if created) docs in a versioned
+    directory.</para>
 
     <para><parameter>--enable-thread-safety</parameter>: This switch makes the
     client libraries thread-safe by allowing concurrent threads in
     <filename class='libraryfile'>libpq</filename> and ECPG programs to safely
     control their private connection handles.</para>
+
+    <para><option>--with-perl</option>: build the PL/Perl server-side language.
+    </para>
+
+    <para><option>--with-python</option>: build the PL/Python server-side
+    language.</para>
+
+    <para><option>--with-openssl</option>: build with support for
+    <application>OpenSSL</application> encrypted connections.</para>
 
     <para><command>chown -R root:root /usr/share/doc/postgresql/html/*</command>:
     This command corrects the improper ownership of documentation files.</para>
@@ -504,7 +516,8 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
       <varlistentry id="postmaster">
         <term><command>postmaster</command></term>
         <listitem>
-          <para>is a multi-user database daemon.</para>
+          <para>(a symlink to <command>postgres</command>) is a multi-user
+          database daemon.</para>
           <indexterm zone="postgresql postmaster">
             <primary sortas="b-postmaster">postmaster</primary>
           </indexterm>
@@ -538,6 +551,56 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
           analyzer.</para>
           <indexterm zone="postgresql vacuumdb">
             <primary sortas="b-vacuumdb">vacuumdb</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libecpg">
+        <term><filename class='libraryfile'>libecpg.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions to support embedded SQL in C programs.</para>
+          <indexterm zone="postgresql libecpg">
+            <primary sortas="c-libecpg">libecpg.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libecpg_compat">
+        <term><filename class='libraryfile'>libecpg_compat.{so,a}</filename></term>
+        <listitem>
+          <para>is the ecpg compatability library.</para>
+          <indexterm zone="postgresql libecpg_compat">
+            <primary sortas="c-libecpg_compat">libecpg_compat.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libgport">
+        <term><filename class='libraryfile'>libgport.a</filename></term>
+        <listitem>
+          <para>is the port-specific subsystem of the Postgres backend.</para>
+          <indexterm zone="postgresql libgport">
+            <primary sortas="c-libgport">libgport.a</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libpgtypes">
+        <term><filename class='libraryfile'>libpgtypes.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions for dealing with Postgres data types.</para>
+          <indexterm zone="postgresql libpgtypes">
+            <primary sortas="c-libpgtypes">libpgtypes.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libpq">
+        <term><filename class='libraryfile'>libpq.{so,a}</filename></term>
+        <listitem>
+          <para>is the C programmer's API to Postgres.</para>
+          <indexterm zone="postgresql libpq">
+            <primary sortas="c-libpq">libpq.{so,a}</primary>
           </indexterm>
         </listitem>
       </varlistentry>
