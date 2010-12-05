@@ -109,9 +109,13 @@ install -v -m755 -d &gnome-etc-dir;/gconf/gconf.xml.system</userinput></screen>
 
     <para>Still as the <systemitem class="username">root</systemitem> user,
     configure <application>D-Bus</application> so that it can search for
-    <application>GNOME</application> installed .conf files (This is assuming
-    that system-local.conf does not exist yet. If it does, then you will need
-    to merge in the changes):</para>
+    <application>GNOME</application> installed
+    <filename class='extension'>.conf</filename> files (This is assuming
+    that <filename>/etc/dbus-1/system-local.conf</filename> does not exist yet.
+    If it does, then you will need to merge in the changes). If
+    <envar>$GNOME_PREFIX</envar> is not
+    <filename class='directory'>/usr</filename>, you should uncomment the
+    <quote>servicedir</quote> line:</para>
 
 <screen role="root"><userinput>cat &gt; /etc/dbus-1/system-local.conf &lt;&lt; "EOF"
 <literal>&lt;!DOCTYPE busconfig PUBLIC
@@ -122,8 +126,40 @@ install -v -m755 -d &gnome-etc-dir;/gconf/gconf.xml.system</userinput></screen>
   &lt;!-- Search for .conf files in &gnome-etc-dir;/dbus-1/system.d --&gt;
   &lt;includedir&gt;&gnome-etc-dir;/dbus-1/system.d&lt;/includedir&gt;
 
+  &lt;!-- Search for .service files in $GNOME_PREFIX/share/dbus-1/system-services --&gt;
+  &lt;!-- &lt;servicedir&gt;$GNOME_PREFIX/share/dbus-1/system-services&lt;/servicedir&gt; --&gt;
+
 &lt;/busconfig&gt;
 EOF</literal>
+</userinput></screen>
+
+    <para>If <envar>$GNOME_PREFIX</envar> is not
+    <filename class='directory'>/usr</filename>, you also need to configure
+    <application>D-Bus</application> so that it can search for
+    <application>GNOME</application> installed <quote>session</quote>
+    <filename class='extension'>.service</filename> files (This is assuming
+    that <filename>/etc/dbus-1/session-local.conf</filename> does not exist
+    yet. If it does, then you will need to merge in the changes). Additionally,
+    if <application>polkit</application> is installed, create a symbolic link
+    in <filename class='directory'>/usr/share/polkit-1/actions</filename> to
+    the <quote>action</quote> file installed by
+    <application>GConf</application>. Issue the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>cat &gt; /etc/dbus-1/session-local.conf &lt;&lt; "EOF"
+<literal>&lt;!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
+&lt;busconfig&gt;
+
+  &lt;!-- Search for .service files in $GNOME_PREFIX/share/dbus-1/session-services --&gt;
+  &lt;servicedir&gt;$GNOME_PREFIX/share/dbus-1/session-services&lt;/servicedir&gt;
+
+&lt;/busconfig&gt;
+EOF</literal>
+
+ln -s -v <envar>$GNOME_PREFIX</envar>/share/polkit-1/actions/org.gnome.gconf.defaults.policy \
+         /usr/share/polkit-1/actions
 </userinput></screen>
 
   </sect2>
