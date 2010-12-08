@@ -6,10 +6,10 @@
 
   <!ENTITY heimdal-download-http "http://www.h5l.org/dist/src/heimdal-&heimdal-version;.tar.gz">
   <!ENTITY heimdal-download-ftp  "ftp://ftp.pdc.kth.se/pub/heimdal/src/heimdal-&heimdal-version;.tar.gz">
-  <!ENTITY heimdal-md5sum        "4ce17deae040a3519e542f48fd901f21">
-  <!ENTITY heimdal-size          "5.6 MB">
-  <!ENTITY heimdal-buildsize     "200 MB">
-  <!ENTITY heimdal-time          "4.0 SBU (additional 2.5 SBU to run the test suite)">
+  <!ENTITY heimdal-md5sum        "31d08bbf47a77827fe97ef3f52b4c9c4">
+  <!ENTITY heimdal-size          "6.0 MB">
+  <!ENTITY heimdal-buildsize     "205 MB">
+  <!ENTITY heimdal-time          "3.9 SBU (additional 2.3 SBU to run the test suite)">
 ]>
 
 <sect1 id="heimdal" xreflabel="Heimdal-&heimdal-version;">
@@ -29,26 +29,6 @@
   <sect2 role="package">
     <title>Introduction to Heimdal</title>
 
-    <warning>
-      <para>If you are using an LFS-&lfs-version; based system, building
-      <application>Heimdal</application> will overwrite <filename
-      class='libraryfile'>/usr/lib/libcom_err.so</filename> and install an
-      additional <filename class='libraryfile'>libcom_err</filename> library in
-      <filename class='directory'>/usr/lib</filename>. This will directly
-      conflict with the <filename class='libraryfile'>/lib/libcom_err</filename>
-      library installed by the <application>E2fsprogs</application> package in LFS.
-      Both upstream maintainers have taken steps to eliminate this condition.
-      However, the combination that currently exists causes this problem.</para>
-
-      <para>There is a fix for the problem, but it will require you to recompile
-      the LFS-&lfs-version; <application>E2fsprogs</application> package to a
-      newer version than the &lfs-e2fsprogs-version; version used in that book.
-      Any version equal to or greater than the one used in the
-      <ulink url="&lfs-dev;">LFS-Development</ulink> book will do. After
-      recompiling <application>E2fsprogs</application>, you are now ready to
-      install <application>Heimdal</application>.</para>
-    </warning>
-
     <para><application>Heimdal</application> is a free implementation
     of Kerberos 5 that aims to be compatible with MIT Kerberos 5 and is
     backward compatible with Kerberos 4. Kerberos is a network authentication
@@ -63,9 +43,7 @@
     <ulink url="&files-anduin;/heimdal-overwrites"/> for a complete list of
     all the files and commands to rename each of them.</para>
 
-    <!-- FIXME -->
-    <para>If you intend to link this application to <xref linkend="openssl"/>
-    you will need to use the heimdal-1.4 series.</para>
+    <para>&lfssvn_checked;20101029&lfssvn_checked2;</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -93,7 +71,7 @@
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required Patch: <ulink
-        url="&patch-root;/heimdal-&heimdal-version;-blfs_docs-1.patch"/></para>
+        url="&patch-root;/heimdal-&heimdal-version;-otp_fixes-1.patch"/></para>
       </listitem>
       <!-- <listitem>
         <para>Required Patch: <ulink
@@ -104,19 +82,19 @@
     <bridgehead renderas="sect3">Heimdal Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required to Build the Server-Side Tools</bridgehead>
-    <para role="required">
-    <xref linkend="db"/> (recommended) or GDBM (GDBM is installed in LFS)</para>
-    <!-- <xref linkend="db"/> is recommended (installed in LFS)
-    or <xref linkend="gdbm"/></para> -->
+    <para role="required"><xref linkend="db"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended"><xref linkend="openssl"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="linux-pam"/>,
-    <xref linkend="openldap"/>,
-    <xref linkend="x-window-system"/>, and
-    <ulink url="http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/">libcap2</ulink></para>
+    <para role="optional"><xref linkend="openldap"/>,
+    <xref linkend="sqlite"/>,
+    <xref linkend="x-window-system"/>,
+    <ulink url="http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/">libcap2</ulink>, and
+    <ulink url="http://people.redhat.com/sgrubb/libcap-ng/">libcap-ng</ulink> (with this
+    <ulink url="&patch-root;/libcap-ng-0.6.4-2.6.36_kernel_fix-1.patch">patch</ulink>
+    if the Linux kernel version is &gt;=2.6.36)</para>
 
     <note>
       <para>Some sort of time synchronization facility on your system
@@ -142,9 +120,9 @@
     <para>Install <application>Heimdal</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../heimdal-&heimdal-version;-blfs_docs-1.patch &amp;&amp;
-sed -i.bak 's/struct krb5_cccol_cursor/&amp;_data/' \
-    lib/krb5/{krb5.h,cache.c}
+<screen><userinput>patch -Np1 -i ../heimdal-&heimdal-version;-otp_fixes-1.patch &amp;&amp;
+sed -i 's|/var/heimdal|/var/lib/heimdal|' \
+       `grep -lr "/var/heimdal" doc kadmin kdc lib` &amp;&amp;
 
 ./configure --prefix=/usr \
             --sysconfdir=/etc/heimdal \
@@ -154,51 +132,45 @@ sed -i.bak 's/struct krb5_cccol_cursor/&amp;_data/' \
             --with-hdbdir=/var/lib/heimdal \
             --with-readline=/usr \
             --enable-kcm &amp;&amp;
-make</userinput></screen>
+make &amp;&amp;
+
+install -v -m755 -d doc/html                                    &amp;&amp;
+make -C doc html                                                &amp;&amp;
+mv -v doc/heimdal.html doc/html/heimdal                         &amp;&amp;
+mv -v doc/hx509.html   doc/html/hx509                           &amp;&amp; 
+makeinfo --html --no-split -o doc/heimdal.html doc/heimdal.texi &amp;&amp;
+makeinfo --html --no-split -o doc/hx509.html   doc/hx509.texi   &amp;&amp;
+makeinfo --plaintext       -o doc/heimdal.txt  doc/heimdal.texi &amp;&amp;
+makeinfo --plaintext       -o doc/hx509.txt    doc/hx509.texi</userinput></screen>
 
     <para>If you have <xref linkend="tetex"/> installed and wish to create
-    alternate forms of the documentation, change into the
+    PDF and Postscript forms of the documentation, change into the
     <filename class='directory'>doc</filename> directory and issue any or all
-    of the following commands (the <command>makeinfo</command> commands do not
-    require a <application>teTex</application> installation:</para>
+    of the following commands:</para>
 
-<screen><userinput>pushd doc                                        &amp;&amp;
-
-make html                                        &amp;&amp;
-
-texi2pdf                            heimdal.texi &amp;&amp;
-texi2dvi                            heimdal.texi &amp;&amp;
-dvips                -o heimdal.ps  heimdal.dvi  &amp;&amp;
-makeinfo --plaintext -o heimdal.txt heimdal.texi &amp;&amp;
-
-texi2pdf                            hx509.texi   &amp;&amp;
-texi2dvi                            hx509.texi   &amp;&amp;
-dvips                -o hx509.ps    hx509.dvi    &amp;&amp;
-makeinfo --plaintext -o hx509.txt   hx509.texi   &amp;&amp;
-
+<screen><userinput>pushd doc                        &amp;&amp;
+texi2pdf            heimdal.texi &amp;&amp;
+texi2dvi            heimdal.texi &amp;&amp;
+dvips -o heimdal.ps heimdal.dvi  &amp;&amp;
+texi2pdf            hx509.texi   &amp;&amp;
+texi2dvi            hx509.texi   &amp;&amp;
+dvips -o hx509.ps   hx509.dvi    &amp;&amp;
 popd</userinput></screen>
 
     <para>To test the results, issue: <command>make -k check</command>. The
-    <command>check-ipropd</command> test is known to fail but all others should
+    <command>check-iprop</command> test is known to fail but all others should
     pass.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<!-- <screen role="root"><?dbfo keep-together="auto"?><userinput>mv -v /usr/include/ss/ss.h   /usr/include/ss/ss.h.e2fsprogs &amp;&amp;
-mv -v /usr/lib/libss.a       /usr/lib/libss.a.e2fsprogs &amp;&amp;
-mv -v /usr/lib/libss.so      /usr/lib/libss.so.e2fsprogs &amp;&amp;
-mv -v /usr/bin/mk_cmds       /usr/bin/mk_cmds.e2fsprogs &amp;&amp;
--->
-
 <screen role="root"><userinput>make install &amp;&amp;
 
-install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
-install -v -m644    doc/{init-creds,layman.asc} \
-                    /usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
-
-ln -sfv         mech.5 /usr/share/man/man5/qop.5  &amp;&amp;
-ln -sfv ../man5/mech.5 /usr/share/man/cat5/qop.5  &amp;&amp;
-ln -sfv ../man5/mech.5 /usr/share/man/cat5        &amp;&amp;
+install -v -m755 -d /usr/share/doc/heimdal-&heimdal-version;        &amp;&amp;
+install -v -m644    doc/{heimdal,hx509}.{html,txt} \
+                    doc/{init-creds,layman.asc}    \
+                    /usr/share/doc/heimdal-&heimdal-version;        &amp;&amp;
+cp      -v -R       doc/html \
+                    destdir/usr/share/doc/heimdal-&heimdal-version; &amp;&amp;
 
 mv -v /bin/login          /bin/login.SHADOW &amp;&amp;
 mv -v /bin/su             /bin/su.SHADOW    &amp;&amp;
@@ -206,7 +178,7 @@ mv -v /usr/bin/{login,su} /bin              &amp;&amp;
 ln -v -sf ../../bin/login /usr/bin          &amp;&amp;
 
 for LINK in   \
-    lib{otp,kafs,krb5,hx509,asn1,roken,crypto,heimsqlite,wind}; do
+    lib{otp,kafs,krb5,hx509,sqlite3,asn1,roken,crypto,wind}; do
         mv -v     /usr/lib/${LINK}.so.* /lib &amp;&amp;
         ln -v -sf ../../lib/$(readlink  /usr/lib/${LINK}.so) \
                   /usr/lib/${LINK}.so
@@ -220,21 +192,11 @@ ln -v -sf ../../lib/$(readlink /usr/lib/libdb.so) \
 
 ldconfig</userinput></screen>
 
-<!-- mv -v /usr/include/ss/ss.h            /usr/include/ss/ss.h.heimdal &amp;&amp;
-mv -v /usr/include/ss/ss.h.e2fsprogs  /usr/include/ss/ss.h &amp;&amp;
-mv -v /usr/lib/libss.a                /usr/lib/libss.a.heimdal &amp;&amp;
-mv -v /usr/lib/libss.a.e2fsprogs      /usr/lib/libss.a &amp;&amp;
-mv -v /usr/lib/libss.so               /usr/lib/libss.so.heimdal &amp;&amp;
-mv -v /usr/lib/libss.so.e2fsprogs     /usr/lib/libss.so &amp;&amp;
-mv -v /usr/lib/libss.la               /usr/lib/libss.la.heimdal &amp;&amp;
-mv -v /usr/bin/mk_cmds                /usr/bin/mk_cmds.heimdal &amp;&amp;
-mv -v /usr/bin/mk_cmds.e2fsprogs      /usr/bin/mk_cmds &amp;&amp; -->
-
-    <para>If you built any of the alternate forms of documentation, install it
+    <para>If you built any of the additional forms of documentation, install it
     using the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m644 doc/{heimdal,hx509}.{dvi,ps,pdf,html,txt} \
+<screen role="root"><userinput>install -v -m644 doc/{heimdal,hx509}.{dvi,ps,pdf} \
                  /usr/share/doc/heimdal-&heimdal-version;</userinput></screen>
 
     <para>If you wish to use the <xref linkend="cracklib"/> library to enforce
@@ -245,7 +207,7 @@ mv -v /usr/bin/mk_cmds.e2fsprogs      /usr/bin/mk_cmds &amp;&amp; -->
     -e 's|/usr/lib/cracklib_dict|/lib/cracklib/pw_dict|' \
     -e 's|/var/heimdal|/var/lib/heimdal|' \
         lib/kadm5/check-cracklib.pl \
-    > /bin/krb5-check-cracklib.pl &amp;&amp;
+     > /bin/krb5-check-cracklib.pl &amp;&amp;
 
 chmod -v 755 /bin/krb5-check-cracklib.pl</userinput></screen>
 
@@ -254,19 +216,12 @@ chmod -v 755 /bin/krb5-check-cracklib.pl</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <!-- <para><command>mv -v /usr/include/...</command>,
-    <command>mv -v /usr/lib/libss.* ...</command> and
-    <command>mv -v /usr/bin/mk_cmds ...</command>: The
-    <application>Heimdal</application> installation will overwrite an
-    interface header, static library, library symbolic link and a
-    shell script from the
-    <application>E2fsprogs</application> package. These commands rename the
-    original files before the installation, and then restore them (after
-    renaming the new <application>Heimdal</application> files) after the
-    installation.</para> -->
-
-    <para><command>sed -i.bak ... lib/krb5/{krb5.h,cache.c}</command>: This
-    command is an upstream fix for a multiple declaration.</para>
+    <para><command>sed -i ... `grep -lr "/var/heimdal"
+    doc kadmin kdc lib`</command>: This command is used to change the
+    hard-coded references in the documentation files from
+    <filename class='directory'>/var/heimdal</filename> to the FHS compliant
+    <filename class='directory'>/var/lib/heimdal</filename> directory
+    name.</para>
 
     <para><parameter>--libexecdir=/usr/sbin</parameter>: This switch causes
     the daemon programs to be installed into
@@ -301,8 +256,15 @@ chmod -v 755 /bin/krb5-check-cracklib.pl</userinput></screen>
     <para><parameter>--enable-kcm</parameter>: This parameter enables building
     the Kerberos Credentials Manager.</para>
 
-    <para><command>ln -sfv .../mech.5 /usr/share/man/...</command>: These
-    commands are used to fix some broken symbolic links.</para>
+    <para><option>--with-sqlite3=/usr</option>: This parameter must be
+    used so that the <command>configure</command> script properly locates the
+    installed <application>Sqlite3</application> package.</para>
+
+    <para><option>--with-openldap=/usr</option> and
+    <option>--enable-hdb-openldap-module</option>: These parameters must be
+    used so that the <command>configure</command> script properly locates the
+    installed <application>OpenLDAP</application> package in order to build the
+    module allowing an LDAP backend database.</para>
 
     <para><command>mv ... ...SHADOW</command>, <command>mv ... /bin</command>
     and <command> ln ... /usr/bin</command>: The <command>login</command>
@@ -452,11 +414,10 @@ kstash</userinput></screen>
 
 <screen role="root"><userinput>ext host/<replaceable>&lt;hostname.example.com&gt;</replaceable></userinput></screen>
 
-        <para>This should have created two files in
-        <filename class="directory">/etc/heimdal</filename>:
-        <filename>krb5.keytab</filename> (Kerberos 5) and
-        <filename>srvtab</filename> (Kerberos 4). Both files should have 600
-        (root rw only) permissions. Keeping the keytab files from public access
+        <para>This should have created a file in
+        <filename class="directory">/etc/heimdal</filename> named
+        <filename>krb5.keytab</filename>. This file should have 600
+        (root rw only) permissions. Keeping the keytab file from public access
         is crucial to the overall security of the Kerberos installation.</para>
 
         <para>Eventually, you'll want to add server daemon principles to the
@@ -515,7 +476,7 @@ kstash</userinput></screen>
         <application>Crypt::Cracklib</application>
         <application>Perl</application> module. Download it from the CPAN
         site. The URL at the time of this writing is <ulink
-        url="http://cpan.org/authors/id/D/DA/DANIEL/Crypt-Cracklib-1.2.tar.gz"/>.
+        url="http://www.cpan.org/authors/id/D/DA/DANIEL/Crypt-Cracklib-1.5.tar.gz"/>.
         After unpacking the tarball and changing into the newly created
         directory, issue the following command to add the BLFS
         <application>Cracklib</application> dictionary location to one of the
@@ -525,8 +486,7 @@ kstash</userinput></screen>
 
         <para>Then use the standard <command>perl Makefile.PL</command>;
         <command>make</command>; <command>make test</command>;
-        <command>make install</command> commands. Note that one test fails
-        due to an unknown reason.</para>
+        <command>make install</command> commands.</para> 
 
         <para id="heimdal-init">Install the
         <filename>/etc/rc.d/init.d/heimdal</filename> init script included
@@ -596,14 +556,14 @@ kx              <replaceable>&lt;49150&gt;</replaceable>/udp   # Heimdal kerbero
         popper, push, rcp, rsh, rshd, rxtelnet, rxterm, string2key, su,
         telnet, telnetd, tenletxr, verify_krb5_conf and xnlock</seg>
 
-        <seg>hdb_ldap.{so,a}, libasn1.{so,a}, libeditline.{so,a},
+        <seg>hdb_ldap.{so,a}, libasn1.{so,a},
         libgssapi.{so,a}, libhdb.{so,a}, libheimntlm.{so,a}, libhx509.{so,a},
         libkadm5clnt.{so,a}, libkadm5srv.{so,a}, libkafs.{so,a},
         libkdc.{so,a}, libkrb5.{so,a}, libotp.{so,a}, libroken.{so,a},
-        libsl.{so,a}, libss-krb5.{so,a} and windc.{so,a}</seg>
+        libsl.{so,a}, libss-krb5.{so,a} and wind.{so,a}</seg>
 
         <seg>/etc/heimdal, /usr/include/gssapi, /usr/include/kadm5,
-        /usr/include/krb5, /usr/include/roken, /usr/include/ss,
+        /usr/include/krb5, /usr/include/roken,
         /usr/share/doc/heimdal-&heimdal-version; and /var/lib/heimdal</seg>
       </seglistitem>
     </segmentedlist>
@@ -1082,16 +1042,6 @@ kx              <replaceable>&lt;49150&gt;</replaceable>/udp   # Heimdal kerbero
           the Kerberos TGTs.</para>
           <indexterm zone="heimdal libasn1">
             <primary sortas="c-libasn1">libasn1.{so,a}</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="libeditline">
-        <term><filename class='libraryfile'>libeditline.a</filename></term>
-        <listitem>
-          <para>is a command-line editing library with history.</para>
-          <indexterm zone="heimdal libeditline">
-            <primary sortas="c-libeditline">libeditline.a</primary>
           </indexterm>
         </listitem>
       </varlistentry>
