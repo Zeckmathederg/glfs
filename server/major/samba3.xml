@@ -6,10 +6,10 @@
 
   <!ENTITY samba3-download-http "http://samba.org/samba/ftp/stable/samba-&samba3-version;.tar.gz">
   <!ENTITY samba3-download-ftp  "ftp://samba.org/pub/samba/samba-&samba3-version;.tar.gz">
-  <!ENTITY samba3-md5sum        "60811195b0507fa151b602684cece743">
-  <!ENTITY samba3-size          "30 MB">
-  <!ENTITY samba3-buildsize     "510 MB">
-  <!ENTITY samba3-time          "5 SBU (additional 1.5 SBU to run the test suite)">
+  <!ENTITY samba3-md5sum        "bf6c09ea497a166df8bd672db1d8da8f">
+  <!ENTITY samba3-size          "30.8 MB">
+  <!ENTITY samba3-buildsize     "451 MB">
+  <!ENTITY samba3-time          "5 SBU (additional 1.4 SBU to run the test suite)">
 ]>
 
 <sect1 id="samba3" xreflabel="Samba-&samba3-version;">
@@ -78,9 +78,8 @@
     <xref linkend="acl"/>,
     <xref linkend="xfs"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
-    <!-- <xref linkend="python"/> (to build Samba API bindings for the
-    <application>Python</application> installation), -->
-    <ulink url="http://tdb.samba.org/">tdb</ulink>,
+    <xref linkend="python"/> (used only in parts of the test suite),
+    <ulink url="http://tdb.samba.org/">tdb</ulink> (version 1.2.1),
     <ulink url="http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/">libcap2</ulink>,
     <ulink url="http://www.nongnu.org/libunwind/">libunwind</ulink>,
     <ulink url="http://people.redhat.com/dhowells/keyutils/">keyutils</ulink>
@@ -90,8 +89,12 @@
     and <ulink url="http://valgrind.org/">Valgrind</ulink> (optionally
     used by the test suite)</para>
 
+    <para>You will need to install one of the kerberos packages if you plan
+    on using your system to join a Windows NT domain.</para>
+
     <bridgehead renderas="sect4">Optional for Samba4 Support</bridgehead>
-    <para role="optional"><xref linkend="gnutls"/> (recommended) and
+    <para role="optional"><xref linkend="gnutls"/> (recommended),
+    <xref linkend="python"/>, and
     <xref linkend="sqlite"/></para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -113,8 +116,6 @@
 
     <para>Install <application>Samba</application> by running the following
     commands:</para>
-
-<!-- <screen><userinput>for FILENAME in $(ls ../*.diff); do patch -Np1 -i $FILENAME; done &amp;&amp; -->
 
 <screen><userinput>cd source3 &amp;&amp;
 
@@ -146,17 +147,19 @@ ln -v -sf libnss_wins.so    /lib/libnss_wins.so.2         &amp;&amp;
 
 install -v -m644 ../examples/smb.conf.default /etc/samba  &amp;&amp;
 
+if [ -d /etc/openldap/schema ]; then
+    install -v -m644    ../examples/LDAP/README              \
+                        /etc/openldap/schema/README.LDAP     &amp;&amp;
+    install -v -m644    ../examples/LDAP/samba*              \
+                        /etc/openldap/schema                 &amp;&amp;
+    install -v -m755    ../examples/LDAP/{convert*,get*,ol*} \
+                        /etc/openldap/schema                 &amp;&amp; 
+fi &amp;&amp;
+
 install -v -m755 -d /usr/share/doc/samba-&samba3-version; &amp;&amp;
 install -v -m644    ../docs/*.pdf \
                     /usr/share/doc/samba-&samba3-version; &amp;&amp;
 ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></screen>
-
-  <!-- <para>If you passed the <option>-with-python</option> option to the
-  <command>configure</command> script, issue the following command as the
-  <systemitem class="username">root</systemitem> user to install the
-  <application>Python</application> extensions:</para>
-
-<screen role="root"><userinput>make python_install</userinput></screen> -->
 
   </sect2>
 
@@ -164,7 +167,7 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
     <title>Command Explanations</title>
 
     <para><option>--enable-merged-build</option>: Use this parameter to build
-    the Samba4 components (GnuTLS is recommended).</para>
+    the (alpha) Samba4 components (GnuTLS is recommended).</para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration
     file directory to avoid the default of
@@ -188,35 +191,20 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
 
     <para><parameter>--with-pthreads</parameter>: Adds threading support.</para>
 
-    <!-- <para><parameter>-with-smbmount</parameter>: Orders the creation of an
-    extra binary for use by the <command>mount</command> command so that
-    mounting remote SMB (Windows) shares becomes no more complex than
-    mounting remote NFS shares.</para> -->
-
-    <para><option>--with-pam</option>: Use this parameter to link
-    <application>Linux-PAM</application> into the build. This
-    also builds the <filename class='libraryfile'>pam_winbind.so</filename>
-    and <filename class='libraryfile'>pam_smbpass.so</filename>
-    <application>PAM</application> modules. You can find
-    instructions on how to configure and use the
-    <filename class='libraryfile'>pam_winbind.so</filename> module by running
-    <command>man winbindd</command>.</para>
-
-    <!-- <para><command>mv -v /usr/lib/samba/libsmbclient.so ...; ln -v -sf
-    ../libsmbclient.so ...</command>: The
-    <filename class='libraryfile'>libsmbclient.so</filename> library is needed
-    by other packages. This command moves it to a location where other packages
-    can find it.</para> -->
-
     <para><command>install -v -m755 nsswitch/libnss_win{s,bind}.so /lib</command>:
-    The nss libraries are not installed by default.  If you intend to use
-    winbindd for domain auth, and/or WINS name resolution,
+    The nss libraries are not installed by default. If you intend to use
+    winbindd for Windows NT domain authentication, and/or WINS name resolution,
     you need these libraries.</para>
 
     <para><command>ln -v -sf libnss_winbind.so /lib/libnss_winbind.so.2</command>
     and <command>ln -v -sf libnss_wins.so /lib/libnss_wins.so.2</command>:
-    These symlinks are required by glibc to use the NSS
-    libraries.</para>
+    These symlinks are required by <application>Glibc</application> to use the
+    NSS libraries.</para>
+
+    <para><command>if [ -d /etc/openldap/schema ]; then ...; fi</command>:
+    These commands are used to see if you have an OpenLDAP installation, and if
+    so, they copy sample Samba schemas to the OpenLDAP
+    <filename class='directory'>schema</filename> directory.</para>
 
     <para><command>install -v -m644 ../examples/smb.conf.default
     /etc/samba</command>: This copies a default <filename>smb.conf</filename>
@@ -683,21 +671,20 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
-<!--newprogs: eventlogadm smbget-->
-
       <seglistitem>
-        <seg>cifs.upcall, eventlogadm, findsmb, mount.cifs, mount.smbfs, net, nmbd,
-        nmblookup, ntlm_auth, pdbedit, profiles, rpcclient, smbcacls,
-        smbclient, smbcontrol, smbcquotas, smbd, smbget,
-        smbpasswd, smbspool, smbstatus, smbtar, smbtree, swat,
-        tdbbackup, tdbdump, tdbtool, testparm, umount.cifs, wbinfo
-        and winbindd</seg>
-        <seg>libnss_winbind.so, libnss_wins.so, libsmbclient.so, libmsrpc.so,
-        the pam_winbind.so and pam_smbpass.so PAM libraries, and assorted
-        character set, filesystem and support modules.</seg>
-        <seg>/etc/samba, /usr/lib/python&python-majorver;/site-packages/samba,
-        /usr/lib/samba, /usr/share/doc/samba-&samba3-version;,
-        /usr/share/samba, /var/lib/samba and /var/log/samba</seg>
+        <seg>cifs.upcall, eventlogadm, findsmb, ldbadd, ldbdel, ldbedit,
+        ldbmodify, ldbrename, ldbsearch, mount.cifs, net, nmbd,
+        nmblookup, ntlm_auth, pdbedit, profiles, rpcclient, sharesec, smbcacls,
+        smbclient, smbcontrol, smbcquotas, smbd, smbget, smbpasswd, smbspool,
+        smbstatus, smbtar, smbtree, swat, testparm, umount.cifs, wbinfo,
+        winbindd, and (if not using system TDB) tdbbackup, tdbdump, and
+        tdbtool</seg>
+        <seg>libnss_winbind.so, libnss_wins.so, libnetapi.so, libsmbclient.so,
+        libsmbsharemodes.so, libtalloc.so, libwbclient.so, the pam_winbind.so
+        and pam_smbpass.so PAM libraries, and assorted character set,
+        filesystem and support modules.</seg>
+        <seg>/etc/samba, /usr/lib/samba, /usr/share/doc/samba-&samba3-version;,
+        /usr/share/samba, /var/lib/samba and (if configured) /var/log/samba</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -705,6 +692,17 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="cifs.upcall">
+        <term><command>cifs.upcall</command></term>
+        <listitem>
+          <para>is a userspace upcall helper for Common Internet File Systems
+           (CIFS)</para>
+          <indexterm zone="samba3 cifs.upcall">
+            <primary sortas="b-cifs.upcall">cifs.upcall</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="eventlogadm">
         <term><command>eventlogadm</command></term>
@@ -729,6 +727,71 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="ldbadd">
+        <term><command>ldbadd</command></term>
+        <listitem>
+          <para>is a command-line utility for adding records to an LDB
+          database.</para>
+          <indexterm zone="samba3 ldbadd">
+            <primary sortas="b-ldbadd">ldbadd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ldbdel">
+        <term><command>ldbdel</command></term>
+        <listitem>
+          <para>is a command-line program for deleting LDB database
+          records.</para>
+          <indexterm zone="samba3 ldbdel">
+            <primary sortas="b-ldbdel">ldbdel</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ldbedit">
+        <term><command>ldbedit</command></term>
+        <listitem>
+          <para>allows you to edit LDB databases using your preferred
+          editor.</para>
+          <indexterm zone="samba3 ldbedit">
+            <primary sortas="b-ldbedit">ldbedit</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ldbmodify">
+        <term><command>ldbmodify</command></term>
+        <listitem>
+          <para>allows you to modify records in an LDB database.</para>
+          <indexterm zone="samba3 ldbmodify">
+            <primary sortas="b-ldbmodify">ldbmodify</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ldbrename">
+        <term><command>ldbrename</command></term>
+        <listitem>
+          <para>allows you to edit LDB databases using your preferred
+          editor.</para>
+          <indexterm zone="samba3 ldbrename">
+            <primary sortas="b-ldbrename">ldbrename</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ldbsearch">
+        <term><command>ldbsearch</command></term>
+        <listitem>
+          <para>searches an LDB database for records matching a specified
+          expression.</para>
+          <indexterm zone="samba3 ldbsearch">
+            <primary sortas="b-ldbsearch">ldbsearch</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="mount.cifs">
         <term><command>mount.cifs</command></term>
         <listitem>
@@ -737,18 +800,6 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           <option>-t cifs</option> option.</para>
           <indexterm zone="samba3 mount.cifs">
             <primary sortas="b-mount.cifs">mount.cifs</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="mount.smbfs">
-        <term><command>mount.smbfs</command></term>
-        <listitem>
-          <para>is a symlink to <command>smbmount</command> which provides
-          <command>/bin/mount</command> with a way to mount remote Windows
-          (or <application>Samba</application>) fileshares.</para>
-          <indexterm zone="samba3 mount.smbfs">
-            <primary sortas="b-mount.smbfs">mount.smbfs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -829,6 +880,16 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="sharesec">
+        <term><command>sharesec</command></term>
+        <listitem>
+          <para>manipulates share ACL permissions on SMB file shares.</para>
+          <indexterm zone="samba3 sharesec">
+            <primary sortas="b-sharesec">sharesec</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="smbcacls">
         <term><command>smbcacls</command></term>
         <listitem>
@@ -895,33 +956,6 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
         </listitem>
       </varlistentry>
 
-      <!-- <varlistentry id="smbmnt">
-        <term><command>smbmnt</command></term>
-        <listitem>
-          <para>is a helper application used by the
-          <command>smbmount</command> program to do the actual mounting of
-          SMB shares. It can be installed setuid
-          <systemitem class='username'>root</systemitem> if you want
-          unprivileged users to be able to mount their SMB shares.</para>
-          <indexterm zone="samba3 smbmnt">
-            <primary sortas="b-smbmnt">smbmnt</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="smbmount">
-        <term><command>smbmount</command></term>
-        <listitem>
-          <para>is usually invoked as <command>mount.smbfs</command> by the
-          <command>mount</command> command when using the
-          <parameter>-t smbfs</parameter> option, mounts a Linux SMB
-          filesystem.</para>
-          <indexterm zone="samba3 smbmount">
-            <primary sortas="b-smbmount">smbmount</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry> -->
-
       <varlistentry id="smbpasswd">
         <term><command>smbpasswd</command></term>
         <listitem>
@@ -974,17 +1008,6 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           </indexterm>
         </listitem>
       </varlistentry>
-
-      <!-- <varlistentry id="smbumount">
-        <term><command>smbumount</command></term>
-        <listitem>
-          <para>is used by unprivileged users to unmount SMB filesystems,
-          provided that it is setuid root.</para>
-          <indexterm zone="samba3 smbumount">
-            <primary sortas="b-smbumount">smbumount</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry> -->
 
       <varlistentry id="swat">
         <term><command>swat</command></term>
@@ -1072,6 +1095,70 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           <para>resolves names from Windows NT servers.</para>
           <indexterm zone="samba3 winbindd">
             <primary sortas="b-winbindd">winbindd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnss_winbind">
+        <term><filename class='libraryfile'>libnss_winbind.so</filename></term>
+        <listitem>
+          <para>provides Name Service Switch API functions for resolving names
+          from NT servers.</para>
+          <indexterm zone="samba3 libnss_winbind">
+            <primary sortas="c-libnss_winbind">libnss_winbind.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnss_wins">
+        <term><filename class='libraryfile'>libnss_wins.so</filename></term>
+        <listitem>
+          <para>provides API functions for Samba's implementation of the
+          Windows Internet Naming Service.</para>
+          <indexterm zone="samba3 libnss_wins">
+            <primary sortas="c-libnss_wins">libnss_wins.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnetapi">
+        <term><filename class='libraryfile'>libnetapi.so</filename></term>
+        <listitem>
+          <para>provides the API functions for the administration tools used
+          for Samba and remote CIFS servers.</para>
+          <indexterm zone="samba3 libnetapi">
+            <primary sortas="c-libnetapi">libnetapi.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libsmbclient">
+        <term><filename class='libraryfile'>libsmbclient.so</filename></term>
+        <listitem>
+          <para>provides the API functions for the Samba SMB client tools.</para>
+          <indexterm zone="samba3 libsmbclient">
+            <primary sortas="c-libsmbclient">libsmbclient.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libsmbsharemodes">
+        <term><filename class='libraryfile'>libsmbsharemodes.so</filename></term>
+        <listitem>
+          <para>provides API functions for accessing SMB share modes
+          (locks etc.)</para>
+          <indexterm zone="samba3 libsmbsharemodes">
+            <primary sortas="c-libsmbsharemodes">libsmbsharemodes.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libwbclient">
+        <term><filename class='libraryfile'>libwbclient.so</filename></term>
+        <listitem>
+          <para>provides API functions for Windows domain client services.</para>
+          <indexterm zone="samba3 libwbclient">
+            <primary sortas="c-libwbclient">libwbclient.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
