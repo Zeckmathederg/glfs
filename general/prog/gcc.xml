@@ -6,14 +6,15 @@
 
   <!ENTITY gcc-download-http  "http://ftp.gnu.org/gnu/gcc/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
   <!ENTITY gcc-download-ftp   "ftp://ftp.gnu.org/gnu/gcc/gcc-&gcc-version;/gcc-&gcc-version;.tar.bz2">
-  <!ENTITY gcc-md5sum         "927eaac3d44b22f31f9c83df82f26436">
-  <!ENTITY gcc-size           "62.8 MB">
-  <!ENTITY gcc-buildsize      "~3.7 GB (build, test and install all compilers)">
-  <!ENTITY gcc-time           "119 SBU (build, test and install all compilers)">
+  <!ENTITY gcc-md5sum         "48231a8e33ed6e058a341c53b819de1a">
+  <!ENTITY gcc-size           "66 MB">
+  <!ENTITY gcc-buildsize      "~3.5 GB (build, test and install all compilers)">
+  <!ENTITY gcc-time           "126 SBU (build, test and install all compilers)">
 
   <!ENTITY gnat-download-http "https://libre.adacore.com/libre/download/">
-  <!ENTITY gnat-md5sum        "88d82a34ab0b67d2c03cef93527ca863">
-  <!ENTITY gnat-size          "104 MB">
+  <!-- We don't know what platform, so this is commented out
+  <!ENTITY gnat-md5sum        "6425f2c7cabbdee4595b4b7c0d47237f">
+  <!ENTITY gnat-size          "110 MB"> -->
 ]>
 
 <sect1 id="gcc" xreflabel="GCC-&gcc-version;">
@@ -116,26 +117,16 @@
       <para>If you plan to compile Ada, you will need to install
       <application>GNAT</application> temporarily to satisfy the circular
       dependency when you recompile <application>GCC</application>
-      to include Ada. The download location shown below requires that you
-      create an account on the AdaCore site before you can download the
-      package. Nothing is required other than a valid email address.</para>
+      to include Ada. At the AdaCore download page, choose your platform and
+      2010, then select the file to download. You probably want the x86-linux
+      or x86_64-linux file.</para>
 
-      <para>At the AdaCore download page, choose your platform and 2009. Then
-      scroll down and click on <quote>Files</quote>. Download the file named
-      <filename>gnat-gpl-2009-1-i686-gnu-linux-libc2.3-bin.tar.gz</filename>.
-      </para>
     </note>
 
-    <bridgehead renderas="sect3">GNAT GPL 2009 Package Information</bridgehead>
+    <bridgehead renderas="sect3">GNAT GPL 2010 Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Download (HTTP): <ulink url="&gnat-download-http;"/></para>
-      </listitem>
-      <listitem>
-        <para>Download MD5 sum: &gnat-md5sum;</para>
-      </listitem>
-      <listitem>
-        <para>Download size: &gnat-size;</para>
       </listitem>
     </itemizedlist>
 
@@ -163,7 +154,7 @@
     source directory:</para>
 
 <screen><userinput>cd .. &amp;&amp;
-rm -rf gnat-2009-i686-gnu-linux-libc2.3-bin</userinput></screen>
+rm -rf gnat-2010-i686-gnu-linux-libc2.3-bin</userinput></screen>
 
     <para>Prepare to compile <application>GCC</application> by placing the
     <application>GNAT</application> version of <command>gcc</command> at the
@@ -194,8 +185,8 @@ export PATH=<replaceable>&lt;Your build directory&gt;</replaceable>/gnat/bin:$PA
       until you are confident the build was successful. You can compare your
       test results with those found at
       <ulink url="http://gcc.gnu.org/ml/gcc-testresults/"/>. There's also an
-      i686 32-bit platform test result produced by an LFS-6.5 system at
-      <ulink url="&files-anduin;/gcc441_test.txt"/>. You
+      i686 32-bit platform test result produced by an LFS-SVN20101029 system at
+      <ulink url="&files-anduin;/gcc451_test.txt"/>. You
       may also want to refer to the information found in the
       <application>GCC</application> section of Chapter 6 in the LFS
       book (<ulink url="&lfs-root;/chapter06/gcc.html"/>).</para>
@@ -213,7 +204,8 @@ export PATH=<replaceable>&lt;Your build directory&gt;</replaceable>/gnat/bin:$PA
     foreign compiler.</para>
 
 <screen><userinput>sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in &amp;&amp;
-sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in &amp;&amp;
+sed -i 's@\./fixinc\.sh@-c true@'        gcc/Makefile.in       &amp;&amp;
+sed -i 's/Standard/Types/'               gcc/ada/uintp.adb     &amp;&amp;
 
 mkdir ../gcc-build &amp;&amp;
 cd    ../gcc-build &amp;&amp;
@@ -221,6 +213,7 @@ cd    ../gcc-build &amp;&amp;
 ../gcc-&gcc-version;/configure \
     --prefix=/usr \
     --libexecdir=/usr/lib \
+    --with-system-zlib \
     --enable-shared \
     --enable-threads=posix \
     --enable-__cxa_atexit \
@@ -268,7 +261,8 @@ unset PATH_HOLD</userinput></screen>
     <title>Command Explanations</title>
 
     <para>The two <command>sed</command> commands are the same ones used
-    during the build of LFS.</para>
+    during the build of LFS. The third one fixes an issue with the ADA
+    build.</para>
 
     <para><command>mkdir ../gcc-build; cd ../gcc-build</command>: The
     <application>GCC</application> documentation recommends
@@ -339,10 +333,10 @@ unset PATH_HOLD</userinput></screen>
         libgfortranbegin.a, libgij.{so,a}, libobjc.{so,a} and numerous other
         run-time libraries and executables in /usr/lib/gcc</seg>
         <seg>/usr/include/c++/&gcc-version;/{gcj,gnu,java,javax,org},
-             /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/ada{include,lib},
-             /usr/lib/gcj-&gcc-version;,
-             /usr/lib/security
-             and /usr/share/java</seg>
+        /usr/lib/gcc/i686-pc-linux-gnu/&gcc-version;/ada{include,lib},
+        /usr/lib/gcj-&gcc-version;,
+        /usr/lib/security,
+        and /usr/share/java</seg>
       </seglistitem>
     </segmentedlist>
 
