@@ -6,10 +6,10 @@
 
   <!ENTITY firefox-download-http "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
   <!ENTITY firefox-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
-  <!ENTITY firefox-md5sum        "80f4d83f23a7c45fc3f1904964ea2a5a">
-  <!ENTITY firefox-size          "50 MB">
-  <!ENTITY firefox-buildsize     "880 MB (stand-alone) or 425 MB (on xulrunner)">
-  <!ENTITY firefox-time          "11 SBU (stand-alone) or 0.3 SBU (on xulrunner)">
+  <!ENTITY firefox-md5sum        "d7c90aed8209beefa74badf02e8eeae1">
+  <!ENTITY firefox-size          "51 MB">
+  <!ENTITY firefox-buildsize     "780 MB (stand-alone) or 440 MB (on Xulrunner)">
+  <!ENTITY firefox-time          "19 SBU (stand-alone) or 0.3 SBU (on Xulrunner)">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -32,15 +32,15 @@
     <para><application>Firefox</application> is a stand-alone browser
     based on the <application>Mozilla</application> codebase.</para>
 
-    <para>With the introduction of firefox-3.x, the
+    <para>With the introduction of Firefox-3.x, the
     <application>pkgconfig</application> files for the Gecko engine (and for
-    <application>nss</application> and <application>nspr</application>) are not
+    <application>NSS</application> and <application>NSPR</application>) are not
     installed.  This means that applications such as <application>Yelp
     </application> can no longer be built against firefox, and must instead be
-    built against xulrunner (which is actually the same code, but built in a
+    built against Xulrunner (which is actually the same code, but built in a
     different way).  If you wish to build other packages which use Gecko (of the
     applications in this book, probably only the gnome applications
-    will recognize this version of xulrunner), build <xref linkend="xulrunner"/>
+    will recognize this version of Xulrunner), build <xref linkend="xulrunner"/>
     first.</para>
 
    <tip>
@@ -52,11 +52,12 @@
     within the same series (3.6), but it is always possible that newer versions
     will have increased dependencies, or that something using the nss or gecko
     libraries will break.  If you update, begin by updating
-    <application>xulrunner</application> if you use that, then update firefox
+    <application>Xulrunner</application> if you use that, then update Firefox
    (ensuring the libxul-sdk option points to the new version).</para>
    </tip>
 
     &lfs67_checked;
+    <para>&lfssvn_checked;20101029&lfssvn_checked2;</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -94,8 +95,8 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended"><xref linkend="xulrunner"/> which shares all these
-    dependencies, or for a standalone firefox the following Required and
-    Optional dependencies:</para>
+    dependencies, or for a standalone <application>Firefox</application> the
+    following Required and Optional dependencies:</para>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="alsa-lib"/>,
@@ -109,7 +110,7 @@
     before <application>GTK+</application> and should exist on your system. If
     for some reason you haven't installed <application>libjpeg</application>,
     you should remove the <option>--with-system-jpeg</option> option from the
-    <filename>.mozconfig</filename> file created below.</para>
+    <filename>mozconfig</filename> file created below.</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="dbus-glib"/>,
@@ -124,6 +125,7 @@
     <xref linkend="startup-notification"/>.
     <xref linkend="sqlite"/>,
     <xref linkend="unzip"/>,
+    <ulink url="http://sourceforge.net/projects/hunspell/">Hunspell</ulink>,
     <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing the
     jemalloc code), and
     <xref linkend="wget"/></para>
@@ -137,22 +139,22 @@
     <title>Installation of Firefox</title>
 
     <para>The configuration of <application>Firefox</application> is
-    accomplished by creating a <filename>.mozconfig</filename> file containing
-    the desired configuration options. A default <filename>.mozconfig</filename>
+    accomplished by creating a <filename>mozconfig</filename> file containing
+    the desired configuration options. A default <filename>mozconfig</filename>
     is created below. To see the entire list of available configuration options
     (and an abbreviated description of each one), issue
     <command>./configure --help</command>. If you are not building against
-    <application>Xulrunner</application> you must comment the 'xulrunner' items.
+    <application>Xulrunner</application> you must comment the 'Xulrunner' items.
     You may also wish to review the entire file and uncomment any other desired
     options. If you would prefer to download the file instead of creating it by
     typing or cut-and-pasting, you can find it at <ulink
     url="&files-anduin;/firefox-&firefox-version;-mozconfig"/>
     (the file must be installed in the root of the source tree
     <filename class='directory'>mozilla</filename> directory, and named
-    <filename>.mozconfig</filename>). Create the file by issuing the following
-    command:</para>
+    <filename>mozconfig</filename> or <filename>.mozconfig</filename>). Create
+    the file by issuing the following command:</para>
 
-<screen><?dbfo keep-together="auto"?><userinput>cat &gt; .mozconfig &lt;&lt; "EOF"
+<screen><?dbfo keep-together="auto"?><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 <literal># This file contains the options used in the Firefox build. You may
 # need to specify additional options for your specific build needs.
 # Use the information provided by running './configure --help' to
@@ -162,10 +164,12 @@
 # 'ac_add_options --some-option-you-need'.  Be aware that some accepted
 # options, such as '--with-system-bz2', do not affect the build.
 
-# specify that we want to build firefox
-ac_add_options --enable-application=browser
+# Specify that Firefox should be built. Note that this line is commented out
+# because it is redundant with the next setting.
+#ac_add_options --enable-application=browser
 
-# Use the default settings specified in the source tree
+# Use the default settings specified in the source tree. The
+# --enable-application=browser is set in this file.
 . $topsrcdir/browser/config/mozconfig
 
 # Create an object directory and specify to build the package in that
@@ -174,15 +178,14 @@ ac_add_options --enable-application=browser
 # line below.
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../firefox-build
 
-# Specify the installation prefix. If you would prefer Xulrunner
-# installed in a different prefix, modify the line below to fit
-# your needs (the config will always be written to /etc/gre.d)
+# Specify the installation prefix. If you would prefer Firefox installed in a
+# different prefix, modify the line below to fit your needs.
 ac_add_options --prefix=/usr
 
-# apply a minimal level of optimization (-O)
+# Apply a minimal level of optimization (-O).
 ac_add_options --enable-optimize
 
-# These options are used so that the Xulrunner binaries are linked to
+# These options are used so that the Firefox binaries are linked to
 # the system-installed copies of the specified libraries instead of
 # the source tree code which may not be the most recent versions.
 # With the exception of libsqlite3, the libraries are statically linked.
@@ -217,7 +220,7 @@ ac_add_options --with-system-png
 # Uncomment this if you build the included nspr.
 #ac_add_options --with-pthreads
 
-# zlib is included in LFS. Do not comment this line.
+# Zlib is included in LFS. Do not comment this line.
 ac_add_options --with-system-zlib
 
 # (Options to disable parts of the package)
@@ -225,19 +228,22 @@ ac_add_options --with-system-zlib
 # binaries. Comment out this option if you require a11y support.
 ac_add_options --disable-accessibility
 
-# Uncomment this if you did not build curl.
+# Uncomment this if you did not build cURL.
 #ac_add_options --disable-crashreporter
 
-# Comment this if you have built dbus-glib.
+# Comment this if you have built DBus-Glib.
 ac_add_options --disable-dbus
 
-# Comment this if you have gnome-vfs and libgnomeui, and wish to
-# integrate firefox into your gnome desktop
+# Comment this if you have Gnome-VFS and libgnomeui, and wish to
+# integrate Firefox into your gnome desktop
 ac_add_options --disable-gnomevfs
 
 # Comment this if you have wireless-tools installed and wish to use the new
 # Necko WiFi scanning.
 ac_add_options --disable-necko-wifi
+
+# Comment this if you have installed libnotify.
+ac_add_options --disable-libnotify
 
 # This option is added so that the Mozilla Installer program is not
 # built or installed. The program is not required for a BLFS
@@ -251,11 +257,11 @@ ac_add_options --disable-javaxpcom
 # built. These would only be required for debugging purposes.
 ac_add_options --disable-tests
 
-# Disable the updater, which is not appropriate if you build from source
+# Disable the updater, which is not appropriate if you build from source.
 ac_add_options --disable-updater
 
 # (options to add extra parts of the package)
-# This option causes the installed binaries to have the official
+# This option causes the installed Firefox binaries to have the official
 # Firefox name embedded in them. Due to license restrictions, you
 # may not distribute binaries created using this option.  It also
 # means you get a popup EULA when you first run firefox.
@@ -280,7 +286,7 @@ ac_add_options --enable-strip
 # option is is only used for development purposes.
 #ac_add_options --with-default-mozilla-five-home=/usr/lib/firefox-&firefox-version;
 
-# Point to the xulrunner libraries - comment these for a standalone browser
+# Point to the Xulrunner libraries - comment these for a standalone browser.
 ac_add_options --with-system-libxul
 ac_add_options --with-libxul-sdk=/usr/lib/xulrunner-devel-&xulrunner-version;</literal>
 EOF</userinput></screen>
@@ -295,14 +301,18 @@ EOF</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user,
     install the package:</para>
 
-<screen role="root"><userinput>make -f client.mk install</userinput></screen>
+<screen role="root"><userinput>make -f client.mk install &amp;&amp;
 
-    <para>If you are building firefox on xulrunner, as the
+chown -R -v root:root /usr/share/idl/firefox-&firefox-version; \
+                      /usr/include/firefox-&firefox-version;   \
+                      destdir/usr/lib/firefox-devel-3.6.13/sdk/lib</userinput></screen>
+
+    <para>If you are building Firefox on Xulrunner, as the
     <systemitem class="username">root</systemitem> user enter the following
     symbolic link:</para>
 
 <screen role="root"><userinput>ln -sv /usr/lib/xulrunner-&xulrunner-version;/plugins \
-    /usr/lib/firefox-&firefox-version;/plugins</userinput></screen>
+    /usr/lib/firefox-&firefox-version;</userinput></screen>
 
   </sect2>
 
@@ -322,7 +332,7 @@ EOF</userinput></screen>
     <para><command>ln -sv /usr/lib/xulrunner-&xulrunner-version;/plugins
     /usr/lib/firefox-&firefox-version;/plugins</command>:
     <application>Firefox</application> looks for plugins in its own directory,
-    but when building on <application>xulrunner</application> the plugins were
+    but when building on <application>Xulrunner</application> the plugins were
     installed by that package.  Note that any plugins in
     <filename class="directory">/usr/lib/mozilla/plugins</filename> will also be
     found.</para>
@@ -394,7 +404,7 @@ EOF</userinput></screen>
     <systemitem class="username">root</systemitem> user to utilize the installed
     <application>Java</application> plugin: </para>
 
-<screen role="root"><userinput>ln -v -s $JAVA_HOME/jre/plugin/i386/ns7/libjavaplugin_oji.so \
+<screen role="root"><userinput>ln -v -s $JAVA_HOME/jre/lib/i386/libnpjp2.so \
     /usr/lib/firefox-&firefox-version;/plugins</userinput></screen>
 
     <para>If you have <xref linkend="icedtea6"/> installed as opposed to the
@@ -432,12 +442,13 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>firefox and firefox-config</seg>
+        <seg>firefox</seg>
         <seg>Numerous libraries, browser components, plugins, extensions, and
         helper modules installed in <filename
         class='directory'>/usr/lib/firefox-&firefox-version;</filename></seg>
         <seg>/usr/include/firefox-&firefox-version;,
-        /usr/lib/firefox-&firefox-version;, and
+        /usr/lib/firefox-&firefox-version;,
+        /usr/lib/firefox-devel-&firefox-version;, and
         /usr/share/idl/firefox-&firefox-version;</seg>
       </seglistitem>
     </segmentedlist>
@@ -450,23 +461,16 @@ EOF</userinput></screen>
       <varlistentry id="firefox-prog">
         <term><command>firefox</command></term>
         <listitem>
-          <para>is a shell script that sets up the environment and
-          calls the <filename>firefox-bin</filename> binary.</para>
+          <para>in a stand-alone build is a symbolic link to shell script in
+          <filename class="directory">/usr/lib/firefox-&firefox-version;</filename>
+          that sets up the environment and calls the <filename>firefox-bin</filename>
+          binary. When built on <application>Xulrunner</application>,
+          <command>firefox</command> is a symbolic link to a
+          <command>firefox</command> binary in
+          <filename class="directory">/usr/lib/firefox-&firefox-version;</filename>.
+          </para>
           <indexterm zone="firefox firefox-prog">
             <primary sortas="b-firefox">firefox</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="firefox-config">
-        <term><command>firefox-config</command></term>
-        <listitem>
-          <para>determines the compile and linker flags that should be
-          used to compile and link programs that use
-          <application>Firefox</application> libraries and browser
-          components.</para>
-          <indexterm zone="firefox firefox-config">
-            <primary sortas="b-firefox-config">firefox-config</primary>
           </indexterm>
         </listitem>
       </varlistentry>
