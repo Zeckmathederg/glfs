@@ -6,16 +6,16 @@
 
   <!ENTITY thunderbird-download-http     "http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
   <!ENTITY thunderbird-download-ftp      "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
-  <!ENTITY thunderbird-md5sum            "f004aa5ddf2a30b5df96e06df416b0c9">
-  <!ENTITY thunderbird-size              "58 MB">
-  <!ENTITY thunderbird-buildsize         "624 MB">
-  <!ENTITY thunderbird-time              "14 SBU">
+  <!ENTITY thunderbird-md5sum            "be64630152a2d5a824a76752594e7596">
+  <!ENTITY thunderbird-size              "65 MB">
+  <!ENTITY thunderbird-buildsize         "915 MB">
+  <!ENTITY thunderbird-time              "21">
 
-  <!ENTITY thunderbird-enigmail-version  "1.0.1">
+  <!ENTITY thunderbird-enigmail-version  "1.1.2">
 
   <!ENTITY thunderbird-enigmail-download "http://www.mozilla-enigmail.org/download/source/enigmail-&thunderbird-enigmail-version;.tar.gz">
-  <!ENTITY thunderbird-enigmail-md5sum   "508ca9ab0396afb49e82eda88014924b">
-  <!ENTITY thunderbird-enigmail-size     "1.1 MB">
+  <!ENTITY thunderbird-enigmail-md5sum   "7d329d5e8afbbb28214ca1995beb09c9">
+  <!ENTITY thunderbird-enigmail-size     "1.2 MB">
 ]>
 
 <sect1 id="thunderbird" xreflabel="Thunderbird-&thunderbird-version;">
@@ -84,26 +84,36 @@
     <bridgehead renderas="sect3">Thunderbird Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="gtk2"/>,
-    <xref linkend="libidl"/>, and
+    <para role="required"><xref linkend="alsa-lib"/>,
+    <xref linkend="gtk2"/>,
+    <xref linkend="libidl"/>,
+    <xref linkend="pango"/>,
+    <xref linkend="python"/>, and
     <xref linkend="zip"/></para>
 
     <para>Note: <application>libjpeg</application> should have been installed
     before <application>GTK+</application> and should exist on your system. If
     for some reason you haven't installed <application>libjpeg</application>,
     you should remove the <option>--with-system-jpeg</option> option from the
-    <filename>.mozconfig</filename> file created below.</para>
-
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="nss"/> (if you will be installing
-    any other package that utilizes NSS/NSPR, such as
-    <application>Firefox</application>, <application>SeaMonkey</application>,
-    <application>Evolution</application>, or
-    <application>OpenOffice</application>)</para>
+    <filename>mozconfig</filename> file created below.</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="unzip"/> and
-    <xref linkend="libgnomeui"/> (to build the gnomevfs extension)</para>
+    <para role="optional"><xref linkend="dbus-glib"/>,
+    <xref linkend="doxygen"/>,
+    <xref linkend="curl"/> (only for crash-reporter),
+    <xref linkend="gnome-vfs"/> and <xref linkend="libgnomeui"/>
+    (for gnome integration),
+    <xref linkend="libnotify"/>,
+    <xref linkend="libpng"/> (patched for apng support),
+    <xref linkend="nspr"/>,
+    <xref linkend="nss"/> (recommended if you build any other Mozilla.org packages),
+    <xref linkend="startup-notification"/>,
+    <xref linkend="sqlite"/>,
+    <xref linkend="unzip"/>,
+    <ulink url="http://sourceforge.net/projects/hunspell/">Hunspell</ulink>,
+    <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing the
+    jemalloc code), and
+    <xref linkend="wget"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/Thunderbird"/></para>
@@ -114,19 +124,19 @@
     <title>Installation of Thunderbird</title>
 
     <para>The configuration of <application>Thunderbird</application> is
-    accomplished by creating a <filename>.mozconfig</filename> file containing
-    the desired configuration options. A default <filename>.mozconfig</filename>
+    accomplished by creating a <filename>mozconfig</filename> file containing
+    the desired configuration options. A default <filename>mozconfig</filename>
     is created below. To see the entire list of available configuration options
     (and an abbreviated description of each one), issue
     <command>./configure --help</command>. If you would prefer to download the
     file instead of creating it by typing or cut-and-pasting, you can find it
     at <ulink url="&files-anduin;/thunderbird-&thunderbird-version;-mozconfig"/>
     (the file must be installed in the root of the source tree
-    <filename class='directory'>comm-1.9.1</filename> directory, and named
-    <filename>.mozconfig</filename>). Create the file by issuing the following
-    command:</para>
+    <filename class='directory'>comm-1.9.2</filename> directory, and named
+    <filename>mozconfig</filename> or <filename>.mozconfig</filename>). Create
+    the file by issuing the following command:</para>
 
-<screen><?dbfo keep-together="auto"?><userinput>cat &gt; .mozconfig &lt;&lt; "EOF"
+<screen><?dbfo keep-together="auto"?><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 <literal># This file contains the options used in the Thunderbird build. You may
 # need to specify additional options for your specific build needs.
 # Use the information provided by running './configure --help' to
@@ -136,10 +146,15 @@
 # 'ac_add_options --some-option-you-need'.  Be aware that some accepted
 # options, such as '--with-system-bz2', do not affect the build.
 
-# specify that we want to build thunderbird
+# Specify that Thunderbird should be built.
 ac_add_options --enable-application=mail
 
-# sepcify that we want to build the Lightning calendar extension as per the
+# Use the default settings specified in the source tree. The
+# --enable-application=mail is set in this file. This file does not exist in
+# this version of Thunderbird.
+#. $topsrcdir/mailnews/config/mozconfig
+
+# Specify that the Lightning calendar extension should be built as per the
 # Mozilla distributed Thunderbird.
 ac_add_options --enable-calendar
 
@@ -149,15 +164,14 @@ ac_add_options --enable-calendar
 # line below.
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../thunderbird-build
 
-# Specify the installation prefix. If you would prefer Xulrunner
-# installed in a different prefix, modify the line below to fit
-# your needs (the config will always be written to /etc/gre.d)
+# Specify the installation prefix. If you would prefer Thunderbird installed in a
+# different prefix, modify the line below to fit your needs.
 ac_add_options --prefix=/usr
 
-# apply a minimal level of optimization (-O)
+# Apply a minimal level of optimization (-O).
 ac_add_options --enable-optimize
 
-# These options are used so that the Xulrunner binaries are linked to
+# These options are used so that the Thunderbird binaries are linked to
 # the system-installed copies of the specified libraries instead of
 # the source tree code which may not be the most recent versions.
 # With the exception of libsqlite3, the libraries are statically linked.
@@ -174,6 +188,12 @@ ac_add_options --enable-system-cairo
 
 # Comment this if you have not installed lcms.
 ac_add_options --enable-system-lcms
+
+# Uncomment this if you have installed Hunspell
+#ac_add_options --enable-system-hunspell
+
+# Uncomment this if you have installed startup-notification
+#ac_add_options --enable-startup-notification
 
 # Comment this if you did not build libjpeg before GTK+-2.
 ac_add_options --with-system-jpeg
@@ -192,51 +212,55 @@ ac_add_options --with-system-png
 # Uncomment this if you build the included nspr.
 #ac_add_options --with-pthreads
 
-# zlib is included in LFS. Do not comment this line.
+# Zlib is included in LFS. Do not comment this line.
 ac_add_options --with-system-zlib
 
 # (Options to disable parts of the package)
-# This option is used to disable the a11y support in the Xulrunner
+# This option is used to disable the a11y support in the Thunderbird
 # binaries. Comment out this option if you require a11y support.
 ac_add_options --disable-accessibility
 
-# Uncomment this if you did not build curl.
+# Uncomment this if you did not build cURL.
 #ac_add_options --disable-crashreporter
 
-# Comment this if you have built dbus-glib.
+# Comment this if you have built DBus-Glib.
 ac_add_options --disable-dbus
 
-# Comment this if you have gnome-vfs and libgnomeui, and wish to
-# integrate thunderbird into your gnome desktop
+# Comment this if you have Gnome-VFS and libgnomeui, and wish to
+# integrate Thunderbird into your Gnome desktop.
 ac_add_options --disable-gnomevfs
+
+# Comment this if you have wireless-tools installed and wish to use the new
+# Necko WiFi scanning.
+ac_add_options --disable-necko-wifi
+
+# Comment this if you have installed libnotify.
+ac_add_options --disable-libnotify
 
 # This option is added so that the Mozilla Installer program is not
 # built or installed. The program is not required for a BLFS
-# installation of Xulrunner.
+# installation of Thunderbird.
 ac_add_options --disable-installer
 
-# Enable the build of static internal libs (this is currently required, until
-# Thunderbird 3.1, DO NOT COMMENT, see note below about XulRunner).
+# If you enable javaxpcom, you must have a java compiler installed.
+ac_add_options --disable-javaxpcom
+
+# Enable the build of static internal libs (currently required).
 ac_add_options --enable-static
 
 # This option is added so that test libraries and programs are not
 # built. These would only be required for debugging purposes.
 ac_add_options --disable-tests
 
-# Disable the updater, which is not appropriate if you build from source
+# Disable the updater, which is not appropriate if you build from source.
 ac_add_options --disable-updater
 
 # (options to add extra parts of the package)
-# This option causes the installed binaries to have the official
+# This option causes the installed Thunderbird binaries to have the official
 # Thunderbird name embedded in them. Due to license restrictions, you
 # may not distribute binaries created using this option.  It also
-# means you get a popup EULA when you first run thunderbird.
+# means you get a popup EULA when you first run Thunderbird.
 ac_add_options --enable-official-branding
-
-# This option is used to enable source tree included LDAP support in
-# the Firefox binaries.  This used to be required for mozab support in
-# OpenOffice, however, is now deprecated.
-ac_add_options --enable-ldap
 
 # This option is used so that the debugging symbols are removed from
 # the installed binaries during the installation process. Comment out
@@ -250,12 +274,12 @@ ac_add_options --enable-strip
 #ac_add_options --enable-xinerama
 
 # Enable strong cryptography (This is explicitly required if you plan to use
-the enigmail extension for Thunderbird).
+# the Enigmail extension for Thunderbird).
 ac_add_options --enable-crypto
 
-# Point to the xulrunner libraries - comment these for a standalone client
+# Point to the Xulrunner libraries - comment these for a standalone client
 # DO NOT UNCOMMENT THESE - System XULRunner is broken until Thunderbird
-# development catches up with XULRunner-1.9.2 (TB-3.1, est. April 6, 2010).
+# development catches up with XULRunner-1.9.2.
 #ac_add_options --with-system-libxul
 #ac_add_options --with-default-mozilla-five-home=/usr/lib/xulrunner-devel-&xulrunner-version;</literal>
 
@@ -272,6 +296,7 @@ EOF</userinput></screen>
     issue the following commands:</para>
 
 <screen><userinput>tar -xf ../enigmail-&thunderbird-enigmail-version;.tar.gz -C mailnews/extensions &amp;&amp;
+cp -v mozconfig .mozconfig &amp;&amp;
 ( cd mailnews/extensions/enigmail &amp;&amp; ./makemake -r ) &amp;&amp;
 
 make -C ../thunderbird-build/mailnews/extensions/enigmail &amp;&amp;
@@ -285,25 +310,60 @@ make -C ../thunderbird-build/mailnews/extensions/enigmail \
 <screen role="root"><userinput>make -f client.mk install</userinput></screen>
 
     <para>If you built the <application>Enigmail</application> extension,
-    issue the following commands as the <systemitem
+    issue the following command as the <systemitem
     class="username">root</systemitem> user to install the
-    <filename>.xpi</filename> file:</para>
+    <filename>.xpi</filename> file in an accessible location:</para>
 
-<screen role="root"><userinput>install -v -m644 -D ../thunderbird-build/mozilla/dist/bin/enigmail-&thunderbird-enigmail-version;.xpi \
+<screen role="root"><userinput>install -v -m644 -D \
+    ../thunderbird-build/mozilla/dist/bin/enigmail-&thunderbird-enigmail-version;.xpi \
     /usr/lib/thunderbird-&thunderbird-version;/xpi_store/enigmail-&thunderbird-enigmail-version;.xpi</userinput></screen>
 
-    <para>If you want to install <application>Enigmail</application> globally
-    so that all users who run <application>Thunderbird</application> will have
-    access to the extension, issue the command shown below. Note that this
-    procedure starts an instance of <application>Thunderbird</application> and
-    you must have an X server running. Issue the following command as the
-    <systemitem class="username">root</systemitem> user:</para>
+    <sect3 role="commands">
+      <title>Enigmail Global Installation</title>
 
-<screen role="root"><userinput>/usr/bin/thunderbird -install-global-extension \
-    /usr/lib/thunderbird-&thunderbird-version;/xpi_store/enigmail-&thunderbird-enigmail-version;.xpi</userinput></screen>
+      <para>If you want to install <application>Enigmail</application> globally
+      so that all users who run <application>Thunderbird</application> will have
+      access to the extension, issue the command shown below. Note that this
+      procedure starts an instance of <application>Thunderbird</application> and
+      you must have an X server running. Issue the following commands as the
+      <systemitem class="username">root</systemitem> user:</para>
 
-    <para>Global installation of other extensions can be done using the same
-    basic method as the <application>Enigmail</application> extension.</para>
+<screen role="root"><userinput>cp -v /usr/lib/thunderbird-&thunderbird-version;/xpi_store/enigmail-&thunderbird-enigmail-version;.xpi \
+    /usr/lib/thunderbird-&thunderbird-version;/extensions &amp;&amp;
+
+/usr/bin/thunderbird</userinput></screen>
+
+      <para>When <application>Thunderbird</application> starts it will display
+      an installation dialog, asking <computeroutput>The following items were
+      found in your Extensions folder. Do you want to install
+      them?</computeroutput>. Follow the prompts, and then exit
+      <application>Thunderbird</application>.</para>
+
+      <para>Global installation of other extensions can be done using the same
+      basic method as the <application>Enigmail</application> extension.</para>
+
+    </sect3>
+
+    <sect3 role="commands">
+      <title>Enigmail Single User Installation</title>
+
+      <para>To install the <application>Enigmail</application> extension for a
+      single user (and does not require
+      <systemitem class="username">root</systemitem> access), start
+      <application>Thunderbird</application> and click on <quote>Tools</quote>
+      ===&gt; <quote>Add-ons</quote> ===&gt; <quote>Extensions</quote>, and
+      then click on <quote>Install</quote> at the bottom of the dialog box.
+      Browse the filesystem and navigate to
+      <filename class="directory">/usr/lib/thunderbird-&thunderbird-version;/xpi_store</filename>
+      where you will find the <filename>enigmail-&thunderbird-enigmail-version;.xpi</filename>
+      extension. Follow the prompts to install the extension.</para>
+
+      <para>Single user installation of other extensions can be done using the
+      same basic method as the <application>Enigmail</application> extension.
+      You may have to download the extension file to a suitable folder before
+      beginning the installation.</para>
+
+    </sect3>
 
   </sect2>
 
@@ -320,7 +380,6 @@ make -C ../thunderbird-build/mailnews/extensions/enigmail \
     <command>configure</command> script and compiles the package or installs
     the package.</para>
 
-<!--
     <para><command>( cd mailnews/... &amp;&amp; ./makemake -r )</command>:
     This command is used to recursively create <filename>Makefile</filename>s
     in the <filename class='directory'>enigmail</filename> directory.</para>
@@ -329,7 +388,6 @@ make -C ../thunderbird-build/mailnews/extensions/enigmail \
     <application>Enigmail</application>
     <filename class='extension'>.xpi</filename> file which is used to install
     <application>Enigmail</application>.</para>
--->
 
   </sect2>
 
@@ -344,26 +402,7 @@ make -C ../thunderbird-build/mailnews/extensions/enigmail \
       location, then make a symlink to the <command>thunderbird</command>
       script in the <filename class="directory">/usr/bin</filename>
       directory.</para>
-<!--
-      <para>If you don't have privileges to install extensions globally, or
-      you prefer to not install global extensions, you can configure
-      <application>Thunderbird</application> on an individual user basis for
-      access to extensions. For example, if you built the
-      <application>Enigmail</application> extension and did not install it
-      globally, it can be installed on an as-needed basis for each user of the
-      system who may use <application>Thunderbird</application>. It is
-      accomplished through the <application>Thunderbird</application>
-      <quote>Tools</quote> menu. Choose the <quote>Extensions</quote> &ndash;
-      <quote>Install</quote> option and fill in the <quote>Look in:</quote>
-      field with <filename
-      class='directory'>/usr/lib/thunderbird-&thunderbird-version;/xpi_store</filename>.
-      You'll then see the
-      <filename>enigmail-&thunderbird-enigmail-version;-linux-????.xpi</filename>
-      file listed. Choose this file and click on <quote>Open</quote>, then
-      click on <quote>Install now</quote>. The
-      <application>Enigmail</application> extension will install and you will
-      be prompted to restart <application>Thunderbird</application>.</para>
--->
+
       <para>If your Window or Desktop Manager does not allow you to configure
       a default browser, you can add a configuration parameter to
       <application>Thunderbird</application> so that a browser will start when
@@ -414,14 +453,15 @@ make -C ../thunderbird-build/mailnews/extensions/enigmail \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>thunderbird and thunderbird-config</seg>
+        <seg>thunderbird</seg>
         <seg>Numerous libraries, email/newsgroups components, plugins,
         extensions, and helper modules installed in <filename
         class='directory'>/usr/lib/thunderbird-&thunderbird-version;</filename>
         </seg>
         <seg>/usr/include/thunderbird-&thunderbird-version;,
         /usr/lib/thunderbird-&thunderbird-version;, and
-        /usr/share/idl/thunderbird-&thunderbird-version;</seg>
+        /usr/share/idl/thunderbird-&thunderbird-version;, and optionally
+        /usr/share/mozilla/extensions</seg>
       </seglistitem>
     </segmentedlist>
 
