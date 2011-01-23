@@ -143,29 +143,64 @@ cd xc</userinput></screen>
 <screen><userinput>export XORG_CONFIG="--prefix=$XORG_PREFIX --sysconfdir=/etc \
     --mandir=$XORG_PREFIX/share/man --localstatedir=/var"</userinput></screen>
 
-    <note>
-      <para>Make sure that you use bash when setting these variables as the
-      book commands assume the use of bash, and use bash specific syntax. Also
-      be sure to add these variables to your personal or system-wide profile as
-      they are used throughout this book. See
-      <xref linkend="postlfs-config-profile"/> for more information.</para>
-    </note>
+    <para>Create an <filename>/etc/profile.d/xorg.sh</filename> configuration
+    file containing these variables as the
+    <systemitem class="username">root</systemitem> user:</para>
 
-    <para>If you've decided to use an alternate prefix, be sure to add
-    <filename class="directory">
-    $XORG_PREFIX/bin</filename> to your
+<screen><userinput role="root">cat &gt; /etc/profile.d/xorg.sh &lt;&lt; "EOF" &amp;&amp;
+XORG_PREFIX="<replaceable>&lt;PREFIX&gt;</replaceable>"
+XORG_CONFIG="--prefix=$XORG_PREFIX \
+             --sysconfdir=/etc \
+             --mandir=$XORG_PREFIX/share/man \
+             --localstatedir=/var"
+export XORG_PREFIX XORG_CONFIG
+EOF
+chmod 644 /etc/profile.d/xorg.sh</userinput></screen>
+
+    <para>If you've decided to use the standard
+    <filename class="directory">/usr</filename> prefix, you can omit the
+    remainder of this page. Otherwise, be sure to add
+    <filename class="directory">$XORG_PREFIX/bin</filename> to your
     <envar>PATH</envar> environment variable, and <filename class="directory">
     $XORG_PREFIX/lib/pkgconfig</filename> and <filename class="directory">
     $XORG_PREFIX/share/pkgconfig</filename>
-    to your <envar>PKG_CONFIG_PATH</envar> variable. For detailed instructions,
-    see <xref linkend="postlfs-config-profile"/>. You should also add
-    <filename class="directory">
-    $XORG_PREFIX/lib</filename> to the
-    <filename>/etc/ld.so.conf</filename> file. Finally, you should modify
+    to your <envar>PKG_CONFIG_PATH</envar> variable. Issue the following
+    commands as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput role="root">cat &gt;&gt; /etc/profile.d/xorg.sh &lt;&lt; "EOF"
+
+pathappend $XORG_PREFIX/bin PATH
+pathappend $XORG_PREFIX/lib/pkgconfig PKG_CONFIG_PATH
+pathappend $XORG_PREFIX/share/pkgconfig PKG_CONFIG_PATH
+export PATH PKG_CONFIG_PATH</userinput></screen>
+
+    <para>You should also add
+    <filename class="directory"> $XORG_PREFIX/lib</filename> to the
+    <filename>/etc/ld.so.conf</filename> file. Again, as the
+    <systemitem class="username">root</systemitem> user, issue the following
+    command:</para>
+
+<screen><userinput role="root">echo "${XORG_PREFIX}/lib" >> /etc/ld.so.conf</userinput></screen>
+
+    <para>You should also modify
     <filename>/etc/man_db.conf</filename>, adding appropriate
     MANDATORY_MANPATH, MANPATH_MAP, and MANDB_MAP entries following the
-    examples for <filename class="directory">/usr/X11R6</filename>.</para>
+    examples for <filename class="directory">/usr/X11R6</filename>. Issue the
+    following command as the <systemitem class="username">root</systemitem>
+    user:</para>
 
+<screen><userinput role="root">sed 's@/usr/X11R6@<replaceable>&lt;PREFIX&gt;</replaceable>@g' -i /etc/man_db.conf</userinput></screen>
+
+    <para>Finally, if building on x86_64, you will need to create the
+    <filename class="directory">$XORG_PREFIX/lib</filename> directory and the
+    <filename>$XORG_PREFIX/lib64</filename> symlink. Again, as the
+    <systemitem class="username">root</systemitem> user, issue the following
+    commands:</para>
+
+<screen><userinput role="root">install -v -m755 -d $XORG_PREFIX &amp;&amp;
+install -v -m755 -d $XORG_PREFIX/lib &amp;&amp;
+ln -s lib $XORG_PREFIX/lib64</userinput></screen> 
+    
   </sect2>
 
 </sect1>
