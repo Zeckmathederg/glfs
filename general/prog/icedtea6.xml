@@ -4,20 +4,20 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY icedtea6-download-binary-x86  "http://anduin.linuxfromscratch.org/files/BLFS/icedtea6-&icedtea6-version;-1-i586-bin.tar.xz">
-  <!ENTITY icedtea6-bin-md5sum-x86       "af76a2b9ad92422a145335cf6c71064c">
+  <!ENTITY icedtea6-download-binary-x86  "http://anduin.linuxfromscratch.org/files/BLFS/icedtea6-&icedtea6-version;-1-x86-bin.tar.xz">
+  <!ENTITY icedtea6-bin-md5sum-x86       "616f3841562b2787ce101a85378029d1">
   <!ENTITY icedtea6-bin-size-x86         "100 MB">
-  <!ENTITY icedtea6-bin-buildsize-x86    "844 MB">
+  <!ENTITY icedtea6-bin-buildsize-x86    "846 MB">
 
 <!-- This is not an error, x86 is larger than x86_64 because x86 includes a
      client VM, whereas one is not available on x86_64 -->
 
   <!ENTITY icedtea6-download-binary-x64  "http://anduin.linuxfromscratch.org/files/BLFS/icedtea6-&icedtea6-version;-1-x86_64-bin.tar.xz">
-  <!ENTITY icedtea6-bin-md5sum-x64       "75fca6ce52def2bf3cf16bbec7230369">
+  <!ENTITY icedtea6-bin-md5sum-x64       "98cf8a009c63cb2b32a94dd23b828fca">
   <!ENTITY icedtea6-bin-size-x64         "77 MB">
   <!ENTITY icedtea6-bin-buildsize-x64    "564 MB">
 
-  <!ENTITY icedtea6-source-md5sum        "d96d950b76a92e8cd327ae55ca4935e1">
+  <!ENTITY icedtea6-source-md5sum        "54a327a9591dab15049b81ec3c0af724">
   <!ENTITY openjdk-md5sum                "0b36adbf67e4f261e1b827ed4be4f447">
   <!ENTITY jaf-md5sum                    "bc95c133620bd68c161cac9891592901">
   <!ENTITY jaxp-md5sum                   "22e95fbdb9fb7d8b6b6fc0a1d76d1fbd">
@@ -27,7 +27,7 @@
   <!ENTITY xalan-md5sum                  "99d049717c9d37a930450e630d8a6531">
   <!ENTITY xerces-md5sum                 "408500aaaf1ff9f1e03e79defe90facc">
 
-  <!ENTITY icedtea6-source-size          "6.2 MB">
+  <!ENTITY icedtea6-source-size          "6.3 MB">
   <!ENTITY openjdk-size                  "43 MB">
   <!ENTITY jaf-size                      "70 KB">
   <!ENTITY jaxp-size                     "5.8 MB">
@@ -37,8 +37,8 @@
   <!ENTITY xalan-size                    "16.8 MB">
   <!ENTITY xerces-size                   "7.0 MB">
 
-  <!ENTITY icedtea6-src-buildsize         "7 GB">
-  <!ENTITY icedtea6-time                  "34 SBU (an additional 83 SBU for testsuite)">
+  <!ENTITY icedtea6-src-buildsize         "6.6 GB">
+  <!ENTITY icedtea6-time                  "23 SBU (an additional 83 SBU for testsuite)">
 
   <!ENTITY openjdk-build "b20">
   <!ENTITY openjdk-date "21_jun_2010">
@@ -82,6 +82,11 @@
     useful for developing <application>Java</application> programs and provides
     a complete runtime environment to run <application>Java</application>
     programs.</para>
+
+    <note><para>The browser plugin and webstart implementation have been split
+    off into a separate project. To provide a complete implementation in a
+    source build, you will need to later install <xref linkend="icedtea-web"/>.
+    The binary installation does contain IcedTea-Web components.</para></note>
 
     <para>OpenJDK (and IcedTea6) is GPL'd code, however, it should be explained
     that there has been a special exception made for non-free projects to use
@@ -282,9 +287,9 @@
     <para role="optional">
     <xref linkend="alsa-lib"/>,
     <xref linkend="cups"/>,
-    <xref linkend="gtk2"/>, and
-    <xref linkend="xorg7-lib"/>
-    </para>
+    <xref linkend="gtk2"/>,
+    <xref linkend="xorg7-lib"/>, and
+    <xref linkend="xulrunner"/></para>
 
     <bridgehead renderas="sect4">Additional Requirements
     (for source build, including optional requirements)</bridgehead>
@@ -395,14 +400,19 @@ cp -v ../openjdk-6-src-&openjdk-build;-&openjdk-date;.tar.gz .</userinput></scre
 <screen><userinput>unset JAVA_HOME &amp;&amp;
 ./autogen.sh &amp;&amp;
 ./configure --with-jdk-home=/opt/icedtea6-&icedtea6-version;-bin \
-            --enable-cacerts &amp;&amp;
+            --enable-cacerts \
+            --disable-plugin \
+            --disable-webstart &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>. The
     included version of <application>jtreg</application> is old, and the test
-    suite is very dependent on the host system as well. You should expect to
-    see 6 failures and 1 error in the langtools tests, and 20 to 23 failures
-    in jdk with up to 3 errors. The other 4700 tests should pass.</para>
+    suite is also very dependent on the host system. You should expect to
+    see 6 or 7 failures and 1 error in the langtools tests, and 20 to 23
+    failures in jdk with up to 3 errors. The other 4700+ tests should
+    pass. The reason for the variable results is due to different
+    architechtures, versions of dependent libraries, and even the CA
+    certificates used to generate the <filename>cacerts</filename> file.</para>
 
     <para>Install the package with the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
@@ -420,12 +430,25 @@ chown -R root:root /opt/icedtea6-&icedtea6-version;</userinput></screen>
     <filename>configure</filename>.</para>
 
     <para><parameter>--with-jdk-home</parameter>: This switch provides the
-    location of our temporary <application>JDK</application>.</para>
+    location of the temporary <application>JDK</application>.</para>
 
     <para><parameter>--enable-cacerts</parameter>: This switch enables the 
     build to generate a cacerts file, from the system installed CA
     certificates, suitable for use by
     <application>IcedTea6</application>.</para>
+
+    <para><parameter>--disable-plugin</parameter>: This switch disables
+    building of the included Java browser plugin. The included plugin and
+    webstart implementation has been split off into a separate project
+    <xref linkend="icedtea-web"/>. Omit this switch if you do not wish to build
+    <application>IcedTea-Web</application> separately.</para>
+
+    <para><parameter>--disable-webstart</parameter>: This switch disables 
+    building of the included <application>webstart</application>
+    implementation. As noted above, <application>webstart</application> has
+    split off into a separate project <xref linkend="icedtea-web"/>. Omit this
+    switch if you do not wish to build <application>IcedTea-Web</application>
+    separately.</para>
 
   </sect2>
 
@@ -477,10 +500,13 @@ unset dir
 # End /etc/profile.d/icedtea.sh</literal>
 EOF</userinput></screen>
 
-    <para>The <application>Java</application> plugin is located at
-    <filename class="directory">$JAVA_HOME/jre/plugin/<replaceable>&lt;arch&gt;</replaceable>/IcedTeaPlugin.so</filename>.
+    <para>If you've installed only the binary distribution, the
+    <application>Java</application> plugin is located at
+    <filename class="directory">$JAVA_HOME/jre/lib/<replaceable>&lt;arch&gt;</replaceable>/IcedTeaPlugin.so</filename>.
     Make a symbolic link to the file in that directory from your browser(s)
-    plugins directory.</para>
+    plugins directory. If you've built from source, move on to the
+    <xref linkend="icedtea-web"/> instructions to build the browser
+    plugin.</para>
 
     <important>
       <para>The plugin must be a symlink for it to work. If not, the browsers
@@ -501,9 +527,9 @@ EOF</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>appletviewer, apt, extcheck, idlj, HtmlConverter, jar,
+        <seg>apt, extcheck, idlj, HtmlConverter, jar,
         jarsigner, java, javac, javadoc, javah, javap, java-rmi.cgi,
-        javaws, jconsole, jdb, jhat, jinfo, jmap, jps,
+        jconsole, jdb, jhat, jinfo, jmap, jps,
         jrunscript, jsadebugd, jstack, jstat, jstatd, keytool,
         native2ascii, orbd, pack200, policytool, rmic, rmid, rmiregistry,
         schemagen, serialver, servertool, tnameserv, unpack200,
@@ -518,16 +544,6 @@ EOF</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="appletviewer-it6">
-        <term><command>appletviewer</command></term>
-        <listitem>
-          <para>runs Java applets outside of the context of a browser.</para>
-          <indexterm zone="icedtea6 appletviewer-it6">
-            <primary sortas="b-appletviewer">appletviewer</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="apt-it6">
         <term><command>apt</command></term>
@@ -646,16 +662,6 @@ EOF</userinput></screen>
           <para>is the Java RMI client.</para>
           <indexterm zone="icedtea6 java-rmi.cgi-it6">
             <primary sortas="b-java-rmi.cgi">java-rmi.cgi</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="javaws-it6">
-        <term><command>javaws</command></term>
-        <listitem>
-          <para>launches Java application/applets hosted on a network.</para>
-          <indexterm zone="icedtea6 javaws-it6">
-            <primary sortas="b-javaws">javaws</primary>
           </indexterm>
         </listitem>
       </varlistentry>
