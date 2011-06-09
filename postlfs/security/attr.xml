@@ -69,7 +69,14 @@
     <para>Install <application>attr</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i -e 's|/@pkg_name@|&amp;-@pkg_version@|' \
+<screen><userinput>cat &gt; test/sort-getfattr-output &lt;&lt; "EOF" &amp;&amp;
+#! /usr/bin/perl -w
+
+undef $/;
+print join("\n\n", sort split(/\n\n/, &lt;&gt;)), "\n\n";
+EOF
+chmod 755 test/sort-getfattr-output &amp;&amp;
+sed -i -e 's|/@pkg_name@|&amp;-@pkg_version@|' \
        -e 's|@prefix|$(DESTDIR)&amp;|'         \
        -e 's|@libexec|$(DESTDIR)&amp;|'        \
     include/builddefs.in &amp;&amp;
@@ -81,9 +88,7 @@ make</userinput></screen>
     following to execute all three:
     <command>make tests root-tests ext-tests</command>.  For meaningful results,
     the tests need to be carried out on a file system that supports extended
-    attributes. Some failures will occur due to a missing script called
-    <filename>sort-getfattr-output</filename> which is not part of the
-    tarball.</para>
+    attributes.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -94,6 +99,9 @@ chmod -v 755 /usr/lib/libattr.{la,so.1.1.0}</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>cat &gt; test/sort-getfattr-output ... EOF</command>: This 
+    command creates a missing test script.</para>
 
     <para><command>sed ... include/builddefs.in</command>: This command
     modifies the documentation directory so that it is a versioned
