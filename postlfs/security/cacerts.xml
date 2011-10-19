@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY certhost              "http://mxr.mozilla.org">
+  <!ENTITY certdir               "/mozilla/source/security/nss/lib/ckfw/builtins">
+  <!ENTITY ca-bundle-download    "&certhost;&certdir;/certdata.txt?raw=1">
+  <!ENTITY ca-bundle-size        "1.2 MB">
+  <!ENTITY cacerts-buildsize     "1.2 MB">
+  <!ENTITY cacerts-time          "less than 0.1 SBU">
+]>
+
+<sect1 id="cacerts" xreflabel="Certificate Authority Certificates">
+  <?dbhtml filename="cacerts.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Certificate Authority Certificates</title>
+
+  <para>The Public Key Inrastructure is used for many security issues in a
+  Linux system.  In order for a certificate to be trusted, it must be signed by
+  a trusted agent called a Certificate Authority (CA).  The certificates loaded
+  by this section are from the list on the Mozilla version control system and
+  formats it into a form used by <xref linkend='openssl'/>.  The certificates
+  can also be used by other applications either directly of indirectly through
+  <application>openssl</application>.</para>
+
+  &lfs70_checked;
+
+  <indexterm zone="cacerts">
+    <primary sortas="a-cacerts">Certificate Authority Certificates</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Certificate Authorities</title>
+
+   <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>CA Certificate Download: <ulink url="&ca-bundle-download;"/></para>
+      </listitem>
+      <listitem>
+        <para>CA Bundle size: &ca-bundle-size;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated disk space required: &cacerts-buildsize;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated build time: &cacerts-time;</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Certificate Authority Certificates Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required"><xref linkend="openssl"/></para>
+
+    <para condition="html" role="usernotes">User Notes:
+    <ulink url='&blfs-wiki;/cacerts'/></para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Certificate Authority Certificates</title>
+
+    <para>First create a script to reformat a certificate into a
+    form needed by <application>openssl</application>.  As the <systemitem
+    class="username">root</systemitem> user:</para>
+
+  <screen><userinput>cat > /bin/make-cert.pl &lt;&lt; "EOF"
+#!/usr/bin/perl -w
+
+# Used to generate PEM encoded files from Mozilla certdata.txt.
+# Run as ./mkcrt.pl > certificate.crt
+#
+# Parts of this script courtesy of RedHat (mkcabundle.pl)
+#
+# This script modified for use with single file data (tempfile.cer) extracted
+# from certdata.txt, taken from the latest version in the Mozilla NSS source.
+# mozilla/security/nss/lib/ckfw/builtins/certdata.txt
+#
+# Authors: DJ Lucas
+#          Bruce Dubbs
+
+my $certdata = './tempfile.cer';
+
+open( IN, "cat $certdata|" )
+    || die "could not open $certdata";
+
+my $incert = 0;
+
+while ( &lt;IN&gt; ) 
+{
+    if ( /^CKA_VALUE MULTILINE_OCTAL/ ) 
+    {
+        $incert = 1;
+        open( OUT, "|openssl x509 -text -inform DER -fingerprint" )
+            || die "could not pipe to openssl x509";
+    } 
+    
+    elsif ( /^END/ &amp;&amp; $incert ) 
+    {
+        close( OUT );
+        $incert = 0;
+        print "\n\n";
+    } 
+    
+    elsif ($incert) 
+    {
+        my @bs = split( /\\/ );
+        foreach my $b (@bs) 
+        {
+            chomp $b;
+            printf( OUT "%c", oct($b) ) unless $b eq '';
+        }
+    }
+}
+EOF
+
+chmod +x /bin/make-cert.pl</userinput></screen>
+
+   <para>The following script creates the certificates and a bundle of all the
+   certificates.  It creates a <filename class='directory'>./certs</filename>
+   directory and <filename>./BLFS-ca-bundle-${VERSION}.crt</filename>.  Again
+   create this script as the <systemitem class="username">root</systemitem>
+   user:</para>
+
+  <screen><userinput>cat > /bin/make-ca.sh &lt;&lt; "EOF"
+#!/bin/bash
+# Begin make-ca.sh
+# Script to populate OpenSSL's CApath from a bundle of PEM formatted CAs
+#
+# The file certdata.txt must exist in the local directory
+# Version number is obtained from the version of the data.
+#
+# Authors: DJ Lucas
+#          Bruce Dubbs
+
+certdata="certdata.txt"
+
+if [ ! -r $certdata ]; then
+  echo "$certdata must be in the local directory"
+  exit 1
+fi
+
+REVISION=$(grep CVS_ID $certdata | cut -f4 -d'$')
+
+if [ -z "${REVISION}" ]; then
+  echo "$certfile has no 'Revision' in CVS_ID"
+  exit 1
+fi
+
+VERSION=$(echo $REVISION | cut -f2 -d" ")
+
+TEMPDIR=$(mktemp -d)
+TRUSTATTRIBUTES="CKA_TRUST_SERVER_AUTH"
+BUNDLE="BLFS-ca-bundle-${VERSION}.crt"
+CONVERTSCRIPT="make-cert.pl"
+SSLDIR="/etc/ssl"
+
+mkdir "${TEMPDIR}/certs"
+
+# Get a list of staring lines for each cert
+CERTBEGINLIST=$(grep -n "^# Certificate" "${certdata}" | cut -d ":" -f1)
+
+# Get a list of ending lines for each cert
+CERTENDLIST=`grep -n "^CKA_TRUST_STEP_UP_APPROVED" "${certdata}" | cut -d ":" -f 1`
+
+# Start a loop
+for certbegin in ${CERTBEGINLIST}; do
+  for certend in ${CERTENDLIST}; do
+    if test "${certend}" -gt "${certbegin}"; then
+      break
+    fi
+  done
+
+  # Dump to a temp file with the name of the file as the beginning line number
+  sed -n "${certbegin},${certend}p" "${certdata}" > "${TEMPDIR}/certs/${certbegin}.tmp"
+done
+
+unset CERTBEGINLIST CERTDATA CERTENDLIST certebegin certend
+
+mkdir -p certs
+rm certs/*      # Make sure the directory is clean
+
+for tempfile in ${TEMPDIR}/certs/*.tmp; do
+  # Make sure that the cert is trusted...
+  grep "CKA_TRUST_SERVER_AUTH" "${tempfile}" | \
+    grep "CKT_NETSCAPE_TRUST_UNKNOWN" > /dev/null
+
+  if test "${?}" = "0"; then
+    # Throw a meaningful error and remove the file
+    cp "${tempfile}" tempfile.cer
+    "${CONVERTSCRIPT}" > tempfile.crt
+    keyhash=$(openssl x509 -noout -in tempfile.crt -hash)
+    echo "Certificate ${keyhash} is not trusted!  Removing..."
+    rm -f tempfile.cer tempfile.crt "${tempfile}"
+    continue
+  fi
+
+  # If execution made it to here in the loop, the temp cert is trusted
+  # Find the cert data and generate a cert file for it
+
+  cp "${tempfile}" tempfile.cer
+  "${CONVERTSCRIPT}" > tempfile.crt
+  keyhash=$(openssl x509 -noout -in tempfile.crt -hash)
+  mv tempfile.crt "certs/${keyhash}.pem"
+  rm -f tempfile.cer "${tempfile}"
+  echo "Created ${keyhash}.pem"
+done
+
+# Remove blacklisted files
+# MD5 Collision Proof of Concept CA
+if test -f certs/8f111d69.pem; then
+  echo "Certificate 8f111d69 is not trusted!  Removing..."
+  rm -f certs/8f111d69.pem
+fi
+
+# Finally, generate the bundle and clean up.
+cat certs/*.pem >  ${BUNDLE}
+rm -r "${TEMPDIR}"
+EOF
+
+chmod +x /bin/make-ca.sh</userinput></screen>
+
+   <para>The following commands will fetch the certificates and convert them to
+   the correct format.  If desired, a web browser may be used instead of
+   <application>wget</application> but the file will need to be saved with the
+   name <filename>certdata.txt</filename>.  These commands can be repeated as
+   necessary to update the CA Certificates.</para>
+
+   <screen><userinput>certhost='http://mxr.mozilla.org'                        &amp;&amp;
+certdir='/mozilla/source/security/nss/lib/ckfw/builtins' &amp;&amp;
+url="$certhost$certdir/certdata.txt?raw=1"               &amp;&amp;
+
+wget --output-document certdata.txt $url &amp;&amp;
+unset certhost certdir url               &amp;&amp;
+make-ca.sh</userinput></screen>
+
+   <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput>install -d ${SSLDIR}/certs        &amp;&amp;
+cp -v certs/*.pem ${SSLDIR}/certs &amp;&amp;
+c_rehash                          &amp;&amp;
+install ca-bundle.crt ${SSLDIR}</userinput></screen>
+
+   <para>Finally, clean up the current directory:</para>
+
+<screen><userinput>rm -r certs BLFS-ca-bundle*</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>make-ca.sh and make-cert.pl</seg>
+        <seg>None</seg>
+        <seg>/etc/ssl/certs</seg>
+      </seglistitem>
+    </segmentedlist>
+
+   <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="make-ca">
+        <term><command>make-ca.sh</command></term>
+        <listitem>
+          <para>is a <application>bash</application> script that reformats
+          the <filename>certdata.txt</filename> file for use by
+          <application>openssl</application>.</para>
+          <indexterm zone="cacerts make-ca">
+            <primary sortas="b-make-ca">make-ca</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="make-cert">
+        <term><command>make-cert.pl</command></term>
+        <listitem>
+          <para>is a utility <application>perl</application> script that 
+          converts a single binary certificate (.der format) into .pem format.</para>
+          <indexterm zone="cacerts make-cert">
+            <primary sortas="b-make-cert">make-cert</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+   </variablelist>
+
+  </sect2>
+</sect1>
