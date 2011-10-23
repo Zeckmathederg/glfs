@@ -44,15 +44,15 @@
       package had some locale related issues. Currently there are no BLFS
       editors capable of testing these local issues. Therefore, the
       locale related information is left on this page, but has not been
-      tested. Note that the patch recommended for the locale issues will not
+      tested. <!--Note that the patch recommended for the locale issues will not
       apply to this version of <application>UnZip</application>. See the
-      discussion below in <xref linkend="unzip-locale-issues"/>. A more
+      discussion below in <xref linkend="unzip-locale-issues"/>. --> A more
       general discussion of these problems can be found in the
       <xref linkend="locale-assumed-encoding"/> section of the
       <xref linkend="locale-issues"/> page.</para>
     </caution>
 
-    &lfs67_checked;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -75,9 +75,9 @@
         <para>Estimated build time: &unzip-time;</para>
       </listitem>
     </itemizedlist>
-
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
+    <itemizedlist spacing='compact'> -->
       <!-- <listitem>
         <para>Required patch: <ulink
         url="&patch-root;/unzip-&unzip-version;-security_fix-1.patch"/></para>
@@ -86,12 +86,13 @@
         <para>Required patch: <ulink
         url="&patch-root;/unzip-&unzip-version;-security_fix-2.patch"/></para>
       </listitem> -->
+      <!--
       <listitem>
         <para>Optional patch (will not apply properly): <ulink
         url="&patch-root;/unzip-5.50-alt-iconv-v1.1.patch"/></para>
       </listitem>
     </itemizedlist>
-
+    -->
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/unzip"/></para>
 
@@ -153,7 +154,7 @@
 <screen><userinput>convmv -f cp866 -t koi8-r -r --nosmart --notest \
     <replaceable>&lt;/path/to/unzipped/files&gt;</replaceable></userinput></screen>
     </blockquote>
-
+<!--
     <para>3) Apply the optional
     <filename>unzip-5.50-alt-iconv-v1.1.patch</filename> patch to
     <application>UnZip</application>. It will apply with some offsets.</para>
@@ -170,7 +171,7 @@
     with UTF-8. Attempting to use a patched <command>unzip</command> in UTF-8
     locales may result in a segmentation fault and is probably a security
     risk.</para>
-
+-->
   </sect2>
 
   <sect2 role="installation">
@@ -182,9 +183,11 @@
 
 <screen><userinput>case `uname -m` in
   i?86)
+    sed -i -e 's/DASM"/DASM -DNO_LCHMOD"/' unix/Makefile
     make -f unix/Makefile linux
     ;;
   *)
+    sed -i -e 's/CFLAGS="-O -Wall/&amp; -DNO_LCHMOD/' unix/Makefile
     make -f unix/Makefile linux_noasm
     ;;
 esac</userinput></screen>
@@ -199,6 +202,9 @@ esac</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed ...</command>: This command ensures an obsolete 
+    system call is not made.</para>
 
     <para><parameter>linux, linux_noasm</parameter>:
     The linux target in the <filename>Makefile</filename> makes assumptions
