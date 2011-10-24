@@ -129,7 +129,7 @@ chmod +x /bin/make-cert.pl</userinput></screen>
    create this script as the <systemitem class="username">root</systemitem>
    user:</para>
 
-  <screen><userinput>cat > /bin/make-ca.sh &lt;&lt; "EOF"
+   <screen><userinput>cat > /bin/make-ca.sh &lt;&lt; "EOF"
 #!/bin/bash
 # Begin make-ca.sh
 # Script to populate OpenSSL's CApath from a bundle of PEM formatted CAs
@@ -227,6 +227,37 @@ EOF
 
 chmod +x /bin/make-ca.sh</userinput></screen>
 
+   <para>Add a short script to remove expired certifictes from a directory.
+   Again create this script as the <systemitem
+   class="username">root</systemitem> user:</para>
+
+  <screen><userinput>cat > /bin/remove-expired-certs.sh &lt;&lt; "EOF"
+#!/bin/bash
+# Begin /bin/remove-expired-certs.sh
+
+OPENSSL=/usr/bin/openssl
+DIR=/etc/ssl/certs
+
+if [ $# -gt 0 ]; then
+  DIR="$1"
+fi
+
+certs=$( find ${DIR} -type f -name "*.pem" -o -name "*.crt" )
+today=$( date +%Y%m%d )
+
+for cert in $certs; do
+  notafter=$( $OPENSSL x509 -enddate -in "${cert}" -noout )
+  date=$( echo ${notafter} |  sed 's/^notAfter=//' )
+
+  if [ $( date -d "${date}" +%Y%m%d ) -lt ${today} ]; then
+     echo "${cert} is expired! Removing..."
+     rm -f "${cert}"
+  fi
+done
+EOF
+
+chmod +x /bin/remove-expired-certs.sh</userinput></screen>
+
    <para>The following commands will fetch the certificates and convert them to
    the correct format.  If desired, a web browser may be used instead of
    <application>wget</application> but the file will need to be saved with the
@@ -239,14 +270,17 @@ url="$certhost$certdir/certdata.txt?raw=1"               &amp;&amp;
 
 wget --output-document certdata.txt $url &amp;&amp;
 unset certhost certdir url               &amp;&amp;
-make-ca.sh</userinput></screen>
+make-ca.sh                               &amp;&amp;
+remove-expired-certs.sh certs</userinput></screen>
 
    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen><userinput>install -d ${SSLDIR}/certs        &amp;&amp;
-cp -v certs/*.pem ${SSLDIR}/certs &amp;&amp;
-c_rehash                          &amp;&amp;
-install ca-bundle.crt ${SSLDIR}</userinput></screen>
+<screen><userinput>SSLDIR=/etc/ssl                                     &amp;&amp;
+install -d ${SSLDIR}/certs                          &amp;&amp;
+cp -v certs/*.pem ${SSLDIR}/certs                   &amp;&amp;
+c_rehash                                            &amp;&amp;
+install BLFS-ca-bundle*.crt ${SSLDIR}/ca-bundle.crt &amp;&amp;
+unset SSLDIR</userinput></screen>
 
    <para>Finally, clean up the current directory:</para>
 
@@ -263,7 +297,7 @@ install ca-bundle.crt ${SSLDIR}</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>make-ca.sh and make-cert.pl</seg>
+        <seg>make-ca.sh, make-cert.pl and remove-expired-certs.sh</seg>
         <seg>None</seg>
         <seg>/etc/ssl/certs</seg>
       </seglistitem>
@@ -293,6 +327,18 @@ install ca-bundle.crt ${SSLDIR}</userinput></screen>
           converts a single binary certificate (.der format) into .pem format.</para>
           <indexterm zone="cacerts make-cert">
             <primary sortas="b-make-cert">make-cert</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="remove-expired-certs">
+        <term><command>remove-expired-certs.sh</command></term>
+        <listitem>
+          <para>is a utility <application>perl</application> script that 
+          removed expired certificates fom a directory.  The defaut
+          directory is <filename class='directory'>/etc/ssl/ceerts</filename>.</para>
+          <indexterm zone="cacerts remove-expired-certs">
+            <primary sortas="b-remove-expired-certs">remove-expired-certs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
