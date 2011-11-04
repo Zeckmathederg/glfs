@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY glib2-download-http "&gnome-download-http;/glib/2.24/glib-&glib2-version;.tar.bz2">
-  <!ENTITY glib2-download-ftp  "ftp://ftp.gtk.org/pub/glib/2.24/glib-&glib2-version;.tar.bz2">
-  <!ENTITY glib2-md5sum        "8a6e45d7840460ed84288ebfd75782d4">
-  <!ENTITY glib2-size          "5.3 MB">
-  <!ENTITY glib2-buildsize     "106 MB">
+  <!ENTITY glib2-download-http "&gnome-download-http;/glib/2.31/glib-&glib2-version;.tar.bz2">
+  <!ENTITY glib2-download-ftp  "ftp://ftp.gtk.org/pub/glib/2.31/glib-&glib2-version;.tar.bz2">
+  <!ENTITY glib2-md5sum        "3806d113305cdb5193174de5d354294e">
+  <!ENTITY glib2-size          "5.6 MB">
+  <!ENTITY glib2-buildsize     "179 MB">
   <!ENTITY glib2-time          "1.5 SBU (additional 4.0 SBU to run the test suite)">
 ]>
 
@@ -33,6 +33,8 @@
     library. This is useful for providing data structure handling for C,
     portability wrappers and interfaces for such runtime functionality as an
     event loop, threads, dynamic loading, and an object system.</para>
+
+    &lfs70_checked;
 
     <!-- Compiled against PCRE, Python, and desktop-file-utils.
          1 test failed (regex) -->
@@ -61,8 +63,10 @@
 
     <bridgehead renderas="sect3">GLib Dependencies</bridgehead>
 
-    <!-- <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="pkgconfig"/></para> -->
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required"><xref linkend="libffi"/> and ><xref linkend="python"/>
+    <!--<para role="required"><xref linkend="pkgconfig"/> -->
+    </para> 
 
     <!-- This should be discussed as the instructions in the tarball give
          many reasons why the internal PCRE should be used -->
@@ -71,19 +75,16 @@
     (built with unicode properties)</para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="attr"/>,
-    <xref linkend="gamin"/>, and
+    <para role="optional"><xref linkend="attr"/>
+    <!-- <xref linkend="gamin"/>, -->and
     <xref linkend="gtk-doc"/></para>
 
+    <!-- Couldn't find this 
     <para><application>Gamin</application> requires
     <application>GLib</application> in order to compile; therefore, you must
     first install <application>GLib</application>, then compile
     <application>Gamin</application>, and recompile
-    <application>GLib</application> against it.</para>
-
-    <bridgehead renderas="sect4">Optional Runtime Dependency for the
-    <command>gtester-report</command> program</bridgehead>
-    <para role="optional"><xref linkend="python"/></para>
+    <application>GLib</application> against it.</para> -->
 
     <bridgehead renderas="sect4">Additional Runtime Dependencies</bridgehead>
     <para role="optional">Quoted directly from the <filename>INSTALL</filename>
@@ -106,8 +107,9 @@
 
     <!-- This should be discussed as the instructions in the tarball give
          many reasons why the internal PCRE should be used -->
-<screen><userinput>./configure --prefix=/usr \
-            --with-pcre=system &amp;&amp;
+<screen><userinput>PCRE_LIBS=-lpcre  PCRE_CFLAGS=" "                                \
+LIBFFI_LIBS=-lffi LIBFFI_CFLAGS=-I/usr/lib/libffi-3.0.10/include \    
+./configure --prefix=/usr --with-pcre=system &amp;&amp;
 make</userinput></screen>
 
     <para>The <application>GLib</application> test suite requires
@@ -120,7 +122,7 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chmod -v 755 /usr/bin/gtester-report</userinput></screen>
+ln -v -sfn ../../lib/glib-2.0/include/glibconfig.h /usr/include/glib-2.0/glibconfig.h</userinput></screen>
 
     <para>You should now install <xref linkend="desktop-file-utils"/> and proceed to
     run the test suite.</para>
@@ -132,6 +134,15 @@ chmod -v 755 /usr/bin/gtester-report</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para>PCRE_* and LIBFFI_*: <application>Glib</application> is a prerequsite
+    for <application>pkg_config</application>, but it wants to use
+    <application>pkg_config</application> during the build process.  These
+    environment variables work around not having
+    <application>pkg_config</application> available.</para>
+
+    <para><command>ln -v -sfn ... glibconfig.h</command>: Place a link to an
+    architecture dependent header file where programs can find it.</para>
+
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gtk-doc-rebuild.xml"/>
 
@@ -141,10 +152,6 @@ chmod -v 755 /usr/bin/gtester-report</userinput></screen>
     build to use a system-provided version of the
     <application>PCRE</application> library instead of an internal
     version.</para>
-
-    <!-- Not required any longer; static libs are not installed by default
-    <para><parameter>-disable-static</parameter>: prevent static libraries
-    being built and installed.</para> -->
 
   </sect2>
 

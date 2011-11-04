@@ -6,11 +6,10 @@
 
   <!ENTITY pkgconfig-download-http "http://pkgconfig.freedesktop.org/releases/pkg-config-&pkgconfig-version;.tar.gz">
   <!ENTITY pkgconfig-download-ftp  "&gentoo-ftp-repo;/pkg-config-&pkgconfig-version;.tar.gz">
-  <!-- <!ENTITY pkgconfig-download-ftp "&gnome-download-ftp;/pkgconfig/&pkgconfig-version;/pkgconfig-&pkgconfig-version;.tar.gz"> -->
-  <!ENTITY pkgconfig-md5sum        "d922a88782b64441d06547632fd85744">
-  <!ENTITY pkgconfig-size          "1.0 MB">
-  <!ENTITY pkgconfig-buildsize     "12 MB">
-  <!ENTITY pkgconfig-time          "0.3 SBU">
+  <!ENTITY pkgconfig-md5sum        "47525c26a9ba7ba14bf85e01509a7234">
+  <!ENTITY pkgconfig-size          "392 KB">
+  <!ENTITY pkgconfig-buildsize     "3 MB">
+  <!ENTITY pkgconfig-time          "less than 0.1 SBU">
 ]>
 
 <sect1 id="pkgconfig" xreflabel="pkg-config-&pkgconfig-version;">
@@ -59,8 +58,8 @@
 
     <bridgehead renderas="sect3">Pkg-config Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="GLib"/></para>
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required"><xref linkend="GLib"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/pkgconfig"/></para>
@@ -70,11 +69,20 @@
   <sect2 role="installation">
     <title>Installation of pkg-config</title>
 
+    <para>Fix a problem with one of Pkg-config's tests:</para>
+
+<screen><userinput>sed -i -e '21s/EXPECT_RETURN=1/EXPECT_RETURN=0/' check/check-cmd-options</userinput></screen>
+
     <para>Install <application>pkg-config</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>GLIB_LIBS=-lglib-2.0  GLIB_CFLAGS=-I/usr/include/glib-2.0  \
+./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
+
+    <note><para>The make phase is known to fail if the configure option
+    '<option>--with-installed-popt</option>' is used with <xref
+    linkend="popt"/>.</para></note>
 
     <para>To test the results, issue: <command>make check</command>. The
     <quote>check-requires-private</quote> test has been known to fail for
@@ -98,15 +106,14 @@ make</userinput></screen>
   <sect2 role="configuration">
     <title>Configuring pkg-config</title>
 
-    <para>The default setting for <envar>PKG_CONFIG_PATH</envar> is
-    <filename
+    <para>The default setting for <envar>PKG_CONFIG_PATH</envar> is <filename
     class='directory'>/usr/lib/pkgconfig:/usr/share/pkgconfig</filename>
     because of the prefix used to install
-    <application>pkg-config</application>. You may add
-    to <envar>PKG_CONFIG_PATH</envar> by exporting additional paths on your
-    system where <filename class='extension'>.pc</filename> files are
-    installed. Note that <envar>PKG_CONFIG_PATH</envar> is only needed when
-    compiling packages, not during run-time.</para>
+    <application>pkg-config</application>. You may add to
+    <envar>PKG_CONFIG_PATH</envar> by exporting additional paths on your system
+    where <filename class='extension'>.pc</filename> files are installed. Note
+    that <envar>PKG_CONFIG_PATH</envar> is only needed when compiling packages,
+    not during run-time.</para>
 
   </sect2>
 
