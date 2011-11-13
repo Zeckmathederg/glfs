@@ -132,8 +132,6 @@
     --enable-socket-wrapper            &amp;&amp;
 make</userinput></screen>
 
-<!-- - -enable-socket-wrapper for tests -->
-
     <para>To test the results, issue: <command>make test</command>. If you have
     <application>Linux-PAM</application> installed and built the PAM library
     modules, you can perform a dlopen test by issuing:
@@ -418,128 +416,76 @@ ln -v -s ../../samba/swat  /usr/share/doc/samba-&samba3-version;</userinput></sc
 
       </sect4>
 
+      <sect4 id="samba3-init">
+        <title>Boot Script</title>
+  
+        <para>For your convenience, boot scripts have been provided for
+        <application>Samba</application>. There are two included in the
+        <xref linkend="bootscripts"/> package. The first,
+        <filename>samba</filename>, will start the <command>smbd</command>
+        and <command>nmbd</command> daemons needed to provide SMB/CIFS
+        services. The second script, <filename>winbind</filename>, starts
+        the <command>winbindd</command> daemon, used for providing Windows
+        domain services to Linux clients.</para>
+  
+        <indexterm zone="samba3 samba3-init">
+          <primary sortas="f-samba">samba</primary>
+        </indexterm>
+  
+        <indexterm zone="samba3 samba3-init">
+          <primary sortas="f-winbind">winbind</primary>
+        </indexterm>
+  
+        <para>The default <application>Samba</application> installation uses the
+        <systemitem class='username'>nobody</systemitem> user for guest access
+        to the server. This can be overridden by setting the
+        <option>guest account =</option> parameter in the
+        <filename>/etc/samba/smb.conf</filename> file. If you utilize the
+        <option>guest account =</option> parameter, ensure this user exists in
+        the <filename>/etc/passwd</filename> file. To use the default user,
+        issue the following commands as the
+        <systemitem class='username'>root</systemitem> user:</para>
+
+<screen><userinput>groupadd -g 99 nogroup &amp;&amp;
+useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
+    -s /bin/false -u 99 nobody</userinput></screen>
+
+        <para>Install the <filename>samba</filename> script with the following
+        command issued as the <systemitem class="username">root</systemitem>
+        user:</para>
+
+<screen role="root"><userinput>make install-samba</userinput></screen>
+
+        <para>If you also need the <filename>winbind</filename>
+        script:</para>
+
+<screen role="root"><userinput>make install-winbind</userinput></screen>
+
+       </sect4>
+
     </sect3>
 
     <sect3 id="samba3-swat-config">
       <title>Configuring SWAT</title>
 
-      <para>The built in SWAT (<application>Samba</application> Web
-      Administration Tool) utility can be used for basic configuration of
-      the <application>Samba</application> installation, but because it may
-      be inconvenient, undesirable or perhaps even impossible to gain
-      access to the console, BLFS recommends setting up access to SWAT using
-      <application>Stunnel</application>. Without
-      <application>Stunnel</application>, the
-      <systemitem class="username">root</systemitem> password is transmitted
-      in clear text over the wire, and is considered an unacceptable security
-      risk. After considering the security implications of using SWAT without
-      <application>Stunnel</application>, and you still wish to implement SWAT
-      without it, instructions are provided at this end of this section.</para>
-
+      <para>The SWAT (<application>Samba</application> Web Administration Tool)
+      utility can be used for configuration of the
+      <application>Samba</application> installation.</para>
+      
       <indexterm zone="samba3 samba3-swat-config">
         <primary sortas="g-SWAT">SWAT</primary>
       </indexterm>
 
       <sect4>
-        <title>Setting up SWAT using Stunnel</title>
-
-        <para>First install, or ensure you have already installed, the
-        <xref linkend="stunnel"/> package.</para>
-
-        <para>Next you must add entries to <filename>/etc/services</filename>
-        and modify the <command>inetd</command>/<command>xinetd</command>
-        configuration.</para>
-
-        <indexterm zone="samba3 samba3-swat-config">
-          <primary sortas="e-etc-services">/etc/services</primary>
-        </indexterm>
+        <title>Setting up SWAT using inetd</title>
 
         <indexterm zone="samba3 samba3-swat-config">
           <primary sortas="e-etc-inetd.conf">/etc/inetd.conf</primary>
         </indexterm>
 
         <indexterm zone="samba3 samba3-swat-config">
-          <primary sortas="e-etc-xinetd.conf">/etc/xinetd.conf</primary>
+          <primary sortas="e-etc-services">/etc/services</primary>
         </indexterm>
-
-        <para>Add swat and swat_tunnel entries to
-        <filename>/etc/services</filename> with the following commands issued
-        as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>echo "swat            904/tcp" &gt;&gt; /etc/services &amp;&amp;
-echo "swat_tunnel     905/tcp" &gt;&gt; /etc/services</userinput></screen>
-
-        <para>If <command>inetd</command> is used, the following command will
-        add the swat_tunnel entry to <filename>/etc/inetd.conf</filename> (as
-        user <systemitem class="username">root</systemitem>):</para>
-
-<screen role="root"><userinput>echo "swat_tunnel stream tcp nowait.400 root /usr/sbin/swat swat" \
-    &gt;&gt; /etc/inetd.conf</userinput></screen>
-
-        <para>Issue a <command>killall -HUP inetd</command> to reread the
-        changed <filename>inetd.conf</filename> file.</para>
-
-        <para>If you use <command>xinetd</command>, the following command will
-        create the <application>Samba</application> file as
-        <filename>/etc/xinetd.d/swat_tunnel</filename> (you may need to modify
-        or remove the <quote>only_from</quote> line to include the desired
-        host[s]):</para>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/xinetd.d/swat_tunnel &lt;&lt; "EOF"
-<literal># Begin /etc/xinetd.d/swat_tunnel
-
-service swat_tunnel
-{
-    port            = 905
-    socket_type     = stream
-    wait            = no
-    only_from       = 127.0.0.1
-    user            = root
-    server          = /usr/sbin/swat
-    log_on_failure  += USERID
-}
-
-# End /etc/xinetd.d/swat_tunnel</literal>
-EOF</userinput></screen>
-
-        <indexterm zone="samba3 samba3-swat-config">
-          <primary sortas="e-etc-xinetd.d-swat-tunnel">/etc/xinetd.d/swat_tunnel</primary>
-        </indexterm>
-
-        <para>Issue a <command>killall -HUP xinetd</command> to read the new
-        <filename>/etc/xinetd.d/swat_tunnel</filename> file.</para>
-
-        <para>Next, you must add an entry for the swat service to the
-        <filename>/etc/stunnel/stunnel.conf</filename> file (as user
-        <systemitem class="username">root</systemitem>):</para>
-
-        <indexterm zone="samba3 samba3-swat-config">
-          <primary sortas="e-etc-stunnel-stunnel.conf">/etc/stunnel/stunnel.conf</primary>
-        </indexterm>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/stunnel/stunnel.conf &lt;&lt; "EOF"
-<literal>[swat]
-accept  = 904
-connect = 905
-TIMEOUTclose = 1</literal>
-
-EOF</userinput></screen>
-
-        <para>Restart the <command>stunnel</command> daemon using the following
-        command as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>/etc/rc.d/init.d/stunnel restart</userinput></screen>
-
-      <para>SWAT can be launched by pointing your web browser to
-      <uri>https://<replaceable>&lt;CA_DN_field&gt;</replaceable>:904</uri>.
-      Substitute the hostname listed in the DN field of the CA certificate
-      used with <application>Stunnel</application> for
-      <replaceable>&lt;CA_DN_field&gt;</replaceable>.</para>
-
-      </sect4>
-
-      <sect4>
-        <title>Setting up SWAT without Stunnel</title>
 
         <warning>
           <para>BLFS does not recommend using these procedures because of the
@@ -549,48 +495,118 @@ EOF</userinput></screen>
           instructions are provided for your convenience.</para>
         </warning>
 
-        <para>Add a swat entry to <filename>/etc/services</filename> with the
-        following command issued as the
-        <systemitem class='username'>root</systemitem> user:</para>
+        <para>First you must add an entry to <filename>/etc/services</filename>
+        and modify the <command>inetd</command> configuration. Add this entry
+        with the following command issued as the <systemitem
+        class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>echo "swat            904/tcp" &gt;&gt; /etc/services</userinput></screen>
+<screen role="root"><userinput>echo "swat            905/tcp" &gt;&gt; /etc/services</userinput></screen>
 
-        <para>If <command>inetd</command> is used, the following command
-        issued as the <systemitem class='username'>root</systemitem> user will
-        add a swat entry to the <filename>/etc/inetd.conf</filename> file:</para>
+        <para>Now add this entry to the <filename>/etc/inetd.conf</filename>
+        file, again as the <systemitem class="username">root</systemitem>
+        user:</para>
 
-<screen role='root'><userinput>echo "swat stream tcp nowait.400 root /usr/sbin/swat swat" \
-    &gt;&gt; /etc/inetd.conf</userinput></screen>
+<screen role="root"><userinput>echo "swat stream tcp nowait.5 root /usr/sbin/swat swat &gt;&gt; /etc/inetd.conf</userinput></screen>
 
         <para>Issue a <command>killall -HUP inetd</command> to reread the
         changed <filename>inetd.conf</filename> file.</para>
 
-        <para>If <command>xinetd</command> is used, the following command
-        issued as the <systemitem class='username'>root</systemitem> user
-        will create an <filename>/etc/xinetd.d/swat</filename> file:</para>
+        <para>SWAT can be launched by pointing your web browser to
+        http://localhost:905.</para>
+        
+      </sect4>
 
-<screen role='root'><userinput>cat &gt;&gt; /etc/xinetd.d/swat &lt;&lt; "EOF"
+      <sect4>
+        <title>Setting up SWAT using xinetd</title>
+
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-xinetd.conf">/etc/xinetd.conf</primary>
+        </indexterm>
+
+        <para>If not already done, add an entry to <filename>/etc/services</filename> file
+        as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>echo "swat            905/tcp" &gt;&gt; /etc/services</userinput></screen>
+
+        <para>Create the <application>Samba</application> <xref
+        linkend='xinetd'/> file as <filename>/etc/xinetd.d/swat</filename>.</para>
+        
+        <warning>
+          <para>You may modify or remove the <quote>only_from</quote> line
+          below to include other host(s).  BLFS does not recommend doing this
+          because of the security risk involved. However, in a home network
+          environment, disclosure of the <systemitem
+          class='username'>root</systemitem> password may be an acceptable
+          risk.</para>
+        </warning>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/xinetd.d/swat &lt;&lt; "EOF"
 <literal># Begin /etc/xinetd.d/swat
 
 service swat
 {
-    port            = 904
+    port            = 905
     socket_type     = stream
     wait            = no
+    instances       = 5
     only_from       = 127.0.0.1
     user            = root
     server          = /usr/sbin/swat
-    log_on_failure  += USERID
+    log_on_failure += USERID
 }
 
 # End /etc/xinetd.d/swat</literal>
 EOF</userinput></screen>
 
-        <para>Issue a <command>killall -HUP xinetd</command> to read the
-        new <filename>/etc/xinetd.d/swat</filename> file.</para>
+        <para>Issue a <command>killall -HUP xinetd</command> to read the new
+        <filename>/etc/xinetd.d/swat</filename> file.</para>
 
-        <para>SWAT can be launched by pointing your web browser to
-        http://localhost:904.</para>
+        <note>
+          <para>If you linked <application>Linux-PAM</application> into the
+          <application>Samba</application> build, you'll need to create an
+          <filename>/etc/pam.d/samba</filename> file.</para>
+        </note>
+
+        <para>SWAT can now be launched by pointing your web browser to
+        http://localhost:905.</para>
+
+      </sect4>
+
+      <sect4>
+        <title>Setting up SWAT using stunnel</title>
+
+        <para>A better way to set up SWAT for network access is through
+        <xref linkend='stunnel'/>.  For convenience, a boot scripts has 
+        been provided for SWAT via stunnel.  First, create the stunnel
+        configuration file:</para>
+
+        <indexterm zone="samba3 samba3-swat-config">
+          <primary sortas="e-etc-stunnel-swat.conf">/etc/stunnel/swat.conf</primary>
+        </indexterm>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/stunnel/swat.conf &lt;&lt; "EOF"
+<literal>; File: /etc/stunnel/swat.conf
+
+pid    = /run/stunnel-swat.pid
+setuid = root
+setgid = root
+cert   = /etc/stunnel/stunnel.pem
+
+[swat]
+accept = swat
+exec   = /usr/sbin/swat
+</literal>
+EOF</userinput></screen>
+
+        <para>Next, install the swat bootscript:</para>
+
+<screen role="root"><userinput>make install-swat</userinput></screen>
+
+        <para>After starting the SWAT boot script the tool can be accessed by
+        pointing your web browser to https://localhost:905.  Note:
+        <emphasis>https</emphasis>.  If access to the tool needs to be
+        further restricted, then <xref linkend='iptables'/> can be
+        used.</para>
 
       </sect4>
 
@@ -599,11 +615,6 @@ EOF</userinput></screen>
     <sect3>
       <title/>
 
-      <note>
-        <para>If you linked <application>Linux-PAM</application> into the
-        <application>Samba</application> build, you'll need to create an
-        <filename>/etc/pam.d/samba</filename> file.</para>
-      </note>
 
       <indexterm zone="samba3 samba3-swat-config">
         <primary sortas="e-etc-pam.d-samba">/etc/pam.d/samba</primary>
@@ -611,52 +622,6 @@ EOF</userinput></screen>
 
     </sect3>
 
-    <sect3 id="samba3-init">
-      <title>Boot Script</title>
-
-      <para>For your convenience, boot scripts have been provided for
-      <application>Samba</application>. There are two included in the
-      <xref linkend="bootscripts"/> package. The first,
-      <filename>samba</filename>, will start the <command>smbd</command>
-      and <command>nmbd</command> daemons needed to provide SMB/CIFS
-      services. The second script, <filename>winbind</filename>, starts
-      the <command>winbindd</command> daemon, used for providing Windows
-      domain services to Linux clients.</para>
-
-      <indexterm zone="samba3 samba3-init">
-        <primary sortas="f-samba">samba</primary>
-      </indexterm>
-
-      <indexterm zone="samba3 samba3-init">
-        <primary sortas="f-winbind">winbind</primary>
-      </indexterm>
-
-      <para>The default <application>Samba</application> installation uses the
-      <systemitem class='username'>nobody</systemitem> user for guest access
-      to the server. This can be overridden by setting the
-      <option>guest account =</option> parameter in the
-      <filename>/etc/samba/smb.conf</filename> file. If you utilize the
-      <option>guest account =</option> parameter, ensure this user exists in
-      the <filename>/etc/passwd</filename> file. To use the default user,
-      issue the following commands as the
-      <systemitem class='username'>root</systemitem> user:</para>
-
-<screen><userinput>groupadd -g 99 nogroup &amp;&amp;
-useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
-    -s /bin/false -u 99 nobody</userinput></screen>
-
-      <para>Install the <filename>samba</filename> script with the following
-      command issued as the <systemitem class="username">root</systemitem>
-      user:</para>
-
-<screen role="root"><userinput>make install-samba</userinput></screen>
-
-      <para>If you also need the <filename>winbind</filename>
-      script:</para>
-
-<screen role="root"><userinput>make install-winbind</userinput></screen>
-
-    </sect3>
 
   </sect2>
 
@@ -670,10 +635,10 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
 
       <seglistitem>
         <seg>cifs.upcall, eventlogadm, findsmb, ldbadd, ldbdel, ldbedit,
-        ldbmodify, ldbrename, ldbsearch, mount.cifs, net, nmbd,
+        ldbmodify, ldbrename, ldbsearch, net, nmbd,
         nmblookup, ntlm_auth, pdbedit, profiles, rpcclient, sharesec, smbcacls,
         smbclient, smbcontrol, smbcquotas, smbd, smbget, smbpasswd, smbspool,
-        smbstatus, smbtar, smbtree, swat, testparm, umount.cifs, wbinfo,
+        smbstatus, smbtar, smbtree, swat, testparm, wbinfo,
         winbindd, and (if not using system TDB) tdbbackup, tdbdump, and
         tdbtool</seg>
         <seg>libnss_winbind.so, libnss_wins.so, libnetapi.so, libsmbclient.so,
@@ -785,18 +750,6 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           expression.</para>
           <indexterm zone="samba3 ldbsearch">
             <primary sortas="b-ldbsearch">ldbsearch</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="mount.cifs">
-        <term><command>mount.cifs</command></term>
-        <listitem>
-          <para>mounts a Linux CIFS filesystem. It is usually invoked
-          indirectly by the <command>mount</command> command when using the
-          <option>-t cifs</option> option.</para>
-          <indexterm zone="samba3 mount.cifs">
-            <primary sortas="b-mount.cifs">mount.cifs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -1059,19 +1012,6 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           syntax.</para>
           <indexterm zone="samba3 testparm">
             <primary sortas="b-testparm">testparm</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="umount.cifs">
-        <term><command>umount.cifs</command></term>
-        <listitem>
-          <para>is used by normal, non-<systemitem
-          class="username">root</systemitem> users, to
-          <command>unmount</command> their own Common Internet File System
-          (CIFS) mounts.</para>
-          <indexterm zone="samba3 umount.cifs">
-            <primary sortas="b-umount.cifs">umount.cifs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
