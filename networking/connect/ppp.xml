@@ -6,9 +6,9 @@
 
   <!ENTITY ppp-download-http "http://samba.org/ftp/ppp/ppp-&ppp-version;.tar.gz">
   <!ENTITY ppp-download-ftp  "&gentoo-ftp-repo;/ppp-&ppp-version;.tar.gz">
-  <!ENTITY ppp-md5sum        "183800762e266132218b204dfb428d29">
-  <!ENTITY ppp-size          "673 KB">
-  <!ENTITY ppp-buildsize     "5.6 MB">
+  <!ENTITY ppp-md5sum        "4621bc56167b6953ec4071043fe0ec57">
+  <!ENTITY ppp-size          "920 KB">
+  <!ENTITY ppp-buildsize     "6.4 MB">
   <!ENTITY ppp-time          "0.1 SBU">
 ]>
 
@@ -59,10 +59,10 @@
     <bridgehead renderas="sect3">PPP Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libpcap"/> (needed to do PPP filtering),
-    <xref linkend="linux-pam"/> (to authenticate incoming calls using PAM),
-    and <ulink url="http://linux-atm.sourceforge.net/">Linux ATM</ulink> (to
-    build the pppoatm.so plugin)</para>
+    <para role="optional"><xref linkend="libpcap"/> (needed to do PPP filtering)
+    and <xref linkend="linux-pam"/> (to authenticate incoming calls using PAM -
+    only needed by ISPs).
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/PPP"/></para>
@@ -78,8 +78,9 @@
       driver for your serial port device and/or the PPP over Ethernet
       (PPPoE) protocol driver (CONGIG_PPPOE) must be compiled into the
       kernel or loaded as kernel modules.
-      Udev doesn't load the ppp_generic and pppoe modules automatically, they
-      must be mentioned in the <filename>/etc/sysconfig/modules</filename>
+      Udev doesn't load the ppp_generic and pppoe modules automatically. If you
+      compiled them as modules they can be loaded by the modules bootscript if
+      they are mentioned in <filename>/etc/sysconfig/modules</filename>
       file.</para>
     </note>
 
@@ -92,10 +93,11 @@
 
 <screen role="root"><userinput>groupadd -g 52 pppusers</userinput></screen>
 
-    <para>Install <application>PPP</application> by running the
+    <para>Compile <application>PPP</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>rm include/linux/if_pppol2tp.h &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -103,24 +105,22 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
-<!-- FIXME: is "make install-etcppp" needed for KPPP/WvDial?
-The example configuration below overwrites two of three files, and
-already includes the "lock" option in each peer file
--->make install-etcppp &amp;&amp;
-install -d /etc/ppp/peers &amp;&amp;
-install -m755 scripts/{pon,poff,plog} /usr/bin &amp;&amp;
-install -m644 scripts/pon.1 /usr/share/man/man1</userinput></screen>
+install -d /etc/ppp/peers</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>make install-etcppp</command>: This command puts example
-    configuration files in <filename class="directory">/etc/ppp</filename>.</para>
+    <para><command>rm include/linux/if_pppol2tp.h</command>: ppp-2.4.5 contains
+    an out of date copy of the kernel header linux/if_pppol2tp.h. This needs to
+    be removed to <emphasis>force</emphasis> it to use the one installed in
+    /usr. If you don't remove this file the build will still succeed (thanks to
+    a poorly written Makefile) but it will fail to compile the openl2tp.so,
+    pppol2tp.so and rp-pppoe.so plugins:</para>
 
     <para><command>install -d /etc/ppp/peers</command>: This command creates
-    a directory for PPP peer description files.</para>
+    a directory for PPP peer configuration files.</para>
 
 <!-- FIXME: the three options below are taken from pppd/Makefile.linux file.
      They have not been tested. There are other options, such as USE_SRP=y,
@@ -157,74 +157,144 @@ install -m644 scripts/pon.1 /usr/share/man/man1</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
-      <para>The <application>PPP</application> daemon requires some
-      configuration. The main trick is scripting the connection.
-      For dialup and GPRS connections, this can be done
-      either using the <command>chat</command> program which comes with
-      this package, or by using external tools such as
-      <ulink url="http://alumnit.ca/wiki/?WvDial">WvDial</ulink>
-      or <application>KPPP</application> from
-      <xref linkend="kdenetwork"/>. The text below explains how to set up
-      dialup, GPRS and PPPoE connections using only tools provided with
-      the <application>PPP</application> package. All configuration steps
-      in this section are executed as the
-      <systemitem class="username">root</systemitem> user.</para>
-
       <para>Add the users who may run <application>PPP</application> to the
       <systemitem class="groupname">pppusers</systemitem> group:</para>
 
 <screen role="root"><userinput>usermod -a -G pppusers <replaceable>&lt;username&gt;</replaceable></userinput></screen>
 
-    <sect4>
-      <title>Setting the passwords</title>
+      <para>Most internet service providers that use ppp give you a username
+      and password for you to use to authenticate yourself when you connect to
+      their servers. These secrets are kept in the files
+      <filename>/etc/ppp/pap-secrets</filename> or
+      <filename>/etc/ppp/chap-secrets</filename>. If you don't know whether
+      your ISP uses CHAP or PAP then create both files and put the same content
+      in both files.</para>
 
-      <warning><para>Instructions in this section result in your password
-      appearing on the screen in a visible clear-text form. Make sure that
-      nobody else looks at the screen.</para></warning>
+      <para>If you have more than one ISP account the second column
+      (remotename) is used to identify between the different
+      usernames/passwords needed for the different ISPs. If you only have one
+      ISP account an asterisk will work fine in the second column.</para>
 
-      <para>Passwords are stored in <filename>/etc/ppp/pap-secrets</filename>
-      and <filename>/etc/ppp/chap-secrets</filename> files, depending on the
-      authentication method used by the ISP. If in doubt, place the password
-      into both files. E.g., if the username given by the ISP is
-      <quote>jdoe</quote>, the password is <quote>guessit</quote>, the
-      ISP uses PAP and the user wants to name this account
-      <quote>dialup</quote> in order to distinguish it from other PPP accounts,
-      the following file has to be created:</para>
-<screen role="root"><userinput>touch /etc/ppp/pap-secrets
-chmod 600 /etc/ppp/pap-secrets
-cat &gt;&gt;/etc/ppp/pap-secrets &lt;&lt;"EOF"</userinput>
-<literal># username      remotename    password        IP for the peer
-jdoe            dialup        guessit         *</literal>
-<userinput>EOF</userinput></screen>
-    </sect4>
+      <para>In this example the username given by the ISP is
+      <quote>jdoe</quote>, the password is <quote>guessit</quote>, the ISP uses
+      PAP and the user wants to give this account the remotename
+      <quote>dialup</quote> in order to distinguish it from other PPP
+      accounts:</para>
+
+<screen role="root"><userinput>cat &gt;&gt;/etc/ppp/pap-secrets &lt;&lt;"EOF"</userinput>
+<literal># username      remotename    password
+jdoe            dialup        guessit</literal>
+<userinput>EOF
+chmod 600 /etc/ppp/pap-secrets</userinput></screen>
 
     <sect4>
       <title>DNS Server Configuration</title>
 
-      <para>If you don't run your own caching DNS server, create a simple
-      <command>ip-up</command> script (to be called by <command>pppd</command>
-      automatically once the connection is brought up) that populates the
-      <filename>/etc/resolv.conf</filename> file with nameservers specified
-      by the ISP.</para>
-<screen role="root"><userinput>cat &gt;/etc/ppp/ip-up &lt;&lt;"EOF"</userinput>
-<literal>#!/bin/sh
-if [ "$USEPEERDNS" = "1" ] &amp;&amp; [ -s /etc/ppp/resolv.conf ]
-then
-        install -m 644 /etc/ppp/resolv.conf /etc/resolv.conf
-fi</literal>
+      <para>If you don't run your own caching DNS server (like
+      <xref linkend="bind"/>) pppd can ask your ISP for its domain name
+      servers and put them in /etc/ppp/resolv.conf. If you want to use their
+      domain name servers:</para>
+
+<screen role="root"><userinput>mv /etc/resolv.conf{,.orig}
+ln -s ppp/resolv.conf /etc</userinput></screen>
+
+    </sect4>
+
+    <sect4>
+      <title>PPPoE connections</title>
+
+      <para>In order to configure a PPPoE connection, create a peer file that
+      contains the connection details:</para>
+<screen role="root"><userinput>cat &gt;/etc/ppp/peers/<replaceable>peername</replaceable> &lt;&lt;"EOF"</userinput>
+<literal>plugin rp-pppoe.so <replaceable>eth0</replaceable>
+
+# Your username at the ISP. This is the same as the first
+# column in /etc/ppp/*-secrets:
+user "<replaceable>jdoe</replaceable>"
+
+# remotename is not needed if you only have one ISP account and
+# hence an asterisk in the second column in pap or chap-secrets:
+# remotename "<replaceable>adsl</replaceable>"
+
+# If it's not working and you want pppd to be
+# more verbose in /var/log/sys.log, add debug:
+# debug
+
+# If you have a static IP address (eg, 12.34.56.78) you
+# can specify it by following it with a colon:
+# 12.34.56.78:
+
+# Otherwise accept whatever IP address the ISP gives you:
+noipdefault
+
+# The settings below usually don't need to be changed
+noauth
+hide-password
+updetach
+defaultroute
+# create /etc/ppp/resolv.conf:
+usepeerdns
+
+### For more details (and more options)
+### read man pppd</literal>
 <userinput>EOF
-chmod 755 /etc/ppp/ip-up</userinput></screen>
-      <para>If you use a caching DNS server such as <xref linkend="bind"/>
-      or <ulink url="http://www.phys.uu.nl/~rombouts/pdnsd.html">Pdnsd</ulink>,
-      the script above is wrong for you. In such a case, write your
-      own script that tells your caching nameserver to forward queries to
-      upstream DNS servers specified in the $DNS1 and $DNS2 environment
-      variables.</para>
-      <!-- FIXME: write the replacement script that works with Bind -->
+chmod 600 /etc/ppp/peers/<replaceable>peername</replaceable></userinput></screen>
+    </sect4>
+
+    <sect4>
+      <title>PPPoATM connections</title>
+
+      <para>PPPoA connections are very similar to PPPoE, the main differences
+      are that you use the pppoatm.so plugin instead of rp-pppoe.so, you don't
+      specify the ethernet interface (it uses ppp0) and you need to VP/VC
+      numbers that are used by your ISP (there is a list of VP/VC numbers
+      <ulink url="http://www.linux-usb.org/SpeedTouch/faq/index.html#q12">here
+      </ulink>)</para>
+
+<screen role="root"><userinput>cat &gt;/etc/ppp/peers/<replaceable>peername</replaceable> &lt;&lt;"EOF"</userinput>
+<literal>plugin pppoatm.so
+
+# Your VP/VC numbers. eg, in Britain it is 0.38, in
+# France they use 8.35. Google is your friend :)
+0.38
+
+# Your username at the ISP. This is the same as the
+# first column in /etc/ppp/*-secrets:
+user "<replaceable>jdoe</replaceable>"
+
+# remotename is not needed if you only have one ISP account and
+# hence an asterisk in the second column in pap or chap-secrets:
+# remotename "<replaceable>adsl</replaceable>"
+
+# If it's not working and you want pppd to be
+# more verbose in /var/log/sys.log, add debug:
+# debug
+
+# If you have a static IP address (eg, 12.34.56.78) you
+# can specify it by following it with a colon:
+# 12.34.56.78:
+
+# Otherwise accept whatever IP address the ISP gives you:
+noipdefault
+
+# The settings below usually don't need to be changed
+noauth
+hide-password
+updetach
+defaultroute
+# create /etc/ppp/resolv.conf:
+usepeerdns
+
+### For more details (and more options)
+### read man pppd</literal>
+<userinput>EOF
+chmod 600 /etc/ppp/peers/<replaceable>peername</replaceable></userinput></screen>
+
     </sect4>
 
     <sect4>
       <title>Dialup Modem Connection</title>
+
 <!-- This section has been tested with various ISPs in Yekaterinburg,
      Russia using Lucent WinModem. I cannot test it anymore, because
      there is no free PCI slot for the modem in my new computer. However,
@@ -296,6 +366,7 @@ usepeerdns</literal>
 
     <sect4>
       <title>GPRS and EDGE Connections</title>
+
 <!-- This section has been tested with GPRS service from MOTIV in
      Yekaterinburg, Russia. According to forum messages, the procedure
      also works with EDGE, but my cellular phone (Motorola C350) does not
@@ -371,111 +442,29 @@ usepeerdns</literal>
     </sect4>
 
     <sect4>
-      <title>PPPoE connections</title>
-
-      <!-- This section has been tested with the "USI" ISP in Yekaterinburg,
-      Russia. Other editors can test it as described in
-      http://linuxfromscratch.org/pipermail/blfs-dev/2008-March/018290.html
-      - Alexander E. Patrakov -->
-
-      <para>PPPoE connections are established over Ethernet, typically between
-      a computer and an ADSL router (usually installed in the same room)
-      that forwards the packets down the telephone line using frequencies
-      25-2500 kHz, thus not interfering with voice calls. Although the router
-      can, in theory, forward any Ethernet packet, PPP encapsulation is used
-      for password-based authentication, so that the ISP can limit the
-      bandwidth and charge money according to the chosen tariff. The maximum
-      data transfer rate on ADSL is 24 megabits per second, and the gateway
-      ping time is typically less than 10 ms. In order to configure a PPPoE
-      connection, it is required to know the username, the password, and,
-      sometimes, the service name and/or the access concentrator name.</para>
-
-      <para>In order to configure a PPPoE connection, only the peer file
-      has to be created:</para>
-<screen role="root"><userinput>cat &gt;/etc/ppp/peers/<replaceable>adsl</replaceable> &lt;&lt;"EOF"</userinput>
-<literal>plugin rp-pppoe.so
-# Ethernet interface name
-<replaceable>eth0</replaceable>
-# Your username at the ISP
-user "<replaceable>jdoe</replaceable>"
-# What should be in the second column in /etc/ppp/*-secrets
-remotename "<replaceable>adsl</replaceable>"
-# If needed, specify the service and the access concentrator name
-# rp_pppoe_service "<replaceable>internet</replaceable>"
-# rp_pppoe_ac "<replaceable>ac1</replaceable>"
-
-# The settings below usually don't need to be changed
-noauth
-hide-password
-updetach
-debug
-defaultroute
-noipdefault
-usepeerdns</literal>
-<userinput>EOF</userinput></screen>
-    </sect4>
-
-    <sect4>
       <title>Establishing the connection manually</title>
 
       <para>In order to establish a PPP connection described by the
       <filename>/etc/ppp/peers/<replaceable>peername</replaceable></filename>
       file run (as <systemitem class="username">root</systemitem> or as a member
       of the <systemitem class="groupname">pppusers</systemitem> group):</para>
-<screen><userinput>pon <replaceable>peername</replaceable></userinput></screen>
+<screen><userinput>pppd call <replaceable>peername</replaceable></userinput></screen>
 
-      <para>In order to tear the connection down, run:</para>
-<screen><userinput>poff <replaceable>peername</replaceable></userinput></screen>
+      <para>In order to stop the connection, run:</para>
+<screen><userinput>killall pppd</userinput></screen>
 
-    </sect4>
+      <!--  There are an infinite number of ways that computers can be
+      connected together. Trying to write a bootscript that can cope with every
+      possible network configuration is the road to madness. Andrew Benton -->
 
-    <sect4>
-      <title>Bringing up PPPoE connection at boot time</title>
-      <para>If your service provider does not charge by the minute, it is
-      usually good to have a bootscript handle the connection for you.
-      You can, of course, choose not to install the following script, and
-      start your connection manually with the <command>pon</command> command,
-      as described above. If you wish your PPPoE connection to be brought
-      up at boot time, run:</para>
-
-<screen role='root'><userinput>make install-service-pppoe</userinput></screen>
-
-      <para>The above command installs the <filename>pppoe</filename>
-      service script and the <filename>/etc/ppp/peers/pppoe</filename>
-      file with some settings that make sense for most PPPoE connections.
-      The bootscript calls <command>pppd</command> with the the following
-      options:</para>
-
-<screen>pppd call pppoe ${1} linkname ${1} ${PPP_OPTS}</screen>
-
-      <para>Here <quote>${1}</quote> is the network interface name,
-      <quote>linkname ${1}</quote> is added for creation of the
-      <filename>/var/run/ppp-${1}.pid</filename> file with the
-      <command>pppd</command> process ID (to be used when bringing
-      the connection down), and the <quote>${PPP_OPTS}</quote> variable
-      contains user-specified options such as <quote>user</quote> and
-      <quote>remotename</quote>.</para>
-
-      <para>Now create the config file for use with the <filename>pppoe</filename>
-      service script:</para>
-
-<screen role='root'><userinput>install -v -d /etc/sysconfig/network-devices/ifconfig.eth0 &amp;&amp;
-cat &gt; /etc/sysconfig/network-devices/ifconfig.eth0/pppoe &lt;&lt; "EOF"
-<literal>ONBOOT="yes"
-SERVICE="pppoe"
-PPP_OPTS="user <replaceable>jdoe</replaceable> remotename <replaceable>adsl</replaceable>"</literal>
-EOF</userinput></screen>
-
-      <note><para>Instead of specifying additional options in the $PPP_OPTS
-      variable, you can also edit the <filename>/etc/ppp/peers/pppoe</filename>
-      file, but then your configuration will be lost when upgrading
-      BLFS bootscripts.</para></note>
+      <para>Writing a bootscript that brings up the connection during the boot
+      process is left as an exercise for the reader ;)</para>
 
     </sect4>
+
     </sect3>
 
   </sect2>
-
   <sect2 role="content">
     <title>Contents</title>
 
