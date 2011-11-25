@@ -96,7 +96,7 @@
     <ulink url="http://diracvideo.org/">libschroedinger</ulink>,
     <ulink url="http://medialibrary.sourceforge.net/">MediaLibrary</ulink>,
     <ulink url="http://www.openjpeg.org">OpenJPEG</ulink>
-    (<application>ffmpeg</application> includes code for it's own jpeg2000
+    (<application>FFmpeg</application> includes code for it's own jpeg2000
     encoder and decoder which is enabled by default), <xref linkend="speex"/>,
     <!-- <xref linkend="tetex"/>, --> <xref linkend="sdl"/> and
     <ulink url="http://www.nongnu.org/texi2html">texi2html</ulink>
@@ -113,11 +113,21 @@
     <para>Install <application>FFmpeg</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --enable-shared --disable-static --enable-gpl &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd build &amp;&amp;
+../configure --prefix=/usr --enable-shared --disable-static --enable-gpl &amp;&amp;
 make</userinput></screen>
 
+    <para>If you upload certain formats (quicktime, mov or mp4) to youtube, you
+    need to "flatten" them (move the index to the front of the file) before
+    uploading. FFmpeg contains a tool called <command>qt-faststart</command>
+    that can do this. If need <command>qt-faststart</command>, you can compile
+    it with gcc:</para>
+
+<screen><userinput>gcc ../tools/qt-faststart.c -o qt-faststart</userinput></screen>
+
     <para>If you have <xref linkend="doxygen"/> installed and wish to create
-    the API documentation (takes about 150 MB of space), issue
+    the API documentation (takes about 150 MB of space), issue the command
     <command>doxygen</command>.</para>
 
     <para>This package does not come with a working test suite.</para>
@@ -139,13 +149,22 @@ cp doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
     <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>mkdir /usr/share/doc/ffmpeg-&ffmpeg-version;/api &amp;&amp;
-cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
+cp -v doxy/* /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
+
+    <para>If you compiled <command>qt-faststart</command> install it as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>cp qt-faststart /usr/bin</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>mkdir build</command> and <command>cd build</command>:
+    This ensures that we compile the <application>FFmpeg</application> object
+    files in a separate directory to the source files.</para>
+    
     <para><option>--enable-shared</option>: This switch is needed to
     build the shared libraries, otherwise only static libraries are built
     and installed.</para>
@@ -158,17 +177,20 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
     other features.</para>
 
     <para><option>--enable-<replaceable>&lt;codec&gt;</replaceable></option>:
-    <application>ffmpeg</application> comes with code to compile decoders for
+    <application>FFmpeg</application> comes with code to compile decoders for
     almost every codec you could think of. The only reason to enable a specific
-    codec (and make ffmpeg link to the prerequisite shared library installed on
-    your system) is to make ffmpeg compile an <emphasis>encoder</emphasis> for
-    that codec. Encoding video is a job for a specialist. If that is what you
-    want to do, study the output of <command>configure --help</command>.
-    Remember, the dependencies all install their own encoders that are often
-    better than <application>ffmpeg</application>'s.
-    <application>Ffmpeg</application> is an excellent collection of decoders.
-    If you just want to use ffmpeg to watch video or listen to music there is
-    no benefit from linking it to another library.</para>
+    codec (and make <application>FFmpeg</application> link to the prerequisite
+    shared library installed on your system) is to make ffmpeg compile an
+    <emphasis>encoder</emphasis> for that codec. Encoding video is a
+    specialist job. If that is what you want to do with
+    <command>ffmpeg</command>, study the output of <command>configure
+    --help</command>. Remember, the dependencies all install their own encoders
+    (that are often better than <application>FFmpeg</application>'s).
+    <application>FFmpeg</application> is an excellent collection of decoders.
+    If you just want to use <application>FFmpeg</application> to watch video or
+    listen to music (via other applications like
+    <application>Gstreamer</application>) then you will not benefit from
+    linking it to another library.</para>
 
     <para><option>--disable-yasm</option>: use this option if you've not
     installed yasm and you want what configure describes as "a crippled
@@ -193,8 +215,8 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
         <primary sortas="e-etc-ffserver.conf">/etc/ffserver.conf</primary>
       </indexterm>
 
-      <para>You'll find a sample ffserver configuration file at
-      <filename>doc/ffserver.conf</filename> in the source tree.</para>
+      <para>You'll find a sample <command>ffserver</command> configuration file
+      at <filename>doc/ffserver.conf</filename> in the source tree.</para>
 
     </sect3>
 
@@ -209,7 +231,7 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>ffmpeg, ffplay, ffprobe, and ffserver</seg>
+        <seg>ffmpeg, ffplay, ffprobe, ffserver and qt-faststart</seg>
         <seg>libavcodec.so, libavdevice.so, libavfilter.so, libavformat.so,
         libavutil.so, libpostproc.so, and libswscale.so</seg>
         <seg>/usr/include/libavcodec, /usr/include/libavdevice, 
@@ -253,6 +275,17 @@ cp -v doxy/*        /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></scre
           could use as input (files, streams, TV card input, webcam, etc.).</para>
           <indexterm zone="ffmpeg ffserver">
             <primary sortas="b-ffserver">ffserver</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="qt-faststart">
+        <term><command>qt-faststart</command></term>
+        <listitem>
+          <para>moves the index file to the front of quicktime (mov/mp4)
+          videos.</para>
+          <indexterm zone="ffmpeg qt-faststart">
+            <primary sortas="b-qt-faststart">qt-faststart</primary>
           </indexterm>
         </listitem>
       </varlistentry>
