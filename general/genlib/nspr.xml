@@ -60,7 +60,7 @@
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required patch: <ulink
-          url="&patch-root;/nspr-&nspr-version;-pkgconfig-1.patch"/>
+          url="http://www.linuxfromscratch.org/patches/downloads/nspr/nspr-&nspr-version;-pkgconfig-2.patch"/>
       </para>
       </listitem>
     </itemizedlist>
@@ -76,11 +76,11 @@
     <para>Install <application>NSPR</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../nspr-&nspr-version;-pkgconfig-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../nspr-&nspr-version;-pkgconfig-2.patch &amp;&amp;
 cd mozilla/nsprpub &amp;&amp;
-./configure --prefix=/usr \
-            --with-mozilla \
-            --with-pthreads &amp;&amp;
+sed -i 's#^\(RELEASE_BINS =\).*#\1#' pr/src/misc/Makefile.in &amp;&amp;
+./configure --prefix=/usr --with-mozilla --with-pthreads \
+  $([ $(arch) = x86_64 ] &amp;&amp; echo --enable-64bit) &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -88,8 +88,7 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-cp -v -LR dist/include/nspr /usr/include &amp;&amp;
-rm -v -f /usr/bin/{prerr.properties,compile-et.pl}</userinput></screen>
+cp -v -LR dist/include/nspr /usr/include</userinput></screen>
 
   </sect2>
 
@@ -97,16 +96,23 @@ rm -v -f /usr/bin/{prerr.properties,compile-et.pl}</userinput></screen>
     <title>Command Explanations</title>
 
     <para><parameter>--with-mozilla</parameter>: This parameter adds Mozilla
-    support to the libraries (required if you want to build any Mozilla
-    products).</para>
+    support to the libraries (required if you want to build any other Mozilla
+    products and link them to these libraries).</para>
 
     <para><parameter>--with-pthreads</parameter>: This parameter forces use of
     the system pthreads library.</para>
 
-    <para><parameter>--enable-64bit</parameter>: This parameter is required
-    <emphasis>on an x86_64 system</emphasis> to prevent
+    <para><parameter>$([ $(arch) ... --enable-64bit</parameter>: This parameter
+    is required <emphasis>on an x86_64 system</emphasis> to prevent
     <command>configure</command> failing with a claim that this is a system
-    without pthread support.</para>
+    without pthread support. It has no effect on a 32 bit system.</para>
+
+    <para><command>sed -i 's#^\(RELEASE_BINS ...</command>: This disables
+    installing two unneeded scripts.</para>
+
+    <para>If you don't want to compile and install the static versions of the
+    libraries you can disable them with a sed:
+    <command>sed -i '/^TARGETS/s# $(LIBRARY)##' config/rules.mk</command></para>
 
   </sect2>
 
@@ -137,6 +143,41 @@ rm -v -f /usr/bin/{prerr.properties,compile-et.pl}</userinput></screen>
           use <application>NSPR</application>.</para>
           <indexterm zone="nspr nspr-config">
             <primary sortas="b-nspr-config">nspr-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnspr4">
+        <term><filename class='libraryfile'>libnspr4.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions that provide platform independence for
+          non-GUI operating system facilities such as threads, thread
+          synchronization, normal file and network I/O, interval timing and
+          calendar time, basic memory management (malloc and free) and shared
+          library linking.</para>
+          <indexterm zone="nspr libnspr4">
+            <primary sortas="c-libnspr4">libnspr4.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libplc4">
+        <term><filename class='libraryfile'>libplc4.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions that implement many of the features offered
+          by libnspr4</para>
+          <indexterm zone="nspr libplc4">
+            <primary sortas="c-libplc4">libplc4.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libplds4">
+        <term><filename class='libraryfile'>libplds4.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions that provide data structures.</para>
+          <indexterm zone="nspr libplds4">
+            <primary sortas="c-libplds4">libplds4.{so,a}</primary>
           </indexterm>
         </listitem>
       </varlistentry>
