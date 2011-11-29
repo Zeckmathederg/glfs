@@ -87,36 +87,46 @@
   <sect2 role="installation">
     <title>Installation of libtirpc</title>
 
+    <para>Glibc-2.14 and later do not install NIS and RPC related headers by
+    default.  If needed, install them here:</para>
+
+<screen><userinput>if [ ! -r /usr/include/rpc/rpc.h ]; then
+   tar -xvf ../rpcnis-headers.tar.bz2 -C /usr/include
+fi</userinput></screen>
+
     <para>Install <application>libtirpc</application> by running the following
     commands:</para>
 
-<screen><userinput>tar -xvf ../rpcnis-headers.tar.bz2 -C /usr/include &amp;&amp;
-patch -Np1 -i ../libtirpc-&libtirpc-version;-remove-nis-2.patch &amp;&amp;
-autoreconf                &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+<screen><userinput>patch -Np1 -i ../libtirpc-&libtirpc-version;-remove-nis-2.patch &amp;&amp;
+autoreconf                              &amp;&amp;
+./configure --prefix=/usr --libdir=/lib &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>make install</userinput></screen>
+<screen role='root'><userinput>make pkgconfigdir=/usr/lib/pkgconfig install &amp;&amp;
+mv -v /lib/libtirpc.*a /usr/lib</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><userinput>tar -xvf ../rpcnis-headers.tar.bz2 -C
-    /usr/include</userinput>: This command replaces the rpc and nis header
-    files no longer installed by <application>glibc</application>.  If the
-    headers have already been added by other means, this will only overwrite
-    them and not do any harm.</para>
-
     <para><userinput>patch -Np1 -i
     ../libtirpc-&libtirpc-version;-remove-nis-2.patch</userinput>: This patch
     removes references to nis functions no longer in
     <application>glibc</application>.</para>
+
+    <para><option>--libdir=/lib</option>: Since this library may be used before 
+    /usr is mounted, place the library in /lib.</para>
+
+    <para><option>pkgconfigdir=/usr/lib/pkgconfig</option>: Ensure the .pc file
+    is placed in the proper location.</para>
+
+    <para><option>mv -v /lib/libtirpc.*a</option>: Static libraries and .la files
+    belong in /usr/lib.</para>
 
   </sect2>
 
