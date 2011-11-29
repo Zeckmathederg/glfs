@@ -79,8 +79,11 @@
     <ulink url="http://sourceforge.net/projects/hunspell/">Hunspell</ulink>,
     <xref linkend="doxygen"/>,
     <xref linkend="gnome-vfs"/> and <xref linkend="libgnomeui"/> (for gnome
-    integration), <xref linkend="libnotify"/>, <xref linkend="nss"/>,
-    <xref linkend="unzip"/>, <xref linkend="wireless_tools"/>,
+    integration), <xref linkend="libnotify"/>, <xref linkend="nspr"/>,
+    <xref linkend="nss"/>, <xref linkend="xulrunner"/> (linking against an
+    installed xulrunner makes Firefox about 2 MB smaller, which is trivial
+    compared to the size of xulrunner), <xref linkend="unzip"/>,
+    <xref linkend="wireless_tools"/>,
     <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing
     the jemalloc code) and <xref linkend="wget"/></para>
 
@@ -97,14 +100,12 @@
     the desired configuration options. A default <filename>mozconfig</filename>
     is created below. To see the entire list of available configuration options
     (and an abbreviated description of each one), issue
-    <command>./configure --help</command>. <!--If you are not building against
-    <application>Xulrunner</application> you must comment the 'Xulrunner'
-    items. --> You may also wish to review the entire file and uncomment any
-    other desired options. Create the file by issuing the following
-    command:</para>
+    <command>./configure --help</command>. You may also wish to review the
+    entire file and uncomment any other desired options. Create the file by
+    issuing the following command:</para>
 
 <screen><?dbfo keep-together="auto"?><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
-<literal># If you have a multicore machine you can speed up the build by running
+# If you have a multicore machine you can speed up the build by running
 # several jobs at once, but if you have a single core, delete this line:
 mk_add_options MOZ_MAKE_FLAGS="-j4"
 
@@ -114,6 +115,14 @@ ac_add_options --disable-dbus
 # If you have installed wireless-tools you can delete this option:
 ac_add_options --disable-necko-wifi
 
+# If you have installed nss uncomment these two lines:
+# ac_add_options --with-system-nspr
+# ac_add_options --with-system-nss
+
+# If you have installed xulrunner uncomment these two lines:
+# ac_add_options --with-system-libxul
+# ac_add_options --with-libxul-sdk=/usr/lib/xulrunner-devel-&xulrunner-version;
+
 # Uncomment these if you have installed them:
 # ac_add_options --enable-system-sqlite
 # ac_add_options --enable-system-lcms
@@ -121,8 +130,8 @@ ac_add_options --disable-necko-wifi
 # ac_add_options --enable-startup-notification
 
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/firefox-build-dir
-ac_add_options --enable-official-branding
-ac_add_options --prefix=/usr
+ac_add_options --enable-official-branding<!-- ac_add_options -
+-prefix=/usr -->
 ac_add_options --enable-application=browser
 ac_add_options --enable-pthreads
 ac_add_options --enable-system-ffi
@@ -136,14 +145,8 @@ ac_add_options --disable-debug
 ac_add_options --disable-crashreporter
 ac_add_options --disable-installer
 ac_add_options --disable-updater
-ac_add_options --disable-tests</literal>
+ac_add_options --disable-tests
 EOF</userinput></screen>
-
-<!--
-# Point to the Xulrunner libraries - comment these for a standalone browser.
-ac_add_options - -with-system-libxul
-ac_add_options - -with-libxul-sdk=/usr/lib/xulrunner-devel-&xulrunner-version;
--->
 
     <para>Compile <application>Firefox</application> by issuing the
     following commands:</para>
@@ -155,11 +158,12 @@ ac_add_options - -with-libxul-sdk=/usr/lib/xulrunner-devel-&xulrunner-version;
     <para>Now, as the <systemitem class="username">root</systemitem> user,
     install the package:</para>
 
-<screen role="root"><userinput>make -C firefox-build-dir install &amp;&amp;
+<screen role="root"><userinput>make -C firefox-build-dir/browser/installer &amp;&amp;
+tar -xfv firefox-build-dir/dist/firefox-*.tar.bz2 -C /usr/lib &amp;&amp;
+ln -sfv ../lib/firefox/firefox /usr/bin/firefox &amp;&amp;
 mkdir -p /usr/lib/mozilla/plugins &amp;&amp;
-ln -sv ../mozilla/plugins /usr/lib/firefox-&firefox-version; &amp;&amp;
-chown -R -v root:root /usr/{include,lib,share/idl}/firefox-&firefox-version; &amp;&amp;
-chown -R -v root:root /usr/lib/firefox-devel-&firefox-version;</userinput></screen>
+ln -sv ../mozilla/plugins /usr/lib/firefox &amp;&amp;
+chown -R -v root:root /usr/{include,lib,share/idl}/firefox-*</userinput></screen>
 
   </sect2>
 
@@ -172,8 +176,14 @@ chown -R -v root:root /usr/lib/firefox-devel-&firefox-version;</userinput></scre
     command. <command>make</command> uses the <filename>client.mk</filename>
     file to get initial configuration and setup parameters.</para>
 
-    <para><command>make -C firefox-build-dir install</command>: this runs
-    <command>make install</command> inside the firefox-build-dir folder.</para>
+    <para><command>make -C firefox-build-dir/browser/installer</command>:
+    this creates a <application>Firefox</application> tarball.</para>
+
+    <para><command>tar -xfv firefox-build-dir/dist ...</command>: This untars
+    <application>Firefox</application> in /usr/lib.</para>
+
+    <para><command>ln -sfv ... /usr/bin/firefox</command>: this puts a symbolic
+    link to the <command>firefox</command> executable in your ${PATH}.</para>
 
     <para><command>mkdir -p /usr/lib/mozilla/plugins</command>: this checks
     that /usr/lib/mozilla/plugins exists (if you installed
@@ -196,11 +206,8 @@ chown -R -v root:root /usr/lib/firefox-devel-&firefox-version;</userinput></scre
         <seg>firefox</seg>
         <seg>Numerous libraries, browser components, plugins, extensions, and
         helper modules installed in <filename
-        class='directory'>/usr/lib/firefox-&firefox-version;</filename></seg>
-        <seg>/usr/include/firefox-&firefox-version;,
-        /usr/lib/firefox-&firefox-version;,
-        /usr/lib/firefox-devel-&firefox-version;, and
-        /usr/share/idl/firefox-&firefox-version;</seg>
+        class='directory'>/usr/lib/firefox</filename></seg>
+        <seg>/usr/lib/firefox</seg>
       </seglistitem>
     </segmentedlist>
 
