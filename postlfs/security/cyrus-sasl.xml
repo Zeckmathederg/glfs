@@ -91,6 +91,8 @@
 
 <screen><userinput>sed -i.bak 's/#elif WITH_DES/#elif defined(WITH_DES)/' \
     plugins/digestmd5.c &amp;&amp;
+sed -i 's#DB_VERSION_MAJOR == 4.*#(&amp;) || DB_VERSION_MAJOR == 5#' \
+    {sasldb/db_berkeley.c,utils/dbconverter-2.c} &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --with-dbpath=/var/lib/sasl/sasldb2 \
@@ -121,6 +123,9 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
     <para><command>sed -i.bak ... plugins/digestmd5.c</command>: This fixes
     a build problem caused by using newer compilers.</para>
 
+    <para><command>sed -i 's#DB_VERSION_MAJOR ...</command>: This fixes
+    compiling against version 5 of <xref linkend="db"/>.</para>
+
     <para><parameter>--with-dbpath=/var/lib/sasl/sasldb2</parameter>: This
     parameter forces the <command>sasldb</command> database to be created
     in <filename class='directory'>/var/lib/sasl</filename> instead of
@@ -147,7 +152,8 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
     install documentation which is not installed by the
     <command>make install</command> command.</para>
 
-    <para><command>install -v -m700 -d /var/lib/sasl ... -m711 /var/run/saslauthd</command>:
+    <para><command>install -v -m700 -d /var/lib/sasl ...
+    -m711 /var/run/saslauthd</command>:
     These directories must exist when starting <command>saslauthd</command> or
     using the sasldb plugin. If you're not going to be running the daemon or
     using the plugins, you may omit the creation of this directory.</para>
