@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gimp-download-http "http://ftp.gtk.org/pub/gimp/v2.6/gimp-&gimp-version;.tar.bz2">
+  <!ENTITY gimp-download-http "http://gd.tuwien.ac.at/graphics/gimp/gimp/v2.6/gimp-&gimp-version;.tar.bz2">
   <!ENTITY gimp-download-ftp  "ftp://ftp.gimp.org/pub/gimp/v2.6/gimp-&gimp-version;.tar.bz2">
-  <!ENTITY gimp-md5sum        "a4d9462c9420954824a80c9b1963f9d">
+  <!ENTITY gimp-md5sum        "bb2939fe13e54fc7255cef5d097bb5dd">
   <!ENTITY gimp-size          "16 MB">
-  <!ENTITY gimp-buildsize     "330 MB to 430 MB (additional 78 MB to install help files)">
-  <!ENTITY gimp-time          "5.5 to 5.7 SBU (additional 0.7 SBU to run the test suite)">
+  <!ENTITY gimp-buildsize     "349 MB to 530 MB (additional 78 MB to install help files)">
+  <!ENTITY gimp-time          "5.3 to 6.1 SBU (additional 0.8 SBU to run the test suite)">
 
   <!ENTITY gimp-help-version  "2.6.0-html-en">
   <!ENTITY gimp-help-download "ftp://gimp.org/pub/gimp/help/gimp-help-&gimp-help-version;.tar.bz2">
@@ -38,7 +38,7 @@
     the GNU Image Manipulation Program. This is useful for
     photo retouching, image composition and image authoring.</para>
 
-    &lfs67_checked;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -63,8 +63,16 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <title>Help System</title>
+     <itemizedlist spacing="compact">
+      <title>Patches and Help System</title>
+      <listitem>
+         <para>Required patches: <ulink
+      url="&patch-root;/gimp-&gimp-version;-security_fix-1.patch"/>
+         and <ulink
+      url="&patch-root;/gimp-&gimp-version;-libpng_fix-1.patch"/>
+         </para>
+       </listitem>
+
       <listitem>
         <para>Optional help files: <ulink url="&gimp-help-download;"/> and/or
         one or more of the other available languages - see <ulink
@@ -76,7 +84,7 @@
       <listitem>
         <para>Download size: &gimp-help-size;</para>
       </listitem>
-    </itemizedlist>
+      </itemizedlist>
 
     <bridgehead renderas="sect3">GIMP Dependencies</bridgehead>
 
@@ -114,6 +122,8 @@
     <xref linkend="pygtk"/> (including the gtk and pango modules),
     an <xref linkend="server-mail"/> (that provides a
     <command>sendmail</command> program),
+    <!-- webkit-gtk is deliberately ignored because once we move to -1.6
+     it will only provide webkit-3.0.pc and gimp-2.6.11 needs the old -1.0.pc -->
     <xref linkend="x-window-system"/>,
     and <xref linkend="gtk-doc"/></para>
 
@@ -128,11 +138,13 @@
     <para>Install <application>GIMP</application> by running
     the following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
+<screen><userinput>patch -Np1 -i ../gimp-&gimp-version;-security_fixes-1.patch &amp;&amp;
+patch -Np1 -i ../gimp-&gimp-version;-libpng_fixes-1.patch &amp;&amp;
+./configure --prefix=/usr \
             --sysconfdir=/etc &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make check</command>.</para>
+    <para>To test the results, issue: <command>make -k check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -160,6 +172,10 @@ make</userinput></screen>
     <command>configure</command> script to mishandle the
     <envar>datarootdir</envar> variable. Fortunately, passing
     <parameter>-datadir=</parameter> works around the problem.</para> -->
+
+    <para><command>make -k check</command>: Although all the tests themselves
+    are expected to pass, there is a bug in the i18n file validation which will
+    fail with a warning message for the maintainer.</para>
 
     <para><option>--without-libjpeg</option>: This option is necessary if
     <application>libjpeg</application> is not installed.</para>
