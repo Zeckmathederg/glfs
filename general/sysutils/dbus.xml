@@ -7,10 +7,10 @@
   <!ENTITY dbus-download-http "http://dbus.freedesktop.org/releases/dbus/dbus-&dbus-version;.tar.gz">
   <!--<!ENTITY dbus-download-ftp  "&gentoo-ftp-repo;/dbus-&dbus-version;.tar.gz">-->
   <!ENTITY dbus-download-ftp  " ">
-  <!ENTITY dbus-md5sum        "f59618b18d2fb2bd1fce9e1c5a2a3282">
-  <!ENTITY dbus-size          "1.7 MB">
-  <!ENTITY dbus-buildsize     "43 MB">
-  <!ENTITY dbus-time          "0.4 SBU">
+  <!ENTITY dbus-md5sum        "44a2a10678e7e50460879c3eb4453a65">
+  <!ENTITY dbus-size          "1.8 MB">
+  <!ENTITY dbus-buildsize     "83 MB">
+  <!ENTITY dbus-time          "0.5 SBU">
 ]>
 
 <sect1 id="dbus" xreflabel="D-BUS-&dbus-version;">
@@ -40,7 +40,7 @@
     applications to communicate directly (without going through the message bus
     daemon).</para>
 
-    &lfs70_built;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -67,12 +67,17 @@
     <bridgehead renderas="sect3">D-BUS Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="expat"/> (preferred) or <!-- both
-    <xref linkend="pkgconfig"/> and --> <xref linkend="libxml2"/></para>
+    <para role="required">
+      <xref linkend="expat"/> (preferred) or
+      <xref linkend="libxml2"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="xorg7-lib"/> and
-    <xref linkend="doxygen"/> (to generate the API documentation)</para>
+    <para role="optional">
+      <xref linkend="xorg7-lib"/>,
+      <xref linkend="dbus-glib"/> (to run tests), and
+      <xref linkend="doxygen"/> (to generate the API documentation)
+    </para>
 
     <para>Note that the <command>configure</command> script will look for
     <xref linkend="xmlto"/> but it does nothing as the XML/HTML documentation is
@@ -104,61 +109,51 @@
     <para>As the <systemitem class="username">root</systemitem> user, create a
     system user and group to handle the system message bus activity:</para>
 
-<screen role="root"><userinput>groupadd -fg 18 messagebus &amp;&amp;
+<screen role="root"><userinput>groupadd -g 18 messagebus &amp;&amp;
 useradd -c "D-BUS Message Daemon User" -d /dev/null \
-        -u 18 -g messagebus -s /bin/false messagebus || [ $? == 9 ]</userinput></screen>
-
-    <para>This package's test suite cannot be run without passing additional
-    parameters to <command>configure</command> and exposing additional
-    functionality in the binaries. These interfaces are not intended to be
-    used in a production build of <application>D-BUS</application>, so it
-    will have to be built twice in this situation. If you would like to run
-    the unit tests, issue the following commands:</para>
-
-<screen><userinput>./configure --enable-tests --enable-asserts &amp;&amp;
-make &amp;&amp;
-make check &amp;&amp;
-make distclean</userinput></screen>
-
-    <para>Note there has been a report that the tests may fail if running
-    inside a Midnight Commander shell.</para>
+        -u 18 -g messagebus -s /bin/false messagebus</userinput></screen>
 
     <para>Install <application>D-BUS</application> by running the following
     commands (you may wish to review the output from
     <command>./configure --help</command> first and add any desired parameters
     to the <command>configure</command> command shown below):</para>
 
-<screen><userinput>./configure --prefix=/usr \
-            --sysconfdir=/etc \
+<screen><userinput>./configure --prefix=/usr                   \
+            --sysconfdir=/etc               \
             --libexecdir=/usr/lib/dbus-1.0  \
             --localstatedir=/var &amp;&amp;
 make</userinput></screen>
 
-    <!-- D-Bus 1.2.24. Doxygen _still_ broken -->
-
-    <para>The <option>--enable-doxygen-docs</option> parameter does not work
+<!--
+    <para>The <option>- -enable-doxygen-docs</option> parameter does not work
     properly. If you have <application>Doxygen</application> installed and you
     wish to build the API documentation, issue
     <command>doxygen</command>.</para>
+-->
+    <para>See below for test instructions.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem>
     user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m755 -d /usr/share/doc/dbus-&dbus-version; &amp;&amp;
-install -v -m644 doc/{TODO,*.{dtd,html,xml,xsl,txt,c}} \
-    /usr/share/doc/dbus-&dbus-version;</userinput></screen>
+mv -v /usr/share/doc/dbus /usr/share/doc/dbus-&dbus-version;</userinput></screen>
 
-    <para>If you built the API documentation, install it by issuing the
-    following commands as the <systemitem class="username">root</systemitem>
-    user:</para>
+    <para>The dbus tests cannot be run until after <xref linkend="dbus-glib"/>
+    has been installed.  The tests require passing additional parameters to
+    <command>configure</command> and exposing additional functionality in the
+    binaries. These interfaces are not intended to be used in a production
+    build of <application>D-BUS</application>.  If you would like to run the
+    unit tests, issue the following commands:</para>
 
-<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/dbus-&dbus-version;/api \
-                    /usr/share/man/man3dbus &amp;&amp;
-install -v -m644    doc/api/html/* \
-                    /usr/share/doc/dbus-&dbus-version;/api &amp;&amp;
-install -v -m644    doc/api/man/man3dbus/* \
-                    /usr/share/man/man3dbus</userinput></screen>
+    
+<screen><userinput>make distclean &amp;&amp;
+./configure --enable-tests --enable-asserts &amp;&amp;
+make &amp;&amp;
+make check &amp;&amp;
+make distclean</userinput></screen>
+
+    <para>Note there has been a report that the tests may fail if running
+    inside a Midnight Commander shell.</para>
 
   </sect2>
 
