@@ -13,80 +13,61 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>KDE Pre-installation Configuration</title>
+  <title>Trinity/KDE3 Pre-installation Configuration</title>
 
-  <para>Based on your preference, set <envar>KDE_PREFIX</envar>.</para>
+  <para>Based on your preference, set TRINITY_PREFIX.</para>
+  
+  <para>One option is to put <application>Trinity/KDE3</application> into the
+  <filename class='directory'>/usr</filename> hierarchy.  This creates a
+  simpler setup but is more difficult to try multiple versions of
+  <application>Trinity/KDE3</application>.</para>
 
-  <para>One option is to put <application>KDE</application> into the
-  <filename class='directory'>/usr</filename> hierarchy.  This creates
-  a simpler setup but is more difficult to try multiple versions
-  of <application>KDE</application>.</para>
+<screen><userinput>export TRINITY_PREFIX=/usr</userinput></screen>
 
-<screen><userinput>export KDE_PREFIX=/usr</userinput></screen>
+  <para>The Trinty developers and BLFS editors recommend installing Trinity in
+  the <filename class='directory'>/opt</filename> directory in order to support
+  using one version while building another.</para>
 
-  <para>A method of building multiple versions installs
-  <application>KDE</application> in the <filename
-  class='directory'>/opt</filename> hierarchy:</para>
+<screen><userinput>export TRINITY_PREFIX=/opt/trinity-&trinity-version;</userinput></screen>
 
-<screen><userinput>export KDE_PREFIX=/opt/kde-&kde-version;</userinput></screen>
+  <para>Using this option requires updates to the PATH, PKG_CONFIG_PATH, and 
+  library search path:</para>
 
-  <para>Remember to execute <command>ldconfig</command> after installation
-  of libraries to update the library cache.</para>
+  <itemizedlist>
+    <listitem>
+    <para>Update PATH</para>
+<screen><userinput>export PATH=$TRINITY_PREFIX/bin:$PATH</userinput></screen>
+    </listitem>
 
-  <para>If you are not installing <application>KDE</application> in
-  <filename class="directory">/usr</filename>, you will need to make some
-  configuration changes:</para>
+    <listitem>
+    <para>Update PKG_CONFIG_PATH</para>
+<screen><userinput>export PKG_CONFIG_PATH=$TRINITY_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH</userinput></screen>
+    </listitem>
 
-  <para>You should consider installing the <xref linkend="desktop-file-utils"/>
+    <listitem>
+    <para>Update the library search path</para>
+<screen><userinput>export LD_LIBRARY_PATH=$TRINITY_PREFIX/lib:$LD_LIBRARY_PATH</userinput></screen>
+    </listitem>
+
+  </itemizedlist>
+
+  <para>The instructions for making these changes permanent are in 
+  <xref linkend='kde-core-config'/>.</para>
+
+  <para>There are two other environment variables that need to be set to build
+  <application>Trinity/KDE3</application>. These are needed for all the 
+  <userinput>cmake</userinput> based packages:</para>
+
+<screen><userinput>export CMAKE_PREFIX_PATH=/opt/qt:$TRINITY_PREFIX         &amp;&amp;
+
+CMAKE_INCLUDE_PATH=/opt/qt/include:/usr/include/dbus-1.0 &amp;&amp;
+export CMAKE_INCLUDE_PATH=$CMAKE_INCLUDE_PATH:$TRINITY_PREFIX/include</userinput></screen>
+
+  <para>You should also consider installing the <xref linkend="desktop-file-utils"/>
   package. Though not required, this package will allow you to easily use
   existing <filename>.desktop</filename> files in
   <filename class='directory'>/usr/share/applications</filename> (and any other
   locations identified by <envar>XDG_DATA_DIRS</envar>), and automatically add
-  these applications to the <application>KDE</application> menu system.</para>
-
-  <para>Add to your system or personal profile:</para>
-
-<screen><literal>export PATH=$PATH:/opt/kde-&kde-version;/bin
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/kde-&kde-version;/lib/pkgconfig</literal></screen>
-
-  <para>Add to your <filename>/etc/ld.so.conf</filename>:</para>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; "EOF"
-<literal># Begin kde addition to /etc/ld.so.conf
-
-/opt/kde-&kde-version;/lib
-
-# End kde addition</literal>
-EOF</userinput></screen>
-
-  <indexterm zone="kde-pre-install-config">
-    <primary sortas="e-etc-ld.so.conf">/etc/ld.so.conf</primary>
-  </indexterm>
-
-  <para>Add to your <filename>/etc/man_db.conf</filename>:</para>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/man_db.conf &lt;&lt; "EOF"
-<literal># Begin kde addition to man_db.conf
-
-MANDATORY_MANPATH /opt/kde-&kde-version;/man
-
-# End kde addition to man_db.conf</literal>
-EOF</userinput></screen>
-
-  <indexterm zone="kde-pre-install-config">
-    <primary sortas="e-etc-man_db.conf">/etc/man_db.conf</primary>
-  </indexterm>
-
-  <tip>
-    <para>If you prefer installing KDE in <filename
-    class="directory">/opt</filename>, one trick to avoid the above configuration
-    changes every time you install a new version is to replace <filename
-    class="directory">/opt/kde-&kde-version;</filename> with <filename
-    class="directory">/opt/kde</filename> and to create a symlink from <filename
-    class="directory">/opt/kde-&kde-version;</filename> to <filename
-    class="directory">/opt/kde</filename>.</para>
-
-<screen role="root"><userinput>ln -v -sf kde-&kde-version; /opt/kde</userinput></screen>
-  </tip>
+  these applications to the menu system.</para>
 
 </sect1>

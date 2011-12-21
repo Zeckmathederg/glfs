@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY kdelibs-download-http "&kde-download-http;/kdelibs-&kde-version;.tar.bz2">
-  <!ENTITY kdelibs-download-ftp  "&kde-download-ftp;/kdelibs-&kde-version;.tar.bz2">
-  <!ENTITY kdelibs-md5sum        "43cd55ed15f63b5738d620ef9f9fd568">
-  <!ENTITY kdelibs-size          "14.9 MB">
-  <!ENTITY kdelibs-buildsize     "254 MB (additional 426 MB for API docs)">
-  <!ENTITY kdelibs-time          "13.1 SBU (additional 3.0 SBU for API docs)">
+  <!ENTITY kdelibs-download-http "&trinity-repo-http;/kdelibs-&trinity-version;.tar.gz">
+  <!ENTITY kdelibs-download-ftp  "&trinity-repo-ftp;/kdelibs-&trinity-version;.tar.gz">
+  <!ENTITY kdelibs-md5sum        "f62eefb63b4ba2141b4c576f859806dd">
+  <!ENTITY kdelibs-size          "16.6 MB">
+  <!ENTITY kdelibs-buildsize     "408 MB">
+  <!ENTITY kdelibs-time          "5.5 SBU">
 ]>
 
 <sect1 id="kdelibs" xreflabel="kdelibs-&kde-version;">
@@ -30,9 +30,9 @@
     <title>Introduction to Kdelibs</title>
 
     <para>This package includes programs and libraries that are central to the
-    development and execution of a <application>KDE</application> program,
+    development and execution of a <application>Trinity/KDE3</application> program,
     as well as internationalization files for these libraries, miscellaneous
-    HTML documentation, theme modules and regression tests.</para>
+    HTML documentation, and theme modules.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing='compact'>
@@ -55,7 +55,7 @@
         <para>Estimated build time: &kdelibs-time;</para>
       </listitem>
     </itemizedlist>
-
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -63,40 +63,31 @@
         url="&patch-root;/kdelibs-&kde-version;-charset-1.patch"/></para>
       </listitem>
     </itemizedlist>
-
+-->
     <bridgehead renderas="sect3">Kdelibs Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="qt"/></para>
+    <para role="required"><xref linkend="tqtinterface"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="aRts"/>,
-    <xref linkend="libjpeg"/>,
-    <xref linkend="libart_lgpl"/>,
-    <xref linkend="libxml2"/>,
-    <xref linkend="libxslt"/>,
-    <xref linkend="pcre"/>,
-    <xref linkend="gamin"/>,
-    <xref linkend="openssl"/>, and
-    <xref linkend="libidn"/></para>
+    <para role="recommended">
+      <xref linkend="aRts"/>,
+      <xref linkend="libjpeg"/>,
+      <xref linkend="libart_lgpl"/>,
+      <xref linkend="libidn"/>, and
+      <xref linkend="openssl"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libtiff"/>,
-    <xref linkend="aspell"/>,
-    <xref linkend="cups"/>,
-    <xref linkend="alsa"/>,
-    <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
-    <ulink url="http://www.openexr.com/">OpenEXR</ulink>,
-    <xref linkend="jasper"/>,
-    <ulink url="http://www.lua.org/">Lua</ulink> (version &lt; 5.1),
-    <ulink url="http://www.opensource.apple.com/darwinsource/tarballs/apsl/">mDNSResponder</ulink>,
-    <ulink url="http://sourceforge.net/projects/libthai">LibThai</ulink>,
-    <ulink url="http://www.ivrix.org.il/projects/spell-checker/">Hspell</ulink>,
-    <ulink url="ftp://oss.sgi.com/projects/xfs/cmd_tars/">libacl</ulink>
-    (requires <ulink url="ftp://oss.sgi.com/projects/xfs/cmd_tars/">libattr</ulink>),
-    <xref linkend="sudo"/>,
-    <xref linkend="graphviz"/>, and
-    <xref linkend="doxygen"/></para>
+    <para role="optional">
+      <xref linkend="aspell"/>,
+      <xref linkend="cups"/>,
+      <xref linkend="libtiff"/>,
+      <ulink url="http://www.openexr.com/">OpenEXR</ulink>,
+      <ulink url="http://www.ivrix.org.il/projects/spell-checker/">Hspell</ulink>, 
+      <xref linkend="sudo"/>, and 
+      <ulink url="http://packages.debian.org/sid/libutempter">utempter</ulink>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/kdelibs"/></para>
@@ -107,7 +98,7 @@
          xreflabel="KDE Libraries Runtime Dependencies">
     <title>Run-Time Dependencies</title>
 
-    <para>The <application>KDE</application> libraries access other programs at
+    <para>The <application>Trinity/KDE3</application> libraries access other programs at
     run time. One additional package that has not been mentioned already is
     <ulink url="http://packages.debian.org/unstable/source/pmount/">
     pmount</ulink>.  This enables auto-mounting of hotplugged devices at
@@ -123,37 +114,39 @@
 
     <para>Install <application>kdelibs</application> with:</para>
 
-<screen><userinput>patch -Np1 -i ../kdelibs-&kde-version;-charset-1.patch &amp;&amp;
-sed -i -e 's|linux/inotify|sys/inotify|'                 \
-       -e '/^static inline int inotify_init/,/^}/d'      \
-       -e '/^static inline int inotify_add_watch/,/^}/d' \
-       -e '/^static inline int inotify_rm_watch/,/^}/d'  \
-       kio/kio/kdirwatch.cpp &amp;&amp;
-./configure --prefix=$KDE_PREFIX  \
-            --sysconfdir=/etc/kde \
-            --disable-debug       \
-            --disable-dependency-tracking &amp;&amp;
-make</userinput></screen>
+<screen><userinput>MAKEDIR=/tmp/buildlibs &amp;&amp;
+KDELIBS=`pwd`          &amp;&amp;
+rm -rf   $MAKEDIR      &amp;&amp;
+mkdir -p $MAKEDIR      &amp;&amp;
+cd       $MAKEDIR      &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=$TRINITY_PREFIX \
+      -DCMAKE_VERBOSE_MAKEFILE=ON            \
+      $KDELIBS         &amp;&amp;
+unset KDELIBS MAKEDIR</userinput></screen>
+
+    <para>Some of the optional support programs for <application>kdelibs</application>
+    must be specified by the user.  The option is in the form "-DWITH_PKG=ON" and
+    the following options are recognozed for 'PKG': TIFF, LIBIDN, LIBART,
+    OPENEXR, UTEMPTER, ASPELL, HSPELL, and AVAHI. Other optional support 
+    programs such as CUPS are automatically recognized if present.</para>
+
+    <para>If your installation of <application>Xorg</application> is
+    not in the <filename class='directory'>/usr</filename> hierarchy,
+    ensure the linking commands search in the correct place:</para>
+   
+<screen><userinput>find -name link.txt -exec sed -i -e "s@-lX11@&amp; -L$XORG_PREFIX/lib@" {} \;</userinput></screen>
+
+    <para>Continue with the build:</para>
+
+<screen><userinput>make</userinput></screen>
 
     <note>
-
       <para>If you wish to create the API documentation and you have
       <application>Doxygen</application> and
       <application>Graphviz</application> installed, it must be done before the
       <command>make install</command>. This applies to all packages which can
       utilize <application>Doxygen</application>.</para>
-
-      <para><emphasis>The usual building of the API documentation in this package
-      will run forever because of a bug in <application>doxygen</application>
-      versions 1.5.8 and earlier.</emphasis>  There is a symbolic link in the
-      <filename class='directory'>kdeprint</filename> directory that is not
-      handled properly.  To fix this, either update to the current version of
-      <application>doxygen</application> or delete the link, generate the
-      documentation, and recreate the symbolic link:</para>
-
-      <screen><userinput>rm kdeprint/kdeprint &amp;&amp;
-make apidox &amp;&amp;
-ln -s  management kdeprint/kdeprint</userinput></screen>
 
       <para>The <command>make apidox</command> command generates a lot of
       errors and warnings.  In some cases it complains that Helvetica fonts are
@@ -166,19 +159,18 @@ ln -s  management kdeprint/kdeprint</userinput></screen>
       properties on your system.</para>
 
       <para>The documents generated are HTML and are found in <filename
-      class='directory'>&kde-dir;/share/doc/HTML/en/kdelibs-apidocs</filename>.
+      class='directory'>$TRINITY_PREFIX/share/doc/HTML/en/kdelibs-apidocs</filename>.
       </para>
     </note>
 
-    <para>This package does not come with a test suite that works with
-    <application>GCC</application>-&gcc-version;.</para>
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install</userinput></screen>
 
   </sect2>
-
+<!--
   <sect2 role="commands">
     <title>Command Explanations</title>
 
@@ -186,16 +178,16 @@ ln -s  management kdeprint/kdeprint</userinput></screen>
     necessary to prevent a conflict in linux headers.  The equivalent
     instructions that are deleted are now within glibc.</para>
 
-    <para><parameter>--prefix=&kde-dir;</parameter>: This option tells the process
+    <para><parameter>- -prefix=&kde-dir;</parameter>: This option tells the process
     to install the package in <filename class="directory">&kde-dir;</filename>.</para>
 
-    <para><parameter>--disable-debug</parameter>: This option causes the
+    <para><parameter>- -disable-debug</parameter>: This option causes the
     package to be compiled without debugging code.</para>
 
-    <para><parameter>--disable-dependency-tracking</parameter>: This option
+    <para><parameter>- -disable-dependency-tracking</parameter>: This option
     speeds up one time builds.</para>
 
-    <para><parameter>--sysconfdir=/etc/kde</parameter>: This option places
+    <para><parameter>- -sysconfdir=/etc/kde</parameter>: This option places
     configuration files in compliance with the <ulink
     url='http://www.pathname.com/fhs/pub/fhs-2.3.html#ETCHOSTSPECIFICSYSTEMCONFIGURATION'
     >Filesystem Hierarchy Standard</ulink>.  If you omit this parameter, the
@@ -204,7 +196,7 @@ ln -s  management kdeprint/kdeprint</userinput></screen>
     you have multiple versions of <application>KDE</application> installed.</para>
 
   </sect2>
-
+-->
   <sect2 role="content">
     <title>Contents</title>
 
@@ -269,8 +261,7 @@ ln -s  management kdeprint/kdeprint</userinput></screen>
 
     <para>The number of programs and libraries installed by
     <application>kdelibs</application> prohibits an explanation of each one
-    in this section. Instead, see the <ulink url="http://docs.kde.org/">KDE
-    Documentation</ulink>.</para>
+    in this section.</para>
 
   </sect2>
 

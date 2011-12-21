@@ -4,15 +4,15 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY arts-download-http "&kde-download-http;/arts-&arts-version;.tar.bz2">
-  <!ENTITY arts-download-ftp  "&kde-download-ftp;/arts-&arts-version;.tar.bz2">
-  <!ENTITY arts-md5sum        "6da172aab2a4a44929b5fdfc30fa3efc">
-  <!ENTITY arts-size          "956 KB">
-  <!ENTITY arts-buildsize     "28 MB">
-  <!ENTITY arts-time          "1.4 SBU">
+  <!ENTITY arts-download-http "&trinity-repo-http;/arts-&trinity-version;.tar.gz">
+  <!ENTITY arts-download-ftp  "&trinity-repo-ftp;/arts-&trinity-version;.tar.gz">
+  <!ENTITY arts-md5sum        "109124dabb1aaa9d44eb32e43b549142">
+  <!ENTITY arts-size          "920 KB">
+  <!ENTITY arts-buildsize     "36 MB">
+  <!ENTITY arts-time          "0.6 SBU">
 ]>
 
-<sect1 id="aRts" xreflabel="aRts-&arts-version;">
+<sect1 id="aRts" xreflabel="aRts-&trinity-version;">
   <?dbhtml filename="aRts.html"?>
 
   <sect1info>
@@ -20,7 +20,7 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>aRts-&arts-version;</title>
+  <title>aRts-&trinity-version;</title>
 
   <indexterm zone='aRts'>
     <primary sortas='a-ARts'>aRts</primary>
@@ -30,8 +30,8 @@
     <title>Introduction to aRts</title>
 
     <para>The Analog Real-time Synthesizer (<application>aRts</application>)
-    provides sound support for <application>KDE</application> and necessary
-    libraries for <application>kdelibs</application>.</para>
+    provides sound support for <application>Trinity</application> programs 
+    and libraries.</para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing='compact'>
@@ -58,21 +58,15 @@
     <bridgehead renderas="sect3">aRts Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="qt"/> and
-    <xref linkend="glib2"/></para>
-
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="libjpeg"/></para>
-
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="libvorbis"/>,
-    <xref linkend="alsa"/>,
-    <xref linkend="audiofile"/>,
-    <xref linkend="libmad"/>,
-    <xref linkend="esound"/>,
-<!--    <xref linkend="nas"/>, -->
-    <ulink url="http://www.mediaapplicationserver.net/">MAS</ulink>, and
-    <ulink url="http://jackit.sourceforge.net/">JACK</ulink></para>
+    <para role="required">
+      <xref linkend="alsa"/>,
+      <xref linkend="audiofile"/>,
+      <xref linkend="cmake"/>,
+      <xref linkend="glib2"/>
+      <xref linkend="libmad"/>,
+      <xref linkend="libvorbis"/>, and
+      <xref linkend="qt"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/arts"/></para>
@@ -82,15 +76,27 @@
   <sect2 role="installation">
     <title>Installation of aRts</title>
 
+    <note><para>When extracted, the <application>aRts</application> tar 
+    file expands into the directory 
+    <filename class='directory'>dependencies/arts</filename>.</para></note>
+
     <para>Install <application>aRts</application> by running
     the following commands:</para>
 
-<screen><userinput>./configure --prefix=&kde-dir; --disable-debug \
-    --disable-dependency-tracking --enable-final &amp;&amp;
+<screen><userinput>BUILD=/tmp/buildarts &amp;&amp;
+ARTS=`pwd`           &amp;&amp;
+rm -rf   $BUILD      &amp;&amp;
+mkdir -p $BUILD      &amp;&amp;
+cd       $BUILD      &amp;&amp;
+
+cmake $ARTS                              \
+  -DCMAKE_INSTALL_PREFIX=$TRINITY_PREFIX \
+  -DCMAKE_VERBOSE_MAKEFILE=ON &amp;&amp;
+
+unset ARTS BUILD     &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite that works with
-    <application>GCC</application>-&gcc-version;.</para>
+    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -101,21 +107,21 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--prefix=&kde-dir;</parameter>: This option
-    tells the process to install the package in
-    <filename class="directory">&kde-dir;</filename>.
-    <application>aRts</application> is installed here as it's required
-    before installing <application>KDE</application>.</para>
+    <para><userinput>ARTS=`pwd`</userinput>: This command saves the 
+    location of the <application>aRts</application> source code.</para>
 
-    <para><parameter>--disable-debug</parameter>: This option causes the
-    package to be compiled without debugging code.</para>
+    <para><userinput>rm -rf /tmp/buildarts; mkdir -p /tmp/buildarts; cd
+    /tmp/buildarts</userinput>:  The developers strongly recommend building
+    Trinity components in a directory separate from the source code.  These
+    commands ensure a clean starting location for the build process.</para>
 
-    <para><parameter>--disable-dependency-tracking</parameter>: This option
-    speeds up one time builds.</para>
+    <para><option>-DCMAKE_INSTALL_PREFIX=$TRINITY_PREFIX</option>: This option
+    is the equivalent of the ./configure <option>--prefix</option>
+    option.</para>
 
-    <para><parameter>--enable-final</parameter>: This option combines
-    source code during compilation speeding up the build.  It also
-    avoids a problem with missing headers in some files.</para>
+    <para><option>-DCMAKE_VERBOSE_MAKEFILE=ON</option>: This option
+    provides verrbose messages when <userinput>make</userinput> is
+    run.</para>
 
   </sect2>
 
@@ -128,11 +134,13 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>artsd, artswrapper, artsshell, artsplay, artsdsp, artscat, artscontrol,
-        artsc-config, and mcopidl</seg>
+        <seg>artsc-config, artscat, artsd, artsdsp, artsplay, artsrec, 
+        artsshell, artswrapper, and mcopidl </seg>
+
         <seg>aRts libraries</seg>
-        <seg>The following subdirectories of &kde-dir;/: bin, include/arts,
-        include/artsc, and lib/mcop</seg>
+        
+        <seg>The following subdirectories of $TRINITY_PREFIX: bin, 
+        include/arts, include/artsc, and lib/mcop</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -141,12 +149,86 @@ make</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
+      <varlistentry id="artsc-config">
+        <term><command>artsc-config</command></term>
+        <listitem>
+          <para>is a utility to assist developers using the
+          <application>aRts</application> C API.</para>
+          <indexterm zone="aRts  artsc-config">
+            <primary sortas="b-artsc-config">artsc-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="artscat">
+        <term><command>artscat</command></term>
+        <listitem>
+          <para>is a simple utility to send raw audio data to the sound server.</para>
+          <indexterm zone="aRts artscat">
+            <primary sortas="b-artscat">artscat</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="artsd">
         <term><command>artsd</command></term>
         <listitem>
           <para>is a daemon that provides access to the sound hardware resources.</para>
           <indexterm zone="aRts artsd">
             <primary sortas="b-artsd">artsd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="artsdsp">
+        <term><command>artsdsp</command></term>
+        <listitem>
+          <para>provides an interim solution that allows most of legacy
+          sound applications to run unchanged.</para>
+          <indexterm zone="aRts artsdsp">
+            <primary sortas="b-artsdsp">artsdsp</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libaRts">
+        <term><filename class='libraryfile'>aRts Libraries</filename></term>
+        <listitem>
+          <para>contains functions that support <application>aRts</application>
+          programs.</para>
+          <indexterm zone="aRts libaRts">
+            <primary sortas="c-libaRts">aRts Libraries</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="artsplay">
+        <term><command>artsplay</command></term>
+        <listitem>
+          <para>is a simple utility to play a sound file.</para>
+          <indexterm zone="aRts artsplay">
+            <primary sortas="b-artsplay">artsplay</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="artsrec">
+        <term><command>artsrec</command></term>
+        <listitem>
+          <para>is a simple utility to record audio input.</para>
+          <indexterm zone="aRts artsrec">
+            <primary sortas="b-artsrec">artsrec</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="artsshell">
+        <term><command>artsshell</command></term>
+        <listitem>
+          <para>is intended as a utility to perform miscellaneous functions
+          related to the sound server.</para>
+          <indexterm zone="aRts artsshell">
+            <primary sortas="b-artsshell">artsshell</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -163,70 +245,6 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="artsshell">
-        <term><command>artsshell</command></term>
-        <listitem>
-          <para>is intended as a utility to perform miscellaneous functions
-          related to the sound server.</para>
-          <indexterm zone="aRts artsshell">
-            <primary sortas="b-artsshell">artsshell</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="artsplay">
-        <term><command>artsplay</command></term>
-        <listitem>
-          <para>is a simple utility to play a sound file.</para>
-          <indexterm zone="aRts artsplay">
-            <primary sortas="b-artsplay">artsplay</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="artsdsp">
-        <term><command>artsdsp</command></term>
-        <listitem>
-          <para>provides an interim solution that allows most of legacy
-          sound applications to run unchanged.</para>
-          <indexterm zone="aRts artsdsp">
-            <primary sortas="b-artsdsp">artsdsp</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="artscat">
-        <term><command>artscat</command></term>
-        <listitem>
-          <para>is a simple utility to send raw audio data to the sound server.</para>
-          <indexterm zone="aRts artscat">
-            <primary sortas="b-artscat">artscat</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="artscontrol">
-        <term><command>artscontrol</command></term>
-        <listitem>
-          <para>is a graphical utility for performing a number of tasks
-          related to the sound server.</para>
-          <indexterm zone="aRts  artscontrol">
-            <primary sortas="b-artscontrol">artscontrol</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="artsc-config">
-        <term><command>artsc-config</command></term>
-        <listitem>
-          <para>is a utility to assist developers using the
-          <application>aRts</application> C API.</para>
-          <indexterm zone="aRts  artsc-config">
-            <primary sortas="b-artsc-config">artsc-config</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="mcopidl">
         <term><command>mcopidl</command></term>
         <listitem>
@@ -238,19 +256,8 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libaRts">
-        <term><filename class='libraryfile'>aRts Libraries</filename></term>
-        <listitem>
-          <para>contains functions that support <application>aRts</application>
-          programs.</para>
-          <indexterm zone="aRts libaRts">
-            <primary sortas="c-libaRts">aRts Libraries</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
     </variablelist>
-
+<!--
     <para>To find out information about <application>aRts</application> and the
     various programs included in the package, see <ulink
     url="http://docs.kde.org/development/en/kdemultimedia/artsbuilder/">The
@@ -258,7 +265,7 @@ make</userinput></screen>
     other then English, see the <ulink url="http://docs.kde.org/">KDE
     Documentation</ulink> and navigate to the <application>aRts</application>
     documentation in your language.</para>
-
+-->
   </sect2>
 
 </sect1>
