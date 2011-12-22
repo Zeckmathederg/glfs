@@ -3,12 +3,12 @@
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
-  <!ENTITY kdeadmin-download-http "&kde-download-http;/kdeadmin-&kde-version;.tar.bz2">
-  <!ENTITY kdeadmin-download-ftp  "&kde-download-ftp;/kdeadmin-&kde-version;.tar.bz2">
-  <!ENTITY kdeadmin-md5sum        "eb23c52c945f31a48f2c9df4330a1262">
-  <!ENTITY kdeadmin-size          "2.0 MB">
-  <!ENTITY kdeadmin-buildsize     "26 MB">
-  <!ENTITY kdeadmin-time          "1.6 SBU">
+  <!ENTITY kdeadmin-download-http "&trinity-repo-http;/kdeadmin-&trinity-version;.tar.bz2">
+  <!ENTITY kdeadmin-download-ftp  "&trinity-repo-ftp;/kdeadmin-&trinity-version;.tar.bz2">
+  <!ENTITY kdeadmin-md5sum        "b8bbabf353070a3e730464e0ce2960e2">
+  <!ENTITY kdeadmin-size          "1.9 MB">
+  <!ENTITY kdeadmin-buildsize     "132 MB">
+  <!ENTITY kdeadmin-time          "1.4 SBU">
 ]>
 
 <sect1 id="kdeadmin">
@@ -19,7 +19,7 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>Kdeadmin-&kde-version;</title>
+  <title>Kdeadmin-&trinity-version;</title>
 
   <indexterm zone="kdeadmin">
     <primary sortas="a-kdeadmin">Kdeadmin</primary>
@@ -58,15 +58,21 @@
     <bridgehead renderas="sect3">Kdeadmin Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="kdebase"/></para>
+    <para role="required">
+      <xref linkend="kdebase"/>
+    </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="libjpeg"/> and
-    <xref linkend="libxml2"/></para>
+    <para role="recommended">
+      <xref linkend="libjpeg"/> and
+      <xref linkend="libxml2"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="linux-pam"/> and
-    <ulink url="http://lilo.go.dyndns.org/">LILO</ulink></para>
+    <para role="optional">
+      <xref linkend="linux-pam"/> and
+      <ulink url="http://lilo.go.dyndns.org/">LILO</ulink>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/kdeadmin"/></para>
@@ -87,8 +93,18 @@
 
     <para>Install <application>kdeadmin</application> with:</para>
 
-<screen><userinput>./configure --prefix=&kde-dir; --disable-debug \
-    --disable-dependency-tracking &amp;&amp;
+<screen><userinput> 
+cp -v /usr/share/aclocal/libtool.m4       admin/libtool.m4.in &amp;&amp;
+cp -v /usr/share/libtool/config/ltmain.sh admin/ltmain.sh     &amp;&amp;
+sed -i -e "s@/usr/include/tqt@$TRINITY_PREFIX/include/tqt@" admin/acinclude.m4.in &amp;&amp;
+make -f admin/Makefile.common                                 &amp;&amp;
+
+./configure --prefix=$TRINITY_PREFIX \
+            --enable-closure         \
+            --sysconfdir=/etc        \
+            --localstatedir=/var     \
+            --with-extra-libs=$TRINITY_PREFIX/lib &amp;&amp;
+
 make</userinput></screen>
 
    <para>This package does not come with a test suite.</para>
@@ -96,6 +112,24 @@ make</userinput></screen>
    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>cp -v /usr/share/... admin/...</command>: 
+    Ensure the .m4 files are consistent with the current autotools version.</para>
+
+    <para><command>sed ... admin/acinclude.m4.in</command>: 
+    Update the paths to the Trinity libraries.</para>
+
+    <para><command>make -f admin/Makefile.common</command>: Create the configure
+    script.</para>
+
+    <para><parameter>--with-extra-libs=$TRINITY_PREFIX/lib</parameter>: This
+    option ensure the Trinity libraries are found in the
+    <filename>Makefile</filename>s.</para>
 
   </sect2>
 
@@ -108,9 +142,9 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>kcron, kdat, kpackage, ksysv, and kuser</seg>
-        <seg>None</seg>
-        <seg>None</seg>
+        <seg>kcron, kdat, kpackage, ksysv, kuser, and secpolicy</seg>
+        <seg>kcm_knetworkconfmodule.so, kfile_deb.so, and kfile_rpm.so</seg>
+        <seg>$TRINITY_PREFIX/lib/trinity</seg>
       </seglistitem>
     </segmentedlist>
 
