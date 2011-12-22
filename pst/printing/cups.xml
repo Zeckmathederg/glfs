@@ -12,7 +12,7 @@
   <!ENTITY cups-time          "0.7 SBU">
 ]>
 
-<sect1 id="cups" xreflabel="CUPS-&cups-version;">
+<sect1 id="cups" xreflabel="Cups-&cups-version;">
   <?dbhtml filename="cups.html"?>
 
   <sect1info>
@@ -20,14 +20,14 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>CUPS-&cups-version;</title>
+  <title>Cups-&cups-version;</title>
 
   <indexterm zone="cups">
-    <primary sortas="a-CUPS">CUPS</primary>
+    <primary sortas="a-Cups">Cups</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to CUPS</title>
+    <title>Introduction to Cups</title>
 
     <para>The Common Unix Printing System (CUPS) is a print spooler and
     associated utilities. It is based on the "Internet Printing
@@ -57,16 +57,8 @@
         <para>Estimated build time: &cups-time;</para>
       </listitem>
     </itemizedlist>
-<!--
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/cups-&cups-version;-fix_broken_locking-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
--->
-    <bridgehead renderas="sect3">CUPS Dependencies</bridgehead>
+
+    <bridgehead renderas="sect3">Cups Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
@@ -103,56 +95,80 @@
 
   </sect2>
 
+  <sect2 role="kernel" id="cups-kernel">
+    <title>Kernel Configuration</title>
+
+    <para>If you have a parallel printer enable the following options in your
+    kernel configuration and recompile the kernel:</para>
+
+<screen><literal>Device Drivers  ---&gt;
+  [*] Parallel port support  ---&gt;
+    [*]   PC-style hardware
+...
+  Character devices  ---&gt;
+    [*] Parallel printer support</literal></screen>
+
+    <note><para>If you have a USB printer there is a conflict between the
+    <application>Cups</application> <application>libusb</application>
+    backend and the kernel driver. If you want to use
+    <application>Cups</application> with <application>libusb</application>
+    support <emphasis>do not</emphasis> enable USB Printer support in your
+    kernel and remove the <option>--disable-libusb</option> when you
+    configure <application>Cups</application>.</para></note>
+
+    <para>If you want to use the kernel usblp driver enable the following
+    options in your kernel configuration and recompile the kernel:</para>
+
+<screen>Device Drivers  ---&gt;
+  [*] USB support  ---&gt;
+...
+Enable support for either UHCI or OHCI, not both:
+    [*]   OHCI HCD support
+    [*]   UHCI HCD (most Intel and VIA) support
+...
+    [*]   USB Printer support</screen>
+
+    <indexterm zone="cups cups-kernel">
+      <primary sortas="d-cups">cups</primary>
+    </indexterm>
+
+  </sect2>
+
   <sect2 role="installation">
-    <title>Installation of CUPS</title>
+    <title>Installation of Cups</title>
 
     <para>Create an <systemitem class="username">lp</systemitem> user, as
-    <application>CUPS</application> will create some files owned by this user.
+    <application>Cups</application> will create some files owned by this user.
     (The <systemitem class="username">lp</systemitem> user is the default used
-    by <application>CUPS</application>, but may be changed to a different user
+    by <application>Cups</application>, but may be changed to a different user
     by passing a parameter to the <command>configure</command> script.) Use the
     following command as the <systemitem class="username">root</systemitem>
     user:</para>
 
 <screen role="root"><userinput>useradd -c "Print Service User" -d /dev/null -g lp -s /bin/false -u 9 lp</userinput></screen>
 
-    <note>
-      <para>If you plan to use a USB printer with
-      <application>CUPS</application>, do not enable the
-      <quote>usblp</quote> driver as either built-in or as a module in
-      your kernel configuration as it will cause the new 
-      <application>CUPS</application> USB backend to fail.
-      <filename>/var/log/sys.log</filename> will contain entries similar to the
-      following:</para>
-
-      <screen>kernel: [54631.796465] usb 4-1: usbfs: interface 0 claimed by usblp while 'usb' 
-sets config #1</screen>
-
-      <para>The kernel config option is
-      <parameter>CONFIG_USB_PRINTER</parameter> and can be found in menuconfig
-      under <quote>Device Drivers ---> USB support ---> USB Printer
-      support</quote>.</para>
-    </note>
-
-    <para>Install <application>CUPS</application> by running the
+    <para>Install <application>Cups</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
+<screen><userinput>sed -i 's#@CUPS_HTMLVIEW@#firefox#' desktop/cups.desktop.in &amp;&amp;
+./configure --localstatedir=/var --disable-libusb --with-rcdir=/tmp &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>. This will
     run a basic test suite without any load testing. If you wish to run the
-    tests specifying non-default parameters, issue: <command>make test</command>.
-    Note that the <quote>torture load testing</quote> test uses more resources
-    than those displayed in the prompt.</para>
+    tests specifying non-default parameters, issue:
+    <command>make test</command>. Note that the <quote>torture load
+    testing</quote> test uses more resources than those displayed in the
+    prompt.</para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>Now, as the <systemitem class="username">root</systemitem>
+    user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 mv -v /usr/share/doc/cups /usr/share/doc/cups-&cups-version;</userinput></screen>
 
     <para>The <application>man</application> files are installed in compressed
-    (<filename class='extension'>.gz</filename>) format. If desired, use the
+    (<filename class="extension">.gz</filename>) format. If desired, use the
     following commands to uncompress them as the 
     <systemitem class="username">root</systemitem> user:</para>
 
@@ -171,58 +187,51 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para>The basic default behavior of the installation is appropriate for
-    LFS systems. <application>CUPS</application> files are placed in
-    <filename class="directory">/usr/{bin,include,lib,sbin,share/cups}</filename>,
-    <filename class="directory">/var/{cache,log,run,spool}</filename>, and
-    <filename class="directory">/etc/{cups,pam.d,dbus-1/system.d}</filename></para>
+    <para><command>sed -i 's#@CUPS_HTMLVIEW@#firefox#' ...</command>: This
+     changes the browser that the <application>Cups</application> desktop file
+     uses for its web interface.</para>
+
+    <para><option>--localstatedir=/var</option>: This changes the location of
+    the cache, log, run and spool directories from /usr/var to /var.</para>
+
+    <para><option>--disable-libusb</option>: This disables the
+    <application>Cups</application> <application>libusb</application> backend.
+    If you&apos;d like <application>Cups</application> to use
+    <application>libusb</application>, delete this option and make sure you
+    compile your kernel with: # CONFIG_USB_PRINTER is not set</para>
+
+    <para><option>--with-rcdir=/tmp</option>: This option makes it install its
+    bootscript into <filename class="directory">/tmp</filename> instead of
+    <filename class="directory">/etc/rc.d</filename>.</para>
 
   </sect2>
 
   <sect2 role="configuration">
-    <title>Configuring CUPS</title>
+    <title>Configuring Cups</title>
 
-    <para>Configuration of <application>CUPS</application> is dependent on
+    <para>Configuration of <application>Cups</application> is dependent on
     the type of printer and can be complex. Generally, PostScript printers
     are easier. For detailed instructions on configuration and use of
-    <application>CUPS</application>, see <ulink
+    <application>Cups</application>, see <ulink
     url="http://www.cups.org/documentation.php"/>. The Software Administrators
     Manual and Software Users Manual are particularly useful.</para>
 
     <para>For non-PostScript printers to print with
-    <application>CUPS</application>, you need to install
-    <xref linkend="gs"/> to convert PostScript to raster images
-    and a driver (e.g., from <xref linkend="gutenprint"/>) to convert
-    the resulting raster images to a form that the printer understands.
+    <application>Cups</application>, you need to install <xref linkend="gs"/>
+    to convert PostScript to raster images and a driver (e.g., from
+    <xref linkend="gutenprint"/>) to convert the resulting raster images to a
+    form that the printer understands.
     <ulink url="http://www.linuxprinting.org/foomatic.html">Foomatic</ulink>
     drivers use Ghostscript to convert PostScript to a printable form directly,
     but this is considered to be a hack by
-    <application>CUPS</application> developers.</para>
-
-<!-- This should be obvious, not to mention the new problem with usblp.
-     Omitting completely for now.
-
-    <sect3 role="kernel" id="cups-kernel">
-      <title>Kernel Configuration</title>
-
-      <para>To use your printer you will likely need the appropriate drivers
-      enabled in the kernel &mdash; for example, <quote>Parallel printer
-      support</quote> if you have a parallel port printer, or <quote>USB Printer
-      support</quote> for a USB printer.</para>
-
-    </sect3>
--->
+    <application>Cups</application> developers.</para>
 
     <sect3 id="cups-init">
       <title>Boot Script</title>
 
-      <para>During the installation, <application>CUPS</application> added
-      startup files in <filename class="directory">/etc/rc.d</filename>.
-      These scripts will work in most cases, but will fail if you provide
-      printers to <application>Samba</application> clients.  Additionally,
-      they are not consistent with standard LFS style scripts.  Replace the
-      installed scripts with the scripts and symlinks included in the
-      <xref linkend="bootscripts"/> package:</para>
+      <para>If you want the <application>Cups</application> to start
+      automatically when the system is booted, install the init script included
+      in the <xref linkend="bootscripts"/> package:</para>
 
       <indexterm zone="cups cups-init">
         <primary sortas="f-cups">cups</primary>
@@ -246,12 +255,14 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
         <seg>accept, cancel, cups-config, cupsaccept, cupsaddsmb, cupsctl,
         cupsd, cupsdisable, cupsenable, cupsfilter, cupsreject, cupstestdsc,
         cupstestppd, lp, lpadmin, lpc, lpinfo, lpmove, lpoptions, lppasswd,
-        lpq, lpr, lprm, lpstat, ppdc, ppdhtml, ppdi, ppdmerge, ppdpo, reject</seg>
-        <seg>libcups.{so,a}, libcupscgi.{so,a}, libcupsdriver.{so,a},
-        libcupsimage.{so,a}, libcupsmime.{so,a}, libcupsppdc.{so,a}, and
+        lpq, lpr, lprm, lpstat, ppdc, ppdhtml, ppdi, ppdmerge, ppdpo,
+        reject</seg>
+        <seg>libcups.so, libcupscgi.so, libcupsdriver.so,
+        libcupsimage.so, libcupsmime.so, libcupsppdc.so, and
         various filters and backend drivers</seg>
-        <seg>/etc/cups, /usr/{include,lib,share}/cups, /usr/share/doc/cups-&cups-version;, and
-        /var/{cache,log,run,spool}/cups</seg>
+        <seg>/etc/cups, /usr/include/cups, /usr/lib/cups, /usr/share/cups,
+        /usr/share/doc/cups-&cups-version;, /var/cache/cups, /var/log/cups,
+        /var/run/cups and /var/spool/cups.</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -284,7 +295,7 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
       <varlistentry id="cups-config">
         <term><command>cups-config</command></term>
         <listitem>
-          <para>is a <application>CUPS</application>
+          <para>is a <application>Cups</application>
           program configuration utility.</para>
           <indexterm zone="cups cups-config">
             <primary sortas="b-cups-config">cups-config</primary>
@@ -357,7 +368,7 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
         <term><command>lpadmin</command></term>
         <listitem>
           <para>configures printer and class queues provided by
-          <application>CUPS</application>.</para>
+          <application>Cups</application>.</para>
           <indexterm zone="cups lpadmin">
             <primary sortas="b-lpadmin">lpadmin</primary>
           </indexterm>
@@ -368,7 +379,7 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
         <term><command>lpc</command></term>
         <listitem>
           <para> provides limited control over printer and class queues
-          provided by <application>CUPS</application>.</para>
+          provided by <application>Cups</application>.</para>
           <indexterm zone="cups lpc-cups">
             <primary sortas="b-lpc">lpc</primary>
           </indexterm>
@@ -379,7 +390,7 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
         <term><command>lpinfo</command></term>
         <listitem>
           <para>lists the available devices or drivers known to the
-          <application>CUPS</application> server.</para>
+          <application>Cups</application> server.</para>
           <indexterm zone="cups lpinfo">
             <primary sortas="b-lpinfo">lpinfo</primary>
           </indexterm>
@@ -410,7 +421,7 @@ ln -v -s cupsenable.8 /usr/share/man/man8/cupsdisable.8</userinput></screen>
         <term><command>lppasswd</command></term>
         <listitem>
           <para>adds, changes or deletes passwords in the
-          <application>CUPS</application> digest password file
+          <application>Cups</application> digest password file
           <filename>passwd.md5</filename>.</para>
           <indexterm zone="cups lppasswd">
             <primary sortas="b-lppasswd">lppasswd</primary>
