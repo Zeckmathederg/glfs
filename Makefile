@@ -12,6 +12,7 @@ CHUNK_QUIET = 1
 ROOT_ID =
 PDF_OUTPUT = BLFS-BOOK.pdf
 NOCHUNKS_OUTPUT = BLFS-BOOK.html
+SHELL = /bin/bash
 
 ALLXML := $(filter-out $(RENDERTMP)/%, \
 	$(wildcard *.xml */*.xml */*/*.xml */*/*/*.xml */*/*/*/*.xml))
