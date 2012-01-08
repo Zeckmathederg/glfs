@@ -5,10 +5,10 @@
   %general-entities;
   <!ENTITY kdepim-download-http "&trinity-repo-http;/kdepim-&kde-version;.tar.gz">
   <!ENTITY kdepim-download-ftp  "&trinity-repo-ftp;/kdepim-&kde-version;.tar.gz">
-  <!ENTITY kdepim-md5sum        "fc93e458a8eec8131ede56cff30c28b2">
-  <!ENTITY kdepim-size          "13.9 MB">
-  <!ENTITY kdepim-buildsize     "267 MB (additional 245 MB for API docs)">
-  <!ENTITY kdepim-time          "24 SBU (additional 0.9 SBU for API docs)">
+  <!ENTITY kdepim-md5sum        "4488062d5400bdd99642fe0b72ebcf9a">
+  <!ENTITY kdepim-size          "12.8 MB">
+  <!ENTITY kdepim-buildsize     "347 MB">
+  <!ENTITY kdepim-time          "6.4 SBU">
 ]>
 
 <sect1 id="kdepim" xreflabel="kdepim-&trinity-version;">
@@ -32,6 +32,8 @@
     <application>KDE</application> programs for managing personal information.
     Programs include a contact manager, calendar, mail utilities, newsreader,
     X.509 certificate manager, and sticky notes.</para>
+
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing='compact'>
@@ -87,8 +89,7 @@
       <xref linkend="cyrus-sasl"/>,
       <xref linkend="pilot-link"/>,
       <xref linkend="gnupg"/> or 
-      <ulink url="http://www.gnupg.org/download/index.html#gpgme">GPGME</ulink>
-        (requires <xref linkend="gnupg2"/>),
+      <xref linkend="gpgme"/>,
       <ulink url="http://www.opensync.org">OpenSync</ulink>,
       <ulink url="http://jasonday.home.att.net/code/libmal/libmal.html">libmal</ulink>,
       <ulink url="http://www.gnokii.org/">gnokii</ulink>,
@@ -108,16 +109,19 @@
 
     <para>Install <application>kdepim</application> with:</para>
 
-<screen><userinput>sed -i "s@ \*/@&amp;\n#define HAVE_FOPENCOOKIE@" \
-    libkdenetwork/libgpgme-copy/{assuan,gpgme}/funopen.c &amp;&amp;
-sed -i -e 's|linux/inotify|sys/inotify|'                 \
-       -e '/^static inline int inotify_init/,/^}/d'      \
-       -e '/^static inline int inotify_add_watch/,/^}/d' \
-       -e '/^static inline int inotify_rm_watch/,/^}/d'  \
-       kmail/editorwatcher.cpp &amp;&amp;
-patch -Np1 -i ../kdepim-&kde-version;-charset-1.patch &amp;&amp;
-./configure --prefix=&kde-dir; --disable-debug \
-    --disable-dependency-tracking &amp;&amp;
+<screen><userinput>KDEPIM=`pwd`         &amp;&amp;
+rm -rf   $MAKEDIR    &amp;&amp;
+mkdir -p $MAKEDIR    &amp;&amp;
+cd       $MAKEDIR    &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=$TRINITY_PREFIX \
+      -DCMAKE_VERBOSE_MAKEFILE=ON            \
+      -DWITH_ARTS=ON                         \
+      -DBUILD_ALL=ON                         \
+      -DBUILD_INDEXLIB=OFF                   \
+      $KDEPIM        &amp;&amp;
+
+unset KDEPIM MAKEDIR &amp;&amp;
 make</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -134,14 +138,8 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i ... funopen.c</command>: This prevents an error
-    during build that is caused by <command>configure</command> not
-    properly detecting a capability built into <filename>glibc</filename>.
-    </para>
-
-    <para><command>sed -i ... kmail/editorwatcher.cpp</command>: This This
-    command is necessary to prevent a conflict in linux headers. The equivalent
-    instructions that are deleted are now within glibc.</para>
+    <para><option>-DBUILD_INDEXLIB=OFF</option>: This option requires
+    <ulink url="http://www.boost.org">Boost</ulink>.</para>
 
   </sect2>
 
