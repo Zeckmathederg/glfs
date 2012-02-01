@@ -4,17 +4,16 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY sqlite-dl-version    "3070800">
+  <!ENTITY sqlite-dl-version    "3071000">
   <!ENTITY sqlite-download-http "http://sqlite.org/sqlite-autoconf-&sqlite-dl-version;.tar.gz">
   <!ENTITY sqlite-download-ftp  " ">
-  <!ENTITY sqlite-md5sum        "6bfb46d73caaa1bbbcd2b52184b6c542">
+  <!ENTITY sqlite-md5sum        "9ed2ca93577b58cfa0d01f64b9312ab9">
   <!ENTITY sqlite-size          "1.7 MB">
   <!ENTITY sqlite-buildsize     "46 MB (includes optional documentation)">
   <!ENTITY sqlite-time          "0.4 SBU">
 
-  <!ENTITY sqlite-docs-version  "3070800">
-  <!ENTITY sqlite-docs-md5sum   "56c2e37c65075c612710ae1aba9703f2">
-  <!ENTITY sqlite-docs-size     "3.3 MB">
+  <!ENTITY sqlite-docs-md5sum   "d4c8070ea2cec54b77002c265e680b0f">
+  <!ENTITY sqlite-docs-size     "3.5 MB">
   <!ENTITY sqlite-docs-download "http://sqlite.org/sqlite-doc-&sqlite-dl-version;.zip">
 ]>
 
@@ -80,7 +79,8 @@
     <bridgehead renderas="sect3">SQLite Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="unzip"/> (Required to unzip the documentation)</para>
+    <para role="optional"><xref linkend="unzip"/> (required to unzip the
+    documentation)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/sqlite"/></para>
@@ -93,16 +93,17 @@
     <para>If you downloaded the optional documentation, issue the following
     command to install the documentation into the source tree:</para>
 
-<screen><userinput>unzip -q ../sqlite-doc-&sqlite-docs-version;.zip</userinput></screen>
+<screen><userinput>unzip -q ../sqlite-doc-&sqlite-dl-version;.zip</userinput></screen>
 
     <para>Install <application>SQLite</application> by running the following
     commands:</para>
 
-<screen><userinput>CFLAGS="-g -O2 -DSQLITE_SECURE_DELETE -DSQLITE_ENABLE_UNLOCK_NOTIFY=1" \
-            ./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --enable-threadsafe \
             --enable-readline \
-            --enable-dynamic-extensions &amp;&amp;
+            --disable-static \
+            --enable-dynamic-extensions \
+  CFLAGS="-g -O2 -DSQLITE_SECURE_DELETE=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1" &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -116,22 +117,21 @@ make</userinput></screen>
     install it:</para>
 
 <screen role="root"><userinput>install -v -m755 -d /usr/share/doc/sqlite-&sqlite-version; &amp;&amp;
-cp      -v -R       sqlite-doc-&sqlite-docs-version;/* \
-                    /usr/share/doc/sqlite-&sqlite-version;</userinput></screen>
-
+cp -v -R sqlite-doc-&sqlite-dl-version;/* /usr/share/doc/sqlite-&sqlite-version;</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>CFLAGS="-g -O2 -DSQLITE_SECURE_DELETE -DSQLITE_ENABLE_UNLOCK_NOTIFY=1"
-    </parameter>: Applications such as <application>firefox</application> require
-    secure delete and enable unlock notify to be turned on.  The only way to do
-    this is to include them in the CFLAGS.  By default, these are set to
-    <literal>"-g -O2"</literal> so we specify that to preserve those settings.
-    You may, of course, wish to omit the <literal>'-g'</literal> if you do not
-    wish to create debugging information.  For further information on what can
-    be specified see <ulink url="http://www.sqlite.org/compile.html"/>.</para>
+    <para><parameter>CFLAGS="-g -O2 -DSQLITE_SECURE_DELETE
+    -DSQLITE_ENABLE_UNLOCK_NOTIFY=1"</parameter>: Applications such as
+    <application>firefox</application> require secure delete and enable unlock
+    notify to be turned on.  The only way to do this is to include them in the
+    CFLAGS.  By default, these are set to <literal>"-g -O2"</literal> so we
+    specify that to preserve those settings. You may, of course, wish to omit
+    the <literal>'-g'</literal> if you do not wish to create debugging
+    information.  For further information on what can be specified see <ulink
+    url="http://www.sqlite.org/compile.html"/>.</para>
 
     <para><parameter>--enable-threadsafe</parameter>: Though the documentation
     and running <command>./configure --help</command> indicate that this is the
@@ -142,10 +142,12 @@ cp      -v -R       sqlite-doc-&sqlite-docs-version;/* \
     command line editing capability to the <command>sqlite3</command>
     program.</para>
 
+    <para><parameter>--disable-static</parameter>: This parameter stops it
+    installing a static version of libsqlite3.</para>
+
     <para><parameter>--enable-dynamic-extensions</parameter>: This creates
     library modules that are dynamically linked as needed instead of statically
     linking them into the main <application>SQLite</application> library.</para>
-
   </sect2>
 
   <sect2 role="content">
@@ -158,7 +160,7 @@ cp      -v -R       sqlite-doc-&sqlite-docs-version;/* \
 
       <seglistitem>
         <seg>sqlite3</seg>
-        <seg>libsqlite3.{so,a}</seg>
+        <seg>libsqlite3.so</seg>
         <seg>None</seg>
       </seglistitem>
     </segmentedlist>
@@ -181,17 +183,15 @@ cp      -v -R       sqlite-doc-&sqlite-docs-version;/* \
       </varlistentry>
 
       <varlistentry id="libsqlite3">
-        <term><filename class='libraryfile'>libsqlite3.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libsqlite3.so</filename></term>
         <listitem>
-          <para>Contains the <application>SQLite</application> API functions.</para>
+          <para>Contains the <application>SQLite</application> API
+          functions.</para>
           <indexterm zone="sqlite libsqlite3">
-            <primary sortas="c-libsqlite3">libsqlite3.{so,a}</primary>
+            <primary sortas="c-libsqlite3">libsqlite3.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
