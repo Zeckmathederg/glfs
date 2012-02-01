@@ -4,10 +4,10 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY thunderbird-download-http     "http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
-  <!ENTITY thunderbird-download-ftp      "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
-  <!ENTITY thunderbird-md5sum            "a5904751dbd33074682b438b732fdbab">
-  <!ENTITY thunderbird-size              "91 MB">
+  <!ENTITY thunderbird-download-http     "http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;-real/source/thunderbird-&thunderbird-version;.source.tar.bz2">
+  <!ENTITY thunderbird-download-ftp      "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;-real/source/thunderbird-&thunderbird-version;.source.tar.bz2">
+  <!ENTITY thunderbird-md5sum            "6f76f25894ba746a2e33614d3dd8dbab">
+  <!ENTITY thunderbird-size              "93 MB">
   <!ENTITY thunderbird-buildsize         "3 GB (46 MB installed)">
   <!ENTITY thunderbird-time              "26 SBU">
 
@@ -57,15 +57,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch:
-        <ulink
-        url="&patch-root;/thunderbird-&thunderbird-version;-libpng-1.5-2.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Thunderbird Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -107,8 +98,7 @@
     <command>./configure --help</command>. Create the file by issuing the
     following command:</para>
 
-<screen><?dbfo keep-together="auto"?><userinput>patch -p1 &lt; ../thunderbird-&thunderbird-version;-libpng-1.5-2.patch &amp;&amp;
-cat &gt; mozconfig &lt;&lt; "EOF"
+<screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 # If you have a multicore machine you can speed up the build by running
 # several jobs at once, but if you have a single core, delete this line:
 mk_add_options MOZ_MAKE_FLAGS="-j4"
@@ -154,7 +144,9 @@ EOF</userinput></screen>
     <para>Compile <application>Thunderbird</application> by issuing the
     following commands:</para>
 
-<screen><userinput>make -f client.mk &amp;&amp;
+<screen><userinput>sed -i 's#VPX_CODEC_USE_INPUT_PARTITION#VPX_CODEC_USE_INPUT_FRAGMENTS#' \
+  mozilla/configure &amp;&amp;
+make -f client.mk &amp;&amp;
 make -C thunderbuild/mail/installer</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -163,13 +155,18 @@ make -C thunderbuild/mail/installer</userinput></screen>
     following commands as the <systemitem class="username">root</systemitem>
     user:</para>
 
-<screen role="root"><userinput>mkdir -p /usr/lib/thunderbird-9.0.1 &amp;&amp;
+<screen role="root"><userinput>mkdir -p /usr/lib/thunderbird-&thunderbird-version; &amp;&amp;
 tar xf thunderbuild/mozilla/dist/thunderbird-*.tar.bz2 -C /usr/lib/thunderbird-&thunderbird-version; --strip-components=1 &amp;&amp;
 ln -s ../lib/thunderbird-&thunderbird-version;/thunderbird /usr/bin/thunderbird</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed -i 's#VPX_CODEC_USE ...</command>: This fixes
+    mozilla&apos;s <command>configure</command> script to properly detect
+    libvpx-v1.0.0. This sed is not needed if you have libvpx-v0.9.7 or earlier
+    installed or if you&apos;ve not installed <xref linkend="libvpx"/>.</para>
 
     <para><command>make -f client.mk</command>: Mozilla products are packaged
     to allow the use of a configuration file which can be used to pass the
@@ -254,7 +251,8 @@ Categories=Network;GTK;Application;Email;News;
 StartupNotify=true
 Terminal=false
 EOF
-ln -sv -f /usr/lib/thunderbird-&thunderbird-version;/chrome/icons/default/default256.png /usr/share/pixmaps/thunderbird.png</userinput></screen>
+ln -sv -f /usr/lib/thunderbird-&thunderbird-version;/chrome/icons/default/default256.png \
+  /usr/share/pixmaps/thunderbird.png</userinput></screen>
     </sect3>
   </sect2>
 
