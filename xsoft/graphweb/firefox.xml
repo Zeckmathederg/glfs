@@ -6,8 +6,8 @@
 
   <!ENTITY firefox-download-http "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
   <!ENTITY firefox-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
-  <!ENTITY firefox-md5sum        "7cf2bd379792a9b232267c6a79680566">
-  <!ENTITY firefox-size          "70.8 MB">
+  <!ENTITY firefox-md5sum        "13c61203ccfa583e5a54b4dc22f41233">
+  <!ENTITY firefox-size          "72 MB">
   <!ENTITY firefox-buildsize     "3 GB (33 MB installed)">
   <!ENTITY firefox-time          "24 SBU (or 0.3 SBU if you&apos;re building against
     an installed Xulrunner)">
@@ -54,15 +54,6 @@
       </listitem>
       <listitem>
         <para>Estimated build time: &firefox-time;</para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch:
-        <ulink
-        url="&patch-root;/firefox-&firefox-version;-libpng-1.5-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -115,8 +106,7 @@
     entire file and uncomment any other desired options. Create the file by
     issuing the following command:</para>
 
-<screen><?dbfo keep-together="auto"?><userinput>patch -p1 &lt; ../firefox-&firefox-version;-libpng-1.5-1.patch &amp;&amp;
-cat &gt; mozconfig &lt;&lt; "EOF"
+<screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 # If you have a multicore machine you can speed up the build by running
 # several jobs at once, but if you have a single core, delete this line:
 mk_add_options MOZ_MAKE_FLAGS="-j4"
@@ -170,7 +160,9 @@ EOF</userinput></screen>
     <para>Compile <application>Firefox</application> by issuing the
     following commands:</para>
 
-<screen><userinput>sed -i 's# ""##' browser/base/Makefile.in &amp;&amp;
+<screen><userinput>sed -i 's#VPX_CODEC_USE_INPUT_PARTITION#VPX_CODEC_USE_INPUT_FRAGMENTS#' \
+  configure &amp;&amp;
+sed -i 's# ""##' browser/base/Makefile.in &amp;&amp;
 make -f client.mk</userinput></screen>
 
     <para>If you have <emphasis>not</emphasis> linked
@@ -213,8 +205,14 @@ chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i 's#VPX_CODEC_USE ...</command>: This fixes
+    <application>Firefox&apos;s</application> <command>configure</command>
+    script to properly detect libvpx-v1.0.0. It is not needed if you have
+    libvpx-v0.9.7 or earlier installed or if you&apos;ve not installed
+    <xref linkend="libvpx"/>.</para>
+
     <para><command>sed -i 's# ""##' browser/base/Makefile.in</command>: This
-    removes an unprintable control character from the title bar.</para>
+    sed removes an unprintable control character from the title bar.</para>
 
     <para><command>make -f client.mk ...</command>: Mozilla products are
     packaged to allow the use of a configuration file which can be used to
