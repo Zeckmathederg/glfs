@@ -94,7 +94,6 @@
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/linux-pam"/></para>
-
   </sect2>
 
   <sect2 role="installation">
@@ -137,23 +136,12 @@ EOF</userinput></screen>
 
 <screen role="root"><userinput>rm -rfv /etc/pam.d</userinput></screen>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>Now, as the <systemitem class="username">root</systemitem>
+    user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 chmod -v 4755 /lib/security/unix_chkpwd &amp;&amp;
-
-mv -v /lib/security/pam_tally /sbin &amp;&amp;
-
-mv -v /lib/libpam{,c,_misc}.la /usr/lib &amp;&amp;
-sed -i 's| /lib| /usr/lib|' /usr/lib/libpam_misc.la &amp;&amp;
-
-if [ -L /lib/libpam.so ]; then
-   for LINK in libpam{,c,_misc}.so; do
-       ln -v -sf ../../lib/$(readlink /lib/${LINK}) /usr/lib/${LINK} &amp;&amp;
-       rm -v /lib/${LINK}
-   done
-fi</userinput></screen>
-
+mv -v /lib/security/pam_tally /sbin</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
@@ -170,19 +158,12 @@ fi</userinput></screen>
 
     <para><parameter>--disable-nis</parameter>: This option disables building
     Network Information Service/Yellow Pages support in pam_unix and pam_access
-    as nis is deprecated in glibc.</para>
+    as the RPC implementation in glibc (on which NIS/YP depends) is
+    deprecated.</para>
 
     <para><parameter>--enable-read-both-confs</parameter>: This parameter
     allows the local administrator to choose which configuration file setup to
     use.</para>
-
-    <!-- This appears unnecessary as the xauth module is created even if X
-         has not yet been installed.
-    <para><parameter>-with-xauth=/usr/X11R6/bin/xauth</parameter>: This
-    parameter forces the build of the pam_xauth module, even if xauth is not
-    yet installed.  Omit this switch if you have no plans to build
-    <application>Xorg</application>, or modify the path if you intend to
-    install <application>Xorg</application> into a non-standard path.</para> -->
 
     <para><command>chmod -v 4755 /lib/security/unix_chkpwd</command>:
     The <command>unix_chkpwd</command> password-helper program must be setuid
@@ -193,23 +174,6 @@ fi</userinput></screen>
     <command>pam_tally</command> program is designed to be run by the system
     administrator, possibly in single-user mode, so it is moved to the
     appropriate directory.</para>
-
-    <para><command>mv -v /lib/libpam{,c,_misc}.la /usr/lib</command>: This
-    command moves the <application>Libtool</application> library files to
-    <filename class='directory'>/usr/lib</filename> as they are expected to
-    reside there.</para>
-
-    <para><command>sed -i 's| /lib| /usr/lib|'
-    /usr/lib/libpam_misc.la</command>: This command corrects an installation
-    reference due to the file being moved in the previous step.</para>
-
-    <para><command>for ...; do ...; done</command>: These commands are used
-    to relocate the <filename class='symlink'>.so</filename> symbolic links
-    into the <filename class='directory'>/usr/lib</filename> directory by
-    cloning and then removing the existing symlinks. Using
-    <command>readlink</command> ensures the new symlinks point at the correct
-    library filenames.</para>
-
   </sect2>
 
   <sect2 role="configuration">
@@ -233,7 +197,6 @@ fi</userinput></screen>
       <indexterm zone="linux-pam pam-config">
         <primary sortas="e-etc-pam.conf">/etc/pam.conf</primary>
       </indexterm>
-
     </sect3>
 
     <sect3>
@@ -276,9 +239,7 @@ other           password        required        pam_unix.so     nullok
         <para>You should now reinstall the <xref linkend="shadow"/>
         package.</para>
       </important>
-
     </sect3>
-
   </sect2>
 
   <sect2 role="content">
@@ -325,9 +286,6 @@ other           password        required        pam_unix.so     nullok
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
