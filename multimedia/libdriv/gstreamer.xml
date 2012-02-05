@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gstreamer-download-http "http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-&gstreamer-version;.tar.bz2">
-  <!ENTITY gstreamer-download-ftp  "&gnome-download-ftp;/gstreamer/0.10/gstreamer-&gstreamer-version;.tar.bz2">
-  <!ENTITY gstreamer-md5sum        "88544e034a051baf472983791d233076">
+  <!ENTITY gstreamer-download-http "&gnome-download-http;/gstreamer/0.10/gstreamer-&gstreamer-version;.tar.xz">
+  <!ENTITY gstreamer-download-ftp  "&gnome-download-ftp;/gstreamer/0.10/gstreamer-&gstreamer-version;.tar.xz">
+  <!ENTITY gstreamer-md5sum        "1da0b170d4d17d358b27011647054f0a">
   <!ENTITY gstreamer-size          "2.9 MB">
-  <!ENTITY gstreamer-buildsize     "82 MB">
-  <!ENTITY gstreamer-time          "2.4 SBU">
+  <!ENTITY gstreamer-buildsize     "112 MB">
+  <!ENTITY gstreamer-time          "1.2 SBU">
 ]>
 
 <sect1 id="gstreamer" xreflabel="GStreamer-&gstreamer-version;">
@@ -37,11 +37,10 @@
     worked on at the Oregon Graduate Institute. After installing
     <application>GStreamer</application>, you'll likely need to install
     one or more of the <xref linkend="gst-plugins-good"/>,
-    <xref linkend="gst-plugins-ugly"/>, <ulink
-    url="http://gstreamer.freedesktop.org/modules/gst-plugins-bad.html">GStreamer
-    Bad Plug-ins</ulink> and <ulink
-    url="http://gstreamer.freedesktop.org/modules/gst-ffmpeg.html">GStreamer
-    FFmpeg plug-in</ulink> packages.</para>
+    <xref linkend="gst-plugins-ugly"/>, <xref linkend="gst-plugins-bad"/>
+    and <xref linkend="gst-ffmpeg"/> packages.</para>
+
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -72,7 +71,7 @@
     <xref linkend="libxml2"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional">
+    <para role="optional"><xref linkend="gobject-introspection"/>,
       <ulink url="http://www.gnu.org/software/gsl/">GSL</ulink>,
       <xref linkend='check'/> (required to run the unit regression tests and also enables
             <filename class='libraryfile'>libgstcheck-0.10</filename>), and
@@ -128,7 +127,8 @@
 
 <screen><userinput>sed -i 's/\(.*gtkdoc-rebase --relative.* \)\(;.*\)/\1|| true\2/' \
   docs/{gst,libs}/Makefile.in &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+./configure --prefix=/usr \
+            --libexecdir=/usr/lib &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>. There are
@@ -180,9 +180,6 @@ fi</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gtk-doc-rebuild.xml"/>
-
     <para><option>sed -i 's/\(.*gtkdoc-rebase --relative.* \)\(;.*\)/\1|| true\2/' \
     docs/{gst,libs}/Makefile.in</option>: Two of the Makefiles test if
     <command>gtkdoc-rebase</command> is present, and only use it if it is,
@@ -190,6 +187,15 @@ fi</userinput></screen>
     <command>make</command> if <command>gtkdoc-rebase</command> is not present.  The
     <command>sed</command> command ensures the command is always regarded as
     successful.</para>
+
+    <para><parameter>--libexecdir=/usr/lib</parameter>: This parameter is used
+    so that the <application>GStreamer</application> internal support programs
+    are installed in the preferred location of <filename
+    class='directory'>/usr/lib/gstreamer-0.10</filename> instead of <filename
+    class='directory'>/usr/libexec/gstreamer-0.10</filename>.</para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../../xincludes/gtk-doc-rebuild.xml"/>
 
     <para><option>--disable-static</option>: This switch prevents the static
     libraries from being built.</para>
@@ -216,16 +222,18 @@ fi</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gst-feedback{,-0.10}, gst-inspect{,-0.10}, gst-launch{,-0.10},
-        gst-typefind{,-0.10}, gst-xmlinspect{,-0.10} and
-        gst-xmllaunch{,-0.10}</seg>
+        <seg>gst-feedback, gst-feedback-0.10, gst-inspect, gst-inspect-0.10,
+        gst-launch, gst-launch-0.10, gst-plugin-scanner, gst-typefind,
+        gst-typefind-0.10, gst-xmlinspect, gst-xmlinspect-0.10, gst-xmllaunch,
+        and gst-xmllaunch-0.10</seg>
         <seg>libgstbase-0.10.{so,a}, libgstcheck-0.10.{so,a},
-        libgstcontroller-0.10.{so,a}, libgstdataprotocol-0.10.{so,a},
-        libgstnet-0.10.{so,a}, libgstreamer-0.10.{so,a}, and
-        libgst*.{so,a} plugin modules</seg>
-        <seg>/usr/include/gstreamer-0.10, /usr/lib/gstreamer-0.10,
-        /usr/share/doc/gstreamer-0.10,
-        /usr/share/gtk-doc/html/gstreamer{,-libs,-plugins}-0.10</seg>
+        libgstcontroller-0.10.{so,a}, libgstcoreelements.so,
+        libgstcoreindexers.so, libgstdataprotocol-0.10.{so,a},
+        libgstnet-0.10.{so,a}, and libgstreamer-0.10.{so,a}</seg>
+        <seg>/usr/{include/gstreamer-0.10/gst/{base,check,controller,
+        dataprotocol,net},lib/{gstreamer-0.10,gstreamer/gstreamer-0.10},
+        share/{gstreamer-0.10/presets,gtk-doc/html/{gstreamer-0.10,
+        gstreamer-libs-0.10,gstreamer-plugins-0.10}}}</seg>
       </seglistitem>
     </segmentedlist>
 
