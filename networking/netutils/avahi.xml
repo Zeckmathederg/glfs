@@ -6,10 +6,10 @@
 
   <!ENTITY avahi-download-http "http://avahi.org/download/avahi-&avahi-version;.tar.gz">
   <!ENTITY avahi-download-ftp  " ">
-  <!ENTITY avahi-md5sum        "a83155a6e29e3988f07e5eea3287b21e">
-  <!ENTITY avahi-size          "1.1 MB">
-  <!ENTITY avahi-buildsize     "27 MB">
-  <!ENTITY avahi-time          "0.6 SBU">
+  <!ENTITY avahi-md5sum        "d0143a5aa3265019072e53ab497818d0">
+  <!ENTITY avahi-size          "1.2 MB">
+  <!ENTITY avahi-buildsize     "41 MB">
+  <!ENTITY avahi-time          "0.4 SBU">
 ]>
 
 <sect1 id="avahi" xreflabel="avahi-&avahi-version;">
@@ -32,7 +32,7 @@
     <para>The <application>avahi</application> package is a system which
     facilitates service discovery on a local network.</para>
 
-    &lfs65_built;
+    &lfs68_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -56,13 +56,13 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <!--<bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
         url="&patch-root;/avahi-&avahi-version;-lfs_initscript_fixes-1.patch"/></para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist>-->
 
     <bridgehead renderas="sect3">avahi Dependencies</bridgehead>
 
@@ -72,7 +72,9 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="dbus-python"/>,
+    <xref linkend="gobject-introspection"/>,
     <xref linkend="gtk2"/>,
+    <xref linkend="gtk3"/>,
     <xref linkend="libdaemon"/>,
     <xref linkend="libglade"/>,
     <xref linkend="python"/>,
@@ -106,21 +108,21 @@ useradd -c "Avahi Daemon Owner" -d /dev/null -u 84 \
     <para>Install <application>avahi</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../avahi-&avahi-version;-lfs_initscript_fixes-1.patch &amp;&amp;
-autoreconf -i -v &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput><!--patch -Np1 -i ../avahi-&avahi-version;-lfs_initscript_fixes-1.patch &amp;&amp;
+autoreconf -i -v &amp;&amp;-->./configure --prefix=/usr \
             --sysconfdir=/etc \
             --localstatedir=/var \
-            --with-distro=lfs \
+            --disable-gtk \
+            --disable-gtk3 \
             --disable-qt3 \
             --disable-qt4 \
-            --disable-gtk \
-            --disable-dbus \
-            --disable-libdaemon \
-            --disable-python \
             --disable-mono \
             --disable-monodoc \
-            --enable-core-docs &amp;&amp;
+            --disable-python \
+            --disable-dbus \
+            --disable-libdaemon \
+            --enable-core-docs \
+            --with-distro=none &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -134,8 +136,11 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--with-distro=lfs</parameter>: This parameter specifies the
-    LFS distribution to target.</para>
+    <para><parameter>--disable-gtk</parameter>: This parameter disables the use
+    of <application>GTK+2</application>.</para>
+
+    <para><parameter>--disable-gtk3</parameter>: This parameter disables the use
+    of <application>GTK+3</application>.</para>
 
     <para><parameter>--disable-qt3</parameter>: This parameter disables the
     building of <application>Qt3</application> mainloop integration.</para>
@@ -143,8 +148,14 @@ make</userinput></screen>
     <para><parameter>--disable-qt4</parameter>: This parameter disables the
     building of <application>Qt4Core</application> mainloop integration.</para>
 
-    <para><parameter>--disable-gtk</parameter>: This parameter disables the use
-    of <application>GTK+</application>.</para>
+    <para><parameter>--disable-mono</parameter>: This parameter disables the
+    <application>Mono</application> bindings.</para>
+
+    <para><parameter>--disable-monodoc</parameter>: This parameter disables
+    documentation for the <application>Mono</application> bindings.</para>
+
+    <para><parameter>--disable-python</parameter>: This parameter disables the
+    scripts that depends on <application>Python</application>.</para>
 
     <para><parameter>--disable-dbus</parameter>: This parameter disables the use
     of <application>D-Bus</application>.</para>
@@ -152,26 +163,42 @@ make</userinput></screen>
     <para><parameter>--disable-libdaemon</parameter>: This parameter disables
     the use of libdaemon.</para>
 
-    <para><parameter>--disable-python</parameter>: This parameter disables the
-    scripts that depends on <application>Python</application>.</para>
-
-    <para><parameter>--disable-mono</parameter>: This parameter disables the
-    <application>Mono</application> bindings.</para>
-
-    <para><parameter>--disable-monodoc</parameter>: This parameter disables
-    documentation for the <application>Mono</application> bindings.</para>
-
     <para><parameter>--enable-core-docs</parameter>: This parameter enables the
     building of documentation.</para>
+
+    <para><parameter>--with-distro=none</parameter>: This parameter specifies the
+    LFS distribution to target.</para>
 
     <para><option>--enable-tests</option>: This option enables the building of
     tests and examples.</para>
 
+    <para><option>--enable-compat-howl</option>: This option enables the
+    compatibility layer for <application>HOWL</application>.</para>
+
     <para><option>--enable-compat-libdns_sd</option>: This option enables the
     compatibility layer for <application>libdns_sd</application>.</para>
 
-    <para><option>--enable-compat-howl</option>: This option enables the
-    compatibility layer for <application>HOWL</application>.</para>
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring avahi</title>
+
+    <sect3  id="avahi-init">
+      <title>Boot Script</title>
+
+      <para>To automatically start the <command>avahi</command> daemon
+      when the system is rebooted, install the
+      <filename>/etc/rc.d/init.d/avahi</filename>
+      bootscript from the
+      <xref linkend="bootscripts"/> package.</para>
+
+      <indexterm zone="avahi avahi-init">
+        <primary sortas="f-avahi">avahi</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-avahi</userinput></screen>
+
+    </sect3>
 
   </sect2>
 
@@ -184,15 +211,20 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>avahi-autoipd, avahi-bookmarks, avahi-browse, avahi-daemon,
-        avahi-discover, avahi-discover-standalone, avahi-dnsconfd,
-        avahi-publish, avahi-resolve, avahi-set-host-name, and bssh</seg>
+        <seg>avahi-autoipd, avahi-bookmarks, avahi-browse, avahi-browse-domains,
+        avahi-daemon, avahi-discover, avahi-discover-standalone, avahi-dnsconfd,
+        avahi-publish, avahi-publish-address, avahi-publish-service,
+        avahi-resolve, avahi-resolve-address, avahi-resolve-host-name,
+        avahi-set-host-name, bshell, bssh, and bvnc</seg>
         <seg>libavahi-client.{so,a}, libavahi-common.{so,a},
-        libavahi-core.{so,a}, libavahi-glib.{so,a}, libavahi-gobject.{so,a}, and
-        libavahi-ui.{so,a}</seg>
-        <seg>/etc/avahi/services,/usr/{include/avahi-{client,common,core,glib,
-        gobject,ui},lib/{avahi,python&python2-majorver;/site-packages/{avahi,avahi_discover}},
-        share/avahi/{interfaces,introspection}}</seg>
+        libavahi-core.{so,a}, libavahi-glib.{so,a}, libavahi-gobject.{so,a},
+        libavahi-ui-gtk3.{so,a}, libavahi-ui.{so,a}, libdns_sd.{so,a}, and
+        libhowl.{so,a}</seg>
+        <seg>/etc/avahi/services, /usr/{include/{avahi-client,avahi-common,
+        avahi-compat-howl/{corby,discovery,rendezvous,salt},
+        avahi-compat-libdns_sd,avahi-core,avahi-glib,avahi-gobject,avahi-ui},
+        lib/{avahi,python&python2-majorver;/site-packages/{avahi,
+        avahi_discover}},share/{avahi/interfaces,locale/en_NZ/LC_MESSAGES}}</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -233,6 +265,17 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="avahi-browse-domains">
+        <term><command>avahi-browse-domains</command></term>
+        <listitem>
+          <para>browses for mDNS/DNS-SD services using the
+          <application>Avahi</application> daemon.</para>
+          <indexterm zone="avahi avahi-browse-domains">
+            <primary sortas="b-avahi-browse-domains">avahi-browse-domains</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="avahi-daemon">
         <term><command>avahi-daemon</command></term>
         <listitem>
@@ -258,7 +301,8 @@ make</userinput></screen>
       <varlistentry id="avahi-discover-standalone">
         <term><command>avahi-discover-standalone</command></term>
         <listitem>
-          <para>does this .....</para>
+          <para>browses for mDNS/DNS-SD services using the
+          <application>Avahi</application> daemon.</para>
           <indexterm zone="avahi avahi-discover-standalone">
             <primary sortas="b-avahi-discover-standalone">avahi-discover-standalone</primary>
           </indexterm>
@@ -287,6 +331,28 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="avahi-publish-address">
+        <term><command>avahi-publish-address</command></term>
+        <listitem>
+          <para>registers a mDNS/DNS-SD service or host name or address mapping
+          using the <application>Avahi</application> daemon.</para>
+          <indexterm zone="avahi avahi-publish-address">
+            <primary sortas="b-avahi-publish-address">avahi-publish-address</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="avahi-publish-service">
+        <term><command>avahi-publish-service</command></term>
+        <listitem>
+          <para>registers a mDNS/DNS-SD service or host name or address mapping
+          using the <application>Avahi</application> daemon.</para>
+          <indexterm zone="avahi avahi-publish-service">
+            <primary sortas="b-avahi-publish-service">avahi-publish-service</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="avahi-resolve">
         <term><command>avahi-resolve</command></term>
         <listitem>
@@ -295,6 +361,30 @@ make</userinput></screen>
           daemon.</para>
           <indexterm zone="avahi avahi-resolve">
             <primary sortas="b-avahi-resolve">avahi-resolve</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="avahi-resolve-address">
+        <term><command>avahi-resolve-address</command></term>
+        <listitem>
+          <para>resolves one or more mDNS/DNS host name(s) to IP address(es)
+          (and vice versa) using the <application>Avahi</application>
+          daemon.</para>
+          <indexterm zone="avahi avahi-resolve-address">
+            <primary sortas="b-avahi-resolve-address">avahi-resolve-address</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="avahi-resolve-host-name">
+        <term><command>avahi-resolve-host-name</command></term>
+        <listitem>
+          <para>resolves one or more mDNS/DNS host name(s) to IP address(es)
+          (and vice versa) using the <application>Avahi</application>
+          daemon.</para>
+          <indexterm zone="avahi avahi-resolve-host-name">
+            <primary sortas="b-avahi-resolve-host-name">avahi-resolve-host-name</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -309,16 +399,35 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <!--<varlistentry id="bshell">
+        <term><command>bshell</command></term>
+        <listitem>
+          <para>does this .....</para>
+          <indexterm zone="avahi bshell">
+            <primary sortas="b-bshell">bshell</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>-->
+
       <varlistentry id="bssh">
         <term><command>bssh</command></term>
         <listitem>
-          <para>browses for SSH/VNC servers on the local network.</para>
+          <para>browses for SSH servers on the local network.</para>
           <indexterm zone="avahi bssh">
             <primary sortas="b-bssh">bssh</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="bvnc">
+        <term><command>bvnc</command></term>
+        <listitem>
+          <para>browses for VNC servers on the local network.</para>
+          <indexterm zone="avahi bvnc">
+            <primary sortas="b-bvnc">bvnc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <!--<varlistentry id="libavahi-client">
         <term><filename class='libraryfile'>libavahi-client.{so,a}</filename></term>
@@ -370,12 +479,42 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="libavahi-ui-gtk3">
+        <term><filename class='libraryfile'>libavahi-ui-gtk3.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions that .....</para>
+          <indexterm zone="avahi libavahi-ui-gtk3">
+            <primary sortas="c-libavahi-ui-gtk3">libavahi-ui-gtk3.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="libavahi-ui">
         <term><filename class='libraryfile'>libavahi-ui.{so,a}</filename></term>
         <listitem>
           <para>contains functions that .....</para>
           <indexterm zone="avahi libavahi-ui">
             <primary sortas="c-libavahi-ui">libavahi-ui.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libdns_sd">
+        <term><filename class='libraryfile'>libdns_sd.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions that .....</para>
+          <indexterm zone="avahi libdns_sd">
+            <primary sortas="c-libdns_sd">libdns_sd.{so,a}</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libhowl">
+        <term><filename class='libraryfile'>libhowl.{so,a}</filename></term>
+        <listitem>
+          <para>contains functions that .....</para>
+          <indexterm zone="avahi libhowl">
+            <primary sortas="c-libhowl">libhowl.{so,a}</primary>
           </indexterm>
         </listitem>
       </varlistentry>-->
