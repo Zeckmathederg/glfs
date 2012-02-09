@@ -4,13 +4,15 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY libpng-download-http "&sourceforge-repo;/libpng/libpng-&libpng-version;.tar.bz2">
+  <!ENTITY libpng-download-http
+  "&sourceforge-repo;/libpng/libpng-&libpng-version;.tar.xz">
   <!ENTITY libpng-download-ftp  " ">
-  <!ENTITY libpng-md5sum        "590ecbecd6286810184fd3e66f151de3">
-  <!ENTITY libpng-size          "839 KB">
-  <!ENTITY libpng-buildsize     "12 MB">
+  <!ENTITY libpng-md5sum        "0f7ae352beadaff78073733905613041">
+  <!ENTITY libpng-size          "685 KB">
+  <!ENTITY libpng-buildsize     "8.3 MB">
   <!ENTITY libpng-time          "0.1 SBU">
-  <!ENTITY apng-patch           "&sourceforge-repo2;/projects/libpng-apng/files/libpng15/1.5.7/libpng-1.5.7-apng.patch.gz">
+  <!ENTITY apng-patch
+  "&sourceforge-repo2;/projects/libpng-apng/files/libpng15/&libpng-version;/libpng-&libpng-version;-apng.patch.gz">
 ]>
 
 <sect1 id="libpng" xreflabel="libpng-&libpng-version;">
@@ -31,7 +33,9 @@
     <title>Introduction to libpng</title>
 
     <para>The <application>libpng</application> package contains libraries used
-    by other programs for reading and writing PNG files.</para>
+    by other programs for reading and writing PNG files. The PNG format was
+    designed as a replacement for GIF and, to a lesser extent, TIFF, with many
+    improvements and extensions and lack of patent problems.</para>
 
     &lfs70_checked;
 
@@ -58,9 +62,9 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
+    <itemizedlist spacing="compact">
       <listitem>
-        <para>Optional patch to include apng functionality in
+        <para>Optional patch to include animated png functionality in
         <application>libpng</application> : <ulink url="&apng-patch;"/></para>
         <para>The patch is required if you want to use the system
         <application>libpng</application> in
@@ -78,7 +82,13 @@
     <para>If you want to patch libpng to support apng files, apply the
     patch:</para>
 
-<screen><userinput>gunzip --stdout ../libpng-&libpng-version;-apng.patch.gz | patch -Np1</userinput></screen>
+<screen><userinput>gzip -cd ../libpng-&libpng-version;-apng.patch.gz | patch -p1 &amp;&amp;
+awk '/10[0-2][0-9],/{ gsub(/,png/, ", png")
+  gsub(/PNG_EXPORT./, "")
+  gsub(/,/, "")
+  print " " $3 " @" $1 }' png.h >> scripts/symbols.def &amp;&amp;
+sed -i 's#ORDINAL(233)#ORDINAL(1020)#' png.h &amp;&amp;
+sed -i 's#"error"#"ignore"#' scripts/checksym.awk &amp;&amp;</userinput></screen>
 
     <para>Install <application>libpng</application> by running the following
     commands:</para>
@@ -92,14 +102,16 @@ make</userinput></screen>
     user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-
-install -v -m755 -d /usr/share/doc/libpng-&libpng-version; &amp;&amp;
-install -v -m644    README libpng-manual.txt \
-                    /usr/share/doc/libpng-&libpng-version;</userinput></screen>
+mkdir /usr/share/doc/libpng-&libpng-version; &amp;&amp;
+cp README libpng-manual.txt /usr/share/doc/libpng-&libpng-version;</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>awk '/10[0-2][0-9] ...</command>, <command>sed -i 's#ORDINAL
+    ...</command> and <command>sed -i 's#"error" ...</command>: These commands
+    massage the test suite to accept the animated png functions.</para>
 
     <para><option>--disable-static</option>: This option prevents it compiling
     the static archive versions of the libraries.</para>
@@ -148,13 +160,11 @@ install -v -m644    README libpng-manual.txt \
       </varlistentry>
 
       <varlistentry id="libpng15">
-        <term><filename class='libraryfile'>libpng.so and
+        <term><filename class="libraryfile">libpng.so and
         libpng15.so</filename></term>
         <listitem>
-          <para>are a collection of routines used to create and manipulate PNG
-          format graphics files. The PNG format was designed as a replacement
-          for GIF and, to a lesser extent, TIFF, with many improvements and
-          extensions and lack of patent problems.</para>
+          <para>contain routines used to create and manipulate PNG format
+          graphics files.</para>
           <indexterm zone="libpng libpng15">
             <primary sortas="c-libpng15">libpng15.so</primary>
           </indexterm>
