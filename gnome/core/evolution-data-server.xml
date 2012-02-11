@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY evolution-data-server-download-http "&gnome-download-http;/evolution-data-server/&gnome-version;/evolution-data-server-&evolution-data-server-version;.tar.bz2">
-  <!ENTITY evolution-data-server-download-ftp  "&gnome-download-ftp;/evolution-data-server/&gnome-version;/evolution-data-server-&evolution-data-server-version;.tar.bz2">
-  <!ENTITY evolution-data-server-md5sum        "826d85fc6e088156154ae0c543454d7f">
-  <!ENTITY evolution-data-server-size          "4.4 MB">
-  <!ENTITY evolution-data-server-buildsize     "127 MB">
-  <!ENTITY evolution-data-server-time          "2.0 SBU">
+  <!ENTITY evolution-data-server-download-http "&gnome-download-http;/evolution-data-server/&gnome-version;/evolution-data-server-&evolution-data-server-version;.tar.xz">
+  <!ENTITY evolution-data-server-download-ftp  "&gnome-download-ftp;/evolution-data-server/&gnome-version;/evolution-data-server-&evolution-data-server-version;.tar.xz">
+  <!ENTITY evolution-data-server-md5sum        "c126e3d2ad64ca0b4fdf2e7e89b01dde">
+  <!ENTITY evolution-data-server-size          "3.6 MB">
+  <!ENTITY evolution-data-server-buildsize     "85 MB">
+  <!ENTITY evolution-data-server-time          "2.5 SBU">
 ]>
 
 <sect1 id="evolution-data-server"
@@ -36,7 +36,7 @@ xreflabel="Evolution Data Server-&evolution-data-server-version;">
     <application>Evolution</application> (hence the name), but is now used by
     other packages as well.</para>
 
-    &lfs65_built;
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -65,16 +65,19 @@ xreflabel="Evolution Data Server-&evolution-data-server-version;">
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="db"/>,
     <xref linkend="GConf"/>,
+    <!-- FIXME:ken
+    <xref linkend="gnome-online-accounts"/> -->
+    gnome-online-accounts-3.2.1,
     <xref linkend="gperf"/>,
     <xref linkend="intltool"/>,
+    <xref linkend="libgdata"/>,
+    <xref linkend="libgnome-keyring"/>,
     <xref linkend="libical"/>,
-    <xref linkend="libsoup"/>,
     <xref linkend="nss"/>, and
     <xref linkend="sqlite"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="libgnome-keyring"/>,
-    <xref linkend="libgweather"/>, and
+    <para role="recommended"><xref linkend="libgweather"/>, and
     <xref linkend="openssl"/></para>
 
     <para>The <application>NSS</application> package is not required if you have
@@ -87,8 +90,9 @@ xreflabel="Evolution Data Server-&evolution-data-server-version;">
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="gtk-doc"/>,
     <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
-    a <xref linkend="server-mail"/> (that provides a <command>sendmail</command> command), and
-    <xref linkend="openldap"/></para>
+    a <xref linkend="server-mail"/> (that provides a <command>sendmail</command> command),
+    <xref linkend="openldap"/>, and
+    <xref linkend="vala"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/evolution-data-server"/></para>
@@ -101,18 +105,19 @@ xreflabel="Evolution Data Server-&evolution-data-server-version;">
     <para>Install <application>Evolution Data Server</application> by running
     the following commands:</para>
 
-<screen><userinput>./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) \
-            --libexecdir=$(pkg-config --variable=prefix \
-                ORBit-2.0)/lib/evolution-data-server-1.2 \
-            --enable-nntp \
-            --enable-gnome-keyring \
-            --enable-smime \
-            --with-nspr-includes=/usr/include/nspr \
-            --with-nss-includes=/usr/include/nss &amp;&amp;
+<screen><userinput>./configure --prefix=$GNOME_PREFIX \
+            --libexecdir=$GNOME_PREFIX/lib/evolution-data-server-3.2 &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make -k check</command>. Some
-    tests are known to fail, however most should pass.</para>
+    <para>To test the results, issue: <command>make check</command>. Two
+    tests are known to fail, the rest should pass if run from a
+    <application>GNOME</application> desktop - if you are in the middle of building
+    the desktop, but wish to run these tests, you can leave the build directory in
+    place and run the tests later, when <application>D-Bus</application> and all
+    the <application>GNOME</application> daemons are running. Like many of the
+    <application>GNOME</application> packages, the testsuite is expected to be run
+    when you are already using a (previous) <application>GNOME</application> system.
+    </para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -126,32 +131,36 @@ make</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-prefix.xml"/>
 
-    <para><parameter>--libexecdir=$(pkg-config --variable=prefix
-    ORBit-2.0)/lib/evolution-data-server-1.2</parameter>: This parameter causes
-    the libexec files to be installed in the preferred location of
-    <filename
-    class="directory">$GNOME_PREFIX/lib/evolution-data-server-1.2</filename>
+    <para><parameter>--libexecdir=$GNOME_PREFIX/lib/evolution-data-server-3.2</parameter>:
+    This parameter causes the libexec files to be installed in the preferred
+    location of <filename
+    class="directory">$GNOME_PREFIX/lib/evolution-data-server-3.2</filename>
     instead of <filename
     class="directory">$GNOME_PREFIX/libexec</filename>.</para>
 
-    <para><parameter>--enable-nntp</parameter>: This parameter is used to build
-    the Usenet news (NNTP) backend.</para>
+    <!-- enabled by default
+    <para><parameter>\-\-enable-nntp</parameter>: This parameter is used to build
+    the Usenet news (NNTP) backend.</para>-->
 
-    <para><parameter>--enable-gnome-keyring</parameter>: This parameter is used
+    <!-- gnome-keyring is now *required*
+    <para><parameter>\-\-enable-gnome-keyring</parameter>: This parameter is used
     so that passwords are stored using the
-    <application>gnome-keyring</application> storage manager.</para>
+    <application>gnome-keyring</application> storage manager.</para>-->
 
-    <para><parameter>--enable-smime</parameter>: This parameter is used to pull
+    <!--- again, enabled by default
+    <para><parameter>\-\-enable-smime</parameter>: This parameter is used to pull
     in the Mozilla Network Security Services libraries for S/MIME
-    support.</para>
+    support.</para>-->
 
-    <para><parameter>--with-nspr-includes=/usr/include/nspr</parameter>: This
+    <para><option>--with-nspr-includes=/path/to/include/nspr</option>: This
     parameter specifies the location of the <application>NSPR</application>
-    header files.</para>
+    header files, not needed if <application>nspr</application> was installed
+    in <filename class="directory">/usr</filename>.</para>
 
-    <para><parameter>--with-nss-includes=/usr/include/nss</parameter>: This
+    <para><option>--with-nss-includes=/path/to/include/nss</option>: This
     parameter specifies the location of the <application>NSS</application>
-    header files.</para>
+    header files, not needed if <application>nss</application> was installed
+    in <filename class="directory">/usr</filename>.</para>
 
     <para><option>--without-weather</option>: Use this option to disable the
     weather calendar backend and is required if
@@ -189,23 +198,24 @@ make</userinput></screen>
       <seglistitem>
         <seg>camel-index-control-1.2, camel-lock-helper-1.2,
         e-addressbook-factory, and e-calendar-factory</seg>
-        <seg>libebookbackendfile.so, libebookbackendgoogle.so,
-        libebookbackendgroupwise.so, libebookbackendvcf.so,
-        libebookbackendwebdav.so, libecalbackendcaldav.so,
-        libecalbackendcontacts.so, libecalbackendfile.so,
-        libecalbackendgoogle.so, libecalbackendgroupwise.so,
-        libecalbackendhttp.so, libecalbackendweather.so, libcamel-1.2.so,
-        libcamel-provider-1.2.so, libebackend-1.2.so, libebook-1.2.so,
-        libecal-1.2.so, libedata-book-1.2.so, libedata-cal-1.2.so,
-        libedataserver-1.2.so, libedataserverui-1.2.so, libegroupwise-1.2.so,
-        libgdata-1.2.so, and libgdata-google-1.2.so</seg>
+        <seg>libcamel-1.2.so, libcamel-provider-1.2.so, libcamelgroupwise.so,
+        libcamelimap.so, libcamelimapx.so, libcamellocal.so, libcamelnntp.so,
+        libcamelpop3.so, libcamelsendmail.so, libcamelsmtp.so,
+        libebackend-1.2.so, libebook-1.2.so, libebookbackendfile.so,
+        libebookbackendgoogle.so, libebookbackendgroupwise.so,
+        libebookbackendvcf.so, libebookbackendwebdav.so, libecal-1.2.so,
+        libecalbackendcaldav.so, libecalbackendcontacts.so,
+        libecalbackendfile.so, libecalbackendgroupwise.so,
+        libecalbackendhttp.so, libecalbackendweather.so, libedata-book-1.2.so,
+        libedata-cal-1.2.so, libedataserver-1.2.so, libedataserverui-3.0.so,
+        and libegroupwise-1.2.so</seg>
         <seg><envar>$GNOME_PREFIX</envar>/{include/evolution-data-server-&gnome-version;/{camel,
-        google/libgdata-google,groupwise,libebackend,libebook,libecal,
-        libedata-book,libedata-cal,libedataserverui},
-        lib/evolution-data-server-1.2/{camel-providers,extensions},
-        share/{evolution-data-server-&gnome-version;/{ui,weather},
-        gtk-doc/html/{camel,libebackend,libebook,libecal,libedata-book,
-        libedata-cal,libedataserverui},pixmaps/evolution-data-server}}</seg>
+        groupwise,libebackend,libebook,libecal,libedata-book,libedata-cal,
+        libedataserverui},lib/evolution-data-server/{addressbook-backends,
+        calendar-backends,camel-providers},share/{gtk-doc/html/{camel,
+        libebackend,libebook,libecal,libedata-book,libedata-cal,
+        libedataserverui},locale/en_AU/LC_MESSAGES,
+        pixmaps/evolution-data-server}}</seg>
       </seglistitem>
     </segmentedlist>
 
