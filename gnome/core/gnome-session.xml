@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gnome-session-download-http "&gnome-download-http;/gnome-session/&gnome-version;/gnome-session-&gnome-session-version;.tar.bz2">
-  <!ENTITY gnome-session-download-ftp  "&gnome-download-ftp;/gnome-session/&gnome-version;/gnome-session-&gnome-session-version;.tar.bz2">
-  <!ENTITY gnome-session-md5sum        "d93a2da931ac0b9c0d98f6b68a17a730">
-  <!ENTITY gnome-session-size          "798 KB">
-  <!ENTITY gnome-session-buildsize     "16 MB">
+  <!ENTITY gnome-session-download-http "&gnome-download-http;/gnome-session/&gnome-version;/gnome-session-&gnome-session-version;.tar.xz">
+  <!ENTITY gnome-session-download-ftp  "&gnome-download-ftp;/gnome-session/&gnome-version;/gnome-session-&gnome-session-version;.tar.xz">
+  <!ENTITY gnome-session-md5sum        "05012cdf82e48feab17b5bc1804e37cf">
+  <!ENTITY gnome-session-size          "685 KB">
+  <!ENTITY gnome-session-buildsize     "19 MB">
   <!ENTITY gnome-session-time          "0.3 SBU">
 ]>
 
@@ -32,7 +32,7 @@
     <para>The <application>GNOME Session</application> package contains
     the <application>GNOME</application> session manager.</para>
 
-    &lfs65_checked;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -60,7 +60,8 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="GConf"/>,
-    <xref linkend="gtk2"/>,
+    <xref linkend="gtk3"/>,
+    <xref linkend="json-glib"/>,
     <xref linkend="startup-notification"/>, and
     <xref linkend="upower"/></para>
 
@@ -81,12 +82,8 @@
     <para>Install <application>GNOME Session</application> by
     running the following commands:</para>
 
-<screen><userinput>./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) \
-            --sysconfdir=&gnome-etc-dir; \
-            --libexecdir=$(pkg-config \
-                --variable=prefix ORBit-2.0)/lib \
-            --mandir=$(pkg-config \
-                --variable=prefix ORBit-2.0)/share/man &amp;&amp;
+<screen><userinput>./configure --prefix=$GNOME_PREFIX \
+            --libexecdir=$GNOME_PREFIX/lib &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -103,25 +100,55 @@ make</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-prefix.xml"/>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-sysconfdir.xml"/>
-
-    <para><parameter>--libexecdir=$(pkg-config --variable=prefix
-    ORBit-2.0)/lib</parameter>: This parameter is used so that the
-    <application>gnome-session</application> internal support programs are
-    installed in the preferred location of <filename
+    <para><parameter>--libexecdir=$GNOME_PREFIX/lib</parameter>: This parameter
+    is used so that the <application>gnome-session</application> internal
+    support programs are installed in the preferred location of <filename
     class='directory'>$GNOME_PREFIX/lib</filename> instead of <filename
     class='directory'>$GNOME_PREFIX/libexec</filename>.</para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-mandir.xml"/>
-
-    <para><parameter>--with-at-spi-registryd-directory=...</parameter>: This
-    parameter is used to identify where the AT-SPI Registry daemon is located,
-    as the default is <envar>$GNOME_PREFIX</envar>/libexec.</para>
-
     <para><option>--enable-docbook-docs</option>: This parameter is used to
     build the documentation.</para>
+
+  </sect2>
+
+  <sect2 role="configuration" id="gnome-session-config">
+    <title>Configuring gnome-session</title>
+
+    <sect3>
+      <title>Configuration Information</title>
+
+      <para>If you are not using <application>gdm</application> to start your
+      <application>GNOME</application> desktop, you will need to invoke
+      <command>gnome-session</command> <emphasis>instead of</emphasis> invoking
+      a window-manager directly.  All of the packages in the 'Shell' section of
+      this chapter (plus all of those in 'Shell Fallback' if your video driver
+      does not have 3D acceleration) need to be installed first, and some of
+      the 'Utilities' - particularly <application>GNOME Terminal</application>
+      (<application>xterm</application> does not  install a '.desktop' file and
+      so not appear in the menus). You may have to use
+      <literal>Ctrl-Alt-Backspace</literal> to end the desktop session.</para>
+
+      <para>When <command>gnome-session</command> is run, it invokes the necessary
+      daemons and either <application>Metacity</application> or
+      <application>gnome-shell</application> - the latter will in turn invoke
+      <application>Mutter</application>.</para>
+
+      <para>To automatically start the <application>gnome-session</application>
+      window manager when you issue the <command>startx</command> command,
+      backup your current <filename>~/.xinitrc</filename> before proceeding.
+      Note that you will be able to invoke <application>GNOME Terminal</application>
+      from the menu, so there is no reason to invoke xterm here. Create a new
+      <filename>.xinitrc</filename> using this command:</para>
+
+      <indexterm zone="metacity gnome-session-config">
+        <primary sortas="e-AA.xinitrc">~/.xinitrc</primary>
+      </indexterm>
+
+<screen><userinput>cat &gt;&gt; ~/.xinitrc &lt;&lt; "EOF"
+<literal>exec dbus-launch --exit-with-session gnome-session</literal>
+EOF</userinput></screen>
+
+    </sect3>
 
   </sect2>
 
