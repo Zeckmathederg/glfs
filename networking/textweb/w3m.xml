@@ -6,9 +6,9 @@
 
   <!ENTITY w3m-download-http "&sourceforge-repo;/w3m/w3m-&w3m-version;.tar.gz">
   <!ENTITY w3m-download-ftp  " ">
-  <!ENTITY w3m-md5sum        "ba06992d3207666ed1bf2dcf7c72bf58">
-  <!ENTITY w3m-size          "1.9 MB">
-  <!ENTITY w3m-buildsize     "20 MB">
+  <!ENTITY w3m-md5sum        "1b845a983a50b8dec0169ac48479eacc">
+  <!ENTITY w3m-size          "2.1 MB">
+  <!ENTITY w3m-buildsize     "26 MB">
   <!ENTITY w3m-time          "0.3 SBU">
 ]>
 
@@ -32,7 +32,7 @@
     <para><application>w3m</application> is primarily a pager but it can
     also be used as a text-mode WWW browser.</para>
 
-    &lfs67_built;
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -62,8 +62,7 @@
     <para role="required"><xref linkend="gc"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><!-- <xref linkend="pkgconfig"/>, -->
-    <xref linkend="gpm"/>,
+    <para role="optional"><xref linkend="gpm"/>,
     <xref linkend="openssl"/>,
     <xref linkend="imlib2"/>,
     <xref linkend="gtk2"/>,
@@ -71,16 +70,13 @@
     (not recommended: obsolete, abandoned upstream,
     <ulink url="http://bugs.debian.org/448360">buggy</ulink>, and gives no
     additional functionality as compared to other image loading libraries),
-    <!-- <xref linkend="gdk"/>, -->
-    <ulink url="&gnome-download-http;/gdk-pixbuf/0.22/">GDK
-    Pixbuf-0.22</ulink>,
+    <xref linkend="gdk-pixbuf"/>,
     <xref linkend="compface"/>,
     <ulink url="http://packages.debian.org/unstable/text/nkf">nkf</ulink>,
     a Mail User Agent and an External Browser</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/W3M"/></para>
-
   </sect2>
 
   <sect2 role="installation">
@@ -89,9 +85,8 @@
     <para>Install <application>w3m</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
-            --libexecdir=/usr/lib \
-            --sysconfdir=/etc &amp;&amp;
+<screen><userinput>sed -i 's/file_handle/file_foo/' istream.{c,h} &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc LIBS=-lX11 &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -104,7 +99,25 @@ install -v -m644    doc/menu.default /etc/w3m/menu &amp;&amp;
 install -v -m755 -d /usr/share/doc/w3m-&w3m-version; &amp;&amp;
 install -v -m644    doc/{HISTORY,READ*,keymap.*,menu.*,*.html} \
                     /usr/share/doc/w3m-&w3m-version;</userinput></screen>
+  </sect2>
 
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>sed -i 's/file_handle/file_foo/' istream.{c,h}</command>:
+    This sed renames the file_handle function to avoid a clash with a glibc
+    function that has the same name, defined in
+    /usr/include/bits/fcntl.h.</para>
+
+    <para><option>--sysconfdir=/etc</option>: This option puts the configuration
+    files in /etc.</para>
+
+    <para><parameter>LIBS=-lX11</parameter>: This tells the linker
+    (<command>ld</command>) to link <application>w3m</application> to
+    <application>libX11</application>. Without this the build will fail. This
+    is only needed if you have installed <xref linkend="x-window-system"/>.
+    Remove <parameter>LIBS=-lX11</parameter> if you've not installed
+    <application>libX11</application>.</para>
   </sect2>
 
   <sect2 role="configuration">
@@ -123,9 +136,7 @@ install -v -m644    doc/{HISTORY,READ*,keymap.*,menu.*,*.html} \
       <indexterm zone="w3m w3m-config">
         <primary sortas="e-AA.w3m/*">~/.w3m/*</primary>
       </indexterm>
-
     </sect3>
-
   </sect2>
 
   <sect2 role="content">
@@ -133,13 +144,11 @@ install -v -m644    doc/{HISTORY,READ*,keymap.*,menu.*,*.html} \
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>w3m and w3mman</seg>
-        <seg>None</seg>
-        <seg>/usr/lib/w3m, /usr/share/w3m and
+        <seg>/usr/libexec/w3m, /usr/share/w3m and
         usr/share/doc/w3m-&w3m-version;</seg>
       </seglistitem>
     </segmentedlist>
@@ -170,9 +179,6 @@ install -v -m644    doc/{HISTORY,READ*,keymap.*,menu.*,*.html} \
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
