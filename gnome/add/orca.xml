@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY orca-download-http "&gnome-download-http;/orca/&gnome-version;/orca-&orca-version;.tar.bz2">
-  <!ENTITY orca-download-ftp  "&gnome-download-ftp;/orca/&gnome-version;/orca-&orca-version;.tar.bz2">
-  <!ENTITY orca-md5sum        "8988f96533109c14cbd5ac8f2b0754f2">
-  <!ENTITY orca-size          "2.2 MB">
-  <!ENTITY orca-buildsize     "41 MB">
-  <!ENTITY orca-time          "0.2 SBU">
+  <!ENTITY orca-download-http "&gnome-download-http;/orca/&gnome-version;/orca-&orca-version;.tar.xz">
+  <!ENTITY orca-download-ftp  "&gnome-download-ftp;/orca/&gnome-version;/orca-&orca-version;.tar.xz">
+  <!ENTITY orca-md5sum        "8291fbb5c7dd30d8f961190b6a4279ab">
+  <!ENTITY orca-size          "2.3 MB">
+  <!ENTITY orca-buildsize     "56 MB">
+  <!ENTITY orca-time          "0.5 SBU">
 ]>
 
 <sect1 id="orca" xreflabel="Orca-&orca-version;">
@@ -34,7 +34,7 @@
     effectively. It provides a number of features, including magnification,
     focus tracking, braille output, automatic screen reading and more.</para>
 
-    &lfs65_built;
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -61,13 +61,15 @@
     <bridgehead renderas="sect3">Orca Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="at-spi"/>,
-    <xref linkend="dbus-python"/>, and
-    <!-- FIXME:ken 1 --> Gnome-Python-2.28.1 (with PyORBit-2.24.0)</para>
-    <!--
-    <xref linkend="gnome-python"/> (with
-    <xref linkend="pyorbit"/>)</para>
-    -->
+    <!-- pkg-config and intltool should have been pulled in for xorg,
+    and the json this looks for is part of python, which is pulled in
+    by the various python modules -->
+    <para role="required"><xref linkend="at-spi2-core"/>,
+    <xref linkend="dbus-python"/>,
+    <xref linkend="gtk3"/>,
+    <xref linkend="pycairo"/>.
+    <xref linkend="pygobject3"/>,
+    <xref linkend="pyxdg"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><ulink
@@ -75,18 +77,11 @@
     output, must have <ulink
     url="http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/">Pyrex</ulink>
     installed first),
+    <xref linkend="gnome-doc-utils"/>,
     <ulink url="http://code.google.com/p/liblouis/">liblouis</ulink> (required
-    for contracted braille),
-    <xref linkend="gnome-mag"/> (required for screen magnification),
-    <!-- FIXME:ken 2 -->
-    Gnome-Python-Desktop-2.30.2 (wnck module required for mouse
-    review),
-    <!--
-    <xref linkend="gnome-python-desktop"/> (wnck module required for mouse
-    review),
-    -->
-    <xref linkend="gnome-speech"/> (required for speech-enabled screen
-    reading)</para>
+    for contracted braille), and
+    <ulink url="http://devel.freebsoft.org/speechd/">speech dispatcher</ulink>
+    (required for speech synthesis)</para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/orca"/></para>
@@ -99,13 +94,13 @@
     <para>Install <application>Orca</application> by running the
     following commands:</para>
 
-<screen><userinput>if [ $(pkg-config --variable=prefix ORBit-2.0) != "/usr" ]; then
-    sed -i "s|PATH=\"|&amp;$(pkg-config \
-           --variable=prefix ORBit-2.0)/bin:|" \
-        src/orca/orca.in
-fi
+<screen><userinput>if [ $GNOME_PREFIX != "/usr" ]; then
+    sed -i "s|PATH=\"|&amp;$GNOME_PREFIX/bin:|" \
+         src/orca/orca.in
+ fi
 
-./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) &amp;&amp;
+./configure --prefix=$GNOME_PREFIX \
+    --sysconfdir=$GNOME_SYSCONFDIR &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -113,11 +108,6 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install</userinput></screen>
-
-    <!-- see NEWS: Fix for bgo#589244 - Remove libgail-gnome usage, use gail in
-    gtk+ instead.
-    <para>For full functionality of this package, you should install the
-    <xref linkend="libgail-gnome"/> package.</para>-->
 
   </sect2>
 
@@ -131,6 +121,10 @@ make</userinput></screen>
     <application>GNOME</application> prefix is anything other than
     <filename class='directory'>/usr</filename>.</para>
 
+    <para><command>--sysconfdir=$GNOME_SYSCONFDIR</command> : This command is used
+    to put the <filename class="directory">/xdg/autostart</filename > directory
+    in the proper place.</para>
+
   </sect2>
 
   <sect2 role="content">
@@ -142,7 +136,7 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>orca</seg>
+        <seg>orca and a lot of Python scripts</seg>
         <seg>None</seg>
         <seg>/usr/lib/python&python2-majorver;/site-packages/orca/scripts/{apps/{Banshee,
         Thunderbird,evolution,gcalctool,gedit,gnome-window-properties,
