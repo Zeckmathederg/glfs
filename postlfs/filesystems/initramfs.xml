@@ -128,6 +128,15 @@ fi
 # Install the init file
 install -m0755 $DATADIR/$INITIN $WDIR/init
 
+if [  -n "$KERNEL_VERSION" ] ; then
+  if [ -x /bin/kmod ] ; then
+    binfiles="$binfiles kmod"
+  else
+    binfiles="$binfiles lsmod"
+    sbinfiles="sbinfiles insmod"
+  fi
+fi
+
 # Install basic binaries
 for f in $binfiles ; do
   ldd /bin/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
@@ -141,6 +150,12 @@ for f in $sbinfiles ; do
   ldd /sbin/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
   copy $f sbin
 done
+
+# Add module symlinks if appropriate
+if [ -n "$KERNEL_VERSION" ] &amp;&amp; [ -x /bin/kmod ] ; then
+  ln -s kmod $WDIR/bin/lsmod
+  ln -s kmod $WDIR/bin/insmod
+fi
 
 # Add lvm symlinks if appropriate
 if  [ -x /sbin/lvm ] ; then
@@ -301,6 +316,17 @@ EOF</userinput></screen>
 
   <sect2 id="initramfs-install">
     <title>Using an initramfs</title>
+
+    <bridgehead renderas="sect3">Required Runtime Dependency</bridgehead>
+
+    <para role="required">
+      <xref linkend="cpio"/>
+    </para>
+
+    <para condition="html" role="usernotes">User Notes:
+      <ulink url="&blfs-wiki;/initramfs"/>
+    </para>
+
 
     <para>To build an initramfs, run the following as the  <systemitem
     class="username">root</systemitem> user:</para>
