@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="initramfs">
+  <?dbhtml filename="initramfs.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>About initramfs</title>
+
+  <para>The only purpose of an initramfs is to mount the root filesystem.  The
+  initramfs is a complete set of directories that you would find on a normal
+  root filesystem.  It is bundled into a single cpio archive and compressed
+  with one of several compression algorithms.</para>
+
+  <para>At boot time, the boot loader loads the kernel and the initramfs image
+  into memory and starts the kernel.  The kernel checks for the presence of the
+  initramfs and, if found, mounts it as / and runs /init. The init program is
+  typically a shell script.  Note that the boot process takes longer, possibly
+  sugnificantly longer, if an initramfs is used.</para>
+
+  <para>For most distributions, kernel modules are the biggest reason to have an
+  initramfs.  In a general distribution, there are many unknowns such as file
+  system types and disk layouts.  In a way, this is the opposite of LFS where
+  the system capabilities and layout are known and a custom kernel is normally
+  built.  In this situation, an initramfs is rarely needed.</para>
+
+  <para>There are only four primary reasons to have an initramfs in the LFS
+  environment: loading the rootfs from a network, loading it from an LVM
+  logical volume, having an encrypted rootfs where a password is required, or
+  for the convenience of specifying the rootfs as a LABEL or UUID.  Anything
+  else usually means that the kernel was not configured properly.</para>
+
+  <sect2 id="initramfs-build">
+    <title>Building an initramfs</title>
+
+    <para>If you do decide to build an initramfs, the following scripts 
+    will provide a basis to do it.  The scripts will allow specifying a 
+    rootfs via partition UUID or partition LABEL or a rootfs on an 
+    LVM logical volume.  They do not support an encrypted root file system
+    or mounting the rootfs over a network card.  For a more complete 
+    capability see <ulink url="http://www.linuxfromscratch.org/hints/read.html">
+    the LFS Hints</ulink> or <ulink url="http://fedoraproject.org/wiki/Dracut">
+    dracut</ulink>.</para>
+
+    <para>To install these scripts, run the following commands as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+    <screen role="root"><userinput>cat &gt; /sbin/mkinitramfs &lt;&lt; "EOF"
+#!/bin/bash
+# This file based in part on the mkinitrafms script for the LFS LiveCD
+# written by Alexander E. Patrakov and Jeremy Huntwork.
+
+copy()
+{
+  local file
+
+  if [ "$2" == "lib" ]; then
+    file=$(PATH=/lib:/usr/lib type -p $1)
+  else
+    file=$(type -p $1)
+  fi
+
+  if [ -n $file ] ; then
+    cp $file $WDIR/$2
+  else
+    echo "Missing required file: $1 for directory $2"
+    rm -rf $WDIR
+    exit 1
+  fi
+}
+
+if [ -z $1 ] ; then
+  INITRAMFS_FILE=initrd.img-no-kmods
+else
+  KERNEL_VERSION=$1
+  INITRAMFS_FILE=initrd.img-$KERNEL_VERSION
+fi
+
+if [ -n "$KERNEL_VERSION" ] &amp;&amp; [ ! -d "/lib/modules/$1" ] ; then
+  echo "No modules directory named $1"
+  exit 1
+fi
+
+printf "Creating $INITRAMFS_FILE... "
+
+binfiles="sh cat cp dd killall ls lsmod mkdir mknod mount "
+binfiles="$binfiles umount sed sleep ln rm uname"
+
+sbinfiles="udevadm udevd modprobe blkid switch_root mdadm"
+
+unsorted=$(mktemp /tmp/unsorted.XXXXXXXXXX)
+
+DATADIR=/usr/share/mkinitramfs
+INITIN=init.in
+
+# Create a temporrary working directory
+WDIR=$(mktemp -d /tmp/initrd-work.XXXXXXXXXX)
+
+# Create base directory structure
+mkdir -p $WDIR/{bin,dev,lib/firmware,run,sbin,sys,proc}
+mkdir -p $WDIR/etc/{modprobe.d,udev/rules.d}
+touch $WDIR/etc/modprobe.d/modprobe.conf
+ln -s lib $WDIR/lib64
+
+# Create necessary device nodes
+mknod -m 640 $WDIR/dev/console c 5 1
+mknod -m 664 $WDIR/dev/null    c 1 3
+
+# Install the udev configuration files
+cp /etc/udev/udev.conf $WDIR/etc/udev/udev.conf
+
+for file in $(find /etc/udev/rules.d/ -type f) ; do
+  cp $file $WDIR/etc/udev/rules.d
+done
+
+if [ -f /etc/mdadm.conf ] ; then
+  cp /etc/mdadm.conf $WDIR/etc
+fi
+
+# Install the init file
+install -m0755 $DATADIR/$INITIN $WDIR/init
+
+# Install basic binaries
+for f in $binfiles ; do
+  ldd /bin/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
+  copy $f bin
+done
+
+# Add lvm if present
+if [ -x /sbin/lvm ] ; then sbinfiles="$sbinfiles lvm"; fi
+
+for f in $sbinfiles ; do
+  ldd /sbin/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
+  copy $f sbin
+done
+
+# Add lvm symlinks if appropriate
+if  [ -x /sbin/lvm ] ; then
+  ln -s lvm $WDIR/sbin/lvchange
+  ln -s lvm $WDIR/sbin/lvchange
+  ln -s lvm $WDIR/sbin/lvchange
+  ln -s lvm $WDIR/sbin/lvcreate
+  ln -s lvm $WDIR/sbin/lvdisplay
+  ln -s lvm $WDIR/sbin/lvscan
+
+  ln -s lvm $WDIR/sbin/pvchange
+  ln -s lvm $WDIR/sbin/pvck
+  ln -s lvm $WDIR/sbin/pvcreate
+  ln -s lvm $WDIR/sbin/pvdisplay
+  ln -s lvm $WDIR/sbin/pvscan
+
+  ln -s lvm $WDIR/sbin/vgcreate
+  ln -s lvm $WDIR/sbin/vgscan
+  ln -s lvm $WDIR/sbin/vgrename
+  ln -s lvm $WDIR/sbin/vgck
+fi
+
+# Install libraries
+sort $unsorted | uniq | while read lib ; do
+  if [ "$lib" == "linux-vdso.so.1" ] ||
+     [ "$lib" == "linux-gate.so.1" ]; then
+    continue
+  fi
+
+  copy $library lib
+done
+
+cp -a /lib/udev $WDIR/lib
+
+# Install the kernel modules if requested
+if [ -n "$KERNEL_VERSION" ]; then
+  find                                                                        \
+     /lib/modules/$KERNEL_VERSION/kernel/{crypto,fs,lib}                      \
+     /lib/modules/$KERNEL_VERSION/kernel/drivers/{block,ata,md,firewire}      \
+     /lib/modules/$KERNEL_VERSION/kernel/drivers/{scsi,message,pcmcia,virtio} \
+     /lib/modules/$KERNEL_VERSION/kernel/drivers/usb/{host,storage}           \
+     -type f 2&gt; /dev/null | cpio --make-directories -p --quiet $WDIR
+
+  depmod -b $WDIR $KERNEL_VERSION
+fi
+
+( cd $WDIR ; find . | cpio -o -H newc --quiet | gzip -9 ) &gt; $INITRAMFS_FILE
+
+# Remove the temporary directory and file
+rm -rf $WDIR $unsorted
+printf "done.\n"
+
+EOF</userinput></screen>
+  
+    <screen role="root"><userinput>mkdir -p /usr/share/mkinitramfs &amp;&amp;
+cat &gt; /usr/share/mkinitramfs/init.in &lt;&lt; "EOF"
+#!/bin/sh
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+export PATH
+
+problem()
+{
+   printf "Encountered a problem!\n\nDropping you to a shell.\n\n"
+   sh
+}
+
+no_device()
+{
+   printf "The device %s, which is supposed to contain the\n" $1
+   printf "root file system, does not exist.\n"
+   printf "Please fix this problem and exit this shell.\n\n"
+}
+
+no_mount()
+{
+   printf "Could not mount device %s\n" $1
+   printf "Sleeping forever. Please reboot and fix the kernel command line.\n\n"
+   printf "Maybe the device is formatted with an unsupported file system?\n\n"
+   printf "Or maybe filesystem type autodetection went wrong, in which case\n"
+   printf "you should add the rootfstype=... parameter to the kernel command line.\n\n"
+   printf "Available partitions:\n"
+}
+
+do_mount_root()
+{
+   mkdir /.root
+   [ -n "$rootflags" ] &amp;&amp; rootflags="$rootflags,"
+   rootflags="$rootflags$ro"
+
+   case "$root" in
+      /dev/* ) device=$root ;;
+      UUID=* ) eval $root; device="/dev/disk/by-uuid/$UUID"  ;;
+      LABEL=*) eval $root; device="/dev/disk/by-uuid/$LABEL" ;;
+      ""     ) echo "No root device specified." ; problem    ;;
+   esac
+
+   while [ ! -b "$device" ] ; do
+       no_device $device
+       problem
+   done
+
+   if ! mount -n -t "$rootfstype" -o "$rootflags" "$device" /.root ; then
+       no_mount $device
+       cat /proc/partitions
+       while true ; do sleep 10000 ; done
+   else
+       echo "Successfully mounted device $root"
+   fi
+}
+
+init=/sbin/init
+root=
+rootdelay=
+rootfstype=auto
+ro="ro"
+rootflags=
+device=
+
+mount -n -t devtmpfs devtmpfs /dev
+mknod -m 640 /dev/console c 5 1
+mknod -m 664 /dev/null    c 1 3
+mount -n -t proc  proc /proc
+mount -n -t sysfs sysfs /sys
+mount -n -t tmpfs tmpfs /run
+
+read -r cmdline &lt; /proc/cmdline
+
+for param in $cmdline ; do
+  case $param in
+    init=*      ) init=${param#init=}             ;;
+    root=*      ) root=${param#root=}             ;;
+    rootdelay=* ) rootdelay=${param#rootdelay=}   ;;
+    rootfstype=*) rootfstype=${param#rootfstype=} ;;
+    rootflags=* ) rootflags=${param#rootflags=}   ;;
+    ro          ) ro="ro"                         ;;
+    rw          ) ro="rw"                         ;;
+  esac
+done
+
+udevd --daemon --resolve-names=never
+udevadm trigger
+udevadm settle
+
+if [ -f /etc/mdadm.conf ] ; then mdadm -As                       ; fi
+if [ -x /sbin/vgchange  ] ; then /sbin/vgchange -a y &gt; /dev/null ; fi
+if [ -n "$rootdelay"    ] ; then sleep "$rootdelay"              ; fi
+
+do_mount_root
+
+killall -w /sbin/udevd
+
+exec switch_root /.root "$init" "$@"
+
+EOF</userinput></screen>
+  
+  </sect2>
+
+  <sect2 id="initramfs-install">
+    <title>Using an initramfs</title>
+
+    <para>To build an initramfs, run the following as the  <systemitem
+    class="username">root</systemitem> user:</para>
+
+    <screen><userinput>mkinitramfs [KERNEL VERSION]</userinput></screen>
+
+    <para>The optional argument is the directory where the appropriate kernel
+    modules are located. This must be a subdirectory of <filename
+    class='directory'> /lib/modules</filename>.  If no modules are specified,
+    then the initramfs is named <emphasis>initrd.img-no-kmods</emphasis>.  If a
+    kernel version is specified, the initrd is named
+    <emphasis>initrd.img-$KERNEL_VERSION</emphasis> and is only appropriate for
+    the specific kernel specified. The output file will be placed in the
+    current directory.</para>
+
+    <para>After generating the initrd, copy it to the <filename
+    class='directory'>/boot</filename> directory.</para>
+
+    <para>Now edit <filename>/boot/grub/grub.cfg</filename> and add a new 
+    menuentry.  Below are several examples.</para>
+
+     <screen><userinput># Generic initramfs and root fs identified by UUID
+menuentry "LFS Dev (LFS-7.0-Feb14) initrd, Linux 3.0.4" 
+{
+  linux  /vmlinuz-3.0.4-lfs-20120214 root=UUID=54b934a9-302d-415e-ac11-4988408eb0a8 ro
+  initrd /initrd.img-no-kmods
+}</userinput></screen>
+
+     <screen><userinput># Generic initramfs and root fs on LVM partition
+menuentry "LFS Dev (LFS-7.0-Feb18) initrd lvm, Linux 3.0.4" 
+{
+  linux  /vmlinuz-3.0.4-lfs-20120218 root=/dev/mapper/myroot ro
+  initrd /initrd.img-no-kmods
+}</userinput></screen>
+
+     <screen><userinput># Specific initramfs and root fs identified by LABEL
+menuentry "LFS Dev (LFS-7.1-Feb20) initrd label, Linux 3.2.6" 
+{
+  linux  /vmlinuz-3.2.6-lfs71-120220 root=LABEL=lfs71 ro
+  initrd /initrd.img-3.2.6-lfs71-120220
+}</userinput></screen>
+
+    <para>Finally, reboot the system and select the desired system.</para>
+
+  </sect2>
+
+</sect1>
