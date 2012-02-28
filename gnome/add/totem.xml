@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY totem-download-http "&gnome-download-http;/totem/&gnome-version;/totem-&totem-version;.tar.bz2">
-  <!ENTITY totem-download-ftp  "&gnome-download-ftp;/totem/&gnome-version;/totem-&totem-version;.tar.bz2">
-  <!ENTITY totem-md5sum        "4ff658d6178fdb57f310c54daf596de7">
-  <!ENTITY totem-size          "3.1 MB">
-  <!ENTITY totem-buildsize     "77 MB">
-  <!ENTITY totem-time          "1.4 SBU">
+  <!ENTITY totem-download-http "&gnome-download-http;/totem/&gnome-version;/totem-&totem-version;.tar.xz">
+  <!ENTITY totem-download-ftp  "&gnome-download-ftp;/totem/&gnome-version;/totem-&totem-version;.tar.xz">
+  <!ENTITY totem-md5sum        "6a7911b45f908fd8237ba1217d0fded3">
+  <!ENTITY totem-size          "3.0 MB">
+  <!ENTITY totem-buildsize     "98 MB">
+  <!ENTITY totem-time          "2.9 SBU">
 ]>
 
 <sect1 id="totem" xreflabel="Totem-&totem-version;">
@@ -36,7 +36,10 @@
     useful for playing any <application>GStreamer</application> supported file,
     DVD, VCD or digital CD.</para>
 
-    &lfs65_checked;
+    <para>Now that this package uses the <application>clutter</application> toolkit,
+    it is only useful if you have accelerated video.</para>
+
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -75,8 +78,10 @@
     with <application>GConf</application> support or the
     <command>configure</command> script will fail.</para>
 
+    <!-- commenting, I can find no references to PyGTK or pygtk in the package, except
+    for old ChangeLog entries.
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="pygtk"/> (Required for various plugins)</para>
+    <para role="recommended"><xref linkend="pygtk"/> (Required for various plugins)</para>-->
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><ulink url="http://www.bluez.org/">BlueZ</ulink>,
@@ -90,9 +95,11 @@
     <ulink url="http://www.lirc.org">LIRC</ulink>,
     <xref linkend="nautilus"/>,
     <xref linkend="pygobject2"/>,
+    <ulink url="http://pypi.python.org/pypi/pylint"/> (required, with its dependencies,
+    to run the testsuite),
     <ulink url="http://live.gnome.org/Tracker/">Tracker</ulink>,
     <ulink url="http://live.gnome.org/Vala/">Vala</ulink>, and
-    <xref linkend="xulrunner"/>
+    <xref linkend="firefox"/> or <xref linkend="xulrunner"/>
     (to build the browser plug-in)</para>
 
     <para>Note: <xref linkend="libdvdcss"/> is a run-time requirement if you
@@ -109,16 +116,12 @@
     <para>Install <application>Totem</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=$(pkg-config --variable=prefix ORBit-2.0) \
-            --sysconfdir=&gnome-etc-dir; \
-            --localstatedir=/var/lib \
-            --libexecdir=$(pkg-config \
-                --variable=prefix ORBit-2.0)/lib/totem \
-            --mandir=$(pkg-config \
-                --variable=prefix ORBit-2.0)/share/man &amp;&amp;
+<screen><userinput>./configure --prefix=$GNOME_PREFIX \
+            --libexecdir=$GNOME_PREFIX/lib/totem &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>If you have installed the dependencies for the testsuite,
+    issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -132,21 +135,14 @@ make</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-prefix.xml"/>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-sysconfdir.xml"/>
+    <para><parameter>--libexecdir=$GNOME_PREFIX/lib/totem</parameter>: This
+    parameter is used so that the movie player browser plugin is installed in
+    the preferred location of <filename
+    class='directory'>$GNOME_PREFIX/lib/totem</filename> instead of <filename
+    class='directory'>$GNOME_PREFIX/libexec</filename>.</para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/scrollkeeper-dir.xml"/>
-
-    <para><parameter>--libexecdir=$(pkg-config
-    --variable=prefix ORBit-2.0)/lib/totem</parameter>: This parameter is
-    used so that the movie player browser plugin is installed in the preferred
-    location of
-    <filename class='directory'>$GNOME_PREFIX/lib/totem</filename> instead
-    of <filename class='directory'>$GNOME_PREFIX/libexec</filename>.</para>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-mandir.xml"/>
+    <para><option>--enable-static=no</option>: This switch prevents the static
+    libraries being installed.</para>
 
     <!-- This is broken now so disabling the comment
     <para><option>-enable-vanity</option>: Using this parameter will build the
@@ -160,10 +156,9 @@ make</userinput></screen>
 
     <sect3><title>Configuration Information</title>
 
-      <para>There are no configuration files that need to be directly edited.
-      Configuration is accomplished by setting the desired values in the
-      various menu options accessed via the <command>totem</command> graphical
-      interface.</para>
+      <para>You may find that <application>totem</application> crashes. If so,
+      you can set the following in your environment, either in ~/.xinitrc or in
+      your .Xsession: <command>export CLUTTER_DISABLE_ARGB_VISUAL=1</command></para>
 
     </sect3>
 
@@ -178,9 +173,9 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>totem, totem-audio-preview, totem-video-indexer,
+        <seg>totem, totem-audio-preview,
         totem-video-thumbnailer, and totem-plugin-viewer</seg>
-        <seg>libtotem-properties-page.{so,a}, libbrasero-disc-recorder.{so,a},
+        <seg>libtotem.{so,a}, libtotem-properties-page.{so,a}, libbrasero-disc-recorder.{so,a},
         libgromit.{so,a}, libmedia_player_keys.{so,a}, libontop.{so,a},
         libmovie-properties.{so,a}, libscreensaver.{so,a}, libscreenshot.{so,a},
         libskipto.{so,a}, libthumbnail.{so,a}, libtotem-cone-plugin.{so,a},
