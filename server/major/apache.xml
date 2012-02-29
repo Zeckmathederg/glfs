@@ -4,9 +4,10 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!-- <!ENTITY apache-download-http "http://www.apache.org/dist/httpd/httpd-&apache-version;.tar.bz2"> -->
-  <!ENTITY apache-download-http "http://archive.apache.org/dist/httpd/httpd-&apache-version;.tar.bz2">
-  <!ENTITY apache-download-ftp  "ftp://apache.mirrors.pair.com/httpd/httpd-&apache-version;.tar.bz2">
+  <!ENTITY apache-download-http
+  "http://archive.apache.org/dist/httpd/httpd-&apache-version;.tar.bz2">
+  <!ENTITY apache-download-ftp
+  "ftp://apache.mirrors.pair.com/httpd/httpd-&apache-version;.tar.bz2">
   <!ENTITY apache-md5sum        "1696ae62cd879ab1d4dd9ff021a470f2">
   <!ENTITY apache-size          "6.8 MB">
   <!ENTITY apache-buildsize     "105 MB (building all available DSO modules)">
@@ -30,212 +31,198 @@
   <sect2 role="package">
     <title>Introduction to Apache</title>
 
-    <para>The <application>Apache</application> package contains an
-    open-source HTTP server. It is useful for creating local intranet
-    web sites or running huge web serving operations.</para>
+    <para>
+      The <application>Apache</application> package contains an open-source HTTP
+      server. It is useful for creating local intranet web sites or running huge
+      web serving operations.
+    </para>
 
     &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Download (HTTP): <ulink url="&apache-download-http;"/></para>
+        <para>
+          Download (HTTP): <ulink url="&apache-download-http;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download (FTP): <ulink url="&apache-download-ftp;"/></para>
+        <para>
+          Download (FTP): <ulink url="&apache-download-ftp;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: &apache-md5sum;</para>
+        <para>
+          Download MD5 sum: &apache-md5sum;
+        </para>
       </listitem>
       <listitem>
-        <para>Download size: &apache-size;</para>
+        <para>
+          Download size: &apache-size;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated disk space required: &apache-buildsize;</para>
+        <para>
+          Estimated disk space required: &apache-buildsize;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated build time: &apache-time;</para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/httpd-&apache-version;-config-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/httpd-&apache-version;-pcre-8.30-1.patch"/></para>
+        <para>
+          Estimated build time: &apache-time;
+        </para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">Apache Dependencies</bridgehead>
 
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="apr-util"/>
+    </para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openldap"/>,
-    <xref linkend="openssl"/> (also used in the bundled APR-util),
-    <xref linkend="pcre"/>,
-    <xref linkend="rsync"/>,
-    <xref linkend="lynx"/>,
-    <ulink url="http://apr.apache.org/">APR</ulink>,
-    <ulink url="http://apr.apache.org/">APR-util</ulink>, and
-    <ulink url="http://www.distcache.org/">distcache</ulink></para>
+    <para role="optional">
+      <xref linkend="openldap"/>,
+      <xref linkend="db"/>,
+      <xref linkend="expat"/>,
+      <xref linkend="openssl"/>,
+      <xref linkend="pcre"/>,
+      <xref linkend="rsync"/>,
+      <xref linkend="doxygen"/>,
+      <xref linkend="lynx"/> and
+      <ulink url="http://www.distcache.org/">distcache</ulink>
+    </para>
 
-    <bridgehead renderas="sect4">Optional (Only if Using the Bundled
-    APR-util)</bridgehead>
-    <para role="optional"><!-- <xref linkend="pkgconfig"/>, -->
-    <xref linkend="expat"/>,
-    <!-- <xref linkend="gdbm"/>, -->
-    <xref linkend="db"/>,
-    <xref linkend="unixodbc"/>,
-    <xref linkend="mysql"/>,
-    <xref linkend="postgresql"/>,
-    <xref linkend="sqlite"/>,
-    <ulink url="http://www.oracle.com/us/products/database/index.html">Oracle 11g</ulink>, and
-    <ulink url="http://www.freetds.org/">FreeTDS</ulink></para>
-
-    <para>Though you can install APR and APR-util as separate components, the
-    bundled versions that come with the Apache HTTPD tarball are
-    recommended.</para>
-
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/apache"/></para>
-
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/apache"/>
+    </para>
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of Apache</title>
 
-    <para>For security reasons, running the server as an unprivileged user and
-    group is strongly encouraged. Create the following group and user using the
-    following commands
-    (as <systemitem class="username">root</systemitem>):</para>
+    <para>
+      For security reasons, running the server as an unprivileged user and group
+      is strongly encouraged. Create the following group and user using the
+      following commands as <systemitem class="username">root</systemitem>:
+    </para>
 
 <screen role="root"><userinput>groupadd -g 25 apache &amp;&amp;
 useradd -c "Apache Server" -d /dev/null -g apache \
         -s /bin/false -u 25 apache</userinput></screen>
 
-    <note><para>The above command directs the <application>Apache</application>
-    user's home directory to <filename>/dev/null</filename>.  This may not work
-    for some add-ons such as <ulink
-    url='http://www.viewvc.org/'><application>ViewVC</application></ulink>, a
-    browser interface for CVS and Subversion version control repositories.
-    See the User Notes for details for specific applications.</para></note>
-
-    <para>The following patch modifies the layout of destination
-    directories and among them, the build directory at
-    <filename class="directory">/usr/lib/apache/build</filename>. This
-    will allow the modules added to <application>Apache</application>
-    to be configured without errors. Apply the patch:</para>
-
-<screen><userinput>patch -p1 &lt; ../httpd-&apache-version;-pcre-8.30-1.patch &amp;&amp;
-patch -Np1 -i ../httpd-&apache-version;-config-1.patch</userinput></screen>
-
     <note>
-      <para>You may wish to review the output from
-      <command>./configure --help</command> and include whatever parameters
-      are necessary to the <command>configure</command> command below to build
-      the modules required for your installation. There are as many as 65
-      additional parameters you can add to the <command>configure</command>
-      command to build additional modules. Some of the extra parameters which
-      aren't described or mentioned in the <parameter>--help</parameter>
-      information are listed in the <quote>Command Explanations</quote> section
-      below.</para>
-
-      <para>If you are using the bundled version of
-      <application>APR-util</application> and you are going to install
-      <application>Subversion</application> with
-      <application>Berkeley DB</application> back-end support, ensure you use
-      the parameters shown in the <quote>Command Explanations</quote> section
-      below.</para>
-
-      <para>While it is not built by default when using the following commands,
-      the ISAPI DSO module can be created by adding the
-      <option>--enable-isapi</option> option. Even though the module will
-      compile, install and load fine, the module is
-      <emphasis>only</emphasis> supported and functional in Win32
-      environments.</para>
+      <para>
+        The above command directs the <application>Apache</application> user's
+        home directory to <filename>/dev/null</filename>.  This may not work
+        for some add-ons such as
+        <ulink url='http://www.viewvc.org/'><application>ViewVC</application></ulink>,
+        a browser interface for CVS and Subversion version control repositories.
+        See the User Notes for details for specific applications.
+      </para>
     </note>
 
-    <para>Build and install <application>Apache</application> by running the
-    following commands:</para>
+    <para>
+      Build and install <application>Apache</application> by running the
+      following commands:
+    </para>
 
-<screen><userinput>./configure --enable-layout=FHS      \
-                               --enable-mods-shared=all \
-                               --enable-so &amp;&amp;
+<screen><userinput>cat &gt;&gt; config.layout &lt;&lt; "HERE_DOC" &amp;&amp;
+# BLFS FHS layout
+&lt;Layout FHS&gt;
+    prefix:          /usr
+    exec_prefix:     ${prefix}
+    bindir:          ${exec_prefix}/bin
+    sbindir:         ${exec_prefix}/sbin
+    libdir:          ${exec_prefix}/lib
+    libexecdir:      ${exec_prefix}/libexec/apache
+    mandir:          ${prefix}/share/man
+    sysconfdir:      /etc/apache
+    datadir:         /srv/www
+    installbuilddir: ${libexecdir}/build
+    errordir:        ${datadir}/error
+    iconsdir:        ${datadir}/icons
+    htdocsdir:       ${datadir}/htdocs
+    manualdir:       ${datadir}/manual
+    cgidir:          ${datadir}/cgi-bin
+    includedir:      ${prefix}/include/apache
+    localstatedir:   ${datadir}
+    runtimedir:      /var/run
+    logfiledir:      /var/log/apache
+    proxycachedir:   /var/cache/apache/proxy
+&lt;/Layout&gt;
+HERE_DOC
+./configure --enable-layout=FHS --enable-mods-shared=all &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chown -v root:root /usr/lib/apache/httpd.exp                     \
-    /usr/sbin/{apxs,apachectl,dbmmanage,envvars{,-std}}          \
-    /usr/share/man/man1/{dbmmanage,ht{dbm,digest,passwd}}.1      \
-    /usr/share/man/man8/{ab,apachectl,apxs,htcacheclean,httpd}.8 \
-    /usr/share/man/man8/{logresolve,rotatelogs,suexec}.8 &amp;&amp;
+chown -v root:root /usr/bin/{apxs,dbmmanage} \
+  /usr/sbin/{apachectl,envvars{,-std}} \
+  /usr/libexec/apache/httpd.exp \
+  /usr/share/man/man1/{ab,apxs,dbmmanage,ht{dbm,digest,passwd,txt2dbm},logresolve}.1 \
+  /usr/share/man/man8/{apachectl,htcacheclean,httpd,rotatelogs,suexec}.8 &amp;&amp;
 chown -v -R apache:apache /srv/www</userinput></screen>
 
+    <para>
+      Also as the <systemitem class="username">root</systemitem> user,
+      optionally install the html docs:
+    </para>
+
+<screen role="root"><userinput>mkdir -p /usr/share/doc/httpd-&apache-version;/style &amp;&amp;
+for thing in docs/manual/*.html.en
+do
+  tmp=${thing%.en}
+  cp ${thing} /usr/share/doc/httpd-&apache-version;/${tmp##*/}
+done
+cp -rf docs/manual/images /usr/share/doc/httpd-&apache-version; &amp;&amp;
+cp -rf docs/manual/style/css /usr/share/doc/httpd-&apache-version;/style &amp;&amp;
+for directory in developer faq howto misc mod platform programs rewrite ssl vhosts
+do
+  mkdir -p /usr/share/doc/httpd-&apache-version;/${directory}
+  for thing in docs/manual/${directory}/*.html.en
+  do
+    tmp=${thing%.en}
+    cp ${thing} /usr/share/doc/httpd-&apache-version;/${directory}/${tmp##*/}
+  done
+done
+sed -i \
+  '/developer\|faq\|misc\|mod\|programs\|rewrite\|ssl\|vhosts/s#/"#/index.html"#' \
+  /usr/share/doc/httpd-&apache-version;/index.html</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--enable-mods-shared=all</parameter>: The modules
-    should be compiled and used as Dynamic Shared Objects
-    (DSOs) so they can be included and excluded from the
-    server using the run-time configuration directives.</para>
+    <para>
+      <parameter>--enable-mods-shared=all</parameter>: The modules should be
+      compiled and used as Dynamic Shared Objects (DSOs) so they can be included
+      and excluded from the server using the run-time configuration directives.
+    </para>
 
-    <para><option>--enable-ssl</option>: Use this parameter
-    to create the <filename class="libraryfile">mod_ssl</filename>
-    module and enable SSL support. This parameter is mentioned as one of many
-    parameters which can be passed to the <command>configure</command> command
-    to create additional DSO modules.<!-- Note that it really only affects the
-    APR-Util sub-package, which the HTTPD installation then uses.--></para>
+    <para>
+      <command>chown root:root ...</command>: This command changes the ownership
+      of some installed files, the result of building the package as a user
+      other than <systemitem class="username">root</systemitem>.
+    </para>
 
-    <para><option>--with-pcre</option>: Add this parameter to use the system
-    installed version of the <application>PCRE</application> library.</para>
-
-    <para><option>--with-z</option>: Add this parameter to use the system
-    installed version of the <application>Zlib</application> library.</para>
-
-    <para><option>--with-ldap</option>: This parameter is required if you
-    passed the <option>--enable-authnz-ldap</option> or
-    <option>--enable-ldap</option> options to <command>configure</command>
-    and enabled the <application>OpenLDAP</application> modules.</para>
-
-    <para><option>--with-dbm=db4 --with-berkeley-db</option>: Use these
-    parameters if you require <application>Berkeley DB</application> support in
-    the bundled version of <application>APR-util</application> (required for
-    <application>Berkeley DB</application> back-end support in
-    <application>Subversion</application>). If you are using
-    <application>Berkeley DB</application>-5.1, change the first parameter to
-    <option>--with-dbm=db51</option>.</para>
-
-    <para><option>--with-mysql</option>: Add this parameter to use the system
-    installed version of <application>MySQL</application>.</para>
-
-    <para><option>--with-included-apr</option>: Add this parameter to use the
-    bundled version of the APR system. The default is to use a
-    system-installed version, if one if available. Use this parameter to force
-    the build to use and then install (overwriting the existing APR) the
-    internal (bundled) copy of the APR.</para>
-
-    <para><command>chown root:root ...</command>: This command changes the
-    ownership of some installed files, the result of building the package as
-    a user other than <systemitem class="username">root</systemitem>.</para>
-
-    <para><command>chown -R apache:apache /srv/www</command>: By default, the
-    installation process installs files (documentation, error messages, default
-    icons, etc.) with the ownership of the user that extracted the files from
-    the tar file. If you want to change the ownership to another user, you
-    should do so at this point. The only requirement is that the document
-    directories need to be accessible by the <command>httpd</command> process
-    with (r-x) permissions and files need to be readable (r--) by the
-    <systemitem class="username">apache</systemitem> user.</para>
-
+    <para>
+      <command>chown -R apache:apache /srv/www</command>: By default, the
+      installation process installs files (documentation, error messages,
+      default icons, etc.) with the ownership of the user that extracted the
+      files from the tar file. If you want to change the ownership to another
+      user, you should do so at this point. The only requirement is that the
+      document directories need to be accessible by the <command>httpd</command>
+      process with (r-x) permissions and files need to be readable (r--) by the
+      <systemitem class="username">apache</systemitem> user.
+    </para>
   </sect2>
 
   <sect2 role="configuration">
@@ -244,7 +231,9 @@ chown -v -R apache:apache /srv/www</userinput></screen>
     <sect3 id="apache-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/apache/*</filename></para>
+      <para>
+        <filename>/etc/apache/*</filename>
+      </para>
 
       <indexterm zone="apache apache-config">
         <primary sortas="e-etc-apache">/etc/apache/*</primary>
@@ -253,42 +242,42 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <indexterm zone="apache apache-config">
         <primary sortas="e-etc-apache-httpd.conf">/etc/apache/httpd.conf</primary>
       </indexterm>
-
     </sect3>
 
     <sect3>
       <title>Configuration Information</title>
 
-      <para>The main configuration file is named
-      <filename>/etc/apache/httpd.conf</filename>. Modify it so that the HTTP
-      server runs as the dedicated user and group:</para>
+      <para>
+        The main configuration file is named
+        <filename>/etc/apache/httpd.conf</filename>. Modify it so that the HTTP
+        server runs as the dedicated user and group:
+      </para>
 
-<screen role="root"><userinput>sed -i -e "s/User daemon/User apache/" \
-       -e "s/Group daemon/Group apache/" \
-    /etc/apache/httpd.conf</userinput></screen>
+<screen role="root"><userinput>sed -i "s/daemon$/apache/" /etc/apache/httpd.conf</userinput></screen>
 
-      <para>See <ulink url="http://httpd.apache.org/docs-2.2/configuring.html"/>
-      for detailed instructions on customizing your
-      <application>Apache</application> HTTP server configuration file.</para>
-
+      <para>
+        See <ulink url="/usr/share/doc/httpd-&apache-version;/configuring.html"/>
+        for detailed instructions on customising your
+        <application>Apache</application> HTTP server configuration file.
+      </para>
     </sect3>
 
     <sect3  id="httpd-init">
       <title>Boot Script</title>
 
-      <para>If you want the <application>Apache</application> server to
+      <para>
+        If you want the <application>Apache</application> server to
       start automatically when the system is booted, install the
       <filename>/etc/rc.d/init.d/httpd</filename> init script included
-      in the <xref linkend="bootscripts"/> package.</para>
+      in the <xref linkend="bootscripts"/> package.
+        </para>
 
       <indexterm zone="apache httpd-init">
         <primary sortas="f-apache">apache</primary>
       </indexterm>
 
 <screen role="root"><userinput>make install-httpd</userinput></screen>
-
     </sect3>
-
   </sect2>
 
   <sect2 role="content">
@@ -296,17 +285,16 @@ chown -v -R apache:apache /srv/www</userinput></screen>
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>ab, apachectl, apr-1-config, apu-1-config, apxs, checkgid,
-        dbmmanage, htcacheclean, htdbm, htdigest, htpasswd, httpd, httxt2dbm,
-        logresolve, rotatelogs, and suexec</seg>
-        <seg>libapr-1.{so,a}, libaprutil-1.{so,a}, apr_{dbd,ldap} database
-        modules, and numerous DSO modules</seg>
-        <seg>/etc/apache, /srv/www, /usr/include/apache, /usr/lib/apache,
-        /usr/lib/apr-util-1, and /var/log/apache</seg>
+        <seg>
+          ab, apachectl, apxs, checkgid, dbmmanage, htcacheclean, htdbm,
+          htdigest, htpasswd, httpd, httxt2dbm, logresolve and rotatelogs
+        </seg>
+        <seg>
+          /etc/apache, /srv/www, /usr/include/apache and /var/log/apache.
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -318,8 +306,10 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="ab">
         <term><command>ab</command></term>
         <listitem>
-          <para>is a tool for benchmarking your
-          <application>Apache</application> HTTP server.</para>
+          <para>
+            is a tool for benchmarking your <application>Apache</application>
+            HTTP server.
+          </para>
           <indexterm zone="apache ab">
             <primary sortas="b-ab">ab</primary>
           </indexterm>
@@ -329,45 +319,24 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="apachectl">
         <term><command>apachectl</command></term>
         <listitem>
-          <para>is a front end to the <application>Apache</application>
-          HTTP server which is designed to help the administrator
-          control the functioning of the <application>Apache</application>
-          httpd daemon.</para>
+          <para>
+            is a front end to the <application>Apache</application> HTTP server
+            which is designed to help the administrator control the functioning
+            of the <application>Apache</application> httpd daemon.
+          </para>
           <indexterm zone="apache apachectl">
             <primary sortas="b-apachectl">apachectl</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-<!--
-      <varlistentry id="apr-1-config">
-        <term><command>apr-1-config</command></term>
-        <listitem>
-          <para>is a simple script that provides information about the
-          installed APR program.</para>
-          <indexterm zone="apache apr-1-config">
-            <primary sortas="b-apr-1-config">apr-1-config</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="apu-1-config">
-        <term><command>apu-1-config</command></term>
-        <listitem>
-          <para>is a simple script that provides information about the
-          installed APR-Util program.</para>
-          <indexterm zone="apache apu-1-config">
-            <primary sortas="b-apu-1-config">apu-1-config</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
-
       <varlistentry id="apxs">
         <term><command>apxs</command></term>
         <listitem>
-          <para>is a tool for building and installing extension modules for
-          the <application>Apache</application> HTTP server.</para>
+          <para>
+            is a tool for building and installing extension modules for the
+            <application>Apache</application> HTTP server.
+          </para>
           <indexterm zone="apache apxs">
             <primary sortas="b-apxs">apxs</primary>
           </indexterm>
@@ -377,10 +346,12 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="checkgid">
         <term><command>checkgid</command></term>
         <listitem>
-          <para>is a program that checks whether it can setgid to the group
-          specified. This is to see if it is a valid group for Apache2 to use
-          at runtime. If the user (should be run as superuser) is in that
-          group, or can setgid to it, it will return 0.</para>
+          <para>
+            is a program that checks whether it can setgid to the group
+            specified. This is to see if it is a valid group for Apache2 to use
+            at runtime. If the user (should be run as superuser) is in that
+            group, or can setgid to it, it will return 0.
+          </para>
           <indexterm zone="apache checkgid">
             <primary sortas="b-checkgid">checkgid</primary>
           </indexterm>
@@ -390,8 +361,10 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="dbmmanage">
         <term><command>dbmmanage</command></term>
         <listitem>
-          <para>is used to create and update the DBM format files used to store
-          usernames and passwords for basic authentication of HTTP users.</para>
+          <para>
+            is used to create and update the DBM format files used to store
+            usernames and passwords for basic authentication of HTTP users.
+          </para>
           <indexterm zone="apache dbmmanage">
             <primary sortas="b-dbmmanage">dbmmanage</primary>
           </indexterm>
@@ -401,7 +374,9 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="htcacheclean">
         <term><command>htcacheclean</command></term>
         <listitem>
-          <para>is used to clean up the disk cache.</para>
+          <para>
+            is used to clean up the disk cache.
+          </para>
           <indexterm zone="apache htcacheclean">
             <primary sortas="b-htcacheclean">htcacheclean</primary>
           </indexterm>
@@ -411,7 +386,9 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="htdbm">
         <term><command>htdbm</command></term>
         <listitem>
-          <para>is used to manipulate the DBM password databases.</para>
+          <para>
+            is used to manipulate the DBM password databases.
+          </para>
           <indexterm zone="apache htdbm">
             <primary sortas="b-htdbm">htdbm</primary>
           </indexterm>
@@ -421,9 +398,10 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="htdigest">
         <term><command>htdigest</command></term>
         <listitem>
-          <para>is used to create and update the flat-files used to store
-          usernames, realms and passwords for digest authentication of
-          HTTP users.</para>
+          <para>
+            is used to create and update the flat-files used to store usernames,
+            realms and passwords for digest authentication of HTTP users.
+          </para>
           <indexterm zone="apache htdigest">
             <primary sortas="b-htdigest">htdigest</primary>
           </indexterm>
@@ -433,8 +411,10 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="htpasswd">
         <term><command>htpasswd</command></term>
         <listitem>
-          <para>is used to create and update the flat-files used to store
-          usernames and passwords for basic authentication of HTTP users.</para>
+          <para>
+            is used to create and update the flat-files used to store usernames
+            and passwords for basic authentication of HTTP users.
+          </para>
           <indexterm zone="apache htpasswd">
             <primary sortas="b-htpasswd">htpasswd</primary>
           </indexterm>
@@ -444,8 +424,9 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="httpd">
         <term><command>httpd</command></term>
         <listitem>
-          <para>is the <application>Apache</application>
-          HTTP server program.</para>
+          <para>
+            is the <application>Apache</application> HTTP server program.
+          </para>
           <indexterm zone="apache httpd">
             <primary sortas="b-httpd">httpd</primary>
           </indexterm>
@@ -455,8 +436,9 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="httxt2dbm">
         <term><command>httxt2dbm</command></term>
         <listitem>
-          <para>is used to generate DBM files from text input, for use in
-          RewriteMap.</para>
+          <para>
+            is used to generate DBM files from text, for use in RewriteMap.
+          </para>
           <indexterm zone="apache httxt2dbm">
             <primary sortas="b-httxt2dbm">httxt2dbm</primary>
           </indexterm>
@@ -466,8 +448,10 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="logresolve">
         <term><command>logresolve</command></term>
         <listitem>
-          <para>is a post-processing program to resolve IP-addresses
-          in <application>Apache</application>'s access log files.</para>
+          <para>
+            is a post-processing program to resolve IP-addresses in
+            <application>Apache</application>'s access log files.
+          </para>
           <indexterm zone="apache logresolve">
             <primary sortas="b-logresolve">logresolve</primary>
           </indexterm>
@@ -477,27 +461,15 @@ chown -v -R apache:apache /srv/www</userinput></screen>
       <varlistentry id="rotatelogs">
         <term><command>rotatelogs</command></term>
         <listitem>
-          <para>is a simple program for use in conjunction with
-          <application>Apache</application>'s piped log file feature.</para>
+          <para>
+            is a simple program for use in conjunction with
+            <application>Apache</application>'s piped log file feature.
+          </para>
           <indexterm zone="apache rotatelogs">
             <primary sortas="b-rotatelogs">rotatelogs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
-      <varlistentry id="suexec">
-        <term><command>suexec</command></term>
-        <listitem>
-          <para>is used by the <application>Apache HTTP</application> Server
-          to switch to another user before executing CGI programs.</para>
-          <indexterm zone="apache suexec">
-            <primary sortas="b-suexec">suexec</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
