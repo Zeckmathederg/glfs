@@ -4,12 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY openssl-download-http "http://www.openssl.org/source/openssl-&openssl-version;.tar.gz">
-  <!ENTITY openssl-download-ftp  "ftp://ftp.openssl.org/source/openssl-&openssl-version;.tar.gz">
-  <!ENTITY openssl-md5sum        "7040b89c4c58c7a1016c0dfa6e821c86">
+  <!ENTITY openssl-download-http
+  "http://www.openssl.org/source/openssl-&openssl-version;.tar.gz">
+  <!ENTITY openssl-download-ftp
+  "ftp://ftp.openssl.org/source/openssl-&openssl-version;.tar.gz">
+  <!ENTITY openssl-md5sum        "07ecbe4324f140d157478637d6beccf1">
   <!ENTITY openssl-size          "3.9 MB">
-  <!ENTITY openssl-buildsize     "54 MB">
-  <!ENTITY openssl-time          "1.1 SBU (additional 0.3 SBU to run the test suite)">
+  <!ENTITY openssl-buildsize     "55 MB">
+  <!ENTITY openssl-time          "1.1 SBU">
 ]>
 
 <sect1 id="openssl" xreflabel="OpenSSL-&openssl-version;">
@@ -29,108 +31,136 @@
   <sect2 role="package">
     <title>Introduction to OpenSSL</title>
 
-    <para>The <application>OpenSSL</application> package contains management
-    tools and libraries relating to cryptography.  These are useful for
-    providing cryptography functions to other packages, notably
-    <application>OpenSSH</application>, email applications and web browsers
-    (for accessing HTTPS sites).</para>
+    <para>
+      The <application>OpenSSL</application> package contains management tools
+      and libraries relating to cryptography.  These are useful for providing
+      cryptography functions to other packages, such as
+      <application>OpenSSH</application>, email applications and web browsers
+      (for accessing HTTPS sites).
+    </para>
 
     &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Download (HTTP): <ulink url="&openssl-download-http;"/></para>
+        <para>
+          Download (HTTP): <ulink url="&openssl-download-http;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download (FTP): <ulink url="&openssl-download-ftp;"/></para>
+        <para>
+          Download (FTP): <ulink url="&openssl-download-ftp;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: &openssl-md5sum;</para>
+        <para>
+          Download MD5 sum: &openssl-md5sum;
+        </para>
       </listitem>
       <listitem>
-        <para>Download size: &openssl-size;</para>
+        <para>
+          Download size: &openssl-size;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated disk space required: &openssl-buildsize;</para>
+        <para>
+          Estimated disk space required: &openssl-buildsize;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated build time: &openssl-time;</para>
+        <para>
+          Estimated build time: &openssl-time;
+        </para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
-        <para>Required patches: <ulink
-        url="&patch-root;/openssl-&openssl-version;-fix_manpages-1.patch"/></para>
+        <para>
+          Required patch: <ulink
+          url="&patch-root;/openssl-&openssl-version;-fix_manpages-1.patch"/>
+        </para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">OpenSSL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="mitkrb"/> or
-    <xref linkend="heimdal"/>, and <xref linkend="bc"/> (required for full
-    coverage by the test suite during the build)</para>
+    <para role="optional">
+      <xref linkend="mitkrb"/> or
+      <xref linkend="heimdal"/> and
+      <xref linkend="bc"/> (required for full coverage by the test suite during
+      the build)
+    </para>
 
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url='&blfs-wiki;/OpenSSL'/></para>
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url='&blfs-wiki;/OpenSSL'/>
+    </para>
 
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of OpenSSL</title>
 
-    <para>Install <application>OpenSSL</application> by running
-    the following commands:</para>
+    <para>
+      Install <application>OpenSSL</application> by running the following
+      commands:
+    </para>
 
 <screen><userinput>patch -Np1 -i ../openssl-&openssl-version;-fix_manpages-1.patch &amp;&amp;
-
-./config --prefix=/usr         \
-         --openssldir=/etc/ssl \
-         shared                \
-         zlib-dynamic          &amp;&amp;
+./config --prefix=/usr   zlib-dynamic \
+         --openssldir=/etc/ssl shared &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make test</command>.</para>
+    <para>
+      To test the results, issue: <command>make test</command>.
+    </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      If you want to disable installing the static libraries, use this sed:
+    </para>
+
+<screen><userinput>sed -i 's# libcrypto.a##;s# libssl.a##' Makefile</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make MANDIR=/usr/share/man install                &amp;&amp;
 install -v -d -m755 /usr/share/doc/openssl-&openssl-version; &amp;&amp;
-cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
-                    /usr/share/doc/openssl-&openssl-version;</userinput></screen>
+cp -v -r doc/{HOWTO,README,*.{txt,html,gif}} /usr/share/doc/openssl-&openssl-version;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>shared</parameter>: This parameter forces the creation of
-    shared libraries along with the static libraries.</para>
+    <para>
+      <parameter>shared</parameter>: This parameter forces the creation of
+      shared libraries along with the static libraries.
+    </para>
 
-    <para><parameter>zlib-dynamic</parameter>: This parameter adds
-    compression/decompression functionality using the
-    <filename class="libraryfile">libz</filename> library.</para>
+    <para>
+      <parameter>zlib-dynamic</parameter>: This parameter adds
+      compression/decompression functionality using the
+      <filename class="libraryfile">libz</filename> library.
+    </para>
 
-    <para><option>no-rc5 no-idea</option>: When added to the
-    <command>./config</command> command, this will eliminate the building
-    of those encryption methods. Patent licenses may be needed for you to
-    utilize either of those methods in your projects.</para>
+    <para>
+      <option>no-rc5 no-idea</option>: When added to the
+      <command>./config</command> command, this will eliminate the building
+      of those encryption methods. Patent licenses may be needed for you to
+      utilize either of those methods in your projects.
+    </para>
 
-    <para><command>make MANDIR=/usr/share/man install</command>: This command
-    installs <application>OpenSSL</application> with the man pages in
-    <filename class='directory'>/usr/share/man</filename> instead of
-    <filename class='directory'>/etc/ssl/man</filename>.</para>
-
-    <!-- <para><option>enable-tlsext</option>: When added to the
-    <command>./config</command> command, this switch will enable TLS
-    Extensions. Currently this is only RFC 3546 and 4507bis for Server Name
-    Indication.  This allows the use of multiple SSL certificates with multiple
-    virtual hosts in Apache, while using only one IP address and one port for
-    all virtual hosts.</para> -->
-
+    <para>
+      <command>make MANDIR=/usr/share/man install</command>: This command
+      installs <application>OpenSSL</application> with the man pages in
+      <filename class='directory'>/usr/share/man</filename> instead of
+      <filename class='directory'>/etc/ssl/man</filename>.
+    </para>
   </sect2>
 
   <sect2 role="configuration">
@@ -139,33 +169,37 @@ cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
     <sect3 id="openssl-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/ssl/openssl.cnf</filename></para>
+      <para>
+      <filename>/etc/ssl/openssl.cnf</filename>
+      </para>
 
       <indexterm zone="openssl openssl-config">
         <primary sortas="e-etc-ssl-openssl.cnf">/etc/ssl/openssl.cnf</primary>
       </indexterm>
 
     </sect3>
-
     <sect3>
       <title>Configuration Information</title>
 
-      <para>Most users will want to install Certificate Authority Certificates
-      for validataion of downloaded certificates.  For example, these
-      certificates are used by <xref linkend='firefox'/> or <xref
-      linkend='wget'/> when accessing secure (https protocol) sites.  To do this, 
-      follow the instructions from the <xref linkend='cacerts'/> page.</para> 
+      <para>
+        Most users will want to install Certificate Authority Certificates
+        for validataion of downloaded certificates.  For example, these
+        certificates are used by <xref linkend='git'/>, <xref linkend='curl'/>
+        or <xref linkend='wget'/> when accessing secure (https protocol) sites.
+        To do this, follow the instructions from the <xref linkend='cacerts'/>
+        page.
+      </para> 
 
-      <para>Users who just want to use <application>OpenSSL</application> for
-      providing functions to other programs such as
-      <application>OpenSSH</application> and web browsers do not need to worry
-      about additional configuration. This is an advanced topic and so those
-      who do need it would normally be expected to either know how to properly
-      update <filename>/etc/ssl/openssl.cnf</filename> or be able to find out
-      how to do it.</para>
-
+      <para>
+        Users who just want to use <application>OpenSSL</application> for
+        providing functions to other programs such as
+        <application>OpenSSH</application> and web browsers do not need to worry
+        about additional configuration. This is an advanced topic and so those
+        who do need it would normally be expected to either know how to properly
+        update <filename>/etc/ssl/openssl.cnf</filename> or be able to find out
+        how to do it.
+      </para>
     </sect3>
-
   </sect2>
 
   <sect2 role="content">
@@ -178,11 +212,13 @@ cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
 
       <seglistitem>
         <seg>c_rehash and openssl</seg>
-        <seg>libcrypto.{so,a}, libssl.{so,a}, and additional encryption
-        libraries in /usr/lib/engines/ (lib4758cca.so, libaep.so,
-        libatalla.so, libcapi.so, libchil.so, libcswift.so, libgmp.so,
-        libgost.so, libnuron.so, libpadlock.so, libsureware.so, and
-        libubsec.so)</seg>
+        <seg>
+          libcrypto.{so,a}, libssl.{so,a}, and additional encryption
+          libraries in /usr/lib/engines/ (lib4758cca.so, libaep.so,
+          libatalla.so, libcapi.so, libchil.so, libcswift.so, libgmp.so,
+          libgost.so, libnuron.so, libpadlock.so, libsureware.so, and
+          libubsec.so)
+        </seg>
         <seg>/etc/ssl, /usr/include/openssl, /usr/lib/engines
         and /usr/share/doc/openssl-&openssl-version;</seg>
       </seglistitem>
@@ -196,9 +232,10 @@ cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
       <varlistentry id="c_rehash">
         <term><command>c_rehash</command></term>
         <listitem>
-          <para>is a <application>Perl</application> script that scans
-          all files in a directory and adds symbolic links to their hash
-          values.</para>
+          <para>
+            is a <application>Perl</application> script that scans all files in
+            a directory and adds symbolic links to their hash values.
+          </para>
           <indexterm zone="openssl c_rehash">
             <primary sortas="b-c_rehash">c_rehash</primary>
           </indexterm>
@@ -208,10 +245,12 @@ cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
       <varlistentry id="openssl-prog">
         <term><command>openssl</command></term>
         <listitem>
-          <para>is a command-line tool for using the various cryptography
-          functions of <application>OpenSSL</application>'s crypto
-          library from the shell. It can be used for various functions which are
-          documented in <command>man 1 openssl</command>.</para>
+          <para>
+            is a command-line tool for using the various cryptography functions
+            of <application>OpenSSL</application>'s crypto library from the
+            shell. It can be used for various functions which are documented in
+            <command>man 1 openssl</command>.
+          </para>
           <indexterm zone="openssl openssl-prog">
             <primary sortas="b-openssl">openssl</primary>
           </indexterm>
@@ -221,12 +260,15 @@ cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
       <varlistentry id="libcrypto">
         <term><filename class='libraryfile'>libcrypto.{so,a}</filename></term>
         <listitem>
-          <para>implements a wide range of cryptographic algorithms used in
-          various Internet standards. The services provided by  this library
-          are used by the <application>OpenSSL</application> implementations of
-          SSL, TLS and S/MIME, and they have also been used to implement
-          <application>OpenSSH</application>, <application>OpenPGP</application>,
-          and other cryptographic standards.</para>
+          <para>
+            implements a wide range of cryptographic algorithms used in various
+            Internet standards. The services provided by  this library are used
+            by the <application>OpenSSL</application> implementations of SSL,
+            TLS and S/MIME, and they have also been used to implement
+            <application>OpenSSH</application>,
+            <application>OpenPGP</application>, and other cryptographic
+            standards.
+          </para>
           <indexterm zone="openssl libcrypto">
             <primary sortas="c-libcrypto">libcrypto.{so,a}</primary>
           </indexterm>
@@ -236,17 +278,16 @@ cp      -v -r       doc/{HOWTO,README,*.{txt,html,gif}} \
       <varlistentry id="libssl">
         <term><filename class='libraryfile'>libssl.{so,a}</filename></term>
         <listitem>
-          <para>implements the Secure Sockets Layer (SSL v2/v3) and Transport
-          Layer Security (TLS v1) protocols. It provides a rich API, documentation
-          on which can be found by running <command>man 3 ssl</command>.</para>
+          <para>
+            implements the Secure Sockets Layer (SSL v2/v3) and Transport Layer
+            Security (TLS v1) protocols. It provides a rich API, documentation
+            on which can be found by running <command>man 3 ssl</command>.
+          </para>
           <indexterm zone="openssl libssl">
             <primary sortas="c-libssl">libssl.{so,a}</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
