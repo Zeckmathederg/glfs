@@ -4,11 +4,13 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY nspr-download-http "http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v&nspr-version;/src/nspr-&nspr-version;.tar.gz">
-  <!ENTITY nspr-download-ftp  "ftp://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v&nspr-version;/src/nspr-&nspr-version;.tar.gz">
-  <!ENTITY nspr-md5sum        "60770d45dc08c0f181b22cdfce5be3e8">
+  <!ENTITY nspr-download-http
+  "http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v&nspr-version;/src/nspr-&nspr-version;.tar.gz">
+  <!ENTITY nspr-download-ftp
+  "ftp://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v&nspr-version;/src/nspr-&nspr-version;.tar.gz">
+  <!ENTITY nspr-md5sum        "aa0c960b23a9d66a3c30c3e6ba80a99a">
   <!ENTITY nspr-size          "1.2 MB">
-  <!ENTITY nspr-buildsize     "21 MB">
+  <!ENTITY nspr-buildsize     "15 MB">
   <!ENTITY nspr-time          "less than 0.1 SBU">
 ]>
 
@@ -29,91 +31,119 @@
   <sect2 role="package">
     <title>Introduction to NSPR</title>
 
-    <para><application>Netscape Portable Runtime</application> (NSPR) provides
-    a platform-neutral API for system level and libc like functions.</para>
+    <para>
+        <application>Netscape Portable Runtime</application> (NSPR) provides
+    a platform-neutral API for system level and libc like functions.
+      </para>
 
     &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Download (HTTP): <ulink url="&nspr-download-http;"/></para>
+        <para>
+          Download (HTTP): <ulink url="&nspr-download-http;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download (FTP): <ulink url="&nspr-download-ftp;"/></para>
+        <para>
+          Download (FTP): <ulink url="&nspr-download-ftp;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: &nspr-md5sum;</para>
+        <para>
+          Download MD5 sum: &nspr-md5sum;
+        </para>
       </listitem>
       <listitem>
-        <para>Download size: &nspr-size;</para>
+        <para>
+         Download size: &nspr-size;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated disk space required: &nspr-buildsize;</para>
+        <para>
+          Estimated disk space required: &nspr-buildsize;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated build time: &nspr-time;</para>
+        <para>
+          Estimated build time: &nspr-time;
+        </para>
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch: <ulink
-          url="http://www.linuxfromscratch.org/patches/downloads/nspr/nspr-&nspr-version;-pkgconfig-2.patch"/>
-      </para>
-      </listitem>
-    </itemizedlist>
-
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/nspr"/></para>
-
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/nspr"/>
+    </para>
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of NSPR</title>
 
-    <para>Install <application>NSPR</application> by running the following
-    commands:</para>
+    <para>
+      Install <application>NSPR</application> by running the following commands:
+    </para>
 
-<screen><userinput>patch -Np1 -i ../nspr-&nspr-version;-pkgconfig-2.patch &amp;&amp;
-cd mozilla/nsprpub &amp;&amp;
+<screen><userinput>cd mozilla/nsprpub &amp;&amp;
 sed -i 's#^\(RELEASE_BINS =\).*#\1#' pr/src/misc/Makefile.in &amp;&amp;
+sed -i 's#$(LIBRARY) ##' config/rules.mk &amp;&amp;
 ./configure --prefix=/usr --with-mozilla --with-pthreads \
   $([ $(arch) = x86_64 ] &amp;&amp; echo --enable-64bit) &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-cp -v -LR dist/include/nspr /usr/include</userinput></screen>
+cat &gt; /usr/lib/pkgconfig/nspr.pc &lt;&lt; "HERE_DOC"
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/nspr
 
+Name: NSPR
+Description: The Netscape Portable Runtime
+Version: &nspr-version;.0
+Libs: -L${libdir} -lplds4 -lplc4 -lnspr4 -lpthread 
+Cflags: -I${includedir}
+HERE_DOC</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--with-mozilla</parameter>: This parameter adds Mozilla
-    support to the libraries (required if you want to build any other Mozilla
-    products and link them to these libraries).</para>
+    <para>
+      <parameter>--with-mozilla</parameter>: This parameter adds Mozilla support
+      to the libraries (required if you want to build any other Mozilla products
+      and link them to these libraries).
+    </para>
 
-    <para><parameter>--with-pthreads</parameter>: This parameter forces use of
-    the system pthreads library.</para>
+    <para>
+      <parameter>--with-pthreads</parameter>: This parameter forces use of the
+      system pthreads library.
+    </para>
 
-    <para><parameter>$([ $(arch) ... --enable-64bit</parameter>: This parameter
-    is required <emphasis>on an x86_64 system</emphasis> to prevent
-    <command>configure</command> failing with a claim that this is a system
-    without pthread support. It has no effect on a 32 bit system.</para>
+    <para>
+      <parameter>$([ $(arch) ... --enable-64bit</parameter>: This parameter is
+      required <emphasis>on an x86_64 system</emphasis> to prevent
+      <command>configure</command> failing with a claim that this is a system
+      without pthread support. It has no effect on a 32 bit system.
+    </para>
 
-    <para><command>sed -i 's#^\(RELEASE_BINS ...</command>: This disables
-    installing two unneeded scripts.</para>
+    <para>
+      <command>sed -i 's#^\(RELEASE_BINS ...</command>: This disables installing
+      two unneeded scripts.
+    </para>
 
-    <para>If you don't want to compile and install the static versions of the
-    libraries you can disable them with a sed:
-    <command>sed -i '/^TARGETS/s# $(LIBRARY)##' config/rules.mk</command></para>
-
+    <para>
+      <command>sed -i 's#$(LIBRARY) ##' config/rules.mk</command>: This disables
+      installing the static libraries.
+    </para>
   </sect2>
 
   <sect2 role="content">
@@ -126,7 +156,7 @@ cp -v -LR dist/include/nspr /usr/include</userinput></screen>
 
       <seglistitem>
         <seg>nspr-config</seg>
-        <seg>libnspr4.{a,so}, libplc4.{a,so}, and libplds4.{a.so}</seg>
+        <seg>libnspr4.so, libplc4.so, and libplds4.so</seg>
         <seg>/usr/include/nspr</seg>
       </seglistitem>
     </segmentedlist>
@@ -139,8 +169,10 @@ cp -v -LR dist/include/nspr /usr/include</userinput></screen>
       <varlistentry id="nspr-config">
         <term><command>nspr-config</command></term>
         <listitem>
-          <para>provides compiler and linker options to other packages that
-          use <application>NSPR</application>.</para>
+          <para>
+            provides compiler and linker options to other packages that use
+            <application>NSPR</application>.
+          </para>
           <indexterm zone="nspr nspr-config">
             <primary sortas="b-nspr-config">nspr-config</primary>
           </indexterm>
@@ -148,42 +180,44 @@ cp -v -LR dist/include/nspr /usr/include</userinput></screen>
       </varlistentry>
 
       <varlistentry id="libnspr4">
-        <term><filename class='libraryfile'>libnspr4.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libnspr4.so</filename></term>
         <listitem>
-          <para>contains functions that provide platform independence for
-          non-GUI operating system facilities such as threads, thread
-          synchronization, normal file and network I/O, interval timing and
-          calendar time, basic memory management (malloc and free) and shared
-          library linking.</para>
+          <para>
+            contains functions that provide platform independence for non-GUI
+            operating system facilities such as threads, thread synchronization,
+            normal file and network I/O, interval timing and calendar time,
+            basic memory management and shared library linking.
+          </para>
           <indexterm zone="nspr libnspr4">
-            <primary sortas="c-libnspr4">libnspr4.{so,a}</primary>
+            <primary sortas="c-libnspr4">libnspr4.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libplc4">
-        <term><filename class='libraryfile'>libplc4.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libplc4.so</filename></term>
         <listitem>
-          <para>contains functions that implement many of the features offered
-          by libnspr4</para>
+          <para>
+            contains functions that implement many of the features offered by
+            libnspr4
+          </para>
           <indexterm zone="nspr libplc4">
-            <primary sortas="c-libplc4">libplc4.{so,a}</primary>
+            <primary sortas="c-libplc4">libplc4.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libplds4">
-        <term><filename class='libraryfile'>libplds4.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libplds4.so</filename></term>
         <listitem>
-          <para>contains functions that provide data structures.</para>
+          <para>
+            contains functions that provide data structures.
+          </para>
           <indexterm zone="nspr libplds4">
-            <primary sortas="c-libplds4">libplds4.{so,a}</primary>
+            <primary sortas="c-libplds4">libplds4.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
