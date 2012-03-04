@@ -86,7 +86,7 @@
 
   <sect2 role="installation">
     <title>Installation of polkit</title>
-
+<!--
     <para>It is a requirement to have a dedicated user and group for
     <application>polkit</application> to function correctly. Issue the
     following commands as the <systemitem class="username">root</systemitem>
@@ -95,6 +95,7 @@
 <screen role="root"><userinput>groupadd -fg 27 polkituser &amp;&amp;
 useradd -c "Policy Kit Daemon User" -d /dev/null -u 27 \
     -g polkituser -s /bin/false polkituser || [ $? == 9 ]</userinput></screen>
+-->
 
     <para>Install <application>polkit</application> by running the following
     commands as an unprivileged user:</para>
@@ -126,6 +127,48 @@ make</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gtk-doc-rebuild.xml"/>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring polkit</title>
+
+    <sect3 id="polkit-config">
+      <title>Config Files</title>
+
+      <para><filename>/etc/polkit-1/localauthority.conf.d/*</filename></para>
+    </sect3>
+
+    <sect3>
+      <title>PAM Configuration</title>
+
+      <note>
+        <para>If you did not build <application>polkit</application> with
+        <application>Linux PAM</application> support, you can skip this section.
+        </para>
+      </note>
+
+      <para>If you built <application>polkit</application> with 
+      <application>Linux PAM</application> support, you will need to modify 
+      the pam configuration file which was installed by default to get 
+      <application>polkit</application> to work correctly with BLFS.</para>
+
+      <para>Issue the following commands as the <systemitem class="username">root</systemitem>
+      user to create the configuration file for <application>Linux PAM</application>:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/polkit-1 &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/polkit-1
+
+auth     include        system-auth
+account  include        system-account
+password include        system-password
+session  include        system-session
+
+# End /etc/pam.d/polkit-1</literal>
+EOF</userinput></screen>
+
+    </sect3>
 
   </sect2>
 
@@ -216,7 +259,7 @@ make</userinput></screen>
       <varlistentry id="libnullbackend">
         <term><filename class='libraryfile'>libnullbackend.{so,a}</filename></term>
         <listitem>
-          <para>contains functions that .....</para>
+          <para>PolicyKit null backend</para>
           <indexterm zone="polkit libnullbackend">
             <primary sortas="c-libnullbackend">libnullbackend.{so,a}</primary>
           </indexterm>
