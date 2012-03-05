@@ -6,10 +6,10 @@
 
   <!ENTITY cyrus-sasl-download-http "http://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-&cyrus-sasl-version;.tar.gz">
   <!ENTITY cyrus-sasl-download-ftp  "ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-&cyrus-sasl-version;.tar.gz">
-  <!ENTITY cyrus-sasl-md5sum        "2eb0e48106f0e9cd8001e654f267ecbc">
-  <!ENTITY cyrus-sasl-size          "1.6 MB">
-  <!ENTITY cyrus-sasl-buildsize     "17 MB">
-  <!ENTITY cyrus-sasl-time          "0.3 SBU">
+  <!ENTITY cyrus-sasl-md5sum        "341cffe829a4d71f2a6503d669d5a946">
+  <!ENTITY cyrus-sasl-size          "5.0 MB">
+  <!ENTITY cyrus-sasl-buildsize     "20 MB">
+  <!ENTITY cyrus-sasl-time          "0.5 SBU">
 ]>
 
 <sect1 id="cyrus-sasl" xreflabel="Cyrus SASL-&cyrus-sasl-version;">
@@ -37,6 +37,8 @@
     its use is negotiated, a security layer is inserted between the protocol
     and the connection.</para>
 
+    &lfs70_checked;
+
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -59,22 +61,30 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/cyrus-sasl-&cyrus-sasl-version;-bdb5-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Cyrus SASL Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="openssl"/></para>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="db"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional"><xref linkend="linux-pam"/>,
     <xref linkend="openldap"/>,
-    <xref linkend="heimdal"/> or <xref linkend="mitkrb"/>,
+    <xref linkend="mitkrb"/>,
     <xref linkend="icedtea6"/> or <xref linkend="jdk"/>,
     <xref linkend="mysql"/>,
     <xref linkend="postgresql"/>,
-    <xref linkend="db"/>,
     <xref linkend="sqlite"/>,
-    <!-- <xref linkend="gdbm"/>,
-    <xref linkend="courier"/>,  -->
     <ulink url="http://www.pdc.kth.se/kth-krb/">krb4</ulink>, and
     <ulink url="http://dmalloc.com/">Dmalloc</ulink></para>
 
@@ -89,10 +99,7 @@
     <para>Install <application>Cyrus SASL</application> by
     running the following commands:</para>
 
-<screen><userinput>sed -i.bak 's/#elif WITH_DES/#elif defined(WITH_DES)/' \
-    plugins/digestmd5.c &amp;&amp;
-sed -i 's#DB_VERSION_MAJOR == 4.*#(&amp;) || DB_VERSION_MAJOR == 5#' \
-    {sasldb/db_berkeley.c,utils/dbconverter-2.c} &amp;&amp;
+<screen><userinput>patch -Np1 -i ../cyrus-sasl-&cyrus-sasl-version;-bdb5-1.patch &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
             --with-dbpath=/var/lib/sasl/sasldb2 \
@@ -112,19 +119,12 @@ make</userinput></screen>
 install -v -m755 -d /usr/share/doc/cyrus-sasl-&cyrus-sasl-version; &amp;&amp;
 install -v -m644 doc/{*.{html,txt,fig},ONEWS,TODO} \
     saslauthd/LDAP_SASLAUTHD /usr/share/doc/cyrus-sasl-&cyrus-sasl-version; &amp;&amp;
-install -v -m700 -d /var/lib/sasl &amp;&amp;
-install -v -m711 -d /var/run/saslauthd</userinput></screen>
+install -v -m700 -d /var/lib/sasl</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para><command>sed -i.bak ... plugins/digestmd5.c</command>: This fixes
-    a build problem caused by using newer compilers.</para>
-
-    <para><command>sed -i 's#DB_VERSION_MAJOR ...</command>: This fixes
-    compiling against version 5 of <xref linkend="db"/>.</para>
 
     <para><parameter>--with-dbpath=/var/lib/sasl/sasldb2</parameter>: This
     parameter forces the <command>sasldb</command> database to be created
@@ -148,13 +148,21 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
     parameter. See <ulink url="&blfs-wiki;/cyrus-sasl"/> for a solution to
     this problem.</para>
 
+    <para><option>--enable-java</option>: This option enables compiling of 
+    <application>Java</application> support libraries</para>
+
+    <para><option>--enable-login</option>: This option enables unsupported 
+    LOGIN authentication</para>
+
+    <para><option>--enable-ntlm</option>: This option enables unsupported 
+    NTLM authentication</para>
+
     <para><command>install -v -m644 ...</command>: These commands
     install documentation which is not installed by the
     <command>make install</command> command.</para>
 
-    <para><command>install -v -m700 -d /var/lib/sasl ...
-    -m711 /var/run/saslauthd</command>:
-    These directories must exist when starting <command>saslauthd</command> or
+    <para><command>install -v -m700 -d /var/lib/sasl</command>:
+    This directoriy must exist when starting <command>saslauthd</command> or
     using the sasldb plugin. If you're not going to be running the daemon or
     using the plugins, you may omit the creation of this directory.</para>
 
@@ -183,10 +191,16 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
       <para>See <ulink
       url="file:///usr/share/doc/cyrus-sasl-&cyrus-sasl-version;/sysadmin.html"/>
       for information on what to include in the application configuration files.
+      </para><para>
       See <ulink
       url="file:///usr/share/doc/cyrus-sasl-&cyrus-sasl-version;/LDAP_SASLAUTHD"/>
       for configuring <command>saslauthd</command> with
-      <application>OpenLDAP</application>.</para>
+      <application>OpenLDAP</application>.</para><para>
+      See <ulink 
+      url="file:///usr/share/doc/cyrus-sasl-&cyrus-sasl-version;/gssapi.html"/>
+      for configuring <command>saslauthd</command> with
+      <application>Kerberos</application>.
+      </para>
 
     </sect3>
 
@@ -205,10 +219,9 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
 <screen role="root"><userinput>make install-cyrus-sasl</userinput></screen>
 
       <note>
-        <para>You'll need to modify the init script and replace the
-        <option><replaceable>&lt;authmech&gt;</replaceable></option> parameter
-        to the <option>-a</option> switch with your desired authentication
-        mechanism.</para>
+        <para>You'll need to modify /etc/sysconfig/cyrus-sasl and replace the
+        <option><replaceable>AUTHMECH</replaceable></option> parameter
+        with your desired authentication mechanism.</para>
       </note>
 
     </sect3>
@@ -224,10 +237,9 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>saslauthd, sasldblistusers2, and saslpasswd2</seg>
-        <seg>libjavasasl.so, libsasl2.so, and numerous SASL plugins and
-        Java classes</seg>
-        <seg>/usr/include/sasl, /usr/lib/java/classes/sasl, /usr/lib/sasl2,
+        <seg>pluginviewer, saslauthd, sasldblistusers2, saslpasswd2 and testsaslauthd</seg>
+        <seg>libsasl2.so, and numerous SASL plugins</seg>
+        <seg>/usr/include/sasl, /usr/lib/sasl2,
         /usr/share/doc/cyrus-sasl-&cyrus-sasl-version;, and /var/lib/sasl</seg>
       </seglistitem>
     </segmentedlist>
@@ -236,6 +248,16 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="pluginviewer">
+        <term><command>pluginviewer</command></term>
+        <listitem>
+          <para>is used to list loadable SASL plugins and their properties.</para>
+          <indexterm zone="cyrus-sasl pluginviewer">
+            <primary sortas="b-pluginviewer">pluginviewer</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="saslauthd">
         <term><command>saslauthd</command></term>
@@ -266,6 +288,16 @@ install -v -m711 -d /var/run/saslauthd</userinput></screen>
           <filename>sasldb2</filename>.</para>
           <indexterm zone="cyrus-sasl saslpasswd2">
             <primary sortas="b-saslpasswd2">saslpasswd2</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="testsaslauthd">
+        <term><command>testsaslauthd</command></term>
+        <listitem>
+          <para>is a test utility for the SASL authentication server.</para>
+          <indexterm zone="cyrus-sasl testsaslauthd">
+            <primary sortas="b-testsaslauthd">testsaslauthd</primary>
           </indexterm>
         </listitem>
       </varlistentry>
