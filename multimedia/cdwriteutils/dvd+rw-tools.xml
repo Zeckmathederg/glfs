@@ -29,86 +29,120 @@
   <sect2 role="package">
     <title>Introduction to dvd+rw-tools</title>
 
-    <para>The <application>dvd+rw-tools</application> package contains
+    <para>
+        The <application>dvd+rw-tools</application> package contains
     several utilities to master the DVD media, both +RW/+R and -R[W]. The
     principle tool is <command>growisofs</command> which provides a way to both
     lay down <emphasis role='strong'>and</emphasis> grow an ISO9660 file system
     on (as well as to burn an arbitrary pre-mastered image to) all supported
     DVD media. This is useful for creating a new DVD or adding to an existing
-    image on a partially burned DVD.</para>
+    image on a partially burned DVD.
+        </para>
 
     &lfs65_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Download (HTTP): <ulink url="&dvd-rw-tools-download-http;"/></para>
+        <para>
+          Download (HTTP): <ulink url="&dvd-rw-tools-download-http;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download (FTP): <ulink url="&dvd-rw-tools-download-ftp;"/></para>
+        <para>
+          Download (FTP): <ulink url="&dvd-rw-tools-download-ftp;"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: &dvd-rw-tools-md5sum;</para>
+        <para>
+          Download MD5 sum: &dvd-rw-tools-md5sum;
+        </para>
       </listitem>
       <listitem>
-        <para>Download size: &dvd-rw-tools-size;</para>
+        <para>
+          Download size: &dvd-rw-tools-size;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated disk space required: &dvd-rw-tools-buildsize;</para>
+        <para>
+          Estimated disk space required: &dvd-rw-tools-buildsize;
+        </para>
       </listitem>
       <listitem>
-        <para>Estimated build time: &dvd-rw-tools-time;</para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/dvd+rw-tools-&dvd-rw-tools-version;-headers-1.patch"/></para>
+        <para>
+          Estimated build time: &dvd-rw-tools-time;
+        </para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">dvd+rw-tools Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para>Though not required during the build, you must have installed a package
-    which provides the <command>mkisofs</command> command, such as
-    <xref linkend="cdrtools"/>, or the <command>growisofs</command>
-    command will not function properly, rendering the entire package
-    useless.</para>
+    <para>
+      Though not required during the build, you must have installed a package
+      which provides the <command>xorrisofs</command> command, such as
+      <xref linkend="xorriso"/>, or the <command>growisofs</command> command
+      will not function properly, rendering the entire package useless.
+    </para>
 
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/dvd+rw-tools"/></para>
-
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/dvd+rw-tools"/>
+    </para>
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of dvd+rw-tools</title>
 
-    <para>Install <application>dvd+rw-tools</application> by running the
-    following commands:</para>
+    <para>
+      Install <application>dvd+rw-tools</application> by running the following
+      commands:
+    </para>
 
-<screen><userinput>patch -Np1 -i ../dvd+rw-tools-&dvd-rw-tools-version;-headers-1.patch &amp;&amp;
+<screen><userinput>sed -i '/stdlib/a #include &lt;limits.h&gt;' transport.hxx &amp;&amp;
+sed -i 's#mkisofs"#xorrisofs"#' growisofs.c &amp;&amp;
+sed -i 's#mkisofs#xorrisofs#;s#MKISOFS#XORRISOFS#' growisofs.1 &amp;&amp;
 make all rpl8 btcflash</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make prefix=/usr install &amp;&amp;
-
 install -v -m644 -D index.html \
     /usr/share/doc/dvd+rw-tools-&dvd-rw-tools-version;/index.html</userinput></screen>
-
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>make all rpl8 btcflash</command>: This command uses
-    additional targets so that all the utilities are built.</para>
+    <para>
+      <command>sed -i '/stdlib/a #include &lt;limits.h&gt;' ...</command>: This
+      sed includes <filename>limits.h</filename>, one of the kernel headers.
+      This is needed due to a change in the 2.6.23 kernel headers.
+    </para>
 
+    <para>
+      <command>sed -i 's#mkisofs"#xorrisofs"#' growisofs.c</command>: This sed
+      changes the code to use <command>xorrisofs</command> from
+      <xref linkend="xorriso"/>. The default was for it to use
+      <command>mkisofs</command> from
+      <ulink url="http://cdrecord.berlios.de/private/cdrecord.html">Cdrtools</ulink>.
+    </para>
+
+    <para>
+      <command>sed -i 's#mkisofs#xorrisofs#;s#MKISOFS#XORRISOFS#'
+      growisofs.1</command>: This sed fixes the man page to account for the
+      above change.
+    </para>
+
+    <para>
+      <command>make all rpl8 btcflash</command>: This command uses additional
+      targets so that all the utilities are built.
+    </para>
   </sect2>
 
   <sect2 role="content">
@@ -122,7 +156,6 @@ install -v -m644 -D index.html \
       <seglistitem>
         <seg>btcflash, dvd+rw-booktype, dvd+rw-format, dvd+rw-mediainfo,
         dvd-ram-control, growisofs, and rpl8</seg>
-        <seg>None</seg>
         <seg>/usr/share/doc/dvd+rw-tools-&dvd-rw-tools-version;</seg>
       </seglistitem>
     </segmentedlist>
@@ -135,15 +168,15 @@ install -v -m644 -D index.html \
       <varlistentry id="growisofs">
         <term><command>growisofs</command></term>
         <listitem>
-          <para>is a combined <command>mkisofs</command> frontend/DVD recording
-          program.</para>
+          <para>
+            is a combined <command>mkisofs</command> frontend/DVD recording
+            program.
+          </para>
           <indexterm zone="dvd-rw-tools growisofs">
             <primary sortas="b-growisofs">growisofs</primary>
           </indexterm>
         </listitem>
       </varlistentry>
     </variablelist>
-
   </sect2>
-
 </sect1>
