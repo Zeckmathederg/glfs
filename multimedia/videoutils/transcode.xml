@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY transcode-download-http "http://transcode.kabewm.com/transcode-&transcode-version;.tar.bz2">
+  <!ENTITY transcode-download-http "https://bitbucket.org/france/transcode-tcforge/downloads/transcode-&transcode-version;.tar.bz2">
   <!ENTITY transcode-download-ftp  "&gentoo-ftp-repo;/transcode-&transcode-version;.tar.bz2">
-  <!ENTITY transcode-md5sum        "4f6eb832123ea28c54f0d4952733bcb6">
-  <!ENTITY transcode-size          "1.9 MB">
-  <!ENTITY transcode-buildsize     "61 MB">
-  <!ENTITY transcode-time          "1.4 SBU">
+  <!ENTITY transcode-md5sum        "9bb25a796a8591fb764de46ee87ce505">
+  <!ENTITY transcode-size          "2.1 MB">
+  <!ENTITY transcode-buildsize     "55 MB">
+  <!ENTITY transcode-time          "1.0 SBU">
 ]>
 
 <sect1 id="transcode" xreflabel="Transcode-&transcode-version;">
@@ -34,6 +34,8 @@ command-line based audio/video everything to everything converter. For a
 rundown of the features and capabilities, along with usage examples, visit
 the Transcode Wiki at <ulink url="http://www.transcoding.org/"/>.</para>
 
+    &lfs70_built;
+
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -56,14 +58,6 @@ the Transcode Wiki at <ulink url="http://www.transcoding.org/"/>.</para>
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/transcode-&transcode-version;-libmpeg3_fixes-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Transcode Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -75,16 +69,11 @@ the Transcode Wiki at <ulink url="http://www.transcoding.org/"/>.</para>
 
     <bridgehead renderas="sect4">Optional (Listed in the Order That the
     <command>configure</command> Script Looks for Them)</bridgehead>
-    <para role="optional"><!-- <xref linkend="pkgconfig"/>, -->
-    <xref linkend="x-window-system"/>,
-    <!-- Adding this comment in case this package gets any momentum and
-         actually uses the updated DivX. Here is the new URL to the new codec:
-         http://labs.divx.com/DivXLinuxCodec -->
-    <ulink url="http://sourceforge.net/project/showfiles.php?group_id=11050">DivX4Linux</ulink>,
+    <para role="optional"><xref linkend="x-window-system"/>,
+    <ulink url="http://linuxtv.org/downloads/v4l-utils/">Video4Linux</ulink>,
     <xref linkend="xvid"/>,
-    <ulink url="http://loci.cs.utk.edu/">LoRS/IBP</ulink>,
+    <ulink url="http://www.videolan.org/developers/x264.html">x264</ulink>,
     <xref linkend="freetype2"/>,
-    <xref linkend="avifile"/>,
     <xref linkend="libogg"/>,
     <xref linkend="libvorbis"/>,
     <xref linkend="libtheora"/>,
@@ -92,15 +81,12 @@ the Transcode Wiki at <ulink url="http://www.transcoding.org/"/>.</para>
     <ulink url="http://www.netlib.org/pvm3/">PVM3</ulink>,
     <xref linkend="libdv"/>,
     <xref linkend="libquicktime"/>,
-    <xref linkend="LZO"/> (requires
-    <ulink url="http://www.oberhumer.com/opensource/lzo/download/LZO-v1/lzo-1.08.tar.gz">Version 1</ulink>),
+    <xref linkend="LZO"/>,
     <xref linkend="liba52"/>,
-    <xref linkend="libmpeg3"/>,
+    <xref linkend="faac"/>,
     <xref linkend="libxml2"/>,
     <ulink url="http://mjpeg.sourceforge.net/">MJPEG Tools</ulink>,
     <xref linkend="sdl"/>,
-    <!-- <xref linkend="GTK"/>, -->
-    <xref linkend="libfame"/>,
     <xref linkend="imagemagick"/>, and
     <xref linkend="libjpeg"/></para>
 
@@ -115,11 +101,11 @@ the Transcode Wiki at <ulink url="http://www.transcoding.org/"/>.</para>
     <para>Install <application>Transcode</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../transcode-&transcode-version;-libmpeg3_fixes-1.patch &amp;&amp;
+<screen><userinput>sed -i "s/pp_mode_t/pp_mode/g" filter/filter_pp.c &amp;&amp;
+sed -i "s/pp_context_t/pp_context/g" filter/filter_pp.c &amp;&amp;
 sed -i 's|doc/transcode|&amp;-$(PACKAGE_VERSION)|' \
        $(find . -name Makefile.in -exec grep -l 'docsdir =' {} \;) &amp;&amp;
 
-autoconf &amp;&amp;
 ./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
@@ -134,8 +120,9 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><option>--enable-netstream</option>: This parameter enables network
-    streaming support.</para>
+    <para><command>sed -i ...</command>: First two sed's fix building with
+    <application><xref linkend="ffmpeg"/></application> and third one
+    fixes install location for documentation.</para>
 
     <para>Support for most of the dependency packages requires using
     options passed to the <command>configure</command> script. View the
@@ -154,10 +141,10 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>avicodec, avidump, avifix, aviindex, avimerge, avisplit, avisync, tccat,
-        tcdecode, tcdemux, tcextract, tcframe, tcmodinfo, tcmp3cut, tcprobe,
-        tcrequant, tcscan, tcxmlcheck, tcxpm2rgb, and transcode</seg>
-        <seg>a52_decore.so, af6_decore.so, export*.so, filter*.so, and import*.so
+        <seg>avifix, aviindex, avimerge, avisplit, avisync, tccat, tcdecode, 
+        tcdemux, tcextract, tcmodinfo, tcmp3cut, tcprobe, tcscan, tcxmlcheck, 
+        tcxpm2rgb, tcyait and transcode</seg>
+        <seg>a52_decore.so, export_*.so, filter_*.so, and import_*.so
         output/filter/input modules</seg>
         <seg>/usr/lib/transcode and /usr/share/doc/transcode-&transcode-version;</seg>
       </seglistitem>
@@ -167,27 +154,6 @@ make</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="avicodec">
-        <term><command>avicodec</command></term>
-        <listitem>
-          <para>indicates or changes the FOURCC CODEC flag in an AVI file.</para>
-          <indexterm zone="transcode avicodec">
-            <primary sortas="b-avicodec">avicodec</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="avidump">
-        <term><command>avidump</command></term>
-        <listitem>
-          <para>dumps audio or video stream of a given AVI file to stdout
-          (for AVI conversion or extraction of audio streams).</para>
-          <indexterm zone="transcode avidump">
-            <primary sortas="b-avidump">avidump</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="avifix">
         <term><command>avifix</command></term>
@@ -285,17 +251,6 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="tcframe">
-        <term><command>tcframe</command></term>
-        <listitem>
-          <para>processes single video frames for different color encodings
-          (RGB &gt;-&lt; YUV or similar).</para>
-          <indexterm zone="transcode tcframe">
-            <primary sortas="b-tcframe">tcframe</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="tcmodinfo">
         <term><command>tcmodinfo</command></term>
         <listitem>
@@ -324,17 +279,6 @@ make</userinput></screen>
           <para>prints information about the input file format.</para>
           <indexterm zone="transcode tcprobe">
             <primary sortas="b-tcprobe">tcprobe</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="tcrequant">
-        <term><command>tcrequant</command></term>
-        <listitem>
-          <para>is a tool which can requantize an MPEG-2
-          elementary stream.</para>
-          <indexterm zone="transcode tcrequant">
-            <primary sortas="b-tcrequant">tcrequant</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -379,18 +323,6 @@ make</userinput></screen>
           library for decoding AC-3 streams.</para>
           <indexterm zone="transcode a52_decore">
             <primary sortas="c-a52_decore">a52_decore.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="af6_decore">
-        <term><filename class='libraryfile'>af6_decore.so</filename></term>
-        <listitem>
-          <para>is a support module used to decode
-          <filename class='libraryfile'>libaviplay</filename> library supported codecs
-          and file formats</para>
-          <indexterm zone="transcode af6_decore">
-            <primary sortas="c-af6_decore">af6_decore.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
