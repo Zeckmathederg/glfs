@@ -6,9 +6,9 @@
 
   <!ENTITY shadow-download-http "http://pkg-shadow.alioth.debian.org/releases/shadow-&shadow-version;.tar.bz2 ">
   <!ENTITY shadow-download-ftp  " ">
-  <!ENTITY shadow-md5sum        "b8608d8294ac88974f27b20f991c0e79">
-  <!ENTITY shadow-size          "1.8 MB">
-  <!ENTITY shadow-buildsize     "30 MB">
+  <!ENTITY shadow-md5sum        "d5f7a588fadb79faeb4b08b1eee82e9a">
+  <!ENTITY shadow-size          "2.1 MB">
+  <!ENTITY shadow-buildsize     "35 MB">
   <!ENTITY shadow-time          "0.3 SBU">
 ]>
 
@@ -46,9 +46,9 @@
       <listitem>
         <para>Download (HTTP): <ulink url="&shadow-download-http;"/></para>
       </listitem>
-      <listitem>
+<!--      <listitem>
         <para>Download (FTP): <ulink url="&shadow-download-ftp;"/></para>
-      </listitem>
+      </listitem> -->
       <listitem>
         <para>Download MD5 sum: &shadow-md5sum;</para>
       </listitem>
@@ -63,18 +63,19 @@
       </listitem>
     </itemizedlist>
 
-    <!-- <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/shadow-&shadow-version;-useradd_fix-2.patch"/></para>
+        url="http://www.&lfs-domainname;/patches/lfs/development/shadow-&shadow-version;-nscd-1.patch"/>
+        </para>
       </listitem>
-    </itemizedlist> -->
+    </itemizedlist>
 
     <bridgehead renderas="sect3">Shadow Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="linux-pam"/> and/or
+    <para role="required"><xref linkend="linux-pam"/> or
     <xref linkend="cracklib"/></para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -106,14 +107,20 @@
     <para>Reinstall <application>Shadow</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i 's/groups$(EXEEXT) //' src/Makefile.in                   &amp;&amp;
+<screen><userinput>sed -i 's/groups$(EXEEXT) //' src/Makefile.in &amp;&amp;
 find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \; &amp;&amp;
-sed -i -e 's/ ko//' -e 's/ zh_CN zh_TW//' man/Makefile.in       &amp;&amp;
+sed -i -e 's/ ko//' -e 's/ zh_CN zh_TW//' man/Makefile.in &amp;&amp;
 
 sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
-       -e 's@/var/spool/mail@/var/mail@' etc/login.defs         &amp;&amp;
+       -e 's@/var/spool/mail@/var/mail@' etc/login.defs &amp;&amp;
 
-./configure --sysconfdir=/etc                                   &amp;&amp;
+sed -i -e 's@PATH=/sbin:/bin:/usr/sbin:/usr/bin@&amp;:/usr/local/sbin:/usr/local/bin@' \
+       -e 's@PATH=/bin:/usr/bin@&amp;:/usr/local/bin@' etc/login.defs &amp;&amp;
+
+patch -Np1 -i ../shadow-&shadow-version;-nscd-1.patch &amp;&amp;
+
+./configure --prefix=/usr --sysconfdir=/etc \
+            --without-acl --without-attr &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -143,15 +150,29 @@ mv -v /usr/bin/passwd /bin</userinput></screen>
     command disables the installation of Chinese and Korean manual pages, since
     <application>Man-DB</application> cannot format them properly.</para>
 
-    <para><command>sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512'
+    <para><command>sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' 
     -e 's@/var/spool/mail@/var/mail@' etc/login.defs</command>:
-    Instead of using the default 'crypt' method, this command modifies the
+    Instead of using the default 'DES' method, this command modifies the
     installation to use the more secure 'SHA512' method of hashing passwords,
     which also allows passwords longer than eight characters. It also changes
     the obsolete <filename class="directory">/var/spool/mail</filename>
     location for user mailboxes that <application>Shadow</application> uses by
     default to the <filename class="directory">/var/mail</filename>
     location.</para>
+
+    <para><command>sed -i -e 
+    's@PATH=/sbin:/bin:/usr/sbin:/usr/bin@&amp;:/usr/local/sbin:/usr/local/bin@' 
+    -e 's@PATH=/bin:/usr/bin@&amp;:/usr/local/bin@' etc/login.defs</command>:
+    This sed expands PATH to <filename class="directory">/usr/local/bin</filename> 
+    for normal and <systemitem class="username">root</systemitem> user and to 
+    <filename class="directory">/usr/local/sbin</filename> for 
+    <systemitem class="username">root</systemitem> user only.</para>
+
+    <para><command>--without-acl</command>: Disables linking with <xref linkend="acl"/> 
+    since <application>Shadow</application> fails to compile if it is present.</para>
+
+    <para><command>--without-attr</command>: Disables linking with <xref linkend="attr"/> 
+    since <application>Shadow</application> fails to compile if it is present.</para>
 
     <para><command>mv -v /usr/bin/passwd /bin</command>: The
     <command>passwd</command> program may be needed during times when the
@@ -227,13 +248,9 @@ mv -v /usr/bin/passwd /bin</userinput></screen>
       information. For information specific to integrating
       <application>Shadow</application>, <application>Linux-PAM</application>
       and <application>CrackLib</application>, you can visit the following
-      links:</para>
+      link:</para>
 
       <itemizedlist spacing="compact">
-      <listitem>
-        <para><ulink
-        url="http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/sag-pam_cracklib.html"/></para>
-      </listitem>
       <listitem>
         <para><ulink
         url="http://www.deer-run.com/~hal/sysadmin/pam_cracklib.html"/></para>
@@ -257,16 +274,19 @@ mv -v /usr/bin/passwd /bin</userinput></screen>
         </indexterm>
 
 <screen role="root"><userinput>install -v -m644 /etc/login.defs /etc/login.defs.orig &amp;&amp;
-for FUNCTION in LASTLOG_ENAB MAIL_CHECK_ENAB \
-                PORTTIME_CHECKS_ENAB CONSOLE \
-                MOTD_FILE NOLOGINS_FILE PASS_MIN_LEN \
-                SU_WHEEL_ONLY MD5_CRYPT_ENAB \
-                CONSOLE_GROUPS ENVIRON_FILE \
-                ULIMIT ENV_TZ ENV_HZ ENV_SUPATH \
-                ENV_PATH QMAIL_DIR MAIL_DIR MAIL_FILE \
-                CHFN_AUTH FAILLOG_ENAB QUOTAS_ENAB FTMP_FILE \
-                OBSCURE_CHECKS_ENAB CRACKLIB_DICTPATH \
-                PASS_CHANGE_TRIES PASS_ALWAYS_WARN ISSUE_FILE
+for FUNCTION in FAIL_DELAY LASTLOG_ENAB \
+                MAIL_CHECK_ENAB \
+                OBSCURE_CHECKS_ENAB \
+                PORTTIME_CHECKS_ENAB \
+                CONSOLE MOTD_FILE \
+                NOLOGINS_FILE ENV_HZ \
+                SU_WHEEL_ONLY \
+                CRACKLIB_DICTPATH \
+                SYS_UID_MIN SYS_UID_MAX \
+                SYS_GID_MIN SYS_GID_MAX \
+                PASS_CHANGE_TRIES \
+                PASS_ALWAYS_WARN \
+                CHFN_AUTH ENVIRON_FILE
 do
     sed -i "s/^$FUNCTION/# &amp;/" /etc/login.defs
 done</userinput></screen>
@@ -419,9 +439,6 @@ session   required    pam_limits.so
 # Check user's mail - Disabled by default
 #session   optional    pam_mail.so      standard quiet
 
-# Use xauth keys (if available)
-session   optional    pam_xauth.so
-
 # include the default session and password settings
 session   include     system-session
 password  include     system-password
@@ -456,9 +473,6 @@ auth      include     system-auth
 
 # include the default account settings
 account   include     system-account
-
-# Use xauth keys (if available)
-session   optional    pam_xauth.so
 
 # Set default environment variables for the service user
 session   required    pam_env.so
@@ -592,33 +606,6 @@ fi</userinput></screen>
 <screen role="root"><userinput>if [ -f /etc/limits ]; then
     mv -v /etc/limits /etc/limits.NOUSE
 fi</userinput></screen>
-
-      </sect4>
-
-      <sect4 id="pam-env">
-        <title>Configuring Default Environment</title>
-
-          <para>During previous configuration, several items were removed from
-          <filename>/etc/login.defs</filename>.  Some of these items are now
-          controlled by the <filename class='libraryfile'>pam_env.so</filename>
-          module and the <filename>/etc/security/pam_env.conf</filename>
-          configuration file.  In particular, the default path has been
-          changed.  To recover your default path, execute the following
-          commands:</para>
-
-<screen role="root"><userinput>ENV_PATH=`grep '^ENV_PATH' /etc/login.defs.orig | \
-    awk '{ print $2 }' | sed 's/PATH=//'` &amp;&amp;
-echo 'PATH        DEFAULT='`echo "${ENV_PATH}"`\
-'        OVERRIDE=${PATH}' \
-    >> /etc/security/pam_env.conf &amp;&amp;
-unset ENV_PATH</userinput></screen>
-
-          <note>
-            <para>The ENV_SUPATH option used to modify root's default path
-            does not work with PAM. You have to set the path in root's login
-            scripts instead.
-            </para>
-          </note>
 
       </sect4>
 
