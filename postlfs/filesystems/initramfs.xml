@@ -94,7 +94,10 @@ printf "Creating $INITRAMFS_FILE... "
 binfiles="sh cat cp dd killall ls lsmod mkdir mknod mount "
 binfiles="$binfiles umount sed sleep ln rm uname"
 
-sbinfiles="udevadm udevd modprobe blkid switch_root mdadm"
+#Optional files and locations
+for f in mdadm udevd; do
+  if [ -x /sbin/$f ] ; then sbinfiles="$sbinfiles $f"; fi
+done
 
 unsorted=$(mktemp /tmp/unsorted.XXXXXXXXXX)
 
@@ -151,6 +154,11 @@ for f in $sbinfiles ; do
   copy $f sbin
 done
 
+# Add udevd libraries if not in /sbin
+if [ -x /lib/udev/udevd ] ; then
+  ldd /lib/udev/udevd | sed "s/\t//" | cut -d " " -f1 >> $unsorted
+fi
+
 # Add module symlinks if appropriate
 if [ -n "$KERNEL_VERSION" ] &amp;&amp; [ -x /bin/kmod ] ; then
   ln -s kmod $WDIR/bin/lsmod
@@ -160,8 +168,8 @@ fi
 # Add lvm symlinks if appropriate
 if  [ -x /sbin/lvm ] ; then
   ln -s lvm $WDIR/sbin/lvchange
-  ln -s lvm $WDIR/sbin/lvchange
-  ln -s lvm $WDIR/sbin/lvchange
+  ln -s lvm $WDIR/sbin/lvrename
+  ln -s lvm $WDIR/sbin/lvextend
   ln -s lvm $WDIR/sbin/lvcreate
   ln -s lvm $WDIR/sbin/lvdisplay
   ln -s lvm $WDIR/sbin/lvscan
@@ -179,9 +187,9 @@ if  [ -x /sbin/lvm ] ; then
 fi
 
 # Install libraries
-sort $unsorted | uniq | while read lib ; do
-  if [ "$lib" == "linux-vdso.so.1" ] ||
-     [ "$lib" == "linux-gate.so.1" ]; then
+sort $unsorted | uniq | while read library ; do
+  if [ "$library" == "linux-vdso.so.1" ] ||
+     [ "$library" == "linux-gate.so.1" ]; then
     continue
   fi
 
@@ -198,6 +206,9 @@ if [ -n "$KERNEL_VERSION" ]; then
      /lib/modules/$KERNEL_VERSION/kernel/drivers/{scsi,message,pcmcia,virtio} \
      /lib/modules/$KERNEL_VERSION/kernel/drivers/usb/{host,storage}           \
      -type f 2&gt; /dev/null | cpio --make-directories -p --quiet $WDIR
+
+  cp /lib/modules/$KERNEL_VERSION/modules.{builtin,order}                     \
+            $WDIR/lib/modules/$KERNEL_VERSION
 
   depmod -b $WDIR $KERNEL_VERSION
 fi
@@ -296,7 +307,14 @@ for param in $cmdline ; do
   esac
 done
 
-udevd --daemon --resolve-names=never
+# udevd location depends on version
+if [ -x /sbin/udevd ]; then
+  UDEV_PATH=/sbin
+else
+  UDEV_PATH=/lib/udev
+fi
+
+${UDEV_PATH}/udevd --daemon --resolve-names=never
 udevadm trigger
 udevadm settle
 
@@ -306,7 +324,7 @@ if [ -n "$rootdelay"    ] ; then sleep "$rootdelay"              ; fi
 
 do_mount_root
 
-killall -w /sbin/udevd
+killall -w ${UDEV_PATH}/udevd
 
 exec switch_root /.root "$init" "$@"
 
