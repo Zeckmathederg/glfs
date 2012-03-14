@@ -6,10 +6,10 @@
 
   <!ENTITY gutenprint-download-http "&sourceforge-repo;/gimp-print/gutenprint-&gutenprint-version;.tar.bz2">
   <!ENTITY gutenprint-download-ftp  " ">
-  <!ENTITY gutenprint-md5sum        "10a0a9fac081d8116ec5ed47fbc1591c">
-  <!ENTITY gutenprint-size          "5.2 MB">
-  <!ENTITY gutenprint-buildsize     "110 MB">
-  <!ENTITY gutenprint-time          "1.0 SBU">
+  <!ENTITY gutenprint-md5sum        "b19029972bf28f6efd693270daf8f5de">
+  <!ENTITY gutenprint-size          "5.3 MB">
+  <!ENTITY gutenprint-buildsize     "65 MB">
+  <!ENTITY gutenprint-time          "0.5 SBU">
 ]>
 
 <sect1 id="gutenprint" xreflabel="Gutenprint-&gutenprint-version;">
@@ -39,6 +39,8 @@
     <ulink url="http://gutenprint.sourceforge.net/p_Supported_Printers.php"/>.
     </para>
 
+    &lfs71_checked;
+
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -63,12 +65,17 @@
 
     <bridgehead renderas="sect3">Gutenprint Dependencies</bridgehead>
 
+    <!-- recommend cups since we describe how to use it, and the gimp
+    so that we can use gutenprint's driver to print photos there -->
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="cups"/>, and
+    <xref linkend="gimp"/></para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="cups"/>,
+    <para role="optional">
     <ulink url="http://www.linuxprinting.org/foomatic.html">Foomatic</ulink>,
-    <ulink url="http://www.linuxprinting.org/ijs/">IJS</ulink>,
-    <xref linkend="gimp"/>, and
-    <xref linkend="gtk2"/></para>
+    <ulink url="http://www.linuxprinting.org/ijs/">IJS</ulink></para>
+    <!-- gtk2 is a dep of the gimp <xref linkend="gtk2"/></para>-->
 
     <bridgehead renderas="sect4">Optional (to Regenerate Documentation)</bridgehead>
     <para role="optional"><xref linkend="imagemagick"/>,
@@ -87,13 +94,21 @@
     <para>Install <application>Gutenprint</application> by running the
     following commands:</para>
 
-<screen><userinput>sed -i 's|$(PACKAGE)/doc|doc/$(PACKAGE)-$(VERSION)|' \
+<!-- already fixed upstream, will not be required in 5.2.8 -->
+<screen><userinput>sed -i '/#include &lt;ctype.h&gt;/a\#include &lt;stdio.h&gt;' \
+       src/cups/commandtocannon.c src/cups/commandtoepson.c &amp;&amp;
+sed -i 's|$(PACKAGE)/doc|doc/$(PACKAGE)-$(VERSION)|' \
        {,doc/,doc/developer/}Makefile.in &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+./configure --prefix=/usr --disable-static &amp;&amp;
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make check</command>. This
-    will take a very, very long time (310+ SBUs).</para>
+    <!-- this is supposed to discourage you from running the tests if you upgrade
+    the package - I suppose you could sed the tests/Makefile to only run 'curve',
+    and perhaps 'run-testdither', it's 'run-weavetest' which takes most of the time -->
+    <para>To test the results, issue: <command>make check</command>. When last
+    tested (version 5.2.7, LFS-7.1, on a uniprocessor box which is admittedly short of
+    memory) this took more than 800 SBUs (more than two days for that box) and used an
+    extra 678 MB of disk space.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -109,17 +124,27 @@ install -v -m644    doc/gutenprintui2/html/* \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>sed -i '/#include &lt;ctype.h&gt;/a\#include &lt;stdio.h&gt;' ...</command>:
+    the include files from the current version of <application>cups</application> no
+    longer include <filename>stdio.h</filename> when compiling this version of
+    <application>gutenprint</application> on linux, causing the build to fail.</para>
+
     <para><command>sed -i '...' ...Makefile.in</command>: This
     command is used so that the package documentation is installed in the
     conventional <filename class='directory'>/usr/share/doc</filename>
     directory structure instead of
     <filename class='directory'>/usr/share/gutenprint/doc</filename>.</para>
 
-    <para><option>--with-translated-ppds=no</option>: When this parameter is
+    <para><option>--disable-static</option>: This switch prevents the static
+    libraries being installed.</para>
+
+    <!-- redundant, only applies to cups < 1.2.0 : cups-5.0 gives a version of 1.5.0
+    FIXME - delete this on next version upgrade  
+    <para><option>\-\-with-translated-ppds=no</option>: When this parameter is
     given, only US English PPD files for <application>CUPS</application>
     will be built. Useful if the PPD files are not yet translated into your
     native language and you want to save some space by not installing unneeded
-    translations.</para>
+    translations.</para>-->
 
   </sect2>
 
@@ -156,11 +181,11 @@ install -v -m644    doc/gutenprintui2/html/* \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>cups-calibrate, cups-genppd.5.2, cups-genppdconfig.5.2,
-        cups-genppdupdate.5.2, escputil, ijsgutenprint.5.2, and
+        <seg>cups-calibrate, cups-genppd.5.2, cups-genppdupdate, escputil,
+        ijsgutenprint.5.2 (if compiled using ijs), and
         testpattern</seg>
-        <seg>libgutenprint.{so,a}, libgutenprintui2.{so,a},
-        libgutenprintui2.{so,a} and optionally, various
+        <seg>libgutenprint.so, libgutenprintui2.so,
+        libgutenprintui2.so and optionally, various
         <application>CUPS</application> filters and backend
         drivers</seg>
         <seg>/usr/include/gutenprint, /usr/lib/gutenprint,
@@ -198,13 +223,12 @@ install -v -m644    doc/gutenprintui2/html/* \
         </listitem>
       </varlistentry>
 
-      <varlistentry id="ijsgutenprint.5.0">
-        <term><command>ijsgutenprint.5.0</command></term>
+      <varlistentry id="ijsgutenprint.5.2">
+        <term><command>ijsgutenprint.5.2</command></term>
         <listitem>
-          <para>is a Ghostscript driver for
-          <application>Gutenprint</application>.</para>
-          <indexterm zone="gutenprint ijsgutenprint.5.0">
-            <primary sortas="b-ijsgutenprint.5.0">ijsgutenprint.5.0</primary>
+          <para>is a Ghostscript driver for HP inkjet and laserjet printers.</para>
+          <indexterm zone="gutenprint ijsgutenprint.5.2">
+            <primary sortas="b-ijsgutenprint.5.2">ijsgutenprint.5.2</primary>
           </indexterm>
         </listitem>
       </varlistentry>
