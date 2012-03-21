@@ -6,7 +6,7 @@
 
   <!ENTITY mesalib-download-http " ">
   <!ENTITY mesalib-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/&mesalib-version;/MesaLib-&mesalib-version;.tar.bz2">
-  <!ENTITY mesalib-md5sum        "24eeebf66971809d8f40775a379b36c9">
+  <!ENTITY mesalib-md5sum        "a368104e5700707048dc3e8691a9a7a1">
   <!ENTITY mesalib-size          "5.5 MB">
   <!ENTITY mesalib-buildsize     "460 MB">
   <!ENTITY mesalib-time          "3.0 SBU">
@@ -74,11 +74,23 @@
     <para role="required">
       <xref linkend="expat"/>,
       <xref linkend="libdrm"/>,
-      <xref linkend="llvm"/>,
+      <xref linkend="libxml2"/>,
       <xref linkend="makedepend"/>,
       <xref linkend="talloc"/>, and
       <xref linkend="xorg7-lib"/>
     </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="llvm"/>
+    </para>
+
+    <note>
+      <para>The <application>libxml2</application>
+      <application>Python</application> module must have been built 
+      during the installation of <application>libxml2</application>
+      or else <application>MesaLib</application> build will fail.</para>
+    </note>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/mesalib"/></para>
@@ -100,7 +112,7 @@
 <screen><userinput>sed 's@FLAGS=\"-g@FLAGS=\"@' -i configure &amp;&amp;
 patch -Np1 -i ../MesaLib-&mesalib-version;-add_xdemos-2.patch &amp;&amp;
 ./configure --prefix=$XORG_PREFIX --enable-shared-dricore --enable-xa \
-            --with-gallium-drivers="nouveau,r300,r600,svga,swrast" &amp;&amp;
+            --with-gallium-drivers="nouveau,svga,swrast" &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -108,9 +120,9 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m755 -d ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version; &amp;&amp;
-install -v -m644    docs/* \
-                    ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;</userinput></screen>
+mkdir -pv ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version; &amp;&amp;
+cp -rv docs/* ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;
+</userinput></screen>
 
     <para>Finally, if installing to any prefix other than
     <filename class="directory">/usr</filename>, you should create symlinks
@@ -142,9 +154,10 @@ done</userinput></screen>
     <para><command>--enable-xa</command>: enables building of the XA X 
     Acceleration API (Required for VMware 3D Driver).</para>
 
-    <para><command>--with-gallium-drivers=...</command>: build additional gallium
-    drivers. Defaults to r300, r600, and swrast. Extended to build nouveau
-    driver.</para>
+    <para><command>--with-gallium-drivers="..."</command>: controls building
+    of gallium drivers. Available drivers are: i915, nouveau, r300, r600,
+    swrast and svga. Note that r300 and r600 require <xref linkend="llvm"/>
+    to be installed.</para>
 
   </sect2>
 
