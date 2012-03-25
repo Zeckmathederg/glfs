@@ -6,9 +6,9 @@
 
   <!ENTITY avahi-download-http "http://avahi.org/download/avahi-&avahi-version;.tar.gz">
   <!ENTITY avahi-download-ftp  " ">
-  <!ENTITY avahi-md5sum        "d0143a5aa3265019072e53ab497818d0">
-  <!ENTITY avahi-size          "1.2 MB">
-  <!ENTITY avahi-buildsize     "41 MB">
+  <!ENTITY avahi-md5sum        "2f22745b8f7368ad5a0a3fddac343f2d">
+  <!ENTITY avahi-size          "1.3 MB">
+  <!ENTITY avahi-buildsize     "23 MB">
   <!ENTITY avahi-time          "0.4 SBU">
 ]>
 
@@ -32,7 +32,7 @@
     <para>The <application>avahi</application> package is a system which
     facilitates service discovery on a local network.</para>
 
-    &lfs68_built;
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -70,15 +70,18 @@
     <para role="required"><xref linkend="intltool"/> and
     <xref linkend="pkgconfig"/></para>
 
-    <bridgehead renderas="sect4">Optional</bridgehead>
+    <bridgehead renderas="sect4">Optional, but recommended for a GNOME desktop</bridgehead>
     <para role="optional"><xref linkend="dbus-python"/>,
     <xref linkend="gobject-introspection"/>,
     <xref linkend="gtk2"/>,
     <xref linkend="gtk3"/>,
-    <xref linkend="libdaemon"/>,
     <xref linkend="libglade"/>,
-    <xref linkend="python2"/>,
-    <xref linkend="pygtk"/>,
+    <xref linkend="python2"/>
+    <!--<xref linkend="pygtk"/>,--></para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+    <xref linkend="libdaemon"/>,
     <xref linkend="qt"/>, and
     <xref linkend="qt4"/></para>
 
@@ -112,15 +115,13 @@ useradd -c "Avahi Daemon Owner" -d /dev/null -u 84 \
 autoreconf -i -v &amp;&amp;-->./configure --prefix=/usr \
             --sysconfdir=/etc \
             --localstatedir=/var \
-            --disable-gtk \
-            --disable-gtk3 \
-            --disable-qt3 \
-            --disable-qt4 \
+            --disable-static \
+            --disable-libdaemon \
             --disable-mono \
             --disable-monodoc \
             --disable-python \
-            --disable-dbus \
-            --disable-libdaemon \
+            --disable-qt3 \
+            --disable-qt4 \
             --enable-core-docs \
             --with-distro=lfs &amp;&amp;
 make</userinput></screen>
@@ -136,17 +137,11 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--disable-gtk</parameter>: This parameter disables the use
-    of <application>GTK+2</application>.</para>
+    <para><option>--disable-static</option>: This switch prevents the static
+    libraries being installed.</para>
 
-    <para><parameter>--disable-gtk3</parameter>: This parameter disables the use
-    of <application>GTK+3</application>.</para>
-
-    <para><parameter>--disable-qt3</parameter>: This parameter disables the
-    building of <application>Qt3</application> mainloop integration.</para>
-
-    <para><parameter>--disable-qt4</parameter>: This parameter disables the
-    building of <application>Qt4Core</application> mainloop integration.</para>
+    <para><parameter>--disable-libdaemon</parameter>: This parameter disables
+    the use of libdaemon.</para>
 
     <para><parameter>--disable-mono</parameter>: This parameter disables the
     <application>Mono</application> bindings.</para>
@@ -155,19 +150,33 @@ make</userinput></screen>
     documentation for the <application>Mono</application> bindings.</para>
 
     <para><parameter>--disable-python</parameter>: This parameter disables the
-    scripts that depends on <application>Python</application>.</para>
+    scripts that depend on <application>Python</application>.  It also allows
+    a regular (non-destdir) install to complete successfully.</para>
 
-    <para><parameter>--disable-dbus</parameter>: This parameter disables the use
-    of <application>D-Bus</application>.</para>
+    <para><parameter>--disable-qt3</parameter>: This parameter disables the
+    building of <application>Qt3</application> mainloop integration.</para>
 
-    <para><parameter>--disable-libdaemon</parameter>: This parameter disables
-    the use of libdaemon.</para>
+    <para><parameter>--disable-qt4</parameter>: This parameter disables the
+    building of <application>Qt4Core</application> mainloop integration. Omit
+    this if you have installed <application>Qt4</application>.</para>
 
     <para><parameter>--enable-core-docs</parameter>: This parameter enables the
     building of documentation.</para>
 
     <para><parameter>--with-distro=lfs</parameter>: This parameter specifies the
     distribution to target.</para>
+
+    <para><option>--disable-dbus</option>: This parameter disables the use
+    of <application>D-Bus</application>. Do not use this option if you intend
+    to build <xref linkend="gnome-disk-utility"/>.</para>
+
+    <para><option>--disable-gtk</option>: This parameter disables the use
+    of <application>GTK+2</application>. Do not use this option if you intend
+    to build <xref linkend="gnome-disk-utility"/>.</para>
+
+    <para><option>--disable-gtk3</option>: This parameter disables the use
+    of <application>GTK+3</application>. Do not use this option if you intend
+    to build <xref linkend="gnome-disk-utility"/>.</para>
 
     <para><option>--enable-tests</option>: This option enables the building of
     tests and examples.</para>
@@ -216,10 +225,10 @@ make</userinput></screen>
         avahi-publish, avahi-publish-address, avahi-publish-service,
         avahi-resolve, avahi-resolve-address, avahi-resolve-host-name,
         avahi-set-host-name, bshell, bssh, and bvnc</seg>
-        <seg>libavahi-client.{so,a}, libavahi-common.{so,a},
-        libavahi-core.{so,a}, libavahi-glib.{so,a}, libavahi-gobject.{so,a},
-        libavahi-ui-gtk3.{so,a}, libavahi-ui.{so,a}, libdns_sd.{so,a}, and
-        libhowl.{so,a}</seg>
+        <seg>libavahi-client.so, libavahi-common.so,
+        libavahi-core.so, libavahi-glib.so, libavahi-gobject.so,
+        libavahi-ui-gtk3.so,, libavahi-ui.so, libdns_sd.so, and
+        libhowl.so,</seg>
         <seg>/etc/avahi/services, /usr/{include/{avahi-client,avahi-common,
         avahi-compat-howl/{corby,discovery,rendezvous,salt},
         avahi-compat-libdns_sd,avahi-core,avahi-glib,avahi-gobject,avahi-ui},
