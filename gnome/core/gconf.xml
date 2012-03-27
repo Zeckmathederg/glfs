@@ -4,11 +4,13 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY GConf-download-http "&gnome-download-http;/GConf/&gnome-version;/GConf-&GConf-version;.tar.xz">
-  <!ENTITY GConf-download-ftp  "&gnome-download-ftp;/GConf/&gnome-version;/GConf-&GConf-version;.tar.xz">
-  <!ENTITY GConf-md5sum        "de9047c08d3f642c5b1990b0bef44577">
+  <!ENTITY GConf-download-http
+  "&gnome-download-http;/GConf/&gnome-version;/GConf-&GConf-version;.tar.xz">
+  <!ENTITY GConf-download-ftp
+  "&gnome-download-ftp;/GConf/&gnome-version;/GConf-&GConf-version;.tar.xz">
+  <!ENTITY GConf-md5sum        "1b803eb4f8576c572d072692cf40c9d8">
   <!ENTITY GConf-size          "1.5 MB">
-  <!ENTITY GConf-buildsize     "47 MB">
+  <!ENTITY GConf-buildsize     "42 MB">
   <!ENTITY GConf-time          "0.3 SBU">
 ]>
 
@@ -32,7 +34,7 @@
     <para>The <application>GConf</application> package contains a
     configuration database system.</para>
 
-    &lfs70_built;
+    &lfs71_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -71,7 +73,8 @@
     <xref linkend="polkit"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openldap"/> and
+    <para role="optional"><xref linkend="openldap"/>,
+    <xref linkend="gobject-introspection"/> and
     <xref linkend="gtk-doc"/></para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -87,10 +90,12 @@
 
     <!-- with-gtk=3.0 is the default, and mandir goes to prefix/share/man -->
 
-<screen><userinput>./configure --prefix=$GNOME_PREFIX \
+<screen><userinput>sed -i '/INTROSPECTION_SCANNER_ARGS/s#$# -lgmodule-2.0#' gconf/Makefile.in &amp;&amp;
+./configure --prefix=$GNOME_PREFIX \
             --sysconfdir=$GNOME_SYSCONFDIR \
             --libexecdir=$GNOME_PREFIX/lib/GConf \
-            --disable-orbit &amp;&amp;
+            --disable-orbit \
+            --disable-static &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -167,6 +172,11 @@ ln -s -v <envar>$GNOME_PREFIX</envar>/share/polkit-1/actions/org.gnome.gconf.def
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-sysconfdir.xml"/>
 
+    <para><command>sed -i '/INTROSPECTION_SCANNER_ARGS/s#$# -lgmodule-2.0#'
+    gconf/Makefile.in</command>: This sed fixes compiling with both
+    <application>Glib-2.32</application> and
+    <xref linkend="gobject-introspection"/> installed.</para>
+
     <para><parameter>--libexecdir=<envar>$GNOME_PREFIX</envar>/lib/GConf</parameter>:
     This parameter causes the libexec files to be installed in the preferred
     location of <filename class="directory">$GNOME_PREFIX/lib/GConf</filename>
@@ -180,7 +190,7 @@ ln -s -v <envar>$GNOME_PREFIX</envar>/share/polkit-1/actions/org.gnome.gconf.def
     <!--<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-mandir.xml"/>-->
 
-    <para><option>--enable-static=no</option>: This switch prevents the static
+    <para><option>--disable-static</option>: This switch prevents the static
     libraries being installed.</para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
