@@ -8,8 +8,8 @@
   <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/&gnome-version;/gdm-&gdm-version;.tar.xz">
   <!ENTITY gdm-md5sum        "df3f38061066f5e0816676b4eef7854a">
   <!ENTITY gdm-size          "1.6 MB">
-  <!ENTITY gdm-buildsize     "?? MB">
-  <!ENTITY gdm-time          "?? SBU">
+  <!ENTITY gdm-buildsize     "59 MB">
+  <!ENTITY gdm-time          "0.7 SBU">
 ]>
 
 <sect1 id="gdm" xreflabel="GDM-&gdm-version;">
@@ -33,7 +33,7 @@
     <application>GNOME</application>'s Display Manager daemon. This is
     useful for allowing configurable graphical logins.</para>
 
-    <!-- &lfs67_checked; not for this version! -->
+    &lfs70_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -80,7 +80,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-    <ulink url="http://check.sourceforge.net/">Check</ulink>,
+    <xref linkend='check'/> (required to run the testsuite),
     <xref linkend="upower"/>,
     <xref linkend="libxklavier"/>, and
     <xref linkend="tcpwrappers"/></para>
@@ -110,15 +110,20 @@ useradd -c "GDM Daemon Owner" -d /var/lib/gdm -u 21 \
             --sysconfdir=$GNOME_SYSCONFDIR \
             --libexecdir=$GNOME_PREFIX/lib/gdm \
             --localstatedir=/var \
-            --with-pam-prefix=/etc &amp;&amp;
+            --with-pam-prefix=/etc \
+            --enable-static=no &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>If you have installed <xref linkend="check"/> and you wish to run
+    the testsuite, issue: <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
+<!-- fixed by assumption
 ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon-2.0/gnome-settings-daemon \
+        $GNOME_PREFIX/lib/gdm &amp;&amp;-->
+ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon/gnome-settings-daemon \
         $GNOME_PREFIX/lib/gdm &amp;&amp;
 ln -fsv /usr/lib/ConsoleKit/ck-get-x11-display-device \
         $GNOME_PREFIX/lib/gdm &amp;&amp;
@@ -151,6 +156,9 @@ ln -fsv /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
     <application>PAM</application> configuration files in
     <filename class="directory">/etc/pam.d</filename> instead of
     <filename class="directory">$GNOME_SYSCONFDIR</filename>.</para>
+
+    <para><parameter>--enable-static=no</parameter>: This switch prevents the static
+    libraries being installed.</para>
 
   </sect2>
 
@@ -320,8 +328,8 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
         gdm-host-chooser, gdm-product-slave, gdm-session-worker,
         gdm-simple-chooser, gdm-simple-greeter, gdm-simple-slave,
         gdm-user-switch-applet, gdm-xdmcp-chooser-slave, gdm, and gdm-binary</seg>
-        <seg>None</seg>
-        <seg>$GNOME_SYSCONFDIR/gdm/{Init,PostLogin,PostSession,PreSession},
+        <seg>libfingerprint.so, libpassword.so, libsmartcard.so</seg>
+        <seg>$GNOME_SYSCONFDIR/{dbus-1/system.d.gdm/{Init,PostLogin,PostSession,PreSession}},
         <envar>$GNOME_PREFIX</envar>/{lib/gdm,share/{gnome/help/gdm/*,omf/gdm,
         pixmaps/faces}},
         /var/{cache/gdm,gdm,lib/gdm/.gconf.mandatory,log/gdm,
