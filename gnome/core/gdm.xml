@@ -33,7 +33,7 @@
     <application>GNOME</application>'s Display Manager daemon. This is
     useful for allowing configurable graphical logins.</para>
 
-    &lfs70_built;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -120,15 +120,30 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
-<!-- fixed by assumption
-ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon-2.0/gnome-settings-daemon \
-        $GNOME_PREFIX/lib/gdm &amp;&amp;-->
 ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon/gnome-settings-daemon \
         $GNOME_PREFIX/lib/gdm &amp;&amp;
 ln -fsv /usr/lib/ConsoleKit/ck-get-x11-display-device \
         $GNOME_PREFIX/lib/gdm &amp;&amp;
 ln -fsv /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
         $GNOME_PREFIX/lib/gdm
+</userinput></screen>
+
+   <para>If your <envar>GNOME_SYSCONFDIR</envar> is <emphasis>not</emphasis>
+   simply <filename class="directory">/etc</filename> then you need to create
+   some more symlinks so that the menus and some <literal>.desktop</literal>
+   files (in particular <filename>gnome-settings-daemon.desktop</filename>) will
+   be found, because <envar>XDG_CONFIG_DIRS</envar> is not respected when
+   <command>gdm</command> invokes <command>gnome-session</command>. Run the
+   following commands, still as the <systemitem class="username">root</systemitem>
+   user:</para>
+
+<screen role='root'><userinput>ln -sfv $GNOME_SYSCONFDIR/xdg/menus /etc/xdg &amp;&amp;
+pushd $GNOME_SYSCONFDIR/xdg/autostart &amp;&amp;
+FILES=`ls` &amp;&amp;
+popd &amp;&amp;
+for F in $FILES; do
+    ln -sfv $GNOME_SYSCONFDIR/xdg/autostart/$F /etc/xdg/autostart
+done
 </userinput></screen>
 
   </sect2>
@@ -160,6 +175,10 @@ ln -fsv /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
     <para><parameter>--enable-static=no</parameter>: This switch prevents the static
     libraries being installed.</para>
 
+    <para><parameter>ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon/...</parameter>:
+    these three symlinks allow the shutdown/restart functions in
+    <application>gdm</application> to work.</para>
+
   </sect2>
 
   <sect2 role="configuration">
@@ -190,7 +209,7 @@ ln -fsv /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
 
       <para>The <application>GDM</application> <application>PAM</application>
       configuration files contain modules not present in a BLFS installation.
-      If you have <application>PAM</application> installed, issue the following
+      Issue the following
       commands as the <systemitem class="username">root</systemitem> user to
       replace those files with files containing correctly specified
       modules:</para>
@@ -207,6 +226,8 @@ session     required    pam_loginuid.so
 session     optional    pam_console.so</literal>
 
 EOF
+chmod -v 644 /etc/pam.d/gdm
+
 cat &gt; /etc/pam.d/gdm-autologin &lt;&lt; "EOF"
 <literal>auth        required    pam_env.so
 auth        required    pam_permit.so
@@ -219,6 +240,8 @@ session     required    pam_loginuid.so
 session     optional    pam_console.so</literal>
 
 EOF
+chmod -v 644 /etc/pam.d/gdm-autologin
+
 cat &gt; /etc/pam.d/gdm-welcome &lt;&lt; "EOF"
 <literal>auth        required    pam_env.so
 auth        required    pam_permit.so
@@ -229,7 +252,9 @@ session     required    pam_loginuid.so
 session     optional    pam_keyinit.so force revoke
 session     required    pam_unix.so</literal>
 
-EOF</userinput></screen>
+EOF
+chmod -v 644 /etc/pam.d/gdm-welcome
+</userinput></screen>
 
       <indexterm zone="gdm gdm-config">
         <primary sortas="e-etc-pam.d-gdm">/etc/pam.d/gdm</primary>
@@ -239,12 +264,11 @@ EOF</userinput></screen>
         sortas="e-etc-pam.d-gdm-autologin">/etc/pam.d/gdm-autologin</primary>
       </indexterm>
 
-      <para id="gdm-config-dbus">If you have <application>D-BUS</application>
-      installed and you want to start the session
-      <application>D-BUS</application> daemon when you start the GNOME desktop
-      environment using <command>gdm</command>, you'll need to create a new
-      Xsession file. Create the file using the following command as the root
-      user.</para>
+      <para id="gdm-config-dbus">The shipped <filename>gnome.desktop</filename>
+      file does not start the session <application>D-BUS</application> daemon, and
+      as a result not all the files required by a <application>GNOME</application>
+      window manager will be found.  You can create a new
+      Xsession file using the following command as the root user.</para>
 
 <screen role="root"><userinput>cat &gt; $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop &lt;&lt; "EOF"
 <literal>[Desktop Entry]
@@ -263,6 +287,12 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
       display manager login screen. You also have the opportunity to make this
       your default session.</para>
 
+      <para>After you have compared the results from using these two different
+      files, and particularly if the translations in the shipped file are useful
+      to you, you can edit the <literal>Exec</literal> and <literal>TryExec</literal>
+      commands in the provided <filename>gnome.desktop</filename> file. Alternatively,
+      you can delete it if you find it useless.</para>
+
       <note>
         <para>You may use the <filename class='extension'>.desktop</filename>
         file created above as an example to create additional
@@ -279,9 +309,8 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
       </important>
 
       <para><command>gdm</command> can be tested by executing it as the
-      <systemitem class="username">root</systemitem> user. Use the
-      <command>gdm-stop</command> command if you wish to stop the display
-      manager.</para>
+      <systemitem class="username">root</systemitem> user. If you wish to stop
+      it you will need to go to a different tty and then kill it.</para>
 
     </sect3>
 
