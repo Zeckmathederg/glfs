@@ -200,7 +200,6 @@ EOF</userinput></screen>
 
 <screen><userinput>patch -p1 &lt; ../xulrunner-&xulrunner-version;_gcc-4.7-1.patch &amp;&amp;
 sed -i 's#VPX_CODEC_USE_INPUT_PARTITION#VPX_CODEC_USE_INPUT_FRAGMENTS#' configure &amp;&amp;
-sed -i 's#-L${sdkdir}/lib ##' xulrunner/installer/*.pc.in &amp;&amp;
 if pkg-config --atleast-version &nspr-version; nspr
 then sed -i '/Version/aRequires: nspr &gt;= &nspr-version;' xulrunner/installer/libxul-embedding.pc.in
 else sed -i '/Version/aRequires: mozilla-nspr &gt;= &nspr-version;' xulrunner/installer/libxul-embedding.pc.in
@@ -220,7 +219,7 @@ mkdir -p /usr/lib/mozilla &amp;&amp;
 rm -rf /usr/lib/xulrunner-&xulrunner-version;/plugins &amp;&amp;
 ln -sv ../mozilla/plugins /usr/lib/xulrunner-&xulrunner-version; &amp;&amp;
 chown -Rv root:root /usr/{include,lib,share/idl}/xulrunner-* &amp;&amp;
-for library in /usr/lib/xulrunner-devel-&xulrunner-version;/sdk/lib/*.{a,so}
+for library in /usr/lib/xulrunner-devel-&xulrunner-version;/sdk/lib/*.so
 do ln -sfv ${library#/usr/lib/} /usr${library#*sdk}
 done</userinput></screen>
   </sect2>
@@ -251,14 +250,6 @@ done</userinput></screen>
     </para>
 
     <para>
-      <command>sed -i 's#-L${sdkdir}/lib ##'
-      xulrunner/installer/*.pc.in</command>: Because we put symlinks to the
-      libraries into <filename class="directory">/usr/lib</filename> we do not
-      need to have -L/usr/lib/xulrunner-devel-&xulrunner-version;/sdk/lib in
-      the linker flags provided by the pkg-config .pc files.
-    </para>
-
-    <para>
       <command>make -f client.mk ...</command>: Mozilla products are packaged to
       allow the use of a configuration file which can be used to pass the
       configuration settings to the <command>configure</command> command.
@@ -276,12 +267,12 @@ done</userinput></screen>
 
     <para>
       <command>for library in
-      /usr/lib/xulrunner-devel-&xulrunner-version;/sdk/lib/*.{a,so}; do ln -sfv
+      /usr/lib/xulrunner-devel-&xulrunner-version;/sdk/lib/*.so; do ln -sfv
       ${library#/usr/lib/} /usr${library#*sdk}; done</command>: The libraries
       shipped with this package are installed into
       <filename class="directory">/usr/lib/xulrunner-devel-&xulrunner-version;</filename>
       which means they will not be found at runtime. These commands make
-      relative symbolic links to the libraries from
+      relative symbolic links to the shared libraries from
       <filename class="directory">/usr/lib</filename>.
     </para>
   </sect2>
