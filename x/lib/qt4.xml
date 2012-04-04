@@ -6,7 +6,7 @@
 
   <!ENTITY qt4-download-http "http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-&qt4-version;.tar.gz">
   <!ENTITY qt4-download-ftp  "ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-&qt4-version;.tar.gz">
-  <!ENTITY qt4-md5sum        "e8a5fdbeba2927c948d9f477a6abe904">
+  <!ENTITY qt4-md5sum        "7960ba8e18ca31f0c6e4895a312f92ff">
   <!ENTITY qt4-size          "228 MB">
   <!ENTITY qt4-buildsize     "1.8 GB (full), 619 (essential)">
   <!ENTITY qt4-time          "69 SBU (full), 54 SBU (essential)">
@@ -29,11 +29,15 @@
   <sect2 role="package">
     <title>Introduction to Qt4</title>
 
-    <para>The <application>Qt4</application> package contains several
-    <application>C++</application> libraries with both GUI and non-GUI
-    components.  One of the major users of <application>Qt4</application> is
-    <application>KDE4</application>.</para>
+    <para><application>Qt</application> is a cross-platform application 
+    framework that is widely used for developing application software 
+    with a graphical user interface (GUI) (in which cases Qt is classified 
+    as a widget toolkit), and also used for developing non-GUI programs such 
+    as command-line tools and consoles for servers. One of the major users 
+    of <application>Qt4</application> is <application>KDE</application>.</para>
 
+    &lfs71_checked;    
+    
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -56,6 +60,22 @@
       </listitem>
     </itemizedlist>
 
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>GCC 4.7 patch: <ulink
+	url="&patch-root;/qt-everywhere-opensource-src-&qt4-version;-gcc_fix-1.patch"/>
+	</para>
+      </listitem>
+      <listitem>
+        <para>GLib 2.32 patch: <ulink
+	url="&patch-root;/qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch"/>
+        </para>
+       </listitem>
+    </itemizedlist>
+
+    
     <bridgehead renderas="sect3">Qt Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -80,7 +100,7 @@
       <xref linkend="cups"/>,
       <xref linkend="mysql"/>,
       <xref linkend="postgresql"/>,
-      <xref linkend="unixodbc"/>, and
+      <xref linkend="unixodbc"/> and
       <xref linkend="sqlite"/>
     </para>
 
@@ -114,7 +134,7 @@
     files are distributed within several subdirectories of the
     <filename class='directory'>/usr</filename> hierarchy.
     This is the method that most commercial distributions use.</para>
-
+<!--
     <note>
       <para>There is no conflict between the <application>Qt3</application>
       and <application>Qt4</application> applications and headers so both
@@ -138,7 +158,7 @@
       <filename>/opt/qt&lt;version&gt;/bin</filename> directory before the
       other Qt bin directory.  </para>
     </note>
-
+-->
     <caution>
       <para>If <application>Qt4</application> is being reinstalled and the
       <filename class='directory'>/usr</filename>
@@ -167,25 +187,37 @@
     procedure below puts the files in <filename
     class='directory'>/opt/qt-&qt4-version;/</filename>
     and then creates a symbolic link to <filename>/opt/qt/</filename>.</para>
-
-    <para>Install <application>Qt4</application> by running the
+    
+    <para>Configure <application>Qt4</application> by running the
     following commands:</para>
 
-<screen><userinput>./configure -prefix /opt/qt-&qt4-version;  \
-            -release                 \
-            -nomake examples         \
-            -nomake demos            \
-            -system-sqlite           \
-            -no-nis                  \
-            &amp;&amp;
-make</userinput></screen>
-
+<screen><userinput>patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-gcc_fix-1.patch &amp;&amp;
+patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &amp;&amp;
+./configure -prefix /opt/qt-&qt4-version;  \
+            -release               \
+            -nomake examples       \
+            -nomake demos          \
+            -system-sqlite         \
+            -no-nis                \
+	    -opensource            \
+	    -confirm-license</userinput></screen>
+    
     <note><title>Phonon</title>
     <para>If <application>KDE4</application> is intended to be installed, add
     <option>-no-phonon</option> to the <command>./configure</command> command
     above. While installing <application>KDE4</application>, a separate version of the
     <application>Phonon</application> libraries will be installed which better
     matches the needs of the <application>KDE4</application> desktop.</para></note>
+       
+    <para>If you are compiling with <application>GCC</application> 4.7 you need
+    to suppress some warnings that would otherwise cause the build to fail. This 
+    can be achieved by modifying some Makefiles:</para>
+    
+    <screen><userinput>find src/3rdparty/webkit/Source/{WebCore,WebKit} -name 'Makefile*' -exec sed -i 's@-Werror @@' {} \;</userinput></screen>
+
+    <para>Now, build the package:</para>
+    
+    <screen><userinput>make</userinput></screen>
     
     <para>This package does not come with a test suite.</para>
 
@@ -204,6 +236,10 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><command>patch -Np1 -i qt-everywhere-...</command>:
+    The two patches fix compiling with <application>GCC</application>
+    4.7 and <application>GLib</application> 2.32.</para>
+    
     <para><parameter>-nomake examples, -nomake demos</parameter>:
     These switches disable building programs that are only of interest
     to a <application>Qt4</application> developer.</para>
@@ -244,7 +280,7 @@ make</userinput></screen>
       run-time cache file:</para>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; "EOF" &amp;&amp;
-<literal># Begin qt addition to /etc/ld.so.conf
+<literal># Begin qt addition
 
 /opt/qt/lib
 
