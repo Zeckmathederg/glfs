@@ -4,13 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!-- <!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz">
-  <!ENTITY openldap-download-ftp  "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-stable/openldap-&openldap-download-version;.tgz"> -->
-  <!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-release/openldap-&openldap-version;.tgz">
+<!--  <!ENTITY openldap-download-http "http://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-release/openldap-&openldap-version;.tgz"> -->
+  <!ENTITY openldap-download-http " ">
   <!ENTITY openldap-download-ftp  "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-&openldap-version;.tgz">
-  <!ENTITY openldap-md5sum        "90150b8c0d0192e10b30157e68844ddf">
-  <!ENTITY openldap-size          "5.1 MB">
-  <!ENTITY openldap-buildsize     "139 MB">
+  <!ENTITY openldap-md5sum        "4f210937cf87e3467a536dd3fed1b8b4">
+  <!ENTITY openldap-size          "5.2 MB">
+  <!ENTITY openldap-buildsize     "152 MB">
   <!ENTITY openldap-time          "2.0 SBU and approximately 35 minutes to run the tests (processor independent)">
 ]>
 
@@ -60,30 +59,26 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/openldap-&openldap-version;-bdb5-1.patch"/></para>
+        url="&patch-root;/openldap-&openldap-version;-blfs-paths-1.patch"/></para>
+        <para>Required patch: <ulink
+        url="&patch-root;/openldap-&openldap-version;-symbol-versions-1.patch"/></para>
+        <para>Optional patch: <ulink
+        url="&patch-root;/openldap-&openldap-version;-ntlm-1.patch"/></para>
       </listitem>
     </itemizedlist>
-
-    <!-- <note>
-      <para>The <application>OpenLDAP</application> stable releases are
-      packaged without version numbers in the tarball names. You can see the
-      relationship between the version number and name of the tarball at <ulink
-      url="http://www.openldap.org/software/download/"/>.</para>
-    </note> -->
 
     <bridgehead renderas="sect3">OpenLDAP Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="db"/> (recommended) or
-    GDBM (GDBM is built in LFS)</para>
-    <!-- <xref linkend="gdbm"/></para> -->
+    <para role="required"><xref linkend="db"/></para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="cyrus-sasl"/> and
-    <xref linkend="openssl"/></para>
+    <para role="recommended"><xref linkend="cyrus-sasl"/>
+    and <xref linkend="openssl"/></para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="tcpwrappers"/>,
+    <para role="optional"><xref linkend="icu"/>,
+    <xref linkend="tcpwrappers"/>,
     <xref linkend="unixodbc"/>,
     <ulink url="http://www.openslp.org/">OpenSLP</ulink>,
     <xref linkend="pth"/>, and either
@@ -99,35 +94,48 @@
     <title>Installation of OpenLDAP</title>
 
     <note>
+      <para>Without this patch, the Exchange 
+      addressbook integration uses simple binds with cleartext 
+      passwords. If you are going to build evolution-data-server
+      with OpenLDAP support, apply this patch:</para>
+
+<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-ntlm-1.patch</userinput></screen>
+    </note>
+
+    <note>
       <para>If you only need to install the client side <command>ldap*</command>
       binaries, corresponding man pages, libraries and header files (referred to
       as a <quote>client-only</quote> install), issue the following
       <command>configure</command> command instead of the other one, and
       then proceed with the remaining commands (no test suite available):</para>
 
-<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-bdb5-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs-paths-1.patch &amp;&amp;
+patch -Np1 -i ../openldap-&openldap-version;-symbol-versions-1.patch &amp;&amp;
 ./configure --prefix=/usr \
             --sysconfdir=/etc \
-            --disable-debug \
             --enable-dynamic \
-            --enable-slapd=no &amp;&amp;</userinput></screen>
+            --disable-debug \
+            --disable-slapd</userinput></screen>
     </note>
 
     <para>Install <application>OpenLDAP</application> by
     running the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-bdb5-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs-paths-1.patch &amp;&amp;
+patch -Np1 -i ../openldap-&openldap-version;-symbol-versions-1.patch &amp;&amp;
 ./configure --prefix=/usr \
-            --libexecdir=/usr/sbin \
             --sysconfdir=/etc \
-            --localstatedir=/srv/ldap \
+            --localstatedir=/var \
+            --libexecdir=/usr/lib \
+            --disable-static \
             --disable-debug \
             --enable-dynamic \
             --enable-crypt \
             --enable-modules \
             --enable-rlookups \
-            --enable-backends \
-            --enable-overlays \
+            --enable-backends=mod \
+            --enable-overlays=mod \
+            --disable-ndb \
             --disable-sql &amp;&amp;
 make depend &amp;&amp;
 make</userinput></screen>
@@ -142,10 +150,6 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 
-for LINK in lber ldap ldap_r; do
-    chmod -v 0755 /usr/lib/$(readlink /usr/lib/lib${LINK}.so)
-done &amp;&amp;
-
 install -v -m755 -d /usr/share/doc/openldap-&openldap-version;/{drafts,guide,rfc} &amp;&amp;
 install -v -m644    doc/drafts/* \
                     /usr/share/doc/openldap-&openldap-version;/drafts &amp;&amp;
@@ -159,18 +163,8 @@ cp -v -R            doc/guide/* \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--libexecdir=/usr/sbin</parameter>: Installs the
-    <command>slapd</command> daemon programs in
-    <filename class="directory">/usr/sbin</filename> instead of
-    <filename class="directory">/usr/libexec</filename>.</para>
-
-    <para><parameter>--sysconfdir=/etc</parameter>: Sets the configuration file
-    directory to avoid the default of
-    <filename class="directory">/usr/etc</filename>.</para>
-
-    <para><parameter>--localstatedir=/srv/ldap</parameter>: Sets the directory
-    to use for the LDAP directory database, replication logs and
-    run-time variable data.</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../../xincludes/static-libraries.xml"/>
 
     <para><parameter>--disable-debug</parameter>: Disable debugging code.</para>
 
@@ -184,14 +178,6 @@ cp -v -R            doc/guide/* \
     <para><parameter>--enable-modules</parameter>: Enables dynamic module
     support.</para>
 
-    <!-- <para><parameter>-enable-ldap</parameter>: Enables the
-    <command>slapd</command> LDAP backend.</para>
-
-    <para><parameter>-enable-ldbm</parameter>: Build <command>slapd</command>
-    with the primary database back end using either
-    <application>Berkeley DB</application> or
-    <application>GNU Database Manager</application>.</para> -->
-
     <para><parameter>--enable-rlookups</parameter>: This parameter enables
     reverse lookups of client hostnames.</para>
 
@@ -201,18 +187,30 @@ cp -v -R            doc/guide/* \
     <para><parameter>--enable-overlays</parameter>: This parameter enables
     all available overlays.</para>
 
+    <para><parameter>--disable-ndb</parameter>: This parameter disables
+    MySQL NDB Cluster backend which causes configure to fail if
+    MySQL is present.</para>
+
     <para><parameter>--disable-sql</parameter>: This parameter explicitly
     disables the sql backend.  Omit this switch if a SQL server is
     installed and you are going to use a SQL backend (experimental).</para>
+
+    <para><parameter>--enable-spasswd</parameter>: This parameter enables
+    SASL password verification.</para>
+    
+    <para><parameter>--enable-slp</parameter>: This parameter enables
+    SLPv2 support. Use this switch if you have installed
+    <ulink url="http://www.openslp.org/">OpenSLP</ulink>.</para>
+    
+    <para><parameter>--enable-wrappers</parameter>: This parameter enables
+    tcp wrappers support. Use this switch if you have installed
+    <xref linkend="tcpwrappers"/>.</para>
 
     <para><option>--disable-bdb --disable-hdb --with-ldbm-api=gdbm</option>:
     Pass these parameters to the <command>configure</command> command if you
     wish to use <application>GDBM</application> instead of
     <application>Berkeley DB</application> as the primary backend
     database.</para>
-
-    <para><command>chmod -v 0755 ...</command>: This
-    command adds the executable bit to the shared libraries.</para>
 
     <note>
       <para>You can run <command>./configure --help</command> to see if there
@@ -320,13 +318,6 @@ cp -v -R            doc/guide/* \
 
 <screen role="root"><userinput>make install-openldap1</userinput></screen>
 
-      <!-- <para><emphasis>Note:</emphasis> The init script you just installed only
-      starts the <command>slapd</command> daemon. If you wish to also start the
-      <command>slurpd</command> daemon at system startup, install a modified
-      version of the script using this command:</para>
-
-<screen role="root"><userinput>make install-openldap2</userinput></screen> -->
-
       <note>
         <para>The init script starts the daemon without any parameters.
         You'll need to modify the script to include the parameters needed for
@@ -382,11 +373,12 @@ result: 0 Success
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>ldapadd, ldapcompare, ldapdelete, ldapmodify, ldapmodrdn,
-        ldappasswd, ldapsearch, ldapwhoami, slapadd, slapcat, slapd, slapdn,
-        slapindex, slappasswd, and slaptest</seg>
-        <seg>liblber.{so,a}, libldap.{so,a}, and libldap_r.{so,a}</seg>
-        <seg>/etc/openldap, /srv/ldap, and /usr/share/openldap</seg>
+        <seg>ldapadd, ldapcompare, ldapdelete, ldapexop, ldapmodify, ldapmodrdn,
+        ldappasswd, ldapsearch, ldapurl, ldapwhoami, slapacl, slapadd, slapauth,
+        slapcat, slapd, slapdn, slapindex, slappasswd, slapschema and slaptest</seg>
+        <seg>liblber.so, libldap.so,a and libldap_r.so</seg>
+        <seg>/etc/openldap, /usr/lib/openldap
+        and /var/lib/openldap</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -424,6 +416,18 @@ result: 0 Success
           one or more entries.</para>
           <indexterm zone="openldap ldapdelete">
             <primary sortas="b-ldapdelete">ldapdelete</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ldapexop">
+        <term><command>ldapexop</command></term>
+        <listitem>
+          <para>issues the LDAP extended operation specified by 
+          oid or one of the  special  keywords  whoami,
+          cancel, or refresh.</para>
+          <indexterm zone="openldap ldapexop">
+            <primary sortas="b-ldapexop">ldapexop</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -471,6 +475,17 @@ result: 0 Success
         </listitem>
       </varlistentry>
 
+      <varlistentry id="ldapurl">
+        <term><command>ldapurl</command></term>
+        <listitem>
+          <para>is a command that allows to either compose or 
+          decompose LDAP URIs.</para>
+          <indexterm zone="openldap ldapurl">
+            <primary sortas="b-ldapurl">ldapurl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="ldapwhoami">
         <term><command>ldapwhoami</command></term>
         <listitem>
@@ -482,6 +497,18 @@ result: 0 Success
         </listitem>
       </varlistentry>
 
+      <varlistentry id="slapacl">
+        <term><command>slapacl</command></term>
+        <listitem>
+          <para>is used to check the behavior of slapd by verifying 
+          access to directory data according to the access control 
+          list directives defined in its configuration.</para>
+          <indexterm zone="openldap slapacl">
+            <primary sortas="b-slapacl">slapacl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="slapadd">
         <term><command>slapadd</command></term>
         <listitem>
@@ -489,6 +516,18 @@ result: 0 Success
           Format (LDIF) to an LDAP database.</para>
           <indexterm zone="openldap slapadd">
             <primary sortas="b-slapadd">slapadd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="slapauth">
+        <term><command>slapauth</command></term>
+        <listitem>
+          <para>is used to check the behavior of the slapd 
+          in mapping identities for authentication  and
+          authorization purposes, as specified in slapd.conf.</para>
+          <indexterm zone="openldap slapauth">
+            <primary sortas="b-slapauth">slapauth</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -547,6 +586,17 @@ result: 0 Success
         </listitem>
       </varlistentry>
 
+      <varlistentry id="slapschema">
+        <term><command>slapschema</command></term>
+        <listitem>
+          <para>is used to check schema compliance of the contents 
+          of a slapd database.</para>
+          <indexterm zone="openldap slapschema">
+            <primary sortas="b-slapschema">slapschema</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="slaptest">
         <term><command>slaptest</command></term>
         <listitem>
@@ -559,7 +609,7 @@ result: 0 Success
       </varlistentry>
 
       <varlistentry id="liblber">
-        <term><filename class='libraryfile'>liblber.{so,a}</filename></term>
+        <term><filename class='libraryfile'>liblber.so</filename></term>
         <listitem>
           <para>is a set of lightweight Basic Encoding Rules routines. These
           routines are used by the LDAP library routines to encode and decode
@@ -568,29 +618,29 @@ result: 0 Success
           by an LDAP application program except in the handling of controls
           and extended operations.</para>
           <indexterm zone="openldap liblber">
-            <primary sortas="c-liblber">liblber.{so,a}</primary>
+            <primary sortas="c-liblber">liblber.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libldap">
-        <term><filename class='libraryfile'>libldap.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libldap.so</filename></term>
         <listitem>
           <para>supports the LDAP programs and provide functionality for
           other programs interacting with LDAP.</para>
           <indexterm zone="openldap libldap">
-            <primary sortas="c-libldap">libldap.{so,a}</primary>
+            <primary sortas="c-libldap">libldap.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libldap_r">
-        <term><filename class='libraryfile'>libldap_r.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libldap_r.so</filename></term>
         <listitem>
           <para>contains the functions required by the LDAP programs to
           produce the results from LDAP requests.</para>
           <indexterm zone="openldap libldap_r">
-            <primary sortas="c-libldap_r">libldap_r.{so,a}</primary>
+            <primary sortas="c-libldap_r">libldap_r.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
