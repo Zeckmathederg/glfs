@@ -4,12 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY NetworkManager-download-http "&gnome-download-http;/NetworkManager/0.9/NetworkManager-&NetworkManager-version;.tar.xz">
-  <!ENTITY NetworkManager-download-ftp  "&gnome-download-ftp;/NetworkManager/0.9/NetworkManager-&NetworkManager-version;.tar.xz">
-  <!ENTITY NetworkManager-md5sum        "d7dce01e97758253bc4ed81d7b86045f">
-  <!ENTITY NetworkManager-size          "1.7 MB">
-  <!ENTITY NetworkManager-buildsize     "51 MB">
-  <!ENTITY NetworkManager-time          "1.1 SBU">
+  <!ENTITY NetworkManager-download-http 
+           "&gnome-download-http;/NetworkManager/0.9/NetworkManager-&NetworkManager-version;.tar.xz">
+  <!ENTITY NetworkManager-download-ftp  
+           "&gnome-download-ftp;/NetworkManager/0.9/NetworkManager-&NetworkManager-version;.tar.xz">
+  <!ENTITY NetworkManager-md5sum        "66a54b51a4998c484613911b72a7e6ff">
+  <!ENTITY NetworkManager-size          "1.8 MB">
+  <!ENTITY NetworkManager-buildsize     "65 MB">
+  <!ENTITY NetworkManager-time          "1.0 SBU">
 ]>
 
 <sect1 id="NetworkManager" xreflabel="NetworkManager-&NetworkManager-version;">
@@ -35,7 +37,7 @@
     to another: once a network has been configured and joined once, it can be
     detected and re-joined automatically the next time its available.</para>
 
-    &lfs70_built;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -59,35 +61,46 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Download</bridgehead>
     <itemizedlist spacing='compact'>
       <listitem>
         <para>Required Patch: <ulink
-        url="&patch-root;/NetworkManager-&NetworkManager-version;-lfs-2.patch"/></para>
+        url="&patch-root;/NetworkManager-&NetworkManager-version;-lfs-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">NetworkManager Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="libnl"/>,
-    <xref linkend="pkgconfig"/>,
-    <xref linkend="dbus-glib"/>,
-    <xref linkend="libgcrypt"/>,
-    <xref linkend="gtk-doc"/>,
-    <xref linkend="polkit"/>,
-    <xref linkend="udev"/>,
-    <xref linkend="gnutls"/>,
-    <xref linkend="iptables"/>, and
-    <xref linkend="wireless_tools"/></para>
+    <para role="required">
+      <xref linkend="dbus-glib"/>,
+      <xref linkend="gnutls"/>,
+      <xref linkend="iptables"/>,
+      <xref linkend="libgcrypt"/>,
+      <xref linkend="libnl"/>,
+      <xref linkend="libsoup"/>,
+      <xref linkend="polkit"/>,
+      <xref linkend="udev"/> and
+      <xref linkend="wireless_tools"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="consolekit"/>,
+      <xref linkend="dhcpcd"/> or
+      <xref linkend="dhcp-client"/> and
+      <xref linkend="gobject-introspection"/>
+      (Required if building Gnome Shell).
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="dhcpcd"/>
-    or <xref linkend="dhcp-client"/> are needed at runtime if you intend to use
-    this package to control your network connection :
-    <application>NetworkManager</application> will be invoked automatically by a
-    <application>GNOME</application> desktop, but can be treated as just a build
-    requirement if you only have a wired connection.</para>
+    <para role="optional">
+      <xref linkend="gtk-doc"/>,
+      <ulink url="http://ftp.gnome.org/pub/gnome/sources/ModemManager/">
+      ModemManager</ulink>,
+      <xref linkend="ppp"/> and
+      <xref linkend="wpa_supplicant"/> (Built with DBus support).
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/NetworkManager"/></para>
@@ -100,14 +113,13 @@
     <para>Install <application>NetworkManager</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../NetworkManager-&NetworkManager-version;-lfs-2.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../NetworkManager-&NetworkManager-version;-lfs-1.patch &amp;&amp;
 ./configure --prefix=/usr \
+            --sysconfdir=/etc \
             --libexecdir=/usr/lib/NetworkManager \
             --localstatedir=/var \
             --with-systemdsystemunitdir=no \
-            --with-crypto=gnutls \
-            --disable-wimax \
-            --disable-ppp --with-tests&amp;&amp;
+            --with-crypto=gnutls &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
@@ -121,17 +133,6 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>patch -Np1 -i ../NetworkManager-&NetworkManager-version;-lfs-2.patch</command>:
-    This command adds some code to enable the application to run on LFS.</para>
-
-    <para><parameter>--libexecdir=/usr/lib/NetworkManager</parameter>: This parameter puts
-    the action files and crash-logger in a directory which is compatible with the
-    <literal>FHS</literal>.</para>
-
-    <para><parameter>--localstatedir=/var</parameter>: This command
-    puts files in <filename class="directory">/var</filename> instead of
-    <filename class="directory">/usr/var</filename>.</para>
-
     <para><parameter>--with-systemdsystemunitdir=no</parameter>: This parameter is
     needed to avoid <application>systemd</application> files being installed.</para>
 
@@ -139,15 +140,67 @@ make</userinput></screen>
     the package uses <application>gnutls</application> for cryptography, instead
     of <application>nss</application>.</para>
 
-    <para><parameter>--disable-wimax</parameter>: This parameter prevents the
-    package attempting to use the Intel WiMAX SDK.</para>
-
-    <para><parameter>--disable-ppp</parameter>: This parameter prevents the
-    package from including ppp support.</para>
-
     <para><option>--with-distro=lfs</option>: This parameter is only needed if you
     failed to create <filename>/etc/lfs-release</filename> when you installed LFS.
     </para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring NetworkManager</title>
+
+    <sect3 id="NetworkManager-config">
+      <title>Config Files</title>
+      <para>
+        <filename>/etc/NetworkManager/NetworkManager.conf</filename>
+      </para>
+
+      <indexterm zone="NetworkManager NetworkManager-config">
+        <primary
+        sortas="e-etc-NetworkManager-NetworkManager.conf">
+        /etc/NetworkManager/NetworkManager.conf</primary>
+      </indexterm>
+
+    </sect3>
+
+    <sect3><title>Configuration Information</title>
+
+      <para>
+        For <application>NetworkManager</application> to work, at least
+        minimal configuration file must be present. Such file is not
+        installed with <command>make install</command>. Issue following
+        command as the
+        <systemitem class="username">root</systemitem> user to create
+        minimal <filename>NetworkManager.conf</filename> file:
+      </para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/NetworkManager/NetworkManager.conf &lt;&lt; "EOF"
+<literal>[main]
+plugins=keyfile</literal>
+EOF</userinput></screen>
+
+      <para>
+        See <command>man 5 NetworkManager.conf</command> for any additional options.
+      </para>       
+
+    </sect3>
+
+    <sect3 id="NetworkManager-init">
+      <title>Boot Script</title>
+
+      <para>
+        To automatically start the <command>NetworkManager</command> daemon when the
+        system is rebooted, install the
+        <filename>/etc/rc.d/init.d/networkmanager</filename> bootscript from the
+        <xref linkend="bootscripts"/> package.
+      </para>
+
+      <indexterm zone="NetworkManager NetworkManager-init">
+        <primary sortas="f-NetworkManager">NetworkManager</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-networkmanager</userinput></screen>
+    </sect3>
 
   </sect2>
 
@@ -160,9 +213,18 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>NetworkManager, nm-avahi-autoipd.action, nm-crash-logger, nm-dhcp-client.action, nm-dispatcher.action, nm-online, nm-tool, and nmcli</seg>
-        <seg>libnm-glib-vpn.so, libnm-glib.so, and libnm-util.so</seg>
-        <seg>/{etc/{NetworkManager/{dispatcher.d,system-connections},dbus-1/system.d},udev/rules.d,usr/{include/{NetworkManager,libnm-glib},lib/NetworkManager,share/NetworkManager},var/{lib/NetworkManager,run/NetworkManager}}</seg>
+        <seg>
+          nmcli, nm-online, nm-tool and NetworkManager
+        </seg>
+        <seg>
+          libnm-glib.so, libnm-glib-vpn.so and libnm-util.so
+        </seg>
+        <seg>
+          /etc/NetworkManager, /usr/include/libnm-glib,
+          /usr/include/NetworkManager, /usr/lib/NetworkManager,
+          /usr/share/NetworkManager, /var/lib/NetworkManager and
+          /var/run/NetworkManager
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -171,52 +233,13 @@ make</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="NetworkManager-prog">
-        <term><command>NetworkManager-prog</command></term>
+      <varlistentry id="nmcli">
+        <term><command>nmcli</command></term>
         <listitem>
-          <para>does this .....</para>
-          <indexterm zone="NetworkManager NetworkManager-prog">
-            <primary sortas="b-NetworkManager-prog">NetworkManager-prog</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="nm-avahi-autoipd.action">
-        <term><command>nm-avahi-autoipd.action</command></term>
-        <listitem>
-          <para>does this .....</para>
-          <indexterm zone="NetworkManager nm-avahi-autoipd.action">
-            <primary sortas="b-nm-avahi-autoipd.action">nm-avahi-autoipd.action</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="nm-crash-logger">
-        <term><command>nm-crash-logger</command></term>
-        <listitem>
-          <para>does this .....</para>
-          <indexterm zone="NetworkManager nm-crash-logger">
-            <primary sortas="b-nm-crash-logger">nm-crash-logger</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="nm-dhcp-client.action">
-        <term><command>nm-dhcp-client.action</command></term>
-        <listitem>
-          <para>does this .....</para>
-          <indexterm zone="NetworkManager nm-dhcp-client.action">
-            <primary sortas="b-nm-dhcp-client.action">nm-dhcp-client.action</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="nm-dispatcher.action">
-        <term><command>nm-dispatcher.action</command></term>
-        <listitem>
-          <para>does this .....</para>
-          <indexterm zone="NetworkManager nm-dispatcher.action">
-            <primary sortas="b-nm-dispatcher.action">nm-dispatcher.action</primary>
+          <para>is a command-line tool for controlling NetworkManager 
+          and getting its status.</para>
+          <indexterm zone="NetworkManager nmcli">
+            <primary sortas="b-nmcli">nmcli</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -224,7 +247,7 @@ make</userinput></screen>
       <varlistentry id="nm-online">
         <term><command>nm-online</command></term>
         <listitem>
-          <para>does this .....</para>
+          <para>is a utility to find out whether we are online.</para>
           <indexterm zone="NetworkManager nm-online">
             <primary sortas="b-nm-online">nm-online</primary>
           </indexterm>
@@ -234,29 +257,20 @@ make</userinput></screen>
       <varlistentry id="nm-tool">
         <term><command>nm-tool</command></term>
         <listitem>
-          <para>does this .....</para>
+          <para>is used to provide information about NetworkManager, 
+          device, and wireless networks.</para>
           <indexterm zone="NetworkManager nm-tool">
             <primary sortas="b-nm-tool">nm-tool</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="nmcli">
-        <term><command>nmcli</command></term>
+      <varlistentry id="NetworkManager-prog">
+        <term><command>NetworkManager</command></term>
         <listitem>
-          <para>does this .....</para>
-          <indexterm zone="NetworkManager nmcli">
-            <primary sortas="b-nmcli">nmcli</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="libnm-glib-vpn">
-        <term><filename class='libraryfile'>libnm-glib-vpn.so</filename></term>
-        <listitem>
-          <para>contains functions that .....</para>
-          <indexterm zone="NetworkManager libnm-glib-vpn">
-            <primary sortas="c-libnm-glib-vpn">libnm-glib-vpn.so</primary>
+          <para>is the network management daemon.</para>
+          <indexterm zone="NetworkManager NetworkManager-prog">
+            <primary sortas="b-NetworkManager-prog">NetworkManager</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -264,9 +278,19 @@ make</userinput></screen>
       <varlistentry id="libnm-glib">
         <term><filename class='libraryfile'>libnm-glib.so</filename></term>
         <listitem>
-          <para>contains functions that .....</para>
+          <para>contains functions used by NetworkManager.</para>
           <indexterm zone="NetworkManager libnm-glib">
             <primary sortas="c-libnm-glib">libnm-glib.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnm-glib-vpn">
+        <term><filename class='libraryfile'>libnm-glib-vpn.so</filename></term>
+        <listitem>
+          <para>contains functions used by NetworkManager VPN plugins.</para>
+          <indexterm zone="NetworkManager libnm-glib-vpn">
+            <primary sortas="c-libnm-glib-vpn">libnm-glib-vpn.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -274,7 +298,7 @@ make</userinput></screen>
       <varlistentry id="libnm-util">
         <term><filename class='libraryfile'>libnm-util.so</filename></term>
         <listitem>
-          <para>contains functions that .....</para>
+          <para>contains functions used by NetworkManager utils.</para>
           <indexterm zone="NetworkManager libnm-util">
             <primary sortas="c-libnm-util">libnm-util.so</primary>
           </indexterm>
