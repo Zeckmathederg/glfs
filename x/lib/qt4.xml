@@ -193,6 +193,7 @@
 
 <screen><userinput>patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-gcc_fix-1.patch &amp;&amp;
 patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &amp;&amp;
+sed -i '/-Werror/d' src/3rdparty/webkit/Source/WebKit.pri &amp;&amp;
 ./configure -prefix /opt/qt-&qt4-version;  \
             -release               \
             -nomake examples       \
@@ -200,7 +201,8 @@ patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &am
             -system-sqlite         \
             -no-nis                \
 	    -opensource            \
-	    -confirm-license</userinput></screen>
+	    -confirm-license &amp;&amp;
+make</userinput></screen>
     
     <note><title>Phonon</title>
     <para>If <application>KDE4</application> is intended to be installed, add
@@ -208,17 +210,7 @@ patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &am
     above. While installing <application>KDE4</application>, a separate version of the
     <application>Phonon</application> libraries will be installed which better
     matches the needs of the <application>KDE4</application> desktop.</para></note>
-       
-    <para>If you are compiling with <application>GCC</application> 4.7 you need
-    to suppress some warnings that would otherwise cause the build to fail. This 
-    can be achieved by modifying some Makefiles:</para>
-    
-    <screen><userinput>find src/3rdparty/webkit/Source/{WebCore,WebKit} -name 'Makefile*' -exec sed -i 's@-Werror @@' {} \;</userinput></screen>
-
-    <para>Now, build the package:</para>
-    
-    <screen><userinput>make</userinput></screen>
-    
+           
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem>
@@ -229,7 +221,7 @@ patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &am
     <para>If you installed <application>Qt4</application> in the /opt directory,
     again as the <systemitem class="username">root</systemitem> user issue:</para>
 
-<screen role="root"><userinput>ln -v -sfn qt-&qt4-version; /opt/qt</userinput></screen>
+<screen role="root"><userinput>ln -svfn qt-&qt4-version; /opt/qt</userinput></screen>
 
   </sect2>
 
@@ -240,15 +232,29 @@ patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &am
     The two patches fix compiling with <application>GCC</application>
     4.7 and <application>GLib</application> 2.32.</para>
     
+    <para><command>sed -i '/-Werror/d'...</command>:
+    This sed suppresses warnings that would otherwise cause the build 
+    to fail when compiling with <application>GCC</application>
+    4.7.</para>
+   
+    <para><parameter>-release</parameter>:
+    This switch disables building with debugging symbols.</para>
+    
     <para><parameter>-nomake examples, -nomake demos</parameter>:
     These switches disable building programs that are only of interest
     to a <application>Qt4</application> developer.</para>
-
-    <para>There are several optional directories that can be specified in the
-    <command>./configure</command> line.  These include
-    <option>-bindir</option>, <option>-libdir</option>,
-    <option>-docdir</option>, and <option>-headerdir</option>.  For a complete
-    list, run <command>./configure -help</command>.</para>
+    
+    <para><parameter>-system-sqlite</parameter>:
+    Use the system version of <application>SQLite</application>.</para>
+    
+    <para><parameter>-no-nis</parameter>:
+    Disable support for Network Information Service (NIS).</para>
+    
+    <para><parameter>-opensource</parameter>:
+    Install the opensource version of <application>Qt</application>.</para>
+    
+    <para><parameter>-confirm-license</parameter>:
+    Accept license without prompting user during configuration.</para>
 
     <para><parameter>-plugin-sql-<replaceable>&lt;driver&gt;</replaceable></parameter>
     or <parameter>-qt-sql-<replaceable>&lt;driver&gt;</replaceable></parameter>:
@@ -261,6 +267,12 @@ patch -Np1 -i ../qt-everywhere-opensource-src-&qt4-version;-glib_fix-1.patch &am
       -help</command>. Other database support will require similar
       <command>configure</command> parameters.</para>
     </note>
+    
+    <para>There are several optional directories that can be specified in the
+    <command>./configure</command> line.  These include
+    <option>-bindir</option>, <option>-libdir</option>,
+    <option>-docdir</option>, and <option>-headerdir</option>.  For a complete
+    list, run <command>./configure -help</command>.</para>
 
   </sect2>
 
@@ -295,7 +307,7 @@ ldconfig</userinput></screen>
       <para>As the <systemitem class="username">root</systemitem> user, create 
       the <filename>/etc/profile.d/qt4.sh</filename> file:</para>
 
-<screen><userinput>cat &gt; /etc/profile.d/qt4.sh &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; /etc/profile.d/qt4.sh &lt;&lt; "EOF"
 # Begin /etc/profile.d/qt4.sh
 
 QT4DIR=/opt/qt
