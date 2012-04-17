@@ -5,9 +5,9 @@
   %general-entities;
 
   <!ENTITY GConf-download-http
-  "&gnome-download-http;/GConf/&gnome-version;/GConf-&GConf-version;.tar.xz">
+           "&gnome-download-http;/GConf/3.2/GConf-&GConf-version;.tar.xz">
   <!ENTITY GConf-download-ftp
-  "&gnome-download-ftp;/GConf/&gnome-version;/GConf-&GConf-version;.tar.xz">
+           "&gnome-download-ftp;/GConf/3.2/GConf-&GConf-version;.tar.xz">
   <!ENTITY GConf-md5sum        "1b803eb4f8576c572d072692cf40c9d8">
   <!ENTITY GConf-size          "1.5 MB">
   <!ENTITY GConf-buildsize     "42 MB">
@@ -34,7 +34,7 @@
     <para>The <application>GConf</application> package contains a
     configuration database system.</para>
 
-    &lfs71_built;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -61,21 +61,24 @@
     <bridgehead renderas="sect3">GConf Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="dbus-glib"/>,
-    <xref linkend="intltool"/>, and
-    <xref linkend="libxml2"/><!--, and
-    <xref linkend="ORBit2"/>--></para>
+    <para role="required">
+      <xref linkend="dbus-glib"/>,
+      <xref linkend="intltool"/> and
+      <xref linkend="libxml2"/>
+    </para>
 
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="gtk3"/> (Required if building a
-    <application>GNOME</application> desktop.
-    <command>gconf-sanity-check-2</command> will not build otherwise.) and
-    <xref linkend="polkit"/></para>
+    <bridgehead renderas="sect4">Recommended (Required if building GNOME)</bridgehead>
+    <para role="recommended">
+      <xref linkend="gobject-introspection"/>,
+      <xref linkend="gtk3"/> and
+      <xref linkend="polkit"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openldap"/>,
-    <xref linkend="gobject-introspection"/> and
-    <xref linkend="gtk-doc"/></para>
+    <para role="optional">
+      <xref linkend="gtk-doc"/> and
+      <xref linkend="openldap"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gconf"/></para>
@@ -88,12 +91,9 @@
     <para>Install <application>GConf</application> by running the following
     commands:</para>
 
-    <!-- with-gtk=3.0 is the default, and mandir goes to prefix/share/man -->
-
-<screen><userinput>sed -i '/INTROSPECTION_SCANNER_ARGS/s#$# -lgmodule-2.0#' gconf/Makefile.in &amp;&amp;
-./configure --prefix=$GNOME_PREFIX \
-            --sysconfdir=$GNOME_SYSCONFDIR \
-            --libexecdir=$GNOME_PREFIX/lib/GConf \
+<screen><userinput>./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --libexecdir=/usr/lib/GConf \
             --disable-orbit \
             --disable-static &amp;&amp;
 make</userinput></screen>
@@ -104,100 +104,37 @@ make</userinput></screen>
     user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-install -v -m755 -d $GNOME_SYSCONFDIR/gconf/gconf.xml.system</userinput></screen>
-
-    <para>Still as the <systemitem class="username">root</systemitem> user,
-    configure <application>D-Bus</application> so that it can search for
-    <application>GNOME</application> installed
-    <filename class='extension'>.conf</filename> files (This is assuming
-    that <filename>/etc/dbus-1/system-local.conf</filename> does not exist yet.
-    If it does, then you will need to merge in the changes). If
-    <envar>$GNOME_PREFIX</envar> is not
-    <filename class='directory'>/usr</filename>, you should uncomment the
-    <quote>servicedir</quote> line:</para>
-
-<screen role="root"><userinput>cat &gt; /etc/dbus-1/system-local.conf &lt;&lt; "EOF"
-<literal>&lt;!DOCTYPE busconfig PUBLIC
- "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
- "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
-&lt;busconfig&gt;
-
-  &lt;!-- Search for .conf files in $GNOME_SYSCONFDIR/dbus-1/system.d --&gt;
-  &lt;includedir&gt;$GNOME_SYSCONFDIR/dbus-1/system.d&lt;/includedir&gt;
-
-  &lt;!-- Search for .service files in $GNOME_PREFIX/share/dbus-1/system-services --&gt;
-  &lt;!-- &lt;servicedir&gt;$GNOME_PREFIX/share/dbus-1/system-services&lt;/servicedir&gt; --&gt;
-
-&lt;/busconfig&gt;
-EOF</literal>
-</userinput></screen>
-
-    <para>If <envar>$GNOME_PREFIX</envar> is not
-    <filename class='directory'>/usr</filename>, you also need to configure
-    <application>D-Bus</application> so that it can search for
-    <application>GNOME</application> installed <quote>session</quote>
-    <filename class='extension'>.service</filename> files (This is assuming
-    that <filename>/etc/dbus-1/session-local.conf</filename> does not exist
-    yet. If it does, then you will need to merge in the changes). Additionally,
-    if <application>polkit</application> is installed, create a symbolic link
-    in <filename class='directory'>/usr/share/polkit-1/actions</filename> to
-    the <quote>action</quote> file installed by
-    <application>GConf</application>. Issue the following commands as the
-    <systemitem class="username">root</systemitem> user:</para>
-
-<screen role="root"><userinput>cat &gt; /etc/dbus-1/session-local.conf &lt;&lt; "EOF"
-<literal>&lt;!DOCTYPE busconfig PUBLIC
- "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
- "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
-&lt;busconfig&gt;
-
-  &lt;!-- Search for .service files in $GNOME_PREFIX/share/dbus-1/session-services --&gt;
-  &lt;servicedir&gt;$GNOME_PREFIX/share/dbus-1/session-services&lt;/servicedir&gt;
-
-&lt;/busconfig&gt;
-EOF</literal>
-
-ln -s -v <envar>$GNOME_PREFIX</envar>/share/polkit-1/actions/org.gnome.gconf.defaults.policy \
-         /usr/share/polkit-1/actions
-</userinput></screen>
+install -v -m755 -d /etc/gconf/gconf.xml.system</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+<!--    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-prefix.xml"/>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-sysconfdir.xml"/>
+    href="../../xincludes/gnome-sysconfdir.xml"/> -->
 
-    <para><command>sed -i '/INTROSPECTION_SCANNER_ARGS/s#$# -lgmodule-2.0#'
-    gconf/Makefile.in</command>: This sed fixes compiling with both
-    <application>Glib-2.32</application> and
-    <xref linkend="gobject-introspection"/> installed.</para>
-
-    <para><parameter>--libexecdir=<envar>$GNOME_PREFIX</envar>/lib/GConf</parameter>:
+    <para><parameter>--libexecdir=/usr/lib/GConf</parameter>:
     This parameter causes the libexec files to be installed in the preferred
-    location of <filename class="directory">$GNOME_PREFIX/lib/GConf</filename>
+    location of <filename class="directory">/usr/lib/GConf</filename>
     instead of <filename
-    class="directory">$GNOME_PREFIX/libexec</filename>.</para>
+    class="directory">/usr/libexec</filename>.</para>
 
     <para><parameter>--disable-orbit</parameter>: This parameter is required if
     <application>ORBit2</application> is not installed.
     <application>ORBit2</application> is a deprecated package.</para>
 
-    <!--<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-mandir.xml"/>-->
-
-    <para><option>--disable-static</option>: This switch prevents the static
-    libraries being installed.</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../../xincludes/static-libraries.xml"/>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gtk-doc-rebuild.xml"/>
 
     <para><command>install -v -m755 -d
-    $GNOME_SYSCONFDIR/gconf/gconf.xml.system</command>: Creates a missing
+    /etc/gconf/gconf.xml.system</command>: Creates a missing
     directory. Without this directory, <command>gconf-sanity-check-2</command>
     will fail during <application>GDM</application> startup and login.</para>
 
@@ -212,14 +149,17 @@ ln -s -v <envar>$GNOME_PREFIX</envar>/share/polkit-1/actions/org.gnome.gconf.def
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gconf-defaults-mechanism, gconf-merge-tree, gconf-sanity-check-2,
-        gconfd-2, gconftool-2, and gsettings-data-convert</seg>
-        <seg>libgconf-2.{so,a}, libgconfbackend-oldxml.{so,a},
-        libgconfbackend-xml.{so,a}, and libgsettingsgconfbackend.{so,a}</seg>
-        <seg><envar>$GNOME_SYSCONFDIR</envar>/{gconf/{2,gconf.xml.defaults,
-        gconf.xml.mandatory,gconf.xml.system},xdg/autostart}
-        <envar>$GNOME_PREFIX</envar>/{include/gconf/2/gconf,lib/GConf/2,
-        share/{gtk-doc/html/gconf,sgml/gconf}}</seg>
+        <seg>
+          gconf-merge-tree, gconftool-2, gsettings-data-convert and
+          gsettings-schema-convert
+        </seg>
+        <seg>
+          libgconf-2.so
+        </seg>
+        <seg>
+          /etc/gconf, /usr/include/gconf, /usr/lib/GConf, /usr/share/GConf,
+          /usr/share/gtk-doc/html/gconf and /usr/share/sgml/gconf
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -260,13 +200,23 @@ ln -s -v <envar>$GNOME_PREFIX</envar>/share/polkit-1/actions/org.gnome.gconf.def
         </listitem>
       </varlistentry>
 
+      <varlistentry id="gsettings-schemas-convert">
+        <term><command>gsettings-schemas-convert</command></term>
+        <listitem>
+          <para>converts between GConf and GSettings schema file formats.</para>
+          <indexterm zone="GConf gsettings-schemas-convert">
+            <primary sortas="b-gsettings-schemas-convert">gsettings-schemas-convert</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="libgconf-2">
-        <term><filename class='libraryfile'>libgconf-2.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libgconf-2.so</filename></term>
         <listitem>
           <para>provide the functions necessary to maintain the
           configuration database.</para>
           <indexterm zone="GConf libgconf-2">
-            <primary sortas="c-libgconf-2">libgconf-2.{so,a}</primary>
+            <primary sortas="c-libgconf-2">libgconf-2.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
