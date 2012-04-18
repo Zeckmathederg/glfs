@@ -109,6 +109,22 @@
     <title>Installation of WebKitGTK+</title>
 
     <para>
+      If you have <application>pkg-config 0.25</application> or older installed
+      fix a bug in the configure script that will stop it detecting
+      <application>Gstreamer</application> correctly: 
+    </para>
+    <!-- https://bugs.webkit.org/show_bug.cgi?id=82580 -->
+
+<screen><userinput>sed -i 's#=GST#=$GST#' configure</userinput></screen>
+
+    <para>
+      If you have not installed <xref linkend="gtk-doc"/>, fix a bug that will
+      cause <command>make install</command> to fail:
+    </para>
+
+<screen><userinput>sed -i '/generate-gtkdoc --rebase/s:^:# :' GNUmakefile.in</userinput></screen>
+
+    <para>
       <application>WebKit</application> takes a long time to compile, so if you
       have a multicore CPU it can be useful to speed up the build by running
       make with multiple jobs.
@@ -165,7 +181,11 @@ done</userinput></screen>
       there are race conditions in the makefiles that will cause the build to
       fail if you run make with multiple jobs. This simple hack works around
       that, <command>until</command> will keep running <command>make</command>
-      until it succeeds. <command>$(getconf _NPROCESSORS_ONLN)</command> prints
+      until it succeeds. You will need to monitor the output of
+      <command>make</command>. If an error occurs that is
+      <emphasis>not</emphasis> due to a race condition then it will keep
+      repeating <command>make</command> until you kill the process.
+      <command>$(getconf _NPROCESSORS_ONLN)</command> prints
       the number of cores your computer seems to have.
     </para>
 
