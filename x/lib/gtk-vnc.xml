@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gtk-vnc-download-http "&gnome-download-http;/gtk-vnc/0.4/gtk-vnc-&gtk-vnc-version;.tar.bz2">
-  <!ENTITY gtk-vnc-download-ftp  "&gnome-download-ftp;/gtk-vnc/0.4/gtk-vnc-&gtk-vnc-version;.tar.bz2">
-  <!ENTITY gtk-vnc-md5sum        "38d3fbacb5d00e630f939e88858206f1">
-  <!ENTITY gtk-vnc-size          "437 KB">
-  <!ENTITY gtk-vnc-buildsize     "7.6 MB">
+  <!ENTITY gtk-vnc-download-http "&gnome-download-http;/gtk-vnc/0.5/gtk-vnc-&gtk-vnc-version;.tar.xz">
+  <!ENTITY gtk-vnc-download-ftp  "&gnome-download-ftp;/gtk-vnc/0.5/gtk-vnc-&gtk-vnc-version;.tar.xz">
+  <!ENTITY gtk-vnc-md5sum        "f45c9649c915af335cff91268e74ab67">
+  <!ENTITY gtk-vnc-size          "380 KB">
+  <!ENTITY gtk-vnc-buildsize     "8.0 MB">
   <!ENTITY gtk-vnc-time          "0.2 SBU">
 ]>
 
@@ -32,10 +32,10 @@
     <para>The <application>gtk-vnc</application> package is a VNC viewer widget
     for <application>GTK</application>. It is built using coroutines allowing it
     to be completely asynchronous while remaining single threaded. It provides a
-    core C library, and bindings for <application>Python</application>
+    core C library and bindings for <application>Python</application>
     (<application>PyGTK</application>)</para>
 
-    &lfs70_built;
+    &lfs70_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -62,16 +62,26 @@
     <bridgehead renderas="sect3">gtk-vnc Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="gtk3"/>,
-    <xref linkend="gnutls"/>, and
-    <xref linkend="intltool"/></para>
+    <para role="required">
+      <xref linkend="gtk3"/>,
+      <xref linkend="gnutls"/> and
+      <xref linkend="intltool"/>
+    </para>
+
+     <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="gobject-introspection"/>
+      (Required if building GNOME)
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="cyrus-sasl"/>,
-    <xref linkend="nspr"/>, and
-    <!-- pygtk is not used with gtk+-3
-    <xref linkend="pygtk"/>, and -->
-    <xref linkend="xulrunner"/></para>
+    <para role="optional">
+      <xref linkend="cyrus-sasl"/>,
+      <xref linkend="nspr"/>,
+      <xref linkend="pulseaudio"/>,
+      <xref linkend="vala"/> and
+      <xref linkend="xulrunner"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gtk-vnc"/></para>
@@ -86,7 +96,7 @@
 
 <screen><userinput>./configure --prefix=/usr \
             --with-gtk=3.0 \
-            --with-sasl=no &amp;&amp;
+            --without-sasl &amp;&amp;
 make</userinput></screen>
 
     <para>This package's testsuite is only intended to be used by the
@@ -104,15 +114,14 @@ make</userinput></screen>
     <para><parameter>--with-gtk=3.0</parameter>: This parameter enables
     <application>GTK+3</application> instead of <application>GTK+2</application>.</para>
 
-    <!-- python is not used with gtk+-3
-    <para><parameter>\-\-with-python=no</parameter>: This parameter disables the
-    <application>Python</application> bindings from being built. Remove it if you have
-    <application>PyGTK</application> installed and wish to enable them.</para>
-    -->
-
-    <para><parameter>--with-sasl=no</parameter>: This parameter disables the use of <application>cyrus SASL</application> for authentication. Remove it if you have <application>Cyrus SASL</application> installed and wish to enable it for authentication.</para>
+    <para><option>--without-sasl</option>: This parameter disables the use of 
+    <application>Cyrus SASL</application> for authentication. Remove it if you have 
+    <application>Cyrus SASL</application> installed and wish to enable it for 
+    authentication.</para>
 
     <para><option>--enable-plugin</option>: This option enables the browser plugin.</para>
+
+    <para><option>--enable-vala</option>: This option enables the vala bindings.</para>
 
   </sect2>
 
@@ -120,14 +129,20 @@ make</userinput></screen>
     <title>Contents</title>
 
     <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Program</segtitle>
       <segtitle>Installed Libraries</segtitle>
-      <segtitle>Installed Directory</segtitle>
+      <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>None</seg>
-        <seg>libgtk-vnc-1.0.so</seg>
-        <seg>/usr/include/gtk-vnc-1.0</seg>
+        <seg>
+          gvnccapture
+        </seg>
+        <seg>
+          libgtk-vnc-2.0.so, libgvnc-1.0.so and libgvncpulse-1.0.so
+        </seg>
+        <seg>
+          /usr/include/{gtk-vnc-2.0,gvnc-1.0,gvncpulse-1.0}
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -136,27 +151,54 @@ make</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="libgtk-vnc-1.0">
-        <term><filename class='libraryfile'>libgtk-vnc-1.0.so</filename></term>
+      <varlistentry id="gvnccapture">
+        <term><command>gvnccapture</command></term>
         <listitem>
-          <para>contains the <application>gtk-vnc</application> API
-          functions.</para>
-          <indexterm zone="gtk-vnc libgtk-vnc-1.0">
-            <primary sortas="c-libgtk-vnc-1.0">libgtk-vnc-1.0.so</primary>
+          <para>
+            is used to capture image from VNC server.
+          </para>
+          <indexterm zone="gtk-vnc gvnccapture">
+            <primary sortas="b-gvnccapture">gvnccapture</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <!-- not built if you use gtk+-3
-      <varlistentry id="gtkvnc">
-        <term><filename class='libraryfile'>gtkvnc.{so,a}</filename></term>
+      <varlistentry id="libgtk-vnc-2.0">
+        <term><filename class="libraryfile">libgtk-vnc-2.0.so</filename></term>
         <listitem>
-          <para>is a <application>Python</application> binding library.</para>
-          <indexterm zone="gtk-vnc gtkvnc">
-            <primary sortas="c-gtkvnc">gtkvnc.{so,a}</primary>
+          <para>
+            contains GTK+3 bindings for GTK VNC.
+          </para>
+          <indexterm zone="gtk-vnc libgtk-vnc-2.0">
+            <primary sortas="c-libgtk-vnc-2.0">libgtk-vnc-2.0.so</primary>
           </indexterm>
         </listitem>
-      </varlistentry> -->
+      </varlistentry>
+
+      <varlistentry id="libgvnc-1.0">
+        <term><filename class="libraryfile">libgvnc-1.0.so</filename></term>
+        <listitem>
+          <para>
+            contains GObject bindings for GTK VNC.
+          </para>
+          <indexterm zone="gtk-vnc libgvnc-1.0">
+            <primary sortas="c-libgvnc-1.0">libgvnc-1.0.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libgvncpulse-1.0">
+        <term><filename class="libraryfile">libgvncpulse-1.0.so</filename></term>
+        <listitem>
+          <para>
+            is Pulseaudio bridge for GTK VNC.
+          </para>
+          <indexterm zone="gtk-vnc libgvncpulse-1.0">
+            <primary sortas="c-libgvncpulse-1.0">libgvncpulse-1.0.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
 
     </variablelist>
 
