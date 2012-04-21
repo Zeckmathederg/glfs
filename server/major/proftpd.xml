@@ -4,25 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-    <!-- Inserted as a reminder to do this. The mention of a test suite
-         is usually right before the root user installation commands. Please
-         delete these 12 (including one blank) lines after you are done.-->
-
-    <!-- Use one of the two mentions below about a test suite,
-         delete the line that is not applicable. Of course, if the
-         test suite uses syntax other than "make check", revise the
-         line to reflect the actual syntax to run the test suite -->
-
-    <!-- <para>This package does not come with a test suite.</para> -->
-    <!-- <para>To test the results, issue: <command>make check</command>.</para> -->
-<!-- Dead link
-  <!ENTITY proftpd-download-http "http://ftp.proftpd.org/distrib/source/proftpd-&proftpd-version;.tar.bz2">
--->
   <!ENTITY proftpd-download-http " ">
   <!ENTITY proftpd-download-ftp  "ftp://ftp.proftpd.org/distrib/source/proftpd-&proftpd-version;.tar.bz2">
-  <!ENTITY proftpd-md5sum        "fae47d01b52e035eb6b7190e74c17722">
-  <!ENTITY proftpd-size          "1.3 MB">
-  <!ENTITY proftpd-buildsize     "12.2 MB">
+  <!ENTITY proftpd-md5sum        "4e3235dc1ef95d36e59721d70c5c489c">
+  <!ENTITY proftpd-size          "6.5 MB">
+  <!ENTITY proftpd-buildsize     "30 MB">
   <!ENTITY proftpd-time          "0.3 SBU">
 ]>
 
@@ -46,6 +32,8 @@
     <para>The <application>ProFTPD</application> package contains a secure
     and highly configurable FTP daemon. This is useful for serving large
     file archives over a network.</para>
+
+    &lfs71_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -72,7 +60,11 @@
     <bridgehead renderas="sect3">ProFTPD Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="linux-pam"/></para>
+    <para role="optional">
+      <xref linkend="linux-pam"/> and to run tests
+      <xref linkend="check"/> and
+      <ulink url='http://search.cpan.org/~clemburg/Test-Unit-0.14/'>Test::Unit-0.14</ulink>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/proftpd"/></para>
@@ -96,9 +88,15 @@ echo /usr/bin/proftpdshell &gt;&gt; /etc/shells</userinput></screen>
     <para>Install <application>ProFTPD</application> as an unprivileged user by
     running the following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
-    --localstatedir=/var/run &amp;&amp;
+<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var/run &amp;&amp;
 make</userinput></screen>
+
+    <para>The tests for this package require a very old (2001) version of the
+    perl module Test::Unit.  Using the lastest version of this Test::Unit
+    results in many failures (34/1089) although the program appears to run
+    well.  The tests take a long time (38 minutes, not CPU dependent) and are
+    not recommended.  To test the results anyway, issue: <command>make
+    check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -208,7 +206,7 @@ Group                           proftpd
   # 'welcome.msg' should be displayed at login, and '.message' displayed
   # in each newly chdired directory.
   DisplayLogin                  welcome.msg
-  DisplayFirstChdir             .message
+  DisplayChdir                  .message
 
   # Limit WRITE everywhere in the anonymous chroot
   &lt;Limit WRITE&gt;
@@ -245,7 +243,8 @@ EOF</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>ftpcount, ftpdctl, ftptop, ftpwho, ftpshut, proftpd</seg>
+        <seg>ftpcount, ftpdctl, ftpasswd, ftpmail, ftpquota, ftpscrub, 
+             ftptop, ftpshut, ftpcount, ftpwho, proftpd</seg>
         <seg>None</seg>
         <seg>/var/run/proftpd</seg>
       </seglistitem>
@@ -272,6 +271,60 @@ EOF</userinput></screen>
           <para>shows the current number of connections.</para>
           <indexterm zone="proftpd ftpcount">
             <primary sortas="b-ftpcount">ftpcount</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ftpdctl">
+        <term><command>ftpdctl</command></term>
+        <listitem>
+          <para>is used to control the  proftpd daemon while it is running.</para>
+          <indexterm zone="proftpd ftpdctl">
+            <primary sortas="b-ftpdctl">ftpdctl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ftpasswd">
+        <term><command>ftpasswd</command></term>
+        <listitem>
+          <para>is a perl script designed to create and manage 
+          AuthUserFiles and AuthGroupFiles of the correct format for proftpd.</para>
+          <indexterm zone="proftpd ftpasswd">
+            <primary sortas="b-ftpasswd">ftpasswd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ftpmail">
+        <term><command>ftpmail</command></term>
+        <listitem>
+          <para>is a perl script for sending email based on the proftpd TransferLog.
+          </para>
+          <indexterm zone="proftpd ftpmail">
+            <primary sortas="b-ftpmail">ftpmail</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ftpquota">
+        <term><command>ftpquota</command></term>
+        <listitem>
+          <para>is a Perl script designed to create and manage limits and tally 
+          files for the mod_quotatab + mod_quotatab_file module combination 
+          for proftpd.</para>
+          <indexterm zone="proftpd ftpquota">
+            <primary sortas="b-ftpquota">ftpquota</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ftpscrub">
+        <term><command>ftpscrub</command></term>
+        <listitem>
+          <para>provides a way to scrub the scoreboard file on demand.</para>
+          <indexterm zone="proftpd ftpscrub">
+            <primary sortas="b-ftpscrub">ftpscrub</primary>
           </indexterm>
         </listitem>
       </varlistentry>
