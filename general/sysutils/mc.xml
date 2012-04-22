@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mc-download-http "http://www.ibiblio.org/pub/Linux/utils/file/managers/mc/mc-&mc-version;.tar.gz">
-  <!ENTITY mc-download-ftp  "ftp://ftp.uni-koeln.de/util/shell/mc-&mc-version;.tar.gz">
-  <!ENTITY mc-md5sum        "18b20db6e40480a53bac2870c56fc3c4">
-  <!ENTITY mc-size          "3.8 MB">
-  <!ENTITY mc-buildsize     "29 MB">
-  <!ENTITY mc-time          "0.4 SBU">
+  <!ENTITY mc-download-http "https://www.midnight-commander.org/downloads/mc-&mc-version;.tar.xz">
+  <!ENTITY mc-download-ftp  " ">
+  <!ENTITY mc-md5sum        "1e29f8d2ce66b686b905857553a092be">
+  <!ENTITY mc-size          "2.0 MB">
+  <!ENTITY mc-buildsize     "89 MB">
+  <!ENTITY mc-time          "0.6 SBU">
 ]>
 
 <sect1 id="mc" xreflabel="MC-&mc-version;">
@@ -34,6 +34,11 @@
     user-friendly, and somewhat protected interface to a Unix system while
     making many frequent file operations more efficient and preserving the
     full power of the command prompt.</para>
+
+    &lfs71_checked;
+
+    <note><para>The download site uses a self-signed security certificate.
+    You will need to accept it as valid to get the source code.</para></note>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -60,53 +65,29 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/mc-&mc-version;-bash32-1.patch"/></para>
-      </listitem>
-      <listitem>
-        <para>Recommended Patch: <ulink
-        url="&patch-root;/mc-&mc-version;-debian_fixes-1.patch"/></para>
+        <para>Optional patch: 
+          <ulink url="&patch-root;/mc-&mc-version;-missing-1.patch"/>
+        </para>
       </listitem>
     </itemizedlist>
-
-    <bridgehead renderas="sect3">Do I Need the Debian Patch?</bridgehead>
-    <para>Midnight Commander without the Debian patch is completely unusable
-    in multibyte locales because it assumes that characters and
-    bytes are the same thing. The issue manifests itself as massive screen
-    content corruption similar to what is depicted in
-    <ulink url="&files-anduin;/mc-bad.png">this screenshot</ulink>
-    (taken in the ru_RU.UTF-8 locale). For a general discussion of this type
-    of issue, see the <xref linkend="locale-wrong-multibyte-characters"/>
-    section of the <xref linkend="locale-issues"/> page. The Debian patch
-    mostly fixes this issue, and adds support for recoding remote FTP
-    filenames. Debian also fixed 64-bit issues, rare segfaults in
-    <command>mcedit</command>, and improved syntax highlighting.</para>
-
-    <para>If you do not use a multibyte locale and do not need any of the new
-    features or fixes, the patch is still supposed to be harmless.
-    However, the patch changes the dependencies and build instructions, and
-    in the past it caused unacceptable regressions for non-UTF-8 locale users.
-    Thus, failsafe instructions without the patch are left in the book just
-    in case. Due to the size and unofficial nature of the patch, please
-    do not report bugs in the patched <application>MC</application> to the
-    original <application>MC</application> developers.</para>
 
     <bridgehead renderas="sect3">MC Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><!-- <xref linkend="GLib"/> (untested with Debian patch) or -->
-    <xref linkend="pkgconfig"/></para>
+    <para role="required"> 
+      <xref linkend="pcre"/> and
+      <xref linkend="pkgconfig"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="gpm"/>,
-    <xref linkend="x-window-system"/>,
-    <xref linkend="samba3"/>,
-    <xref linkend="slang"/> (required when building with Debian patch),
-    <xref linkend="zip"/>,
-    <xref linkend="unzip"/>, and
-    <!-- <xref linkend="gnome-libs"/> -->
-    <ulink url="&gnome-download-http;/gnome-libs/1.4/">GNOME
-    Libraries-1.4</ulink></para>
+    <para role="optional">
+      <xref linkend="gpm"/>,
+      <xref linkend="x-window-system"/>,
+      <xref linkend="samba3"/>,
+      <xref linkend="slang"/>,
+      <xref linkend="zip"/>, and
+      <xref linkend="unzip"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/MC"/></para>
@@ -116,98 +97,34 @@
   <sect2 role="installation">
     <title>Installation of MC</title>
 
-    <para>Fix incompatibility of <application>MC</application>-&mc-version;
-    with <application>Bash</application>-3.2:</para>
+    <para>Add a missing file to run all tests:</para>
 
-<screen><userinput>patch -Np1 -i ../mc-&mc-version;-bash32-1.patch</userinput></screen>
-
-    <para>If desired, apply Debian fixes:</para>
-
-<screen><userinput>patch -Np1 -i ../mc-&mc-version;-debian_fixes-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../mc-&mc-version;-missing-1.patch</userinput></screen>
 
     <para>Install <application>MC</application> by
     running the following commands:</para>
 
-<screen><userinput>CPPFLAGS="-DUTF8" ./configure --prefix=/usr \
-            --enable-charset &amp;&amp;
+<screen><userinput>./configure --prefix=/usr --enable-charset --disable-static &amp;&amp;
 make</userinput></screen>
 
-    <para><application>MC</application> with Debian patches expects its
-    documentation to be stored in UTF-8 encoding on disk, and automatically
-    converts it to the locale encoding when displaying on the terminal. This
-    is different from the expectations of the unpatched
-    <application>MC</application>, so the documentation files have to be
-    converted if (and only if) the Debian patch has been applied:</para>
-
-<!-- The proposed (untested) fix...somebody who uses MC please verify -->
-<screen><userinput>for file in lib/mc.hint{,.es,.it,.nl} doc/{es,it}/mc.hlp.*
-do
-    iconv -f ISO-8859-1 -t UTF-8 ${file} > ${file}.utf8 &amp;&amp;
-    mv ${file}.utf8 ${file}
-done &amp;&amp;
-for file in lib/mc.hint{.cs,.hu,.pl} doc/{hu,pl}/mc.hlp.*
-do
-    iconv -f ISO-8859-2 -t UTF-8 ${file} > ${file}.utf8 &amp;&amp;
-    mv ${file}.utf8 ${file}
-done &amp;&amp;
-for file in lib/mc.hint.sr doc/sr/mc.hlp.sr
-do
-    iconv -f ISO-8859-5 -t UTF-8 ${file} > ${file}.utf8 &amp;&amp;
-    mv ${file}.utf8 ${file}
-done &amp;&amp;
-for file in doc/ru/mc.hlp.ru lib/mc.hint.ru
-do
-    iconv -f KOI8-R -t UTF-8 ${file} > ${file}.utf8 &amp;&amp;
-    mv ${file}.utf8 ${file}
-done &amp;&amp;
-iconv -f KOI8-U -t UTF-8 lib/mc.hint.uk > lib/mc.hint.uk.utf8 &amp;&amp;
-mv lib/mc.hint.uk.utf8 lib/mc.hint.uk &amp;&amp;
-iconv -f BIG5 -t UTF-8 lib/mc.hint.zh > lib/mc.hint.zh.utf8 &amp;&amp;
-mv lib/mc.hint.zh.utf8 lib/mc.hint.zh</userinput></screen>
-
-    <para>This package does not come with a test suite.</para>
+    <para>To test the results, issue: <userinput>make check</userinput>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-chmod 1755 /usr/lib/mc/cons.saver</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>CPPFLAGS="-DUTF8"</parameter>: This parameter activates
-    UTF-8 support in the Debian patch and has no effect without this
-    patch.</para>
-
     <para><parameter>--enable-charset</parameter>: This option adds support
     to <command>mcedit</command> for editing files in encodings different
-    from the one implied by the current locale. This feature works in
-    non-UTF-8 locales only, even with the Debian patch.</para>
+    from the one implied by the current locale.</para>
 
-    <para><parameter>--with-screen=(slang|mcslang|ncurses)</parameter>: This
+    <para><parameter>--with-screen=(slang|ncurses)</parameter>: This
     parameter selects the screen library used by <application>MC</application>.
-    <application>NCurses</application> support is
-    currently buggy (MC does not handle mouse events in xterm correctly).
-    UTF-8 support in the Debian patch is functional
-    only when external <xref linkend="slang"/> is used as a screen library
-    (this is the default).</para>
-
-    <para><parameter>--with-codepagedir=DIR</parameter>: This parameter was
-    useful only with <application>SAMBA</application>-2.x. New versions of
-    <application>SAMBA</application> do not have codepage files.</para>
-
-    <para><command>chmod 1755 /usr/lib/mc/cons.saver</command>: The
-    <command>cons.saver</command> program has to be installed setuid
-    root, because on LFS regular users have no access to
-    <filename>/dev/vcsa*</filename> devices. This step is optional if
-    <application>MC</application> is going to be started from X terminal
-    emulators or <command>ssh</command> sessions only (thus rendering the
-    <command>cons.saver</command> binary completely unneeded).</para>
-
-    <!-- Other distributions make the devices owned by the vcsa group
-         and make the cons.saver program setgid vcsa instead -->
+    <xref linkend="slang"/> is the default if found.</para>
 
   </sect2>
 
@@ -247,9 +164,9 @@ chmod 1755 /usr/lib/mc/cons.saver</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>cons.saver, mc, mcedit, mcmfmt, and mcview</seg>
+        <seg>mc, mcdiff, mcedit, and mcview</seg>
         <seg>None</seg>
-        <seg>/usr/share/mc and /usr/lib/mc</seg>
+        <seg>i/etc/mc, /usr/libexec/mc, and /usr/share/mc</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -289,13 +206,12 @@ chmod 1755 /usr/lib/mc/cons.saver</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="mcmfmt">
-        <term><command>mcmfmt</command></term>
+      <varlistentry id="mcdiff">
+        <term><command>mcdiff</command></term>
         <listitem>
-          <para>is used internally by <command>mcview</command> when viewing
-          mailbox files.</para>
-          <indexterm zone="mc mcmfmt">
-            <primary sortas="b-mcmfmt">mcmfmt</primary>
+          <para>is an internal visual diff tool.</para>
+          <indexterm zone="mc mcdiff">
+            <primary sortas="b-mcdiff">mcdiff</primary>
           </indexterm>
         </listitem>
       </varlistentry>
