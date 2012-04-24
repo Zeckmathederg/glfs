@@ -7,7 +7,7 @@
   <!ENTITY webkitgtk-download-http
     "http://webkitgtk.org/releases/webkit-&webkitgtk-version;.tar.xz">
   <!ENTITY webkitgtk-download-ftp  " ">
-  <!ENTITY webkitgtk-md5sum        "52b2feb0fae01e68432b547bd85e8d74">
+  <!ENTITY webkitgtk-md5sum        "f2f01b1fdc7262a2eede81ebed0970b2">
   <!ENTITY webkitgtk-size          "7.6 MB">
   <!ENTITY webkitgtk-buildsize     "500 MB (38 MB installed)">
   <!ENTITY webkitgtk-time          "28 SBU">
@@ -131,7 +131,7 @@
     </para>
 
     <para>
-      If you want to run make with just one job, install
+      If you want to run make with just one core, install
       <application>WebKit</application> by running the following commands:
     </para>
 
@@ -139,15 +139,22 @@
 make</userinput></screen>
 
     <para>
-      If you have a multicore CPU and want to run make with multiple jobs,
-      install <application>WebKit</application> by running the following
-      commands:
+      If you have a multicore CPU and want to run make with multiple jobs
+      running in parallel, install <application>WebKit</application> with the
+      following commands:
     </para>
 
 <screen><userinput>./configure --prefix=/usr --enable-introspection &amp;&amp;
+error_count=0
 until make -j$(getconf _NPROCESSORS_ONLN)
-do echo "Let's try that again..."
-done</userinput></screen>
+do
+  if (( $((error_count++)) &gt; 4 ))
+  then
+    echo Too Many Errors
+    break
+  fi
+done
+unset error_count</userinput></screen>
 
     <para>
       This package does not have a working testsuite.
@@ -173,20 +180,24 @@ done</userinput></screen>
     <para>
       <option>--enable-introspection</option>: This option enables support for
       <application>Gobject-Introspection</application> and is required for a
-      <application>GNOME</application> desktop.
+      <application>GNOME</application> desktop. If you don't have
+      <application>Gobject-Introspection</application> installed and don't want
+      to install <application>GNOME</application> remove this option.
     </para>
 
     <para>
-      <command>until make -j$(getconf _NPROCESSORS_ONLN)</command>). Sadly
+      <command>error_count=0; until make ...</command>: Sadly
       there are race conditions in the makefiles that will cause the build to
       fail if you run make with multiple jobs. This simple hack works around
-      that, <command>until</command> will keep running <command>make</command>
-      until it succeeds. You will need to monitor the output of
-      <command>make</command>. If an error occurs that is
-      <emphasis>not</emphasis> due to a race condition then it will keep
-      repeating <command>make</command> until you kill the process.
-      <command>$(getconf _NPROCESSORS_ONLN)</command> prints
-      the number of cores your computer seems to have.
+      that problem by using <command>until</command> to keep running
+      <command>make</command> until it succeeds. The variable
+      <envar>error_count</envar> is incremented each time an error occurs and is
+      checked to ensure that no more than 5 errors occur. This is so that if an
+      error occurs that is <emphasis>not</emphasis> due to a race condition then
+      it will not keep repeating <command>make</command> forever.
+      <command>$(getconf _NPROCESSORS_ONLN)</command> prints the number of cores
+      your computer seems to have. If you would prefer, you can use any positive
+      integer such as 4.
     </para>
 
     <para>
