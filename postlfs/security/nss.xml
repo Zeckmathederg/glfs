@@ -8,7 +8,7 @@
   "http://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_13_3_RTM/src/nss-&nss-version;.tar.gz">
   <!ENTITY nss-download-ftp
   "ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_13_3_RTM/src/nss-&nss-version;.tar.gz">
-  <!ENTITY nss-md5sum        "006cb82fa900e9e664b4b14a9b7810ca">
+  <!ENTITY nss-md5sum        "2510d41ade236584cc0096954ea449c0">
   <!ENTITY nss-size          "5.8 MB">
   <!ENTITY nss-buildsize     "70 MB (more than double this to run the test suite)">
   <!ENTITY nss-time          "1.0 SBU (at least an additional 3.5 SBU to run the test suite)">
@@ -114,10 +114,13 @@
     </para>
 
 <screen><userinput>patch -Np1 -i ../nss-&nss-version;-standalone-1.patch &amp;&amp;
-cd mozilla/security/nss &amp;&amp;
-make nss_build_all $([ $(uname -m) = x86_64 ] &amp;&amp; echo USE_64=1) BUILD_OPT=1 \
-  NSPR_INCLUDE_DIR=/usr/include/nspr USE_SYSTEM_ZLIB=1 ZLIB_LIBS=-lz \
-  $(cat /usr/include/sqlite3.h &amp;&gt; /dev/null &amp;&amp; echo NSS_USE_SYSTEM_SQLITE=1)</userinput></screen>
+cd mozilla/security/nss                                &amp;&amp;
+make nss_build_all BUILD_OPT=1                         \
+  NSPR_INCLUDE_DIR=/usr/include/nspr                   \
+  USE_SYSTEM_ZLIB=1                                    \
+  ZLIB_LIBS=-lz                                        \
+  $([ $(uname -m) = x86_64 ] &amp;&amp; echo USE_64=1) \
+  $([ -f /usr/include/sqlite3.h ] &amp;&amp; echo NSS_USE_SYSTEM_SQLITE=1)</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 <!--
@@ -173,23 +176,6 @@ install -v -m644 Linux*/lib/pkgconfig/nss.pc /usr/lib/pkgconfig</userinput></scr
     <title>Command Explanations</title>
 
     <para>
-      <parameter>[ $(uname -m) = x86_64 ] &amp;&amp; echo USE_64=1</parameter>:
-      This option is <emphasis>required on x86_64</emphasis>, otherwise the
-      <command>make</command> will attempt to create 32-bit objects and in a
-      non-multilib system it will fail. The [ $(arch) = x86_64 ] test ensures it
-      has no effect on a 32 bit system.
-    </para>
-
-    <para>
-      <command>cat /usr/include/sqlite3.h ... </command>: This tests if
-      <application>sqlite</application> is installed and if so it
-      <command>echo</command>s the option NSS_USE_SYSTEM_SQLITE=1 to
-      <command>make</command> so that
-      <filename class="libraryfile">libsoftokn3.so</filename> will link against
-      the system version of sqlite.
-    </para>
-
-    <para>
       <parameter>BUILD_OPT=1</parameter>: This option is passed to
       <command>make</command> so that the build is performed with no debugging
       symbols built into the binaries and the default compiler optimizations are
@@ -212,6 +198,24 @@ install -v -m644 Linux*/lib/pkgconfig/nss.pc /usr/lib/pkgconfig</userinput></scr
     <para>
       <parameter>ZLIB_LIBS=-lz</parameter>: This option provides the
       linker flags needed to link to the system <application>zlib</application>.
+    </para>
+
+    <para>
+      <command>$([ $(uname -m) = x86_64 ] &amp;&amp; echo USE_64=1)</command>:
+      The <parameter>USE_64=1</parameter> option is <emphasis>required on
+      x86_64</emphasis>, otherwise <command>make</command> will try (and fail)
+      to create 32-bit objects. The [ $(uname -m) = x86_64 ] test ensures it
+      has no effect on a 32 bit system.
+    </para>
+
+    <para>
+      <command>([ -f /usr/include/sqlite3.h ] &amp;&amp; echo
+      NSS_USE_SYSTEM_SQLITE=1)</command>: This tests if
+      <application>sqlite</application> is installed and if so it
+      <command>echo</command>s the option NSS_USE_SYSTEM_SQLITE=1 to
+      <command>make</command> so that
+      <filename class="libraryfile">libsoftokn3.so</filename> will link against
+      the system version of sqlite.
     </para>
   </sect2>
 
