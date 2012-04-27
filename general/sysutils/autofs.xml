@@ -3,12 +3,12 @@
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
-  <!ENTITY autofs-patch-dir     "http://ftp.kernel.org/pub/linux/daemons/autofs/v5">
-  <!ENTITY autofs-download-http "http://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-&autofs-version;.tar.bz2">
-  <!ENTITY autofs-download-ftp  "ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-&autofs-version;.tar.bz2">
-  <!ENTITY autofs-md5sum        "a1d262cb6ebef0c2dd0fe22232fb3d5a">
-  <!ENTITY autofs-size          "295 KB">
-  <!ENTITY autofs-buildsize     "5.3 MB">
+  <!ENTITY autofs-patch-dir     "http://ftp.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7">
+  <!ENTITY autofs-download-http "http://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-&autofs-version;.tar.xz">
+  <!ENTITY autofs-download-ftp  "ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-&autofs-version;.tar.xz">
+  <!ENTITY autofs-md5sum        "cb05edaa43116c1837776e503bd86a66">
+  <!ENTITY autofs-size          "240 KB">
+  <!ENTITY autofs-buildsize     "8.5 MB">
   <!ENTITY autofs-time          "0.1 SBU">
 ]>
 
@@ -38,11 +38,8 @@
     <para>It may also be useful for allowing users to mount floppies, cdroms and
     other removable storage devices without requiring the system
     administrator to mount the devices.</para>
-    <!--although this capability is now generally
-    provided by HAL (see 
-    <ulink url="http://www.freedesktop.org/wiki/Software/hal">Hal</ulink>).
-    This may not be ideal for all installations, so be aware of the risks before
-    implementing this feature.</para>-->
+
+    &lfs71_built;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -69,7 +66,7 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
 
     <para>Recommended Patches: There are frequent patches issued for
-    <application>Autofs</application>. One method you can use to get the
+    <application>autofs</application>. One method you can use to get the
     current patches requires first installing the <xref linkend="wget"/>
     package. After ensuring the <command>wget</command> command is installed
     in a directory identified in the <envar>PATH</envar> variable, start in
@@ -81,14 +78,13 @@ sed 's;autofs;&autofs-patch-dir;/autofs;' \
     patch_order-&autofs-version; | grep -v ^# &gt; wget-list &amp;&amp;
 wget -i wget-list</userinput></screen>
 
-    <note><para>As of this writing, the patch list contains one patch
-    labelled as from the 5.0.4 series of patches.</para></note>
-
     <bridgehead renderas="sect3">Autofs Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional"><xref linkend="openldap"/> and
-    <xref linkend="cyrus-sasl"/></para>
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="openldap"/>,
+      <xref linkend="cyrus-sasl"/>, and 
+      <xref linkend="mitkrb"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/autofs"/></para>
@@ -125,6 +121,7 @@ wget -i wget-list</userinput></screen>
 <screen><userinput>for f in `cat ../patch_order-&autofs-version;`; do
   patch -Np1 -i ../$f
 done &amp;&amp;
+
 ./configure --prefix=/ --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
 
@@ -132,8 +129,7 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-ln -sf  ../init.d/autofs /etc/rc.d/rcsysinit.d/S52autofs</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
   </sect2>
 
@@ -251,14 +247,15 @@ EOF</userinput></screen>
 
     </sect3>
 
-<!--
     <sect3  id="autofs-init">
       <title>Boot Script</title>
 
+      <para> <application>autofs</application> installs it's own boot script,
+      but it has no capability for logging or visual conformance with other
+      BLFS scripts.</para>
 
-      <para>Install the <filename>/etc/rc.d/init.d/autofs</filename> mount script
-      and <filename>/etc/sysconfig/autofs.conf</filename> support file included
-      with the <xref linkend="bootscripts"/> package.</para>
+      <para>Install the <filename>/etc/init.d/autofs</filename> mount script
+      included with the <xref linkend="bootscripts"/> package.</para>
 
       <indexterm zone="autofs autofs-init">
         <primary sortas="f-autofs-init">autofs</primary>
@@ -273,7 +270,6 @@ EOF</userinput></screen>
       if users tend to remove the media prior to the timeout setting.</para>
 
     </sect3>
--->
 
   </sect2>
 
@@ -287,12 +283,12 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>automount</seg>
-        <seg>lookup_file.so, lookup_hosts.so, lookup_multi.so,
-        lookup_nisplus.so, lookup_program.so, lookup_userhome.so,
-        lookup_yp.so, mount_afs.so, mount_autofs.so, mount_bind.so,
-        mount_changer.so, mount_ext2.so, mount_generic.so,
-        mount_nfs.so, parse_sun.so</seg>
-        <seg>/lib/autofs and /var/run/autofs</seg>
+        <seg>lookup_dir.so, lookup_file.so, lookup_hosts.so, lookup_ldap.so,
+             lookup_multi.so, lookup_nisplus.so, lookup_program.so, lookup_sss.so,
+             lookup_userhome.so, lookup_yp.so, mount_afs.so, mount_autofs.so, 
+             mount_bind.so, mount_changer.so, mount_ext2.so, mount_generic.so,
+             mount_nfs.so, parse_sun.so</seg>
+        <seg>/lib/autofs</seg>
       </seglistitem>
     </segmentedlist>
 
