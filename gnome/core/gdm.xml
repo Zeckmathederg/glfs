@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/&gnome-version;/gdm-&gdm-version;.tar.xz">
-  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/&gnome-version;/gdm-&gdm-version;.tar.xz">
-  <!ENTITY gdm-md5sum        "df3f38061066f5e0816676b4eef7854a">
+  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/3.4/gdm-&gdm-version;.tar.xz">
+  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/3.4/gdm-&gdm-version;.tar.xz">
+  <!ENTITY gdm-md5sum        "fda0470340f9c0bc2f8daccb280af520">
   <!ENTITY gdm-size          "1.6 MB">
-  <!ENTITY gdm-buildsize     "59 MB">
-  <!ENTITY gdm-time          "0.7 SBU">
+  <!ENTITY gdm-buildsize     "50 MB">
+  <!ENTITY gdm-time          "0.8 SBU">
 ]>
 
 <sect1 id="gdm" xreflabel="GDM-&gdm-version;">
@@ -57,33 +57,52 @@
       </listitem>
     </itemizedlist>
 
-    <!--<bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/gdm-&gdm-version;-fixes-1.patch"/></para>
+        url="&patch-root;/gdm-&gdm-version;-vt-allocation-hack-1.patch"/></para>
       </listitem>
-    </itemizedlist>-->
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/gdm-&gdm-version;-blfs-patch-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
 
     <bridgehead renderas="sect3">GDM Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="accountsservice"/>,
-    <xref linkend="gnome-panel"/>,
-    <xref linkend="linux-pam"/>, and
-    <xref linkend="xorg7-lib"/></para>
+    <para role="required">
+      <xref linkend="accountsservice"/>,
+      <xref linkend="dconf"/>,
+      <xref linkend="gtk3"/>,
+      <xref linkend="libcanberra"/>,
+      <xref linkend="linux-pam"/> and
+      <xref linkend="nss"/>
+    </para>
+
+    <bridgehead renderas="sect4">Required (runtime)</bridgehead>
+    <para role="required">
+      <xref linkend="gnome-session"/> and either
+      <xref linkend="gnome-shell"/> or
+      <xref linkend="gnome-panel"/> and
+      <xref linkend="metacity"/> (for the Greeter Window Manager).
+    </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended"><xref linkend="consolekit"/>
-    (Required for Shutdown/Restart functionality) and
-    <xref linkend="polkit-gnome"/></para>
+    <para role="recommended">
+      <xref linkend="consolekit"/>
+      (Required for Shutdown/Restart functionality),
+      <xref linkend="libxklavier"/> and
+      <xref linkend="upower"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-    <xref linkend='check'/> (required to run the testsuite),
-    <xref linkend="upower"/>,
-    <xref linkend="libxklavier"/>, and
-    <xref linkend="tcpwrappers"/></para>
+      <xref linkend="check"/> (required to run the testsuite),
+      <xref linkend="gobject-introspection"/> and
+      <xref linkend="tcpwrappers"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/gdm"/></para>
@@ -94,24 +113,25 @@
     <title>Installation of GDM</title>
 
     <para>It is recommended to have a dedicated user and group to take
-    control of the <command>gdm-binary</command> daemon after it is
+    control of the <command>gdm</command> daemon after it is
     started. Issue the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>groupadd -fg 21 gdm &amp;&amp;
 useradd -c "GDM Daemon Owner" -d /var/lib/gdm -u 21 \
-    -g gdm -s /bin/false gdm  || [ $? == 9 ]</userinput></screen>
+        -g gdm -s /bin/false gdm</userinput></screen>
 
     <para>Install <application>GDM</application> by running
     the following commands as an unprivileged user:</para>
 
-<screen><userinput><!--patch -Np1 -i ../gdm-&gdm-version;-fixes-1.patch &amp;&amp;-->
-./configure --prefix=$GNOME_PREFIX \
-            --sysconfdir=$GNOME_SYSCONFDIR \
-            --libexecdir=$GNOME_PREFIX/lib/gdm \
+<screen><userinput>patch -Np1 -i ../gdm-&gdm-version;-vt-allocation-hack-1.patch &amp;&amp;
+patch -Np1 -i ../gdm-&gdm-version;-blfs-patch-1.patch &amp;&amp;
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
             --localstatedir=/var \
-            --with-pam-prefix=/etc \
-            --enable-static=no &amp;&amp;
+            --libexecdir=/usr/lib/gdm \
+            --with-at-spi-registryd-directory=/usr/lib/at-spi2-core \
+            --disable-static &amp;&amp;
 make</userinput></screen>
 
     <para>If you have installed <xref linkend="check"/> and you wish to run
@@ -120,32 +140,7 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role='root'><userinput>make install &amp;&amp;
-ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon/gnome-settings-daemon \
-        $GNOME_PREFIX/lib/gdm &amp;&amp;
-ln -fsv /usr/lib/ConsoleKit/ck-get-x11-display-device \
-        $GNOME_PREFIX/lib/gdm &amp;&amp;
-ln -fsv /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
-        $GNOME_PREFIX/lib/gdm &amp;&amp;
-ln -fsv /usr/lib/gnome-session/gnome-session-check-accelerated \
-        $GNOME_PREFIX/lib/gdm
-</userinput></screen>
-
-   <para>If your <envar>GNOME_SYSCONFDIR</envar> is <emphasis>not</emphasis>
-   simply <filename class="directory">/etc</filename> then you need to create
-   some more symlinks so that the menus and some <literal>.desktop</literal>
-   files (in particular <filename>gnome-settings-daemon.desktop</filename>) will
-   be found, because <envar>XDG_CONFIG_DIRS</envar> is not respected when
-   <command>gdm</command> invokes <command>gnome-session</command>. Run the
-   following commands, still as the <systemitem class="username">root</systemitem>
-   user:</para>
-
-<screen role='root'><userinput>ln -sfv $GNOME_SYSCONFDIR/xdg/menus /etc/xdg &amp;&amp;
-pushd $GNOME_SYSCONFDIR/xdg/autostart &amp;&amp;
-FILES=`ls` &amp;&amp;
-popd &amp;&amp;
-for F in $FILES; do
-    ln -sfv $GNOME_SYSCONFDIR/xdg/autostart/$F /etc/xdg/autostart
-done
+chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
 </userinput></screen>
 
   </sect2>
@@ -153,33 +148,20 @@ done
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+<!--    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gnome-prefix.xml"/>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gnome-sysconfdir.xml"/>
+    href="../../xincludes/gnome-sysconfdir.xml"/> -->
 
-    <para><parameter>--libexecdir=$GNOME_PREFIX/lib/gdm</parameter>: This
+    <para><parameter>--libexecdir=/usr/lib/gdm</parameter>: This
     parameter is used so that the <application>GDM</application> internal
     support programs are installed in the preferred location of <filename
-    class='directory'>$GNOME_PREFIX/lib/gdm</filename> instead of <filename
-    class='directory'>$GNOME_PREFIX/libexec</filename>.</para>
+    class='directory'>/usr/lib/gdm</filename> instead of <filename
+    class='directory'>/usr/libexec</filename>.</para>
 
-    <para><parameter>--localstatedir=/var</parameter>: This command
-    puts files in <filename class="directory">/var</filename> instead of
-    <filename class="directory">$GNOME_PREFIX/var</filename>.</para>
-
-    <para><parameter>--with-pam-prefix=/etc</parameter>: This command puts
-    <application>PAM</application> configuration files in
-    <filename class="directory">/etc/pam.d</filename> instead of
-    <filename class="directory">$GNOME_SYSCONFDIR</filename>.</para>
-
-    <para><parameter>--enable-static=no</parameter>: This switch prevents the static
-    libraries being installed.</para>
-
-    <para><parameter>ln -fsv $GNOME_PREFIX/lib/gnome-settings-daemon/...</parameter>:
-    these three symlinks allow the shutdown/restart functions in
-    <application>gdm</application> to work.</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../../xincludes/static-libraries.xml"/>
 
   </sect2>
 
@@ -189,11 +171,11 @@ done
     <sect3 id="gdm-config">
       <title>Config Files</title>
 
-      <para><filename>$GNOME_SYSCONFDIR/gdm/custom.conf</filename></para>
+      <para><filename>/etc/gdm/custom.conf</filename></para>
 
       <indexterm zone="gdm gdm-config">
-        <primary sortas="e-etc-gnome-&gnome-version;&gnome-minor-version;gdm-custom.conf">
-        $GNOME_SYSCONFDIR/gdm/custom.conf</primary>
+        <primary sortas="e-etc-gdm-custom.conf">
+        /etc/gdm/custom.conf</primary>
       </indexterm>
 
     </sect3>
@@ -202,106 +184,12 @@ done
       <title>Configuration Information</title>
 
       <para>The GDM daemon is configured using the
-      <filename>$GNOME_SYSCONFDIR/gdm/custom.conf</filename> file.
+      <filename>/etc/gdm/custom.conf</filename> file.
       Default values are stored in GConf in the
       <filename>gdm.schemas</filename> file. It is recommended that end-users
-      modify the <filename>$GNOME_SYSCONFDIR/gdm/custom.conf</filename> file
+      modify the <filename>/etc/gdm/custom.conf</filename> file
       because the schemas file may be overwritten when the user updates their
       system to have a newer version of GDM.</para>
-
-      <para>The <application>GDM</application> <application>PAM</application>
-      configuration files contain modules not present in a BLFS installation.
-      Issue the following
-      commands as the <systemitem class="username">root</systemitem> user to
-      replace those files with files containing correctly specified
-      modules:</para>
-
-<screen role="root"><userinput>cat &gt; /etc/pam.d/gdm &lt;&lt; "EOF"
-<literal>auth        required    pam_env.so
-auth        required    pam_unix.so
-account     required    pam_nologin.so
-account     required    pam_unix.so
-password    required    pam_unix.so
-session     optional    pam_keyinit.so force revoke
-session     required    pam_unix.so
-session     required    pam_loginuid.so
-session     optional    pam_console.so</literal>
-
-EOF
-chmod -v 644 /etc/pam.d/gdm
-
-cat &gt; /etc/pam.d/gdm-autologin &lt;&lt; "EOF"
-<literal>auth        required    pam_env.so
-auth        required    pam_permit.so
-account     required    pam_nologin.so
-account     required    pam_unix.so
-password    required    pam_unix.so
-session     optional    pam_keyinit.so force revoke
-session     required    pam_unix.so
-session     required    pam_loginuid.so
-session     optional    pam_console.so</literal>
-
-EOF
-chmod -v 644 /etc/pam.d/gdm-autologin
-
-cat &gt; /etc/pam.d/gdm-welcome &lt;&lt; "EOF"
-<literal>auth        required    pam_env.so
-auth        required    pam_permit.so
-account     required    pam_nologin.so
-account     required    pam_unix.so
-password    required    pam_unix.so
-session     required    pam_loginuid.so
-session     optional    pam_keyinit.so force revoke
-session     required    pam_unix.so</literal>
-
-EOF
-chmod -v 644 /etc/pam.d/gdm-welcome
-</userinput></screen>
-
-      <indexterm zone="gdm gdm-config">
-        <primary sortas="e-etc-pam.d-gdm">/etc/pam.d/gdm</primary>
-      </indexterm>
-      <indexterm zone="gdm gdm-config">
-        <primary
-        sortas="e-etc-pam.d-gdm-autologin">/etc/pam.d/gdm-autologin</primary>
-      </indexterm>
-
-      <para id="gdm-config-dbus">The shipped <filename>gnome.desktop</filename>
-      file does not start the session <application>D-BUS</application> daemon, and
-      as a result not all the files required by a <application>GNOME</application>
-      window manager will be found.  You can create a new
-      Xsession file using the following command as the root user.</para>
-
-<screen role="root"><userinput>cat &gt; $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop &lt;&lt; "EOF"
-<literal>[Desktop Entry]
-Encoding=UTF-8
-Name=GNOME with D-BUS
-Comment=GNOME Desktop with D-BUS support
-Exec=dbus-launch --exit-with-session gnome-session
-TryExec=/usr/bin/dbus-launch
-Icon=
-Type=Application</literal>
-
-EOF
-chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></screen>
-
-      <para>Choose this session using the session selection dialog on the
-      display manager login screen. You also have the opportunity to make this
-      your default session.</para>
-
-      <para>After you have compared the results from using these two different
-      files, and particularly if the translations in the shipped file are useful
-      to you, you can edit the <literal>Exec</literal> and <literal>TryExec</literal>
-      commands in the provided <filename>gnome.desktop</filename> file. Alternatively,
-      you can delete it if you find it useless.</para>
-
-      <note>
-        <para>You may use the <filename class='extension'>.desktop</filename>
-        file created above as an example to create additional
-        <filename class='extension'>.desktop</filename> files and add any other
-        desired items to the <application>GDM</application> display manager session
-        selection menu.</para>
-      </note>
 
       <important>
         <para>If the system-wide <application>D-BUS</application> daemon was
@@ -321,13 +209,13 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
 
       <para>To start a graphical login when the system is booted, install the
       <filename>/etc/rc.d/init.d/gdm</filename> init script included in the
-      <xref linkend="bootscripts"/> package. If your
+      <xref linkend="bootscripts"/> package.<!-- If your
       <envar>GNOME_PREFIX</envar> environment variable is anything other than
       <filename class='directory'>/usr</filename> or <filename
       class='directory'>/opt/gnome-&gnome-version;&gnome-minor-version;</filename>,
       you will need to modify the <envar>PATH</envar> statement in the script
       to include the path where you have <application>GNOME</application>
-      installed.</para>
+      installed.--></para>
 
       <indexterm zone="gdm gdm-init">
         <primary sortas="f-gdm">gdm</primary>
@@ -354,17 +242,17 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>Default, Default.sample, Default, Default, Xsession, gdm,
-        gdm-screenshot, gdmflexiserver, gdm-crash-logger, gdm-factory-slave,
-        gdm-host-chooser, gdm-product-slave, gdm-session-worker,
-        gdm-simple-chooser, gdm-simple-greeter, gdm-simple-slave,
-        gdm-user-switch-applet, gdm-xdmcp-chooser-slave, gdm, and gdm-binary</seg>
-        <seg>libfingerprint.so, libpassword.so, libsmartcard.so</seg>
-        <seg>$GNOME_SYSCONFDIR/{dbus-1/system.d.gdm/{Init,PostLogin,PostSession,PreSession}},
-        <envar>$GNOME_PREFIX</envar>/{lib/gdm,share/{gnome/help/gdm/*,omf/gdm,
-        pixmaps/faces}},
-        /var/{cache/gdm,gdm,lib/gdm/.gconf.mandatory,log/gdm,
-        run/gdm/greeter}</seg>
+        <seg>
+          gdm, gdmflexiserver and gdm-screenshot
+        </seg>
+        <seg>
+          libgdmgreeter.so and libgdmsimplegreeter.so
+        </seg>
+        <seg>
+          /etc/dconf/db/gdm.d, /etc/gdm, /usr/include/gdm,
+          /usr/lib/gdm, /usr/share/gdm, /usr/share/gnome/help/gdm,
+          /usr/share/omf/gdm and /var/{cache,lib,log,run}/gdm
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -372,6 +260,16 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="gdm-prog">
+        <term><command>gdm</command></term>
+        <listitem>
+          <para>is the <application>GNOME</application> based login prompt.</para>
+          <indexterm zone="gdm gdm-prog">
+            <primary sortas="b-gdm">gdm</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="gdmflexiserver">
         <term><command>gdmflexiserver</command></term>
@@ -393,64 +291,6 @@ chmod -v 644 $GNOME_PREFIX/share/xsessions/gnome-dbus.desktop</userinput></scree
           </indexterm>
         </listitem>
       </varlistentry>
-
-      <varlistentry id="gdm-prog">
-        <term><command>gdm</command></term>
-        <listitem>
-          <para>is a wrapper script to execute the
-          <application>GDM</application> binary, the configurable
-          <application>GNOME</application> based login prompt.</para>
-          <indexterm zone="gdm gdm-prog">
-            <primary sortas="b-gdm">gdm</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gdm-binary">
-        <term><command>gdm-binary</command></term>
-        <listitem>
-          <para>is the <application>GNOME</application> based login prompt.</para>
-          <indexterm zone="gdm gdm-binary">
-            <primary sortas="b-gdm-binary">gdm-binary</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
- <!--<varlistentry id="gdm-restart">
-        <term><command>gdm-restart</command></term>
-        <listitem>
-          <para>sends the HUP signal to the <application>GDM</application>
-          daemon so that it restarts. It's used after the config file
-          is edited</para>
-          <indexterm zone="gdm gdm-restart">
-            <primary sortas="b-gdm-restart">gdm-restart</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gdm-safe-restart">
-        <term><command>gdm-safe-restart</command></term>
-        <listitem>
-          <para>sends the USR1 signal to the <application>GDM</application>
-          daemon so that it restarts. It's used after the config file
-          is edited.</para>
-          <indexterm zone="gdm gdm-safe-restart">
-            <primary sortas="b-gdm-safe-restart">gdm-safe-restart</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gdm-stop">
-        <term><command>gdm-stop</command></term>
-        <listitem>
-          <para>sends the TERM signal to the <application>GDM</application>
-          daemon so that it stops. It's used after the config file is
-          edited.</para>
-          <indexterm zone="gdm gdm-stop">
-            <primary sortas="b-gdm-stop">gdm-stop</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>-->
 
     </variablelist>
 
