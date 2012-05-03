@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY ntfs-3g-download-http
+    "http://tuxera.com/opensource/ntfs-3g_ntfsprogs-&ntfs-3g-version;.tgz">
+  <!ENTITY ntfs-3g-download-ftp  " ">
+  <!ENTITY ntfs-3g-md5sum        "341acae00a290cab9b00464db65015cc">
+  <!ENTITY ntfs-3g-size          "1.1 MB">
+  <!ENTITY ntfs-3g-buildsize     "21 MB">
+  <!ENTITY ntfs-3g-time          "0.4 SBU">
+]>
+
+<sect1 id="ntfs-3g" xreflabel="ntfs-3g-&ntfs-3g-version;">
+  <?dbhtml filename="ntfs-3g.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>ntfs-3g-&ntfs-3g-version;</title>
+
+  <indexterm zone="ntfs-3g">
+    <primary sortas="a-ntfs-3g">ntfs-3g</primary>
+  </indexterm>
+
+  <!--Required section-->
+  <sect2 role="package">
+    <title>Introduction to Ntfs-3g</title>
+
+    <para>
+      The <application>Ntfs-3g</application> package contains an open source,
+      driver for Windows NTFS file system. This can mount Windows partitions
+      so that they are writeable and allows you edit or delete Windows files
+      from Linux.
+    </para>
+
+    &lfs71_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&ntfs-3g-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&ntfs-3g-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &ntfs-3g-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &ntfs-3g-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &ntfs-3g-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &ntfs-3g-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Ntfs-3g Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="fuse"/>.
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/ntfs-3g"/>
+    </para>
+  </sect2>
+
+  <sect2 role="kernel" id="ntfs-3g-kernel">
+    <title>Kernel Configuration</title>
+
+    <para>
+      Enable the following options in the kernel configuration and recompile the
+      kernel if necessary:
+    </para>
+
+<screen><literal>File systems  ---&gt;
+  [*] FUSE (Filesystem in Userspace) support</literal></screen>
+
+    <indexterm zone="ntfs-3g ntfs-3g-kernel">
+      <primary sortas="d-ntfs-3g">ntfs-3g</primary>
+    </indexterm>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Ntfs-3g</title>
+
+    <para>
+      Install <application>Ntfs-3g</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr --disable-static &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      This package does not come with a test suite.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install &amp;&amp;
+ln /bin/ntfs-3g /sbin/mount.ntfs &amp;&amp;
+ln /usr/share/man/man8/{ntfs-3g,mount.ntfs}.8</userinput></screen>
+
+    <para>
+      If you want ordinary users to be able to mount NTFS partitions you'll need
+      to set mount.ntfs with the root user ID. Note: it is probably unsafe to do
+      this on a computer that needs to be secure (like a server). As the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>chmod 4755 /sbin/mount.ntfs</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
+
+    <para>
+      <option>--with-fuse=external</option>: Ntfs-3g comes with a version of
+      Fuse which it statically compiles into <command>lowntfs-3g</command> and
+      <command>ntfs-3g</command>. If you have installed <xref linkend="fuse"/>
+      use this <option>--with-fuse=external</option> option to dynamically link
+      <command>lowntfs-3g</command> and <command>ntfs-3g</command> to libfuse.
+    </para>
+
+    <para>
+      <command>ln /bin/ntfs-3g /sbin/mount.ntfs</command>: Creating
+      /sbin/mount.ntfs makes <command>mount</command> default to using Ntfs-3g
+      to mount NTFS partitions.
+    </para>
+
+    <para>
+      <command>chmod 4755 /sbin/mount.ntfs</command>: Making mount.ntfs set user
+      ID root allows non root users to mount NTFS partitions.
+    </para>
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Using Ntfs-3g</title>
+
+    <para>
+      To mount a Windows partition at boot time, put a line like this in
+      /etc/fstab:
+    </para>
+
+    <screen>/dev/sda1 /mnt/windows auto defaults 0 0</screen>
+
+    <para>
+      To allow users to mount a usb stick with an NTFS filesystem on it, put a
+      line similar this (change sdc1 to whatever a usb stick would be on your
+      system) in /etc/fstab:
+    </para>
+
+    <screen>/dev/sdc1 /mnt/usb auto user,noauto,umask=0,utf8 0 0</screen>
+
+    <para>
+      For a user to be able to mount the usb stick they will need to be able to
+      write to /mnt/usb so as the <systemitem class="username">root</systemitem>
+      user:
+    </para>
+
+<screen role="root"><userinput>chmod 777 /mnt/usb</userinput></screen>
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directory</segtitle>
+
+      <seglistitem>
+        <seg>
+          lowntfs-3g,
+          mkfs.ntfs,
+          mkntfs,
+          mount.lowntfs-3g,
+          mount.ntfs,
+          mount.ntfs-3g,
+          ntfs-3g,
+          ntfs-3g.probe,
+          ntfs-3g.secaudit,
+          ntfs-3g.usermap,
+          ntfscluster,
+          ntfscp,
+          ntfsfix,
+          ntfsls,
+          ntfscat,
+          ntfsclone,
+          ntfscmp,
+          ntfsinfo,
+          ntfslabel,
+          ntfsresize and
+          ntfsundelete.
+        </seg>
+        <seg>libntfs-3g.so.</seg>
+        <seg>/usr/include/ntfs-3g.</seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="lowntfs-3g">
+        <term><command>lowntfs-3g</command></term>
+        <listitem>
+          <para>
+            is similar to ntfs-3g but uses the Fuse low-level interface.
+          </para>
+          <indexterm zone="ntfs-3g lowntfs-3g">
+            <primary sortas="b-lowntfs-3g">lowntfs-3g</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mkfs.ntfs">
+        <term><command>mkfs.ntfs</command></term>
+        <listitem>
+          <para>
+            is a symlink to mkntfs.
+          </para>
+          <indexterm zone="ntfs-3g mkfs.ntfs">
+            <primary sortas="b-mkfs.ntfs">mkfs.ntfs</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mkntfs">
+        <term><command>mkntfs</command></term>
+        <listitem>
+          <para>
+            creates an NTFS file system.
+          </para>
+          <indexterm zone="ntfs-3g mkntfs">
+            <primary sortas="b-mkntfs">mkntfs</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mount.lowntfs-3g">
+        <term><command>mount.lowntfs-3g</command></term>
+        <listitem>
+          <para>
+            is a symlink to lowntfs-3g.
+          </para>
+          <indexterm zone="ntfs-3g mount.lowntfs-3g">
+            <primary sortas="b-mount.lowntfs-3g">mount.lowntfs-3g</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mount.ntfs">
+        <term><command>mount.ntfs</command></term>
+        <listitem>
+          <para>
+            mounts an NTFS filesystem.
+          </para>
+          <indexterm zone="ntfs-3g mount.ntfs">
+            <primary sortas="b-mount.ntfs">mount.ntfs</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mount.ntfs-3g">
+        <term><command>mount.ntfs-3g</command></term>
+        <listitem>
+          <para>
+            is a symbolic link to ntfs-3g.
+          </para>
+          <indexterm zone="ntfs-3g mount.ntfs-3g">
+            <primary sortas="b-mount.ntfs-3g">mount.ntfs-3g</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfs-3g-prog">
+        <term><command>ntfs-3g</command></term>
+        <listitem>
+          <para>
+            is an NTFS driver, which can create, remove, rename, move
+            files, directories, hard links, and streams; it can read and write
+            files, including streams, sparse files and transparently compressed
+            files; it can handle special files like symbolic links, devices, and
+            FIFOs; moreover it provides standard management of file ownership
+            and permissions, including POSIX ACLs.
+          </para>
+          <indexterm zone="ntfs-3g ntfs-3g-prog">
+            <primary sortas="b-ntfs-3g">ntfs-3g</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfs-3g.probe">
+        <term><command>ntfs-3g.probe</command></term>
+        <listitem>
+          <para>
+            tests if an NTFS volume is mountable read only or read-write, and
+            exits with a status value accordingly. The volume can be a block
+            device or image file.
+          </para>
+          <indexterm zone="ntfs-3g ntfs-3g.probe">
+            <primary sortas="b-ntfs-3g.probe">ntfs-3g.probe</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfs-3g.secaudit">
+        <term><command>ntfs-3g.secaudit</command></term>
+        <listitem>
+          <para>
+            audits NTFS Security Data.
+          </para>
+          <indexterm zone="ntfs-3g ntfs-3g.secaudit">
+            <primary sortas="b-ntfs-3g.secaudit">ntfs-3g.secaudit</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfs-3g.usermap">
+        <term><command>ntfs-3g.usermap</command></term>
+        <listitem>
+          <para>
+            creates the file defining the mapping of Windows accounts to Linux
+            logins for users who owns files which should be visible from both
+            Windows and Linux.
+          </para>
+          <indexterm zone="ntfs-3g ntfs-3g.usermap">
+            <primary sortas="b-ntfs-3g.usermap">ntfs-3g.usermap</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfscluster">
+        <term><command>ntfscluster</command></term>
+        <listitem>
+          <para>
+            identifies files in a specified region of an NTFS volume
+          </para>
+          <indexterm zone="ntfs-3g ntfscluster">
+            <primary sortas="b-ntfscluster">ntfscluster</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfscp">
+        <term><command>ntfscp</command></term>
+        <listitem>
+          <para>
+            copies a file to an NTFS volume.
+          </para>
+          <indexterm zone="ntfs-3g ntfscp">
+            <primary sortas="b-ntfscp">ntfscp</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfsfix">
+        <term><command>ntfsfix</command></term>
+        <listitem>
+          <para>
+            fixes common errors and forces Windows to check an NTFS partition.
+          </para>
+          <indexterm zone="ntfs-3g ntfsfix">
+            <primary sortas="b-ntfsfix">ntfsfix</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfsls">
+        <term><command>ntfsls</command></term>
+        <listitem>
+          <para>
+            lists directory contents on an NTFS filesystem.
+          </para>
+          <indexterm zone="ntfs-3g ntfsls">
+            <primary sortas="b-ntfsls">ntfsls</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfscat">
+        <term><command>ntfscat</command></term>
+        <listitem>
+          <para>
+            prints NTFS files and streams on the standard output.
+          </para>
+          <indexterm zone="ntfs-3g ntfscat">
+            <primary sortas="b-ntfscat">ntfscat</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfsclone">
+        <term><command>ntfsclone</command></term>
+        <listitem>
+          <para>
+            clones an NTFS filesystem.
+          </para>
+          <indexterm zone="ntfs-3g ntfsclone">
+            <primary sortas="b-ntfsclone">ntfsclone</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfscmp">
+        <term><command>ntfscmp</command></term>
+        <listitem>
+          <para>
+            compares two NTFS filesystems and tells the differences.
+          </para>
+          <indexterm zone="ntfs-3g ntfscmp">
+            <primary sortas="b-ntfscmp">ntfscmp</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfsinfo">
+        <term><command>ntfsinfo</command></term>
+        <listitem>
+          <para>
+            dumps a file's attributes.
+          </para>
+          <indexterm zone="ntfs-3g ntfsinfo">
+            <primary sortas="b-ntfsinfo">ntfsinfo</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfslabel">
+        <term><command>ntfslabel</command></term>
+        <listitem>
+          <para>
+            displays or changes the label on an ntfs file system.
+          </para>
+          <indexterm zone="ntfs-3g ntfslabel">
+            <primary sortas="b-ntfslabel">ntfslabel</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfsresize">
+        <term><command>ntfsresize</command></term>
+        <listitem>
+          <para>
+            resizes an NTFS filesystem without data loss.
+          </para>
+          <indexterm zone="ntfs-3g ntfsresize">
+            <primary sortas="b-ntfsresize">ntfsresize</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ntfsundelete">
+        <term><command>ntfsundelete</command></term>
+        <listitem>
+          <para>
+            recovers a deleted file from an NTFS volume.
+          </para>
+          <indexterm zone="ntfs-3g ntfsundelete">
+            <primary sortas="b-ntfsundelete">ntfsundelete</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libntfs-3g">
+        <term><filename class="libraryfile">libntfs-3g.so</filename></term>
+        <listitem>
+          <para>
+            contains the Ntfs-3g API functions.
+          </para>
+          <indexterm zone="ntfs-3g libntfs-3g">
+            <primary sortas="c-libntfs-3g">libntfs-3g.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
