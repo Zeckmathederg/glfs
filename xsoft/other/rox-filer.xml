@@ -204,6 +204,35 @@ HERE_DOC
 chmod 755 /path/to/hostname/AppRun</userinput></screen>
 
       <para>
+        That works fine for mounting, but to unmount it we need to run the
+        command <command>fusermount -u ${MOUNTPOINT}</command>. You could set
+        that as your default umount command in your rox preferences, but you
+        would then be unable to unmount any normal mountpoints (that need
+        umount). What we need is a script that will unmount a Fuse mountpoint
+        with <command>fusermount -u ${MOUNTPOINT}</command> and everything else
+        with <command>umount</command>. As the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /usr/bin/myumount &lt;&lt; "HERE_DOC" &amp;&amp;
+#!/bin/bash
+sync
+if mount | grep "${@}" | grep -q fuse
+then fusermount -u "${@}"
+else umount "${@}"
+fi
+HERE_DOC
+chmod 755 /usr/bin/myumount</userinput></screen>
+
+      <para>
+        Now, to make Rox use this simple script, open a Rox window, right click
+        on it and choose Options from the menu. In the left hand list choose
+        "Action windows" and then on the right hand side, where it says
+        "Unmount command" change <command>umount</command> to
+        <command>myumount</command>.
+      </para>
+
+      <para>
         If you use a desktop environment like
         <application>Gnome</application> or <application>KDE</application> you
         may like to create a <filename>rox.desktop</filename> file so that
