@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY lm_sensors-download-http
+    "http://dl.lm-sensors.org/lm-sensors/releases/lm_sensors-&lm_sensors-version;.tar.bz2">
+  <!ENTITY lm_sensors-download-ftp
+    "ftp://ftp.netroedge.com/pub/lm-sensors/lm_sensors-&lm_sensors-version;.tar.bz2">
+  <!ENTITY lm_sensors-md5sum        "f357ba00b080ab102a170f7bf8bb2578">
+  <!ENTITY lm_sensors-size          "168 KB">
+  <!ENTITY lm_sensors-buildsize     "2.4 MB">
+  <!ENTITY lm_sensors-time          "0.1 SBU">
+]>
+
+<sect1 id="lm_sensors" xreflabel="lm_sensors-&lm_sensors-version;">
+  <?dbhtml filename="lm_sensors.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>lm_sensors-&lm_sensors-version;</title>
+
+  <indexterm zone="lm_sensors">
+    <primary sortas="a-lm_sensors">lm_sensors</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Lm Sensors</title>
+
+    <para>
+      The <application>Lm Sensors</application> package provides user-space
+      support for the hardware monitoring drivers in the Linux kernel.
+      This is useful for monitoring the temperature of the CPU and adjusting the
+      performance of some hardware (such as cooling fans). 
+    </para>
+
+    &lfs71_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&lm_sensors-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&lm_sensors-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &lm_sensors-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &lm_sensors-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &lm_sensors-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &lm_sensors-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Lm Sensors Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="which"/>.
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <ulink url="http://oss.oetiker.ch/rrdtool/">RRDtool</ulink>.
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/lm_sensors"/>
+    </para>
+  </sect2>
+
+  <sect2 role="kernel" id="lm_sensors-kernel">
+    <title>Kernel Configuration</title>
+
+    <para>
+      Getting your kernel config right is an iterative process that may require
+      that you recompile your kernel a couple of time. The simplest way to go
+      about it is to start by enabling modules and then compile everything that
+      may be needed by Lm Sensors as a module:
+    </para>
+
+<screen><literal>General setup  ---&gt;
+  [*] Prompt for development and/or incomplete code/drivers
+
+[*] Enable loadable module support  ---&gt;
+
+Bus options (PCI etc.)  ---&gt;
+  [*] PCI support
+
+Device Drivers  ---&gt;
+  [*] I2C support
+    [*] I2C device interface
+    I2C Algorithms  ---&gt;
+      &lt;M&gt; (configure all of them as modules)
+    I2C Hardware Bus support  ---&gt;
+      &lt;M&gt; (configure all of them as modules)
+    I2C Hardware Bus support  ---&gt;
+      &lt;M&gt; (configure all of them as modules)
+  [*] Hardware Monitoring support  ---&gt;
+    &lt;M&gt; (configure all of them as modules)</literal></screen>
+
+    <para>
+      Recompile your kernel and reboot into the new kernel. Don't forget to
+      <command>make modules_install</command> We will come back to the kernel in
+      the Configuring section below.
+    </para>
+
+    <indexterm zone="lm_sensors lm_sensors-kernel">
+      <primary sortas="d-lm_sensors">lm_sensors</primary>
+    </indexterm>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Lm Sensors</title>
+
+    <para>
+      Install <application>Lm Sensors</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>make PREFIX=/usr BUILD_STATIC_LIB=0 \
+  MANDIR=/usr/share/man</userinput></screen>
+
+    <para>
+      This package does not come with a test suite.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make PREFIX=/usr BUILD_STATIC_LIB=0 \
+  MANDIR=/usr/share/man install &amp;&amp;
+mkdir -p /usr/share/doc/lm_sensors-&lm_sensors-version; &amp;&amp;
+cp -rf doc/* /usr/share/doc/lm_sensors-&lm_sensors-version;</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>BUILD_STATIC_LIB=0</parameter>: This parameter disables
+      compiling and installing the static version of libsensors.
+    </para>
+
+    <para>
+      <parameter>PROG_EXTRA=sensord</parameter>: This parameter enables
+      compiling sensord, a daemon that can monitor your system at regular
+      intervals. Compiling <command>sensord</command> requires
+      <ulink url="http://oss.oetiker.ch/rrdtool/">RRDtool</ulink>. Compiling
+      RRDtool 1.4.6 requires a sed: <command>sed -i '/ sv_undef/d'
+      bindings/perl-shared/RRDs.xs</command>.
+    </para>
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring Lm Sensors</title>
+
+    <sect3 id="lm_sensors-config">
+      <title>Config File</title>
+      <para><filename>/etc/sensors3.conf</filename>.</para>
+
+      <indexterm zone="lm_sensors lm_sensors-config">
+        <primary
+        sortas="e-etc-path-Configfilename2">/etc/sensors3.conf</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3><title>Configuration Information</title>
+
+      <para>
+        To find out what hardware sensors your system has, as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>sensors-detect</userinput></screen>
+
+      <para>
+        Hopefully it will load the appropriate modules and give you a summary
+        at the end. Now you know what is needed you can recompile your kernel
+        and just enable the options you need (ie, don't enable the modules you
+        can't use).
+      </para>
+    </sect3>
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          fancontrol,
+          isadump,
+          isaset,
+          pwmconfig,
+          sensors,
+          sensors-conf-convert and
+          sensors-detect.
+        </seg>
+        <seg>libsensors.so.</seg>
+        <seg>
+          /usr/include/sensors and
+          /usr/share/doc/lm_sensors-&lm_sensors-version;.
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="fancontrol">
+        <term><command>fancontrol</command></term>
+        <listitem>
+          <para>
+            is a shell script for use with lm_sensors. It reads its
+            configuration from a file, then calculates fan speeds from
+            temperatures and sets the corresponding PWM outputs to the computed
+            values.
+          </para>
+          <indexterm zone="lm_sensors fancontrol">
+            <primary sortas="b-fancontrol">fancontrol</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="isadump">
+        <term><command>isadump</command></term>
+        <listitem>
+          <para>
+            is a small helper program to examine registers visible through the
+            ISA bus. It is intended to probe any chip that lives on the ISA bus
+            working with an address register and a data register (I2C-like
+            access) or a flat range (of up to 256 bytes).
+          </para>
+          <indexterm zone="lm_sensors isadump">
+            <primary sortas="b-isadump">isadump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="isaset">
+        <term><command>isaset</command></term>
+        <listitem>
+          <para>
+            is a small helper program to set registers visible through the ISA
+            bus.
+          </para>
+          <indexterm zone="lm_sensors isaset">
+            <primary sortas="b-isaset">isaset</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pwmconfig">
+        <term><command>pwmconfig</command></term>
+        <listitem>
+          <para>
+            tests the pulse width modulation (PWM) outputs of sensors and
+            configures fancontrol.
+          </para>
+          <indexterm zone="lm_sensors pwmconfig">
+            <primary sortas="b-pwmconfig">pwmconfig</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="sensors">
+        <term><command>sensors</command></term>
+        <listitem>
+          <para>
+            prints the current readings of all sensor chips.
+          </para>
+          <indexterm zone="lm_sensors sensors">
+            <primary sortas="b-sensors">sensors</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="sensors-conf-convert">
+        <term><command>sensors-conf-convert</command></term>
+        <listitem>
+          <para>
+            is a perl script to convert lm-sensors version 2 configuration files
+            to work with version 3.
+          </para>
+          <indexterm zone="lm_sensors sensors-conf-convert">
+            <primary sortas="b-sensors-conf-convert">sensors-conf-convert</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="sensors-detect">
+        <term><command>sensors-detect</command></term>
+        <listitem>
+          <para>
+            is a perl script that will walk you through the process of scanning
+            your system for various hardware monitoring chips, or sensors,
+            supported by libsensors(3), or more generally by the lm_sensors
+            tool suite.
+          </para>
+          <indexterm zone="lm_sensors sensors-detect">
+            <primary sortas="b-sensors-detect">sensors-detect</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libsensors">
+        <term><filename class="libraryfile">libsensors.so</filename></term>
+        <listitem>
+          <para>
+            contains the lm_sensors API functions.
+          </para>
+          <indexterm zone="lm_sensors libsensors">
+            <primary sortas="c-libsensors">libsensors.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
