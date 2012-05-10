@@ -4,7 +4,8 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY libatomic_ops-download-http "http://www.hpl.hp.com/research/linux/atomic_ops/download/libatomic_ops-&libatomic_ops-version;.tar.gz">
+  <!ENTITY libatomic_ops-download-http
+    "http://www.hpl.hp.com/research/linux/atomic_ops/download/libatomic_ops-&libatomic_ops-version;.tar.gz">
   <!ENTITY libatomic_ops-download-ftp  " ">
   <!ENTITY libatomic_ops-md5sum        "1b65e48271c81e3fa2d7a9a69bab7504">
   <!ENTITY libatomic_ops-size          "184 KB">
@@ -29,12 +30,16 @@
   <sect2 role="package">
     <title>Introduction to libatomic_ops</title>
 
-    <para><application>libatomic_ops</application> provides implementations for
-    atomic memory update operations on a number of architectures. This allows
-    direct use of these in reasonably portable code. Unlike earlier similar
-    packages, this one explicitly considers memory barrier semantics, and
-    allows the construction of code that involves minimum overhead across a
-    variety of architectures. </para>
+    <para>
+      <application>libatomic_ops</application> provides implementations for
+      atomic memory update operations on a number of architectures. This allows
+      direct use of these in reasonably portable code. Unlike earlier similar
+      packages, this one explicitly considers memory barrier semantics, and
+      allows the construction of code that involves minimum overhead across a
+      variety of architectures.
+    </para>
+
+    &lfs71_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -58,50 +63,72 @@
       </listitem>
     </itemizedlist>
 
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/libatomic_ops"/></para>
-
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/libatomic_ops"/>
+    </para>
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of libatomic_ops</title>
 
-    <para>Install <application>libatomic_ops</application> by running the following
-    commands:</para>
+    <para>
+      Install <application>libatomic_ops</application> by running the following
+      commands:
+    </para>
 
-<screen><userinput>sed -i \
-    's|datadir)/@PACKAGE@|datadir)/doc/@PACKAGE@/@PACKAGE_VERSION@|' \
-    doc/Makefile.in &amp;&amp;
-./configure --prefix=/usr &amp;&amp;
+<screen><userinput>sed -i 's#AC_PROG_RANLIB#AC_LIBTOOL_DLOPEN\nAC_PROG_LIBTOOL#' configure.ac &amp;&amp;
+sed -i 's#b_L#b_LTL#;s#\.a#.la#g;s#_a_#_la_#' src/Makefile.am &amp;&amp;
+sed -i '/a.h gcc\/ia/d' src/atomic_ops/sysdeps/Makefile.am &amp;&amp;
+sed -i 's# COPYING##;s#pkgdata#doc#' doc/Makefile.am &amp;&amp;
+sed -i 's#\.a#.so#g;s#\.\./src/#../src/.libs/#g' tests/Makefile.am &amp;&amp;
+autoreconf -i &amp;&amp;
+./configure --prefix=/usr --disable-static \
+  --docdir=/usr/share/doc/libatomic_ops-&libatomic_ops-version; &amp;&amp;
 make</userinput></screen>
 
     <para>To check the results, issue <command>make check</command>.</para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install</userinput></screen>
-
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i ... doc/Makefile.in</command>: This command forces
-    the documentation to be installed in a versioned directory.</para>
+    <para>
+      <command>sed -i 's#AC_PROG_RANLIB ...</command>: These seds massage the
+      autotool files so that a shared library is built, the tests pass and the
+      docs are installed in the right place.
+    </para>
 
+    <para>
+      <command>autoreconf -i</command>: This regenerates the configure script
+      and the Makefile.in files and installs some missing files.
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
+
+    <para>
+      <option>--docdir=/usr/share/doc/libatomic_ops-&libatomic_ops-version;</option>:
+      This option installs the documentation in a versioned directory.
+    </para>
   </sect2>
 
   <sect2 role="content">
     <title>Contents</title>
 
     <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>None</seg>
-        <seg>libatomic_ops.a and libatomic_ops_gpl.a</seg>
+        <seg>
+          libatomic_ops.so and libatomic_ops_gpl.so
+        </seg>
         <seg>/usr/include/libatomic_ops</seg>
       </seglistitem>
     </segmentedlist>
@@ -112,17 +139,14 @@ make</userinput></screen>
       <?dbhtml list-presentation="table"?>
 
       <varlistentry id="libatomic_ops-lib">
-        <term><filename class='libraryfile'>libatomic_ops{,_gpl}.a</filename></term>
+        <term><filename class='libraryfile'>libatomic_ops{,_gpl}.so</filename></term>
         <listitem>
-          <para>contains functions for atomic memory operations.</para>
+          <para>contain functions for atomic memory operations.</para>
           <indexterm zone="libatomic_ops libatomic_ops-lib">
-            <primary sortas="c-libatomic_ops">libatomic_ops.a</primary>
+            <primary sortas="c-libatomic_ops">libatomic_ops.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
