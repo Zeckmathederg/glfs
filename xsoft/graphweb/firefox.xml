@@ -103,8 +103,9 @@
       <xref linkend="nspr"/>, <xref linkend="nss"/>,
       <xref linkend="wireless_tools"/>,
       <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing
-      the jemalloc code) and
-      <xref linkend="wget"/>
+      the jemalloc code),
+      <xref linkend="wget"/> and
+      <xref linkend="xulrunner"/>
     </para>
 
     <para condition="html" role="usernotes">
@@ -143,6 +144,10 @@ ac_add_options --disable-necko-wifi
 # If you have installed libnotify delete this option:
 ac_add_options --disable-libnotify
 
+# If you have installed xulrunner uncomment these two lines:
+# ac_add_options --with-system-libxul
+# ac_add_options --with-libxul-sdk=/usr/lib/xulrunner-devel-&xulrunner-version;
+
 # Uncomment these if you have installed them:
 # ac_add_options --enable-startup-notification
 # ac_add_options --enable-system-hunspell
@@ -153,17 +158,20 @@ ac_add_options --disable-libnotify
 # ac_add_options --with-system-nss
 
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/firefox-build-dir
+ac_add_options --enable-official-branding
+ac_add_options --prefix=/usr
+
+# The rest of these options have no effect if you're
+# building against an already installed xulrunner:
 ac_add_options --disable-crashreporter
 ac_add_options --disable-debug
 ac_add_options --disable-installer
 ac_add_options --disable-static
 ac_add_options --disable-tests
 ac_add_options --disable-updater
-ac_add_options --enable-official-branding
 ac_add_options --enable-shared
 ac_add_options --enable-system-cairo
 ac_add_options --enable-system-ffi
-ac_add_options --prefix=/usr
 ac_add_options --with-pthreads
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-png
@@ -179,22 +187,48 @@ EOF</userinput></screen>
   ipc/chromium/src/base/{file_util_linux,message_pump_libevent}.cc &amp;&amp;
 sed -i '/sys\/time\.h/a#include &lt;unistd.h&gt;' ipc/chromium/src/base/time_posix.cc &amp;&amp;
 sed -i 's# ""##' browser/base/Makefile.in &amp;&amp;
-make -f client.mk &amp;&amp;
-make -C firefox-build-dir/browser/installer</userinput></screen>
+make -f client.mk</userinput></screen>
 
     <para>
       This package does not come with a test suite.
     </para>
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user install
-      <application>Firefox</application>:
+      If you have <emphasis>not</emphasis> linked
+      <application>Firefox</application> against an installed
+      <application>Xulrunner</application>:
+    </para>
+
+<screen><userinput>make -C firefox-build-dir/browser/installer</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user, if you
+      have <emphasis>not</emphasis> linked <application>Firefox</application>
+      against an installed <application>Xulrunner</application>, install the
+      package:
     </para>
 
 <screen role="root"><userinput>mkdir /usr/lib/firefox-&firefox-version; &amp;&amp;
 tar -xvf firefox-build-dir/dist/firefox-&firefox-version;.en-US.linux-$(uname -m).tar.bz2 \
   -C /usr/lib/firefox-&firefox-version; --strip-components=1 &amp;&amp;
 ln -sfv ../lib/firefox-&firefox-version;/firefox /usr/bin &amp;&amp;
+mkdir -p /usr/lib/mozilla/plugins &amp;&amp;
+ln -sv ../mozilla/plugins /usr/lib/firefox-&firefox-version; &amp;&amp;
+chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
+
+    <para>
+      If you <emphasis>have</emphasis> linked against an already installed
+      <application>Xulrunner</application>, as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make -C firefox-build-dir install &amp;&amp;
+rm /usr/bin/firefox &amp;&amp;
+cat &gt; /usr/bin/firefox &lt;&lt; "HERE_DOC" &amp;&amp;
+#!/bin/bash
+/usr/lib/xulrunner-&xulrunner-version;/xulrunner /usr/lib/firefox-&firefox-version;application.ini "${@}"
+HERE_DOC
+chmod 755 /usr/bin/firefox &amp;&amp;
 mkdir -p /usr/lib/mozilla/plugins &amp;&amp;
 ln -sv ../mozilla/plugins /usr/lib/firefox-&firefox-version; &amp;&amp;
 chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
@@ -212,17 +246,6 @@ chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
 
 <screen role="root"><userinput>mkdir /usr/include/npapi
 cp dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
-
-    <bridgehead renderas="sect3" id="devel-firefox" xreflabel="Firefox">
-      All the Development Libraries and Headers
-    </bridgehead>
-    <para>
-      If you want to install the full <application>Firefox</application>
-      development environment (Note, this installs more than half a gigabyte of
-      extra files), as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>make -C firefox-build-dir install</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
@@ -264,6 +287,11 @@ cp dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
       into a versioned directory.
     </para>
 
+     <para>
+      <command>make -C firefox-build-dir install</command>: This runs
+      <command>make install</command> in firefox-build-dir.
+    </para>
+
     <para>
       <command>ln -sfv ... /usr/bin/firefox</command>: this puts a symbolic link
       to the <command>firefox</command> executable in your ${PATH}.
@@ -283,12 +311,6 @@ cp dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
       <filename class="directory">/usr/lib/mozilla/plugins</filename> by
       default, we make the symbolic link to keep all the plugins installed in
       one folder.
-    </para>
-
-    <para>
-      <command>make -C firefox-build-dir install</command>: This runs
-      <command>make install</command> in
-      <filename class="directory">firefox-build-dir</filename>.
     </para>
   </sect2>
 
