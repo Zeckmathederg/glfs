@@ -9,7 +9,7 @@
   <!ENTITY libreoffice-core-download-ftp  " ">
   <!ENTITY libreoffice-core-md5sum        "61afc900785dd7d071b96d9ab0af46f3">
   <!ENTITY libreoffice-core-size          "99 MB">
-  <!ENTITY libreoffice-buildsize          "6.1 GB (337 MB installed)">
+  <!ENTITY libreoffice-buildsize          "6.0 GB (345 MB installed)">
   <!ENTITY libreoffice-time               "121 SBU">
 ]>
 
@@ -167,7 +167,8 @@ cd libreoffice-core-&libreoffice-version;.2</userinput></screen>
       commands:
     </para>
 
-<screen><userinput>./autogen.sh --prefix=/usr \
+<screen><userinput>sed -i 's# ORBit-2.0##' configure.in &amp;&amp;
+./autogen.sh --prefix=/usr \
   --disable-binfilter      \
   --disable-gconf          \
   --disable-mozilla        \
@@ -209,13 +210,13 @@ SOFFICE=/usr/lib/libreoffice/program/soffice &amp;&amp;
 for program in base calc draw impress math writer
 do
   echo '#!/bin/bash' > /usr/bin/${program}
-  echo "exec $SOFFICE --nologo --${program} \"\${@}\"" >> /usr/bin/${program}
+  echo "exec ${SOFFICE} --nologo --${program} \"\${@}\"" >> /usr/bin/${program}
   chmod 755 /usr/bin/${program}
 done          &amp;&amp;
 unset SOFFICE &amp;&amp;
-ln -sf ../lib/libreoffice/program/spadmin /usr/bin/printeradmin &amp;&amp;
-ln -sf ../lib/libreoffice/program/unopkg /usr/bin               &amp;&amp;
-cp sysui/desktop/man/{libreoffice,unopkg}.1 /usr/share/man/man1 &amp;&amp;
+ln -sfv ../lib/libreoffice/program/spadmin /usr/bin/printeradmin &amp;&amp;
+ln -sfv ../lib/libreoffice/program/unopkg /usr/bin               &amp;&amp;
+cp sysui/desktop/man/{libreoffice,unopkg}.1 /usr/share/man/man1  &amp;&amp;
 for res in 16 32 48 128 256
 do
   mkdir -p /usr/share/icons/hicolor/${res}x${res}/{apps,mimetypes}
@@ -229,6 +230,12 @@ gtk-update-icon-cache /usr/share/icons/hicolor</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -i 's# ORBit-2.0##' configure.in</command>: If you remove the
+      <option>--disable-gconf</option> configure will check for the deprecated
+      ORBit. This sed removes the check for ORBit.
+    </para>
 
     <para>
       <option>--enable-gtk3</option>: Add this option if you've installed and
@@ -249,9 +256,8 @@ gtk-update-icon-cache /usr/share/icons/hicolor</userinput></screen>
     </para>
 
     <para>
-      <option>--disable-gconf</option>: Compiling with support for
-      <application>GConf</application> requires the deprecated
-      <application>ORBit</application>.
+      <option>--disable-gconf</option>: Remove this option if you want to
+      compile Libre Office with GConf support.
     </para>
 
     <para>
@@ -283,8 +289,8 @@ gtk-update-icon-cache /usr/share/icons/hicolor</userinput></screen>
       <option>--with-lang="pt-BR"</option>: This option sets what languages to
       support. en-US is always included by default. To list several languages,
       separate them with a space. For all languages, use --with-lang=ALL
-      <!-- For a list of the available options:
-      <command>ls translations/source</command>. -->
+      For a list of the available languages, after you've run ./download:
+      <command>ls translations/source</command>.
     </para>
 
     <para>
