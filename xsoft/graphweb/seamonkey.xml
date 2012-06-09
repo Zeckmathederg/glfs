@@ -8,9 +8,9 @@
   "http://ftp.mozilla.org/pub/mozilla.org/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.bz2">
   <!ENTITY seamonkey-download-ftp
   "ftp://ftp.mozilla.org/pub/mozilla.org/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.bz2">
-  <!ENTITY seamonkey-md5sum        "4af38acf517a8ab850e6aa7a6b085325">
-  <!ENTITY seamonkey-size          "98 MB">
-  <!ENTITY seamonkey-buildsize     "3.2 GB (48 MB installed)">
+  <!ENTITY seamonkey-md5sum        "c2c41a12107a67e5eedef06d50e26c56">
+  <!ENTITY seamonkey-size          "99 MB">
+  <!ENTITY seamonkey-buildsize     "1.1 GB (45 MB installed)">
   <!ENTITY seamonkey-time          "26.6 SBU">
 ]>
 
@@ -86,8 +86,8 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch if you're using <application>GCC-4.7</application>:
-          <ulink url="&patch-root;/seamonkey-&seamonkey-version;_gcc-4.7-1.patch"/>
+          Required patch:
+          <ulink url="&patch-root;/seamonkey-&seamonkey-version;-package-manifest-1.diff"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -146,7 +146,8 @@
       issuing the following command:
     </para>
 
-<screen><?dbfo keep-together="auto"?><userinput>cat &gt; .mozconfig &lt;&lt; "EOF"
+<screen><?dbfo keep-together="auto"?><userinput>patch -p1 &lt; ../seamonkey-&seamonkey-version;-package-manifest-1.diff &amp;&amp;
+cat &gt; mozconfig &lt;&lt; "EOF"
 # If you have a multicore machine you can speed up the build by running
 # several jobs at once, but if you have a single core, delete this line:
 mk_add_options MOZ_MAKE_FLAGS="-j4"
@@ -196,8 +197,7 @@ EOF</userinput></screen>
       command:
     </para>
 
-<screen><userinput>patch -p1 &lt; ../seamonkey-&seamonkey-version;_gcc-4.7-1.patch &amp;&amp;
-make -f client.mk &amp;&amp;
+<screen><userinput>make -f client.mk &amp;&amp;
 make -C moz-build-dir/suite/installer</userinput></screen>
 
     <para>
@@ -212,12 +212,13 @@ make -C moz-build-dir/suite/installer</userinput></screen>
       commands as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>mkdir -p /usr/lib/seamonkey-&seamonkey-version; &amp;&amp;
+<screen role="root"><userinput>rm -rf /usr/lib/seamonkey-&seamonkey-version; &amp;&amp;
+mkdir -pv /usr/lib/seamonkey-&seamonkey-version; &amp;&amp;
 tar xf moz-build-dir/mozilla/dist/seamonkey-&seamonkey-version;.en-US.linux-$(uname -m).tar.bz2 \
   -C /usr/lib/seamonkey-&seamonkey-version; --strip-components=1 &amp;&amp;
-ln -s ../lib/seamonkey-&seamonkey-version;/seamonkey /usr/bin &amp;&amp;
+ln -sfv ../lib/seamonkey-&seamonkey-version;/seamonkey /usr/bin &amp;&amp;
 mkdir -pv /usr/lib/mozilla/plugins &amp;&amp;
-ln -svf ../mozilla/plugins /usr/lib/seamonkey-&seamonkey-version; &amp;&amp;
+ln -sfv ../mozilla/plugins /usr/lib/seamonkey-&seamonkey-version; &amp;&amp;
 cp -v moz-build-dir/mozilla/dist/man/man1/seamonkey.1 /usr/share/man/man1</userinput></screen>
 
     <bridgehead renderas="sect3" id="npapi-seamonkey" xreflabel="Seamonkey">
@@ -231,8 +232,9 @@ cp -v moz-build-dir/mozilla/dist/man/man1/seamonkey.1 /usr/share/man/man1</useri
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>mkdir /usr/include/npapi
-cp mozilla/dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
+<screen role="root"><userinput>rm -rf /usr/include/npapi &amp;&amp;
+mkdir -v /usr/include/npapi &amp;&amp;
+cp -v mozilla/dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
 
     <bridgehead renderas="sect3" id="devel-seamonkey" xreflabel="Seamonkey">
       All the Development Libraries and Headers
@@ -251,9 +253,10 @@ cp mozilla/dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
 
     <para>
       <command>patch -p1 &lt;
-      ../seamonkey-&seamonkey-version;_gcc-4.7-1.patch</command>: This patch
-      fixes various files to ensure that <application>Seamonkey</application>
-      compiles with <application>GCC 4.7</application>.
+      ../seamonkey-&seamonkey-version;-package-manifest-1.diff</command>: This
+      patch fixes the installer so it can cope with the situation where
+      Seamonkey was configured with --enable-system-sqlite, --with-system-nspr,
+      --with-system-nss and --disable-updater.
     </para>
 
     <para>
@@ -341,7 +344,7 @@ cp mozilla/dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>mkdir -p /usr/share/applications &amp;&amp;
+<screen role="root"><userinput>mkdir -pv /usr/share/applications &amp;&amp;
 cat &gt; /usr/share/applications/seamonkey.desktop &lt;&lt; "EOF" &amp;&amp;
 [Desktop Entry]
 Encoding=UTF-8
@@ -354,7 +357,7 @@ Categories=Network;GTK;Application;Email;Browser;WebBrowser;News;
 StartupNotify=true
 Terminal=false
 EOF
-ln -sv -f /usr/lib/seamonkey-&seamonkey-version;/chrome/icons/default/seamonkey.png /usr/share/pixmaps</userinput></screen>
+ln -sfv /usr/lib/seamonkey-&seamonkey-version;/chrome/icons/default/seamonkey.png /usr/share/pixmaps</userinput></screen>
   </sect2>
 
   <sect2 role="content">
