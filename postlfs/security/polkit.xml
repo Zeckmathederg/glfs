@@ -7,13 +7,13 @@
   <!ENTITY polkit-download-http 
            "http://www.freedesktop.org/software/polkit/releases/polkit-&polkit-version;.tar.gz">
   <!ENTITY polkit-download-ftp  " ">
-  <!ENTITY polkit-md5sum        "9c29e1b6c214f0bd6f1d4ee303dfaed9">
+  <!ENTITY polkit-md5sum        "739d1ca4bf3462175030ce3d7771d7fa">
   <!ENTITY polkit-size          "1.4 MB">
-  <!ENTITY polkit-buildsize     "20 MB">
+  <!ENTITY polkit-buildsize     "16 MB">
   <!ENTITY polkit-time          "0.5 SBU">
 ]>
 
-<sect1 id="polkit" xreflabel="polkit-&polkit-version;">
+<sect1 id="polkit" xreflabel="Polkit-&polkit-version;">
   <?dbhtml filename="polkit.html"?>
 
   <sect1info>
@@ -21,19 +21,19 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>polkit-&polkit-version;</title>
+  <title>Polkit-&polkit-version;</title>
 
   <indexterm zone="polkit">
-    <primary sortas="a-polkit">polkit</primary>
+    <primary sortas="a-Polkit">Polkit</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to polkit</title>
+    <title>Introduction to Polkit</title>
 
     <para>
-      The <application>polkit</application> package is an application-level 
-      toolkit for defining and handling the policy that allows unprivileged 
-      users to speak to privileged processes.
+      <application>Polkit</application> is a toolkit for defining and handling
+      authorizations. It is used for allowing unprivileged processes to speak
+      to privileged processes.
     </para>
 
     &lfs71_checked;
@@ -72,12 +72,13 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">polkit Dependencies</bridgehead>
+    <bridgehead renderas="sect3">Polkit Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="glib2"/> and
-      <xref linkend="intltool"/>
+      <xref linkend="glib2"/>,
+      <xref linkend="intltool"/> and
+      <xref linkend="SpiderMonkey"/>
     </para>
 
     <bridgehead renderas="sect4">Optional (Required if building GNOME)</bridgehead>
@@ -107,10 +108,21 @@
   </sect2>
 
   <sect2 role="installation">
-    <title>Installation of polkit</title>
+    <title>Installation of Polkit</title>
 
     <para>
-      Install <application>polkit</application> by running the following
+      There should be a dedicated user and group to take control
+      of the <command>polkitd</command> daemon after it is
+      started. Issue the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>groupadd -fg 27 polkitd &amp;&amp;
+useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
+        -g polkitd -s /bin/false polkitd</userinput></screen>
+
+    <para>
+      Install <application>Polkit</application> by running the following
       commands:
     </para>
 
@@ -123,7 +135,7 @@
 make</userinput></screen>
 
     <para>
-      This package does not come with a test suite.
+      To test the results, issue: <command>make check</command>.
     </para>
 
     <para>
@@ -138,10 +150,10 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--with-authfw=shadow</parameter>: This parameter will use
-      the <application>Shadow</application> rather than the
-      <application>Linux-PAM</application> Authentication framework. Remove it if
-      you would like to use <application>Linux-PAM</application>.
+      <parameter>--with-authfw=shadow</parameter>: This parameter configures the
+      package to use the <application>Shadow</application> rather than the
+      <application>Linux PAM</application> Authentication framework. Remove it if
+      you would like to use <application>Linux PAM</application>.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -153,29 +165,23 @@ make</userinput></screen>
   </sect2>
 
   <sect2 role="configuration">
-    <title>Configuring polkit</title>
-
-    <sect3 id="polkit-config">
-      <title>Config Files</title>
-
-      <para><filename>/etc/polkit-1/localauthority.conf.d/*</filename></para>
-    </sect3>
+    <title>Configuring Polkit</title>
 
     <sect3>
       <title>PAM Configuration</title>
 
       <note>
         <para>
-          If you did not build <application>polkit</application> with
+          If you did not build <application>Polkit</application> with
           <application>Linux PAM</application> support, you can skip this section.
         </para>
       </note>
 
       <para>
-        If you have built <application>polkit</application> with 
+        If you have built <application>Polkit</application> with 
         <application>Linux PAM</application> support, you need to modify 
         default PAM configuration file which was installed by default to get 
-        <application>polkit</application> to work correctly with BLFS.
+        <application>Polkit</application> to work correctly with BLFS.
       </para>
 
       <para>
@@ -208,16 +214,19 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          pk-example-frobnicate, pkaction, pkcheck, pkexec,
+          pkaction, pkcheck, pk-example-frobnicate, pkexec,
           pkttyagent and polkitd
         </seg>
         <seg>
-          libpolkit-agent-1.so, libpolkit-backend-1.so and 
+          libpolkit-agent-1.so and 
           libpolkit-gobject-1.so
         </seg>
 	<seg>
-          /etc/polkit-1, /usr/include/polkit-1, /usr/lib/polkit-1, 
-	  /usr/share/polkit-1 and /var/lib/polkit-1
+          /etc/polkit-1,
+          /usr/include/polkit-1,
+          /usr/lib/polkit-1,
+          /usr/share/gtk-doc/html/polkit-1 and
+	  /usr/share/polkit-1
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -226,18 +235,6 @@ EOF</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-<!--  <varlistentry id="pk-example-frobnicate">
-        <term><command>pk-example-frobnicate</command></term>
-        <listitem>
-          <para>
-            does this .....
-          </para>
-          <indexterm zone="polkit pk-example-frobnicate">
-            <primary sortas="b-pk-example-frobnicate">pk-example-frobnicate</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>-->
 
       <varlistentry id="pkaction">
         <term><command>pkaction</command></term>
@@ -304,7 +301,7 @@ EOF</userinput></screen>
         <term><filename class='libraryfile'>libpolkit-agent-1.so</filename></term>
         <listitem>
           <para>
-            contains the <application>polkit</application> authentication
+            contains the <application>Polkit</application> authentication
             agent API functions.
           </para>
           <indexterm zone="polkit libpolkit-agent-1">
@@ -313,23 +310,11 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libpolkit-backend-1">
-        <term><filename class='libraryfile'>libpolkit-backend-1.so</filename></term>
-        <listitem>
-          <para>
-            contains the <application>polkit</application> backend API functions.
-          </para>
-          <indexterm zone="polkit libpolkit-backend-1">
-            <primary sortas="c-libpolkit-backend-1">libpolkit-backend-1.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="libpolkit-gobject-1">
         <term><filename class='libraryfile'>libpolkit-gobject-1.so</filename></term>
         <listitem>
           <para>
-            contains the <application>polkit</application> authorization API functions.
+            contains the <application>Polkit</application> authorization API functions.
           </para>
           <indexterm zone="polkit libpolkit-gobject-1">
             <primary sortas="c-libpolkit-gobject-1">libpolkit-gobject-1.so</primary>
