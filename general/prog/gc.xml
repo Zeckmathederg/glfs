@@ -4,10 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gc-download-http "http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-&gc-version;.tar.gz">
+  <!ENTITY gc-download-http
+    "http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-&gc-version;.tar.gz">
   <!ENTITY gc-download-ftp  "&gentoo-ftp-repo;/gc-&gc-version;.tar.gz">
-  <!ENTITY gc-md5sum        "2ff9924c7249ef7f736ecfe6f08f3f9b">
-  <!ENTITY gc-size          "1 MB">
+  <!ENTITY gc-md5sum        "d17aecedef3d73e75387fb63558fa4eb">
+  <!ENTITY gc-size          "1.3 MB">
   <!ENTITY gc-buildsize     "13 MB">
   <!ENTITY gc-time          "0.2 SBU">
 ]>
@@ -29,20 +30,21 @@
   <sect2 role="package">
     <title>Introduction to GC</title>
 
-    <para>The <application>GC</application> package contains the
-    Boehm-Demers-Weiser conservative garbage collector, which can be used as a
-    garbage collecting replacement for the C malloc function or C++ new
-    operator. It allows you to allocate memory basically as you normally would,
-    without explicitly deallocating memory that is no longer useful. The
-    collector automatically recycles memory when it determines that it can no
-    longer be otherwise accessed. The collector is also used by a number of
-    programming language implementations that either use C as intermediate
-    code, want to facilitate easier interoperation with C libraries, or just
-    prefer the simple collector interface. Alternatively, the garbage collector
-    may be used as a leak detector for C or C++ programs, though that is not
-    its primary goal.</para>
+    <para>
+      The <application>GC</application> package contains the Boehm-Demers-Weiser
+      conservative garbage collector, which can be used as a garbage collecting
+      replacement for the C malloc function or C++ new operator. It allows you
+      to allocate memory basically as you normally would, without explicitly
+      deallocating memory that is no longer useful. The collector automatically
+      recycles memory when it determines that it can no longer be otherwise
+      accessed. The collector is also used by a number of programming language
+      implementations that either use C as intermediate code, want to facilitate
+      easier interoperation with C libraries, or just prefer the simple
+      collector interface. Alternatively, the garbage collector may be used as a
+      leak detector for C or C++ programs, though that is not its primary goal.
+    </para>
 
-    &lfs70_checked;
+    &lfs71_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -66,58 +68,77 @@
       </listitem>
     </itemizedlist>
 
-    <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/gc"/></para>
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="libatomic_ops"/> (Gc contains a copy of
+      Libatomic_ops-&gc-version; which it will compile and statically link if
+      configure doesn't find Libatomic_ops installed on your system).
+    </para>
 
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/gc"/>
+    </para>
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of GC</title>
 
-    <para>Install <application>GC</application> by running the following
-    commands:</para>
+    <para>
+      Install <application>GC</application> by running the following commands:
+    </para>
 
-<screen><userinput>./configure --prefix=/usr            \
-            --datadir=/usr/share/doc \
-            --enable-cplusplus &amp;&amp;
+<screen><userinput>sed -i 's#pkgdata#doc#' doc/doc.am &amp;&amp; autoreconf  &amp;&amp;
+./configure --prefix=/usr --enable-cplusplus      \
+  --disable-static --docdir=/usr/share/doc/gc-&gc-version; &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>.</para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 install -v -m644 doc/gc.man /usr/share/man/man3/gc_malloc.3 &amp;&amp;
-ln -v -s gc_malloc.3 /usr/share/man/man3/gc.3 </userinput></screen>
-
+ln -sfv gc_malloc.3 /usr/share/man/man3/gc.3 </userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--datadir=/usr/share/doc</parameter>: This parameter
-    changes the installation path of the documentation to
-    <filename class='directory'>/usr/share/doc/gc</filename> instead of
-    <filename class='directory'>/usr/share/gc</filename>.</para>
+    <para>
+      <command>sed -i 's#pkgdata#doc#' doc/doc.am</command>,
+      <command>autoreconf</command> and
+      <option>--docdir=/usr/share/doc/gc-&gc-version;</option>: These commands
+      allow us to install the documentation in a versioned directory.
+    </para>
 
-    <para><parameter>--enable-cplusplus</parameter>: This parameter forces
-    the building and installation of the C++ library along with the standard
-    C library.</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
 
+    <para>
+      <parameter>--enable-cplusplus</parameter>: This parameter enables the
+      building and installing the C++ library along with the standard C library.
+    </para>
   </sect2>
 
   <sect2 role="content">
     <title>Contents</title>
 
     <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>None</seg>
-        <seg>libcord.{a,so}, libgc.{so,a}, and libgccpp.{so,a}</seg>
-        <seg>/usr/include/gc and /usr/share/doc/gc</seg>
+        <seg>
+          libcord.so,
+          libgc.so and
+          libgccpp.so
+        </seg>
+        <seg>
+          /usr/include/gc and
+          /usr/share/doc/gc
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -127,29 +148,29 @@ ln -v -s gc_malloc.3 /usr/share/man/man3/gc.3 </userinput></screen>
       <?dbhtml list-presentation="table"?>
 
       <varlistentry id="libgc">
-        <term><filename class='libraryfile'>libgc.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libgc.so</filename></term>
         <listitem>
-          <para>contains a C interface to the conservative garbage collector,
-          primarily designed to replace the C malloc function.</para>
+          <para>
+            contains a C interface to the conservative garbage collector,
+            primarily designed to replace the C malloc function.
+          </para>
           <indexterm zone="gc libgc">
-            <primary sortas="c-libgc">libgc.{so,a}</primary>
+            <primary sortas="c-libgc">libgc.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="libgccpp">
-        <term><filename class='libraryfile'>libgccpp.{so,a}</filename></term>
+        <term><filename class='libraryfile'>libgccpp.so</filename></term>
         <listitem>
-          <para>contains a C++ interface to the conservative garbage
-          collector.</para>
+          <para>
+            contains a C++ interface to the conservative garbage collector.
+          </para>
           <indexterm zone="gc libgccpp">
-            <primary sortas="c-libgccpp">libgccpp.{so,a}</primary>
+            <primary sortas="c-libgccpp">libgccpp.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
-
     </variablelist>
-
   </sect2>
-
 </sect1>
