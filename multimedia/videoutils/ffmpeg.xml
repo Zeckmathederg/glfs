@@ -126,24 +126,19 @@
       commands:
     </para>
 
-<screen><userinput>mkdir build &amp;&amp;
-cd    build &amp;&amp;
-../configure --prefix=/usr --enable-gpl \
-       --enable-shared --disable-static &amp;&amp;
+<screen><userinput>./configure --prefix=/usr --enable-gpl \
+      --enable-shared --disable-static &amp;&amp;
 make</userinput></screen>
 
-    <para>
-      The <application>FFmpeg</application> source contains a tool called
-      <command>qt-faststart</command> that can modify QuickTime formatted movies
-      (mov or mp4) so that the header information is located at the beginning of
-      the file instead of the end. This allows video players to begin playing
-      the content before the entire file has been downloaded. An example of
-      where this is useful for preparing videos before uploading them to
-      YouTube. If need <command>qt-faststart</command>, you can compile it with
-      gcc:
-    </para>
+    <para>To convert the docs to html use the following commands:</para>
 
-<screen><userinput>gcc ../tools/qt-faststart.c -o qt-faststart</userinput></screen>
+<screen><userinput>cd doc &amp;&amp;
+sed -i '/@top/d;/ignore$/d' *.texi &amp;&amp;
+sed -i '/@include avoptions/d' avtools-common-opts.texi &amp;&amp;
+for DOC in *.texi
+do makeinfo --html --no-split -o ${DOC%texi}html ${DOC}
+done &amp;&amp;
+cd ..</userinput></screen>
 
     <para>
       If you have <xref linkend="doxygen"/> installed and wish to create the API
@@ -158,7 +153,20 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 mkdir /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
-cp ../doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
+cp doc/*.html doc/*.txt /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
+
+    <para>
+      The <application>FFmpeg</application> source contains a tool called
+      <command>qt-faststart</command> that can modify QuickTime formatted movies
+      (mov or mp4) so that the header information is located at the beginning of
+      the file instead of the end. This allows video players to begin playing
+      the content before the entire file has been downloaded. An example of
+      where this is useful for preparing videos before uploading them to
+      YouTube. If need <command>qt-faststart</command>, you can compile it with
+      gcc. As the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen><userinput>gcc ../tools/qt-faststart.c -o /usr/bin/qt-faststart</userinput></screen>
 
     <para>
       If you used <command>doxygen</command> to create the API documentation,
@@ -168,23 +176,10 @@ cp ../doc/*.html /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
 
 <screen role="root"><userinput>mkdir /usr/share/doc/ffmpeg-&ffmpeg-version;/api &amp;&amp;
 cp -v doxy/* /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
-
-    <para>
-      If you compiled <command>qt-faststart</command> install it as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>cp qt-faststart /usr/bin</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para>
-      <command>mkdir build</command> and <command>cd build</command>: This
-      ensures that we compile the <application>FFmpeg</application> object
-      files in a separate directory to the source files.
-    </para>
 
     <para>
       <option>--enable-gpl</option>: This switch enables the use of GPL code and
@@ -205,16 +200,23 @@ cp -v doxy/* /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
       almost every codec you could think of. The only reason to enable a
       specific codec (and make <application>FFmpeg</application> link to the
       prerequisite shared library installed on your system) is to make ffmpeg
-      compile an <emphasis>encoder</emphasis> for that codec. Encoding video is
-      a specialist job. If that is what you want to do with
-      <command>ffmpeg</command>, study the output of <command>configure
-      --help</command>. Remember, the dependencies all install their own
-      encoders (that may produce better results than
-      <application>FFmpeg</application>). <application>FFmpeg</application> is
-      an excellent collection of decoders. If you just want to use
-      <application>FFmpeg</application> to watch video or listen to music (via
-      other applications like <application>Gstreamer</application> or Xine) then
-      you will not benefit from linking FFmpeg to another library.
+      compile an <emphasis>encoder</emphasis> for that codec.
+      <application>FFmpeg</application> is an excellent collection of decoders.
+      If you just want to use <application>FFmpeg</application> to watch video
+      or listen to music (via other applications like
+      <application>Gstreamer</application> or Xine) then you will not benefit
+      from linking FFmpeg to another library.
+    </para>
+
+    <para>
+      <command>sed -i '/@top/d;/ignore$/d' *.texi</command> and
+      <command>sed -i '/@include avoptions/d' avtools-common-opts.texi</command>:
+      these seds work around problems with the .texi files.
+    </para>
+
+    <para>
+      <command>makeinfo --html --no-split -o ${DOC%texi}html ${DOC}</command>:
+      this converts the .texi files into html.
     </para>
   </sect2>
 
