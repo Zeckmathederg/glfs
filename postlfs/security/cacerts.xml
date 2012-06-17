@@ -98,26 +98,26 @@ open( IN, "cat $certdata|" )
 
 my $incert = 0;
 
-while ( &lt;IN&gt; ) 
+while ( &lt;IN&gt; )
 {
-    if ( /^CKA_VALUE MULTILINE_OCTAL/ ) 
+    if ( /^CKA_VALUE MULTILINE_OCTAL/ )
     {
         $incert = 1;
         open( OUT, "|openssl x509 -text -inform DER -fingerprint" )
             || die "could not pipe to openssl x509";
-    } 
-    
-    elsif ( /^END/ &amp;&amp; $incert ) 
+    }
+
+    elsif ( /^END/ &amp;&amp; $incert )
     {
         close( OUT );
         $incert = 0;
         print "\n\n";
-    } 
-    
-    elsif ($incert) 
+    }
+
+    elsif ($incert)
     {
         my @bs = split( /\\/ );
-        foreach my $b (@bs) 
+        foreach my $b (@bs)
         {
             chomp $b;
             printf( OUT "%c", oct($b) ) unless $b eq '';
@@ -166,7 +166,7 @@ VERSION=$(echo $REVISION | cut -f2 -d" ")
 TEMPDIR=$(mktemp -d)
 TRUSTATTRIBUTES="CKA_TRUST_SERVER_AUTH"
 BUNDLE="BLFS-ca-bundle-${VERSION}.crt"
-CONVERTSCRIPT="make-cert.pl"
+CONVERTSCRIPT="/bin/make-cert.pl"
 SSLDIR="/etc/ssl"
 
 mkdir "${TEMPDIR}/certs"
@@ -202,7 +202,7 @@ for tempfile in ${TEMPDIR}/certs/*.tmp; do
   if test "${?}" = "0"; then
     # Throw a meaningful error and remove the file
     cp "${tempfile}" tempfile.cer
-    "${CONVERTSCRIPT}" > tempfile.crt
+    perl ${CONVERTSCRIPT} > tempfile.crt
     keyhash=$(openssl x509 -noout -in tempfile.crt -hash)
     echo "Certificate ${keyhash} is not trusted!  Removing..."
     rm -f tempfile.cer tempfile.crt "${tempfile}"
@@ -213,7 +213,7 @@ for tempfile in ${TEMPDIR}/certs/*.tmp; do
   # Find the cert data and generate a cert file for it
 
   cp "${tempfile}" tempfile.cer
-  "${CONVERTSCRIPT}" > tempfile.crt
+  perl ${CONVERTSCRIPT} > tempfile.crt
   keyhash=$(openssl x509 -noout -in tempfile.crt -hash)
   mv tempfile.crt "certs/${keyhash}.pem"
   rm -f tempfile.cer "${tempfile}"
@@ -361,7 +361,7 @@ unset SSLDIR</userinput></screen>
       <varlistentry id="make-cert">
         <term><command>make-cert.pl</command></term>
         <listitem>
-          <para>is a utility <application>perl</application> script that 
+          <para>is a utility <application>perl</application> script that
           converts a single binary certificate (.der format) into .pem format.</para>
           <indexterm zone="cacerts make-cert">
             <primary sortas="b-make-cert">make-cert</primary>
@@ -372,7 +372,7 @@ unset SSLDIR</userinput></screen>
       <varlistentry id="remove-expired-certs">
         <term><command>remove-expired-certs.sh</command></term>
         <listitem>
-          <para>is a utility <application>perl</application> script that 
+          <para>is a utility <application>perl</application> script that
           removes expired certificates from a directory.  The default
           directory is <filename class='directory'>/etc/ssl/certs</filename>.</para>
           <indexterm zone="cacerts remove-expired-certs">
