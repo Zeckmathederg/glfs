@@ -6,10 +6,10 @@
 
   <!ENTITY mesalib-download-http " ">
   <!ENTITY mesalib-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/&mesalib-version;/MesaLib-&mesalib-version;.tar.bz2">
-  <!ENTITY mesalib-md5sum        "cc5ee15e306b8c15da6a478923797171">
+  <!ENTITY mesalib-md5sum        "d546f988adfdf986cff45b1efa2d8a46">
   <!ENTITY mesalib-size          "5.5 MB">
-  <!ENTITY mesalib-buildsize     "386 MB">
-  <!ENTITY mesalib-time          "4.1 SBU">
+  <!ENTITY mesalib-buildsize     "485 MB">
+  <!ENTITY mesalib-time          "4.2 SBU">
 ]>
 
 <sect1 id="mesalib" xreflabel="MesaLib-&mesalib-version;">
@@ -29,8 +29,10 @@
   <sect2 role="package">
     <title>Introduction to MesaLib</title>
 
-    <para><application>Mesa</application> is an OpenGL compatible 3D graphics
-    library.</para>
+    <para>
+      <application>Mesa</application> is an OpenGL compatible 3D graphics
+      library.
+    </para>
 
     &lfs71_checked;
 
@@ -71,12 +73,15 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/MesaLib-&mesalib-version;-llvm-3.1-fixes-1.patch"/>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/MesaLib-&mesalib-version;-llvm-3.1-fixes-1.patch"/>
         </para>
-        <para>Recommended patch: <ulink
-        url="&patch-root;/MesaLib-&mesalib-version;-add_xdemos-2.patch"/>
-        (Needed if testing the Xorg installation per BLFS instructions)</para>
+        <para>
+          Recommended patch:
+          <ulink url="&patch-root;/MesaLib-&mesalib-version;-add_xdemos-2.patch"/>
+          (Needed if testing the Xorg installation per BLFS instructions)
+        </para>
       </listitem>
     </itemizedlist>
 
@@ -89,19 +94,20 @@
       <xref linkend="libxml2"/>,
       <xref linkend="makedepend"/> and
       <xref linkend="xorg7-lib"/>
-  </para>
+    </para>
 
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional">
-      <xref linkend="talloc"/> and
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
       <xref linkend="llvm"/>
     </para>
 
     <note>
-      <para>The <application>libxml2</application>
-      <application>Python</application> module must have been built
-      during the installation of <application>libxml2</application>
-      or else <application>MesaLib</application> build will fail.</para>
+      <para>
+        The <application>libxml2</application>
+        <application>Python</application> module must have been built
+        during the installation of <application>libxml2</application>
+        or else <application>MesaLib</application> build will fail.
+      </para>
     </note>
 
     <para condition="html" role="usernotes">User Notes:
@@ -112,45 +118,58 @@
   <sect2 role="installation">
     <title>Installation of MesaLib</title>
 
-    <note><para>Unlike other packages, the
-    <filename>MesaLib-&mesalib-version;.tar.bz2</filename>
-    archive will extract to the
-    <filename class="directory">Mesa-&mesalib-version;</filename>
-    directory.</para></note>
+    <note>
+      <para>
+        Unlike other packages, the
+        <filename>MesaLib-&mesalib-version;.tar.bz2</filename>
+        archive will extract to the
+        <filename class="directory">Mesa-&mesalib-version;</filename>
+        directory.
+      </para>
+    </note>
 
-    <para>Install <application>MesaLib</application> by running the following
-    commands:</para>
+    <para>
+      Install <application>MesaLib</application> by running the following
+      commands:
+    </para>
 
 <screen><userinput>sed 's@FLAGS=\"-g@FLAGS=\"@' -i configure                &amp;&amp;
 patch -Np1 -i ../MesaLib-&mesalib-version;-add_xdemos-2.patch        &amp;&amp;
 patch -Np1 -i ../MesaLib-&mesalib-version;-llvm-3.1-fixes-1.patch    &amp;&amp;
 ./configure --prefix=$XORG_PREFIX   \
-            --enable-shared-dricore \
+            --enable-texture-float  \
+            --enable-gles1          \
+            --enable-gles2          \
             --enable-xa             \
-            --with-gallium-drivers="nouveau,svga,swrast" &amp;&amp;
+            --enable-shared-glapi   \
+            --enable-shared-dricore \
+            --enable-glx-tls        \
+            --with-gallium-drivers="nouveau,r300,r600,svga,swrast" &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 mkdir -pv ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version; &amp;&amp;
-cp -rv docs/* ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;</userinput></screen>
+cp -rfv docs/* ${XORG_PREFIX}/share/doc/MesaLib-&mesalib-version;</userinput></screen>
 
-    <para>Finally, if installing to any prefix other than
-    <filename class="directory">/usr</filename>, you should create symlinks
-    to the GL headers in <filename class="directory">/usr/include</filename>.
-    Execute the following command as the
-    <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Finally, if installing to any prefix other than
+      <filename class="directory">/usr</filename>, you should create symlinks
+      to the GL headers in <filename class="directory">/usr/include</filename>.
+      Execute the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
 
-<screen role="root"><userinput>ln -s -v ${XORG_PREFIX}/include/GL  /usr/include &amp;&amp;
-ln -s -v ${XORG_PREFIX}/include/EGL /usr/include &amp;&amp;
-ln -s -v ${XORG_PREFIX}/include/KHR /usr/include &amp;&amp;
-
-for HEADER in xa_{composite,context,tracker}.h
+<screen role="root"><userinput>for GLHEADER in EGL GL GLES GLES2 KHR xa_composite.h xa_context.h xa_tracker.h
 do
-  ln -s -v ${XORG_PREFIX}/include/$HEADER /usr/include
+  ln -sfv ${XORG_PREFIX}/include/${GLHEADER} /usr/include/${GLHEADER}
 done</userinput></screen>
 
   </sect2>
@@ -158,21 +177,56 @@ done</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed 's@FLAGS=\"-g@FLAGS=\"@' -i configure</command>: by
-    default, Mesa builds with debugging symbols.  Remove the -g switch from
-    both <envar>CFLAGS</envar> and <envar>CXXFLAGS</envar> with this
-    command.</para>
+    <para>
+      <command>sed 's@FLAGS=\"-g@FLAGS=\"@' -i configure</command>: by default,
+      Mesa builds with debugging symbols. Remove the -g switch from both
+      <envar>CFLAGS</envar> and <envar>CXXFLAGS</envar> with this command.
+    </para>
 
-    <para><command>--enable-shared-dricore</command>: link DRI modules with
-    shared core DRI routines.</para>
+    <para>
+      <option>--enable-texture-float</option>: This switch enables
+      floating-point textures and renderbuffers. Please consult
+      <filename>docs/patents.txt</filename> to see if there are
+      any legal issues if you use this feature.
+    </para>
 
-    <para><command>--enable-xa</command>: enables building of the XA X
-    Acceleration API (Required for VMware 3D Driver).</para>
+    <para>
+      <option>--enable-gles1</option>: This switch enables support for
+      OpenGL ES 1.x API.
+    </para>
 
-    <para><command>--with-gallium-drivers="..."</command>: controls building
-    of gallium drivers. Available drivers are: i915, nouveau, r300, r600,
-    swrast and svga. Note that r300 and r600 require <xref linkend="llvm"/>
-    to be installed.</para>
+    <para>
+      <option>--enable-gles2</option>: This switch enables support for 
+      OpenGL ES 2.x API.
+    </para>
+
+    <para>
+      <option>--enable-xa</option>: This switch enables building of the
+      XA X Acceleration API (Required for VMware 3D Driver).
+    </para>
+
+    <para>
+      <option>--enable-shared-glapi</option>: This switch enables building
+      of the shared glapi library.
+    </para>
+
+    <para>
+      <option>--enable-shared-dricore</option>: This switch enables linking
+      of the DRI modules with shared core DRI routines.
+    </para>
+
+    <para>
+      <option>--enable-glx-tls</option>: This switch enables TLS support
+      in GLX.
+    </para>
+
+    <para>
+      <parameter>--with-gallium-drivers="..."</parameter>: This parameter
+      controls which Gallium drivers should be built. Available drivers are:
+      i915, nouveau, r300, r600, swrast and svga. Note that you will need to
+      remove r300 and r600 from the list if you haven't installed
+      <xref linkend="llvm"/>.
+    </para>
 
   </sect2>
 
@@ -185,11 +239,18 @@ done</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>glxgears and glxinfo</seg>
-        <seg>libEGL.so, libGL.so, libGLU.so, libxatracker.so, and *_dri.so</seg>
-        <seg><envar>$XORG_PREFIX</envar>/include/{EGL,GL,KHR},
-        <envar>$XORG_PREFIX</envar>/lib/dri, and
-        <envar>$XORG_PREFIX</envar>/share/doc/MesaLib-&mesalib-version;</seg>
+        <seg>
+          glxgears and glxinfo
+        </seg>
+        <seg>
+          libEGL.so, libglapi.so, libGLESv1_CM.so, libGLESv2.so,
+          libGL.so, libGLU.so and libxatracker.so
+        </seg>
+        <seg>
+          <envar>$XORG_PREFIX</envar>/include/{EGL,GL,GLES,GLES2,KHR},
+          <envar>$XORG_PREFIX</envar>/lib/dri, and
+          <envar>$XORG_PREFIX</envar>/share/doc/MesaLib-&mesalib-version;
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -201,8 +262,10 @@ done</userinput></screen>
       <varlistentry id="glxgears">
         <term><filename>glxgears</filename></term>
         <listitem>
-          <para>is a GL demo useful for troubleshooting graphics
-          problems.</para>
+          <para>
+            is a GL demo useful for troubleshooting graphics
+            problems.
+          </para>
           <indexterm zone="mesalib glxgears">
             <primary sortas="b-glxgears">glxgears</primary>
           </indexterm>
@@ -212,8 +275,10 @@ done</userinput></screen>
       <varlistentry id="glxinfo">
         <term><filename>glxinfo</filename></term>
         <listitem>
-          <para>is a diagnostic program that displays information about the
-          graphics hardware and installed GL libraries.</para>
+          <para>
+            is a diagnostic program that displays information about the
+            graphics hardware and installed GL libraries.
+          </para>
           <indexterm zone="mesalib glxinfo">
             <primary sortas="b-glxinfo">glxinfo</primary>
           </indexterm>
@@ -223,8 +288,10 @@ done</userinput></screen>
       <varlistentry id="libEGL">
         <term><filename class='libraryfile'>libEGL.so</filename></term>
         <listitem>
-          <para>provides a native platform graphics interface as defined by
-          the EGL-1.4 specification.</para>
+          <para>
+            provides a native platform graphics interface as defined by
+            the EGL-1.4 specification.
+          </para>
           <indexterm zone="mesalib libEGL">
             <primary sortas="c-libGL">libEGL.so</primary>
           </indexterm>
@@ -234,7 +301,9 @@ done</userinput></screen>
       <varlistentry id="libGL">
         <term><filename class='libraryfile'>libGL.so</filename></term>
         <listitem>
-          <para>is the main OpenGL library.</para>
+          <para>
+            is the main OpenGL library.
+          </para>
           <indexterm zone="mesalib libGL">
             <primary sortas="c-libGL">libGL.so</primary>
           </indexterm>
@@ -244,7 +313,9 @@ done</userinput></screen>
       <varlistentry id="libGLU">
         <term><filename class='libraryfile'>libGLU.so</filename></term>
         <listitem>
-          <para>is the OpenGL Utility library.</para>
+          <para>
+            is the OpenGL Utility library.
+          </para>
           <indexterm zone="mesalib libGLU">
             <primary sortas="c-libGLU">libGLU.so</primary>
           </indexterm>
@@ -254,7 +325,9 @@ done</userinput></screen>
       <varlistentry id="libxatracker">
         <term><filename class='libraryfile'>libxatracker.so</filename></term>
         <listitem>
-          <para>is the XA X Acceleration API library.</para>
+          <para>
+            is the library that provides XA X Acceleration API.
+          </para>
           <indexterm zone="mesalib libxatracker">
             <primary sortas="c-libxatracker">libxatracker.so</primary>
           </indexterm>
