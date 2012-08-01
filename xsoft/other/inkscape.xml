@@ -6,10 +6,10 @@
 
   <!ENTITY inkscape-download-http "&sourceforge-repo;/inkscape/inkscape-&inkscape-version;.tar.bz2">
   <!ENTITY inkscape-download-ftp  " ">
-  <!ENTITY inkscape-md5sum        "f60b98013bd1121b2cc301f3485076ba">
-  <!ENTITY inkscape-size          "18.7 MB">
-  <!ENTITY inkscape-buildsize     "1.9 GB">
-  <!ENTITY inkscape-time          "16 SBU">
+  <!ENTITY inkscape-md5sum        "f0fcc02088cc643634806064e7ab4ec3">
+  <!ENTITY inkscape-size          "19 MB">
+  <!ENTITY inkscape-buildsize     "1.5 GB">
+  <!ENTITY inkscape-time          "18 SBU">
 ]>
 
 <sect1 id="inkscape" xreflabel="Inkscape-&inkscape-version;">
@@ -23,7 +23,7 @@
   <title>Inkscape-&inkscape-version;</title>
 
   <indexterm zone="inkscape">
-    <primary sortas="a-inkscape">Inkscape</primary>
+    <primary sortas="a-Inkscape">Inkscape</primary>
   </indexterm>
 
   <sect2 role="package">
@@ -75,10 +75,6 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch:
-          <ulink url="&patch-root;/inkscape-&inkscape-version;_gcc-4.7-1.patch"/>
-        </para>
-        <para>
           Optional patch:
           <ulink url="&patch-root;/inkscape-&inkscape-version;-poppler-0.20-1.patch"/>
         </para>
@@ -89,24 +85,26 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="gtkmm2"/>,
-      <xref linkend="gc"/>,
-      <xref linkend="gsl"/>,
       <xref linkend="boost"/>,
-      <xref linkend="libpng"/> and
-      <xref linkend="intltool"/>.
+      <xref linkend="gc"/>,
+      <xref linkend="gsl"/> and
+      <xref linkend="gtkmm2"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="lcms"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="lcms"/>,
-      <xref linkend="poppler"/>,
+      <xref linkend="aspell"/>,
+      <xref linkend="doxygen"/>,
       <xref linkend="gnome-vfs"/>,
       <xref linkend="imagemagick"/>,
-      <xref linkend="popt"/>,
-      <xref linkend="doxygen"/>,
-      <xref linkend="aspell"/> and
-      <ulink url="http://libwpg.sourceforge.net/">Libwpg</ulink>.
+      <ulink url="http://libwpg.sourceforge.net/">libwpg</ulink>,
+      <xref linkend="poppler"/> and
+      <xref linkend="popt"/>
     </para>
 
     <para condition="html" role="usernotes">
@@ -122,54 +120,23 @@
       compiling with Poppler 0.20:
     </para>
 
-<screen><userinput>patch -p1 &lt; ../inkscape-&inkscape-version;-poppler-0.20-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../inkscape-&inkscape-version;-poppler-0.20-1.patch</userinput></screen>
 
     <para>
-      Fix a bug that would otherwise prevent compiling with
-      <application>Libpng 1.5</application>:
+      Fix a bug that will prevent from compiling with
+      <application>libpng 1.5</application>:
     </para>
 
 <screen><userinput>sed -i 's/ptr->jmpbuf/jmpbuf(png_ptr)/' \
-    src/{extension/internal/pdfinput/svg-builder,helper/png-write}.cpp</userinput></screen>
-
-    <para>
-      Fix a bug that would otherwise prevent compiling with
-      <application>Libpng 1.5.7</application> or greater:
-    </para>
-
-<screen><userinput>sed -i 's#if ( png_get_iCCP.*#if (0) {#' src/sp-image.cpp</userinput></screen>
-
-    <para>
-      If you have <emphasis>not</emphasis> installed <xref linkend="lcms"/> fix
-      a bug that will otherwise break the build:
-    </para>
-
-<screen><userinput>sed -i '/&lt;io\/sys.h&gt;/d
-    /preferences.h/a#include "io/sys.h"' src/color-profile.cpp</userinput></screen>
-
-    <para>
-      Fix a bug that would otherwise prevent compiling with
-      <application>Gcc 4.7</application>:
-    </para>
-
-<screen><userinput>patch -p1 &lt; ../inkscape-&inkscape-version;_gcc-4.7-1.patch</userinput></screen>
-
-    <para>
-      Fix many bugs that would otherwise prevent compiling with
-      <application>Glib 2.32</application> or greater:
-    </para>
-
-<screen><userinput>for thing in array convert dir error fileutils hash list macros main mem \
-    messages quark slist strfuncs string types urifuncs utils
-do sed -i "/^#include /s#/g${thing}##" $(grep -rl "include .glib/g${thing}" .)
-done</userinput></screen>
+    src/{extension/internal/pdfinput/svg-builder,helper/png-write}.cpp &amp;&amp;
+sed -i 's#if ( png_get_iCCP.*#if (0) {#' src/sp-image.cpp</userinput></screen>
 
     <para>
       Install <application>Inkscape</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --disable-lcms &amp;&amp;
+<screen><userinput>./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -181,16 +148,7 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make install</userinput></screen>
-  </sect2>
 
-  <sect2 role="commands">
-    <title>Command Explanations</title>
-
-    <para>
-      <option>--disable-lcms</option>: This is required if you've not installed
-      <xref linkend="lcms"/>. If you have installed
-      <application>Lcms</application> remove this option.
-    </para>
   </sect2>
 
   <sect2 role="content">
@@ -201,8 +159,12 @@ make</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>inkscape and inkview.</seg>
-        <seg>/usr/share/inkscape.</seg>
+        <seg>
+          inkscape and inkview
+        </seg>
+        <seg>
+          /usr/share/inkscape
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -234,6 +196,9 @@ make</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
+
     </variablelist>
+
   </sect2>
+
 </sect1>
