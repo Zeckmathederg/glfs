@@ -4,13 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY webkitgtk-download-http
-    "http://webkitgtk.org/releases/webkit-&webkitgtk-version;.tar.xz">
+  <!ENTITY webkitgtk-download-http "http://webkitgtk.org/releases/webkit-&webkitgtk-version;.tar.xz">
   <!ENTITY webkitgtk-download-ftp  " ">
-  <!ENTITY webkitgtk-md5sum        "f2f01b1fdc7262a2eede81ebed0970b2">
-  <!ENTITY webkitgtk-size          "7.6 MB">
-  <!ENTITY webkitgtk-buildsize     "566 MB (43 MB installed)">
-  <!ENTITY webkitgtk-time          "28 SBU">
+  <!ENTITY webkitgtk-md5sum        "f7bd0bd4f323039f15e19c82a9a8313c">
+  <!ENTITY webkitgtk-size          "7.7 MB">
+  <!ENTITY webkitgtk-buildsize     "700 MB">
+  <!ENTITY webkitgtk-time          "30 SBU">
 ]>
 
 <sect1 id="webkitgtk" xreflabel="WebKitGTK+-&webkitgtk-version;">
@@ -72,24 +71,33 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/webkitgtk-&webkitgtk-version;-bison-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">WebKitGTK+ Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
+      <xref linkend="geoclue"/>,
       <xref linkend="gperf"/>,
+      <xref linkend="gst-plugins-base"/>,
+      <xref linkend="gtk3"/> or <xref linkend="gtk2"/>,
       <xref linkend="icu"/>,
       <xref linkend="libxslt"/>,
-      <xref linkend="gtk2"/> or <xref linkend="gtk3"/>
-      (<command>configure</command> defaults to using gtk+-3),
       <xref linkend="libsoup"/>,
-      <xref linkend="gst-plugins-base"/>,
-      <xref linkend="geoclue"/>,
-      <xref linkend="which"/> and
-      <xref linkend="sqlite"/>
+      <xref linkend="sqlite"/> and
+      <xref linkend="which"/>
     </para>
 
-    <bridgehead renderas="sect4">Optional (Required if building GNOME)</bridgehead>
-    <para role="optional">
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
       <xref linkend="gobject-introspection"/>
     </para>
 
@@ -125,26 +133,32 @@
 <screen><userinput>sed -i '/generate-gtkdoc --rebase/s:^:# :' GNUmakefile.in</userinput></screen>
 
     <para>
-      <application>WebKit</application> takes a long time to compile, so if you
+      <application>WebKitGTK+</application> takes a long time to compile, so if you
       have a multicore CPU it can be useful to speed up the build by running
       make with multiple jobs.
     </para>
 
     <para>
       If you want to run make with just one core, install
-      <application>WebKit</application> by running the following commands:
+      <application>WebKitGTK+</application> by running the following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --enable-introspection &amp;&amp;
+<screen><userinput>patch -Np1 -i ../webkitgtk-&webkitgtk-version;-bison-1.patch &amp;&amp;
+./configure --prefix=/usr \
+            --libexecdir=/usr/lib/WebKit \
+            --enable-introspection &amp;&amp;
 make</userinput></screen>
 
     <para>
       If you have a multicore CPU and want to run make with multiple jobs
-      running in parallel, install <application>WebKit</application> with the
+      running in parallel, install <application>WebKitGTK+</application> with the
       following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --enable-introspection &amp;&amp;
+<screen><userinput>patch -Np1 -i ../webkitgtk-&webkitgtk-version;-bison-1.patch &amp;&amp;
+./configure --prefix=/usr \
+            --libexecdir=/usr/lib/WebKit \
+            --enable-introspection &amp;&amp;
 error_count=0
 until make -j$(getconf _NPROCESSORS_ONLN)
 do
@@ -172,7 +186,7 @@ unset error_count</userinput></screen>
 
     <para>
       <option>--enable-introspection</option>: This option enables support for
-      <application>Gobject Introspection</application> and is required for a
+      <application>GObject Introspection</application> and is required for a
       <application>GNOME</application> Desktop. If you don't have
       <application>Gobject Introspection</application> installed and don't want
       to install <application>GNOME</application> remove this option.
@@ -194,19 +208,27 @@ unset error_count</userinput></screen>
     </para>
 
     <para>
-      <option>--with-gtk=2.0</option>: This option forces
-      <application>WebKit</application> to compile against
+      <option>--enable-webkit2</option>: This switch enables building of
+      <application>WebKit2</application> libraries which some applications
+      like <application>DevHelp</application> can use and which will probably
+      be used in future releases of <application>GNOME</application> Desktop.
+    </para>
+
+    <para>
+      <parameter>--with-gtk=2.0</parameter>: This option forces
+      <application>WebKitGTK+</application> to compile against
       <application>GTK+ 2</application>, even if
       <application>GTK+ 3</application> is also installed. With
       <application>GTK+ 2</application>, everything
-      <application>Webkit</application> installs is suffixed with 1.0. When it
+      <application>WebKitGTK+</application> installs is suffixed with 1.0. When it
       is compiled against <application>GTK+ 3</application> everything it
       installs is suffixed with 3.0. Both versions can be installed alongside
       one another with no namespace conflicts.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gtk-doc-rebuild.xml"/>
+      href="../../xincludes/gtk-doc-rebuild.xml"/>
+
   </sect2>
 
   <sect2 role="content">
@@ -219,23 +241,17 @@ unset error_count</userinput></screen>
 
       <seglistitem>
         <seg>
-          jsc-1 or jsc-3 (depending on whether you installed the
-          <application>Gtk+-2</application> or <application>Gtk+-3</application>
-          version of <application>WebKit</application>).
+          jsc-1 or jsc-3
         </seg>
         <seg>
-          libwebkit-1.0.so and libjavascriptcoregtk-1.0.so or libwebkit-3.0.so
-          and libjavascriptcoregtk-3.0.so (depending on whether you installed
-          the <application>GTK+ 2</application> or
-          <application>GTK+ 3</application> version of
-          <application>WebKit</application>).
+          libjavascriptcoregtk-1.0.so and libwebkit-1.0.so or
+          libjavascriptcoregtk-3.0.so and libwebkit-3.0.so and
+          optionaly libwebkit2gtk-3.0.so
         </seg>
         <seg>
           /usr/include/webkit-1.0 and /usr/share/webkit-1.0 or
-          /usr/include/webkit-3.0 and /usr/share/webkit-3.0 (depending on
-          whether you installed the <application>GTK+ 2</application> or
-          <application>GTK+ 3</application> version of
-          <application>WebKit</application>).
+          /usr/include/webkit-3.0 and /usr/share/webkit-3.0 and
+          optionaly /usr/lib/WebKit
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -258,41 +274,29 @@ unset error_count</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libwebkit-1.0">
-        <term><filename class="libraryfile">libwebkit-1.0.so</filename></term>
-        <listitem>
-          <para>
-            contains the <application>WebKit</application> API functions for
-            <application>GTK+ 2</application>.
-          </para>
-          <indexterm zone="webkitgtk libwebkit-1.0">
-            <primary sortas="c-libwebkit-1.0">libwebkit-1.0.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="libwebkit-3.0">
-        <term><filename class="libraryfile">libwebkit-3.0.so</filename></term>
-        <listitem>
-          <para>
-            contains the <application>WebKit</application> API functions for
-            <application>GTK+ 3</application>.
-          </para>
-          <indexterm zone="webkitgtk libwebkit-3.0">
-            <primary sortas="c-libwebkit-3.0">libwebkit-3.0.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="libjavascriptcoregtk-1.0">
         <term><filename
         class="libraryfile">libjavascriptcoregtk-1.0.so</filename></term>
         <listitem>
           <para>
-            contains functions that are used by <command>jsc-1</command>.
+            contains core JavaScript API functions used by <command>jsc-1</command>
+            and <filename class="libraryfile">libwebkitgtk-1.0.so</filename>.
           </para>
           <indexterm zone="webkitgtk libjavascriptcoregtk-1.0">
             <primary sortas="c-libjavascriptcoregtk-1.0">libjavascriptcoregtk-1.0.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libwebkitgtk-1.0">
+        <term><filename class="libraryfile">libwebkitgtk-1.0.so</filename></term>
+        <listitem>
+          <para>
+            contains the <application>WebKitGTK+</application> API functions for
+            <application>GTK+ 2</application>.
+          </para>
+          <indexterm zone="webkitgtk libwebkitgtk-1.0">
+            <primary sortas="c-libwebkitgtk-1.0">libwebkitgtk-1.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -302,10 +306,36 @@ unset error_count</userinput></screen>
         class="libraryfile">libjavascriptcoregtk-3.0.so</filename></term>
         <listitem>
           <para>
-            contains functions that are used by <command>jsc-3</command>.
+            contains core JavaScript API functions used by <command>jsc-3</command>
+            and <filename class="libraryfile">libwebkitgtk-3.0.so</filename>.
           </para>
           <indexterm zone="webkitgtk libjavascriptcoregtk-3.0">
             <primary sortas="c-libjavascriptcoregtk-3.0">libjavascriptcoregtk-3.0.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libwebkitgtk-3.0">
+        <term><filename class="libraryfile">libwebkitgtk-3.0.so</filename></term>
+        <listitem>
+          <para>
+            contains the <application>WebKitGTK+</application> API functions for
+            <application>GTK+ 3</application>.
+          </para>
+          <indexterm zone="webkitgtk libwebkitgtk-3.0">
+            <primary sortas="c-libwebkitgtk-3.0">libwebkitgtk-3.0.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libwebkit2gtk-3.0">
+        <term><filename class="libraryfile">libwebkit2gtk-3.0.so</filename></term>
+        <listitem>
+          <para>
+            contains the <application>WebKit2</application> API functions.
+          </para>
+          <indexterm zone="webkitgtk libwebkit2gtk-3.0">
+            <primary sortas="c-libwebkit2gtk-3.0">libwebkit2gtk-3.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
