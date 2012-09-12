@@ -5,14 +5,13 @@
   %general-entities;
 
   <!ENTITY thunderbird-download-http
-  "http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
+           "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
   <!ENTITY thunderbird-download-ftp
-  "ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
-  <!ENTITY thunderbird-md5sum            "721088faf4bedfd8d7beb6f8295856d1">
-  <!ENTITY thunderbird-size              "99 MB">
-  <!ENTITY thunderbird-buildsize         "1.1 GB (42 MB installed)">
-  <!ENTITY thunderbird-time              "26 SBU">
-
+           "&mozilla-ftp;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.bz2">
+  <!ENTITY thunderbird-md5sum            "c84b83502892a34ecfe2d7a0fa58034f">
+  <!ENTITY thunderbird-size              "102 MB">
+  <!ENTITY thunderbird-buildsize         "2.7 GB (40 MB installed)">
+  <!ENTITY thunderbird-time              "30 SBU">
 ]>
 
 <sect1 id="thunderbird" xreflabel="Thunderbird-&thunderbird-version;">
@@ -38,7 +37,7 @@
       Gecko rendering engine to enable it to display and compose HTML emails.
     </para>
 
-    &lfs71_checked;
+    &lfs72_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -84,23 +83,37 @@
       <xref linkend="unzip"/>
     </para>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="libevent"/>,
+      <xref linkend="libvpx"/>,
+      <xref linkend="nspr"/>,
+      <xref linkend="nss"/>,
+      <xref linkend="sqlite"/> and
+      <xref linkend="yasm"/>
+    </para>
+
+    <note>
+      <para>
+        If you don't install recommended dependencies,
+        then internal copies of those packages will
+        be used. They might be tested to work, but
+        they can be out of date or contain security
+        holes.
+      </para>
+    </note>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="dbus-glib"/>,
       <xref linkend="doxygen"/>,
       <xref linkend="gnome-vfs"/> and <xref linkend="libgnomeui"/>
-      (for integration with the old version of <application>Gnome</application>),
-      <xref linkend="libnotify"/>,
-      <xref linkend="nss"/>,
-      <xref linkend="nspr"/>,
-      <xref linkend="startup-notification"/>,
-      <xref linkend="sqlite"/>,
-      <xref linkend="yasm"/> (or <xref linkend="libvpx"/>),
+      (for integration with the old version of <application>GNOME</application>),
       <ulink url="http://hunspell.sourceforge.net/">Hunspell</ulink>,
-      <xref linkend="libevent"/>,
-      <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing
-      the jemalloc code) and
-      <xref linkend="wget"/>
+      <xref linkend="libnotify"/>,
+      <xref linkend="startup-notification"/>,
+      <xref linkend="wget"/> and
+      <xref linkend="wireless_tools"/>
     </para>
 
     <para condition="html" role="usernotes">
@@ -123,50 +136,67 @@
 
 <screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 # If you have a multicore machine you can speed up the build by running
-# several jobs at once, but if you have a single core, delete this line:
-mk_add_options MOZ_MAKE_FLAGS="-j4"
+# several jobs at once by uncommenting the following line and setting the
+# value to number of CPU cores:
+#mk_add_options MOZ_MAKE_FLAGS="-j4"
 
-# If you have installed Yasm delete this option:
-ac_add_options --disable-webm
-
-# If you have installed DBus-Glib delete this option:
+# If you have installed DBus-Glib comment out this line:
 ac_add_options --disable-dbus
 
-# If you have installed wireless-tools delete this option:
+# If you have installed wireless-tools comment out this line:
 ac_add_options --disable-necko-wifi
 
-# If you have installed libnotify delete this option:
+# If you have installed libnotify comment out this line:
 ac_add_options --disable-libnotify
 
-# Uncomment these if you have installed them:
-# ac_add_options --enable-startup-notification
-# ac_add_options --enable-system-hunspell
-# ac_add_options --enable-system-sqlite
-# ac_add_options --with-system-libevent
-# ac_add_options --with-system-libvpx
-# ac_add_options --with-system-nspr
-# ac_add_options --with-system-nss
+# Uncomment these lines if you have installed optional dependencies:
+#ac_add_options --enable-system-hunspell
+#ac_add_options --enable-startup-notification
+
+# If you have not installed Yasm then uncomment this line:
+#ac_add_options --disable-webm
 
 # If you want to compile the Mozilla Calendar, uncomment this line:
-# ac_add_options --enable-calendar
+#ac_add_options --enable-calendar
 
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/thunderbuild
+# Comment out following options if you have not installed
+# recommended dependencies:
+ac_add_options --enable-system-sqlite
+ac_add_options --with-system-libevent
+ac_add_options --with-system-libvpx
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+
+# It is recommended not to touch anything below this line
+ac_add_options --prefix=/usr
+
 ac_add_options --disable-crashreporter
-ac_add_options --disable-debug
-ac_add_options --disable-debug-symbols
 ac_add_options --disable-installer
-ac_add_options --disable-static
-ac_add_options --disable-tests
 ac_add_options --disable-updater
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+
+ac_add_options --enable-optimize
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+
+ac_add_options --enable-gio
 ac_add_options --enable-official-branding
-ac_add_options --enable-shared
+ac_add_options --enable-safe-browsing
+ac_add_options --enable-url-classifier
+
 ac_add_options --enable-system-cairo
 ac_add_options --enable-system-ffi
-ac_add_options --prefix=/usr
+ac_add_options --enable-system-pixman
+
 ac_add_options --with-pthreads
+
+ac_add_options --with-system-bz2
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-png
 ac_add_options --with-system-zlib
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/thunderbuild
 EOF</userinput></screen>
 
     <para>
@@ -177,7 +207,9 @@ EOF</userinput></screen>
 <screen><userinput>make -f client.mk &amp;&amp;
 make -C thunderbuild/mail/installer</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
     <para>
       Install <application>Thunderbird</application> by running the following
@@ -185,15 +217,16 @@ make -C thunderbuild/mail/installer</userinput></screen>
     </para>
 
 <screen role="root"><userinput>mkdir -pv /usr/lib/thunderbird-&thunderbird-version; &amp;&amp;
-tar xf thunderbuild/mozilla/dist/thunderbird-&thunderbird-version;.en-US.linux-$(uname -m).tar.bz2 \
-  -C /usr/lib/thunderbird-&thunderbird-version; --strip-components=1 &amp;&amp;
+tar -xf thunderbuild/mozilla/dist/thunderbird-&thunderbird-version;.en-US.linux-$(uname -m).tar.bz2 \
+    -C /usr/lib/thunderbird-&thunderbird-version; --strip-components=1 &amp;&amp;
 ln -sfv ../lib/thunderbird-&thunderbird-version;/thunderbird /usr/bin</userinput></screen>
 
     <para>
       The above instructions just install the parts you need to run
       <application>Thunderbird</application>. Alternatively, if you want to
       install the full <application>Thunderbird</application> development
-      environment, as the <systemitem class="username">root</systemitem> user:
+      environment, run the following command as the
+      <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>make -C thunderbuild install</userinput></screen>
@@ -277,30 +310,32 @@ ln -sfv ../lib/thunderbird-&thunderbird-version;/thunderbird /usr/bin</userinput
       </tip>
 
     <para>
-      If you use a desktop environment like <application>Gnome</application> or
+      If you use a desktop environment like <application>GNOME</application> or
       <application>KDE</application> you may wish to create a
       <filename>thunderbird.desktop</filename> file so that
       <application>Thunderbird</application> appears in the panel's menus. If
-      you didn't enable startup-notification in your mozconfig change the
-      StartupNotify line to false. As the
-      <systemitem class="username">root</systemitem> user:
+      you didn't enable <application>startup-notification</application> in your
+      mozconfig then change the StartupNotify line to false. Run the following
+      commands as the <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>mkdir -pv /usr/share/applications &amp;&amp;
 cat &gt; /usr/share/applications/thunderbird.desktop &lt;&lt; "EOF" &amp;&amp;
 [Desktop Entry]
 Encoding=UTF-8
-Type=Application
-Name=Thunderbird
-Comment=Fetch Your Email
-Icon=thunderbird
-Exec=thunderbird
-Categories=Network;GTK;Application;Email;News;
-StartupNotify=true
+Name=Thunderbird Mail
+Comment=Send and receive mail with Thunderbird
+GenericName=Mail Client
+Exec=thunderbird %u
 Terminal=false
+Type=Application
+Icon=thunderbird
+Categories=Application;Network;Email;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;x-scheme-handler/mailto;
+StartupNotify=true
 EOF
 ln -sfv /usr/lib/thunderbird-&thunderbird-version;/chrome/icons/default/default256.png \
-  /usr/share/pixmaps/thunderbird.png</userinput></screen>
+        /usr/share/pixmaps/thunderbird.png</userinput></screen>
     </sect3>
   </sect2>
 
@@ -309,17 +344,15 @@ ln -sfv /usr/lib/thunderbird-&thunderbird-version;/chrome/icons/default/default2
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>thunderbird</seg>
         <seg>
-          Numerous libraries, email/newsgroups components, plugins, extensions,
-          and helper modules installed in <filename
-          class="directory">/usr/lib/thunderbird-&thunderbird-version;</filename>
+          thunderbird
         </seg>
-        <seg>/usr/lib/thunderbird-&thunderbird-version;</seg>
+        <seg>
+          /usr/lib/thunderbird-&thunderbird-version;
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -339,6 +372,9 @@ ln -sfv /usr/lib/thunderbird-&thunderbird-version;/chrome/icons/default/default2
           </indexterm>
         </listitem>
       </varlistentry>
+
     </variablelist>
+
   </sect2>
+
 </sect1>
