@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY webkitgtk-download-http "http://webkitgtk.org/releases/webkit-&webkitgtk-version;.tar.xz">
+  <!ENTITY webkitgtk-download-http "http://webkitgtk.org/releases/webkitgtk-&webkitgtk-version;.tar.xz">
   <!ENTITY webkitgtk-download-ftp  " ">
-  <!ENTITY webkitgtk-md5sum        "f7bd0bd4f323039f15e19c82a9a8313c">
-  <!ENTITY webkitgtk-size          "7.7 MB">
-  <!ENTITY webkitgtk-buildsize     "700 MB">
-  <!ENTITY webkitgtk-time          "30 SBU">
+  <!ENTITY webkitgtk-md5sum        "6da450ec7793c0a7873d8c8c2cae4eb8">
+  <!ENTITY webkitgtk-size          "8.2 MB">
+  <!ENTITY webkitgtk-buildsize     "800 MB">
+  <!ENTITY webkitgtk-time          "40 SBU">
 ]>
 
 <sect1 id="webkitgtk" xreflabel="WebKitGTK+-&webkitgtk-version;">
@@ -71,33 +71,27 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/webkit-&webkitgtk-version;-bison-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">WebKitGTK+ Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="geoclue"/>,
       <xref linkend="gperf"/>,
+      <xref linkend="gst10-plugins-base"/> or
       <xref linkend="gst-plugins-base"/>,
-      <xref linkend="gtk3"/> or <xref linkend="gtk2"/>,
+      <xref linkend="gtk3"/> or
+      <xref linkend="gtk2"/>,
       <xref linkend="icu"/>,
       <xref linkend="libxslt"/>,
       <xref linkend="libsoup"/>,
+      <xref linkend="mesalib"/>,
+      <xref linkend="ruby"/>,
       <xref linkend="sqlite"/> and
       <xref linkend="which"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="geoclue"/> and
       <xref linkend="gobject-introspection"/>
     </para>
 
@@ -117,13 +111,16 @@
   <sect2 role="installation">
     <title>Installation of WebKitGTK+</title>
 
-    <para>
-      If you have <application>pkg-config 0.23</application> or older installed
-      fix a bug in the configure script that will stop it detecting
-      <application>Gstreamer</application> correctly: 
-    </para>
-
-<screen><userinput>sed -i 's#=GST#=$GST#' configure</userinput></screen>
+    <warning>
+      <para>
+        If you are building <application>WebKitGTK+</application>
+        with <command>make</command> 3.82, make sure that you have built
+        it with the following
+        <ulink url="&patch-downloads;/make/make-3.82-upstream_fixes-3.patch">
+        patch</ulink> applied or <application>WebKitGTK+</application>
+        build will fail.
+      </para>
+    </warning>
 
     <para>
       If you have not installed <xref linkend="gtk-doc"/>, fix a bug that will
@@ -133,42 +130,15 @@
 <screen><userinput>sed -i '/generate-gtkdoc --rebase/s:^:# :' GNUmakefile.in</userinput></screen>
 
     <para>
-      <application>WebKitGTK+</application> takes a long time to compile, so if you
-      have a multicore CPU it can be useful to speed up the build by running
-      make with multiple jobs.
-    </para>
-
-    <para>
-      If you want to run make with just one core, install
-      <application>WebKitGTK+</application> by running the following commands:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../webkitgtk-&webkitgtk-version;-bison-1.patch &amp;&amp;
-./configure --prefix=/usr \
-            --libexecdir=/usr/lib/WebKit \
-            --enable-introspection &amp;&amp;
-make</userinput></screen>
-
-    <para>
-      If you have a multicore CPU and want to run make with multiple jobs
-      running in parallel, install <application>WebKitGTK+</application> with the
+      Install <application>WebKitGTK+</application> by running the
       following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../webkitgtk-&webkitgtk-version;-bison-1.patch &amp;&amp;
-./configure --prefix=/usr \
-            --libexecdir=/usr/lib/WebKit \
+<screen><userinput>./configure --prefix=/usr \
+            --libexecdir=/usr/lib/WebKitGTK \
+            --with-gstreamer=1.0 \
             --enable-introspection &amp;&amp;
-error_count=0
-until make -j$(getconf _NPROCESSORS_ONLN)
-do
-  if (( $((error_count++)) &gt; 4 ))
-  then
-    echo Too Many Errors
-    break
-  fi
-done
-unset error_count</userinput></screen>
+make</userinput></screen>
 
     <para>
       This package does not have a working testsuite.
@@ -185,38 +155,30 @@ unset error_count</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <option>--enable-introspection</option>: This option enables support for
-      <application>GObject Introspection</application> and is required for a
-      <application>GNOME</application> Desktop. If you don't have
-      <application>Gobject Introspection</application> installed and don't want
-      to install <application>GNOME</application> remove this option.
+      <option>--enable-introspection</option>: This switch enables support for
+      <application>Gobject Introspection</application> and is required for a
+      <application>GNOME</application> Desktop. Remove if you don't have
+      <application>Gobject Introspection</application> installed or you don't
+      want to install <application>GNOME</application>.
+    </para>
+    
+    <para>
+      <parameter>--with-gstreamer=1.0</parameter>: This switch forces use of
+      <application>GStreamer</application> 1.0 series which
+      <application>GNOME</application> 3.6 uses. Remove if you don't want
+      to install <application>GStreamer</application> 1.0 or you don't
+      want to install <application>GNOME</application>.
     </para>
 
     <para>
-      <command>error_count=0; until make ...</command>: Sadly
-      there are race conditions in the makefiles that will cause the build to
-      fail if you run make with multiple jobs. This simple hack works around
-      that problem by using <command>until</command> to keep running
-      <command>make</command> until it succeeds. The variable
-      <envar>error_count</envar> is incremented each time an error occurs and is
-      checked to ensure that no more than 5 errors occur. This is so that if an
-      error occurs that is <emphasis>not</emphasis> due to a race condition then
-      it will not keep repeating <command>make</command> forever.
-      <command>$(getconf _NPROCESSORS_ONLN)</command> prints the number of cores
-      your computer seems to have. If you would prefer, you can use any positive
-      integer such as 4.
+      <option>--disable-geolocation</option>: Use this option if you did not
+      install <xref linkend="geoclue"/> or <command>configure</command> will
+      fail.
     </para>
 
     <para>
-      <option>--enable-webkit2</option>: This switch enables building of
-      <application>WebKit2</application> libraries which some applications
-      like <application>DevHelp</application> can use and which will probably
-      be used in future releases of <application>GNOME</application> Desktop.
-    </para>
-
-    <para>
-      <parameter>--with-gtk=2.0</parameter>: This option forces
-      <application>WebKitGTK+</application> to compile against
+      <parameter>--with-gtk=2.0 --disable-webkit2</parameter>: These parameters
+      force <application>WebKitGTK+</application> to compile against
       <application>GTK+ 2</application>, even if
       <application>GTK+ 3</application> is also installed. With
       <application>GTK+ 2</application>, everything
@@ -245,13 +207,13 @@ unset error_count</userinput></screen>
         </seg>
         <seg>
           libjavascriptcoregtk-1.0.so and libwebkit-1.0.so or
-          libjavascriptcoregtk-3.0.so and libwebkit-3.0.so and
-          optionaly libwebkit2gtk-3.0.so
+          libjavascriptcoregtk-3.0.so, libwebkit2gtk-3.0.so and
+          libwebkit-3.0.so
         </seg>
         <seg>
           /usr/include/webkit-1.0 and /usr/share/webkit-1.0 or
-          /usr/include/webkit-3.0 and /usr/share/webkit-3.0 and
-          optionaly /usr/lib/WebKit
+          /usr/include/webkit-3.0, /usr/lib/WebKit and
+          /usr/share/webkit-3.0
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -274,7 +236,7 @@ unset error_count</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libjavascriptcoregtk-1.0">
+      <varlistentry id="libjavascriptcoregtk-1">
         <term><filename
         class="libraryfile">libjavascriptcoregtk-1.0.so</filename></term>
         <listitem>
@@ -282,26 +244,26 @@ unset error_count</userinput></screen>
             contains core JavaScript API functions used by <command>jsc-1</command>
             and <filename class="libraryfile">libwebkitgtk-1.0.so</filename>.
           </para>
-          <indexterm zone="webkitgtk libjavascriptcoregtk-1.0">
-            <primary sortas="c-libjavascriptcoregtk-1.0">libjavascriptcoregtk-1.0.so</primary>
+          <indexterm zone="webkitgtk libjavascriptcoregtk-1">
+            <primary sortas="c-libjavascriptcoregtk-1">libjavascriptcoregtk-1.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libwebkitgtk-1.0">
+      <varlistentry id="libwebkitgtk-1">
         <term><filename class="libraryfile">libwebkitgtk-1.0.so</filename></term>
         <listitem>
           <para>
             contains the <application>WebKitGTK+</application> API functions for
             <application>GTK+ 2</application>.
           </para>
-          <indexterm zone="webkitgtk libwebkitgtk-1.0">
-            <primary sortas="c-libwebkitgtk-1.0">libwebkitgtk-1.0.so</primary>
+          <indexterm zone="webkitgtk libwebkitgtk-1">
+            <primary sortas="c-libwebkitgtk-1">libwebkitgtk-1.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libjavascriptcoregtk-3.0">
+      <varlistentry id="libjavascriptcoregtk-3">
         <term><filename
         class="libraryfile">libjavascriptcoregtk-3.0.so</filename></term>
         <listitem>
@@ -309,33 +271,33 @@ unset error_count</userinput></screen>
             contains core JavaScript API functions used by <command>jsc-3</command>
             and <filename class="libraryfile">libwebkitgtk-3.0.so</filename>.
           </para>
-          <indexterm zone="webkitgtk libjavascriptcoregtk-3.0">
-            <primary sortas="c-libjavascriptcoregtk-3.0">libjavascriptcoregtk-3.0.so</primary>
+          <indexterm zone="webkitgtk libjavascriptcoregtk-3">
+            <primary sortas="c-libjavascriptcoregtk-3">libjavascriptcoregtk-3.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libwebkitgtk-3.0">
+      <varlistentry id="libwebkitgtk-3">
         <term><filename class="libraryfile">libwebkitgtk-3.0.so</filename></term>
         <listitem>
           <para>
             contains the <application>WebKitGTK+</application> API functions for
             <application>GTK+ 3</application>.
           </para>
-          <indexterm zone="webkitgtk libwebkitgtk-3.0">
-            <primary sortas="c-libwebkitgtk-3.0">libwebkitgtk-3.0.so</primary>
+          <indexterm zone="webkitgtk libwebkitgtk-3">
+            <primary sortas="c-libwebkitgtk-3">libwebkitgtk-3.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libwebkit2gtk-3.0">
+      <varlistentry id="libwebkit2gtk-3">
         <term><filename class="libraryfile">libwebkit2gtk-3.0.so</filename></term>
         <listitem>
           <para>
             contains the <application>WebKit2</application> API functions.
           </para>
-          <indexterm zone="webkitgtk libwebkit2gtk-3.0">
-            <primary sortas="c-libwebkit2gtk-3.0">libwebkit2gtk-3.0.so</primary>
+          <indexterm zone="webkitgtk libwebkit2gtk-3">
+            <primary sortas="c-libwebkit2gtk-3">libwebkit2gtk-3.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
