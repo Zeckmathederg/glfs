@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/3.4/gdm-&gdm-version;.tar.xz">
-  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/3.4/gdm-&gdm-version;.tar.xz">
-  <!ENTITY gdm-md5sum        "fda0470340f9c0bc2f8daccb280af520">
+  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/3.6/gdm-&gdm-version;.tar.xz">
+  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/3.6/gdm-&gdm-version;.tar.xz">
+  <!ENTITY gdm-md5sum        "5a11f89761612e35cd326de347a97e14">
   <!ENTITY gdm-size          "1.6 MB">
-  <!ENTITY gdm-buildsize     "50 MB">
-  <!ENTITY gdm-time          "0.8 SBU">
+  <!ENTITY gdm-buildsize     "65 MB">
+  <!ENTITY gdm-time          "0.5 SBU">
 ]>
 
 <sect1 id="gdm" xreflabel="GDM-&gdm-version;">
@@ -23,7 +23,7 @@
   <title>GDM-&gdm-version;</title>
 
   <indexterm zone="gdm">
-    <primary sortas="a-gdm">gdm</primary>
+    <primary sortas="a-GDM">GDM</primary>
   </indexterm>
 
   <sect2 role="package">
@@ -35,7 +35,7 @@
       and remote displays.
     </para>
 
-    &lfs70_checked;
+    &lfs72_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -71,56 +71,36 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/gdm-&gdm-version;-vt-allocation-hack-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/gdm-&gdm-version;-blfs-patch-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">GDM Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="accountsservice"/>,
       <xref linkend="dconf"/>,
-      <xref linkend="gnome-doc-utils"/>,
-      <xref linkend="gtk3"/>,
       <xref linkend="libcanberra"/>,
-      <xref linkend="linux-pam"/> and
-      <xref linkend="nss"/>
-    </para>
-
-    <bridgehead renderas="sect4">Required (runtime)</bridgehead>
-    <para role="required">
-      <xref linkend="gnome-session"/> and either
-      <xref linkend="gnome-shell"/> or
-      <xref linkend="gnome-panel"/> and
-      <xref linkend="metacity"/> (for the Greeter Window Manager).
+      <xref linkend="linux-pam"/>,
+      <xref linkend="nss"/> and
+      <xref linkend="yelp-xsl"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="consolekit"/>
-      (Required for Shutdown/Restart functionality),
       <xref linkend="gobject-introspection"/>,
-      <xref linkend="libxklavier"/>,
-      <xref linkend="rarian"/> and
+      <xref linkend="iso-codes"/> and
       <xref linkend="upower"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="check"/> (required to run the testsuite)
+      <xref linkend="check"/>
+    </para>
+
+    <bridgehead renderas="sect4">Runtime Dependencies</bridgehead>
+    <para role="required">
+      <xref linkend="consolekit"/>,
+      <xref linkend="gnome-session"/> and either
+      <xref linkend="gnome-shell"/> or
+      <xref linkend="metacity"/>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -149,13 +129,15 @@ usermod -a -G video gdm</userinput></screen>
       commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../gdm-&gdm-version;-vt-allocation-hack-1.patch &amp;&amp;
-patch -Np1 -i ../gdm-&gdm-version;-blfs-patch-1.patch &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --sysconfdir=/etc \
             --localstatedir=/var \
             --libexecdir=/usr/lib/gdm \
+            --with-initial-vt=7 \
             --with-at-spi-registryd-directory=/usr/lib/at-spi2-core \
+            --with-authentication-agent-directory=/usr/lib/polkit-gnome \
+            --with-check-accelerated-directory=/usr/lib/gnome-session \
+            --with-consolekit-directory=/usr/lib/ConsoleKit \
             --disable-static &amp;&amp;
 make</userinput></screen>
 
@@ -169,8 +151,7 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
-</userinput></screen>
+chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm</userinput></screen>
 
   </sect2>
 
@@ -178,18 +159,25 @@ chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--libexecdir=/usr/lib/gdm</parameter>: This
-      parameter is used so that the <application>GDM</application> internal
-      support programs are installed in the preferred location of <filename
-      class="directory">/usr/lib/gdm</filename> instead of <filename
-      class="directory">/usr/libexec</filename>.
+      <parameter>--with-initial-vt=7</parameter>: This switch
+      causes <application>GDM</application> to start on vt7
+      instead of first free VT.
+    </para>
+
+    <para>
+      <parameter>--with-*-directory=...</parameter>: These switches
+      specify location of programs that are used at runtime.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/without-scrollkeeper.xml"/>
+    <para>
+      <parameter>--with-default-pam-config=lfs</parameter>: Use this
+      switch if you did not create <filename>/etc/lfs-release</filename>
+      or distribution auto detection will fail and you will be unable
+      to use <application>GDM</application>.
+    </para>
 
   </sect2>
 
@@ -199,7 +187,9 @@ chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
     <sect3 id="gdm-config">
       <title>Config Files</title>
 
-      <para><filename>/etc/gdm/custom.conf</filename></para>
+      <para>
+        <filename>/etc/gdm/custom.conf</filename>
+      </para>
 
       <indexterm zone="gdm gdm-config">
         <primary sortas="e-etc-gdm-custom.conf">
@@ -214,7 +204,7 @@ chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
       <para>
         The GDM daemon is configured using the
         <filename>/etc/gdm/custom.conf</filename> file.
-        Default values are stored in GConf in the
+        Default values are stored in GSettings in the
         <filename>gdm.schemas</filename> file. It is recommended that end-users
         modify the <filename>/etc/gdm/custom.conf</filename> file
         because the schemas file may be overwritten when the user updates their
@@ -275,10 +265,10 @@ chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
 
       <seglistitem>
         <seg>
-          gdm, gdmflexiserver and gdm-screenshot
+          gdm and gdm-screenshot
         </seg>
         <seg>
-          libgdmgreeter.so and libgdmsimplegreeter.so
+          libgdm.so and libgdmsimplegreeter.so
         </seg>
         <seg>
           /etc/dconf/db/gdm.d,
@@ -286,9 +276,12 @@ chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
           /usr/include/gdm,
           /usr/lib/gdm,
           /usr/share/gdm,
-          /usr/share/gnome/help/gdm,
-          /usr/share/omf/gdm and
-          /var/{cache,lib,log,run}/gdm
+          /usr/share/help/*/gdm,
+          /var/cache/gdm,
+          /var/gdm,
+          /var/lib/gdm,
+          /var/log/gdm and
+          /var/run/gdm
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -310,25 +303,11 @@ chown -R -v gdm:gdm /var/lib/gdm /var/cache/gdm /var/log/gdm
         </listitem>
       </varlistentry>
 
-      <varlistentry id="gdmflexiserver">
-        <term><command>gdmflexiserver</command></term>
-        <listitem>
-          <para>
-            is the flexi server mechanism which allows to run 
-            <application>GDM sessions</application>
-            on demand in a new virtual console.
-          </para>
-          <indexterm zone="gdm gdmflexiserver">
-            <primary sortas="b-gdmflexiserver">gdmflexiserver</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="gdm-screenshot">
         <term><command>gdm-screenshot</command></term>
         <listitem>
           <para>
-            is a screenshot tool.
+            is a <application>GDM</application> screenshot tool.
           </para>
           <indexterm zone="gdm gdm-screenshot">
             <primary sortas="b-gdm-screenshot">gdm-screenshot</primary>
