@@ -4,15 +4,15 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gvfs-download-http "&gnome-download-http;/gvfs/1.12/gvfs-&gvfs-version;.tar.xz">
-  <!ENTITY gvfs-download-ftp  "&gnome-download-ftp;/gvfs/1.12/gvfs-&gvfs-version;.tar.xz">
-  <!ENTITY gvfs-md5sum        "348edf09eca150ba7065017127f63c64">
+  <!ENTITY gvfs-download-http "&gnome-download-http;/gvfs/1.14/gvfs-&gvfs-version;.tar.xz">
+  <!ENTITY gvfs-download-ftp  "&gnome-download-ftp;/gvfs/1.14/gvfs-&gvfs-version;.tar.xz">
+  <!ENTITY gvfs-md5sum        "eaa0b567036be3c3c1de6a59f5af77d5">
   <!ENTITY gvfs-size          "1.4 MB">
-  <!ENTITY gvfs-buildsize     "76 MB">
-  <!ENTITY gvfs-time          "0.8 SBU">
+  <!ENTITY gvfs-buildsize     "90 MB">
+  <!ENTITY gvfs-time          "0.7 SBU">
 ]>
 
-<sect1 id="gvfs" xreflabel="gvfs-&gvfs-version;">
+<sect1 id="gvfs" xreflabel="Gvfs-&gvfs-version;">
   <?dbhtml filename="gvfs.html"?>
 
   <sect1info>
@@ -20,10 +20,10 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>gvfs-&gvfs-version;</title>
+  <title>Gvfs-&gvfs-version;</title>
 
   <indexterm zone="gvfs">
-    <primary sortas="a-gvfs">gvfs</primary>
+    <primary sortas="a-Gvfs">Gvfs</primary>
   </indexterm>
 
   <sect2 role="package">
@@ -82,7 +82,8 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="libgnome-keyring"/>,
+      <xref linkend="gtk3"/>,
+      <xref linkend="libsecret"/>,
       <xref linkend="libsoup"/> and
       <xref linkend="udisks2"/>
     </para>
@@ -91,14 +92,23 @@
     <para role="optional">
       <xref linkend="avahi"/>,
       <xref linkend="bluez"/>,
+      <xref linkend="dbus-glib"/>,
       <xref linkend="fuse"/>,
       <xref linkend="libarchive"/>,
       <ulink url="http://www.videolan.org/developers/libbluray.html">
       libbluray</ulink>,
       <ulink url="http://www.gnu.org/software/libcdio/">libcdio</ulink>,
+      <xref linkend="libgcrypt"/>,
       <ulink url="http://www.gphoto.org/">libgphoto2</ulink>,
-      <ulink url="http://www.libimobiledevice.org/">libimobiledevice</ulink> and
+      <ulink url="http://www.libimobiledevice.org/">libimobiledevice</ulink>,
+      <xref linkend="openssh"/> and
       <xref linkend="samba3"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional (Runtime)</bridgehead>
+    <para role="optional">
+      <xref linkend="obex-data-server"/> and
+      <xref linkend="obexd"/>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -116,7 +126,8 @@
 
 <screen><userinput>./configure --prefix=/usr \
             --sysconfdir=/etc \
-            --libexecdir=/usr/lib/gvfs &amp;&amp;
+            --libexecdir=/usr/lib/gvfs \
+            --disable-gphoto2 &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -128,6 +139,17 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <option>--disable-gphoto2</option>: This switch is required if
+      <application>libgphoto2</application> is not installed. Remove
+      it if you installed <application>libgphoto2</application> and
+      wish to use it with <application>Gvfs</application>.
+    </para>
 
   </sect2>
 
@@ -136,19 +158,19 @@ make</userinput></screen>
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Library</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>
-          gvfs-cat, gvfs-copy, gvfs-info, gvfs-less, gvfs-ls, 
-          gvfs-mime, gvfs-mkdir, gvfs-monitor-dir, gvfs-monitor-file, 
-          gvfs-mount, gvfs-move, gvfs-open, gvfs-rename, gvfs-rm, 
-          gvfs-save, gvfs-set-attribute, gvfs-trash, gvfs-tree 
-          and several executables in /usr/lib/gvfs
+          gvfs-cat, gvfs-copy, gvfs-info, gvfs-less, gvfs-ls,
+          gvfs-mime, gvfs-mkdir, gvfs-monitor-dir, gvfs-monitor-file,
+          gvfs-mount, gvfs-move, gvfs-open, gvfs-rename, gvfs-rm,
+          gvfs-save, gvfs-set-attribute, gvfs-trash, gvfs-tree,
+          gvfsd, gvfsd-fuse and gvfsd-metadata
         </seg>
         <seg>
-          libgvfscommon.so and libgvfscommon-dnssd.so
+          libgvfscommon.so
         </seg>
         <seg>
           /usr/include/gvfs-client,
@@ -167,8 +189,8 @@ make</userinput></screen>
         <term><command>gvfs-cat</command></term>
         <listitem>
           <para>
-            prints a file to standard output using the virtual 
-            file system to access the file via a URI.
+            concatenates the given files and prints them
+            to the standard output.
           </para>
           <indexterm zone="gvfs gvfs-cat">
             <primary sortas="b-gvfs-cat">gvfs-cat</primary>
@@ -180,8 +202,7 @@ make</userinput></screen>
         <term><command>gvfs-copy</command></term>
         <listitem>
           <para>
-            copies a file from one URI location to another using 
-            the virtual file system.
+            copies a file from one URI location to another.
           </para>
           <indexterm zone="gvfs gvfs-copy">
             <primary sortas="b-gvfs-copy">gvfs-copy</primary>
@@ -193,8 +214,7 @@ make</userinput></screen>
         <term><command>gvfs-info</command></term>
         <listitem>
           <para>
-            prints information about files and directories using 
-            the virtual file system.
+            shows information about the given locations.
           </para>
           <indexterm zone="gvfs gvfs-info">
             <primary sortas="b-gvfs-info">gvfs-info</primary>
@@ -220,11 +240,24 @@ make</userinput></screen>
         <term><command>gvfs-ls</command></term>
         <listitem>
           <para>
-            lists the content of directories using the virtual file 
-            system.
+            lists information about the given locations.
           </para>
           <indexterm zone="gvfs gvfs-ls">
             <primary sortas="b-gvfs-ls">gvfs-ls</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gvfs-mime">
+        <term><command>gvfs-mime</command></term>
+        <listitem>
+          <para>
+            is used to query information about applications that are
+            registered to handle a mime-type, or set the default
+            handler for a mime-type.
+          </para>
+          <indexterm zone="gvfs gvfs-mime">
+            <primary sortas="b-gvfs-mime">gvfs-mime</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -233,8 +266,7 @@ make</userinput></screen>
         <term><command>gvfs-mkdir</command></term>
         <listitem>
           <para>
-            makes a directory specified by an URI using 
-            the virtual file system.
+            creates a directory specified by an URI.
           </para>
           <indexterm zone="gvfs gvfs-mkdir">
             <primary sortas="b-gvfs-mkdir">gvfs-mkdir</primary>
@@ -246,8 +278,9 @@ make</userinput></screen>
         <term><command>gvfs-monitor-dir</command></term>
         <listitem>
           <para>
-            monitors the change content of a directory using 
-            the virtual file system.
+            prints information about file creation, deletion, file content and
+            attribute changes and mount and unmount operations inside the
+            specified directories.
           </para>
           <indexterm zone="gvfs gvfs-monitor-dir">
             <primary sortas="b-gvfs-monitor-dir">gvfs-monitor-dir</primary>
@@ -259,8 +292,8 @@ make</userinput></screen>
         <term><command>gvfs-monitor-file</command></term>
         <listitem>
           <para>
-            monitors the change of a file using the virtual file 
-            system.
+            prints information about creation, deletion, content and attribute
+            changes and mount and unmount operations affecting the monitored files.
           </para>
           <indexterm zone="gvfs gvfs-monitor-file">
             <primary sortas="b-gvfs-monitor-file">gvfs-monitor-file</primary>
@@ -272,8 +305,8 @@ make</userinput></screen>
         <term><command>gvfs-mount</command></term>
         <listitem>
           <para>
-            mounts, unmounts and lists file systems using the 
-            virtual file system.
+            provides commandline access to various aspects of GIOs mounting
+            functionality.
           </para>
           <indexterm zone="gvfs gvfs-mount">
             <primary sortas="b-gvfs-mount">gvfs-mount</primary>
@@ -285,8 +318,7 @@ make</userinput></screen>
         <term><command>gvfs-move</command></term>
         <listitem>
           <para>
-            moves a file from one URI location to another using 
-            the virtual file system.
+            moves a file from one URI location to another.
           </para>
           <indexterm zone="gvfs gvfs-move">
             <primary sortas="b-gvfs-move">gvfs-move</primary>
@@ -298,7 +330,8 @@ make</userinput></screen>
         <term><command>gvfs-open</command></term>
         <listitem>
           <para>
-            opens an URI using the appropiate application.
+            opens files with the default application that is registered
+            to handle files of that type.
           </para>
           <indexterm zone="gvfs gvfs-open">
             <primary sortas="b-gvfs-open">gvfs-open</primary>
@@ -310,8 +343,7 @@ make</userinput></screen>
         <term><command>gvfs-rename</command></term>
         <listitem>
           <para>
-            changes the name of a file or directory using the 
-            virtual file system.
+            changes the name of a file or directory.
           </para>
           <indexterm zone="gvfs gvfs-rename">
             <primary sortas="b-gvfs-rename">gvfs-rename</primary>
@@ -323,8 +355,7 @@ make</userinput></screen>
         <term><command>gvfs-rm</command></term>
         <listitem>
           <para>
-            removes a directory entry using the virtual file 
-            system via a URI.
+            removes a file.
           </para>
           <indexterm zone="gvfs gvfs-rm">
             <primary sortas="b-gvfs-rm">gvfs-rm</primary>
@@ -336,11 +367,23 @@ make</userinput></screen>
         <term><command>gvfs-save</command></term>
         <listitem>
           <para>
-            saves information to a file using the virtual 
-            file system.
+            reads from the standard input and saves the data to
+            the given location.
           </para>
           <indexterm zone="gvfs gvfs-save">
             <primary sortas="b-gvfs-save">gvfs-save</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gvfs-set-attribute">
+        <term><command>gvfs-set-attribute</command></term>
+        <listitem>
+          <para>
+            allows to set a file attribute on a file.
+          </para>
+          <indexterm zone="gvfs gvfs-set-attribute">
+            <primary sortas="b-gvfs-set-attribute">gvfs-set-attribute</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -349,8 +392,7 @@ make</userinput></screen>
         <term><command>gvfs-trash</command></term>
         <listitem>
           <para>
-            moves a directory entry to the trash using the 
-            virtual file system.
+            sends files or directories to the "Trashcan".
           </para>
           <indexterm zone="gvfs gvfs-trash">
             <primary sortas="b-gvfs-trash">gvfs-trash</primary>
@@ -362,8 +404,8 @@ make</userinput></screen>
         <term><command>gvfs-tree</command></term>
         <listitem>
           <para>
-            lists contents of directories in a tree-like format 
-            using the virtual file system.
+            lists the contents of the given directories recursively,
+            in a tree-like format.
           </para>
           <indexterm zone="gvfs gvfs-tree">
             <primary sortas="b-gvfs-tree">gvfs-tree</primary>
@@ -371,28 +413,54 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libgvfscommon">
-        <term><filename class='libraryfile'>libgvfscommon.so</filename></term>
+      <varlistentry id="gvfsd">
+        <term><command>gvfsd</command></term>
         <listitem>
           <para>
-            contains common API functions used in 
-            <application>Gvfs</application> programs.
+            is the main daemon for the <application>Gvfs</application>
+           virtual filesystem.
           </para>
-          <indexterm zone="gvfs libgvfscommon">
-            <primary sortas="c-libgvfscommon">libgvfscommon.so</primary>
+          <indexterm zone="gvfs gvfsd">
+            <primary sortas="b-gvfsd">gvfsd</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libgvfscommon-dnssd">
-        <term><filename class='libraryfile'>libgvfscommon-dnssd.so</filename></term>
+      <varlistentry id="gvfsd-fuse">
+        <term><command>gvfsd-fuse</command></term>
         <listitem>
           <para>
-            contains API functions used in
-            <application>Gvfs</application> DNS/SD backend.
+            maintains a FUSE mount to make <application>Gvfs</application>
+            backends available to POSIX applications.
           </para>
-          <indexterm zone="gvfs libgvfscommon-dnssd">
-            <primary sortas="c-libgvfscommon-dnssd">libgvfscommon-dnssd.so</primary>
+          <indexterm zone="gvfs gvfsd-fuse">
+            <primary sortas="b-gvfsd-fuse">gvfsd-fuse</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gvfsd-metadata">
+        <term><command>gvfsd-metadata</command></term>
+        <listitem>
+          <para>
+            is a daemon acting as a write serialiser to the internal
+            <application>Gvfs</application> metadata storage.
+          </para>
+          <indexterm zone="gvfs gvfsd-metadata">
+            <primary sortas="b-gvfsd-metadata">gvfsd-metadata</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libgvfscommon">
+        <term><filename class="libraryfile">libgvfscommon.so</filename></term>
+        <listitem>
+          <para>
+            contains the common API functions used in 
+            <application>Gvfs</application> programs.
+          </para>
+          <indexterm zone="gvfs libgvfscommon">
+            <primary sortas="c-libgvfscommon">libgvfscommon.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
