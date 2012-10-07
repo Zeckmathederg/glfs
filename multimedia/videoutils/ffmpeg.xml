@@ -7,10 +7,10 @@
   <!ENTITY ffmpeg-download-http
     "http://ffmpeg.org/releases/ffmpeg-&ffmpeg-version;.tar.bz2">
   <!ENTITY ffmpeg-download-ftp  " ">
-  <!ENTITY ffmpeg-md5sum        "93c1908022567b321df74db7214da6ac">
-  <!ENTITY ffmpeg-size          "5.7 MB">
-  <!ENTITY ffmpeg-buildsize     "244 MB">
-  <!ENTITY ffmpeg-time          "3.6 SBU">
+  <!ENTITY ffmpeg-md5sum        "3ed526cea20c1bffb5a37f7730f710bd">
+  <!ENTITY ffmpeg-size          "6.2 MB">
+  <!ENTITY ffmpeg-buildsize     "90 MB (plus 805 MB for tests)">
+  <!ENTITY ffmpeg-time          "3.2 SBU (plus 2.0 SBU for tests)">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -70,48 +70,41 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="faac"/>,
+      <xref linkend="freetype2"/>,
+      <xref linkend="lame"/>,
+      <xref linkend="libtheora"/>,
+      <xref linkend="libvorbis"/>,
+      <xref linkend="libvpx"/>,
+      <xref linkend="openjpeg"/>,
+      <xref linkend="openssl"/>,
+      <xref linkend="sdl"/>,
+      <xref linkend="speex"/>,
+      <xref linkend="xorg7-lib"/>,
+      <xref linkend="xvid"/>, and
       <xref linkend="yasm"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="faad2"/>,
-      <xref linkend="lame"/>,
-      <xref linkend="libtheora"/>,
-      <xref linkend="libvorbis"/>,
-      <xref linkend="libvpx"/>,
-      <xref linkend="xorg7-lib"/>,
-      <ulink url="http://www.videolan.org/developers/x264.html">x264</ulink>
-      <xref linkend="xvid"/>,
+      <xref linkend="gnutls"/>,
+      <ulink url="http://www.videolan.org/developers/x264.html">x264</ulink>,
       <ulink url="http://sourceforge.net/projects/opencore-amr">OpenCore AMR</ulink>,
-      <xref linkend="faac"/>,
-      <xref linkend="freetype2"/>,
       <ulink url="http://libgsm.sourcearchive.com/">GSM</ulink>,
       <ulink url="http://sourceforge.net/projects/libdc1394">libdc1394</ulink>,
-      <ulink url="http://svn.mplayerhq.hu/nut/src/trunk/">libnut</ulink>
-         (SVN checkout),
-      <ulink url="http://xavs.sourceforge.net/">libxavs</ulink>
-         (SVN checkout),
+      <ulink url="http://svn.mplayerhq.hu/nut/src/trunk/">libnut</ulink> (SVN checkout),
+      <ulink url="http://xavs.sourceforge.net/">libxavs</ulink> (SVN checkout),
       <ulink url="http://sourceforge.net/projects/librtmp">librtmp</ulink>,
       <ulink url="http://diracvideo.org/">libschroedinger</ulink>,
       <ulink url="http://medialibrary.sourceforge.net/">MediaLibrary</ulink>,
-      <ulink
-      url="http://connect.creativelabs.com/openal/default.aspx">OpenAL</ulink>,
+      <ulink url="http://connect.creativelabs.com/openal/default.aspx">OpenAL</ulink>,
       <ulink url="http://tipok.org.ua/node/17">libaacplus</ulink>,
       <ulink url="http://code.google.com/p/libass/">libass</ulink>,
       <ulink url="http://www.celt-codec.org/">libcelt</ulink>,
       <ulink url="http://ftp.gnu.org/pub/gnu/libcdio/">libcdio</ulink>,
-      <ulink
-      url="http://sourceforge.net/projects/opencvlibrary/">libopencv</ulink>,
+      <ulink url="http://sourceforge.net/projects/opencvlibrary/">libopencv</ulink>,
       <ulink url="http://sourceforge.net/projects/libdc1394/">libdc1394</ulink>,
-      <ulink url="http://linuxtv.org/downloads/v4l-utils/">libv4l2</ulink>,
-      <xref linkend="openjpeg"/>
-        (<application>FFmpeg</application> includes code for its own jpeg2000
-        encoder and decoder, which is enabled by default),
-      <xref linkend="speex"/>,
-      <xref linkend="gnutls"/>,
-      <xref linkend="openssl"/>,
-      <xref linkend="sdl"/> and
+      <ulink url="http://linuxtv.org/downloads/v4l-utils/">libv4l2</ulink>, and
       <ulink url="http://www.nongnu.org/texi2html">texi2html</ulink>
         (to build HTML documentation).</para>
 
@@ -133,41 +126,65 @@
   <sect2 role="installation">
     <title>Installation of FFmpeg</title>
 
+    <para>If you have not installed <application>Xorg</application> in
+    <filename class='directory'>/usr</filename>, tell <filename>configure</filename> 
+    where to find it:</para>
+
+<screen><userinput>export LIBRARY_PATH=$XORG_PREFIX/lib</userinput></screen>
+
     <para>
       Install <application>FFmpeg</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr   \
-            --enable-gpl    \
-            --enable-shared \
-            --disable-static &amp;&amp;
+<screen><userinput>./configure --prefix=/usr        \
+            --disable-debug      \
+            --enable-shared      \
+            --disable-static     \
+            --enable-gpl         \
+            --enable-x11grab     \
+            --enable-postproc    \
+            --enable-version3    \
+            --enable-nonfree     \
+            --enable-libfaac     \
+            --enable-libfreetype \
+            --enable-libmp3lame  \
+            --enable-libopenjpeg \
+            --enable-libspeex    \
+            --enable-libtheora   \
+            --enable-libvorbis   \
+            --enable-libvpx      \
+            --enable-libxvid     \
+            --enable-libpulse    \
+            --enable-openssl     &amp;&amp;
 make</userinput></screen>
 
+<!--
     <para>To convert the docs to html use the following commands:</para>
 
 <screen><userinput>sed -i '/@top/d;/ignore$/d'    doc/*.texi                   &amp;&amp;
 sed -i '/@include avoptions/d' doc/avtools-common-opts.texi &amp;&amp;
 
 for DOC in doc/*.texi; do
-   makeinfo --html --no-split -o ${DOC%texi}html ${DOC}
+   makeinfo - -html - -no-split -o ${DOC%texi}html ${DOC}
 done</userinput></screen>
+-->
 
     <para>
       If you have <xref linkend="doxygen"/> installed and wish to create the API
-      documentation (takes about 150 MB of space), issue the command
+      documentation (takes about 444 MB of space, 26 SBU), issue the command
       <command>doxygen</command>.
     </para>
-
-    <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem>
     user:</para>
 
-<screen role="root"><userinput>make install     &amp;&amp;
-make install-man &amp;&amp;
-mkdir -p                  /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
-cp    -v doc/*.{html,txt} /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
+<screen role="root"><userinput>make install                                 &amp;&amp;
+mkdir -p           /usr/share/doc/ffmpeg-&ffmpeg-version; &amp;&amp;
+cp    -v doc/*.txt /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></screen>
+
+    <para>The tests, if desired, need to be run after installation.  
+    To test the package, run <command>make check</command>.</para>
 
     <para>
       The <application>FFmpeg</application> source contains a tool called
@@ -188,8 +205,8 @@ cp    -v doc/*.{html,txt} /usr/share/doc/ffmpeg-&ffmpeg-version;</userinput></sc
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>mkdir -p        /usr/share/doc/ffmpeg-&ffmpeg-version;/api &amp;&amp;
-cp    -v doxy/* /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
+<screen role="root"><userinput>mkdir -p         /usr/share/doc/ffmpeg-&ffmpeg-version;/api &amp;&amp;
+cp    -av doxy/* /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
@@ -222,16 +239,6 @@ cp    -v doxy/* /usr/share/doc/ffmpeg-&ffmpeg-version;/api</userinput></screen>
       from linking FFmpeg to another library.
     </para>
 
-    <para>
-      <command>sed -i '/@top/d;/ignore$/d' *.texi</command> and
-      <command>sed -i '/@include avoptions/d' avtools-common-opts.texi</command>:
-      these seds work around problems with the .texi files.
-    </para>
-
-    <para>
-      <command>makeinfo --html --no-split -o ${DOC%texi}html ${DOC}</command>:
-      this converts the .texi files into html.
-    </para>
   </sect2>
 
   <sect2 role="configuration">
