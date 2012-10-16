@@ -180,16 +180,12 @@
 <screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
 <literal>#!/bin/sh
 
-# Begin $rc_base/rc.iptables
+# Begin rc.iptables
 
 # Insert connection-tracking modules
 # (not needed if built into the kernel)
-modprobe ip_tables
-modprobe iptable_filter
-modprobe ip_conntrack
-modprobe ip_conntrack_ftp
-modprobe ipt_state
-modprobe ipt_LOG
+modprobe nf_conntrack
+modprobe xt_LOG
 
 # Enable broadcast echo Protection
 echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
@@ -248,7 +244,7 @@ iptables -A OUTPUT -j ACCEPT
 # Permit answers on already established connections
 # and permit new connections related to established ones
 # (e.g. port mode ftp)
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Log everything else. What's Windows' latest exploitable vulnerability?
 iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
@@ -290,7 +286,7 @@ chmod 700 /etc/rc.d/rc.iptables</userinput></screen>
 <screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
 <literal>#!/bin/sh
 
-# Begin $rc_base/rc.iptables
+# Begin rc.iptables
 
 echo
 echo "You're using the example configuration for a setup of a firewall"
@@ -306,16 +302,11 @@ echo
 
 # Insert iptables modules (not needed if built into the kernel).
 
-modprobe ip_tables
-modprobe iptable_filter
-modprobe ip_conntrack
-modprobe ip_conntrack_ftp
-modprobe ipt_state
-modprobe iptable_nat
-modprobe ip_nat_ftp
-modprobe ipt_MASQUERADE
-modprobe ipt_LOG
-modprobe ipt_REJECT
+modprobe nf_conntrack
+modprobe nf_conntrack_ftp
+modprobe xt_conntrack
+modprobe xt_LOG
+modprobe xt_state
 
 # Enable broadcast echo Protection
 echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
@@ -365,8 +356,8 @@ iptables -A INPUT  -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 # Allow forwarding if the initiated on the intranet
-iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -A FORWARD  -i ! ppp+ -m state --state NEW      -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD  -i ! ppp+ -m conntrack --ctstate NEW      -j ACCEPT
 
 # Do masquerading
 # (not needed if intranet is not using private ip-addresses)
@@ -436,7 +427,7 @@ iptables -A OUTPUT -o ! ppp+  -j ACCEPT</literal></screen>
       themselves, you could open OUTPUT generally and restrict
       INPUT.</para>
 
-<screen><literal>iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+<screen><literal>iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -j ACCEPT</literal></screen>
 
       <para>However, it is generally not advisable to leave OUTPUT
@@ -457,7 +448,7 @@ iptables -A OUTPUT -j ACCEPT</literal></screen>
           <para>Squid is caching the web:</para>
 
 <screen><literal>iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT  -p tcp --sport 80 -m state --state ESTABLISHED \
+iptables -A INPUT  -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED \
   -j ACCEPT</literal></screen>
 
         </listitem>
@@ -496,9 +487,9 @@ iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT</literal><
           that came in after netfilter's timeout or some types of
           network scans) insert these rules at the top of the chain:</para>
 
-<screen><literal>iptables -I INPUT 0 -p tcp -m state --state INVALID \
+<screen><literal>iptables -I INPUT 0 -p tcp -m conntrack --ctstate INVALID \
   -j LOG --log-prefix "FIREWALL:INVALID "
-iptables -I INPUT 1 -p tcp -m state --state INVALID -j DROP</literal></screen>
+iptables -I INPUT 1 -p tcp -m conntrack --ctstate INVALID -j DROP</literal></screen>
 
         </listitem>
         <listitem>
