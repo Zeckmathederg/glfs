@@ -6,9 +6,9 @@
 
   <!ENTITY iptables-download-http "http://www.netfilter.org/projects/iptables/files/iptables-&iptables-version;.tar.bz2">
   <!ENTITY iptables-download-ftp  "ftp://ftp.netfilter.org/pub/iptables/iptables-&iptables-version;.tar.bz2">
-  <!ENTITY iptables-md5sum        "57220bb26866a713073e5614f88071fc">
+  <!ENTITY iptables-md5sum        "c3fb2ffd5b39d0d54b06ccc4c8660116">
   <!ENTITY iptables-size          "532 KB">
-  <!ENTITY iptables-buildsize     "13 MB">
+  <!ENTITY iptables-buildsize     "18 MB">
   <!ENTITY iptables-time          "0.2 SBU">
 ]>
 
@@ -136,7 +136,7 @@
 
 <screen><userinput>./configure --prefix=/usr                          \
             --exec-prefix=                         \
-            --bindir=/sbin                         \
+            --bindir=/usr/bin                      \
             --with-xtlibdir=/lib/xtables           \
             --with-pkgconfigdir=/usr/lib/pkgconfig \
             --enable-libipq                        \
@@ -148,7 +148,14 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-ln -sfv xtables-multi /sbin/iptables-xml</userinput></screen>
+ln -sfv ../../sbin/xtables-multi /usr/bin/iptables-xml &amp;&amp;
+for file in libip4tc libip6tc libipq libiptc libxtables
+do
+  ln -sfv ../../lib/`readlink /lib/${file}.so` /usr/lib/${file}.so &amp;&amp;
+  rm -v /lib/${file}.so &amp;&amp;
+  mv -v /lib/${file}.la /usr/lib &amp;&amp;
+  sed -i "s@libdir='@&amp;/usr@g" /usr/lib/${file}.la
+done</userinput></screen>
 
   </sect2>
 
@@ -162,13 +169,8 @@ ln -sfv xtables-multi /sbin/iptables-xml</userinput></screen>
     </para>
 
     <para>
-      <parameter>--bindir=/sbin</parameter>: Ensure all the executables go
-      in <filename class="directory">/sbin</filename>.
-    </para>
-
-    <para>
       <parameter>--with-xtlibdir=/lib/xtables</parameter>: Ensure all 
-      Iptables modules are installed in the 
+      <application>Iptables</application> modules are installed in the 
       <filename class="directory">/lib/xtables</filename> directory.
     </para>
 
@@ -190,8 +192,8 @@ ln -sfv xtables-multi /sbin/iptables-xml</userinput></screen>
     </para>
 
     <para>
-      <command>ln -sfv xtables-multi /sbin/iptables-xml</command>: Ensure
-      the symbolic link for <command>iptables-xml</command> is relative.
+      <command>ln -sfv ../../sbin/xtables-multi /usr/bin/iptables-xml</command>:
+      Ensure  the symbolic link for <command>iptables-xml</command> is relative.
     </para>
 
   </sect2>
