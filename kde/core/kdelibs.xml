@@ -6,9 +6,9 @@
 
   <!ENTITY kdelibs-download-http "&kde-download-http;&kde-version;/src/kdelibs-&kde-version;.tar.xz">
   <!ENTITY kdelibs-download-ftp  "&kde-download-ftp;&kde-version;/src/kdelibs-&kde-version;.tar.xz">
-  <!ENTITY kdelibs-md5sum        "91e9cf8446491e7e852b04be7a22c61c">
-  <!ENTITY kdelibs-size          "11.7 MB">
-  <!ENTITY kdelibs-buildsize     "1.7 GB">
+  <!ENTITY kdelibs-md5sum        "2155d7ae075a1c7e9c6398b381c67177">
+  <!ENTITY kdelibs-size          "12 MB">
+  <!ENTITY kdelibs-buildsize     "390 MB">
   <!ENTITY kdelibs-time          "24 SBU">
 ]>
 
@@ -105,8 +105,7 @@
     <ulink url="http://oss.sgi.com/projects/fam/">FAM</ulink>, 
     <ulink url="http://www.herqq.org/">HUPnP</ulink>, 
     <xref linkend="mitkrb"/> and
-    <ulink url="http://www.openexr.com/">OpenEXR</ulink>
-    
+    <ulink url="http://www.openexr.com/">OpenEXR</ulink>    
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -118,13 +117,23 @@
   <sect2 role="installation">
     <title>Installation of Kdelibs</title>
 
+    <para>Fix file conflicts with <application>GNOME Menus</application> by running
+    the following commands:</para>
+
+<screen><userinput>sed -e "s@{SYSCONF_INSTALL_DIR}/xdg/menus@&amp; RENAME kde-applications.menu@g" \
+    -i kded/CMakeLists.txt &amp;&amp;
+sed -i "s@applications.menu@kde-&amp;@g" kded/kbuildsycoca.cpp</userinput></screen>
+
     <para>Install <application>Kdelibs</application> by running the following
     commands:</para>
 
+<!-- I wouldn't recommend installing D-Bus configuration files outside of /etc if kde-dir is /usr,
+     maybe kde-etc-dir should be introduced? -->
 <screen><userinput>mkdir build &amp;&amp;
 cd build &amp;&amp;
 cmake -DCMAKE_INSTALL_PREFIX=&kde-dir; \
-      -DSYSCONF_INSTALL_DIR=/etc/kde \
+      -DSYSCONF_INSTALL_DIR=/etc \
+      -DCMAKE_BUILD_TYPE=Release \
       -DDOCBOOKXML_CURRENTDTD_DIR=/usr/share/xml/docbook/xml-dtd-&DocBook-version; \
       .. &amp;&amp;
 make</userinput></screen>
@@ -138,11 +147,14 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><option>-DSYSCONF_INSTALL_DIR=/etc/kde</option>: This option is set to
-    install configuration files in /etc.</para>
-    <para><option>-DDOCBOOKXML_CURRENTDTD_DIR=...</option>: This option is used to
-    find the DTDs.</para>
-          
+    <para><option>-DSYSCONF_INSTALL_DIR=/etc</option>: This switch is used to install
+    configuration files in /etc.</para>
+
+    <para><option>-DCMAKE_BUILD_TYPE=Release</option>: This switch is used to apply
+    higher level of compiler optimizations.</para>
+
+    <para><option>-DDOCBOOKXML_CURRENTDTD_DIR=...</option>: This switch is used to
+    tell <command>cmake</command> where to find the XML DTDs.</para>          
 
   </sect2>
 
@@ -165,24 +177,173 @@ make</userinput></screen>
         </seg>
       </seglistitem>
     </segmentedlist>
-<!--
+
     <variablelist>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="a-kde4libs">
-        <term><command>kde4libs</command></term>
+      <varlistentry id="checkXML">
+        <term><command>checkXML</command></term>
         <listitem>
-          <para>is a testing utility for kde4libs-generated build trees.</para>
-          <indexterm zone="a-kde4libs kde4libs">
-            <primary sortas="b-kde4libs">kdelibs</primary>
+          <para>
+            is a tool used to check for syntax errors in KDE DocBook
+            XML files.
+          </para>
+          <indexterm zone="kdelibs checkXML">
+            <primary sortas="b-checkXML">checkXML</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kbuildsycoca4">
+        <term><command>kbuildsycoca4</command></term>
+        <listitem>
+          <para>
+            is used to rebuild the system configuration cache.
+          </para>
+          <indexterm zone="kdelibs kbuildsycoca4">
+            <primary sortas="b-kbuildsycoca4">kbuildsycoca4</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kconfig_compiler">
+        <term><command>kconfig_compiler</command></term>
+        <listitem>
+          <para>
+            is the KDE configuration compiler.
+          </para>
+          <indexterm zone="kdelibs kconfig_compiler">
+            <primary sortas="b-kconfig_compiler">kconfig_compiler</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kcookiejar4">
+        <term><command>kcookiejar4</command></term>
+        <listitem>
+          <para>
+            is the KDE HTTP cookie daemon.
+          </para>
+          <indexterm zone="kdelibs kcookiejar4">
+            <primary sortas="b-kcookiejar4">kcookiejar4</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kde4-config">
+        <term><command>kde4-config</command></term>
+        <listitem>
+          <para>
+            is used to print the KDE installation paths.
+          </para>
+          <indexterm zone="kdelibs kde4-config">
+            <primary sortas="b-kde4-config">kde4-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kded4">
+        <term><command>kded4</command></term>
+        <listitem>
+          <para>
+            is the KDE daemon.
+          </para>
+          <indexterm zone="kdelibs kded4">
+            <primary sortas="b-kded4">kded4</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kdeinit4">
+        <term><command>kdeinit4</command></term>
+        <listitem>
+          <para>
+            is the KDE process launcher.
+          </para>
+          <indexterm zone="kdelibs kdeinit4">
+            <primary sortas="b-kdeinit4">kdeinit4</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kjs">
+        <term><command>kjs</command></term>
+        <listitem>
+          <para>
+            is the KDE ECMAScript/JavaScript engine.
+          </para>
+          <indexterm zone="kdelibs kjs">
+            <primary sortas="b-kjs">kjs</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kjscmd">
+        <term><command>kjscmd</command></term>
+        <listitem>
+          <para>
+            is a tool used for launching KJSEmbed scripts from
+            the command line.
+          </para>
+          <indexterm zone="kdelibs kjscmd">
+            <primary sortas="b-kjscmd">kjscmd</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="kross">
+        <term><command>kross</command></term>
+        <listitem>
+          <para>
+            is the KDE application used to run kross scripts.
+          </para>
+          <indexterm zone="kdelibs kross">
+            <primary sortas="b-kross">kross</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="makekdewidgets">
+        <term><command>makekdewidgets</command></term>
+        <listitem>
+          <para>
+            is used to build Qt widget plugins from an ini style
+            description file.
+          </para>
+          <indexterm zone="kdelibs makekdewidgets">
+            <primary sortas="b-makekdewidgets">makekdewidgets</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="meinproc4">
+        <term><command>meinproc4</command></term>
+        <listitem>
+          <para>
+            is used to convert DocBook files to HTML.
+          </para>
+          <indexterm zone="kdelibs meinproc4">
+            <primary sortas="b-meinproc4">meinproc4</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="preparetips">
+        <term><command>preparetips</command></term>
+        <listitem>
+          <para>
+            is a script used to extract the text from a tips file.
+          </para>
+          <indexterm zone="kdelibs preparetips">
+            <primary sortas="b-preparetips">preparetips</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
     </variablelist>
--->
+
   </sect2>
 
 </sect1>

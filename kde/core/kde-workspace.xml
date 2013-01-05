@@ -6,9 +6,9 @@
 
   <!ENTITY kde-workspace-download-http "&kde-download-http;&kde-version;/src/kde-workspace-&kde-version;.tar.xz">
   <!ENTITY kde-workspace-download-ftp  "&kde-download-ftp;&kde-version;/src/kde-workspace-&kde-version;.tar.xz">
-  <!ENTITY kde-workspace-md5sum        "7e0ac76dda7e44895df6603504b24872">
-  <!ENTITY kde-workspace-size          "22.3 MB">
-  <!ENTITY kde-workspace-buildsize     "1.4 GB">
+  <!ENTITY kde-workspace-md5sum        "139bdce88559ddc638ea616a6a443cf6">
+  <!ENTITY kde-workspace-size          "22 MB">
+  <!ENTITY kde-workspace-buildsize     "375 MB">
   <!ENTITY kde-workspace-time          "20 SBU">
 ]>
 
@@ -108,20 +108,36 @@
   <sect2 role="installation">
     <title>Installation of Kde-workspace</title>
 
+    <para>
+      It is recommended to have a dedicated user and group to take
+      control of the <command>kdm</command> daemon after it is
+      started. Issue the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>groupadd -g 37 kdm &amp;&amp;
+useradd -c "KDM Daemon Owner" -d /var/lib/kdm -g kdm \
+        -u 37 -s /bin/false kdm &amp;&amp;
+install -o kdm -g kdm -dm755 /var/lib/kdm</userinput></screen>
+
     <para>Install <application>Kde-workspace</application> by running the following
     commands:</para>
 
 <screen><userinput>mkdir build &amp;&amp;
 cd build &amp;&amp;
 cmake -DCMAKE_INSTALL_PREFIX=&kde-dir; \
-      -DSYSCONF_INSTALL_DIR=/etc/kde \
+      -DSYSCONF_INSTALL_DIR=/etc \
+      -DCMAKE_BUILD_TYPE=Release \
       -DPYTHON_SITE_PACKAGES_INSTALL_DIR=/usr/lib/python2.7/site-packages \
       .. &amp;&amp;
 make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+mkdir -p /usr/share/xsessions &amp;&amp;
+ln -sf &kde-dir;/share/apps/kdm/sessions/kde-plasma.desktop \
+       /usr/share/xsessions/kde-plasma.desktop</userinput></screen>
 
   </sect2>
 
@@ -130,6 +146,60 @@ make</userinput></screen>
 
     <para><option>-DPYTHON_SITE_PACKAGES_INSTALL...</option>: This option is 
     set to install the KDE Python objects in the correct place.</para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring KDE Workspace</title>
+
+    <sect3>
+      <title>Linux PAM Configuration</title>
+
+      <para>If you have built <application>KDE Workspace</application> with
+      <application>Linux PAM</application> support, create necesary 
+      configuration files by running the following commands as the
+      <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/pam.d/kde &lt;&lt; "EOF" &amp;&amp;
+# Begin /etc/pam.d/kde
+
+auth     requisite      pam_nologin.so
+auth     required       pam_env.so
+
+auth     required       pam_succeed_if.so uid &gt;= 1000 quiet
+auth     include        system-auth
+
+account  include        system-account
+password include        system-password
+session  include        system-session
+
+# End /etc/pam.d/kde
+EOF
+cat &gt; /etc/pam.d/kde-np &lt;&lt; "EOF" &amp;&amp;
+# Begin /etc/pam.d/kde-np
+
+auth     requisite      pam_nologin.so
+auth     required       pam_env.so
+
+auth     required       pam_succeed_if.so uid &gt;= 1000 quiet
+auth     required       pam_permit.so
+
+account  include        system-account
+password include        system-password
+session  include        system-session
+
+# End /etc/pam.d/kde-np
+EOF
+cat &gt; /etc/pam.d/kscreensaver &lt;&lt; "EOF"
+# Begin /etc/pam.d/kscreensaver
+
+auth    include system-auth
+account include system-account
+
+# End /etc/pam.d/kscreensaver
+EOF</userinput></screen>
+
+    </sect3>
 
   </sect2>
 
@@ -158,24 +228,7 @@ make</userinput></screen>
         </seg>
       </seglistitem>
     </segmentedlist>
-<!--
-    <variablelist>
-      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
-      <?dbfo list-presentation="list"?>
-      <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="a-kde4baseworkspace">
-        <term><command>kde4baseworkspace</command></term>
-        <listitem>
-          <para>is a testing utility for kde4baseworkspace-generated build trees.</para>
-          <indexterm zone="a-kde4baseworkspace kde4baseworkspace">
-            <primary sortas="b-kde4baseworkspace">kdelibs</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
--->
   </sect2>
   
 </sect1>
