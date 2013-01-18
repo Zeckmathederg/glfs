@@ -5,15 +5,15 @@
   %general-entities;
 
   <!ENTITY python2-download-http
-  "http://www.python.org/ftp/python/&python2-version;/Python-&python2-version;.tar.xz">
+          "http://www.python.org/ftp/python/&python2-version;/Python-&python2-version;.tar.xz">
   <!ENTITY python2-download-ftp  " ">
-  <!-- <!ENTITY python2-download-ftp  "&gentoo-ftp-repo;/Python-&python2-version;.tar.xz"> -->
   <!ENTITY python2-md5sum        "62c4c1699170078c469f79ddfed21bc0">
   <!ENTITY python2-size          "9.6 MB">
   <!ENTITY python2-buildsize     "235 MB (not including the test suite)">
   <!ENTITY python2-time          "1.1 SBU (not including the test suite)">
+
   <!ENTITY python2htmldoc-download-http
-  "http://docs.python.org/ftp/python/doc/&python2-version;/python-&python2-version;-docs-html.tar.bz2">
+           "http://docs.python.org/ftp/python/doc/&python2-version;/python-&python2-version;-docs-html.tar.bz2">
   <!ENTITY python2htmldoc-md5sum        "101c13d39f76fd6706aac3a9196b2f01">
   <!ENTITY python2htmldoc-size          "4.2 MB">
 ]>
@@ -29,7 +29,7 @@
   <title>Python-&python2-version;</title>
 
   <indexterm zone="python2">
-    <primary sortas="a-Python2">Python</primary>
+    <primary sortas="a-Python2">Python2</primary>
   </indexterm>
 
   <sect2 role="package">
@@ -37,7 +37,7 @@
 
     <para>
       The <application>Python 2</application> package contains the
-      <application>Python</application> development environment. This is useful
+      <application>Python</application> development environment. It is useful
       for object-oriented programming, writing scripts, prototyping large
       programs or developing entire applications. This version is for backward
       compatibility with other dependent packages.
@@ -100,30 +100,37 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Patches</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/Python-&python2-version;-bsddb_fix-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Python Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="expat"/>,
+      <xref linkend="libffi"/> and
+      <xref linkend="pkgconfig"/>
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <!-- <xref linkend="pth"/> can only be used if you've overwritten glibc's
-      libpthread. -->
-      <xref linkend="libffi"/> and <xref linkend="pkgconfig"/>
-      (<command>configure</command> uses <command>pkgconfig</command> to find
-      <application>libffi</application>. There is a circular dependency here:
-      <application>Pkgconfig</application> requires
-      <application>Glib</application> which requires
-      <application>Python 2</application>),
-      <!-- gcc's libffi does not install a pkgconfig file -->
-      <ulink url="http://sphinx.pocoo.org/">Sphinx</ulink> (to create the docs),
-      <xref linkend="bluez"/>,
+      <xref linkend="bluez"/> and
+      <ulink url="http://sphinx.pocoo.org/">Sphinx</ulink>
+    </para>
+
+    <bridgehead renderas="sect4">Optional (For Additional Modules)</bridgehead>
+    <para role="optional">
+      <xref linkend="db"/>,
       <xref linkend="openssl"/>,
-      <xref linkend="tk"/> (there is a circular dependency with the
-      <application>Tk</application> package as it requires Xorg to be installed
-      but parts of Xorg depend on <application>Python</application>),
-      <!--<xref linkend="db"/> and-->
-      <ulink
-      url="http://www.oracle.com/technetwork/products/berkeleydb/downloads/">BerkeleyDB</ulink>
-      (only versions up to 4.8), and
-      <xref linkend="sqlite"/>.
+      <xref linkend="sqlite"/> and
+      <xref linkend="tk"/>
     </para>
 
     <para condition="html" role="usernotes">
@@ -140,7 +147,12 @@
     </para>
 
 <screen><userinput>sed -i "s/ndbm_libs = \[\]/ndbm_libs = ['gdbm', 'gdbm_compat']/" setup.py &amp;&amp;
-./configure --prefix=/usr --enable-shared &amp;&amp;
+patch -Np1 -i ../Python-&python2-version;-bsddb_fix-1.patch &amp;&amp;
+./configure --prefix=/usr       \
+            --enable-shared     \
+            --with-system-expat \
+            --with-system-ffi   \
+            --enable-unicode=ucs4 &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -193,25 +205,40 @@ find /usr/share/doc/Python-&python2-version; -type f -exec chmod 0644 {} \;</use
     <title>Command Explanations</title>
 
     <para>
-      <option>--with-system-ffi</option>: If you have installed
-      <application>Libffi</application> and
-      <application>Pkgconfig</application>, add this option to compile
-      <application>Python</application>'s _ctypes module using the system
-      installed <application>Libffi</application>. Otherwise
-      <application>Python</application> will compile its own copy of
-      <application>Libffi</application>.
-    </para>
-
-    <para>
       <command>sed -i "s/ndbm_libs = ..." setup.py</command>: This command is
       used to fix a build problem with the <application>GDBM</application>
       library.
     </para>
 
     <para>
+      <option>--with-system-expat</option>: This switch enables linking against
+      system version of <application>Expat</application>. Remove if you have
+      not installed recommended dependency <xref linkend="expat"/>.
+    </para>
+
+    <para>
+      <option>--with-system-ffi</option>: This switch enables linking against
+      system version of <application>libffi</application>. Remove if you have
+      not installed recommended dependency <xref linkend="libffi"/>.
+    </para>
+
+    <para>
+      <parameter>--enable-unicode=ucs4</parameter>: This switch enables
+      32bit Unicode support in <application>Python</application>.
+    </para>
+
+    <para>
+      <parameter>--with-dbmliborder=bdb:gdbm:ndbm</parameter>: Use this switch
+      if you want to build <application>Python</application> DBM Module 
+      against <application>Berkeley DB</application> instead of
+      <application>GDBM</application>.
+    </para>
+
+    <para>
       <command>chmod ...</command>: Fix permissions for libraries to be 
       consistent with other libraries.
     </para>
+
   </sect2>
 
   <sect2 role="configuration">
@@ -224,6 +251,7 @@ find /usr/share/doc/Python-&python2-version; -type f -exec chmod 0644 {} \;</use
     </para>
 
 <screen role="root"><userinput>export PYTHONDOCS=/usr/share/doc/Python-&python2-version;</userinput></screen>
+
   </sect2>
 
   <sect2 role="content">
@@ -333,6 +361,9 @@ find /usr/share/doc/Python-&python2-version; -type f -exec chmod 0644 {} \;</use
           </indexterm>
         </listitem>
       </varlistentry>
+
     </variablelist>
+
   </sect2>
+
 </sect1>
