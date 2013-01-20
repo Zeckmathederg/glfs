@@ -4,13 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY firefox-download-http " ">
+  <!ENTITY firefox-download-http
+           "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
   <!ENTITY firefox-download-ftp
-    "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
-  <!ENTITY firefox-md5sum        "78e641c67dc4a40cb3f48fce3e782d41">
-  <!ENTITY firefox-size          "85 MB">
-  <!ENTITY firefox-buildsize     "994 MB (34 MB installed) (or 647 MB and 4.1 MB if using xulrunner)">
-  <!ENTITY firefox-time          "27 SBU (0.4 SBU if using xulrunner)">
+           "ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.bz2">
+  <!ENTITY firefox-md5sum        "8b400555fc7063163e3b99472d0c92a1">
+  <!ENTITY firefox-size          "93 MB">
+  <!ENTITY firefox-buildsize     "3.5 GB (41 MB installed) (or 695 MB and 4.2 MB if using Xulrunner)">
+  <!ENTITY firefox-time          "29 SBU (0.4 SBU if using Xulrunner)">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -78,32 +79,40 @@
       <xref linkend="alsa-lib"/>,
       <xref linkend="gtk2"/>,
       <xref linkend="zip"/>, and
-      <xref linkend="unzip"/>.
+      <xref linkend="unzip"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="yasm"/> or <xref linkend="libvpx"/>
-      (to allow <application>Firefox</application> to play webm videos).
+      <xref linkend="libevent"/>,
+      <xref linkend="libvpx"/>,
+      <xref linkend="nspr"/>,
+      <xref linkend="nss"/>,
+      <xref linkend="sqlite"/> and
+      <xref linkend="yasm"/>
     </para>
+
+    <note>
+      <para>
+        If you don't install recommended dependencies,
+        then internal copies of those packages will
+        be used. They might be tested to work, but
+        they can be out of date or contain security
+        holes.
+      </para>
+    </note>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="dbus-glib"/>,
-      <xref linkend="startup-notification"/>,
-      <xref linkend="sqlite"/>,
-      <ulink url="http://hunspell.sourceforge.net/">Hunspell</ulink>,
-      <xref linkend="libevent"/>,
       <xref linkend="doxygen"/>,
-      <xref linkend="gnome-vfs"/> and
-      <xref linkend="libgnomeui"/> (for integration with the old version of
-      <application>Gnome</application>),
+      <xref linkend="gnome-vfs"/> and <xref linkend="libgnomeui"/>
+      (for integration with the old version of <application>GNOME</application>),
+      <ulink url="http://hunspell.sourceforge.net/">Hunspell</ulink>,
       <xref linkend="libnotify"/>,
-      <xref linkend="nspr"/>, <xref linkend="nss"/>,
-      <xref linkend="wireless_tools"/>,
-      <ulink url="http://www.valgrind.org/">Valgrind</ulink> (only for testing
-      the jemalloc code),
-      <xref linkend="wget"/>, and
+      <xref linkend="startup-notification"/>,
+      <xref linkend="wget"/>,
+      <xref linkend="wireless_tools"/> and
       <xref linkend="xulrunner"/>
     </para>
 
@@ -141,68 +150,71 @@
       a subshell in a HERE document. Create the file by issuing the following command:
     </para>
 
-<screen><userinput>cat &gt; mozconfig &lt;&lt; EOF
+<screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 # If you have a multicore machine you can speed up the build by running
-# several jobs at once, but if you have a single core, delete this line:
-mk_add_options MOZ_MAKE_FLAGS="-j4"
+# several jobs at once by uncommenting the following line and setting the
+# value to number of CPU cores:
+#mk_add_options MOZ_MAKE_FLAGS="-j4"
 
-# If you have not installed Yasm, uncomment this option:
-# ac_add_options --disable-webm
-
-# If you have installed DBus-Glib delete this option:
+# If you have installed DBus-Glib comment out this line:
 ac_add_options --disable-dbus
 
-# If you have installed wireless-tools delete this option:
+# If you have installed wireless-tools comment out this line:
 ac_add_options --disable-necko-wifi
 
-# If you have installed libnotify delete this option:
+# If you have installed libnotify comment out this line:
 ac_add_options --disable-libnotify
 
-# If you have installed xulrunner uncomment these two lines:
-# ac_add_options --with-system-libxul
-# ac_add_options --with-libxul-sdk=\$(pkg-config --variable=sdkdir libxul)
+# Uncomment these lines if you have installed optional dependencies:
+#ac_add_options --enable-system-hunspell
+#ac_add_options --enable-startup-notification
 
-# Note: The backslash above is to facilitate a paste operation.  It
-# should not appear in the mozconfig file.
+# If you have not installed Yasm then uncomment this line:
+#ac_add_options --disable-webm
 
-# Uncomment these if you have installed them:
-# ac_add_options --enable-startup-notification
-# ac_add_options --enable-system-hunspell
-# ac_add_options --enable-system-sqlite
-# ac_add_options --with-system-libevent
-# ac_add_options --with-system-libvpx
-# ac_add_options --with-system-nspr
-# ac_add_options --with-system-nss
+# If you have installed xulrunner uncomment following two lines:
+#ac_add_options --with-system-libxul
+#ac_add_options --with-libxul-sdk=\$(pkg-config --variable=sdkdir libxul)
 
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/firefox-build-dir
-ac_add_options --enable-official-branding
+# Comment out following options if you have not installed
+# recommended dependencies:
+ac_add_options --enable-system-sqlite
+ac_add_options --with-system-libevent
+ac_add_options --with-system-libvpx
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+
+# It is recommended not to touch anything below this line
 ac_add_options --prefix=/usr
+ac_add_options --enable-application=browser
 
-# The rest of these options have no effect if you're
-# building against an already installed xulrunner:
 ac_add_options --disable-crashreporter
-ac_add_options --disable-debug
 ac_add_options --disable-installer
-ac_add_options --disable-static
-ac_add_options --disable-tests
 ac_add_options --disable-updater
-ac_add_options --enable-shared
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+
+ac_add_options --enable-optimize
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+
+ac_add_options --enable-gio
+ac_add_options --enable-official-branding
+ac_add_options --enable-safe-browsing
+ac_add_options --enable-url-classifier
+
 ac_add_options --enable-system-ffi
+ac_add_options --enable-system-pixman
+
 ac_add_options --with-pthreads
+
+ac_add_options --with-system-bz2
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-png
 ac_add_options --with-system-zlib
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/firefox-build-dir
 EOF</userinput></screen>
-
-    <para>
-      If you are building a stand-alone <application>firefox</application> with
-      system versions of <application>nspr</application>,
-      <application>nss</application>, or <application>sqlite</application>
-      issue the following command:
-    </para>
-
-<screen><userinput>sed -i 's/\(MOZ_PKG_FATAL_WARNINGS =\).*/\1 0/' \
-  browser/installer/Makefile.in &amp;&amp;</userinput></screen>
 
     <para>
       Compile <application>Firefox</application> by issuing the following
@@ -212,7 +224,9 @@ EOF</userinput></screen>
 <screen><userinput>sed -i 's# ""##' browser/base/Makefile.in &amp;&amp;
 make -f client.mk</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
     <para>
       If you have <emphasis>not</emphasis> linked
@@ -233,12 +247,14 @@ make -f client.mk</userinput></screen>
 mkdir  /usr/lib/firefox-&firefox-version; &amp;&amp;
 
 tar -xvf firefox-build-dir/dist/firefox-&firefox-version;.en-US.linux-$(uname -m).tar.bz2 \
-    -C /usr/lib/firefox-&firefox-version; --strip-components=1  &amp;&amp;
+    -C /usr/lib/firefox-&firefox-version; --strip-components=1 &amp;&amp;
+chown -R -v root:root /usr/lib/firefox-&firefox-version; &amp;&amp;
+chmod -v 755 /usr/lib/firefox-&firefox-version;/libxpcom.so &amp;&amp;
 
-ln -sfv ../lib/firefox-&firefox-version;/firefox /usr/bin       &amp;&amp;
-mkdir -pv /usr/lib/mozilla/plugins             &amp;&amp;
-ln -sfv ../mozilla/plugins /usr/lib/firefox-&firefox-version;   &amp;&amp;
-chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
+ln -sfv ../lib/firefox-&firefox-version;/firefox /usr/bin &amp;&amp;
+
+mkdir -pv /usr/lib/mozilla/plugins &amp;&amp;
+ln -sfv ../mozilla/plugins /usr/lib/firefox-&firefox-version;</userinput></screen>
 
     <para>
       If you <emphasis>have</emphasis> linked against an already installed
@@ -247,20 +263,21 @@ chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make -C firefox-build-dir install &amp;&amp;
-rm /usr/bin/firefox &amp;&amp;
+rm -v /usr/bin/firefox &amp;&amp;
 
-cat &gt; /usr/bin/firefox &lt;&lt; "HERE_DOC" &amp;&amp;
+cat &gt; /usr/bin/firefox &lt;&lt; "EOF" &amp;&amp;
 #!/bin/bash
 /usr/lib/xulrunner-&xulrunner-version;/xulrunner /usr/lib/firefox-&firefox-version;/application.ini "${@}"
-HERE_DOC
+EOF
 
-chmod 755 /usr/bin/firefox         &amp;&amp;
+chmod -v 755 /usr/bin/firefox &amp;&amp;
 mkdir -pv /usr/lib/mozilla/plugins &amp;&amp;
-ln -sfv   ../mozilla/plugins /usr/lib/firefox-&firefox-version;</userinput></screen>
+ln -sfv ../mozilla/plugins /usr/lib/firefox-&firefox-version;</userinput></screen>
 
     <bridgehead renderas="sect3" id="npapi-firefox" xreflabel="Firefox">
       NPAPI Headers
     </bridgehead>
+
     <para>
       The above instructions just install the parts you need to run
       <application>Firefox</application>. If you want to compile
@@ -269,9 +286,18 @@ ln -sfv   ../mozilla/plugins /usr/lib/firefox-&firefox-version;</userinput></scr
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>rm -rf   /usr/include/npapi &amp;&amp;
+<screen role="root"><userinput>rm -rf /usr/include/npapi &amp;&amp;
 mkdir -v /usr/include/npapi &amp;&amp;
 cp -v dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
+
+    <note>
+      <para>
+        You don't need to install the headers if you have built
+        <application>Firefox</application> against
+        <application>Xulrunner</application>.
+      </para>
+    </note>
+
   </sect2>
 
   <sect2 role="commands">
@@ -328,7 +354,7 @@ cp -v dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
 
     <para>
       <command>ln -sv ... /usr/lib/firefox-&firefox-version;</command>: This
-      makes a symbolic link to
+      command creates a symbolic link to
       <filename class="directory">/usr/lib/mozilla/plugins</filename>. It's not
       really needed, as <application>Firefox</application> checks
       <filename class="directory">/usr/lib/mozilla/plugins</filename> by
@@ -359,21 +385,26 @@ cp -v dom/plugins/base/*.h /usr/include/npapi</userinput></screen>
     </para>
 
 <screen role="root"><userinput>mkdir -pv /usr/share/applications &amp;&amp;
+mkdir -pv /usr/share/pixmaps &amp;&amp;
 
 cat &gt; /usr/share/applications/firefox.desktop &lt;&lt; "EOF" &amp;&amp;
 [Desktop Entry]
 Encoding=UTF-8
-Type=Application
-Name=Firefox
-Comment=Browse The Web
-Icon=firefox
-Exec=firefox
-Categories=Network;GTK;Application;Browser;WebBrowser;
-StartupNotify=true
+Name=Firefox Web Browser
+Comment=Browse the World Wide Web
+GenericName=Web Browser
+Exec=firefox %u
 Terminal=false
+Type=Application
+Icon=firefox
+Categories=GNOME;GTK;Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/vnd.mozilla.xul+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
+StartupNotify=true
 EOF
 
-ln -sfv /usr/lib/firefox-&firefox-version;/icons/mozicon128.png /usr/share/pixmaps/firefox.png</userinput></screen>
+ln -sfv /usr/lib/firefox-&firefox-version;/icons/mozicon128.png \
+        /usr/share/pixmaps/firefox.png</userinput></screen>
+
   </sect2>
 
   <sect2 role="content">
@@ -385,15 +416,17 @@ ln -sfv /usr/lib/firefox-&firefox-version;/icons/mozicon128.png /usr/share/pixma
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>firefox</seg>
+        <seg>
+          firefox
+        </seg>
         <seg>
           Numerous libraries, browser components, plugins, extensions, and
           helper modules installed in
-          <filename class="directory">/usr/lib/firefox-&firefox-version;</filename>.
+          <filename class="directory">/usr/lib/firefox-&firefox-version;</filename>
         </seg>
         <seg>
           /usr/include/npapi and
-          /usr/lib/firefox-&firefox-version;.
+          /usr/lib/firefox-&firefox-version;
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -407,7 +440,7 @@ ln -sfv /usr/lib/firefox-&firefox-version;/icons/mozicon128.png /usr/share/pixma
         <term><command>firefox</command></term>
         <listitem>
           <para>
-            is a <application>Gtk 2</application> internet browser that uses the
+            is a <application>GTK+ 2</application> internet browser that uses the
             Mozilla Gecko rendering engine.
           </para>
           <indexterm zone="firefox firefox-prog">
@@ -415,6 +448,9 @@ ln -sfv /usr/lib/firefox-&firefox-version;/icons/mozicon128.png /usr/share/pixma
           </indexterm>
         </listitem>
       </varlistentry>
+
     </variablelist>
+
   </sect2>
+
 </sect1>
