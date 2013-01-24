@@ -99,7 +99,10 @@
       If you want to patch libpng to support apng files, apply the patch:
     </para>
 
-<screen><userinput>gzip -cd ../libpng-&libpng-version;-apng.patch.gz | patch -p1</userinput></screen>
+<screen><userinput>gzip -cd ../libpng-&libpng-version;-apng.patch.gz | patch -p1 &amp;&amp;
+START=$(awk '/@/' scripts/symbols.def | sort -k2.3n | tail -1 | cut -d "@" -f2) &amp;&amp;
+awk -v v="$START" '/^PNG(_.+)?_EXPORTA?\(/ {gsub(/PNG(_.+)?_EXPORTA?\(/, ""); gsub(/,/, ""); \
+if($1 > v) print $3 " @"$1}' png.h | sort -k2.3n &gt;&gt; scripts/symbols.def</userinput></screen>
 
     <para>
       Install <application>libpng</application> by running the following
@@ -124,6 +127,11 @@ cp README libpng-manual.txt /usr/share/doc/libpng-&libpng-version;</userinput></
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>awk -v ...</command>: This command fixes the testsuite
+      when APNG patch is applied.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>

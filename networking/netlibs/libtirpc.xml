@@ -101,19 +101,20 @@
     </para>
 
     <para condition="html" role="usernotes">User Notes:
-    <ulink url="&blfs-wiki;/libtirpc"/></para>
-
+      <ulink url="&blfs-wiki;/libtirpc"/>
+    </para>
   </sect2>
 
   <sect2 role="installation">
     <title>Installation of libtirpc</title>
 
     <para>
-      Glibc-2.14 and later do not install NIS and RPC related headers by
-      default. If needed, install them here:
+      Glibc 2.14 and later does not install NIS and RPC related headers by
+      default. If needed, install them by running the following command
+      as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen><userinput>if [ ! -r /usr/include/rpc/rpc.h ]; then
+<screen role="root"><userinput>if [ ! -r /usr/include/rpc/rpc.h ]; then
    tar -xvf ../rpcnis-headers.tar.bz2 -C /usr/include
 fi</userinput></screen>
 
@@ -123,7 +124,8 @@ fi</userinput></screen>
     </para>
 
 <screen><userinput>patch -Np1 -i ../libtirpc-&libtirpc-version;-remove-nis-2.patch &amp;&amp;
-autoreconf &amp;&amp;
+sed "s@AM_CONFIG_HEADER@AC_CONFIG_HEADERS@g" -i configure.ac &amp;&amp;
+autoreconf -fi &amp;&amp;
 ./configure --prefix=/usr CFLAGS="-fPIC" &amp;&amp;
 make</userinput></screen>
 
@@ -143,6 +145,12 @@ ln -sfv ../../lib/libtirpc.so.1.0.10 /usr/lib/libtirpc.so</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed "s@AM_CONFIG_HEADER@AC_CONFIG_HEADERS@g"
+      -i configure.ac</command>: This sed fixes some issues with
+      <application>Automake</application> 1.13 and later.
+    </para>
 
     <para>
       <command>mv -v /usr/lib/libtirpc.so.* ...</command>: Move shared 
@@ -175,7 +183,7 @@ ln -sfv ../../lib/libtirpc.so.1.0.10 /usr/lib/libtirpc.so</userinput></screen>
       <?dbhtml list-presentation="table"?>
 
       <varlistentry id="libtirpc-lib">
-        <term><filename class='libraryfile'>libtirpc.{so,a}</filename></term>
+        <term><filename class="libraryfile">libtirpc.{so,a}</filename></term>
         <listitem>
           <para>
             provides the Remote Procedure Call (RPC) API functions required by
