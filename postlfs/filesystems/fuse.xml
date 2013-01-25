@@ -97,6 +97,19 @@
   <sect2 role="installation">
     <title>Installation of Fuse</title>
 
+    <note>
+      <para>
+        After the <command>configure</command> script has finished you will
+        see a warning shown below. You can safely disregard this warning.
+      </para>
+
+<screen><computeroutput>configure: WARNING:
+******************************************************************
+* Please install util-linux version 2.18 or later which supports *
+* --fake and --no-canonicalize options in mount and umount       *
+******************************************************************</computeroutput></screen>
+    </note>
+
     <para>
       Install <application>Fuse</application> by running the following
       commands:
@@ -104,6 +117,11 @@
 
 <screen><userinput>./configure --prefix=/usr --disable-static INIT_D_PATH=/tmp/init.d &amp;&amp;
 make</userinput></screen>
+
+    <para>
+      If you have <xref linkend="doxygen"/> installed and wish to build the API
+      documentation, issue <command>doxygen doc/Doxyfile</command>.
+    </para>
 
     <para>
       This package does not come with a test suite.
@@ -114,9 +132,24 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-mv -v /usr/lib/libfuse.so.* /lib &amp;&amp;
+
+mv -v   /usr/lib/libfuse.so.* /lib &amp;&amp;
 ln -sfv ../../lib/libfuse.so.&fuse-version; /usr/lib/libfuse.so &amp;&amp;
-rm -rf /tmp/init.d</userinput></screen>
+rm -rf  /tmp/init.d &amp;&amp;
+
+install -v -m755 -d /usr/share/doc/fuse-&fuse-version; &amp;&amp;
+install -v -m644    doc/{how-fuse-works,kernel.txt} \
+                    /usr/share/doc/fuse-&fuse-version;</userinput></screen>
+
+    <para>
+      If you built the API documentation, install it as the
+      <systemitem class="username">root</systemitem> user by issuing the
+      following commands:
+    </para>
+
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/fuse-&fuse-version;/api &amp;&amp;
+install -v -m644    doc/html/* \
+                    /usr/share/doc/fuse-&fuse-version;/api</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
@@ -126,17 +159,18 @@ rm -rf /tmp/init.d</userinput></screen>
       href="../../xincludes/static-libraries.xml"/>
 
     <para>
-      <parameter>INIT_D_PATH=/tmp/init.d</parameter>: This parameter makes it
-      install its bootscript into <filename>/tmp/init.d</filename>.
+      <parameter>INIT_D_PATH=/tmp/init.d</parameter>: This parameter installs
+      the bootscript into <filename class="directory">/tmp/init.d</filename> as
+      a bootscript is not required.
     </para>
 
     <para>
-      <command>mv -v /usr/lib/libfuse.so.* /lib</command>: This moves
-      <application>FUSE</application> library to root filesystem 
-      so that it is available at early boot in case
-      <filename class="directory">/usr</filename> is on seperate
-      partition and <xref linkend="ntfs-3g"/> is built with system
-      <application>FUSE</application>.
+      <command>mv -v /usr/lib/libfuse.so.* /lib</command>: This moves the
+      <application>FUSE</application> library to the root filesystem 
+      so that it is available early in the boot process in case
+      <filename class="directory">/usr</filename> is mounted on a separate
+      partition and <xref linkend="ntfs-3g"/> is built with a system-installed
+      version of <application>FUSE</application>.
     </para>
 
     <para>
