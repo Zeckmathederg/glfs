@@ -6,9 +6,9 @@
 
   <!ENTITY mesalib-download-http " ">
   <!ENTITY mesalib-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/&mesalib-version;/MesaLib-&mesalib-version;.tar.bz2">
-  <!ENTITY mesalib-md5sum        "97d6554c05ea7449398afe3a0ede7018">
+  <!ENTITY mesalib-md5sum        "dc45d1192203e418163e0017640e1cfc">
   <!ENTITY mesalib-size          "5.9 MB">
-  <!ENTITY mesalib-buildsize     "1.7 GB">
+  <!ENTITY mesalib-buildsize     "685 MB">
   <!ENTITY mesalib-time          "5.5 SBU">
 
   <!ENTITY glu-download-http " ">
@@ -178,7 +178,8 @@
     </para>
 
 <screen><userinput>autoreconf -fi &amp;&amp;
-./configure --prefix=/usr                  \
+./configure CFLAGS="-O2" CXXFLAGS="-O2"    \
+            --prefix=/usr                  \
             --sysconfdir=/etc              \
             --enable-texture-float         \
             --enable-gles1                 \
@@ -220,16 +221,6 @@ make</userinput></screen>
 <screen role="root"><userinput>make -C xdemos DEMOS_PREFIX=/usr install</userinput></screen>
 
     <para>
-      If you would like to save some space, strip the installed libraries
-      by running the following commands as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>strip --strip-unneeded /usr/lib/{dri,egl,gbm}/*.so   &amp;&amp;
-strip --strip-unneeded /usr/lib/libdricore&mesalib-version;.so.* &amp;&amp;
-strip --strip-unneeded /usr/lib/libxatracker.so.*</userinput></screen>
-
-    <para>
       If desired, install the optional documentation by running
       the following commands as the
       <systemitem class="username">root</systemitem> user:
@@ -265,6 +256,14 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <parameter>CFLAGS="-O2" CXXFLAGS="-O2"</parameter>: By default,
+      <application>Autoconf</application> sets CFLAGS and CXXFLAGS to
+      "-g -O2". That results in binaries and libraries being built with
+      debugging symbols which make them bigger. We override default
+      flags to ommit -g switch so the final libraries are smaller.
+    </para>
 
     <para>
       <option>--enable-texture-float</option>: This switch enables
@@ -328,7 +327,7 @@ make</userinput></screen>
       <parameter>--with-gallium-drivers="..."</parameter>: This parameter
       controls which Gallium drivers should be built. Available drivers
       are: i915, nouveau, r300, r600, svga and swrast. You will need to
-      remove r300, r600 and from the list if you did not install
+      remove r300 and r600 from the list if you did not install
       <xref linkend="llvm"/>.
     </para>
 
