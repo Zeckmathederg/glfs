@@ -4,10 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY sane-be-download-http "http://alioth.debian.org/frs/?group_id=30186">
-  <!ENTITY sane-be-download-ftp  "ftp://ftp2.sane-project.org/pub/sane/">
+  <!-- <!ENTITY sane-be-download-http "http://alioth.debian.org/frs/?group_id=30186"> -->
+  <!ENTITY sane-be-download-http " ">
+  <!ENTITY sane-be-download-ftp  "ftp://ftp2.sane-project.org/pub/sane/sane-backends-&sane-version;.tar.gz">
   <!--<!ENTITY sane-be-download-ftp  "&gentoo-ftp-repo;/sane-backends-&sane-version;.tar.gz">-->
-  <!ENTITY sane-be-md5sum        "e226a89c54173efea80e91e9a5eb6573">
+  <!ENTITY sane-be-md5sum        "979c9dbb23920d04e322be23122c7de7">
   <!ENTITY sane-be-size          "5.1 MB">
   <!ENTITY sane-be-buildsize     "120 MB">
   <!ENTITY sane-be-time          "1.2 SBU">
@@ -38,7 +39,7 @@
     <title>Introduction to SANE</title>
 
     <para><application>SANE</application> is short for Scanner Access Now Easy.
-    Scanner access, however, is far from easy, since every vendor has their own
+    Scanner access; however, is far from easy, since every vendor has their own
     protocols. The only known protocol that should bring some unity into this
     chaos is the TWAIN interface, but this is too imprecise to allow a stable
     scanning framework. Therefore, <application>SANE</application> comes with
@@ -50,8 +51,14 @@
 
     &lfs72_checked;
 
+    <!-- This note is not applicable. First, there is no issue downloading the
+         ftp://ftp2.sane-project.org/pub/sane/sane-backends-1.0.23.tar.gz
+         tarball with wget. Next, the combined tarball exists on the SANE FTP
+         site, but the MD5sum is wrong. We can simply point the download to
+         the SANE FTP site and create our own MD5sum (as we do on many packages).
+
     <note><para>The upstream web site uses a self signed security
-    certificate.  If using <command>wget</command>, the option --no-check-certificate
+    certificate.  If using <command>wget</command>, the option -no-check-certificate
     needs to be added.</para>
 
     <para>The md5sum of the backend file does not match unless the three parts
@@ -59,6 +66,7 @@
     sane-backends-1.0.23.tar.gz.[1-3], are combined.  A combined tarball with
     the correct md5sum is located at <ulink
     url="http://anduin.linuxfromscratch.org/sources/other/sane-backends-1.0.23.tar.gz">http://anduin.linuxfromscratch.org/sources/other/sane-backends-1.0.23.tar.gz</ulink>.</para></note>
+    -->
 
     <bridgehead renderas="sect3">Back Ends Package Information</bridgehead>
     <itemizedlist spacing='compact'>
@@ -117,11 +125,15 @@
 
     <bridgehead renderas="sect4">Optional (Back Ends)</bridgehead>
     <para role="optional">
+      <xref linkend="avahi"/>,
+      <xref linkend="cups"/>,
       <xref linkend="libjpeg"/>,
       <xref linkend="libtiff"/>,
-      <xref linkend="libusb-compat"/>,
+      <xref linkend="libusb"/>,
+      <ulink url="http://www.net-snmp.org/">Net-SNMP</ulink>,
       <ulink url="http://cyberelk.net/tim/libieee1284/">libieee1284</ulink>,
-      <ulink url="http://www.gphoto.org/">libgphoto2</ulink>, and
+      <ulink url="http://www.gphoto.org/">libgphoto2</ulink>,
+      <ulink url="http://linuxtv.org/downloads/v4l-utils/">Video4Linux</ulink>, and
       <xref linkend="texlive"/>
     </para>
 
@@ -148,7 +160,7 @@
     drivers and/or additional support packages. A SCSI scanner will need SCSI
     drivers, a parallel port scanner needs parallel port support (you should
     use enhanced EPP modes) and perhaps <ulink
-    url="http://cyberelk.net/tim/libieee1284/">libieee1284</ulink> and a USB
+    url="http://cyberelk.net/tim/libieee1284/">libieee1284</ulink>, and a USB
     scanner will need the <xref linkend="libusb"/> package. Ensure you have
     the necessary drivers properly configured to access the devices.</para>
 
@@ -160,34 +172,60 @@
     <sect3>
       <title>Installation of SANE Back Ends</title>
 
+      <note>
+        <para>
+          You may safely disregard any messages printed on the screen when you
+          unpack the tarball.
+        </para>
+      </note>
+
       <para>The <application>SANE</application> daemon should run with its own
       group.  Create this group by issuing the following commands as the
       <systemitem class="username">root</systemitem> user:</para>
 
 <screen><userinput>groupadd -g 70 scanner</userinput></screen>
 
-      <note><para>The user building <application>SANE</application>-backends
-      should be a member of the scanner group before proceeding.  The easiest
-      way to ensure the system knows you have been added to a new group is to
-      log out log in again.  You can check with the output of the
-      <userinput>groups</userinput> command.</para></note>
+      <note>
+        <para>
+          The user building <application>SANE</application>-backends should be
+          a member of the <systemitem class="groupname">scanner</systemitem>
+          group before proceeding. After you have added the user building the
+          package to the <systemitem class="groupname">scanner</systemitem>
+          group, issue the following command to create a new shell:
+        </para>
+
+<screen><userinput>su $(whoami)</userinput></screen>
+
+        <para>
+          Check the output of the <userinput>groups</userinput> command and
+          ensure the user is a member of the
+          <systemitem class="groupname">scanner</systemitem> group.
+        </para>
+      </note>
 
       <para>Install <application>SANE</application>-backends by
       running the following commands:</para>
 
-<screen><userinput>./configure --prefix=/usr        \
-            --sysconfdir=/etc    \
-            --with-group=scanner \
-            --localstatedir=/var \
-            --disable-latex &amp;&amp;
-make</userinput></screen>
+            <!-- Not sure why this was there as it works if TeX is installed
+                 and it doesn't try to use it if TeX is not installed
+                 -disable-latex &amp;&amp; -->
 
-      <para>This package does not come with a test suite.</para>
+<screen><userinput>./configure --prefix=/usr                                    \
+            --sysconfdir=/etc                                \
+            --localstatedir=/var                             \
+            --with-docdir=/usr/share/doc/sane-backend-1.0.23 \
+            --with-group=scanner                             &amp;&amp;
+make                                                         &amp;&amp;
+exit</userinput></screen>
+
+      <para>To test the results, issue: <command>make check</command>.</para>
 
       <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-install -m 644 -v tools/udev/libsane.rules /etc/udev/rules.d/65-scanner.rules</userinput></screen>
+<screen role="root"><userinput>make install                                         &amp;&amp;
+install -m 644 -v tools/udev/libsane.rules           \
+                  /etc/udev/rules.d/65-scanner.rules &amp;&amp;
+chgrp -v scanner  /var/lock/sane</userinput></screen>
 
     </sect3>
 
@@ -235,6 +273,13 @@ install -v -m644 doc/sane.png xscanimage-icon-48x48-2.png \
     configuration files in <filename class="directory">/etc/sane.d</filename>
     instead of <filename class="directory">/usr/etc/sane.d</filename>.</para>
 
+    <para><parameter>--with-group=scanner</parameter>: This parameter causes
+    the directory created for the locking files to be group owned by the
+    <systemitem class="groupname">scanner</systemitem> group instead of the
+    default <systemitem class="groupname">uucp</systemitem> group.</para>
+
+    <para><command>exit</command>: This command is used to exit the shell
+    created by the <command>su</command> command.</para>
   </sect2>
 
   <sect2 role="configuration">
