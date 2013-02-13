@@ -8,8 +8,8 @@
   <!ENTITY virtuoso-download-ftp  " ">
   <!ENTITY virtuoso-md5sum        "3991149c570f3738c3e819ce603e487f">
   <!ENTITY virtuoso-size          "113 MB">
-  <!ENTITY virtuoso-buildsize     "530 MB">
-  <!ENTITY virtuoso-time          "4.2 SBU">
+  <!ENTITY virtuoso-buildsize     "770 MB (additional 2 GB to run the test suite)">
+  <!ENTITY virtuoso-time          "5.0 SBU (additional 10 SBU to run the test suite)">
 ]>
 
 <sect1 id="virtuoso" xreflabel="Virtuoso-&virtuoso-version;">
@@ -81,15 +81,21 @@
     <para role="recommended">
     <xref linkend="libiodbc"/>,
     <xref linkend="libxml2"/>,
-    <xref linkend="openssl"/> and
-    <xref linkend="openldap"/>.
+    <xref linkend="openssl"/>, and
+    <xref linkend="openldap"/>
    <!--<xref linkend="jdk"/>-->
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-    <xref linkend="imagemagick"/> and
-    <xref linkend="python2"/>
+    <xref linkend="imagemagick"/>,
+    <xref linkend="python2"/>, and
+    <xref linkend="mitkrb"/>
+    <!-- Currently broken
+    <xref linkend="php"/>
+    <xref linkend="ruby"/>
+    <ulink url="https://libwbxml.opensync.org/">libwbxml</ulink
+    -->
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -103,55 +109,88 @@
     <para>Install <application>virtuoso</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
-            --sysconfdir=/etc \
-            --localstatedir=/var \
-            --without-internal-zlib \
+<screen><userinput>sed -i "s|virt_iodbc_dir/include|&amp;/iodbc|" configure  &amp;&amp;
+./configure --prefix=/usr                             \
+            --sysconfdir=/etc                         \
+            --localstatedir=/var                      \
+            --with-iodbc=/usr                         \
+            --with-readline                           \
+            --without-internal-zlib                   \
             --program-transform-name="s/isql/isql-v/" \
-            --disable-all-vads \
-            --disable-static &amp;&amp;
+            --disable-all-vads                        \
+            --disable-static                          &amp;&amp;
 make</userinput></screen>
 
-    <para><application>Virtuoso</application> does not come with a callable test
-    suite. An intensive check routine is part of the build process.</para>
+    <para>To test the results, issue <command>make -k check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 -d /usr/share/doc/virtuoso-&virtuoso-version; &amp;&amp;
+ln -s   -v          ../../virtuoso/doc \
+                    /usr/share/doc/virtuoso-&virtuoso-version;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><option>--without-internal-zlib</option>: This option is set to use
-    the installed <application>zlib</application> and not the bundled
-    one.</para>
+    <para><command>sed -i ...</command>: This command is used to modify the
+    <envar>CPPFLAGS</envar> variable so that the <application>libiodbc</application>
+    interface headers are found by the <command>configure</command> script.</para>
 
-    <para><option>--program-transform-name</option>: Both
+    <para><parameter>--with-iodbc=/usr</parameter>: This parameter is used so
+    that the build will use the system <application>libiodbc</application> interface
+    headers and not the headers in the source tree.</para>
+
+    <para><parameter>--with-readline</parameter>: This parameter is used so that
+    the system <application>Readline</application> library is used.</para>
+
+    <para><parameter>--without-internal-zlib</parameter>: This parameter is set
+    so that the installed <application>zlib</application> library is used and
+    not the bundled one.</para>
+
+    <para><parameter>--program-transform-name</parameter>: Both
     <application>Virtuoso</application> and <application>unixODBC</application>
-    install a program named <command>isql</command>. Use this option to rename
-    <application>virtuoso</application>s program to <command>isql-v</command></para>
+    install a program named <command>isql</command>. Use this parameter to rename
+    <application>virtuoso</application>s program to <command>isql-v</command>.</para>
 
-    <para><option>--disable-all-vads</option>: This option disables the building of
-    all the VAD packages (tutorials, demos, etc.).</para>
+    <para><parameter>--disable-all-vads</parameter>: This parameter disables
+    building all the VAD packages (tutorials, demos, etc.).</para>
 
-    <para><option>--disable-static</option>: This option disables the building of static
-    libraries. However, the main virtuoso library, libvirtuoso-t, is still built as a
-    static library.</para>
+    <para><parameter>--disable-static</parameter>: This option disables building
+    static libraries. However, the main <application>Virtuoso</application>
+    libraries, <filename class="libraryfile">libvirtuoso-t</filename> and
+    <filename class="libraryfile">libvirtuoso-iodbc-t</filename> are still
+    built as static libraries.</para>
 
-    <para><option>--enable-python</option>:  Add this option if
-    <application>Python</application> is installed. It enables the
-    use of <application>Python</application> by
-    <application>Virtuoso</application>.</para>
-<!--
+    <para><option>--enable-python</option>: Add this option if
+    <application>Python</application> is installed to enable building
+    <application>Python</application> bindings.</para>
+
+<!-- broken with JDK-version7
     <para><option>-&#45;with-jdk4</option>: Add this option to specify the path
     to the <xref linkend="jdk"/> and to enable making use of Java.</para>
 -->
+
     <para><option>--with-port</option>: Add this if you want the
-    <application>virtuoso</application> server to listen on another port than
+    <application>Virtuoso</application> server to listen on a port other than
     1111.</para>
 
+    <para><option>--enable-aio</option>: Add this if you want
+    <application>Virtuoso</application> to perform asynchronous file I/O
+    operations instead of synchronous file I/O.</para>
+
+    <para><option>--enable-perl</option>: Do not use this option if you built
+    Perl according to the LFS instructions. The build will fail with a note
+    similar to <computeroutput>Your perl should be compiled w -Dusemultiplicity.
+    Check the output of perl -V:usemultiplicity</computeroutput>.</para>
+
+    <para>Note that passing the <option>with-jdk4=${JAVA_HOME}</option>,
+    <option>--enable-php5=/usr</option>, <option>--enable-ruby</option>, and
+    <option>--enable-wbxml2=/usr</option> options all will fail during the
+    <command>configure</command> phase of the build. They will not break
+    the build, but the desired support will not be included in the build.</para>
   </sect2>
 
   <sect2 role="configuration">
