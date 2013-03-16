@@ -7,10 +7,10 @@
   <!ENTITY colord-download-http
            "http://www.freedesktop.org/software/colord/releases/colord-&colord-version;.tar.xz">
   <!ENTITY colord-download-ftp  " ">
-  <!ENTITY colord-md5sum        "14a37f7aae8b47d247adea77686d6bd1">
-  <!ENTITY colord-size          "844 KB">
-  <!ENTITY colord-buildsize     "25 MB">
-  <!ENTITY colord-time          "0.2 SBU">
+  <!ENTITY colord-md5sum        "88ec2c419a9903f5bec91d603c0e7097">
+  <!ENTITY colord-size          "908 KB">
+  <!ENTITY colord-buildsize     "30 MB">
+  <!ENTITY colord-time          "0.3 SBU">
 ]>
 
 <sect1 id="colord" xreflabel="Colord-&colord-version;">
@@ -78,7 +78,7 @@
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="dbus"/>,
-      <xref linkend="glib2"/>,
+      <xref linkend="libgusb"/>,
       <xref linkend="lcms2"/> and
       <xref linkend="sqlite"/>
     </para>
@@ -97,8 +97,7 @@
       <xref linkend="colord-gtk"/> and <xref linkend="gnome-desktop"/>
       (To build example tools),
       <xref linkend="docbook-utils"/>,
-      <xref linkend="gtk-doc"/>,
-      <ulink url="http://people.freedesktop.org/~hughsient/releases/">libgusb</ulink> and
+      <xref linkend="gtk-doc"/> and
       <xref linkend="sane"/>
     </para>
 
@@ -111,6 +110,17 @@
     <title>Installation of Colord</title>
 
     <para>
+      There should be a dedicated user and group to take control
+      of the <command>colord</command> daemon after it is started.
+      Issue the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>groupadd -g 71 colord &amp;&amp;
+useradd -c "Color Daemon Owner" -d /var/lib/colord -u 71 \
+        -g colord -s /bin/false colord</userinput></screen>
+
+    <para>
       Install <application>Colord</application> by running the following
       commands:
     </para>
@@ -119,14 +129,10 @@
             --sysconfdir=/etc \
             --localstatedir=/var \
             --libexecdir=/usr/lib/colord \
+            --with-daemon-user=colord \
             --enable-vala \
-            --disable-gusb \
             --disable-static &amp;&amp;
 make</userinput></screen>
-
-    <para>
-      To test the results, issue: <command>make check</command>.
-    </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -134,22 +140,28 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
+    <para>
+      To test the results, issue: <command>make check</command>. Note
+      that system-wide <application>D-Bus</application> daemon must
+      be running or the tests will fail.
+    </para>
+
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <option>--enable-vala</option>: This switch enables
-      building of the Vala bindings. Remove if you don't
-      have <xref linkend="vala"/> installed.
+      <parameter>--with-daemon-user=colord</parameter>: This
+      switch is used so the <command>colord</command> daemon
+      will run as an unprivileged user instead of
+      <systemitem class="username">root</systemitem> user.
     </para>
 
     <para>
-       <option>--disable-gusb</option>: This switch disables
-       building of the <application>libgusb</application>
-       specific code. Remove it if you have installed
-       <application>libgusb</application>.
+      <option>--enable-vala</option>: This switch enables
+      building of the Vala bindings. Remove if you don't
+      have <xref linkend="vala"/> installed.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -165,16 +177,18 @@ make</userinput></screen>
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>
           cd-create-profile, cd-fix-profile, colord,
-          colord-sane and colormgr
+          colord-sane, colord-session and colormgr
         </seg>
         <seg>
-          libcolord.so
+          libcolordprivate.so, libcolord.so, libcolorhug.so,
+          libdtp94-private.so, libhuey-private.so and
+          libmunki-private.so
         </seg>
         <seg>
           /usr/include/colord-1,
@@ -214,18 +228,6 @@ make</userinput></screen>
           </para>
           <indexterm zone="colord cd-fix-profile">
             <primary sortas="b-cd-fix-profile">cd-fix-profile</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="colord-prog">
-        <term><command>colord</command></term>
-        <listitem>
-          <para>
-            is the Color Daemon.
-          </para>
-          <indexterm zone="colord colord-prog">
-            <primary sortas="b-colord">colord</primary>
           </indexterm>
         </listitem>
       </varlistentry>
