@@ -6,8 +6,8 @@
 
   <!ENTITY nfs-utils-download-http "&sourceforge-repo;/nfs/nfs-utils-&nfs-utils-version;.tar.bz2">
   <!ENTITY nfs-utils-download-ftp  " ">
-  <!ENTITY nfs-utils-md5sum        "8be543ca270c2234ff18f8c8d35e0d37">
-  <!ENTITY nfs-utils-size          "744 KB">
+  <!ENTITY nfs-utils-md5sum        "3b5ca797197765dc0c3a4122720c7716">
+  <!ENTITY nfs-utils-size          "2.8 MB">
   <!ENTITY nfs-utils-buildsize     "15 MB">
   <!ENTITY nfs-utils-time          "0.2 SBU">
 ]>
@@ -55,16 +55,6 @@
       </listitem>
       <listitem>
         <para>Estimated build time: &nfs-utils-time;</para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/nfs-utils-&nfs-utils-version;-fix_configure-1.patch"/>
-        </para>
       </listitem>
     </itemizedlist>
 
@@ -155,11 +145,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
     <para>Install <application>NFS Utilities</application> by running
     the following commands:</para>
 
-<screen><userinput>patch -Np1 -i ../nfs-utils-&nfs-utils-version;-fix_configure-1.patch &amp;&amp;
-
-autoreconf &amp;&amp;
-
-./configure --prefix=/usr          \
+<screen><userinput>./configure --prefix=/usr          \
             --sysconfdir=/etc      \
             --without-tcp-wrappers \
             --disable-nfsv4        \
@@ -173,7 +159,8 @@ make</userinput></screen>
     an additional parameter <option>--sbindir=/sbin</option> to the
     above <command>./configure</command> command.</para>
 
-    <para>This package does not come with a test suite.</para>
+    <!-- details of testsuite issuesi are in ticket #3840 -->
+    <para>This package does not come with a working test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -267,6 +254,25 @@ EOF</userinput></screen>
       <indexterm zone="nfs-utils nfs-utils-client-config">
         <primary sortas="e-etc-fstab">/etc/fstab</primary>
       </indexterm>
+
+      <para>In some circumstances an <filename>/etc/netconfig</filename> file
+      is required by an nfs client. It does no harm to create one even if it
+      is not in fact needed. As the <systemitem class="username">root</systemitem>
+      user:</para>
+
+<screen role="root"><userinput>cat &gt; /etc/netconfig &lt;&lt; "EOF"
+udp6 tpi_clts v inet6 udp - -
+tcp6 tpi_cots_ord v inet6 tcp - -
+udp tpi_clts v inet udp - -
+tcp tpi_cots_ord v inet tcp - -
+rawip tpi_raw - inet - - -
+local tpi_cots_ord - loopback - - -
+EOF</userinput></screen>
+
+      <indexterm zone="nfs-utils nfs-utils-client-config">
+        <primary sortas="e-etc-netconfig">/etc/netconfig</primary>
+      </indexterm>
+
 
       <sect4  id="nfs-utils-client-init">
         <title>Boot Script</title>
