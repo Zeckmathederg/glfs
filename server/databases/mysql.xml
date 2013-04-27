@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mysql-download-http "http://cdn.mysql.com/Downloads/MySQL-5.5/mysql-&mysql-version;.tar.gz">
+  <!ENTITY mysql-download-http "http://cdn.mysql.com/Downloads/MySQL-5.6/mysql-&mysql-version;.tar.gz">
   <!ENTITY mysql-download-ftp  " ">
-  <!ENTITY mysql-md5sum        "f0cdd56f89e781e800cf223bd9edd00c">
-  <!ENTITY mysql-size          "24 MB">
-  <!ENTITY mysql-buildsize     "760 MB (additional 170 MB to run the test suite)">
-  <!ENTITY mysql-time          "4.0 SBU (Test suite is an additional 45 minutes, only partially CPU dependent)">
+  <!ENTITY mysql-md5sum        "9241be729964ab4594de11baa30aec48">
+  <!ENTITY mysql-size          "34 MB">
+  <!ENTITY mysql-buildsize     "1.0 GB">
+  <!ENTITY mysql-time          "4.5 SBU">
 ]>
 
 <sect1 id="mysql" xreflabel="MySQL-&mysql-version;">
@@ -35,7 +35,7 @@
       server daemon and many different client programs and libraries.
     </para>
 
-    &lfs72_checked;
+    &lfs73_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -96,12 +96,14 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="libevent"/> and
       <xref linkend="openssl"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <ulink url="http://packages.debian.org/source/sid/libaio">libaio</ulink>
+      <ulink url="http://packages.debian.org/source/sid/libaio">libaio</ulink> and
+      <ulink url="http://www.thrysoee.dk/editline/">libedit</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -130,21 +132,20 @@ useradd -c "MySQL Server" -d /srv/mysql -g mysql -s /bin/false -u 40 mysql</user
     </para>
 
     <para>
-      MySQL contains an embedded server library which can be enabled with
-      the cmake option <parameter>-DWITH_EMBEDDED_SERVER=ON</parameter>. By
-      default this server is built as a statically linked library,
-      <filename>libmysqld.a</filename>, but by applying the optional patch, a
-      shared version of this library can be built. The library is needed
-      by certain applications, such as <application>Amarok</application> and
-      we recommend use of the shared libraries.
+      MySQL contains an embedded server library. By default, it is built as a
+      statically linked library, <filename>libmysqld.a</filename>, but by
+      applying the optional patch, a shared version of this library can be built.
+      The library is needed by certain applications, such as
+      <application>Amarok</application> and it is recommend to use the shared
+      libraries whenever it is possible.
     </para>
 
     <para>
       There are numerous options available to
-      <userinput>cmake</userinput>. Check the output of the `<userinput>cmake .
-      -LH</userinput>` for additional customization options. See the <ulink
-      url="http://dev.mysql.com/doc/refman/5.5/en/source-configuration-options.html">MySQL
-      Documentation</ulink> for a full listing of all options.
+      <command>cmake</command>. Check the output of the `<command>cmake .
+      -LH</command>` for additional customization options. See the <ulink
+      url="http://dev.mysql.com/doc/refman/5.6/en/source-configuration-options.html">
+      MySQL Documentation</ulink> for a full listing of all options.
     </para>
 
     <para>
@@ -181,29 +182,19 @@ cmake -DCMAKE_BUILD_TYPE=Release                    \
       -DINSTALL_SQLBENCHDIR=share/mysql/bench       \
       -DINSTALL_SUPPORTFILESDIR=share/mysql/support \
       -DMYSQL_DATADIR=/srv/mysql                    \
-      -DMYSQL_UNIX_ADDR=/var/run/mysqld/mysql.sock  \
+      -DMYSQL_UNIX_ADDR=/run/mysqld/mysqld.sock     \
       -DSYSCONFDIR=/etc/mysql                       \
       -DWITH_PARTITION_STORAGE_ENGINE=OFF           \
       -DWITH_PERFSCHEMA_STORAGE_ENGINE=OFF          \
-      -DWITH_READLINE=system                        \
+      -DWITH_EXTRA_CHARSETS=complex                 \
+      -DWITH_LIBEVENT=system                        \
       -DWITH_SSL=system                             \
       .. &amp;&amp;
 make</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make test-force 2>&amp;1 | tee
-      test.log</command>. This forces the test to run to completion and logs all
-      the test output. There will be many tests that are not run due to
-      configuration options and developer considerations. Otherwise many of the
-      tests will fail. Also, two tests will fail if ipv6 is not available in
-      the kernel either as a module or built in.
+      To test the results, issue: <command>make test</command>.
     </para>
-
-    <note>
-      <para>
-        The SSL tests may fail due to expired certificates.
-      </para>
-    </note>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -231,28 +222,25 @@ make</userinput></screen>
     </para>
 
     <para>
-      <parameter>-DWITH_&lt;engine&gt;_STORAGE_ENGINE=ON</parameter>: The default
-      instructions only build the innobase (InnoDB) storage engine. If other
-      storage engines are desired use this switch to enable them. Valid choices
-      are ARCHIVE, BLACKHOLE, EXAMPLE, FEDERATED, INNOBASE, NDBCLUSTER,
-      PARTITION and PERFSCHEMA.
-    </para>
-
-    <para>
       <parameter>-DWITHOUT_SERVER=ON</parameter>: Use this switch if you don't
       want the server and would like to build the client only.
     </para>
 
     <para>
-      <parameter>-DWITH_EMBEDDED_SERVER=ON</parameter>: Use this switch to build
-      the embedded server library.
+      <parameter>-DWITH_EXTRA_CHARSETS=complex</parameter>: This switch enables
+      support for the complex character sets.
+    </para>
+
+    <para>
+      <parameter>-DWITH_LIBEVENT=system</parameter>: This switch is used to
+      tell the build system to use installed <application>libevent</application>.
+      Remove it if you didn't install <application>libevent</application>.
     </para>
 
     <para>
       <parameter>-DWITH_SSL=system</parameter>: This switch is used to tell the
-      build system to use system version of the
-      <application>OpenSSL</application>. Remove it if you didn't install
-      <application>OpenSSL</application>.
+      build system to use installed <application>OpenSSL</application>. Remove
+      it if you didn't install <application>OpenSSL</application>.
     </para>
 
   </sect2>
@@ -281,18 +269,94 @@ make</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
+      <note>
+        <para>
+          If you are upgrading from previous major version of
+          <application>MySQL</application>, be sure to consult
+          the <ulink
+          url="https://dev.mysql.com/doc/refman/5.6/en/upgrading-from-previous-series.html">
+          MySQL Reference Manual</ulink> for notes on
+          upgrading the software.
+        </para>
+      </note>
+
       <para>
-        There are several default configuration files available in
-        <filename class="directory">/usr/share/mysql</filename> which you can
-        use. When creating the file, ensure binary logs are disabled unless you
-        are doing database replication. Create <filename>/etc/mysql/my.cnf</filename>
-        using the following commands as the <systemitem
+        Create basic <filename>/etc/mysql/my.cnf</filename>
+        using the following command as the <systemitem
         class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>install -v -Dm644 /usr/share/mysql/support/my-medium.cnf /etc/mysql/my.cnf &amp;&amp;
-sed -i 's/^log-bin/#log-bin/' /etc/mysql/my.cnf &amp;&amp;
-sed -i 's/^binlog/#binlog/' /etc/mysql/my.cnf</userinput></screen>
+<screen role="root"><userinput>cat &gt; /etc/mysql/my.cnf &lt;&lt; "EOF"
+<literal># Begin /etc/mysql/my.cnf
+
+# The following options will be passed to all MySQL clients
+[client]
+#password       = your_password
+port            = 3306
+socket          = /run/mysqld/mysqld.sock
+
+# The MySQL server
+[mysqld]
+port            = 3306
+socket          = /run/mysqld/mysqld.sock
+datadir         = /srv/mysql
+skip-external-locking
+key_buffer = 16M
+max_allowed_packet = 1M
+sort_buffer_size = 512K
+net_buffer_length = 16K
+myisam_sort_buffer_size = 8M
+
+# Don't listen on a TCP/IP port at all.
+skip-networking
+
+# required unique id between 1 and 2^32 - 1
+server-id       = 1
+
+# Uncomment the following if you are using BDB tables
+#bdb_cache_size = 4M
+#bdb_max_lock = 10000
+
+# Uncomment the following if you are using InnoDB tables
+#innodb_data_home_dir = /srv/mysql
+#innodb_data_file_path = ibdata1:10M:autoextend
+#innodb_log_group_home_dir = /srv/mysql
+# You can set .._buffer_pool_size up to 50 - 80 %
+# of RAM but beware of setting memory usage too high
+#innodb_buffer_pool_size = 16M
+#innodb_additional_mem_pool_size = 2M
+# Set .._log_file_size to 25 % of buffer pool size
+#innodb_log_file_size = 5M
+#innodb_log_buffer_size = 8M
+#innodb_flush_log_at_trx_commit = 1
+#innodb_lock_wait_timeout = 50
+
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+# Remove the next comment character if you are not familiar with SQL
+#safe-updates
+
+[isamchk]
+key_buffer = 20M
+sort_buffer_size = 20M
+read_buffer = 2M
+write_buffer = 2M
+
+[myisamchk]
+key_buffer_size = 20M
+sort_buffer_size = 20M
+read_buffer = 2M
+write_buffer = 2M
+
+[mysqlhotcopy]
+interactive-timeout
+
+# End /etc/mysql/my.cnf</literal>
+EOF</userinput></screen>
 
       <para>
         You can now install a database and change the ownership to the
@@ -365,17 +429,18 @@ mysqld_safe --user=mysql 2&gt;&amp;1 &gt;/dev/null &amp;</userinput></screen>
           innochecksum, msql2mysql, myisamchk, myisam_ftdump, myisamlog,
           myisampack, my_print_defaults, mysql, mysqlaccess, mysqlaccess.conf,
           mysqladmin, mysqlbinlog, mysqlbug, mysqlcheck, mysql_client_test,
-          mysql_client_test_embedded, mysql_config, mysql_convert_table_format,
-          mysqld, mysqld_multi, mysqld_safe, mysqldump, mysqldumpslow,
-          mysql_embedded, mysql_find_rows, mysql_fix_extensions, mysqlhotcopy,
-          mysqlimport, mysql_install_db, mysql_plugin, mysql_secure_installation,
-          mysql_setpermission, mysqlshow, mysqlslap, mysqltest,
-          mysqltest_embedded, mysql_tzinfo_to_sql, mysql_upgrade, mysql_waitpid,
-          mysql_zap, perror, replace, resolveip and resolve_stack_dump
+          mysql_client_test_embedded, mysql_config, mysql_config_editor,
+          mysql_convert_table_format, mysqld, mysqld_multi, mysqld_safe, mysqldump,
+          mysqldumpslow, mysql_embedded, mysql_find_rows, mysql_fix_extensions,
+          mysqlhotcopy, mysqlimport, mysql_install_db, mysql_plugin,
+          mysql_secure_installation, mysql_setpermission, mysqlshow, mysqlslap,
+          mysqltest, mysqltest_embedded, mysql_tzinfo_to_sql, mysql_upgrade,
+          mysql_waitpid, mysql_zap, perror, replace, resolveip and
+          resolve_stack_dump
         </seg>
         <seg>
-          libmysqlclient.{so,a}, libmysqlclient_r.{so,a}, libmysqld.{so,a},
-          libmysqlservices.a and several in /usr/lib/mysql
+          libmysqlclient.{so,a}, libmysqlclient_r.{so,a}, libmysqld.{so,a} and
+          libmysqlservices.a
         </seg>
         <seg>
           /etc/mysql,
@@ -394,7 +459,7 @@ mysqld_safe --user=mysql 2&gt;&amp;1 &gt;/dev/null &amp;</userinput></screen>
       Descriptions of all the programs and libraries would be several
       pages long. Instead, consult the <filename>mysql.info</filename>
       documentation or the on-line reference manual at <ulink
-      url="http://dev.mysql.com/doc/refman/5.5/en/index.html"/>.
+      url="http://dev.mysql.com/doc/refman/5.6/en/index.html"/>.
     </para>
 
     <para>
