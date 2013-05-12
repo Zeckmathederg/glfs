@@ -93,7 +93,9 @@
     <para>Install <application>PostgreSQL</application> with the
     following commands: </para>
 
-<screen><userinput>./configure --prefix=/usr          \
+<screen><userinput>sed -e "s@DEFAULT_PGSOCKET_DIR  \"/tmp\"@DEFAULT_PGSOCKET_DIR  \"/run/postgresql\"@" \
+    -i src/include/pg_config_manual.h &amp;&amp;
+./configure --prefix=/usr          \
             --enable-thread-safety \
             --docdir=/usr/share/doc/postgresql-&postgresql-version; &amp;&amp;
 make</userinput></screen>
@@ -117,11 +119,12 @@ make install-docs</userinput></screen>
     <para>Initialize a database cluster with the following commands issued by the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>install -v -m700 -d /srv/pgsql/data &amp;&amp;
+<screen role="root"><userinput>install -v -dm700 /srv/pgsql/data &amp;&amp;
+install -v -dm755 /run/postgresql &amp;&amp;
 groupadd -g 41 postgres &amp;&amp;
 useradd -c "PostgreSQL Server" -g postgres -d /srv/pgsql/data \
         -u 41 postgres &amp;&amp;
-chown -v postgres /srv/pgsql/data &amp;&amp;
+chown -Rv postgres:postgres /srv/pgsql /run/postgresql &amp;&amp;
 su - postgres -c '/usr/bin/initdb -D /srv/pgsql/data'</userinput></screen>
 
     <para>As the <systemitem class="username">root</systemitem> user, start the
@@ -148,6 +151,12 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -e ...</command>: This sed changes server socket location
+      from <filename class="directory">/tmp</filename> to
+      <filename class="directory">/run/postgresql</filename>.
+    </para>
 
     <para><parameter>--docdir=/usr/share/doc/postgresql-&postgresql-version;</parameter>:
     This switch puts the documentation in a versioned directory.</para>
