@@ -4,10 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
+  <!ENTITY nss-url "ftp.mozilla.org/pub/mozilla.org/security/nss/releases">
+
   <!ENTITY nss-download-http
-           "http://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_&nss-major-version;_RTM/src/nss-&nss-version;.tar.gz">
+           "http://&nss-url;/NSS_3_&nss-major-version;_RTM/src/nss-&nss-version;.tar.gz">
   <!ENTITY nss-download-ftp
-           "ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_&nss-major-version;_RTM/src/nss-&nss-version;.tar.gz">
+           "ftp://&nss-url;/NSS_3_&nss-major-version;_RTM/src/nss-&nss-version;.tar.gz">
   <!ENTITY nss-md5sum        "391fd6ef006f59ddc440054cad33d259">
   <!ENTITY nss-size          "6.0 MB">
   <!ENTITY nss-buildsize     "72 MB">
@@ -77,6 +79,16 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/nss-&nss-version;-standalone-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">NSS Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -107,7 +119,8 @@
       Install <application>NSS</application> by running the following commands:
     </para>
 
-<screen><userinput>cd nss                                &amp;&amp;
+<screen><userinput>patch -Np1 -i ../nss-&nss-version;-standalone-1.patch &amp;&amp;
+cd nss &amp;&amp;
 make BUILD_OPT=1                      \
   NSPR_INCLUDE_DIR=/usr/include/nspr  \
   USE_SYSTEM_ZLIB=1                   \
@@ -123,13 +136,15 @@ make BUILD_OPT=1                      \
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>cd ../dist                                                         &amp;&amp;
-install -v -m755 Linux*/lib/*.so                /usr/lib           &amp;&amp;
-install -v -m644 Linux*/lib/{*.chk,libcrmf.a}   /usr/lib           &amp;&amp;
-install -v -m755 -d                             /usr/include/nss   &amp;&amp;
-cp -v -RL {public,private}/nss/*                /usr/include/nss   &amp;&amp;
-chmod 644                                       /usr/include/nss/* &amp;&amp;
-install -v -m755 Linux*/bin/{certutil,pk12util} /usr/bin</userinput></screen>
+<screen role="root"><userinput>cd ../dist &amp;&amp;
+install -v -m755 Linux*/lib/*.so /usr/lib &amp;&amp;
+install -v -m644 Linux*/lib/{*.chk,libcrmf.a} /usr/lib &amp;&amp;
+install -v -m755 -d /usr/include/nss &amp;&amp;
+cp -v -RL {public,private}/nss/* /usr/include/nss &amp;&amp;
+chmod 644 /usr/include/nss/* &amp;&amp;
+install -v -m755 Linux*/bin/{certutil,nss-config,pk12util} /usr/bin &amp;&amp;
+install -v -m644 Linux*/lib/pkgconfig/nss.pc /usr/lib/pkgconfig</userinput></screen>
+
   </sect2>
 
   <sect2 role="commands">
@@ -177,6 +192,7 @@ install -v -m755 Linux*/bin/{certutil,pk12util} /usr/bin</userinput></screen>
       <filename class="libraryfile">libsoftokn3.so</filename> will link against
       the system version of sqlite.
     </para>
+
   </sect2>
 
   <sect2 role="content">
@@ -189,7 +205,7 @@ install -v -m755 Linux*/bin/{certutil,pk12util} /usr/bin</userinput></screen>
 
       <seglistitem>
         <seg>
-          certutil and pk12util
+          certutil, nss-config, and pk12util
         </seg>
         <seg>
           libcrmf.a, libfreebl3.so, libnss3.so, libnssckbi.so,
@@ -221,6 +237,19 @@ install -v -m755 Linux*/bin/{certutil,pk12util} /usr/bin</userinput></screen>
           </para>
           <indexterm zone="nss certutil">
             <primary sortas="b-certutil">certutil</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="nss-config">
+        <term><command>nss-config</command></term>
+        <listitem>
+          <para>
+            is used to determine the NSS library settings of the installed NSS
+            libraries.
+          </para>
+          <indexterm zone="nss nss-config">
+            <primary sortas="b-nss-config">nss-config</primary>
           </indexterm>
         </listitem>
       </varlistentry>
