@@ -6,11 +6,10 @@
 
   <!ENTITY alsa-utils-download-http "&alsa-download-http;/utils/alsa-utils-&alsa-utils-version;.tar.bz2">
   <!ENTITY alsa-utils-download-ftp  "&alsa-download-ftp;/utils/alsa-utils-&alsa-utils-version;.tar.bz2">
-  <!ENTITY alsa-utils-md5sum        "cbfb21a24f63fb052b3392195639ce48">
+  <!ENTITY alsa-utils-md5sum        "3d81357b997744a139881ef72bc6921a">
   <!ENTITY alsa-utils-size          "1.1 MB">
-  <!ENTITY alsa-utils-buildsize     "13 MB">
+  <!ENTITY alsa-utils-buildsize     "7 MB">
   <!ENTITY alsa-utils-time          "0.2 SBU">
-  <!ENTITY alsa-utils-patch         "alsa-utils-&alsa-utils-version;-no_xmlto-1.patch">
 ]>
 
 <sect1 id="alsa-utils" xreflabel="alsa-utils-&alsa-utils-version;">
@@ -72,6 +71,14 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/alsa-utils-&alsa-utils-version;-udev_rules-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">ALSA Utilities Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -81,19 +88,10 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="libsamplerate"/>,
       <ulink url="http://hightek.org/dialog/">Dialog</ulink> and
       <xref linkend="xmlto"/>
     </para>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Optional patch:
-          <ulink url="&patch-root;/&alsa-utils-patch;"/>
-        </para>
-      </listitem>
-    </itemizedlist>
 
     <para condition="html" role="usernotes">User Notes:
       <ulink url="&blfs-wiki;/alsa-utils"/>
@@ -104,19 +102,16 @@
     <title>Installation of ALSA Utilities</title>
 
     <para>
-      If you have not installed the optional dependency <xref linkend="xmlto"/>,
-      apply the following patch:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../&alsa-utils-patch;</userinput></screen>
-
-    <para>
       Install <application>ALSA Utilities</application> by
       running the following commands:
     </para>
 
-<screen><userinput>./configure &amp;&amp;
-make</userinput></screen>
+<screen><userinput>patch -Np1 -i ../alsa-utils-&alsa-utils-version;-udev_rules-1.patch &amp;&amp;
+./configure --disable-alsaconf --disable-xmlto &amp;&amp;
+make &amp;&amp;
+pushd alsactl &amp;&amp;
+make 90-alsa-restore.rules
+popd</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -126,7 +121,24 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m644 alsactl/90-alsa-restore.rules /lib/udev/rules.d</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <option>--disable-alsaconf</option>: This switch disables building the
+      <command>alsaconf</command> configuration tool which is incompatible with
+      <application>Udev</application>.
+    </para>
+
+    <para>
+      <option>--disable-xmlto</option>: Omit this switch if you have installed
+      <xref linkend="xmlto"/> and don't wish to install pregenerated man pages.
+    </para>
 
   </sect2>
 
@@ -222,7 +234,7 @@ alsactl store</userinput></screen>
 
       <seglistitem>
         <seg>
-          aconnect, alsaconf, alsactl, alsaloop, alsamixer,
+          aconnect, alsactl, alsaloop, alsamixer,
           alsaucm, amidi, amixer, aplay, aplaymidi, arecord,
           arecordmidi, aseqdump, aseqnet, iecset and
           speaker-test
@@ -250,20 +262,6 @@ alsactl store</userinput></screen>
           </para>
           <indexterm zone="alsa-utils aconnect">
             <primary sortas="b-aconnect">aconnect</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="alsaconf">
-        <term><command>alsaconf</command></term>
-        <listitem>
-          <para>
-            is a configuration tool which tries to detect the sound cards
-            on your system and write a suitable configuration file for ALSA.
-            This program is incompatible with Udev.
-          </para>
-          <indexterm zone="alsa-utils alsaconf">
-            <primary sortas="b-alsaconf">alsaconf</primary>
           </indexterm>
         </listitem>
       </varlistentry>
