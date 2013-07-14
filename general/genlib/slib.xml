@@ -7,10 +7,10 @@
   <!ENTITY slib-download-http
   "http://groups.csail.mit.edu/mac/ftpdir/scm/slib-&slib-version;.tar.gz">
   <!ENTITY slib-download-ftp  " ">
-  <!ENTITY slib-md5sum        "11626eef380de4f56d3082514559beb6">
-  <!ENTITY slib-size          "948 KB">
-  <!ENTITY slib-buildsize     "31 MB (includes building and installing docs)">
-  <!ENTITY slib-time          "less than 0.1 SBU">
+  <!ENTITY slib-md5sum        "dcada65c4df4209c8f71211095bcef8e">
+  <!ENTITY slib-size          "956 KB">
+  <!ENTITY slib-buildsize     "10 MB (includes building and installing docs)">
+  <!ENTITY slib-time          "0.5 SBU">
 ]>
 
 <sect1 id="slib" xreflabel="SLIB-&slib-version;">
@@ -41,7 +41,7 @@
     PLT Scheme (DrScheme and MzScheme), Pocket Scheme, RScheme, scheme->C,
     Scheme48, SCM, SCM Mac, scsh, Stk, T3.1, umb-scheme, and VSCM.</para>
 
-    &lfs72_checked;
+    &lfs73_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -67,15 +67,6 @@
 
     <bridgehead renderas="sect3">SLIB Dependencies</bridgehead>
 
-    <!--
-    <para>There are no build dependencies as this package is nothing but many
-    text script files which are copied to the system. If you are installing
-    this package to support a <application>GnuCash</application> installation,
-    you should ensure that <xref linkend="guile"/> is installed so the
-    <application>SLIB</application> catalog for <application>Guile</application>
-    can be created.</para>
-    -->
-
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required"><xref linkend="guile"/>.</para>
 
@@ -92,10 +83,11 @@
 <screen><userinput>sed -i 's|usr/lib|usr/share|' RScheme.init                      &amp;&amp;
 ./configure --prefix=/usr --libdir=/usr/share                   &amp;&amp;
 
-sed -i 's# scm$# guile#;s#ginstall-info#install-info#' Makefile &amp;&amp;
+sed -i -e 's# scm$# guile#;s#ginstall-info#install-info#' \
+       -e 's/no-split -o/no-split --force -o/' Makefile         &amp;&amp;
 
-makeinfo -o slib.txt --plaintext slib.texi                      &amp;&amp;
-makeinfo -o slib.html --html --no-split slib.texi</userinput></screen>
+makeinfo -o slib.txt --plaintext --force slib.texi              &amp;&amp;
+makeinfo -o slib.html --html --no-split --force slib.texi</userinput></screen>
 
 <!-- Thee are errors in slib.texi
     <para>If you have <xref linkend="texlive"/> installed and wish to build PDF
@@ -112,8 +104,9 @@ dvips -o slib.ps slib.dvi</userinput></screen>
     user:</para>
 
 <screen role="root"><userinput>make install                                            &amp;&amp;
-ln -v -s ../slib /usr/share/guile                       &amp;&amp;
+ln -v -sf ../slib /usr/share/guile                      &amp;&amp;
 guile -c "(use-modules (ice-9 slib)) (require 'printf)" &amp;&amp;
+mkdir -pv /usr/share/guile/site/2.0                     &amp;&amp;
 install -v -m755 -d /usr/share/doc/slib-&slib-version;             &amp;&amp;
 install -v -m644 ANNOUNCE FAQ README slib.{txt,html} /usr/share/doc/slib-&slib-version;</userinput></screen>
 
@@ -137,7 +130,12 @@ install -v -m644 ANNOUNCE FAQ README slib.{txt,html} /usr/share/doc/slib-&slib-v
     in files <filename class="directory">/usr/share/slib</filename> instead of
     <filename class="directory">/usr/lib/slib</filename>.</para>
 
-    <para><command>ln -v -s ../slib /usr/share/guile</command>: This command
+    <para><command>makeinfo ... --force ... </command>: This command creates
+    needed documentation, but needs the <option>--force</option> option to
+    overcome warnings that are flagged as errors in recent versions of
+    <command>makeinfo</command>.</para>
+
+    <para><command>ln -v -sf ../slib /usr/share/guile</command>: This command
     puts a symbolic link to the <application>slib</application> files in
     <application>Guile</application>'s default <quote>Implementation
     Vicinity</quote>.</para>
@@ -159,7 +157,9 @@ install -v -m644 ANNOUNCE FAQ README slib.{txt,html} /usr/share/doc/slib-&slib-v
       <seglistitem>
         <seg>slib</seg>
         <seg>a <application>Scheme</application> library system</seg>
-        <seg>/usr/share/slib and /usr/share/doc/slib-&slib-version;</seg>
+        <seg>/usr/share/slib, 
+             /usr/share/guile/site/2.0, and 
+             /usr/share/doc/slib-&slib-version;</seg>
       </seglistitem>
     </segmentedlist>
 
