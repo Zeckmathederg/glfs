@@ -6,9 +6,9 @@
 
   <!ENTITY mesalib-download-http " ">
   <!ENTITY mesalib-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/&mesalib-version;/MesaLib-&mesalib-version;.tar.bz2">
-  <!ENTITY mesalib-md5sum        "4ed2af5943141a85a21869053a2fc2eb">
+  <!ENTITY mesalib-md5sum        "443a2a352667294b53d56cb1a74114e9">
   <!ENTITY mesalib-size          "5.9 MB">
-  <!ENTITY mesalib-buildsize     "331 MB">
+  <!ENTITY mesalib-buildsize     "335 MB">
   <!ENTITY mesalib-time          "4.7 SBU">
 
   <!ENTITY glu-download-http " ">
@@ -194,6 +194,7 @@
     </para>
 
 <screen><userinput>patch -Np1 -i ../MesaLib-&mesalib-version;-llvm_fixes-1.patch &amp;&amp;
+sed -i "/LLVM_VERSION_INT/s:-ne:-lt:" configure.ac &amp;&amp;
 autoreconf -fi &amp;&amp;
 ./configure CFLAGS="-O2" CXXFLAGS="-O2"    \
             --prefix=/usr                  \
@@ -228,7 +229,10 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -v -m755 lib/swrast_dri.so /usr/lib/dri/swrast_dri.so</userinput></screen>
+<!-- remove when mesa 9.2 gets released, llvm 3.3 breaks llvmpipe (gallium swrast
+driver which installed by default) -->
 
     <para>
       If you have built the demo programs, install them by running the
@@ -274,6 +278,13 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -i "..."</command>: This sed fixes building with
+      <application>LLVM</application> 3.3. Please note that
+      R600 LLVM Compiler and Gallium LLVMPipe driver are currently
+      broken with <application>LLVM</application> 3.3.
+    </para>
 
     <para>
       <parameter>CFLAGS="-O2" CXXFLAGS="-O2"</parameter>: By default,
@@ -359,11 +370,13 @@ make</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
+<!-- broken with llvm 3.3
     <para>
-      <option>--enable-r600-llvm-compiler</option>: Use this switch to
+      <option>- -enable-r600-llvm-compiler</option>: Use this switch to
       enable experimental <application>LLVM</application> backend for
       graphics shaders which claims to speed up the driver.
     </para>
+-->
 
   </sect2>
 
