@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY libmng-download-http "&sourceforge-repo;/libmng/libmng-&libmng-version;.tar.bz2">
+  <!ENTITY libmng-download-http "&sourceforge-repo;/libmng/libmng-&libmng-version;.tar.xz">
   <!ENTITY libmng-download-ftp  " ">
-  <!ENTITY libmng-md5sum        "eaf1476a3bb29f6190bca660e6abef16">
-  <!ENTITY libmng-size          "840 KB">
-  <!ENTITY libmng-buildsize     "7.9 MB">
-  <!ENTITY libmng-time          "0.1 SBU">
+  <!ENTITY libmng-md5sum        "3804bf2523af9b4e0670b5982b3bf984">
+  <!ENTITY libmng-size          "932 KB">
+  <!ENTITY libmng-buildsize     "15 MB">
+  <!ENTITY libmng-time          "0.2 SBU">
 ]>
 
 <sect1 id="libmng" xreflabel="libmng-&libmng-version;">
@@ -60,8 +60,10 @@
     <bridgehead renderas="sect3">libmng Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="libjpeg"/> and
-    <xref linkend="lcms"/></para>
+    <para role="required">
+      <xref linkend="libjpeg"/> and
+      <xref linkend="lcms2"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/libmng"/></para>
@@ -74,38 +76,31 @@
     <para>Install <application>libmng</application> by running the following
     commands:</para>
 
-<screen><userinput>cp makefiles/makefile.linux Makefile         &amp;&amp;
-sed -i -e 's/unroll-loops/&amp; -fPIC/' Makefile &amp;&amp;
+<screen><userinput>sed -i "s:#include &lt;jpeg:#include &lt;stdio.h&gt;\n&amp;:" libmng_types.h &amp;&amp;
+./configure --prefix=/usr --disable-static &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>sed -i '/^install\|cp.*libmng.a/ s/libmng.a//' Makefile &amp;&amp;
-make prefix=/usr install &amp;&amp;
-install -v -m644 doc/man/*.3 /usr/share/man/man3 &amp;&amp;
-install -v -m644 doc/man/*.5 /usr/share/man/man5 &amp;&amp;
+<screen role="root"><userinput>make install &amp;&amp;
 install -v -m755 -d /usr/share/doc/libmng-&libmng-version; &amp;&amp;
-install -v -m644 doc/*.{png,txt} /usr/share/doc/libmng-&libmng-version;</userinput></screen>
+install -v -m644 doc/*.txt /usr/share/doc/libmng-&libmng-version;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>cp makefiles/makefile.linux Makefile</command>: There are no
-    autotools shipped with this package. The Linux <filename>Makefile</filename>
-    is copied to the root of the source tree, facilitating the installation.</para>
+    <para>
+      <command>sed -i "..." libmng_types.h</command>: This command adds a
+      missing header which would cause other apps that link to this
+      package fail to compile.
+    </para>
 
-    <para><command>sed -i -e 's/unroll-loops/&amp; -fPIC/' Makefile</command>:
-    Add a gcc option to make the build compatible with x86_64 systems.</para>
-
-    <para><command>sed -i '/^install\|cp.*libmng.a/ s/libmng.a//' Makefile</command>
-    This command disables installing the static library.</para>
-
-    <para><command>install ...</command>: The documentation files are not
-    installed by the installation procedure, so they are copied manually.</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
 
   </sect2>
 
