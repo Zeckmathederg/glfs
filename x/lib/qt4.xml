@@ -105,8 +105,9 @@
       <xref linkend="mysql"/>,
       <xref linkend="postgresql"/>,
       <xref linkend="pulseaudio"/>,
-      <xref linkend="qtchooser"/> (if also installing Qt5), and
-      <xref linkend="unixodbc"/>
+      <xref linkend="unixodbc"/>, and
+      <xref linkend="qtchooser"/> (runtime, if also installing Qt5 and 
+      installing in /usr)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -118,7 +119,6 @@
     <title>Installation of Qt</title>
 
     <para>
-
        There are several ways to install a complicated package such as
        <application>Qt</application>. The files are not completely position
        independent. Installation procedures execute the program
@@ -149,6 +149,16 @@
        optional <application>qtchooser</application> application.
     </para>
 
+       <para>
+       The disadvantage of installing in <filename
+       class='directory'>/usr</filename> is that the executable filenames
+       for  <application>Qt4</application> and <application>Qt5</application>
+       conflict if both packages are installed in the
+       same directory.  The instructions below give a workaround for
+       this problem using the helper program <xref linkend='qtchooser'/>.
+       This requires renaming the Qt executables with a version suffix.
+    </para>
+
     <para>
        The advantage of installing <application>Qt4</application> in a custom
        directory such as <filename
@@ -158,26 +168,27 @@
        installation and users can easily revert to a previous version by
        changing one symbolic link or merely changing the PATH variable.  It
        also allows a developer to maintain multiple versions of 
-       <application>Qt4</application> for testing.
+       <application>Qt4</application> or <application>Qt5</application>
+       for testing.
     </para>
 
-    <warning>
+    <caution>
       <para>
         If you did not install some of the recommended dependencies, examine
         <command>./configure --help</command> output to check how to disable
         them or use internal versions bundled in the source tarball.
       </para>
-    </warning>
+    </caution>
 
-    <caution>
+    <warning>
       <para>
-        If <application>Qt</application> is being reinstalled into the
+        If <application>Qt4</application> is being reinstalled into the
         same directory as an existing instance, run the
-        following commands from a console or non-Qt based window manager.
-        It overwrites <application>Qt</application> libraries that should
+        following commands from a console or non-Qt4 based window manager.
+        It overwrites <application>Qt4</application> libraries that should
         not be in use during the install process.
       </para>
-    </caution>
+    </warning>
 
     <note>
       <para>
@@ -191,9 +202,15 @@
     <bridgehead renderas="sect3">Method 1: Installing in /usr</bridgehead>
 
     <para>
-      Install <application>Qt</application> by running the
+      Install <application>Qt4</application> by running the
       following commands:
     </para>
+
+    <note><para>
+      If <emphasis>not</emphasis> also installing <application>Qt5</application>
+      into the /usr directory, change the entry for -bindir below to /usr/bin.
+    </para></note>
+
 
 <screen><userinput>sed -i -e "/#if/d" -e "/#error/d" -e "/#endif/d" \
      config.tests/unix/libmng/libmng.cpp &amp;&amp;
@@ -263,7 +280,8 @@ done
 unset file</userinput></screen>
 
     <para>
-      Symlink the <application>Qt</application> executables into
+      If also installing Qt5 into /usr, 
+      symlink the <application>Qt4</application> executables into
       <filename class="directory">/usr/bin</filename> by running the
       following commands as the
       <systemitem class="username">root</systemitem> user:
@@ -275,6 +293,16 @@ do
 done</userinput></screen>
 
     <bridgehead renderas="sect3">Method 2: Installing in /opt/qt-&qt4-version;</bridgehead>
+
+    <para>
+      This section provides an alternate way to install Qt4 by installing
+      almost all of the files in the <filename class="directory">/opt</filename>
+      directory. This allows management of all Qt4 related files in one unit.
+      For instance, a new version of Qt4 can be installed without over-writing
+      the existing installation and entire Qt4 instances can be easily removed.
+      However, it has the disadvantage of needing some extra configuration.
+    </para>
+ 
 
     <para>
       Install <application>Qt</application> in  /opt/qt-&qt4-version; 
@@ -444,7 +472,7 @@ EOF</userinput></screen>
    </para>
    
 <screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; EOF
-   <literal># Begin Qt addition
+<literal># Begin Qt addition
    
 /opt/qt/lib
    
@@ -453,7 +481,7 @@ EOF
 
 ldconfig</userinput></screen>
    
-   <indexterm zone="qt4 qtconfig-qt4">
+   <indexterm zone="qt4 qt4-config">
       <primary sortas="e-etc-ld.so.conf">/etc/ld.so.conf</primary>
    </indexterm>
    
@@ -463,7 +491,7 @@ ldconfig</userinput></screen>
    </para>
    
 <screen role="root"><userinput>cat &gt; /etc/profile.d/qt.sh &lt;&lt; EOF
-   <literal># Begin /etc/profile.d/qt.sh
+<literal># Begin /etc/profile.d/qt.sh
    
 QTDIR=/opt/qt
    
@@ -476,7 +504,7 @@ export QTDIR
 EOF</userinput></screen>
 
       <para>
-        For all methods, Create the menu entries for installed applications.
+        For all methods, create the menu entries for installed applications.
         As the <systemitem class="username">root</systemitem> user:
       </para>
 
