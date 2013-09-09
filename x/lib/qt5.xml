@@ -9,10 +9,10 @@
 
   <!ENTITY qt5-download-http "&qt5-url;/qt-everywhere-opensource-src-&qt5-version;.tar.xz">
   <!ENTITY qt5-download-ftp  " ">
-  <!ENTITY qt5-md5sum        "44a507beebef73eb364b5a2ec7bbe090">
+  <!ENTITY qt5-md5sum        "697b7b8768ef8895e168366ab6b44760">
   <!ENTITY qt5-size          "169 MB">
   <!ENTITY qt5-buildsize     "2.5 GB">
-  <!ENTITY qt5-time          "50 SBU">
+  <!ENTITY qt5-time          "94 SBU">
 ]>
 
 <sect1 id="qt5" xreflabel="Qt-&qt5-version;">
@@ -297,7 +297,11 @@ done</userinput></screen>
       However, it has the disadvantage of needing some extra configuration.
     </para>
 
-<screen><userinput>patch -Np1 -i ../qt-&qt5-version;-bison_fixes-1.patch &amp;&amp;
+<screen><userinput>sed -i "s:Context\* context}:&amp;\n%lex-param {YYLEX_PARAM}:" \
+     qtwebkit/Source/ThirdParty/ANGLE/src/compiler/glslang.y &amp;&amp;
+
+sed -i -e "/#if/d" -e "/#error/d" -e "/#endif/d" \
+     qtimageformats/config.tests/libmng/libmng.cpp &amp;&amp;
 
 QT5DIR=/opt/qt-&qt5-version;
 
@@ -342,6 +346,7 @@ install -v -Dm644 qttools/src/qdbus/qdbusviewer/images/qdbusviewer-128.png \
 find $QT5DIR -name \*.prl \
    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;</userinput></screen>
 
+<!-- This is not needed for method 2
     <para>
       Symlink the <application>Qt</application> executables into
       <filename class="directory">/usr/bin</filename> by running the
@@ -354,7 +359,7 @@ find $QT5DIR -name \*.prl \
 for file in /opt/qt5/bin/*; do
   ln -sfv $file /usr/bin/$(basename $file)-qt5
 done</userinput></screen>
-
+-->
     <para>
       At this point is is useful to add some configuration items as 
       the <systemitem class="username">root</systemitem> user:
@@ -459,7 +464,15 @@ EOF</userinput></screen>
       If you installed <application>Qt5</application> in a location other
       than /usr, you need to update the following configuration files so
       that <application>Qt5</application> is correctly found by other packages
-      and system processes.</para>
+      and system processes.
+   </para>
+
+   <note><para>
+      If you also installed Qt4 and need to use the Qt5 version of an
+      executable such as qmake for building a program, make sure that 
+      the Qt5 bin directory is listed prior to the Qt4 bin directory in
+      the PATH variable.
+   </para></note>
 
       <para>As the <systemitem class="username">root</systemitem> user, update
       the <filename>/etc/ld.so.conf</filename> file and the dynamic linker's
