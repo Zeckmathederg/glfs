@@ -43,7 +43,7 @@
   <!ENTITY rhino-size                    "4.5 MB">
 
   <!ENTITY openjdk-buildsize             "8.1-9.2 GB">
-  <!ENTITY openjdk-time                  "47 SBU (an additional 156 SBU for testsuite)">
+  <!ENTITY openjdk-time                  "33 SBU (an additional 85 SBU for testsuite)">
 ]>
 
 <sect1 id="openjdk" xreflabel="OpenJDK-&openjdk-version;/IcedTea-&icedtea-version;">
@@ -327,13 +327,14 @@ cp -v ../openjdk.tar.gz   .</userinput></screen>
     (--with-pkgversion and --with-version-suffix values can be modified to fit
     user preferences):</para>
 
-<screen><userinput>unset JAVA_HOME &amp;&amp;
-./autogen.sh    &amp;&amp;
-./configure --with-jdk-home=/opt/OpenJDK-&openjdk-version;-bin \
-            --with-version-suffix=blfs                \
-            --enable-nss                              \
-            --enable-pulse-java                       \
-            --disable-system-kerberos                 &amp;&amp;
+<screen><userinput>unset JAVA_HOME                                               &amp;&amp;
+./autogen.sh                                                  &amp;&amp;
+./configure --with-jdk-home=/opt/OpenJDK-&openjdk-version;-bin         \
+            --with-version-suffix=blfs                        \
+            --enable-nss                                      \
+            --enable-pulse-java                               \
+            --disable-system-kerberos                         \
+            --with-parallel-jobs=$(getconf _NPROCESSORS_ONLN) &amp;&amp;
 make</userinput></screen>
 
     <note><para>If you have not installed the tarballs specified above,
@@ -367,7 +368,7 @@ rm -f Xvfb.pid</userinput></screen>
     <para>Install the package with the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>chmod 0644 openjdk.build/j2sdk-image/lib/sa-jdi.jar  &amp;&amp;
+<screen role="root"><userinput>chmod 0644 openjdk.build/j2sdk-image/lib/sa-jdi.jar   &amp;&amp;
 cp -R openjdk.build/j2sdk-image /opt/OpenJDK-&openjdk-version; &amp;&amp;
 chown -R root:root /opt/OpenJDK-&openjdk-version;</userinput></screen>
 
@@ -394,8 +395,12 @@ chown -R root:root /opt/OpenJDK-&openjdk-version;</userinput></screen>
     implementation that is reasonably compatible with the proprietary
     JDK).</para>
 
-    <para><parameter>--disable-system-kerberos</parameter>: Remove this switch
+    <para><parameter>--disable-system-kerberos</parameter>: Remove this switch,
     if <xref linkend="mitkrb"/> is installed.</para>
+
+    <para><parameter>--with-parallel-jobs=$(getconf _NPROCESSORS_ONLN)</parameter>:
+    This switch sets the compiler to use all your CPUs in parallel and speed
+    up the build.</para>
 
     <para><command>chmod -v 0644 ...sa-jdi.jar</command>: Fix permissions
     in a generated file so all users can access it.</para>
