@@ -123,7 +123,11 @@ useradd -c "Avahi Daemon Owner" -d /var/run/avahi-daemon -u 84 \
     <para>Install <application>Avahi</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr        \
+<!-- final part of sed removes " -DGDK_DISABLE_DEPRECATED=1 -DGTK_DISABLE_DEPRECATED=1 \" -->
+<screen><userinput>sed -i 's/\(CFLAGS=.*\)-Werror \(.*\)/\1\2/' configure &amp;&amp;
+sed -i -e 's/-DG_DISABLE_DEPRECATED=1//' \
+ -e '/-DGDK_DISABLE_DEPRECATED/d' avahi-ui/Makefile.in &amp;&amp;
+./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --localstatedir=/var \
             --disable-static     \
@@ -148,6 +152,13 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -i ...</command>: These seds allow the package to build after
+      the deprecation of symbols in <literal>gtkstock.h</literal> by current
+      <application>gtk+-3</application> by removing <literal>-Werror</literal>
+      and by removing the defines for G{,DK,TK}_DISABLE_DEPRECATED.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
