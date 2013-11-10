@@ -6,9 +6,9 @@
 
   <!ENTITY nfs-utils-download-http "&sourceforge-repo;/nfs/nfs-utils-&nfs-utils-version;.tar.bz2">
   <!ENTITY nfs-utils-download-ftp  " ">
-  <!ENTITY nfs-utils-md5sum        "6e7d97de51e428a0b8698c16ca23db77">
-  <!ENTITY nfs-utils-size          "2.6 MB">
-  <!ENTITY nfs-utils-buildsize     "18 MB">
+  <!ENTITY nfs-utils-md5sum        "18869d16db3f49c053f8c68eba3fe2e0">
+  <!ENTITY nfs-utils-size          "756 KB">
+  <!ENTITY nfs-utils-buildsize     "16 MB">
   <!ENTITY nfs-utils-time          "0.2 SBU">
 ]>
 
@@ -62,30 +62,24 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-       <xref linkend="libtirpc"/>
+      <xref linkend="libtirpc"/>
     </para>
 
-    <para role="required">
-       <xref linkend="rpcbind"/> (Runtime dependency)
-     </para>
-
-    <bridgehead renderas="sect4">Optional for NFSv4 Support</bridgehead>
+    <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="libevent"/>,
-      <xref linkend="sqlite"/>, and
-      <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">libnfsidmap</ulink>
-    </para>
-
-    <bridgehead renderas="sect4">Optional for GSS (RPC Security) Support</bridgehead>
-    <para role="optional">
+      <xref linkend="sqlite"/> and
+      <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">libnfsidmap</ulink> (for NFSv4 support),
       <xref linkend="mitkrb"/> or
       <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">libgssapi</ulink>, and
-      <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">librpcsecgss</ulink>
+      <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">librpcsecgss</ulink> (for GSS and RPC security support)
+      <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">SPKM-3 (for SPKM-3 support)</ulink>, and
+      <xref linkend="libcap"/>
     </para>
 
-    <bridgehead renderas="sect4">Optional for SPKM-3 Support</bridgehead>
-    <para>
-      <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">SPKM-3</ulink>
+    <bridgehead renderas="sect4">Required (runtime)</bridgehead>
+    <para role="required">
+       <xref linkend="rpcbind"/>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -99,10 +93,10 @@
     <para>Enable the following options in the kernel configuration
     and recompile the kernel if necessary:</para>
 
-<screen><literal>File systems:
-  Network File Systems:
-    NFS File System Support: M or Y
-    NFS Server Support: M or Y</literal></screen>
+<screen><literal>File systems  ---&gt;
+  Network File Systems  ---&gt;
+    NFS client support: Y or M
+    NFS server support: Y or M</literal></screen>
 
     <para>Select the appropriate sub-options that appear when the above options
     are selected.</para>
@@ -148,7 +142,6 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
             --sysconfdir=/etc      \
             --without-tcp-wrappers \
             --disable-nfsv4        \
-            --disable-nfsv41       \
             --disable-gss &amp;&amp;
 make</userinput></screen>
 
@@ -163,6 +156,8 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
+<!-- dev note: make statduser=$(whoami) DESTDIR=<DESTDIR> install -->
+
 <screen role='root'><userinput>make install</userinput></screen>
 
   </sect2>
@@ -170,15 +165,14 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--disable-nfsv4</parameter> and
-          <parameter>--disable-nfsv41</parameter>: Disables support
-    for NFS version 4 and version 4.1.</para>
+    <para><parameter>--without-tcp-wrappers</parameter>: This option is
+    needed because TCP Wrappers is not in BLFS.</para>
+
+    <para><parameter>--disable-nfsv4</parameter>: Disables support
+    for NFS version 4.</para>
 
     <para><parameter>--disable-gss</parameter>: Disables support for
     RPCSEC GSS (RPC Security).</para>
-
-    <para><parameter>--without-tcp-wrappers</parameter>: This option is
-    needed because TCP Wrappers is not in BLFS.</para>
 
   </sect2>
 
@@ -313,7 +307,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>exportfs, mountstats, mount.nfs, mount.nfs4 (link to mount.nfs),
-        nfsiostat, nfsstat, rpc.mountd, rpc.nfsd, rpc.statd, rpcdebug,
+        nfsiostat, nfsstat, osd_login, rpc.mountd, rpc.nfsd, rpc.statd, rpcdebug,
         showmount, sm-notify, start-statd, umount.nfs (link to mount.nfs),
         and umount.nfs4  (link to mount.nfs)</seg>
         <seg>None</seg>
