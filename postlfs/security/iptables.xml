@@ -124,13 +124,10 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr                          \
-            --exec-prefix=                         \
-            --bindir=/usr/bin                      \
-            --with-xtlibdir=/lib/xtables           \
-            --with-pkgconfigdir=/usr/lib/pkgconfig \
-            --enable-libipq                        \
-            --enable-devel &amp;&amp;
+<screen><userinput>./configure --prefix=/usr                \
+            --sbindir=/sbin              \
+            --with-xtlibdir=/lib/xtables \
+            --enable-libipq &amp;&amp; <!-- enable-devel is enabled by default now -->
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -139,12 +136,10 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 ln -sfv ../../sbin/xtables-multi /usr/bin/iptables-xml &amp;&amp;
-for file in libip4tc libip6tc libipq libiptc libxtables
+for file in ip4tc ip6tc ipq iptc xtables
 do
-  ln -sfv ../../lib/`readlink /lib/${file}.so` /usr/lib/${file}.so &amp;&amp;
-  rm -v /lib/${file}.so &amp;&amp;
-  mv -v /lib/${file}.la /usr/lib &amp;&amp;
-  sed -i "s@libdir='@&amp;/usr@g" /usr/lib/${file}.la
+  mv -v /usr/lib/lib${file}.so.* /lib &amp;&amp;
+  ln -sfv ../../lib/$(readlink /usr/lib/lib${file}.so) /usr/lib/lib${file}.so
 done</userinput></screen>
 
   </sect2>
@@ -153,31 +148,14 @@ done</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--exec-prefix=</parameter>: Ensure all binaries and
-      libraries end up in <filename class="directory">/</filename>
-      directory tree.
-    </para>
-
-    <para>
       <parameter>--with-xtlibdir=/lib/xtables</parameter>: Ensure all
       <application>Iptables</application> modules are installed in the
       <filename class="directory">/lib/xtables</filename> directory.
     </para>
 
     <para>
-      <parameter>--with-pkgconfigdir=/usr/lib/pkgconfig</parameter>:
-      Ensure all the pkgconfig files are in the standard location.
-    </para>
-
-    <para>
       <option>--enable-libipq</option>: This switch enables building
       of <filename class="libraryfile">libipq.so</filename> which
-      can be used by some packages outside of BLFS.
-    </para>
-
-    <para>
-      <option>--enable-devel</option>: This switch enables installation
-      of <application>Iptables</application> development headers that
       can be used by some packages outside of BLFS.
     </para>
 
@@ -188,7 +166,7 @@ done</userinput></screen>
 
     <para>
       <command>ln -sfv ../../sbin/xtables-multi /usr/bin/iptables-xml</command>:
-      Ensure  the symbolic link for <command>iptables-xml</command> is relative.
+      Ensure the symbolic link for <command>iptables-xml</command> is relative.
     </para>
 
   </sect2>
