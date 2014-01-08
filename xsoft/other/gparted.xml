@@ -164,55 +164,24 @@ make</userinput></screen>
       <ulink url="https://github.com/tarakbumba/xdg-su">xdg-su</ulink>.
       Other solution is to use <application>pkexec</application>, from
       <xref linkend="polkit"/>, but some configuration is necessary.
-      Another simple solution is the <application>GTK+</application> based
-      <application>ssh-askpass</application> (does not need
-      <application>GNOME</application>). Below, we describe these two
-      alternatives: "ssh-askpass" and "pkexec".
+      Another simple solution is <xref linkend="ssh-askpass"/>. Below, we
+      describe these two alternatives: "ssh-askpass" and "pkexec".
     </para>
 
     <sect3 role="ssh-askpass">
       <title>ssh-askpass</title>
         <para>
-          To optionally use <application>ssh-askpass</application>, you need
-          <xref linkend="sudo"/> and <xref linkend="openssh"/> to be installed.
-          Uncompress the <xref linkend="openssh"/> tarball and, inside the
-          source directory, install <application>ssh-askpass</application> by
-          running the following commands:
-        </para>
-
-<screen><userinput>cd contrib &amp;&amp;
-make gnome-ssh-askpass2</userinput></screen>
-
-        <para>
-          Now, as the <systemitem class="username">root</systemitem> user:
-        </para>
-
-<screen role="root"><userinput>install -v -d -m755                  /usr/lib/openssh/contrib     &amp;&amp;
-install -v -m755  gnome-ssh-askpass2 /usr/lib/openssh/contrib     &amp;&amp;
-ln -sv -f contrib/gnome-ssh-askpass2 /usr/lib/openssh/ssh-askpass</userinput></screen>
-
-        <para>
-          Still as the <systemitem class="username">root</systemitem> user,
-          configure <xref linkend="gparted"/> and <xref linkend="sudo"/> to
-          use <application>ssh-askpass</application>:
+          To optionally use <xref linkend="ssh-askpass"/> if it is installed in
+          your system, run the following commands as the
+          <systemitem class="username">root</systemitem> user:
         </para>
 
 <screen role="root"><userinput>cp -v /usr/share/applications/gparted.desktop /usr/share/applications/gparted.desktop.back &amp;&amp;
-sed -i 's/Exec=/Exec=sudo -A /'               /usr/share/applications/gparted.desktop      &amp;&amp;
-
-cat &gt;&gt; /etc/sudo.conf &lt;&lt; "EOF" &amp;&amp;
-# Path to askpass helper program
-Path askpass /usr/lib/openssh/ssh-askpass
-EOF
-chmod -v 0644 /etc/sudo.conf</userinput></screen>
+sed -i 's/Exec=/Exec=sudo -A /'               /usr/share/applications/gparted.desktop      &amp;&amp;</userinput></screen>
 
         <para>
          Now, clicking in the menu item for Gparted, a dialog appears in the
-         screen, asking for the administrator password. Any graphical program
-         requiring root privileges can be run using "sudo -A &lt;program&gt;",
-         e.g. from a terminal, from a desktop launcher, or including it in the
-         desktop file.
-        </para>
+         screen, asking for the administrator password.</para>
 
     </sect3>
 
@@ -220,7 +189,6 @@ chmod -v 0644 /etc/sudo.conf</userinput></screen>
       <title>pkexec</title>
         <para>
           To optionally use <application>pkexec</application>, you need
-          <xref linkend="which"/> (for the script),
           <xref linkend="polkit-gnome"/> or <xref linkend="lxpolkit"/>, and
           <xref linkend="consolekit"/> installed with support to
           <xref linkend="linux-pam"/> and <xref linkend="polkit"/>. As the
@@ -235,12 +203,9 @@ sed -i 's:/usr/sbin/gparted:/usr/sbin/gparted_polkit:' \
                                      /usr/share/applications/gparted.desktop      &amp;&amp;
 
 cat &gt; /usr/sbin/gparted_polkit &lt;&lt; "EOF" &amp;&amp;
-#!/bin/bash
-if [ $(which pkexec) ]; then
-    pkexec --disable-internal-agent "/usr/sbin/gparted" "$@"
-else
-    /usr/sbin/gparted "$@"
-fi
+<literal>#!/bin/bash
+
+pkexec /usr/sbin/gparted $@</literal>
 EOF
 chmod -v 0755 /usr/sbin/gparted_polkit</userinput></screen>
 
@@ -250,8 +215,8 @@ chmod -v 0755 /usr/sbin/gparted_polkit</userinput></screen>
           use <application>pkexec</application>:
         </para>
 
-<screen role="root"><userinput>cat &gt; /usr/share/polkit-1/actions/org.freedesktop.policykit.pkexec.policy &lt;&lt; "EOF"
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<screen role="root"><userinput>cat &gt; /usr/share/polkit-1/actions/org.gnome.gparted.policy &lt;&lt; "EOF"
+<literal>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!DOCTYPE policyconfig PUBLIC
  "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd"&gt;
@@ -269,17 +234,13 @@ chmod -v 0755 /usr/sbin/gparted_polkit</userinput></screen>
     &lt;annotate key="org.freedesktop.policykit.exec.allow_gui"&gt;true&lt;/annotate&gt;
   &lt;/action&gt;
 
-&lt;/policyconfig&gt;
+&lt;/policyconfig&gt;</literal>
 EOF
-chmod -v 0644 /usr/share/polkit-1/actions/org.freedesktop.policykit.pkexec.policy</userinput></screen>
+chmod -v 0644 /usr/share/polkit-1/actions/org.gnome.gparted.policy</userinput></screen>
 
         <para>
          Now, clicking in the menu item for Gparted, a dialog appears in the
-         screen, asking for the administrator password. Any graphical program
-         requiring root privileges can be run using "pkexec &lt;program&gt;",
-         e.g. from a terminal, from a desktop launcher, or including it in the
-         desktop file.
-        </para>
+         screen, asking for the administrator password.</para>
 
     </sect3>
 
@@ -295,7 +256,7 @@ chmod -v 0644 /usr/share/polkit-1/actions/org.freedesktop.policykit.pkexec.polic
 
       <seglistitem>
         <seg>
-          gparted and gpartedbin
+          gparted, gpartedbin and gparted_polkit (optional)
         </seg>
         <seg>
           None
@@ -333,6 +294,19 @@ chmod -v 0644 /usr/share/polkit-1/actions/org.freedesktop.policykit.pkexec.polic
           </para>
           <indexterm zone="gparted gpartedbin">
             <primary sortas="b-gpartedbin">gpartedbin</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gparted_polkit">
+        <term><command>gparted_polkit</command></term>
+        <listitem>
+          <para>
+            is an optional script which can be used to run gparted with polkit,
+            from a menu.
+          </para>
+          <indexterm zone="gparted gparted_polkit">
+            <primary sortas="b-gparted_polkit">gparted_polkit</primary>
           </indexterm>
         </listitem>
       </varlistentry>
