@@ -6,8 +6,8 @@
 
   <!ENTITY libcap-download-http "https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-&libcap-version;.tar.xz">
   <!ENTITY libcap-download-ftp  "ftp://ftp.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-&libcap-version;.tar.xz">
-  <!ENTITY libcap-md5sum        "09a185e4b0aa8a81a51c1e4d0eba7db0">
-  <!ENTITY libcap-size          "57 KB">
+  <!ENTITY libcap-md5sum        "d43ab9f680435a7fff35b4ace8d45b80">
+  <!ENTITY libcap-size          "62 KB">
   <!ENTITY libcap-buildsize     "1.5 MB">
   <!ENTITY libcap-time          "0.1 SBU">
 ]>
@@ -58,16 +58,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/libcap-&libcap-version;-uapi-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">libcap Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -87,7 +77,7 @@
     <para>Install <application>libcap</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../libcap-&libcap-version;-uapi-1.patch &amp;&amp;
+<screen><userinput>sed -i 's:LIBDIR:PAM_&amp;:g' pam_cap/Makefile &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -100,9 +90,12 @@ make</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make RAISE_SETFCAP=no \
-     prefix=/usr      \
-     SBINDIR=/sbin install</userinput></screen>
+<!-- dev note: make DESTDIR=<DESTDIR> prefix=/usr SBINDIR=<DESTDIR>/sbin PAM_LIBDIR=<DESTDIR>/lib RAISE_SETFCAP=no -->
+
+<screen role="root"><userinput>make prefix=/usr \
+     SBINDIR=/sbin \
+     PAM_LIBDIR=/lib \
+     RAISE_SETFCAP=no install</userinput></screen>
 
    <para>
      Still as the <systemitem class="username">root</systemitem> user, 
@@ -117,6 +110,11 @@ ln -sfv ../../lib/libcap.so.2 /usr/lib/libcap.so</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -i '...'</command>, <parameter>PAM_LIBDIR=/lib</parameter>:
+      These correct PAM module install location.
+    </para>
 
     <para><parameter>RAISE_SETFCAP=no</parameter>: This parameter skips trying
     to use <application>setcap</application> on itself.  This avoids an installation
