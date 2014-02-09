@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mitkrb-download-http "http://web.mit.edu/kerberos/www/dist/krb5/1.11/krb5-&mitkrb-version;-signed.tar">
+  <!ENTITY mitkrb-download-http "http://web.mit.edu/kerberos/www/dist/krb5/&mitkrb-major-version;/krb5-&mitkrb-version;-signed.tar">
   <!ENTITY mitkrb-download-ftp  " ">
-  <!ENTITY mitkrb-md5sum        "138628ae154ff449bc41602c8de78e8b">
-  <!ENTITY mitkrb-size          "12 MB">
-  <!ENTITY mitkrb-buildsize     "121 MB (Additional 20 MB if running the testsuite)">
-  <!ENTITY mitkrb-time          "1.2 SBU (additional 3.0 SBU if running the testsuite)">
+  <!ENTITY mitkrb-md5sum        "524b1067b619cb5bf780759b6884c3f5">
+  <!ENTITY mitkrb-size          "11.4 MB">
+  <!ENTITY mitkrb-buildsize     "165 MB (Additional 25 MB if running the testsuite)">
+  <!ENTITY mitkrb-time          "0.9 SBU (additional 3.5 SBU if running the testsuite)">
 ]>
 
 <sect1 id="mitkrb" xreflabel="MIT Kerberos V5-&mitkrb-version;">
@@ -78,7 +78,8 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="dejagnu"/> (required to run the testsuite),
+      <xref linkend="dejagnu"/> (for full test coverage),
+      <xref linkend="gnupg2"/> (to authenticate the package),
       <xref linkend="keyutils"/>,
       <xref linkend="openldap"/>,
       <xref linkend="python2"/> (used during the testsuite) and
@@ -148,19 +149,27 @@ sed -e "s@python2.5/Python.h@&amp; python2.7/Python.h@g" \
     -i configure.in &amp;&amp;
 sed -e "s@interp->result@Tcl_GetStringResult(interp)@g" \
     -i kadmin/testing/util/tcl_kadm5.c &amp;&amp;
+sed -e 's@\^u}@^u cols 300}@' \
+    -i tests/dejagnu/config/default.exp &amp;&amp;
+sed -e '/run\.test/d' \
+    -i plugins/kdb/db2/libdb2/test/Makefile.in &amp;&amp;
 autoconf &amp;&amp;
-./configure CPPFLAGS="-I/usr/include/et -I/usr/include/ss" \
-            --prefix=/usr                                  \
-            --sysconfdir=/etc                              \
-            --localstatedir=/var/lib                       \
-            --with-system-et                               \
-            --with-system-ss                               \
+./configure --prefix=/usr            \
+            --sysconfdir=/etc        \
+            --localstatedir=/var/lib \
+            --with-system-et         \
+            --with-system-ss         \
             --enable-dns-for-realm &amp;&amp;
 make</userinput></screen>
 
     <para>
-      The regression test suite is designed to be run after the
-      installation has been completed.
+      To test the build, issue: <command>make check</command>. You need at
+      least <xref linkend="tcl"/>, which is used to drive the testsuite.
+      Furthermore, <xref linkend="dejagnu"/> must be available for some
+      of the tests to run. If you have a former version of MIT Kerberos V5
+      installed, it may happen that the test suite pick up the installed
+      versions of the libraries, rather than the newly built ones. If so,
+      it is better to run the tests after the installation.
     </para>
 
     <para>
@@ -170,7 +179,7 @@ make</userinput></screen>
 <screen role="root"><userinput>make install &amp;&amp;
 
 for LIBRARY in gssapi_krb5 gssrpc k5crypto kadm5clnt kadm5srv \
-               kdb5 kdb_ldap krb5 krb5support verto ; do
+               kdb5 kdb_ldap krad krb5 krb5support verto ; do
     [ -e  /usr/lib/lib$LIBRARY.so ] &amp;&amp; chmod -v 755 /usr/lib/lib$LIBRARY.so
 done &amp;&amp;
 
@@ -190,10 +199,6 @@ cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version; &amp;&amp;
 
 unset LIBRARY</userinput></screen>
 
-    <para>
-      To test the installation, you must have <xref linkend="dejagnu"/>
-      installed and issue: <command>make check</command>.
-    </para>
 
   </sect2>
 
@@ -201,9 +206,12 @@ unset LIBRARY</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed -e ...</command>: First <command>sed</command> fixes
-      <application>Python</application> detection and second one fixes
-      build with <application>Tcl</application> 8.6.
+      <command>sed -e ...</command>: The first <command>sed</command> fixes
+      <application>Python</application> detection. The second one fixes
+      building with <application>Tcl</application> 8.6. The third one increases
+      the width of the virtual terminal used for some tests, to prevent
+      some spurious characters to be echoed, which is taken as a failure. The
+      last one disables one test, which may hang under certain circumstances.
     </para>
 
     <para>
@@ -357,22 +365,22 @@ EOF</userinput></screen>
         </para>
 
 <screen role="root"><userinput>kadmin.local
-<prompt>kadmin:</prompt> add_policy dict-only
-<prompt>kadmin:</prompt> addprinc -policy dict-only <replaceable>&lt;loginname&gt;</replaceable></userinput></screen>
+<prompt>kadmin.local:</prompt> add_policy dict-only
+<prompt>kadmin.local:</prompt> addprinc -policy dict-only <replaceable>&lt;loginname&gt;</replaceable></userinput></screen>
 
         <para>
           The KDC server and any machine running kerberized
           server daemons must have a host key installed:
         </para>
 
-<screen role="root"><userinput><prompt>kadmin:</prompt> addprinc -randkey host/<replaceable>&lt;belgarath.lfs.org&gt;</replaceable></userinput></screen>
+<screen role="root"><userinput><prompt>kadmin.local:</prompt> addprinc -randkey host/<replaceable>&lt;belgarath.lfs.org&gt;</replaceable></userinput></screen>
 
         <para>
           After choosing the defaults when prompted, you will have to
           export the data to a keytab file:
         </para>
 
-<screen role="root"><userinput><prompt>kadmin:</prompt> ktadd host/<replaceable>&lt;belgarath.lfs.org&gt;</replaceable></userinput></screen>
+<screen role="root"><userinput><prompt>kadmin.local:</prompt> ktadd host/<replaceable>&lt;belgarath.lfs.org&gt;</replaceable></userinput></screen>
 
         <para>
           This should have created a file in
@@ -436,9 +444,9 @@ EOF</userinput></screen>
         <title>Additional Information</title>
 
         <para>
-          For additional information consult <ulink
-          url="http://web.mit.edu/kerberos/www/krb5-1.11/#documentation">
-          Documentation for krb5-&mitkrb-version;</ulink> on which the above
+          For additional information consult the <ulink
+          url="http://web.mit.edu/kerberos/www/krb5-&mitkrb-major-version;/#documentation">
+          documentation for krb5-&mitkrb-version;</ulink> on which the above
           instructions are based.
         </para>
 
@@ -479,15 +487,16 @@ EOF</userinput></screen>
       <seglistitem>
         <seg>
           gss-client, gss-server, k5srvutil, kadmin, kadmin.local,
-          kadmind, kdb5_ldap_util, kdb5_util, kdestroy, kinit, klist,
+          kadmind, kdb5_ldap_util (optional), kdb5_util, kdestroy, kinit, klist,
           kpasswd, kprop, kpropd, kproplog, krb5-config, krb5kdc, krb5-send-pr,
           ksu, kswitch, ktutil, kvno, sclient, sim_client, sim_server,
           sserver, uuclient and uuserver
         </seg>
         <seg>
           libgssapi_krb5.so, libgssrpc.so, libk5crypto.so,
-          libkadm5clnt.so, libkadm5srv.so, libkdb5.so, libkdb_ldap.so,
-          libkrb5.so, libkrb5support.so, and libverto.so
+          libkadm5clnt.so, libkadm5srv.so, libkdb5.so, libkdb_ldap.so
+          (optional), libkrad.so, libkrb5.so, libkrb5support.so, and
+          libverto.so
         </seg>
         <seg>
           /usr/include/gssapi,
@@ -791,6 +800,18 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="mitkrb libkdb5">
             <primary sortas="c-libkdb5">libkdb5.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libkrad">
+        <term><filename class="libraryfile">libkrad.so</filename></term>
+        <listitem>
+          <para>
+            contains the internal support library for RADIUS functionality.
+          </para>
+          <indexterm zone="mitkrb libkrad">
+            <primary sortas="c-libkrad">libkrad.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
