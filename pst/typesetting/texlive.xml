@@ -4,9 +4,6 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY texlive-year                "2013">
-  <!ENTITY texlive-installer           "http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz">
-
   <!ENTITY texlive-source-download-http " ">
   <!ENTITY texlive-source-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-source.tar.xz">
   <!ENTITY texlive-source-md5sum        "f52599c99fb1035399b907f4c54f1125">
@@ -31,13 +28,11 @@
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to TeX Live</title>
+    <title>Introduction to TeX Live from source</title>
 
-    <para>The <application>TeX Live</application> package is a comprehensive
-    TeX document production system.  It includes TEX, LaTeX2e, ConTEXt,
-    Metafont, MetaPost, BibTeX and many other programs; an extensive collection
-    of macros, fonts and documentation; and support for typesetting in many
-    different scripts from around the world.</para>
+    <para>A binary version of the <application>TeX Live</application> package
+    is installed at <xref linkend="tl-installer"/>. Here, we use that to rebuild
+    the compiled programs from source.</para>
 
     &lfs74_checked;
 
@@ -63,35 +58,34 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>The TeX Live installer: <ulink url="&texlive-installer;"/></para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">TeX Live Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Recommended (to build from source)</bridgehead>
+    <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="freeglut"/> (for asy),
+      <xref linkend="gs"/>,
+      <xref linkend="x-window-system"/>
+    </para>
+    <para>
       The source ships with its own versions of <emphasis>many</emphasis>
       libraries, and will use them unless it is forced to use the system
-      versions.
-      <xref linkend="gs"/>,
+      versions.  The following are recommended so that the system version
+      will be used:
       <xref linkend="icu"/>,
       <xref linkend="freetype2"/>,
       <xref linkend="fontconfig"/>,
       <xref linkend="graphite2"/>,
       <xref linkend="harfbuzz"/> (linked to graphite2),
       <xref linkend="libpng"/>,
-      <xref linkend="poppler"/>,
-      <xref linkend="x-window-system"/>
+      <xref linkend="poppler"/>
     </para>
 
-
-    <bridgehead renderas="sect4">Optional (to build from source)</bridgehead>
+    <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      The source ships with its own versions of these libraries, which are either
+      <ulink url="http://www.fftw.org/">FFTW</ulink> can be used by asy.
+    </para>
+    <para>
+      The source ships with its own versions of several libraries which are either
       not under active development, or only used for limited functionality.  If
       you install these, as with some other optional dependencies in this book you
       will need to tell <command>configure</command> to use the system versions.
@@ -102,10 +96,10 @@
       <ulink url="http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&amp;id=TECkitDownloads">TECkit</ulink>
     </para>
 
-    <bridgehead renderas="sect4">Runtime dependencies if building from source</bridgehead>
+    <bridgehead renderas="sect4">Runtime dependencies</bridgehead>
     <para role="recommended">
-      not yet adequate to rebuild this),
-      <xref linkend="tk"/> for ep2pdftk.
+      Some (re-installed) scripts will use
+      <xref linkend="ruby"/> and <xref linkend="tk"/> is used by epspdftk.
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -116,68 +110,16 @@
   <sect2 role="installation">
     <title>Installation of TeX Live</title>
 
-    <para>The <application>TeX Live</application> set of programs with its
-    supporting documents, fonts, and utilities is very large.  The upstream
-    maintainers recommend placing all files in a single directory structure.
-    BLFS recommends <filename class='directory'>/opt/texlive</filename>.</para>
-
-    <para>First, unpack the installer and change into the installer's
-    directory, <filename class='directory'>install-tl-&lt;CCYYMMDD&gt;</filename>.
-    This directory name changes frequently when the installer is updated,
-    so replace &lt;CCYYMMDD&gt; by the correct directory name.</para>
-
-<screen><userinput>tar -xf install-tl-unx.tar.gz &amp;&amp;
-cd install-tl-&lt;CCYYMMDD&gt; </userinput></screen>
-
-    <note><para>The distribution binaries installed below use static linking
-    for internal <application>TeX Live</application> libraries.  Additional
-    libraries as specified in the dependencies section do not need to be
-    present during the install, but the programs that need them will not run
-    until their specific dependencies are installed.</para></note>
-
-    <para>Now, as the <systemitem class="username">root</systemitem>
-    user:</para>
-
-<screen><userinput role="root">TEXLIVE_INSTALL_PREFIX=/opt/texlive ./install-tl</userinput></screen>
-
-    <para>This command is interactive and allows selection or modification of
-    platform, packages, directories, and other options.  The full installation
-    scheme will require about 3.5 gigabytes of disk space.  The time to complete
-    the download will depend on your internet connection speed and the
-    number of packages selected.</para>
-
-    <para>After the package download is complete, the next step is to make sure
-    that the system can properly find the files.  If you set up your login
-    scripts as recommended in <xref linkend='postlfs-config-profile'/>, update
-    the needed paths by appending to the <filename>extrapaths.sh</filename> script.
-    The programs are always installed in an &lt;ARCH&gt;-linux subdirectory.  If
-    you are not using x86_64, <emphasis>always</emphasis> change that to your
-    actual installation location.</para>
-
-<screen><userinput role="root">cat &gt;&gt; /etc/profile.d/extrapaths.sh &lt;&lt; "EOF"
-pathappend /usr/share/man                        MANPATH
-pathappend /opt/texlive/&texlive-year;/texmf-dist/doc/man  MANPATH
-pathappend /usr/share/info                       INFOPATH
-pathappend /opt/texlive/&texlive-year;/texmf-dist/doc/info INFOPATH
-pathappend /opt/texlive/&texlive-year;/bin/x86_64-linux
-EOF</userinput></screen>
-
-    <note><para>The standard MANPATH and INFOPATH path are specified above to
-    ensure they are included.  If they are already set in the boot script
-    procedure, the pathappend function will ensure duplicates are
-    removed, so including them here will do no harm.</para></note>
-
-    <para>The new paths can be immediately activated by running <command>source
-    /etc/profile</command>.</para>
-
-    <para>At this point the binary installation is complete.</para>
+    <para>These instructions will overwrite the corresponding files from the
+    binary installer.  As with the installer, change x86_64-linux to whatever
+    matches your architecture.</para>
 
     <para>Please note that installing from source will recompile the binary
     programs and recreate the <literal>man</literal> and <literal>info</literal>
     files.  It will also overwrite the scripts - some of these may be older
     versions than those from the newer installer.  It will <emphasis>not</emphasis>
     recreate any of the following: the more than 200 symlinks in the
-    &lt;ARCH&gt;-linux directory (some are alternate names, many are pointers to
+    x86_64-linux directory (some are alternate names, many are pointers to
     the scripts), html files, PDF files, licenses, README files, two config
     files (<filename>texmf.cnf</filename> and <filename>texmfcnf.lua</filename>),
     nor the many package and font files in
@@ -189,12 +131,6 @@ EOF</userinput></screen>
     <para>At the moment, these instructions do not rebuild
     <application>asy</application> and <application>xindy</application> which were
     installed by the binary installer.</para> <!-- FIXME -->
-
-    <para>  If building from
-    source is desired, continue as a normal user.  Extract the source package as
-    usual.  Again, change x86_64-linux to whatever matches your architecture.
-    The developers do not recommend building in the source directory, so enter
-    the following commands:</para>
 
 <screen><userinput>mkdir texlive-build &amp;&amp;
 cd texlive-build    &amp;&amp;
