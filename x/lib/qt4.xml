@@ -105,10 +105,8 @@
       <xref linkend="gst-plugins-base"/> (For QtWebKit HTML5 Video),
       <xref linkend="mariadb"/> or <xref linkend="mysql"/>,
       <xref linkend="postgresql"/>,
-      <xref linkend="pulseaudio"/>,
-      <xref linkend="unixodbc"/>, and
-      <xref linkend="qtchooser"/> (runtime, if also installing Qt5 and 
-      installing in /usr)
+      <xref linkend="pulseaudio"/>, and
+      <xref linkend="unixodbc"/>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -116,62 +114,10 @@
     </para>
   </sect2>
 
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../xincludes/qt-alternatives.xml"/>
+
   <sect2 role="installation">
     <title>Installation of Qt</title>
-
-    <para>
-       There are several ways to install a complicated package such as
-       <application>Qt</application>. The files are not completely position
-       independent. Installation procedures execute the program
-       <command>pkg-config</command> to determine the location of package
-       executables, libraries, headers, and other files. For
-       <application>Qt</application>, <command>pkg-config</command> will look
-       for the appropriate <filename>lib/pkgconfig/Qt*.pc</filename> files
-       which must be modified if relocating the package. These files are set up
-       correctly by the build process.
-    </para>
-    
-    <para>
-       The default installation places the files in <filename
-       class='directory'>/usr/local/qt/</filename>. Many commercial
-       distributions place the files in the system's <filename
-       class='directory'>/usr</filename> hierarchy. The package can also be
-       installed in an arbitrary directory.
-    </para>
-    
-    <para>
-       The advantage of installing in <filename
-       class='directory'>/usr</filename> is that no updates to the
-       <filename>/etc/ld.so.conf</filename> or
-       <filename>/etc/man_db.conf</filename> files are required. The package
-       files are distributed within several subdirectories of the <filename
-       class='directory'>/usr</filename> hierarchy.  This is the method that
-       most commercial distributions use.  It is also supported by the 
-       optional <application>qtchooser</application> application.
-    </para>
-
-       <para>
-       The disadvantage of installing in <filename
-       class='directory'>/usr</filename> is that the executable filenames
-       for  <application>Qt4</application> and <application>Qt5</application>
-       conflict if both packages are installed in the
-       same directory.  The instructions below give a workaround for
-       this problem using the helper program <xref linkend='qtchooser'/>.
-       This requires renaming the Qt executables with a version suffix.
-    </para>
-
-    <para>
-       The advantage of installing <application>Qt4</application> in a custom
-       directory such as <filename
-       class='directory'>/opt/qt-&qt4-version;</filename> is that it keeps all
-       the package files consolidated in a dedicated directory hierarchy. By
-       using this method, an update can be made without overwriting a previous
-       installation and users can easily revert to a previous version by
-       changing one symbolic link or merely changing the PATH variable.  It
-       also allows a developer to maintain multiple versions of 
-       <application>Qt4</application> or <application>Qt5</application>
-       for testing.
-    </para>
 
     <caution>
       <para>
@@ -200,26 +146,25 @@
       </para>
     </note>
 
+<!-- ==== Method 1 ====== -->
     <bridgehead renderas="sect3">Method 1: Installing in /usr</bridgehead>
 
     <para>
-      Install <application>Qt4</application> by running the
-      following commands:
+      Install <application>Qt4</application> into the <filename
+      class='directory'>/usr</filename> hierarchy by running the following
+      commands:
     </para>
 
-    <note><para>
-      If <emphasis>not</emphasis> also installing <application>Qt5</application>
-      into the /usr directory, change the entry for -bindir below to /usr/bin.
-    </para></note>
+<screen><userinput>export QTLINK=/usr
 
-
-<screen><userinput>sed -i -e "/#if/d" -e "/#error/d" -e "/#endif/d" \
+sed -i -e "/#if/d" -e "/#error/d" -e "/#endif/d" \
      config.tests/unix/libmng/libmng.cpp &amp;&amp;
+
 sed -i '/CONFIG -/ a\isEmpty(OUTPUT_DIR): OUTPUT_DIR = ../..' \
      src/3rdparty/webkit/Source/WebKit2/DerivedSources.pro &amp;&amp;
 
 ./configure -prefix         /usr                 \
-            -bindir         /usr/lib/qt4/bin     \
+            -bindir         /usr/bin             \
             -plugindir      /usr/lib/qt4/plugins \
             -importdir      /usr/lib/qt4/imports \
             -headerdir      /usr/include/qt4     \
@@ -257,22 +202,10 @@ make</userinput></screen>
 
 <screen><userinput>find . -name "*.pc" -exec perl -pi -e "s, -L$PWD/?\S+,,g" {} \;</userinput></screen>
 
-    <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
-    </para>
+    <para>Now as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-rm -rf /usr/tests &amp;&amp;
-install -v -Dm644 src/gui/dialogs/images/qtlogo-64.png \
-                  /usr/share/pixmaps/qt4logo.png       &amp;&amp;
-install -v -Dm644 tools/assistant/tools/assistant/images/assistant-128.png \
-                  /usr/share/pixmaps/assistant-qt4.png &amp;&amp;
-install -v -Dm644 tools/designer/src/designer/images/designer.png \
-                  /usr/share/pixmaps/designer-qt4.png  &amp;&amp;
-install -v -Dm644 tools/linguist/linguist/images/icons/linguist-128-32.png \
-                  /usr/share/pixmaps/linguist-qt4.png  &amp;&amp;
-install -v -Dm644 tools/qdbus/qdbusviewer/images/qdbusviewer-128.png \
-                  /usr/share/pixmaps/qdbusviewer-qt4.png</userinput></screen>
+rm -rf /usr/tests</userinput></screen>
 
     <para>
       Remove references to the build directory from installed files by
@@ -282,51 +215,32 @@ install -v -Dm644 tools/qdbus/qdbusviewer/images/qdbusviewer-128.png \
 
 <screen role="root"><userinput>for file in 3Support CLucene Core DBus Declarative DesignerComponents \
             Designer Gui Help Multimedia Network OpenGL Script \
-            ScriptTools Sql Svg Test UiTools WebKit XmlPatterns Xml phonon
-do
-  [ -e /usr/lib/libQt${file}.prl ] &amp;&amp; sed -i -e '/^QMAKE_PRL_BUILD_DIR/d;s/\(QMAKE_PRL_LIBS =\).*/\1/' \
-                                              /usr/lib/libQt${file}.prl
+            ScriptTools Sql Svg Test UiTools WebKit XmlPatterns Xml phonon; do
+
+     [ -e /usr/lib/libQt${file}.prl ] &amp;&amp; 
+     sed -r '/^QMAKE_PRL_BUILD_DIR/d;s/(QMAKE_PRL_LIBS =).*/\1/' \
+         -i /usr/lib/libQt${file}.prl
 done
 unset file</userinput></screen>
 
-    <para>
-      If also installing Qt5 into /usr, 
-      symlink the <application>Qt4</application> executables into
-      <filename class="directory">/usr/bin</filename> by running the
-      following commands as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>for file in /usr/lib/qt4/bin/*
-do
-  ln -sfv ../lib/qt4/bin/$(basename $file) /usr/bin/$(basename $file)-qt4
-done</userinput></screen>
-
+<!-- ==== Method 2 ====== -->
     <bridgehead renderas="sect3">Method 2: Installing in /opt/qt-&qt4-version;</bridgehead>
 
     <para>
-      This section provides an alternate way to install Qt4 by installing
-      almost all of the files in the <filename class="directory">/opt</filename>
-      directory. This allows management of all Qt4 related files in one unit.
-      For instance, a new version of Qt4 can be installed without over-writing
-      the existing installation and entire Qt4 instances can be easily removed.
-      However, it has the disadvantage of needing some extra configuration.
-    </para>
- 
-
-    <para>
-      Install <application>Qt</application> in  /opt/qt-&qt4-version; 
-      by running the following commands:
+      This section provides for installing Qt4 almost all of the files in the
+      <filename class="directory">/opt</filename> directory.
     </para>
 
-<screen><userinput>sed -i -e "/#if/d" -e "/#error/d" -e "/#endif/d" \
+<screen><userinput>export QTDIR=/opt/qt-&qt4-version; &amp;&amp;
+export QTLINK=/opt/qt &amp;&amp;
+
+sed -i -e "/#if/d" -e "/#error/d" -e "/#endif/d" \
      config.tests/unix/libmng/libmng.cpp &amp;&amp;
+
 sed -i '/CONFIG -/ a\isEmpty(OUTPUT_DIR): OUTPUT_DIR = ../..' \
      src/3rdparty/webkit/Source/WebKit2/DerivedSources.pro &amp;&amp;
 
-export QTDIR=/opt/qt-&qt4-version;
-
-./configure -prefix     $QTDIR   \
+./configure -prefix $QTDIR       \
             -sysconfdir /etc/xdg \
             -confirm-license     \
             -opensource          \
@@ -349,19 +263,8 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-
-install -v -dm755 /usr/share/pixmaps/                 &amp;&amp; 
-install -v -Dm644 src/gui/dialogs/images/qtlogo-64.png \
-                  /usr/share/pixmaps/qt4logo.png       &amp;&amp;
-install -v -Dm644 tools/assistant/tools/assistant/images/assistant-128.png \
-                  /usr/share/pixmaps/assistant-qt4.png &amp;&amp;
-install -v -Dm644 tools/designer/src/designer/images/designer.png \
-                  /usr/share/pixmaps/designer-qt4.png  &amp;&amp;
-install -v -Dm644 tools/linguist/linguist/images/icons/linguist-128-32.png \
-                  /usr/share/pixmaps/linguist-qt4.png  &amp;&amp;
-install -v -Dm644 tools/qdbus/qdbusviewer/images/qdbusviewer-128.png \
-                  /usr/share/pixmaps/qdbusviewer-qt4.png</userinput></screen>
+<screen role="root"><userinput>make install
+ln -svfn $QTDIR /opt/qt</userinput></screen>
 
     <para>
       Remove references to the build directory from installed files by
@@ -370,25 +273,104 @@ install -v -Dm644 tools/qdbus/qdbusviewer/images/qdbusviewer-128.png \
     </para>
 
 <screen role="root"><userinput>for file in `basename -a -s .prl $QTDIR/lib/lib*.prl`; do
-  sed -i -e '/^QMAKE_PRL_BUILD_DIR/d;s/\(QMAKE_PRL_LIBS =\).*/\1/' \
-       $QTDIR/lib/${file}.prl
-  perl -pi -e "s, -L$PWD/?\S+,,g" $QTDIR/lib/pkgconfig/${file##lib}.pc
+   sed -r '/^QMAKE_PRL_BUILD_DIR/d'    \
+       -r 's/(QMAKE_PRL_LIBS =).*/\1/' \
+       -i $QTDIR/lib/${file}.prl
+
+   perl -pi -e "s, -L$PWD/?\S+,,g" $QTDIR/lib/pkgconfig/${file##lib}.pc
 done
 
 unset file</userinput></screen>
 
-    <para>
-      Symlink the <application>Qt4</application> executables into
-      <filename class="directory">/usr/bin</filename> by running the
-      following commands as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
+<!-- ==== Common  ====== -->
+    <bridgehead renderas="sect3">Continuing for Both Methods</bridgehead>
 
-<screen role="root"><userinput>ln -svf $QTDIR /opt/qt &amp;&amp;
+      <para>
+        For all methods, install images and create the menu entries 
+        for installed applications.  Be sure that the <envar>QTLINK</envar>
+        variable is defined in root's environment and 
+        as the <systemitem class="username">root</systemitem> user:
+      </para>
 
-for file in /opt/qt/bin/*; do
-  ln -sfvn $file /usr/bin/$(basename $file)-qt4
-done</userinput></screen>
+<screen role="root"><userinput>install -v -Dm644 src/gui/dialogs/images/qtlogo-64.png \
+                  /usr/share/pixmaps/qt4logo.png       &amp;&amp;
+
+install -v -Dm644 tools/assistant/tools/assistant/images/assistant-128.png \
+                  /usr/share/pixmaps/assistant-qt4.png &amp;&amp;
+
+install -v -Dm644 tools/designer/src/designer/images/designer.png \
+                  /usr/share/pixmaps/designer-qt4.png  &amp;&amp;
+
+install -v -Dm644 tools/linguist/linguist/images/icons/linguist-128-32.png \
+                  /usr/share/pixmaps/linguist-qt4.png  &amp;&amp;
+
+install -v -Dm644 tools/qdbus/qdbusviewer/images/qdbusviewer-128.png \
+                  /usr/share/pixmaps/qdbusviewer-qt4.png &amp;&amp;
+
+install -dm755 /usr/share/applications &amp;&amp;
+
+cat &gt; /usr/share/applications/assistant-qt4.desktop &lt;&lt; EOF
+<literal>[Desktop Entry]
+Name=Qt4 Assistant 
+Comment=Shows Qt4 documentation and examples
+Exec=$QTLINK/bin/assistant
+Icon=assistant-qt4.png
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;Documentation;</literal>
+EOF
+
+cat &gt; /usr/share/applications/designer-qt4.desktop &lt;&lt; EOF
+<literal>[Desktop Entry]
+Name=Qt4 Designer
+Comment=Design GUIs for Qt4 applications
+Exec=$QTLINK/bin/designer
+Icon=designer-qt4.png
+MimeType=application/x-designer;
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;</literal>
+EOF
+
+cat &gt; /usr/share/applications/linguist-qt4.desktop &lt;&lt; EOF
+<literal>[Desktop Entry]
+Name=Qt4 Linguist 
+Comment=Add translations to Qt4 applications
+Exec=$QTLINK/bin/linguist
+Icon=linguist-qt4.png
+MimeType=text/vnd.trolltech.linguist;application/x-linguist;
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;</literal>
+EOF
+
+cat &gt; /usr/share/applications/qdbusviewer-qt4.desktop &lt;&lt; EOF
+<literal>[Desktop Entry]
+Name=Qt4 QDbusViewer 
+GenericName=D-Bus Debugger
+Comment=Debug D-Bus applications
+Exec=$QTLINK/bin/qdbusviewer
+Icon=qdbusviewer-qt4.png
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;Debugger;</literal>
+EOF
+
+cat &gt; /usr/share/applications/qtconfig-qt4.desktop &lt;&lt; EOF
+<literal>[Desktop Entry]
+Name=Qt4 Config 
+Comment=Configure Qt4 behavior, styles, fonts
+Exec=$QTLINK/bin/qtconfig-qt4
+Icon=qt4logo.png
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Settings;</literal>
+EOF</userinput></screen>
 
   </sect2>
 
@@ -398,7 +380,7 @@ done</userinput></screen>
     <para>
       <command>sed -i ...</command>: First command fixes detection of
       <application>libmng</application> 2.0 and second one prevents configure
-      script to write in root directory if building as privileged user.
+      script from writing to the root directory if building as privileged user.
     </para>
 
     <para>
@@ -419,7 +401,7 @@ done</userinput></screen>
     <para>
       <parameter>-nomake examples -nomake demos</parameter>:
       These switches disable building programs that are only of
-      interest to a <application>Qt</application> developer.
+      interest to a developer using <application>Qt</application>.
     </para>
 
     <para>
@@ -483,7 +465,6 @@ done</userinput></screen>
 <literal># Begin /etc/profile.d/qt.sh
 
 QTDIR=/usr
-
 export QTDIR
 
 # End /etc/profile.d/qt.sh</literal>
@@ -532,78 +513,11 @@ export QTDIR
 # End /etc/profile.d/qt.sh</literal>
 EOF</userinput></screen>
 
-      <para>
-        For all methods, create the menu entries for installed applications.
-        As the <systemitem class="username">root</systemitem> user:
-      </para>
-
-<screen role="root"><userinput>install -dm755 /usr/share/applications
-
-cat &gt; /usr/share/applications/qtconfig-qt4.desktop &lt;&lt; "EOF"
-<literal>[Desktop Entry]
-Name=Qt4 Config 
-Comment=Configure Qt4 behavior, styles, fonts
-Exec=qtconfig-qt4
-Icon=qt4logo
-Terminal=false
-Encoding=UTF-8
-Type=Application
-Categories=Qt;Settings;</literal>
-EOF
-
-cat &gt; /usr/share/applications/assistant-qt4.desktop &lt;&lt; "EOF"
-<literal>[Desktop Entry]
-Name=Qt4 Assistant 
-Comment=Shows Qt4 documentation and examples
-Exec=assistant-qt4
-Icon=assistant-qt4
-Terminal=false
-Encoding=UTF-8
-Type=Application
-Categories=Qt;Development;Documentation;</literal>
-EOF
-
-cat &gt; /usr/share/applications/designer-qt4.desktop &lt;&lt; "EOF"
-<literal>[Desktop Entry]
-Name=Qt4 Designer
-Comment=Design GUIs for Qt4 applications
-Exec=designer-qt4
-Icon=designer-qt4
-MimeType=application/x-designer;
-Terminal=false
-Encoding=UTF-8
-Type=Application
-Categories=Qt;Development;</literal>
-EOF
-
-cat &gt; /usr/share/applications/linguist-qt4.desktop &lt;&lt; "EOF"
-<literal>[Desktop Entry]
-Name=Qt4 Linguist 
-Comment=Add translations to Qt4 applications
-Exec=linguist-qt4
-Icon=linguist-qt4
-MimeType=text/vnd.trolltech.linguist;application/x-linguist;
-Terminal=false
-Encoding=UTF-8
-Type=Application
-Categories=Qt;Development;</literal>
-EOF
-
-cat &gt; /usr/share/applications/qdbusviewer-qt4.desktop &lt;&lt; "EOF"
-<literal>[Desktop Entry]
-Name=Qt4 QDbusViewer 
-GenericName=D-Bus Debugger
-Comment=Debug D-Bus applications
-Exec=qdbusviewer-qt4
-Icon=qdbusviewer-qt4
-Terminal=false
-Encoding=UTF-8
-Type=Application
-Categories=Qt;Development;Debugger;</literal>
-EOF</userinput></screen>
 
     </sect3>
-
+   
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" 
+                href="../../xincludes/setqt.xml"/>
   </sect2>
 
   <sect2 role="content">
@@ -616,13 +530,13 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          assistant-qt4, designer-qt4, lconvert-qt4, linguist-qt4,
-          lrelease-qt4, lupdate-qt4, moc-qt4, pixeltool-qt4,
-          qcollectiongenerator-qt4, qdbuscpp2xml-qt4, qdbus-qt4,
-          qdbusviewer-qt4, qdbusxml2cpp-qt4, qdoc3-qt4, qhelpconverter-qt4,
-          qhelpgenerator-qt4, qmake-qt4, qmlplugindump-qt4, qmlviewer-qt4,
-          qt3to4-qt4, qtconfig-qt4, qttracereplay-qt4, rcc-qt4, uic3-qt4,
-          uic-qt4, xmlpatterns-qt4 and xmlpatternsvalidator-qt4
+          assistant, designer, lconvert, linguist,
+          lrelease, lupdate, moc, pixeltool,
+          qcollectiongenerator, qdbuscpp2xml, qdbus,
+          qdbusviewer, qdbusxml2cpp, qdoc3, qhelpconverter,
+          qhelpgenerator, qmake, qmlplugindump, qmlviewer,
+          qt3to4, qtconfig, qttracereplay, rcc, uic3,
+          uic, xmlpatterns, and xmlpatternsvalidator
         </seg>
         <seg>
           libQt3Support.so, libQtCLucene.so, libQtCore.so, libQtDBus.so,
@@ -630,14 +544,16 @@ EOF</userinput></screen>
           libQtDesigner.so, libQtGui.so, libQtHelp.so, libQtMultimedia.so,
           libQtNetwork.so, libQtOpenGL.so, libQtScript.so, libQtScriptTools.so,
           libQtSql.so, libQtSvg.so, libQtTest.so, libQtWebKit.so,
-          libQtXmlPatterns.so and libQtXml.so
+          libQtXmlPatterns.so, and libQtXml.so
         </seg>
         <seg>
           /usr/include/qt4,
           /usr/lib/qt4,
           /usr/share/doc/qt4, and
-          /usr/share/qt4 (OR $QTDIR)
-          (OR $QTDIR)
+          /usr/share/qt4 
+          OR 
+          /opt/qt and 
+          /opt/qt-&qt4-version;
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -648,19 +564,19 @@ EOF</userinput></screen>
       <?dbhtml list-presentation="table"?>
 
       <varlistentry id="assistant-qt4">
-        <term><command>assistant-qt4</command></term>
+        <term><command>assistant</command></term>
         <listitem>
           <para>
             is a tool for presenting on-line documentation.
           </para>
           <indexterm zone="qt4 assistant-qt4">
-            <primary sortas="b-assistant-qt4">assistant-qt4</primary>
+            <primary sortas="b-assistant-qt4">assistant</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="designer-qt4">
-        <term><command>designer-qt4</command></term>
+        <term><command>designer</command></term>
         <listitem>
           <para>
             is a full-fledged GUI builder. It includes
@@ -669,39 +585,39 @@ EOF</userinput></screen>
             property editor.
           </para>
           <indexterm zone="qt4 designer-qt4">
-            <primary sortas="b-designer-qt4">designer-qt4</primary>
+            <primary sortas="b-designer-qt4">designer</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="linguist-qt4">
-        <term><command>linguist-qt4</command></term>
+        <term><command>linguist</command></term>
         <listitem>
           <para>
             provides support for translating applications into
             local languages.
           </para>
           <indexterm zone="qt4 linguist-qt4">
-            <primary sortas="b-linguist-qt4">linguist-qt4</primary>
+            <primary sortas="b-linguist-qt4">linguist</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="lrelease-qt4">
-        <term><command>lrelease-qt4</command></term>
+        <term><command>lrelease</command></term>
         <listitem>
           <para>
             is a simple command line tool. It reads a Qt project
             file and produces message files used by the application.
           </para>
           <indexterm zone="qt4 lrelease-qt4">
-            <primary sortas="b-lrelease-qt4">lrelease-qt4</primary>
+            <primary sortas="b-lrelease-qt4">lrelease</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="lupdate-qt4">
-        <term><command>lupdate-qt4</command></term>
+        <term><command>lupdate</command></term>
         <listitem>
           <para>
             reads a Qt project file, finds the translatable
@@ -710,38 +626,38 @@ EOF</userinput></screen>
             files listed in the project file.
           </para>
           <indexterm zone="qt4 lupdate-qt4">
-            <primary sortas="b-lupdate-qt4">lupdate-qt4</primary>
+            <primary sortas="b-lupdate-qt4">lupdate</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="moc-qt4">
-        <term><command>moc-qt4</command></term>
+        <term><command>moc</command></term>
         <listitem>
           <para>
             generates Qt meta object support code.
           </para>
           <indexterm zone="qt4 moc-qt4">
-            <primary sortas="b-moc-qt4">moc-qt4</primary>
+            <primary sortas="b-moc-qt4">moc</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="pixeltool-qt4">
-        <term><command>pixeltool-qt4</command></term>
+        <term><command>pixeltool</command></term>
         <listitem>
           <para>
             is a desktop magnifier and as you move your mouse around
             the screen it will show the magnified contents in its window.
           </para>
           <indexterm zone="qt4 pixeltool-qt4">
-            <primary sortas="b-pixeltool-qt4">pixeltool-qt4</primary>
+            <primary sortas="b-pixeltool-qt4">pixeltool</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="qmake-qt4">
-        <term><command>qmake-qt4</command></term>
+        <term><command>qmake</command></term>
         <listitem>
           <para>
             uses information stored in project files to
@@ -749,61 +665,61 @@ EOF</userinput></screen>
             generates.
           </para>
           <indexterm zone="qt4 qmake-qt4">
-            <primary sortas="b-qmake-qt4">qmake-qt4</primary>
+            <primary sortas="b-qmake-qt4">qmake</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="qt3to4-qt4">
-        <term><command>qt3to4-qt4</command></term>
+        <term><command>qt3to4</command></term>
         <listitem>
           <para>
             qt3to4 is a tool to help update Qt3 code to Qt4.
           </para>
           <indexterm zone="qt4 qt3to4-qt4">
-            <primary sortas="b-qt3to4-qt4">qt3to4-qt4</primary>
+            <primary sortas="b-qt3to4-qt4">qt3to4</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="qtconfig-qt4">
-        <term><command>qtconfig-qt4</command></term>
+        <term><command>qtconfig</command></term>
         <listitem>
           <para>
             is used to customize the appearance of Qt applications.
           </para>
           <indexterm zone="qt4 qtconfig-qt4">
-            <primary sortas="b-qtconfig-qt4">qtconfig-qt4</primary>
+            <primary sortas="b-qtconfig-qt4">qtconfig</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="rcc-qt4">
-        <term><command>rcc-qt4</command></term>
+        <term><command>rcc</command></term>
         <listitem>
           <para>
             is a resource compiler used in conjunction with designer.
           </para>
           <indexterm zone="qt4 rcc-qt4">
-            <primary sortas="b-rcc-qt4">rcc-qt4</primary>
+            <primary sortas="b-rcc-qt4">rcc</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="uic-qt4">
-        <term><command>uic-qt4</command></term>
+        <term><command>uic</command></term>
         <listitem>
           <para>
             is a Qt user interface compiler.
           </para>
           <indexterm zone="qt4 uic-qt4">
-            <primary sortas="b-uic-qt4">uic-qt4</primary>
+            <primary sortas="b-uic-qt4">uic</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
       <varlistentry id="uic3-qt4">
-        <term><command>uic3-qt4</command></term>
+        <term><command>uic3</command></term>
         <listitem>
           <para>
             is a tool to generate Qt4 code out of
@@ -811,7 +727,7 @@ EOF</userinput></screen>
             version of designer.
           </para>
           <indexterm zone="qt4 uic3-qt4">
-            <primary sortas="b-uic3-qt4">uic3-qt4</primary>
+            <primary sortas="b-uic3-qt4">uic3</primary>
           </indexterm>
         </listitem>
       </varlistentry>
