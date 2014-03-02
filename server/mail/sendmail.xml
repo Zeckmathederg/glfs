@@ -34,7 +34,7 @@
     <para>The <application>sendmail</application> package contains a Mail
     Transport Agent (MTA).</para>
 
-    &lfs74_built;
+    &lfs75_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -101,7 +101,7 @@ install -v -m700 -d /var/spool/mqueue</userinput></screen>
 
 <screen><userinput>cat &gt;&gt; devtools/Site/site.config.m4 &lt;&lt; "EOF"
 <literal>APPENDDEF(`confENVDEF',`-DSTARTTLS -DSASL -DLDAPMAP')
-APPENDDEF(`confLIBS', `-lssl -lcrypto -lsasl2 -lldap -llber')
+APPENDDEF(`confLIBS', `-lssl -lcrypto -lsasl2 -lldap -llberi -ldb')
 APPENDDEF(`confINCDIRS', `-I/usr/include/sasl')</literal>
 EOF</userinput></screen>
 
@@ -114,8 +114,11 @@ define(`confMANOWN',`root')
 define(`confSBINGRP',`root')
 define(`confUBINGRP',`root')
 define(`confUBINOWN',`root')
-define(`confMANROOT', `/usr/share/man/man')</literal>
+</literal>
 EOF
+
+sed -i 's|/usr/man/man|/usr/share/man/man|' \
+    devtools/OS/Linux           &amp;&amp;
 
 sed -i -r "s/^# if (DB.*)$/# if (\1) || DB_VERSION_MAJOR >= 5/" \
     include/sm/bdb.h            &amp;&amp;
@@ -185,6 +188,10 @@ cd ../..</userinput></screen>
     <para><command>cat &gt; devtools/Site/site.config.m4 &lt;&lt; "EOF"</command>:
     This creates a configuration file changing some of the default settings.</para>
 
+    <para><command>sed ... devtools/OS/Linux</command>: The site.config.m4
+    does not honor a change to the man directory, so fix it in the OS 
+    definitions.</para>
+
     <para><command>sed ... include/sm/bdb.h</command>: This allows sendmail to
     build properly with <xref linkend='db'/> versions 5 and above.</para>
 
@@ -239,7 +246,8 @@ newaliases -v</userinput></screen>
       macro processor from within
       <filename class='directory'>/etc/mail</filename> as follows:</para>
 
-<screen role="root"><userinput>m4 m4/cf.m4 sendmail.mc > sendmail.cf</userinput></screen>
+<screen role="root"><userinput>cd /etc/mail &amp;&amp;
+m4 m4/cf.m4 sendmail.mc > sendmail.cf</userinput></screen>
 
       <para>A full explanation of the files to modify, and the available
       parameters can be found in <filename>/etc/mail/README</filename>.</para>
