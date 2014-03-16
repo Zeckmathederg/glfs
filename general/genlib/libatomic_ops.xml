@@ -7,11 +7,10 @@
   <!ENTITY libatomic_ops-download-http
            "http://www.hpl.hp.com/research/linux/atomic_ops/download/libatomic_ops-&libatomic_ops-version;.tar.gz">
   <!ENTITY libatomic_ops-download-ftp  " ">
-  <!ENTITY libatomic_ops-md5sum        "7035692fec4db2659b06485040829e43">
-  <!ENTITY libatomic_ops-size          "244 KB">
-  <!ENTITY libatomic_ops-buildsize     "4.5 MB (additional 0.6 MB for tests)">
-  <!ENTITY libatomic_ops-time          "Less than 0.1 SBU (additional less than
-                                        0.1 SBU for tests)">
+  <!ENTITY libatomic_ops-md5sum        "59f9a7cc845dcc775e7b7901eb582766">
+  <!ENTITY libatomic_ops-size          "448 KB">
+  <!ENTITY libatomic_ops-buildsize     "5.3 MB (additional 0.9 MB for tests)">
+  <!ENTITY libatomic_ops-time          "less than 0.1 SBU (additional less than 0.1 SBU for tests)">
 ]>
 
 <sect1 id="libatomic_ops" xreflabel="libatomic_ops-&libatomic_ops-version;">
@@ -89,15 +88,12 @@
       commands:
     </para>
 
-<screen><userinput>sed -i 's#AM_CONFIG_HEADER#AC_CONFIG_HEADERS#' configure.ac &amp;&amp;
-sed -i 's#AC_PROG_RANLIB#AC_LIBTOOL_DLOPEN\nAC_PROG_LIBTOOL#' configure.ac &amp;&amp;
-sed -i 's#b_L#b_LTL#;s#\.a#.la#g;s#_a_#_la_#' src/Makefile.am &amp;&amp;
-sed -i 's#\.a#.so#g;s#\.\./src/#../src/.libs/#g' tests/Makefile.am &amp;&amp;
-sed -i 's#pkgdata#doc#' doc/Makefile.am &amp;&amp;
+<screen><userinput>sed -i 's#pkgdata#doc#' doc/Makefile.am &amp;&amp;
 autoreconf -fi &amp;&amp;
-./configure --prefix=/usr \
-            --docdir=/usr/share/doc/libatomic_ops-&libatomic_ops-version; \
-            --disable-static &amp;&amp;
+./configure --prefix=/usr    \
+            --enable-shared  \
+            --disable-static \
+            --docdir=/usr/share/doc/libatomic_ops-&libatomic_ops-version; &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -109,7 +105,10 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+mv -v   /usr/share/libatomic_ops/* \
+        /usr/share/doc/libatomic_ops-&libatomic_ops-version; &amp;&amp;
+rm -vrf /usr/share/libatomic_ops</userinput></screen>
 
   </sect2>
 
@@ -117,22 +116,19 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed -i 's#AM_CONFIG_HEADER ...</command>: This
-      <command>sed</command> fixes building with
-      <application>Automake</application> 1.13.
-    </para>
-
-    <para>
-      <command>sed -i 's#AC_PROG_RANLIB ...</command>: These
-      <command>sed</command>s massage the autotool files so that a shared
-      library is built, the tests pass, and the docs are installed in an
-      appropriate directory.
+      <command>sed -i ...</command>: This <command>sed</command> makes the docs
+      to be installed in an appropriate directory.
     </para>
 
     <para>
       <command>autoreconf -fi</command>: This regenerates the
-      <command>configure</command> script and the <filename>Makefile.in</filename>
-      files and installs a missing file.
+      <command>configure</command> script and the
+      <filename>Makefile.in</filename>.
+    </para>
+
+    <para>
+      <parameter>--enable-shared</parameter>: This switch enables building of the
+      <filename class="libraryfile">libatomic_ops</filename> shared libraries.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
