@@ -8,10 +8,10 @@
   "http://ftp.mozilla.org/pub/mozilla.org/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.bz2">
   <!ENTITY seamonkey-download-ftp
   "ftp://ftp.mozilla.org/pub/mozilla.org/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.bz2">
-  <!ENTITY seamonkey-md5sum        "e9597622d2d843ed9095a9e1eeab01f1">
-  <!ENTITY seamonkey-size          "149 MB">
-  <!ENTITY seamonkey-buildsize     "1.7 GB (62 MB installed)">
-  <!ENTITY seamonkey-time          "31 SBU">
+  <!ENTITY seamonkey-md5sum        "1749f6350209e35e0bede3bf4e56c42c">
+  <!ENTITY seamonkey-size          "158 MB">
+  <!ENTITY seamonkey-buildsize     "1.7 GB (67 MB installed)">
+  <!ENTITY seamonkey-time          "40 SBU">
 ]>
 
 <sect1 id="seamonkey" xreflabel="SeaMonkey-&seamonkey-version;">
@@ -199,6 +199,17 @@ ac_add_options --with-system-zlib
 EOF</userinput></screen>
 
     <para>
+      First, two bugs need to be fixed. The two following commands are in the
+      same order as the problems appear at build time, but this order is not
+      essential. Notice that moz-build-dir needs to match the value used in
+      mozconfig (above) for the object directory (MOZ_OBJDIR):
+    </para>
+
+<screen><userinput>mkdir -vp mozilla/moz-build-dir &amp;&amp;
+sed -e 's/$(MOZ_ZLIB_CFLAGS)/$(MOZ_ZLIB_CFLAGS) $(MOZ_PIXMAN_CFLAGS)/' \
+    -i config/config.mk</userinput></screen>
+
+    <para>
       Compile <application>SeaMonkey</application> by running the following
       command:
     </para>
@@ -253,6 +264,17 @@ cp -v moz-build-dir/mozilla/dist/man/man1/seamonkey.1 /usr/share/man/man1</useri
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>mkdir -vp mozilla/moz-build-dir</command>: fixes a build failure
+      of Makefile at the beginning of build, where a file cannot be found.
+    </para>
+
+    <para>
+      <command>sed -e 's/$(MOZ_ZLIB_CFLAGS) ... $(MOZ_PIXMAN_CFLAGS
+      ...</command>: fixes a build failure of not finding pixman headers,
+      closer to then of build.
+    </para>
 
     <para>
       <command>make -f client.mk</command>: Mozilla products are packaged to
