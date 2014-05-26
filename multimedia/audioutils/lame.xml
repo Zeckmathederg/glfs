@@ -90,10 +90,10 @@
     <title>Installation of LAME</title>
 
     <para>
-      First, for i686, fix a problem with gcc-4.9.0:
+      First, if you are using i686 and gcc-4.9.0, fix a compile problem:
     </para>
 
-<screen><userinput>sed -i -e 's/fast-math/&amp; -msse2/' configure</userinput></screen>
+<screen role="nodump"><userinput>sed -i -e '/xmmintrin\.h/d' configure</userinput></screen>
 
     <para>
       Install <application>LAME</application> by running
@@ -117,6 +117,15 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <option>sed -i -e '/xmmintrin\.h/d' configure</option> : with
+      gcc-4.9.0, 32-bit i686 builds fail in <filename>xmm_quantize_sub.c</filename>
+      with an error message <literal>error: inlining failed in call to always_inline
+      '_mm_loadu_ps'</literal>. This sed makes it appear as if
+      <filename>xmmintrin.h</filename> is not present. Do not use this on other
+      versions of gcc, or on x86_64.
+    </para>
 
     <para>
       <option>--enable-mp3rtp</option>: This switch enables building
