@@ -6,10 +6,10 @@
 
   <!ENTITY bluez-download-http "http://www.kernel.org/pub/linux/bluetooth/bluez-&bluez-version;.tar.xz">
   <!ENTITY bluez-download-ftp  "ftp://ftp.kernel.org/pub/linux/bluetooth/bluez-&bluez-version;.tar.xz">
-  <!ENTITY bluez-md5sum        "9c71404f86287cd9441e86783be3aae1">
+  <!ENTITY bluez-md5sum        "2d839c0bc9f8daaa6ca32e65d7701812">
   <!ENTITY bluez-size          "1.3 MB">
-  <!ENTITY bluez-buildsize     "52 MB">
-  <!ENTITY bluez-time          "0.6 SBU">
+  <!ENTITY bluez-buildsize     "69 MB">
+  <!ENTITY bluez-time          "0.8 SBU">
 ]>
 
 <sect1 id="bluez" xreflabel="BlueZ-&bluez-version;">
@@ -34,7 +34,7 @@
       Bluetooth protocol stack for Linux.
     </para>
 
-    &lfs75_built;
+    &lfs75_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -104,8 +104,8 @@
       kernel if necessary:
     </para>
 
-<screen><literal>[*] Networking support --->
-  &lt;*&gt; or &lt;M&gt; Bluetooth subsystem support --->
+<screen><literal>[*] Networking support ---&gt;
+  &lt;*&gt; or &lt;M&gt; Bluetooth subsystem support ---&gt;
     &lt;*&gt; or &lt;M&gt; RFCOMM protocol support
     [*] RFCOMM TTY support
     &lt;*&gt; or &lt;M&gt; BNEP protocol support
@@ -113,7 +113,8 @@
     [*] Protocol filter support
     &lt;*&gt; or &lt;M&gt; HIDP protocol support
 
-    Bluetooth device drivers ---></literal></screen>
+    Bluetooth device drivers ---&gt;
+  &lt;*&gt; or &lt;M&gt; RF switch subsystem support</literal></screen> 
 
     <para>
       Select the appropriate drivers for your Bluetooth hardware.
@@ -147,14 +148,15 @@
 make</userinput></screen>
 
     <para>
-      This package does not come with a test suite.
+      To test the results, issue: <userinput>make check</userinput>.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+ln -svf ../libexec/bluetooth/bluetoothd /usr/sbin</userinput></screen>
 
     <para>
       Install the main configuration file as the
@@ -190,16 +192,43 @@ install -v -m644 doc/*.txt /usr/share/doc/bluez-&bluez-version;</userinput></scr
       using systemd, remove this switch.
     </para>
 
+    <para>
+      <command>ln -svf ../libexec/bluetooth/bluetoothd /usr/sbin</command>: 
+      This command makes access to the bluetooth daemon more convenient.
+    </para>
+
   </sect2>
 
   <sect2 role="configuration">
     <title>Configuring BlueZ</title>
 
     <sect3 id="bluez-config">
-      <title>Config Files</title>
+      <title>Configuration Files</title>
       <para>
-        <filename>/etc/bluetooth/main.conf</filename>
+        <filename>/etc/bluetooth/main.conf</filename> is installed automatically
+        during the install.  Additionally, there are three supplementary
+        configuration files. /etc/sysconfig/bluetooth is
+        installed as a part of the boot script below.  In addition 
+        you optionally cam install the following as the 
+        <systemitem class="username">root</systemitem> user:
       </para>
+        
+<screen role="root"><userinput>cat > /etc/bluetooth/rfcomm.conf &lt;&lt; "EOF"</userinput>
+<literal># rfcomm.conf
+# Set up the RFCOMM configuration of the Bluetooth subsystem in the Linux kernel.
+# Use one line per command
+# See the rfcomm man page for options
+
+
+# End of rfcomm.conf</literal></screen>
+
+<screen role="root"><userinput>cat > /etc/bluetooth/uart.conf &lt;&lt; "EOF"</userinput>
+<literal>#uart.conf
+# Attach serial devices via UART HCI to BlueZ stack
+# Use one line per device
+# See the hciattach man page for options
+
+# End of uart.conf</literal></screen>
 
       <indexterm zone="bluez bluez-config">
         <primary
