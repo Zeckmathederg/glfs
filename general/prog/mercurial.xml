@@ -6,9 +6,9 @@
 
   <!ENTITY mercurial-download-http "http://mercurial.selenic.com/release/mercurial-&mercurial-version;.tar.gz">
   <!ENTITY mercurial-download-ftp  " ">
-  <!ENTITY mercurial-md5sum        "15de301a673b77f839325dba10ed4fc0">
+  <!ENTITY mercurial-md5sum        "c5be4265745a8140fec777a4dfc40e0e">
   <!ENTITY mercurial-size          "3.8 MB">
-  <!ENTITY mercurial-buildsize     "43 MB (additional 2MB for the tests and 2 MB for docs generation)
+  <!ENTITY mercurial-buildsize     "43 MB (additional 249 MB for the tests and 2 MB for docs generation)
 
 ">
   <!ENTITY mercurial-time          "less than 0.1 SBU (additional 7.9 SBU for tests)">
@@ -70,12 +70,12 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-    <ulink url="http://docutils.sourceforge.net/">Docutils</ulink> (required to build the documentation),
+    <xref linkend="bazaar"/>,
+    <xref linkend="cvs"/>,
     <xref linkend="git"/>,
     <xref linkend="gnupg2"/> (<command>gpg2</command> with Python bindings),
     <xref linkend="subversion"/> (with Python bindings),
-    <xref linkend="bazaar"/>,
-    <xref linkend="cvs"/>,
+    <ulink url="http://docutils.sourceforge.net/">Docutils</ulink> (required to build the documentation),
     <ulink url="http://pypi.python.org/pypi/pyflakes">pyflakes</ulink>,
     <ulink url="http://pygments.org/">pygments</ulink>, and
     <ulink url="https://launchpad.net/pyopenssl">pyOpenSSL</ulink>
@@ -100,10 +100,21 @@
 
 <screen><userinput>make doc</userinput></screen>
 
-    <para>To test the results, issue: <command>make check</command>. During the
-    tests, the build directory size increases above the
-    <quote>Estimated disk space required</quote>, even when considering the
-    additional values, due to temporary test files.</para>
+    <para>In the test suite, failure of test-patchbomb is expected with
+    <application>Python-2.7.x</application> (x &gt; 7). To test the results in
+    the subdiretory <filename class="directory">tmp</filename>, blacklisting
+    this test, issue:</para>
+
+<screen><userinput>cat &gt; tests/blacklists/test-failed &lt;&lt; "EOF"
+<literal># Failure with Python-2.7.8
+  test-patchbomb.t</literal>
+EOF
+rm -rf tests/tmp &amp;&amp;
+TESTFLAGS="--tmpdir tmp --blacklist blacklists/test-failed" \
+make check</userinput></screen>
+
+    <para>Tests may be run in parallel, just add
+    <quote>-j$(getconf _NPROCESSORS_ONLN)</quote> to TESTFLAGS.</para>
 
     <para>Install <application>Mercurial</application> by running
     the following command (as <systemitem class="username">root</systemitem>):</para>
