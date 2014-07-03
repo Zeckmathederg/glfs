@@ -6,11 +6,13 @@
 
   <!ENTITY texlive-source-download-http " ">
   <!ENTITY texlive-source-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-source.tar.xz">
-  <!ENTITY texlive-source-md5sum        "f52599c99fb1035399b907f4c54f1125">
-  <!ENTITY texlive-source-size          "172 MB">
+  <!ENTITY texlive-source-md5sum        "09ee265ff51637827559affc7304078c">
+  <!ENTITY texlive-source-size          "40 MB">
 
-  <!ENTITY texlive-buildsize            "1.6 GB">
-  <!ENTITY texlive-time                 "9.6 SBU">
+  <!-- buildsize is the source dir, plus the kpathsea files installed to /usr.
+   The progs in bin/ARCH/ seem slightly smaller (shared libs) -->
+  <!ENTITY texlive-buildsize            "555 MB">
+  <!ENTITY texlive-time                 "8.4 SBU">
 ]>
 
 <sect1 id="texlive" xreflabel="texlive-&texlive-version;">
@@ -58,28 +60,19 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/texlive-&texlive-version;-source-fix_asymptote-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/texlive-&texlive-version;-source-poppler26-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">TeX Live Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="tl-installer"/> or a previous version of TeX Live
+      (untested, you would need to alter the configure switches which refer
+      to &texlive-year; so that it overwrites your existing installation, or
+      else copy everything to the location for the current year).
+    </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="freeglut"/> (for asy),
-      <xref linkend="gs"/>,
+      <xref linkend="gs"/> (for dvisvgm, which is used by asy),
       <xref linkend="x-window-system"/>
     </para>
     <para>
@@ -100,6 +93,10 @@
     <para role="optional">
       <ulink url="http://www.fftw.org/">FFTW</ulink> can be used by asy.
     </para>
+    <para role="optional">
+      <ulink url="http://www.gnu.org/software/clisp/">clisp</ulink> is a build-time
+      dependency for xindy, see <filename>utils/xindy/README-clisp</filename>.
+    </para>
     <para>
       The source ships with its own versions of several libraries which are either
       not under active development, or only used for limited functionality.  If
@@ -108,14 +105,13 @@
       <ulink url="http://libgd.bitbucket.org">GD</ulink>,
       <ulink url="http://fossies.org/linux/misc/t1lib-5.1.2.tar.gz/">t1lib</ulink>,
       <ulink url="http://sourceforge.net/projects/zziplib/">ZZIPlib</ulink>,
-      <ulink url="http://www.gnu.org/software/clisp/">CLISP</ulink>,
       <ulink url="http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&amp;id=TECkitDownloads">TECkit</ulink>
     </para>
 
     <bridgehead renderas="sect4">Runtime dependencies</bridgehead>
     <para role="recommended">
       Some (re-installed) scripts will use
-      <xref linkend="ruby"/> and <xref linkend="tk"/> is used by epspdftk.
+      <xref linkend="python2"/> or <xref linkend="ruby"/>.
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -145,26 +141,26 @@
     what was originally installed.</para>
 
     <para>At the moment, these instructions do not rebuild
-    <application>xindy</application> which was installed by the binary installer,
-    due to a problem with the tarball's install procedure.  Asy and the rest of
-    asymptote is by default not rebuilt, so we have to separately run
-    <command>configure</command> and <command>make</command> in its directory.
+    <application>biber</application> or <application>xindy</application> which were
+    installed by the binary installer.  See the "Special considerations for ..."
+    paragraphs of
+    <ulink url="http://tug.org/texlive/build.html">Building TeX Live</ulink>.
+    Asy and the rest of asymptote is by default not rebuilt, so we have to
+    separately run <command>configure</command> and <command>make</command> in its
+    directory.
     </para>
 
-<screen><userinput>patch -Np1 -i ../texlive-&texlive-version;-source-fix_asymptote-1.patch &amp;&amp;
-patch -Np1 -i ../texlive-&texlive-version;-source-poppler26-1.patch &amp;&amp;
-
-mkdir texlive-build &amp;&amp;
+<screen><userinput>mkdir texlive-build &amp;&amp;
 cd texlive-build    &amp;&amp;
 
 ../configure                                        \
-    --prefix=/opt/texlive/2013                      \
-    --bindir=/opt/texlive/2013/bin/x86_64-linux     \
-    --datarootdir=/opt/texlive/2013                 \
+    --prefix=/opt/texlive/&texlive-year;                      \
+    --bindir=/opt/texlive/&texlive-year;/bin/x86_64-linux     \
+    --datarootdir=/opt/texlive/&texlive-year;                 \
     --includedir=/usr/include                       \
-    --infodir=/opt/texlive/2013/texmf-dist/doc/info \
+    --infodir=/opt/texlive/&texlive-year;/texmf-dist/doc/info \
     --libdir=/usr/lib                               \
-    --mandir=/opt/texlive/2013/texmf-dist/doc/man   \
+    --mandir=/opt/texlive/&texlive-year;/texmf-dist/doc/man   \
     --disable-native-texlive-build                  \
     --disable-static --enable-shared                \
     --with-system-libgs                             \
@@ -187,12 +183,12 @@ pushd ../utils/asymptote &amp;&amp;
     echo "ac_cv_lib_z_deflate=yes" >>config.cache &amp;&amp;
 
 ./configure LIBS="-ltirpc "                         \
-    --prefix=/opt/texlive/2013/                     \
-    --bindir=/opt/texlive/2013/bin/x86_64-linux     \
+    --prefix=/opt/texlive/&texlive-year;/                     \
+    --bindir=/opt/texlive/&texlive-year;/bin/x86_64-linux     \
     --enable-texlive-build                          \
-    --datarootdir=/opt/texlive/2013/texmf-dist      \
-    --infodir=/opt/texlive/2013/texmf-dist/doc/info \
-    --mandir=/opt/texlive/2013/texmf-dist/doc/man   \
+    --datarootdir=/opt/texlive/&texlive-year;/texmf-dist      \
+    --infodir=/opt/texlive/&texlive-year;/texmf-dist/doc/info \
+    --mandir=/opt/texlive/&texlive-year;/texmf-dist/doc/man   \
     --cache-file=config.cache &amp;&amp;
 popd &amp;&amp;
 
@@ -213,11 +209,6 @@ make -C ../utils/asymptote install</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para>
-      <parameter>patch -Np1 -i ../texlive-&texlive-version;-source-poppler26-1.patch</parameter>:
-      this allows luatex to build against poppler &gt;=0.26. Omit this if you
-      have not installed <application>poppler</application>.
-    </para>
     <para>
       <parameter>--prefix=, --bindir=, --datarootdir=, --infodir=, --mandir= ...
       </parameter>: these switches ensure that the files installed from source
@@ -295,10 +286,8 @@ make -C ../utils/asymptote install</userinput></screen>
       <varlistentry id="texlive-programs">
         <term><command>TeX&nbsp;programs</command></term>
         <listitem>
-          <para>included in the <application>TeX Live</application> package are
-          too numerous to individually list. Please refer to the individual
-          program man and html pages in the installation directory's 2011/index.html
-          directory.</para>
+          <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+          href="../../xincludes/texprogs.xml"/>
           <indexterm zone="texlive texlive-programs">
             <primary sortas="b-texlive-programs">TeX Live programs</primary>
           </indexterm>
