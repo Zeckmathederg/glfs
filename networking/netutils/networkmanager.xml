@@ -8,10 +8,10 @@
            "&gnome-download-http;/NetworkManager/0.9/NetworkManager-&NetworkManager-version;.tar.xz">
   <!ENTITY NetworkManager-download-ftp
            "&gnome-download-ftp;/NetworkManager/0.9/NetworkManager-&NetworkManager-version;.tar.xz">
-  <!ENTITY NetworkManager-md5sum        "aad2558887e25417c52eb2deaade2f85">
-  <!ENTITY NetworkManager-size          "2.0 MB">
-  <!ENTITY NetworkManager-buildsize     "82 MB (additional 2 MB for the tests)">
-  <!ENTITY NetworkManager-time          "0.9 SBU">
+  <!ENTITY NetworkManager-md5sum        "21b9051dbbd6434df4624a90ca9d71b6">
+  <!ENTITY NetworkManager-size          "2.5 MB">
+  <!ENTITY NetworkManager-buildsize     "127 MB (additional 10 MB for the tests)">
+  <!ENTITY NetworkManager-time          "1.5 SBU">
 ]>
 
 <sect1 id="NetworkManager" xreflabel="NetworkManager-&NetworkManager-version;">
@@ -80,8 +80,10 @@
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="dbus-glib"/>,
+      <xref linkend="libndp"/>,
       <xref linkend="libnl"/>,
-      <xref linkend="nss"/>, and
+      <xref linkend="nss"/>,
+      (or <xref linkend="gnutls"/>), and
       <xref linkend="udev-extras"/> (for GUdev)
     </para>
 
@@ -93,6 +95,7 @@
       <xref linkend="gobject-introspection"/>,
       <xref linkend="iptables"/>,
       <xref linkend="libsoup"/>,
+      <xref linkend="newt"/> (for <command>nmtui</command>,
       <xref linkend="polkit"/>,
       <xref linkend="upower"/>, and
       <xref linkend="vala"/>
@@ -101,10 +104,12 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="gtk-doc"/>,
+      <xref linkend="qt4"/>,
+      <xref linkend="valgrind"/>,
+      <xref linkend="wpa_supplicant"/> (built with D-Bus support),
+      <ulink url="http://libteam.org/">libteam</ulink>, and
       <ulink url="http://www.freedesktop.org/software/ModemManager/">
       ModemManager</ulink>,
-      <xref linkend="qt4"/>, and
-      <xref linkend="wpa_supplicant"/> (built with D-Bus support)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -126,7 +131,9 @@
 <screen><userinput>./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --localstatedir=/var \
-            --disable-ppp &amp;&amp;
+            --with-nmtui         \
+            --disable-ppp        \
+            --with-systemdsystemunitdir=no amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -146,13 +153,24 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <option>--disable-ppp</option>: This parameter disables optional
+      <parameter>--with-nmtui</parameter>: This parameter enables build of
+      <command>nmtui</command>.
+    </para>
+
+    <para>
+      <parameter>--with-systemdsystemunitdir=no</parameter>: This parameter is
+      used for sysv init systems. If you use systemd, replace "no" by the
+      proper directory.
+    </para>
+
+    <para>
+      <parameter>--disable-ppp</parameter>: This parameter disables parameteral
       <application>PPP</application> support in
       <application>NetworkManager</application>.
     </para>
 
     <para>
-      <option>--enable-doc</option>: Use this switch if you have installed
+      <option>--enable-gtk-doc</option>: Use this switch if you have installed
       <xref linkend="gtk-doc"/> and wish to build the API manuals.
     </para>
 
@@ -160,13 +178,6 @@ make</userinput></screen>
       <option>--without-iptables</option>: Use this switch if you don't have 
       <application>Iptables</application> installed.
     </para>
-
-    <para><option>--libexecdir=/usr/lib/NetworkManager</option>: This option
-    creates a <filename class="directory">NetworkManager</filename> directory in
-    <filename class="directory">/usr/lib</filename> for the package's private
-    programs, instead of using <filename
-    class="directory">/usr/libexec</filename> in accordance with the old version
-    of the FHS used before LFS-7.5.</para>
 
   </sect2>
 
@@ -204,7 +215,10 @@ plugins=keyfile</literal>
 EOF</userinput></screen>
 
       <para>
-        See <command>man 5 NetworkManager.conf</command> for any additional options.
+        You can add <option>dns=none</option> to suppress changes to
+         <filename>/etc/resolv.conf</filename>. See
+         <command>man 5 NetworkManager.conf</command>
+         for any additional options.
       </para>
 
     </sect3>
@@ -239,16 +253,20 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          nmcli, nm-online, nm-tool, and NetworkManager
+          NetworkManager, nm-avahi-autoipd.action, nm-dhcp-helper,
+          nm-dispatcher, nm-online, nmcli, and, hardlinked to each other:
+          nmtui, nmtui-connect, nmtui-edit, and nmtui-hostname
         </seg>
         <seg>
-          libnm-glib.so, libnm-glib-vpn.so, and libnm-util.so
+          libnm-glib.so, libnm-glib-vpn.so, and libnm-util.so and
+          modules under /usr/lib/NetworkManager
         </seg>
         <seg>
           /etc/NetworkManager,
           /usr/include/libnm-glib,
           /usr/include/NetworkManager,
           /usr/lib/NetworkManager,
+          /usr/share/doc/NetworkManager,
           /usr/share/gtk-doc/html/libnm-glib,
           /usr/share/gtk-doc/html/libnm-util,
           /usr/share/gtk-doc/html/NetworkManager,
@@ -289,16 +307,51 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="nm-tool">
-        <term><command>nm-tool</command></term>
+      <varlistentry id="nmtui">
+        <term><command>nmtui</command></term>
         <listitem>
           <para>
-            is used to provide information about
-            <application>NetworkManager</application>,
-            device, and wireless networks.
+            interactive ncurses based interface for
+            <application>nmcli</application>.
           </para>
-          <indexterm zone="NetworkManager nm-tool">
-            <primary sortas="b-nm-tool">nm-tool</primary>
+          <indexterm zone="NetworkManager nmtui">
+            <primary sortas="b-nmtui">nmtui</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="nmtui-connect">
+        <term><command>nmtui-connect</command></term>
+        <listitem>
+          <para>
+            interactive ncurses based interface connection activate/deactivate.
+          </para>
+          <indexterm zone="NetworkManager nmtui-connect">
+            <primary sortas="b-nmtui-connect">nmtui-connect</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="nmtui-edit">
+        <term><command>nmtui-edit</command></term>
+        <listitem>
+          <para>
+            interactive ncurses based interface connection editor.
+          </para>
+          <indexterm zone="NetworkManager nmtui-edit">
+            <primary sortas="b-nmtui-edit">nmtui-edit</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="nmtui-hostname">
+        <term><command>nmtui-hostname</command></term>
+        <listitem>
+          <para>
+            interactive ncurses based interface hostname editor.
+          </para>
+          <indexterm zone="NetworkManager nmtui-hostname">
+            <primary sortas="b-nmtui-hostname">nmtui-hostname</primary>
           </indexterm>
         </listitem>
       </varlistentry>
