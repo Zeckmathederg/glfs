@@ -172,7 +172,9 @@ compress
 include /etc/logrotate.d
 
 # End of /etc/logrotate.conf
-EOF</userinput></screen>
+EOF
+
+chmod -v 0644 /etc/logrotate.conf</userinput></screen>
 
     <para>Now create the <filename class='directory'>/etc/logrotate.d</filename>
     directory as the  <systemitem class="username">root</systemitem> user:</para>
@@ -184,7 +186,7 @@ EOF</userinput></screen>
   For example:</para>
 
 <screen role="root"><userinput>cat &gt; /etc/logrotate.d/sys.log &lt;&lt; EOF
-sys.log {
+/var/log/sys.log {
    # If the log file is larger than 100kb, rotate it
    size   100k
    rotate 5
@@ -193,16 +195,43 @@ sys.log {
       /bin/killall -HUP syslogd
    endscript
 }
-EOF</userinput></screen>
+EOF
 
-  <para>See the logrotate man page or 
+chmod -v 0644 /etc/logrotate.d/sys.log</userinput></screen>
+
+  <para>You can designate multiple files in one entry:</para>
+
+<screen role="root"><userinput>cat &gt; /etc/logrotate.d/example.log &lt;&lt; EOF
+file1
+file2
+file3 {
+   ...
+   postrotate
+    ...
+   endscript
+}
+EOF
+
+chmod -v 0644 /etc/logrotate.d/example.log</userinput></screen>
+
+  <para>You can use in the same line the list of files: file1 file2 file3.
+  See the logrotate man page or 
   <ulink url='http://www.techrepublic.com/article/manage-linux-log-files-with-logrotate/'/>
   for more examples.</para>
 
   <para>The command <command>logrotate /etc/logrotate.conf</command> can be
-  run manually, however, the command should be run daily.  
-  To set up <xref linkend='fcron'/> to run at 3AM daily, root's crontab
-  should be edited to add:</para>
+  run manually, however, the command should be run daily.
+  Other useful commands are <command>logrotate -d /etc/logrotate.conf</command>
+  for debugging purposes and <command>logrotate -f /etc/logrotate.conf</command>
+  forcing the logrotate commands to be run immediately. Combining the previous
+  options <option>-df</option>, you can debug the effect of the force command.
+  When debugging, the command is only simulated, not really run, thus, eventual
+  non-existing errors appear, when some intermediate files are expected,
+  because they are not actually created.</para>
+
+  <para>To set up <xref linkend='fcron'/> to run
+  <command>logrotate ...</command> at 3AM daily, root's crontab should be
+  edited to add:</para>
 
 <screen><literal>0 3 * * *   /usr/sbin/logrotate /etc/logrotate.conf</literal></screen>
 
