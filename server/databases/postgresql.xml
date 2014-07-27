@@ -6,10 +6,10 @@
 
   <!ENTITY postgresql-download-http "http://ftp.postgresql.org/pub/source/v&postgresql-version;/postgresql-&postgresql-version;.tar.bz2">
   <!ENTITY postgresql-download-ftp  "ftp://ftp.postgresql.org/pub/source/v&postgresql-version;/postgresql-&postgresql-version;.tar.bz2">
-  <!ENTITY postgresql-md5sum        "d0a41f54c377b2d2fab4a003b0dac762">
+  <!ENTITY postgresql-md5sum        "5059857c7d7e6ad83b6d55893a121b59">
   <!ENTITY postgresql-size          "16 MB">
-  <!ENTITY postgresql-buildsize     "184 MB (additional 169 MB to run the testsuite)">
-  <!ENTITY postgresql-time          "1.5 SBU (additional 0.2 SBU to run the testsuite)">
+  <!ENTITY postgresql-buildsize     "183 MB (additional 168 MB to run the testsuite)">
+  <!ENTITY postgresql-time          "1.6 SBU (additional 0.3 SBU to run the testsuite)">
 ]>
 
 <sect1 id="postgresql" xreflabel="PostgreSQL-&postgresql-version;">
@@ -91,23 +91,13 @@
     <para>Install <application>PostgreSQL</application> with the
     following commands: </para>
 
+<!--sed -i -e 's@psql\\"@&amp; -h /tmp@' src/test/regress/pg_regress{,_main}.c &amp;&amp;
+sed -i -e 's@gres\\"@&amp; -k /tmp@' src/test/regress/pg_regress.c &amp;&amp;-->
 <screen><userinput>sed -i '/DEFAULT_PGSOCKET_DIR/s@/tmp@/run/postgresql@' src/include/pg_config_manual.h &amp;&amp;
-sed -i -e 's@psql\\"@&amp; -h /tmp@' src/test/regress/pg_regress{,_main}.c &amp;&amp;
-sed -i -e 's@gres\\"@&amp; -k /tmp@' src/test/regress/pg_regress.c &amp;&amp;
 ./configure --prefix=/usr          \
             --enable-thread-safety \
             --docdir=/usr/share/doc/postgresql-&postgresql-version; &amp;&amp;
 make</userinput></screen>
-
-    <warning>
-      <para>This package contains a known security hole that allows other
-      users on the same machine to gain access to an operating system account
-      while it is doing "make check": CVE-2014-0067. Until the fix is available,
-      users are strongly advised not to run "make check" on machines where
-      untrusted users have accounts. </para>
-    </warning>
-
-    <para>To test the results, issue: <command>make check</command>.</para>
 
     <para>There are a number of programs in the
     <filename class="directory">contrib/</filename> directory. If you are going
@@ -126,18 +116,27 @@ make install-docs</userinput></screen>
 
 <screen role="nodump/"><userinput>make -C contrib/<replaceable>&lt;SUBDIR-NAME&gt;</replaceable> install</userinput></screen>
 
+    <warning>
+      <para>This package contains a known security hole that allows other
+      users on the same machine to gain access to an operating system account
+      while it is doing "make check": CVE-2014-0067. Tests must be run after
+      install, with postgresql server down, as unprivileged user.</para>
+    </warning>
+
+    <para>To test the results, issue: <command>make check</command>.</para>
+
     <para><emphasis>If you only intend to use <application>PostgreSQL</application>
     as a client to connect to a server on another machine, your installation is
     complete and you should not run the remaining commands.</emphasis></para>
 
     <!-- 'Upgrading' seems to only ever exist in the docs for *previous* version -->
-    <note>
+ <!-- Obsolete: only if upgrading for versions prior to 9   <note>
       <para>If you are upgrading an existing system and are going to install
       the new files over the old ones, then you should back up your data, shut
       down the old server and follow the instructions in <ulink
       url="http://www.postgresql.org/docs/9.0/static/install-upgrading.html">the
       official <application>PostgreSQL</application> documentation</ulink>.</para>
-    </note>
+    </note>-->
 
     <para>Initialize a database cluster with the following commands issued by the
     <systemitem class="username">root</systemitem> user:</para>
@@ -178,9 +177,9 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
     <para>
       <command>sed -i ...</command>: These seds change server socket location
       from <filename class="directory">/tmp</filename> to
-      <filename class="directory">/run/postgresql</filename> and fix up the
+      <filename class="directory">/run/postgresql</filename><!-- and fix up the
       regression tests to use <filename class="directory">/tmp</filename> so
-      that they can work reliably.
+      that they can work reliably-->.
     </para>
 
     <para><parameter>--docdir=/usr/share/doc/postgresql-&postgresql-version;</parameter>:
@@ -273,15 +272,16 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
 
       <seglistitem>
         <seg>clusterdb, createdb, createlang, createuser, dropdb, droplang,
-        dropuser, ecpg, initdb, pg_basebackup, pg_config, pg_controldata, pg_ctl,
-        pg_dump, pg_dumpall, pg_isready, pg_receivexlog, pg_resetxlog, pg_restore, pltcl_delmod,
-        pltcl_listmod, pltcl_loadmod, postgres, postmaster, psql,
-        reindexdb, vacuumdb, and optionally (in contrib/) oid2name, pg_archivecleanup,
-        pgbench, pg_standby, pg_test_fsync, pg_test_timing, pg_upgrade, pg_xlogdump,
-        vacuumlo,</seg>
-        <seg>libecpg.{so,a}, libecpg_compat.{so,a}, libpgport.a, libpgtypes.{so,a},
-        libpq.{so,a}, various charset modules, and optionally programming language
-        modules.</seg>
+        dropuser, ecpg, initdb, pg_basebackup, pg_config, pg_controldata,
+        pg_ctl, pg_dump, pg_dumpall, pg_isready, pg_receivexlog, pg_resetxlog,
+        pg_restore, pltcl_delmod, pltcl_listmod, pltcl_loadmod, postgres,
+        postmaster, psql, reindexdb, vacuumdb, and optionally (in contrib/)
+        oid2name, pg_archivecleanup, pgbench, pg_standby, pg_test_fsync,
+        pg_test_timing, pg_upgrade, pg_xlogdump, vacuumlo,
+        and many others</seg>
+        <seg>libecpg.{so,a}, libecpg_compat.{so,a}, libpgcommon.a, libpgport.a,
+        libpgtypes.{so,a}, libpq.{so,a}, various charset modules, and
+        optionally programming language modules under /usr/lib/postgresql</seg>
         <seg>/srv/pgsql, /usr/include/libpq, /usr/include/postgresql,
         /usr/lib/postgresql, /usr/share/doc/postgresql-&postgresql-version;, and
         /usr/share/postgresql</seg>
