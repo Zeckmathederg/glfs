@@ -7,10 +7,10 @@
   <!ENTITY parted-download-http
     "http://ftp.gnu.org/gnu/parted/parted-&parted-version;.tar.xz">
   <!ENTITY parted-download-ftp  " ">
-  <!ENTITY parted-md5sum        "5d89d64d94bcfefa9ce8f59f4b81bdcb">
-  <!ENTITY parted-size          "1.5 MB">
-  <!ENTITY parted-buildsize     "38 MB">
-  <!ENTITY parted-time          "0.5 SBU">
+  <!ENTITY parted-md5sum        "0247b6a7b314f8edeb618159fa95f9cb">
+  <!ENTITY parted-size          "1.6 MB">
+  <!ENTITY parted-buildsize     "27 MB (additional 2 MB for the tests and additional 1 MB for optional PDF and Postscript documentation)">
+  <!ENTITY parted-time          "0.4 SBU (additional 0.6 SBU for the tests)">
 ]>
 
 <sect1 id="parted" xreflabel="parted-&parted-version;">
@@ -67,6 +67,11 @@
       <application>udisks</application>)
     </para>
 
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="pth"/>
+    </para>
+
     <para condition="html" role="usernotes">
       User Notes: <ulink url="&blfs-wiki;/parted"/>
     </para>
@@ -80,9 +85,7 @@
       commands:
     </para>
 
-<screen><userinput>sed -i parted/ui.c \
-    -e "s:(CPPFunction\*) complete:(rl_completion_func_t\*) complete:" &amp;&amp;
-./configure --prefix=/usr --disable-static &amp;&amp;
+<screen><userinput>./configure --prefix=/usr --disable-static &amp;&amp;
 make &amp;&amp;
 
 make -C doc html                                       &amp;&amp;
@@ -99,8 +102,11 @@ dvips                -o doc/parted.ps  doc/parted.dvi</userinput></screen>
     <para>
       To test the results, issue: <command>make check</command>.  Note that
       many tests are skipped if not run as the <systemitem
-      class="username">root</systemitem> user.  
+      class="username">root</systemitem> user.  If test t0251-gpt-unicode.sh
+      fails, it can be fixed, in some systems with LANG=XY.UTF-8 set, using: 
     </para>
+
+<screen><userinput>sed -i "s/C.UTF-8/$LANG/" tests/t0251-gpt-unicode.sh</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -124,11 +130,6 @@ install -v -m644    doc/{FAT,API,parted.{txt,html}} \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para>
-      <command>sed -i parted/ui.c ...</command>: This <command>sed</command>
-      fixes building with <application>Readline</application> 6.x (x>2).
-    </para>
-
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
@@ -144,16 +145,20 @@ install -v -m644    doc/{FAT,API,parted.{txt,html}} \
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Library</segtitle>
-      <segtitle>Installed Directory</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>
           parted and
           partprobe
         </seg>
-        <seg>libparted.so</seg>
-        <seg>/usr/include/parted</seg>
+        <seg>
+          libparted.so and
+          libparted-fs-resize.so</seg>
+        <seg>
+          /usr/include/parted and
+          /usr/share/doc/parted-&parted-version;</seg>
       </seglistitem>
     </segmentedlist>
 
