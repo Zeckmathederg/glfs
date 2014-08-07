@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+
+# $LastChangedBy$
+# $Date$
 
 # obfuscate.sh
 # obfuscate email addresses in XML/HTML
@@ -30,7 +33,7 @@
 for i in `grep -o '"mailto:.*@.*"' ${1} |cut -d\" -f2|sed -e 's|^mailto:||' -e 's|"$||'`; do
   link=`echo $i | perl -pe 's/[^\n]/"\\\&#".ord($&)."\;"/ge'`
   plaintext=`echo $i | sed -e 's|@| AT |' -e 's|\.| D0T |g'`
-  cp ${1} ${1}.tmp
+  cp ${1}{,.tmp}
   sed -e "s|mailto:$i|mailto:$link|" \
       -e "s|$i|$plaintext|" ${1}.tmp > ${1}
   rm ${1}.tmp
