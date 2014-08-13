@@ -6,9 +6,9 @@
 
   <!ENTITY gnupg2-download-http " ">
   <!ENTITY gnupg2-download-ftp  "ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-&gnupg2-version;.tar.bz2">
-  <!ENTITY gnupg2-md5sum        "048d8de797125f1d8e6cf3bdff9e2d12">
+  <!ENTITY gnupg2-md5sum        "fa7e704aad33eb114d1840164455aec1">
   <!ENTITY gnupg2-size          "4.2 MB">
-  <!ENTITY gnupg2-buildsize     "67 MB (additional 1 MB for the tests)">
+  <!ENTITY gnupg2-buildsize     "68 MB">
   <!ENTITY gnupg2-time          "0.6 SBU (additional 0.5 SBU for the tests)">
 ]>
 
@@ -61,16 +61,6 @@
       </listitem>
     </itemizedlist>
 
-      <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-      <itemizedlist spacing="compact">
-        <listitem>
-          <para>
-             Required patch:
-            <ulink url="&patch-root;/gnupg-&gnupg2-version;-import_filter_and_add_kbnode_t-1.patch"/>
-          </para>
-        </listitem>
-      </itemizedlist>
-
     <bridgehead renderas="sect3">GnuPG 2 Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -102,8 +92,7 @@
     <para>Install <application>GnuPG</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../gnupg-&gnupg2-version;-import_filter_and_add_kbnode_t-1.patch &amp;&amp;
-./configure --prefix=/usr \
+<screen><userinput>./configure --prefix=/usr \
             --enable-symcryptrun \
             --docdir=/usr/share/doc/gnupg-&gnupg2-version; &amp;&amp;
 make &amp;&amp;
@@ -124,15 +113,24 @@ makeinfo --plaintext       -o doc/gnupg.txt           doc/gnupg.texi</userinput>
     <filename>/usr/share/man/man1/gpg-zip.1</filename>. Now, as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install               &amp;&amp;
-ln -sv gpg2  /usr/bin/gpg  &amp;&amp;
-ln -sv gpgv2 /usr/bin/gpgv &amp;&amp;
+<screen role="root"><userinput>make install &amp;&amp;
 
 install -v -m755 -d /usr/share/doc/gnupg-&gnupg2-version;/html       &amp;&amp;
 install -v -m644    doc/gnupg_nochunks.html \
                     /usr/share/doc/gnupg-&gnupg2-version;/gnupg.html &amp;&amp;
 install -v -m644    doc/*.texi doc/gnupg.txt \
                     /usr/share/doc/gnupg-&gnupg2-version;</userinput></screen>
+
+    <para>Optionally, symlinks for compatibility with the first version of GnuPG
+    can be created issuing, as
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>for f in gpg gpgv
+do
+  ln -svf ${f}2.1 /usr/share/man/man1/${f}.1 &amp;&amp;
+  ln -svf ${f}2   /usr/bin/${f}
+done
+unset f</userinput></screen>
 
     <para>If you created alternate formats of the documentation, install it
     using the following command as the
@@ -148,21 +146,12 @@ install -v -m644 doc/gnupg.{pdf,dvi,ps} \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>ln -sv gpg...</command>: Symlinks for compatibility with the
-    first version of <application>GnuPG</application>.</para>
-
     <para><parameter>--docdir=/usr/share/doc/gnupg-&gnupg2-version;</parameter>:
     This switch changes the default docdir to <filename
     class="directory">/usr/share/doc/gnupg-&gnupg2-version;</filename>.</para>
 
     <para><parameter>--enable-symcryptrun</parameter>: This switch enables
     building the symcryptrun program.</para>
-
-    <para><option>--libexecdir=/usr/lib/gnupg2</option>: This option
-    creates a <filename class="directory">gnupg</filename> directory in
-    <filename class="directory">/usr/lib</filename> instead of
-    <filename class="directory">/usr/libexec</filename> in accordance
-    with the old version of the FHS used before LFS-7.5.</para>
 
   </sect2>
 
@@ -175,12 +164,12 @@ install -v -m644 doc/gnupg.{pdf,dvi,ps} \
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gpg (symlink), gpg2, gpg-agent, gnupg-pcsc-wrapper, gpg2keys_curl,
-        gpg2keys_finger, addgnupghome, gpgconf, gpg-connect-agent, gpgkey2ssh,
-        gpg2keys_hkp, gpg2keys_ldap, gpg-check-pattern, applygnupgdefaults,
-        gpgparsemail, gpgsm, gpgsm-gencert.sh, gpg-preset-passphrase,
-        gpg-protect-tool, scdaemon, gpgv (symlink), gpgv2, kbxutil,
-        symcryptrun, and watchgnupg</seg>
+        <seg>addgnupghome, applygnupgdefaults, gnupg-pcsc-wrapper, gpg,
+        gpg-agent, gpg-check-pattern, gpg-connect-agent, gpg-preset-passphrase,
+        gpg-protect-tool, gpg2, gpg2keys_curl, gpg2keys_finger, gpg2keys_hkp,
+        gpg2keys_ldap, gpgconf, gpgkey2ssh, gpgparsemail, gpgsm,
+        gpgsm-gencert.sh, gpgv, gpgv2, kbxutil, scdaemon, symcryptrun,
+        and watchgnupg</seg>
         <seg>None</seg>
         <seg>/usr/share/doc/gnupg-&gnupg2-version; and
         /usr/share/gnupg</seg>
@@ -219,7 +208,7 @@ install -v -m644 doc/gnupg.{pdf,dvi,ps} \
         <term><command>gpg-agent</command></term>
         <listitem>
           <para>is a daemon used to manage secret (private) keys independently
-          from any protocol. It is used as a backend for <command>gpg</command>
+          from any protocol. It is used as a backend for <command>gpg2</command>
           and <command>gpgsm</command> as well as for a couple of other
           utilities.</para>
           <indexterm zone="gnupg2 gpg-agent">
@@ -235,6 +224,17 @@ install -v -m644 doc/gnupg.{pdf,dvi,ps} \
           <command>gpg-agent</command>.</para>
           <indexterm zone="gnupg2 gpg-connect-agent">
             <primary sortas="b-gpg-connect-agent">gpg-connect-agent</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gpg">
+        <term><command>gpg</command></term>
+        <listitem>
+          <para>(optional) is a symlink to <command>gpg2</command> for
+          compatibility with the first version of GnuPG.</para>
+          <indexterm zone="gnupg2 gpg">
+            <primary sortas="b-gpg">gpg</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -279,7 +279,7 @@ install -v -m644 doc/gnupg.{pdf,dvi,ps} \
       <varlistentry id="gpgsm">
         <term><command>gpgsm</command></term>
         <listitem>
-          <para>is a tool similar to <command>gpg</command> used to provide
+          <para>is a tool similar to <command>gpg2</command> used to provide
           digital encryption and signing services on X.509 certificates and the
           CMS protocol. It is mainly used as a backend for S/MIME mail
           processing.</para>
@@ -296,6 +296,17 @@ install -v -m644 doc/gnupg.{pdf,dvi,ps} \
           request which will be printed to stdout.</para>
           <indexterm zone="gnupg2 gpgsm-gencert.sh">
             <primary sortas="b-gpgsm-gencert.sh">gpgsm-gencert.sh</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gpgv">
+        <term><command>gpgv</command></term>
+        <listitem>
+          <para>(optional) is a symlink to <command>gpgv2</command> for
+          compatibility with the first version of GnuPG.</para>
+          <indexterm zone="gnupg2 gpgv">
+            <primary sortas="b-gpgv">gpgv</primary>
           </indexterm>
         </listitem>
       </varlistentry>
