@@ -118,7 +118,7 @@
       <filename>krb5-&mitkrb-version;.tar.gz.asc</filename>.
     </para>
 
-<screen><userinput>gpg --verify krb5-&mitkrb-version;.tar.gz.asc krb5-&mitkrb-version;.tar.gz</userinput></screen>
+<screen><userinput>gpg2 --verify krb5-&mitkrb-version;.tar.gz.asc krb5-&mitkrb-version;.tar.gz</userinput></screen>
 
     <para>You will probably see output similar to:</para>
 
@@ -129,7 +129,7 @@ gpg: Can't check signature: public key not found</screen>
       You can import the public key with:
     </para>
 
-<screen><userinput>gpg --keyserver pgp.mit.edu --recv-keys 0xF376813D</userinput></screen>
+<screen><userinput>gpg2 --keyserver pgp.mit.edu --recv-keys 0xF376813D</userinput></screen>
 
     <para>
       Now re-verify the package with the first command above.  You should  get a
@@ -155,6 +155,7 @@ autoconf &amp;&amp;
             --localstatedir=/var/lib \
             --with-system-et         \
             --with-system-ss         \
+            --with-system-verto=no   \
             --enable-dns-for-realm &amp;&amp;
 make</userinput></screen>
 
@@ -176,7 +177,7 @@ make</userinput></screen>
 
 for LIBRARY in gssapi_krb5 gssrpc k5crypto kadm5clnt kadm5srv \
                kdb5 kdb_ldap krad krb5 krb5support verto ; do
-    [ -e  /usr/lib/lib$LIBRARY.so ] &amp;&amp; chmod -v 755 /usr/lib/lib$LIBRARY.so
+    chmod -v 755 /usr/lib/lib$LIBRARY.so
 done &amp;&amp;
 
 mv -v /usr/lib/libkrb5.so.3*        /lib &amp;&amp;
@@ -225,6 +226,14 @@ unset LIBRARY</userinput></screen>
       <parameter>--with-system-ss</parameter>: This switch causes the build
       to use the system-installed versions of the subsystem command-line
       interface software.
+    </para>
+
+    <para>
+      <parameter>--with-system-verto=no</parameter>: This switch fixes a bug in
+      the package: it does not recognize its own verto library installed
+      previously. This is not a problem, if reinstalling the same version,
+      but if you are updating, the old library is used as system's one,
+      instead of installing the new version.
     </para>
 
     <para>
@@ -490,7 +499,7 @@ EOF</userinput></screen>
           libgssapi_krb5.so, libgssrpc.so, libk5crypto.so, libkadm5clnt_mit.so,
           libkadm5clnt.so, libkadm5srv_mit.so, libkadm5srv.so, libkdb_ldap.so
           (optional), libkdb5.so, libkrad.so, libkrb5.so, libkrb5support.so,
-          and some plugins under the /usr/lib/krb5 tree
+          libverto.so, and some plugins under the /usr/lib/krb5 tree
         </seg>
         <seg>
           /usr/include/gssapi,
@@ -499,7 +508,8 @@ EOF</userinput></screen>
           /usr/include/krb5,
           /usr/lib/krb5,
           /usr/share/doc/krb5-&mitkrb-version;,
-          /usr/share/examples/krb5 and
+          /usr/share/examples/krb5,
+          /usr/share/gnats/, and
           /var/lib/krb5kdc
         </seg>
       </seglistitem>
