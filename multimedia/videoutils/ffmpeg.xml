@@ -6,10 +6,10 @@
 
   <!ENTITY ffmpeg-download-http "http://ffmpeg.org/releases/ffmpeg-&ffmpeg-version;.tar.bz2">
   <!ENTITY ffmpeg-download-ftp  " ">
-  <!ENTITY ffmpeg-md5sum        "651e5e82360baba41e4d1e426b4897f6">
-  <!ENTITY ffmpeg-size          "7.1 MB">
-  <!ENTITY ffmpeg-buildsize     "119 MB (additional 764 MB for docs and 1813 MB to run the FATE tests)">
-  <!ENTITY ffmpeg-time          "3.4 SBU (additional 1.2 SBU for docs and 7.2 SBU to run the FATE tests, after sample files are downloaded)">
+  <!ENTITY ffmpeg-md5sum        "72361d3b8717b6db3ad2b9da8df7af5e">
+  <!ENTITY ffmpeg-size          "7.2 MB">
+  <!ENTITY ffmpeg-buildsize     "128 MB (additional 857 MB for docs and 1871 MB to run the FATE tests)">
+  <!ENTITY ffmpeg-time          "3.3 SBU (additional 0.9 SBU for docs and 4.5 SBU to run the FATE tests, after sample files are downloaded)">
 ]>
 
 <sect1 id="ffmpeg" xreflabel="FFmpeg-&ffmpeg-version;">
@@ -197,7 +197,10 @@ unset LIBRARY_PATH</userinput></screen>-->
       Postscript versions of the documentation, issue the following commands:
     </para>
 
-<screen><userinput>pushd doc &amp;&amp;
+<screen><userinput>sed -i '$s/$/\n\n@bye/' doc/{git-howto,nut,fate}.texi             &amp;&amp;
+sed -i '/machine:i386/ s/\\/@backslashchar{}/g' doc/platform.texi &amp;&amp;
+
+pushd doc &amp;&amp;
 for DOCNAME in `basename -s .html *.html`
 do
     texi2pdf -b $DOCNAME.texi &amp;&amp;
@@ -218,7 +221,7 @@ unset DOCNAME</userinput></screen>
       To properly test the installation you must have <xref linkend="rsync"/>
       installed and follow the instructions for the
       <ulink url="http://www.ffmpeg.org/fate.html">
-      FFmpeg Automated Testing Environment</ulink> (FATE). First, over 760 MB
+      FFmpeg Automated Testing Environment</ulink> (FATE). First, about 872 MB
       of sample files used to run FATE are downloaded with the command:
     </para>
 
@@ -264,9 +267,10 @@ install -v -m644    doc/*.txt \
       as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/ffmpeg/api &amp;&amp;
-install -v -m644    doc/doxy/html/* \
-                    /usr/share/doc/ffmpeg/api</userinput></screen>
+<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/ffmpeg/api                       &amp;&amp;
+cp -vr doc/doxy/html/* /usr/share/doc/ffmpeg/api                    &amp;&amp;
+find /usr/share/doc/ffmpeg/api -type f -exec chmod -c 0644 "{}" ";" &amp;&amp;
+find /usr/share/doc/ffmpeg/api -type d -exec chmod -c 0755 "{}" ";"</userinput></screen>
 
   </sect2>
 
@@ -274,10 +278,20 @@ install -v -m644    doc/doxy/html/* \
     <title>Command Explanations</title>
 
     <para>
-      <command>sed -i ...</command>: This command adds the
+      <command>sed -i ... configure</command>: This command adds the
       <application>ALSA</application> library to the
       <application>Flite</application> <envar>LDFLAGS</envar> variable and
       enables the discovery of <application>Flite</application>.
+    </para>
+
+    <para>
+      <command>sed -i ... texi</command>: Fix some .texi files for
+      documentation builds.
+    </para>
+
+    <para>
+      <command>find ... ";"</command>: Fix permissions of documentation files
+      and directories.
     </para>
 
     <para>
