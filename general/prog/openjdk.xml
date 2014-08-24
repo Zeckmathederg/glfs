@@ -389,6 +389,23 @@ rm -f Xvfb.pid</userinput></screen>
 cp -R openjdk.build/j2sdk-image /opt/OpenJDK-&openjdk-version; &amp;&amp;
 chown -R root:root /opt/OpenJDK-&openjdk-version;</userinput></screen>
 
+    <para>If desired, you may install a .desktop file corresponding to an entry in a desktop menu for <command>policytool</command>, as <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>cat &gt;&gt; /usr/share/applications/openjdk-7-policytool.desktop &lt;&lt; "EOF" &amp;&amp;
+<literal>[Desktop Entry]
+Name=OpenJDK Java 7 Policy Tool
+Name[pt_BR]=OpenJDK Java 7 - Ferramenta de Pol&#237;tica
+Comment=OpenJDK Java 7 Policy Tool
+Comment[pt_BR]=OpenJDK Java 7 - Ferramenta de Pol&#237;tica
+Exec=/opt/jdk/bin/policytool
+Terminal=false
+Type=Application
+Icon=javaws
+Categories=Settings;</literal>
+EOF
+
+install -v -Dm0644 javaws.png /usr/share/pixmaps/javaws.png &amp;&amp;</userinput></screen>
+
   </sect2>
 
   <sect2 role="commands">
@@ -456,7 +473,7 @@ chown -R root:root /opt/OpenJDK-&openjdk-version;</userinput></screen>
       following commands as the <systemitem class="username">root</systemitem>
       user:</para>
 
-<screen role="root"><userinput>cat &gt; /etc/profile.d/openjdk.sh &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt;&gt; /etc/profile.d/openjdk.sh &lt;&lt; "EOF"
 <literal># Begin /etc/profile.d/openjdk.sh
 
 # Set JAVA_HOME directory
@@ -490,13 +507,24 @@ EOF</userinput></screen>
     configuration. As the <systemitem class="username">root</systemitem>
     user:</para>
 
-<screen role="root"><userinput>cat &gt;&gt; /etc/man_db.conf &lt;&lt; "EOF" &amp;&amp;
-<literal>MANDATORY_MANPATH     /opt/jdk/man
+<screen role="root"><userinput>cat >> /etc/profile.d/extrapaths.sh &lt;&lt; "EOF" &amp;&amp;
+# Begin Java addition
+<literal>pathappend /opt/jdk/man       MANPATH
+# End Java addition</literal>
+EOF
+
+
+cat &gt;&gt; /etc/man_db.conf &lt;&lt; "EOF" &amp;&amp;
+<literal># Begin Java addition
+MANDATORY_MANPATH     /opt/jdk/man
 MANPATH_MAP           /opt/jdk/bin     /opt/jdk/man
-MANDB_MAP             /opt/jdk/man     /var/cache/man/jdk</literal>
+MANDB_MAP             /opt/jdk/man     /var/cache/man/jdk
+# End Java addition</literal>
 EOF
 
 mandb -c /opt/jdk/man</userinput></screen>
+
+    <para>To test the man pages are correctly installed, issue <command>source /etc/profile</command> and <command>man java</command> to display the respective man page.</para>
 
     </sect3>
 
