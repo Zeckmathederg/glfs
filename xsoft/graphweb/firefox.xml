@@ -13,8 +13,8 @@
   <!ENTITY firefox-md5sum        "499b70a9f08a2291d528e87eaf8804a3">
   <!ENTITY firefox-size          "141 MB">
   <!-- measured on LFS-7.5, x86_64 -->
-  <!ENTITY firefox-buildsize     "5.0 GB (62 MB installed) (or 963 MB and 7.0 MB if using Xulrunner)">
-  <!ENTITY firefox-time          "48 SBU (0.3 SBU if using Xulrunner)">
+  <!ENTITY firefox-buildsize     "5.0 GB (62 MB installed)">
+  <!ENTITY firefox-time          "48 SBU">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -98,11 +98,9 @@
 
     <note>
       <para>
-        If you don't install recommended dependencies,
-        then internal copies of those packages will
-        be used. They might be tested to work, but
-        they can be out of date or contain security
-        holes.
+        If you don't install recommended dependencies, then internal copies of
+        those packages will be used. They might be tested to work, but they can
+        be out of date or contain security holes.
       </para>
     </note>
 
@@ -110,16 +108,15 @@
       <para>
         With <application>Firefox-31.0</application> and later versions, you
         must have installed <application>Openssl</application> before
-        <application>Python 2</application>, or the build system will quickly
+        <application>Python 2</application> or the build system will quickly
         fail with output including "ImportError: cannot import name
         HTTPSHandler". If you are in any doubt about this (e.g. upgrading
         from an older version of Firefox), check if
         <filename>/usr/lib/python2.7/lib-dynload/_ssl.so</filename> exists.
         If it does not, reinstall <xref linkend="python2"/> (after
-        installing <xref linkend="openssl"/>  - the latest version of any
+        installing <xref linkend="openssl"/>.  The latest version of any
         <emphasis>currently maintained</emphasis> version of Openssl should
-        be satisfactory if already installed - if that package has not already
-        been installed).
+        be satisfactory if already installed. 
       </para>
     </note>
 
@@ -139,9 +136,8 @@
       <xref linkend="openjdk"/>,
       <xref linkend="pulseaudio"/>,
       <xref linkend="startup-notification"/>,
-      <xref linkend="wget"/>,
-      <xref linkend="wireless_tools"/> and
-      <xref linkend="xulrunner"/>
+      <xref linkend="wget"/>, and
+      <xref linkend="wireless_tools"/> 
     </para>
 
     <para condition="html" role="usernotes">
@@ -153,26 +149,14 @@
     <title>Installation of Firefox</title>
 
     <para>
-      There are two major methods for building
-      <application>Firefox</application>. In the standard case, the entire suite
-      of libraries is built and installed. In the other, most of the system is
-      built using the procedures found in <xref linkend="xulrunner"/>. This is
-      advantageous if you are planning to build other related packages such as
-      <xref linkend="icedtea-web"/>. With either build method, you need to run
-      the main build procedure below with the appropriate options in the
-      <filename>mozconfig</filename> file. Then use the appropriate install
-      instructions depending on the chosen build method.
-    </para>
-
-    <para>
-      The configuration of <application>Firefox</application> is accomplished by
-      creating a <filename>mozconfig</filename> file containing the desired
-      configuration options. A default <filename>mozconfig</filename> is created
-      below. To see the entire list of available configuration options (and an
-      abbreviated description of each one), issue <command>./configure
+      The configuration of <application>Firefox</application> is accomplished
+      by creating a <filename>mozconfig</filename> file containing the desired
+      configuration options. A default <filename>mozconfig</filename> is
+      created below. To see the entire list of available configuration options
+      (and an abbreviated description of each one), issue <command>./configure
       --help</command>. You may also wish to review the entire file and
-      uncomment any other desired options.
-      Create the file by issuing the following command:
+      uncomment any other desired options.  Create the file by issuing the
+      following command:
     </para>
 
 <screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
@@ -208,12 +192,6 @@ ac_add_options --disable-pulseaudio
 
 # If you have not installed Yasm then uncomment this line:
 #ac_add_options --disable-webm
-
-# If you have installed xulrunner uncomment the next two ac_add_options lines
-# and check that the sdk will be set by running pkg-config in a subshell
-# and has not become hardcoded or empty when you created this file
-#ac_add_options --with-system-libxul
-#ac_add_options --with-libxul-sdk=$(pkg-config --variable=sdkdir libxul)
 
 # Comment out following options if you have not installed
 # recommended dependencies:
@@ -271,43 +249,11 @@ EOF</userinput></screen>
       This package does not come with a test suite.
     </para>
 
-<!--    <para>
-      If you have <emphasis>not</emphasis> linked
-      <application>Firefox</application> against an installed
-      <application>Xulrunner</application>:
-    </para>
-
-<screen><userinput>make -C firefox-build-dir/browser/installer</userinput></screen>
--->
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user, if you
-      have <emphasis>not</emphasis> linked <application>Firefox</application>
-      against an installed <application>Xulrunner</application>, install the
-      package:
+      Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<!--<screen role="root"><userinput>rm -rf /usr/lib/firefox-&firefox-version; &amp;&amp;
-mkdir  /usr/lib/firefox-&firefox-version; &amp;&amp;
-
-tar -xvf firefox-build-dir/dist/firefox-&firefox-version;.en-US.linux-$(uname -m).tar.bz2 \
-    -C /usr/lib/firefox-&firefox-version; -\-strip-components=1 &amp;&amp;
-chown -R -v root:root /usr/lib/firefox-&firefox-version; &amp;&amp;
-
-ln -sfv ../lib/firefox-&firefox-version;/firefox /usr/bin &amp;&amp;-->
 <screen role="root"><userinput>make -f client.mk install INSTALL_SDK= &amp;&amp;
-
-mkdir -pv /usr/lib/mozilla/plugins &amp;&amp;
-ln -sfv ../mozilla/plugins /usr/lib/firefox-&firefox-version;</userinput></screen>
-
-    <para>
-      If you <emphasis>have</emphasis> linked against an already installed
-      <application>Xulrunner</application>, as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>make -C firefox-build-dir install &amp;&amp;
-ln -sfv ../lib/firefox-&firefox-version;/firefox /usr/bin &amp;&amp;
-ln -sfv ../xulrunner-&firefox-version; /usr/lib/firefox-&firefox-version;/xulrunner &amp;&amp;
 
 mkdir -pv /usr/lib/mozilla/plugins &amp;&amp;
 ln -sfv ../mozilla/plugins /usr/lib/firefox-&firefox-version;</userinput></screen>
