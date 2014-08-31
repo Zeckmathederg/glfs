@@ -98,26 +98,56 @@
   <sect2 role="installation">
     <title>Installation of ALSA Tools</title>
 
-    <para>
-      The <application>ALSA Tools</application> package is only
-      needed by those with advanced requirements for their sound
-      card. The tools are not all built together, instead you
-      need to <command>cd</command> into the directory of each
-      tool you wish to compile and run the following commands:
-    </para>
+&as_root;
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
-make</userinput></screen>
+    <para>First, start a subshell that will exit on error:</para>
+
+<screen><userinput>bash -e</userinput></screen>
 
     <para>
-      This package does not come with a test suite.
+      Now, remove a tool that needs <application>Qt2 or 3</application> and two
+      unneed files (for the BLFS instructions below):
+    </para>
+
+<screen><userinput>rm -rf qlo10k1 Makefile gitcompile</userinput></screen>
+
+    <para>
+      The <application>ALSA Tools</application> package is only needed by those
+      with advanced requirements for their sound card. The tools can be built
+      all together at once, but if only a subset is needed, you need to
+      <command>cd</command> into the directory of each tool you wish to compile
+      and run the commands. Here, we present instructions to build all tools.
     </para>
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
+      Install all <application>ALSA Tools</application> by running the
+      following commands:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen><userinput>for tool in *
+do
+  case $tool in
+    seq )
+      tool_dir=seq/sbiload
+    ;;
+    * )
+      tool_dir=$tool
+    ;;
+  esac
+
+  pushd $tool_dir
+    ./configure --prefix=/usr
+    make
+    as_root make install
+    as_root /sbin/ldconfig
+  popd
+
+done
+unset tool tool_dir</userinput></screen>
+
+    <para>Finally, exit the shell that was started earlier:</para>
+
+<screen><userinput>exit</userinput></screen>
 
   </sect2>
 
