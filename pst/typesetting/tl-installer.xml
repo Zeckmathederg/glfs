@@ -40,8 +40,9 @@
 
     <para>It is necessary to use a binary installer for the first install.
     This will provide the programs, the scripts, and a lot of supporting files
-    and documentation.  After that, you can rebuild most of the programs from source
-    by following the instructions for <xref linkend="texlive"/>.  The installer
+    and documentation.  After that, you can rebuild the programs from source
+    by following the instructions for <xref linkend="texlive"/> and
+    <xref linkend="biber"/>.  The installer
     is updated frequently, so its md5sum will change if it is newer than what
     is shown below.  Newer versions of the installer are expected to work with
     these instructions, for so long as they install to a
@@ -145,18 +146,20 @@ cd install-tl-&lt;CCYYMMDD&gt; </userinput></screen>
     scripts as recommended in <xref linkend='postlfs-config-profile'/>, update
     the needed paths by appending to the
     <filename>extrapaths.sh</filename> script. The programs are always
-    installed in an &lt;ARCH&gt;-linux subdirectory.
-    <emphasis>Always</emphasis> replace &lt;ARCH&gt; by x86_64, for 64bit,
-    or by i386, for 32bit, respectively, depending on the architecture that
-    you are using in your actual installation location.</para>
+    installed in an &lt;ARCH&gt;-linux subdirectory and on 32-bit x86 this is
+    always i386-linux. For x86_64 and i?86 we can generate this as $TEXARCH:
+    </para>
 
-<screen><userinput role="root">cat &gt;&gt; /etc/profile.d/extrapaths.sh &lt;&lt; "EOF"
+<!-- EOF should NOT be in double quotes, we want it to evaluate $TEXARCH -->
+<screen><userinput role="root">export TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
+cat &gt;&gt; /etc/profile.d/extrapaths.sh &lt;&lt; EOF
 pathappend /usr/share/man                        MANPATH
 pathappend /opt/texlive/&texlive-year;/texmf-dist/doc/man  MANPATH
 pathappend /usr/share/info                       INFOPATH
 pathappend /opt/texlive/&texlive-year;/texmf-dist/doc/info INFOPATH
-pathappend /opt/texlive/&texlive-year;/bin/&lt;ARCH&gt;-linux
-EOF</userinput></screen>
+pathappend /opt/texlive/&texlive-year;/bin/$TEXARCH
+EOF
+unset TEXARCH</userinput></screen>
 
     <note><para>The standard MANPATH and INFOPATH path are specified above to
     ensure they are included.  If they are already set in the boot script
