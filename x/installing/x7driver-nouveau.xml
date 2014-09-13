@@ -4,13 +4,13 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY xorg-nouveau-driver-version "1.0.10">
+  <!ENTITY xorg-nouveau-driver-version "1.0.11">
 
   <!ENTITY xorg-nouveau-driver-download-http "&xorg-download-http;/driver/xf86-video-nouveau-&xorg-nouveau-driver-version;.tar.bz2">
   <!ENTITY xorg-nouveau-driver-download-ftp  "&xorg-download-ftp;/driver/xf86-video-nouveau-&xorg-nouveau-driver-version;.tar.bz2">
-  <!ENTITY xorg-nouveau-driver-md5sum        "44fd65897630fdd19c086133cc1bd679">
-  <!ENTITY xorg-nouveau-driver-size          "567 KB">
-  <!ENTITY xorg-nouveau-driver-buildsize     "13 MB">
+  <!ENTITY xorg-nouveau-driver-md5sum        "a0d2932d84ba10c4933c8332c9afe157">
+  <!ENTITY xorg-nouveau-driver-size          "569 KB">
+  <!ENTITY xorg-nouveau-driver-buildsize     "14 MB">
   <!ENTITY xorg-nouveau-driver-time          "0.1 SBU">
 ]>
 
@@ -35,7 +35,7 @@
         GeForce 7xxx chipsets.
       </para>
 
-      &lfs75_checked;
+      &lfs76_checked;
 
       <bridgehead renderas="sect4">Package Information</bridgehead>
       <itemizedlist spacing="compact">
@@ -75,8 +75,16 @@
 
       <bridgehead renderas="sect5">Required</bridgehead>
       <para role="required">
-        <xref linkend="xorg-server"/>
+        <xref linkend="xorg-server"/> (recommended to be built with glamor enabled)
       </para>
+
+      <note>
+        <para>
+          The new <quote>Maxwell</quote> GPU requires Glamor to be built
+          with the Xorg server. Note that the BLFS editors have not tested that
+          hardware.
+        </para>
+      </note>
 
       <para condition="html" role="usernotes">
         User Notes: <ulink url="&blfs-wiki;/xorg-nouveau-driver"/>
@@ -121,6 +129,33 @@ make</userinput></screen>
       </para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+    </sect3>
+
+    <sect3>
+      <title>Glamor Acceleration</title>
+
+      <para>
+        Glamor is an acceleration library which uses cards' 3D capabilities
+        to accelerate 2D rendering. Glamor acceleration is enabled by default
+        for the new <quote>Maxwell</quote> GPU's. According to the
+        documentation, Glamor acceleration can be used with other chips as
+        well, but that does not seem functional yet.
+      </para>
+
+      <para>
+        To enable Glamor for GPU's other than the new <quote>Maxwell</quote>
+        ones, create the following file as
+        the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/X11/xorg.conf.d/nvidia.conf &lt;&lt; "EOF"
+<literal>Section "Device"
+        Identifier "nvidia"
+        Driver "nouveau"
+        Option "AccelMethod" "glamor"
+EndSection</literal>
+EOF</userinput></screen>
+
     </sect3>
 
     <sect3 role="content">
