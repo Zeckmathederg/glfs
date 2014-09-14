@@ -123,16 +123,37 @@
       commands:
     </para>
 
-<screen><userinput>cd unix &amp;&amp;
+<screen><userinput>rm -rf pkgs/sqlite3.8.6 &amp;&amp;
+export SRCDIR=`pwd`     &amp;&amp;
+
+cd unix &amp;&amp;
+
 ./configure --prefix=/usr           \
             --without-tzdata        \
             --mandir=/usr/share/man \
             $([ $(uname -m) = x86_64 ] &amp;&amp; echo --enable-64bit) &amp;&amp;
 make &amp;&amp;
-
+<!--
 sed -e "s@^\(TCL_SRC_DIR='\).*@\1/usr/include'@" \
     -e "/TCL_B/s@='\(-L\)\?.*unix@='\1/usr/lib@" \
-    -i tclConfig.sh</userinput></screen>
+    -i tclConfig.sh</userinput></screen>-->
+sed -e "s#$SRCDIR/unix#/usr/lib#" \
+    -e "s#$SRCDIR#/usr/include#"  \
+    -i tclConfig.sh               &amp;&amp;
+
+sed -e "s#$SRCDIR/unix/pkgs/tdbc1.0.1#/usr/lib/tdbc1.0.0#" \
+    -e "s#$SRCDIR/pkgs/tdbc1.0.1/generic#/usr/include#"    \
+    -e "s#$SRCDIR/pkgs/tdbc1.0.1/library#/usr/lib/tcl8.6#" \
+    -e "s#$SRCDIR/pkgs/tdbc1.0.1#/usr/include#"            \
+    -i pkgs/tdbc1.0.1/tdbcConfig.sh                        &amp;&amp;
+
+sed -e "s#$SRCDIR/unix/pkgs/itcl4.0.1#/usr/lib/itcl4.0.0#" \
+    -e "s#$SRCDIR/pkgs/itcl4.0.1/generic#/usr/include#"    \
+    -e "s#$SRCDIR/pkgs/itcl4.0.1#/usr/include#"            \
+    -i pkgs/itcl4.0.1/itclConfig.sh                        &amp;&amp;
+
+unset SRCDIR</userinput></screen>
+
 
     <para>
       To test the results, issue: <command>make test</command>.
@@ -189,11 +210,17 @@ cp -v -r  ../html/* /usr/share/doc/tcl-&tcl-version;</userinput></screen>
     </para>
 
     <para>
-      <command>sed -e ... tclConfig.sh</command>: The
-      <application>Tcl</application> package expects that its source tree is
-      preserved so that packages depending on it for their compilation
-      can utilize it. This <command>sed</command> removes the references to the
-      build directory and replaces them with saner system-wide locations.
+      <command>rm -rf pkgs/sqlite3.8.6 </command>: <application>SQLite Tcl
+      Extension Architecture (TEA)</application> is removed, because it is
+      optionally installed by <xref linkend="sqlite"/>
+    </para>
+
+    <para>
+      <command>sed -e ...</command>: The <application>Tcl</application> package
+      expects that its source tree is preserved so that packages depending on
+      it for their compilation can utilize it. These <command>sed</command>
+      remove the references to the build directory and replace them with saner
+      system-wide locations.
     </para>
 
   </sect2>
@@ -215,7 +242,6 @@ cp -v -r  ../html/* /usr/share/doc/tcl-&tcl-version;</userinput></screen>
         </seg>
         <seg>
           /usr/lib/itcl4.0.1,
-          /usr/lib/sqlite3.8.6,
           /usr/lib/tcl8,
           /usr/lib/tcl&tcl-ver;,
           /usr/lib/tdbc1.0.1,
