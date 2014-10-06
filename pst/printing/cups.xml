@@ -6,10 +6,10 @@
 
   <!ENTITY cups-download-http "http://www.cups.org/software/&cups-version;/cups-&cups-version;-source.tar.bz2">
   <!ENTITY cups-download-ftp  " ">
-  <!ENTITY cups-md5sum        "5d893edc2957005f78e2b2423fdace2e">
+  <!ENTITY cups-md5sum        "2cdd81fea23e9e29555c24bdfd0d7c89">
   <!ENTITY cups-size          "8.4 MB">
-  <!ENTITY cups-buildsize     "64 MB (additional 25 MB for the tests)">
-  <!ENTITY cups-time          "0.6 SBU (additional 4.1 SBU for the tests)">
+  <!ENTITY cups-buildsize     "60 MB (additional 28 MB for the tests)">
+  <!ENTITY cups-time          "0.5 SBU (additional 4.4 SBU for the tests)">
 ]>
 
 <sect1 id="cups" xreflabel="Cups-&cups-version;">
@@ -71,22 +71,16 @@
         </para>
       </listitem>
     </itemizedlist>
-
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/cups-&cups-version;-blfs-1.patch"/>
-        </para>
-      </listitem>
       <listitem>
         <para>
           Optional patch:
           <ulink url="&patch-root;/cups-&cups-version;-content_type-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist>-->
 
     <bridgehead renderas="sect3">Cups Dependencies</bridgehead>
 
@@ -101,7 +95,7 @@
     <para role="optional">
       <xref linkend="avahi"/>,
       <xref linkend="gnutls"/> (if you have it installed, then
-      <xref linkend="libgcrypt"/> is required) or <xref linkend="openssl"/>,
+      <xref linkend="libgcrypt"/> is required),
       <xref linkend="libpaper"/>,
       <xref linkend="linux-pam"/>,
       <xref linkend="mitkrb"/>,
@@ -127,17 +121,17 @@
     <note>
       <para>
         There used to be a conflict between the <application>Cups</application>
-        <application>libusb</application> backend and the usblp kernel
-        driver.  This is no longer the case and cups will work with both of these
+        <application>libusb</application> backend and the usblp kernel driver.
+        This is no longer the case and cups will work with both of these
         enabled.
       </para>
     </note>
 
     <para>
       If you want to use the kernel usblp driver (for example, if you wish to
-      use <application>escputil</application> from <xref linkend="gutenprint"/>)
-      enable the following options in your kernel configuration and recompile the
-      kernel:
+      use <application>escputil</application> from <xref
+      linkend="gutenprint"/>) enable the following options in your kernel
+      configuration and recompile the kernel:
     </para>
 
 <screen>Device Drivers  ---&gt;
@@ -207,34 +201,55 @@
       Replace <command>firefox</command> with the web browser of your
       choice.
     </para>
-
+<!--
     <para>
        If you need to access a remote <application>Cups</application> print
        server, use the following patch:
     </para>
 
-<screen><userinput>patch -Np1 -i ../cups-&cups-version;-content_type-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../cups-&cups-version;-content_type-1.patch</userinput></screen>-->
+
+    <para>
+      PAM module needs to be modified for BLFS:
+    </para>
+    <!-- docdir is also document root for cups administration interface, so
+    let's just put it in /usr/share/cups/doc and create symlink in
+    /usr/share/doc - I have modified this, inverting the logic; if it is
+    disliked, please revert my modification (fernando)
+
+    When not using libdir switch, CUPS will install libraries into /usr/lib64
+    on a 64 bit system, and since /usr/lib64 is symlink to /usr/lib it might
+    introduce some difficulties with packaging -->
+
+<screen><userinput>cat &gt; conf/pam.std.in  &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/cups
+
+auth    include system-auth
+account include system-account
+session include system-session
+
+# End /etc/pam.d/cups</literal>
+EOF</userinput></screen>
 
     <para>
       Install <application>Cups</application> by running the
       following commands:
     </para>
 
-    <!-- docdir is also document root for cups administration interface, so
-    let's just put it in /usr/share/cups/doc and create symlink in
-    /usr/share/doc
-    When not using libdir switch, CUPS will install libraries into /usr/lib64
-    on a 64 bit system, and since /usr/lib64 is symlink to /usr/lib it might
-    introduce some difficulties with packaging -->
-<screen><userinput>patch -Np1 -i ../cups-&cups-version;-blfs-1.patch &amp;&amp;
-aclocal -I config-scripts &amp;&amp;
+
+<screen><userinput>sed -i '/MAN.*.EXT/s:.gz::g' \
+       configure config-scripts/cups-manpages.m4 &amp;&amp;
+sed -i 's:555:755:g;s:444:644:g' Makedefs.in     &amp;&amp;
+
+aclocal  -I config-scripts &amp;&amp;
 autoconf -I config-scripts &amp;&amp;
 
 CC=gcc \
-./configure --libdir=/usr/lib                 \
-            --with-rcdir=/tmp/cupsinit        \
-            --with-docdir=/usr/share/cups/doc \
-            --with-system-groups=lpadmin      &amp;&amp;
+./configure --libdir=/usr/lib            \
+            --disable-systemd            \
+            --with-rcdir=/tmp/cupsinit   \
+            --with-system-groups=lpadmin \
+            --with-docdir=/usr/share/doc/cups-&cups-version; &amp;&amp;
 make</userinput></screen>
 
    <para>
@@ -252,19 +267,19 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 rm -rf /tmp/cupsinit &amp;&amp;
-ln -svfn ../cups/doc /usr/share/doc/cups-&cups-version;</userinput></screen>
+ln -svnf ../doc/cups-&cups-version; /usr/share/cups/doc</userinput></screen>
 
     <para>
-      Create a basic <application>Cups</application> client configuration
-      file by running the following command as the
-      <systemitem class="username">root</systemitem> user:
+      Create a basic <application>Cups</application> client configuration file
+      by running the following command as the <systemitem
+      class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>echo "ServerName /var/run/cups/cups.sock" > /etc/cups/client.conf</userinput></screen>
 
     <para>
-      Remove filters that are now part of the <application>Cups Filters</application>
-      package by running the following commands as the
+      Remove filters that are now part of the <application>Cups
+      Filters</application> package by running the following commands as the
       <systemitem class="username">root</systemitem> user:
     </para>
 
@@ -287,21 +302,36 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
+      <command>sed ... cups-manpages.m4</command>: In BLFS, uncompressed man
+      pages are preferred.
+    </para>
+
+    <para>
+      <command>sed ... Makedefs.in</command>: Fix files and directories
+      permissions.
+    </para>
+
+    <para>
       <envar>CC=gcc</envar>: This environment variable ensures that gcc
       is used if clang is installed.  The build fails with the clang compiler.
     </para>
 
     <para>
-      <parameter>--with-rcdir=/tmp/cupsinit</parameter>: This switch tells
-      the build process to install the shipped bootscript into
-      <filename class="directory">/tmp</filename> instead of
-      <filename class="directory">/etc/rc.d</filename>.
+      <parameter>--disable-systemd</parameter>: Systemd is not supported by
+      BLFS.
+    </para>
+
+    <para>
+      <parameter>--with-rcdir=/tmp/cupsinit</parameter>: This switch tells the
+      build process to install the shipped bootscript into <filename
+      class="directory">/tmp</filename> instead of <filename
+      class="directory">/etc/rc.d</filename>.
     </para>
 
     <para>
       <parameter>--with-system-groups=lpadmin</parameter>: This switch ensures
-      that only <systemitem class="groupname">lpadmin</systemitem> will be used as
-      the <application>Cups</application> administrative group.
+      that only <systemitem class="groupname">lpadmin</systemitem> will be used
+      as the <application>Cups</application> administrative group.
     </para>
 
     <para>
@@ -313,13 +343,6 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
       <option>--enable-libpaper</option>: Use this switch if you have installed
       <application>libpaper</application> and wish to use it with
       <application>Cups</application>.
-    </para>
-
-    <para>
-      <option>--disable-gnutls --enable-openssl</option>: This switch tells the build
-      process to use <xref linkend="openssl"/> instead of <xref linkend="gnutls"/>.
-      The current version of <application>GnuTLS</application> might produce lot of
-      warnings during the <application>Cups</application> build.
     </para>
 
   </sect2>
@@ -352,14 +375,14 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
 
       <para>
         For non-PostScript printers to print with
-        <application>Cups</application>, you need to install <xref linkend="gs"/>
-        to convert PostScript to raster images and a driver (e.g., from
-        <xref linkend="gutenprint"/>) to convert the resulting raster images to a
-        form that the printer understands.
-        <ulink url="http://www.linuxprinting.org/foomatic.html">Foomatic</ulink>
-        drivers use Ghostscript to convert PostScript to a printable form directly,
-        but this is considered to be a hack by <application>Cups</application>
-        developers.
+        <application>Cups</application>, you need to install <xref
+        linkend="gs"/> to convert PostScript to raster images and a driver
+        (e.g., from <xref linkend="gutenprint"/>) to convert the resulting
+        raster images to a form that the printer understands.  <ulink
+        url="http://www.linuxprinting.org/foomatic.html">Foomatic</ulink>
+        drivers use Ghostscript to convert PostScript to a printable form
+        directly, but this is considered to be a hack by
+        <application>Cups</application> developers.
       </para>
 
     </sect3>
@@ -394,16 +417,15 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
 
       <seglistitem>
         <seg>
-          accept, cancel, cupsaccept, cupsaddsmb, cups-config,
-          cupsctl, cupsd, cupsdisable, cupsenable, cupsfilter,
-          cupsreject, cupstestdsc, cupstestppd, ippfind, ipptool,
-          lp, lpadmin, lpc, lpinfo, lpmove, lpoptions, lppasswd,
-          lpq, lpr, lprm, lpstat, ppdc, ppdhtml, ppdi, ppdmerge,
-          ppdpo and reject
+          accept, cancel, cupsaccept, cupsaddsmb, cups-config, cupsctl, cupsd,
+          cupsdisable, cupsenable, cupsfilter, cupsreject, cupstestdsc,
+          cupstestppd, ippfind, ipptool, lp, lpadmin, lpc, lpinfo, lpmove,
+          lpoptions, lpq, lpr, lprm, lpstat, ppdc, ppdhtml, ppdi, ppdmerge,
+          ppdpo, and reject
         </seg>
         <seg>
           libcupscgi.so, libcupsimage.so, libcupsmime.so,
-          libcupsppdc.so and libcups.so
+          libcupsppdc.so, and libcups.so
         </seg>
         <seg>
           /etc/cups,
@@ -413,7 +435,7 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
           /usr/share/doc/cups-&cups-version;,
           /var/cache/cups,
           /var/log/cups,
-          /var/run/cups and
+          /var/run/cups, and
           /var/spool/cups
         </seg>
       </seglistitem>
@@ -633,20 +655,6 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
           </para>
           <indexterm zone="cups lpoptions">
             <primary sortas="b-lpoptions">lpoptions</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="lppasswd">
-        <term><command>lppasswd</command></term>
-        <listitem>
-          <para>
-            adds, changes or deletes passwords in the
-            <application>Cups</application> digest password file
-            <filename>passwd.md5</filename>.
-          </para>
-          <indexterm zone="cups lppasswd">
-            <primary sortas="b-lppasswd">lppasswd</primary>
           </indexterm>
         </listitem>
       </varlistentry>
