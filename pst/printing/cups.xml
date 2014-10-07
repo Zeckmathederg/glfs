@@ -94,8 +94,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="avahi"/>,
-      <xref linkend="gnutls"/> (if you have it installed, then
-      <xref linkend="libgcrypt"/> is required),
+      <xref linkend="gnutls"/>,
       <xref linkend="libpaper"/>,
       <xref linkend="linux-pam"/>,
       <xref linkend="mitkrb"/>,
@@ -209,47 +208,32 @@
 
 <screen><userinput>patch -Np1 -i ../cups-&cups-version;-content_type-1.patch</userinput></screen>-->
 
-    <para>
-      PAM module needs to be modified for BLFS:
-    </para>
     <!-- docdir is also document root for cups administration interface, so
-    let's just put it in /usr/share/cups/doc and create symlink in
-    /usr/share/doc - I have modified this, inverting the logic; if it is
-    disliked, please revert my modification (fernando)
+    let's just put it in /usr/share/cups/doc-&cups-version; and create symlink
+    in /usr/share/doc/cups-&cups-version;
 
     When not using libdir switch, CUPS will install libraries into /usr/lib64
     on a 64 bit system, and since /usr/lib64 is symlink to /usr/lib it might
     introduce some difficulties with packaging -->
-
-<screen><userinput>cat &gt; conf/pam.std.in  &lt;&lt; "EOF"
-<literal># Begin /etc/pam.d/cups
-
-auth    include system-auth
-account include system-account
-session include system-session
-
-# End /etc/pam.d/cups</literal>
-EOF</userinput></screen>
 
     <para>
       Install <application>Cups</application> by running the
       following commands:
     </para>
 
-
-<screen><userinput>sed -i '/MAN.*.EXT/s:.gz::g' \
-       configure config-scripts/cups-manpages.m4 &amp;&amp;
-sed -i 's:555:755:g;s:444:644:g' Makedefs.in     &amp;&amp;
+<screen><userinput>sed -i 's:555:755:g;s:444:644:g' Makedefs.in           &amp;&amp;
+sed -i '/MAN.*.EXT/s:.gz::g' \
+       configure config-scripts/cups-manpages.m4       &amp;&amp;
+sed -i '/LIBGCRYPTCONFIG/d' config-scripts/cups-ssl.m4 &amp;&amp;
 
 aclocal  -I config-scripts &amp;&amp;
 autoconf -I config-scripts &amp;&amp;
 
-CC=gcc \
 ./configure --libdir=/usr/lib            \
             --disable-systemd            \
             --with-rcdir=/tmp/cupsinit   \
             --with-system-groups=lpadmin \
-            --with-docdir=/usr/share/doc/cups-&cups-version; &amp;&amp;
+            --with-docdir=/usr/share/cups/doc-&cups-version; &amp;&amp;
 make</userinput></screen>
 
    <para>
@@ -267,7 +251,7 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 rm -rf /tmp/cupsinit &amp;&amp;
-ln -svnf ../doc/cups-&cups-version; /usr/share/cups/doc</userinput></screen>
+ln -svnf ../cups/doc-&cups-version; /usr/share/doc/cups-&cups-version;</userinput></screen>
 
     <para>
       Create a basic <application>Cups</application> client configuration file
@@ -302,18 +286,21 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed ... cups-manpages.m4</command>: In BLFS, uncompressed man
-      pages are preferred.
-    </para>
-
-    <para>
       <command>sed ... Makedefs.in</command>: Fix files and directories
       permissions.
     </para>
 
     <para>
-      <envar>CC=gcc</envar>: This environment variable ensures that gcc
-      is used if clang is installed.  The build fails with the clang compiler.
+      <command>sed ... cups-manpages.m4</command>: This sed prevents
+      compression of the man pages by default.
+    </para>
+
+    <para>
+      <command>sed ... cups-ssl.m4</command>: Prevent
+      <command>configure</command> script from searching
+      <command>libgcrypt-config</command>, because
+      <application>libgcrypt</application> is not used anywere else in the
+      package.
     </para>
 
     <para>
@@ -384,6 +371,34 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
         directly, but this is considered to be a hack by
         <application>Cups</application> developers.
       </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Linux PAM Configuration</title>
+
+      <para>
+        If <application>CUPS</application> has been built with
+        <application>Linux PAM</application> support, you need to create a
+        <application>PAM</application> configuration file, to get it working
+        correctly with BLFS.
+      </para>
+
+      <para>
+        Issue the following command as the <systemitem
+        class="username">root</systemitem> user to create the configuration
+        file for <application>Linux PAM</application>:
+      </para>
+
+<screen><userinput>cat &gt; /etc/pam.d/cups &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/cups
+
+auth    include system-auth
+account include system-account
+session include system-session
+
+# End /etc/pam.d/cups</literal>
+EOF</userinput></screen>
 
     </sect3>
 
