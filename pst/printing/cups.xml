@@ -71,16 +71,6 @@
         </para>
       </listitem>
     </itemizedlist>
-<!--
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Optional patch:
-          <ulink url="&patch-root;/cups-&cups-version;-content_type-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>-->
 
     <bridgehead renderas="sect3">Cups Dependencies</bridgehead>
 
@@ -102,13 +92,20 @@
       <xref linkend="php"/>,
       <xref linkend="python2"/>, and
       <xref linkend="xdg-utils"/>
+     
     </para>
 
-    <bridgehead renderas="sect4">Required (Runtime)</bridgehead>
+    <bridgehead renderas="sect4">Required (Postinstall)</bridgehead>
     <para role="required runtime">
       <xref linkend="cups-filters"/>
     </para>
 
+    <bridgehead renderas="sect4">Optional (Postinstall)</bridgehead>
+    <para role="optional runtime">
+      <xref linkend="gutenprint"/> and
+      <ulink url="http://hplipopensource.com/hplip-web/index.html">hplip</ulink> (HP printers)
+    </para>
+      
     <para condition="html" role="usernotes">User Notes:
       <ulink url="&blfs-wiki;/cups"/>
     </para>
@@ -133,11 +130,11 @@
       configuration and recompile the kernel:
     </para>
 
-<screen>Device Drivers  ---&gt;
+<screen><literal>Device Drivers  ---&gt;
   USB support  ---&gt;
-    OHCI HCD (USB 1.1) support: Y or M
-    UHCI HCD (most Intel and VIA) support: Y or M
-    USB Printer support: Y or M</screen>
+    OHCI HCD (USB 1.1) support: Y or M            [CONFIG_USB_OHCI_HCD]
+    UHCI HCD (most Intel and VIA) support: Y or M [CONFIG_USB_UHCI_HCD]
+    USB Printer support: Y or M                   [CONFIG_USB_PRINTER]</literal></screen>
 
     <para>
       If you have a parallel printer, enable the following options in your
@@ -145,10 +142,10 @@
     </para>
 
 <screen><literal>Device Drivers  ---&gt;
-  Parallel port support  ---&gt;
-    PC-style hardware: Y or M
+  Parallel port support  ---&gt;                     [CONFIG_PARPORT]
+    PC-style hardware: Y or M                     [CONFIG_PARPORT_PC]
   Character devices  ---&gt;
-    Parallel printer support: Y or M</literal></screen>
+    Parallel printer support: Y or M              [CONFIG_PRINTER]</literal></screen>
 
     <indexterm zone="cups cups-kernel">
       <primary sortas="d-cups">cups</primary>
@@ -200,13 +197,6 @@
       Replace <command>firefox</command> with the web browser of your
       choice.
     </para>
-<!--
-    <para>
-       If you need to access a remote <application>Cups</application> print
-       server, use the following patch:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../cups-&cups-version;-content_type-1.patch</userinput></screen>-->
 
     <!-- docdir is also document root for cups administration interface, so
     let's just put it in /usr/share/cups/doc-&cups-version; and create symlink
@@ -217,8 +207,7 @@
     introduce some difficulties with packaging -->
 
     <para>
-      Install <application>Cups</application> by running the
-      following commands:
+      Build <application>Cups</application> by running the following commands:
     </para>
 
 <screen><userinput>sed -i 's:555:755:g;s:444:644:g' Makedefs.in           &amp;&amp;
@@ -243,8 +232,7 @@ make</userinput></screen>
    </para>
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem>
-      user:
+      Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
 <!-- dev note: make BUILDROOT=<DESTDIR> install -->
@@ -352,23 +340,33 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
       <title>Configuration Information</title>
 
       <para>
+        Normally, printers are set up via a web browser.  The
+        <application>Cups</application> server will normally connect via
+        the url http://localhost:631.  From there printers, print
+        jobs, and the server configuration can be set up and managed.
+        Remote system administration can also be set up.  Configuration
+        can also be done from the command line via the 
+        <command>lpadmin</command>, <command>lpoptions</command>, 
+        and <command>lpstat</command> commands.
+      </para>
+
+      <para>
         Configuration of <application>Cups</application> is dependent on
         the type of printer and can be complex. Generally, PostScript printers
         are easier. For detailed instructions on configuration and use of
         <application>Cups</application>, see <ulink
-        url="http://www.cups.org/documentation.php"/>. The Software
-        Administrators Manual and Software Users Manual are particularly useful.
+        url="http://www.cups.org/documentation.php"/>. 
       </para>
 
       <para>
         For non-PostScript printers to print with
         <application>Cups</application>, you need to install <xref
         linkend="gs"/> to convert PostScript to raster images and a driver
-        (e.g., from <xref linkend="gutenprint"/>) to convert the resulting
+        (e.g. from <xref linkend="gutenprint"/>) to convert the resulting
         raster images to a form that the printer understands.  <ulink
         url="http://www.linuxprinting.org/foomatic.html">Foomatic</ulink>
-        drivers use Ghostscript to convert PostScript to a printable form
-        directly, but this is considered to be a hack by
+        drivers use <xref linkend="gs"/> to convert PostScript to a printable
+        form directly, but this is considered suboptimal by
         <application>Cups</application> developers.
       </para>
 
@@ -380,7 +378,7 @@ rm -rf /usr/share/cups/data/testprint</userinput></screen>
       <para>
         If <application>CUPS</application> has been built with
         <application>Linux PAM</application> support, you need to create a
-        <application>PAM</application> configuration file, to get it working
+        <application>PAM</application> configuration file to get it working
         correctly with BLFS.
       </para>
 
