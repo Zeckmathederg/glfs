@@ -6,10 +6,18 @@
 
   <!ENTITY biber-download-http   "http://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/&biber-version;/biblatex-biber.tar.gz">
   <!ENTITY biber-download-ftp    "">
-  <!ENTITY biber-md5sum          "26b2134291ddd7851973a6c385e5545c">
+  <!ENTITY biber-md5sum          "aa2857f3a4b0c2ab2dfe3c4f657cbb50">
   <!ENTITY biber-size            "2.0 MB">
-  <!ENTITY biber-buildsize       "14 MB">
-  <!ENTITY biber-time            "less than 0. SBU (0.3 SBU to run the tests)">
+  <!-- for 1.9/2.9a buildsize includes extra space used by biblatex -->
+  <!ENTITY biber-buildsize       "25 MB">
+  <!ENTITY biber-time            "less than 0.1 SBU (0.6 SBU to run the tests)">
+
+  <!-- biblatex directory is 2.9, filename is 2.9a -->
+  <!ENTITY biblatex-download-http   "http://sourceforge.net/projects/biblatex/files/biblatex-&biblatex-version;/biblatex-&biblatex-version;a.tds.tgz">
+  <!ENTITY biblatex-download-ftp    "">
+  <!ENTITY biblatex-md5sum          "955662dca33f8256933745c51ccd0af9">
+  <!ENTITY biblatex-size            "18 MB">
+
 ]>
 
 <sect1 id="biber" xreflabel="biber-&biber-version;">
@@ -33,7 +41,14 @@
     <application>Perl</application>. Unusually, the tarball itself is
     called just biblatex-biber.tar.gz but it will extract to a versioned
     directory. Please ensure you download it from the correct versioned
-    directory at sourceforge, the 1.9 version is broken as-shipped.</para>
+    directory at sourceforge.</para>
+
+    <para>This version fixes a problem when certain UTF-8 codepoints are
+    used in the "key" value of a bibliography entry and current
+    <application>perl</application> is used. It is shipped in current binary
+    versions of <application>texlive</application> but requires a newer
+    version of <application>biblatex</application> than is in the
+    <application>texlive</application> source.</para>
 
     &lfs76_checked;
 
@@ -56,6 +71,24 @@
       </listitem>
       <listitem>
         <para>Estimated build time: &biber-time;</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Required Additional Download</bridgehead>
+
+      <para>The corresponding version of <application>biblatex</application> is
+      a separate project - the tds version is pre-packaged for untarring into
+      the <filename class="directory">texmf-dist</filename> directory.</para>
+
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP): <ulink url="&biblatex-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &biblatex-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &biblatex-size;</para>
       </listitem>
     </itemizedlist>
 
@@ -82,8 +115,10 @@
       <xref linkend="perl-unicode-collate"/> (only if your version of perl is less than 5.20.0)
       <xref linkend="perl-unicode-linebreak"/>
       <xref linkend="perl-xml-libxml-simple"/>
-      <xref linkend="perl-xml-libxslt"/> and
-      <xref linkend="perl-xml-writer"/>
+      <xref linkend="perl-xml-libxslt"/>
+      <xref linkend="perl-xml-writer"/> and
+      <!-- biblatex requires that the texmf directories already exist -->
+      <xref linkend="texlive"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -92,10 +127,11 @@
       <xref linkend="perl-file-which"/> (to run the testsuite)
     </para>
 
+    <!-- commented while separate biblatex is used
     <bridgehead renderas="sect4">Required (at runtime)</bridgehead>
     <para role="optional">
       <xref linkend="texlive"/>
-    </para>
+    </para> -->
 
     <note>
       <para>
@@ -117,14 +153,40 @@
     <para>Install <application>Biber</application> by running the following
     commands:</para>
 
-<screen><userinput>perl ./Build.PL &amp;&amp;
+<screen><userinput>sed -i 's/use Encode;/&amp;\nuse File::Slurp;\nuse File::Spec;/' \
+  lib/Biber/LaTeX/Recode.pm &amp;&amp;
+perl ./Build.PL &amp;&amp;
 ./Build.PL</userinput></screen>
 
     <para>To test the results, enter: <command>./Build test</command></para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>./Build install</userinput></screen>
+<screen role="root"><userinput>tar -xf biblatex-&biblatex-version;a.tds.tar.gz -C /opt/texlive/&texlive-year;/texmf-dist &amp;&amp;
+texhash &amp;&amp;
+./Build install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>sed -i 's/use Encode;/&amp;\nuse File::Slurp;\nuse File::Spec;/' ...</parameter>:
+      this sed fixes a runtime error with current <application>perl</application>.
+    </para>
+
+    <para>
+      <parameter>tar -xf biblatex-&biblatex-version;a.tds.tar.gz -C
+      /opt/texlive/&texlive-year;/texmf-dist</parameter>:
+      this installs the new <application>biblatex</application> files over the
+      previous version.
+    </para>
+
+    <para>
+      <parameter>texhash</parameter> : this updates the file hash tables (otherwise
+      known as the file name database).
+    </para>
 
   </sect2>
 
