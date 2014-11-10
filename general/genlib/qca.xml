@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY qca-download-http "http://delta.affinix.com/download/qca/2.0/qca-&qca-version;.tar.bz2">
+  <!ENTITY qca-download-http "http://delta.affinix.com/download/qca/2.0/qca-&qca-version;.tar.gz">
   <!ENTITY qca-download-ftp  " ">
-  <!ENTITY qca-md5sum        "fc15bd4da22b8096c51fcfe52d2fa309">
-  <!ENTITY qca-size          "4.3 MB">
-  <!ENTITY qca-buildsize     "110 MB">
-  <!ENTITY qca-time          "2.2 SBU">
+  <!ENTITY qca-md5sum        "c2b00c732036244701bae4853a2101cf">
+  <!ENTITY qca-size          "956 KB">
+  <!ENTITY qca-buildsize     "30 MB">
+  <!ENTITY qca-time          "1.2 SBU (additional 0.3 SBU for the tests)">
 ]>
 
 <sect1 id="qca" xreflabel="qca-&qca-version;">
@@ -62,7 +62,24 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
+    <xref linkend="cacerts"/>,
+    <xref linkend="cmake"/>,
     <xref linkend="qt4"/> and
+    <xref linkend="which"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="Optional">
+    <xref linkend="cyrus-sasl"/>,
+    <xref linkend="gnupg2"/>,
+    <xref linkend="libgcrypt"/>,
+    <xref linkend="libgpg-error"/>,
+    <xref linkend="nss"/>,
+    <xref linkend="nspr"/>,
+    <xref linkend="openssl"/>,
+    <xref linkend="p11-kit"/>,
+    <xref linkend="qt5"/>,
+    <xref linkend="doxygen"/>, and
     <xref linkend="which"/>
     </para>
 
@@ -77,11 +94,14 @@
     <para>Install <application>Qca</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i '217s@set@this->set@' src/botantools/botan/botan/secmem.h &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
-./configure --prefix=/usr            \
-	         --no-separate-debug-info \
-            --certstore-path=/etc/ssl/ca-bundle.crt &amp;&amp;
+cmake -DCMAKE_INSTALL_PREFIX=&qt4-dir; \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DQT4_BUILD=ON                 \
+      ..                             &amp;&amp;
+
 make</userinput></screen>
 
     <para>To test the results, issue <command>make test</command>.</para>
@@ -95,16 +115,11 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i '217s@set@...</command>: This sed fixes compiling with
-    <application>GCC</application> 4.7 and newer. It is safe to omit when compiling
-    with older <application>GCC</application> versions.</para>
+    <para><parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is
+    used to apply a higher level of compiler optimizations.</para>
 
-    <para><option>--certstore-path=/etc/ssl/ca-bundle.crt</option>: Causes
-    the build to use the system-installed CA Certificates instead of a bundled
-    copy.</para>
-  
-    <para><option>--no-separate-debug-info</option>: Prevents installation
-    of a separate library and program file with debug information.</para>
+    <para><parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is
+    used to force building with Qt4 even if Qt5 is found.</para>
 
   </sect2>
 
@@ -117,9 +132,13 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>qcatool2</seg>
-        <seg>libqca.so</seg>
-        <seg>&qt4-dir;/include/QtCrypto</seg>
+        <seg>mozcerts and qcatool</seg>
+        <seg>libqca.so and plugins at &qt4-dir;/lib/qca/crypto</seg>
+        <seg>
+          &qt4-dir;/include/QtCrypto,
+          &qt4-dir;/lib/cmake/Qca and
+          &qt4-dir;/lib/qca
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -128,13 +147,24 @@ make</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="qcatool2">
-        <term><command>qcatool2</command></term>
+      <varlistentry id="mozcerts">
+        <term><command>mozcerts</command></term>
+        <listitem>
+          <para>is a command line tool for converting certdata.txt into
+          outfile.pem files.</para>
+          <indexterm zone="qca mozcerts">
+            <primary sortas="b-mozcerts">mozcerts</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="qcatool">
+        <term><command>qcatool</command></term>
         <listitem>
           <para>is a command line tool for performing various cryptographic
-	  operations with Qca.</para>
-          <indexterm zone="qca qcatool2">
-            <primary sortas="b-qcatool2">qcatool2</primary>
+          operations with Qca.</para>
+          <indexterm zone="qca qcatool">
+            <primary sortas="b-qcatool">qcatool</primary>
           </indexterm>
         </listitem>
       </varlistentry>
