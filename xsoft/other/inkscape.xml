@@ -76,7 +76,7 @@
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/inkscape-&inkscape-version;-gc-1.patch"/>
+          <ulink url="&patch-root;/inkscape-&inkscape-version;-poppler-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -135,9 +135,14 @@
       commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../inkscape-&inkscape-version;-gc-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../inkscape-&inkscape-version;-poppler-1.patch &amp;&amp;
+autoreconf -vi &amp;&amp;
 
-./configure --prefix=/usr  &amp;&amp;
+sed -e '/unsigned GC_version/d' \
+    -e '/int main(void)/ a\\t\t\tunsigned GC_version = GC_get_version();' \
+    -i configure &amp;&amp;
+
+./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
 <!-- Test suite is broken as of inkscape-0.48.5
@@ -155,21 +160,17 @@ make</userinput></screen>
       href="../../xincludes/update-icons-and-desktop.xml"/>
 
   </sect2>
-<!--
+
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <command>sed -i src/extension ...</command>:
-      This <command>sed</command> fixes building with poppler-0.26.0.
+      <command>sed -e ... -i configure</command>:
+      This <command>sed</command> fixes building problems starting
+      with gc-7.4.2.
     </para>
 
-    <para>
-      <command>sed -e "s@commands_toolbox,@commands_toolbox@" ...</command>:
-      This <command>sed</command> fixes building with GCC 4.8.
-    </para>
-
-  </sect2>-->
+  </sect2>
 
   <sect2 role="content">
     <title>Contents</title>
