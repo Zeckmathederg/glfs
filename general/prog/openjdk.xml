@@ -4,54 +4,56 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY ojdk-upd                  "25">
-  <!ENTITY ojdk-bd                   "b18">
+  <!ENTITY ojdk-upd                  "31">
+  <!ENTITY ojdk-bd                   "b13">
   <!ENTITY ojdk-tarball              "jdk8u&ojdk-upd;-&ojdk-bd;.tar.bz2">
   <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk8u/jdk8u">
   <!ENTITY ojdk-download             "&ojdk-repo;/archive/&ojdk-tarball;">
 
   <!ENTITY anduin-download           "http://anduin.linuxfromscratch.org/files/BLFS/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "a0e0db6c9b322b4639e150b43a374cea">
+  <!ENTITY ojdk-md5sum               "1e9071c62fd02a5b0c2874d9967b38e7">
   <!ENTITY ojdk-size                 "384 KB">
 
   <!ENTITY corba-download            "&anduin-download;/corba.tar.xz">
-  <!ENTITY corba-md5sum              "8ebdf969cd72746a619ae479a1785b41">
-  <!ENTITY corba-size                "912 KB">
+  <!ENTITY corba-md5sum              "35763069a8a69b1510d70d7e77a95fea">
+  <!ENTITY corba-size                "915 KB">
 
   <!ENTITY hotspot-download          "&anduin-download;/hotspot.tar.xz">
-  <!ENTITY hotspot-md5sum            "684776e6340ff192a818ac38d3d809f1">
+  <!ENTITY hotspot-md5sum            "76deba8b0c7ee042df4cc441d29b1da0">
   <!ENTITY hotspot-size              "6.2 MB">
 
   <!ENTITY jaxp-download             "&anduin-download;/jaxp.tar.xz">
-  <!ENTITY jaxp-md5sum               "74d98254e16f79d7f88c8d3ee69f3742">
+  <!ENTITY jaxp-md5sum               "baf2f923fe29a7ceff6d0f7cb5331b9d">
   <!ENTITY jaxp-size                 "2.2 MB">
 
   <!ENTITY jaxws-download            "&anduin-download;/jaxws.tar.xz">
-  <!ENTITY jaxws-md5sum              "24346979cfbba2d9093c02eb3cad8732">
-  <!ENTITY jaxws-size                "2.1 MB">
+  <!ENTITY jaxws-md5sum              "5d99e16e146e920b5fa3360b26bb13a8">
+  <!ENTITY jaxws-size                "2.2 MB">
 
   <!ENTITY jdk-download              "&anduin-download;/jdk.tar.xz">
-  <!ENTITY jdk-md5sum                "9a9e1dc67e43efd246348048ecd717aa">
+  <!ENTITY jdk-md5sum                "79f0b2cd008497a8011bfbc2bd7f2b01">
   <!ENTITY jdk-size                  "36.2 MB">
 
   <!ENTITY langtools-download        "&anduin-download;/langtools.tar.xz">
-  <!ENTITY langtools-md5sum          "b1e6dea259a362375a1084576282acd2">
+  <!ENTITY langtools-md5sum          "19d9a21aa51e8afb80d0a35681c2467f">
   <!ENTITY langtools-size            "2.0 MB">
 
   <!ENTITY nashorn-download          "&anduin-download;/nashorn.tar.xz">
-  <!ENTITY nashorn-md5sum            "cb457804b83babe31f20a9e7ae4944cf">
+  <!ENTITY nashorn-md5sum            "7ed0b17f2d925d3263a344b7fc746d24">
   <!ENTITY nashorn-size              "1.9 MB">
 
   <!ENTITY jtreg-version             "4.1-b10">
   <!ENTITY jtreg-download            "https://adopt-openjdk.ci.cloudbees.com/job/jtreg/lastStableBuild/artifact/jtreg&jtreg-version;.tar.gz">
-  <!ENTITY jtreg-md5sum              "f48d6f8b748f869a5624d2c44998d54c">
-  <!ENTITY jtreg-size                "122 KB">
+  <!ENTITY jtreg-md5sum              "2e112b5863c777426fbbbadeeb9972e1">
+<!-- The md5sum varies, because people at adopt-openjdk rebuild the package
+without changing the name of the tarball -->
+  <!ENTITY jtreg-size                "2.6 MB">
 
   <!ENTITY icedtea-web-download      "http://icedtea.classpath.org/download/source/icedtea-web-&icedtea-web-version;.tar.gz">
 
-  <!ENTITY ojdk-buildsize           "3 GB">
-  <!ENTITY ojdk-time                "10 SBU (an additional 100 SBU for testsuite)">
+  <!ENTITY ojdk-buildsize           "3.1 GB (additional 350 MB for tests)">
+  <!ENTITY ojdk-time                "15 SBU (additional 126 SBU for tests)">
 ]>
 
 <sect1 id="openjdk"
@@ -155,7 +157,7 @@
     <para>
       The following files may be downladed from the OpenJDK mercurial
       repository using the addresses <ulink
-      url="&ojdk-repo;&lt;component&gt;/archive/&ojdk-tarball;"/>,
+      url="&ojdk-repo;/&lt;component&gt;/archive/&ojdk-tarball;"/>,
       where &lt;component&gt; is the name of the JVM component (corba,
       hostspot, and so on), but that involves renaming the downloaded files,
       and renaming the extracted directories.
@@ -415,10 +417,11 @@ PRODUCT_HOME=$(echo $(pwd)/build/*/images/j2sdk-image)</userinput></screen>
       The tests are run as follows:
     </para>
 
+<!-- no && here either, because the first "make" may return an error -->
 <screen role='nodump'><userinput>LANG=C make -k -C test                      \
             JT_HOME=${JT_HOME}              \
             JT_JAVA=${JT_JAVA}              \
-            PRODUCT_HOME=${PRODUCT_HOME} all &amp;&amp;
+            PRODUCT_HOME=${PRODUCT_HOME} all
 LANG=C ${JT_HOME}/linux/bin/jtreg -a -v:fail,error \
                 -dir:$(pwd)/hotspot/test    \
                 -k:\!ignore                 \
@@ -534,7 +537,9 @@ install -v -Dm0644 javaws.png /usr/share/pixmaps/javaws.png</userinput></screen>
       <option>--with-jobs=N</option>: Allows to set the number
       of jobs for <command>make</command> equal to N. The default is the
       result of a calculation involving the available memory and the number
-      of processors. The SBU given above are with parallel jobs disabled.
+      of processors. Note that even if you specify N=1, some parallelization
+      may be used during the build. The SBU given above are with parallel jobs
+      disabled, on a single processor, single core, virtual machine.
     </para>
 
     <para>
@@ -631,11 +636,7 @@ EOF</userinput></screen>
 
 <screen role="root"><userinput>cat >> /etc/profile.d/extrapaths.sh &lt;&lt; "EOF" &amp;&amp;
 <literal># Begin Java addition
-if ! [ -n "$MANPATH" ]; then
-  export MANPATH=:/opt/jdk/man
-else
-  pathappend /opt/jdk/man       MANPATH
-fi
+pathappend /opt/jdk/man       MANPATH
 # End Java addition</literal>
 EOF
 
