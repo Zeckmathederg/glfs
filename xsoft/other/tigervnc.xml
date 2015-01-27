@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY tigervnc-download-http " ">
-  <!ENTITY tigervnc-download-ftp "&sourceforge-repo;/project/tigervnc/tigervnc/&tigervnc-version;/tigervnc-&tigervnc-version;.tar.gz">
-  <!ENTITY tigervnc-md5sum        "e80b16aa74f1d8e89f284a6aef99955d">
-  <!ENTITY tigervnc-size          "6.6 MB">
-  <!ENTITY tigervnc-buildsize     "168 MB">
-  <!ENTITY tigervnc-time          "1.7 SBU">
+  <!ENTITY tigervnc-download-http "https://github.com/TigerVNC/tigervnc/archive/v1.4.2.tar.gz">
+  <!ENTITY tigervnc-download-ftp  " ">
+  <!ENTITY tigervnc-md5sum        "93b935487d0ec33341f079bc402df6b1">
+  <!ENTITY tigervnc-size          "1.3 MB">
+  <!ENTITY tigervnc-buildsize     "155 MB">
+  <!ENTITY tigervnc-time          "0.5 SBU (with parallelism=4)">
 ]>
 
 <sect1 id="tigervnc" xreflabel="tigervnc-&tigervnc-version;">
@@ -40,7 +40,11 @@
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Download (HTTP): <ulink url="&tigervnc-download-http;"/></para>
+        <para>Download (HTTP): <ulink url="&tigervnc-download-http;"/>.
+        <!-- Rendering of <note> is poor -->
+        Note: If using wget, this link will download to the wrong 
+        file name.  Append <userinput>-O tigervnc-&tigervnc-version;.tar.gz</userinput> 
+        to the wget line to name the file correctly.</para>
       </listitem>
       <listitem>
         <para>Download (FTP): <ulink url="&tigervnc-download-ftp;"/></para>
@@ -64,7 +68,7 @@
       <listitem>
         <para>
           Required file:
-          <ulink url="&xorg-download-ftp;/xserver/xorg-server-1.15.0.tar.bz2"/>
+          <ulink url="&xorg-download-ftp;/xserver/xorg-server-1.16.2.901.tar.bz2"/>
         </para>
       </listitem>
       <listitem>
@@ -82,7 +86,7 @@
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/tigervnc-&tigervnc-version;-xorg115-1.patch"/>
+          <ulink url="&patch-root;/tigervnc-&tigervnc-version;-xorg116-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -126,21 +130,20 @@
 
 patch -Np1 -i ../tigervnc-&tigervnc-version;-gethomedir-1.patch &amp;&amp;
 patch -Np1 -i ../tigervnc-&tigervnc-version;-getmaster-1.patch  &amp;&amp;
-patch -Np1 -i ../tigervnc-&tigervnc-version;-xorg115-1.patch    &amp;&amp;
 
 cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr &amp;&amp;
 make &amp;&amp;
 
-pushd unix/xserver                  &amp;&amp;
-  patch -Np1 -i ../xserver114.patch &amp;&amp;
-  autoreconf -fiv                   &amp;&amp;
+pushd unix/xserver                                                   &amp;&amp;
+  patch -Np1 -i ../../../tigervnc-&tigervnc-version;-xorg116-1.patch &amp;&amp;
+  autoreconf -fi                                                     &amp;&amp;
 
   ./configure $XORG_CONFIG \
-      --disable-present     --disable-dri3       --disable-dmx         \
+      --disable-xwayland    --enable-dri3        --disable-dmx         \
       --disable-static      --disable-xinerama   --disable-dri         \
       --disable-xorg        --disable-xnest      --disable-xvfb        \
       --disable-xwin        --disable-xephyr     --disable-kdrive      \
-      --disable-config-dbus --disable-config-hal --disable-config-udev \
+      --disable-devel-docs  --disable-config-hal --disable-config-udev \
       --disable-unit-tests  --disable-selective-werror                 \
       --without-dtrace      --enable-dri2        --enable-glx \
       --enable-glx-tls      --with-pic  &amp;&amp;
