@@ -6,10 +6,10 @@
 
   <!ENTITY xorg-server-download-http "&xorg-download-http;/xserver/xorg-server-&xorg-server-version;.tar.bz2">
   <!ENTITY xorg-server-download-ftp  "&xorg-download-ftp;/xserver/xorg-server-&xorg-server-version;.tar.bz2">
-  <!ENTITY xorg-server-md5sum        "afd93977235584a9caa7528a737c1b52">
-  <!ENTITY xorg-server-size          "5.5 MB">
-  <!ENTITY xorg-server-buildsize     "0.5 GB (doesn't include tests)">
-  <!ENTITY xorg-server-time          "1.7 SBU (doesn't include tests)">
+  <!ENTITY xorg-server-md5sum        "38ecaefa238b04ec4a38f7128e87e239">
+  <!ENTITY xorg-server-size          "5.6 MB">
+  <!ENTITY xorg-server-buildsize     "552 MB">
+  <!ENTITY xorg-server-time          "1.8 SBU">
 ]>
 
 <sect1 id="xorg-server" xreflabel="Xorg-Server-&xorg-server-version;">
@@ -96,6 +96,7 @@
     <para role="recommended">
       <xref linkend="libepoxy"/> (required for glamor, see command
       explanations below)
+      <xref linkend="xcb-util-keysyms"/> (used by Xnest)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -103,8 +104,11 @@
       <xref linkend="acpid"/> (runtime),
       <xref linkend="doxygen"/> (to build API documentation),
       <xref linkend="fop"/>, (to build documentation),
-      <xref linkend="gs"/> (to build documentation), and
-      <xref linkend="xmlto"/>, (to build documentation)
+      <xref linkend="gs"/> (to build documentation),
+      <xref linkend="xcb-util-image"/>,
+      <xref linkend="xcb-util-renderutil"/>,
+      <xref linkend="xcb-util-wm"/> (all three to build Xephyr) and
+      <xref linkend="xmlto"/> (to build documentation)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -128,7 +132,6 @@
 
 <screen><userinput>./configure $XORG_CONFIG                    \
            --with-xkb-output=/var/lib/xkb   \
-           --enable-dmx                     \
            --enable-glamor                  \
            --enable-install-setuid          \
            --enable-suid-wrapper            &amp;&amp;
@@ -156,15 +159,12 @@ EOF</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--enable-dmx</parameter>: Build DMX (Distributed Multihead X)
-      server.
-    </para>
-
-    <para>
       <parameter>--enable-glamor</parameter>: Build the Glamor DIX (Device
       Independent X) module which is currently required for Southern Islands and
       Sea Islands radeon video chipsets, optional for some other radeons, and
-      also optional for the intel driver.
+      also optional for the intel driver. It is also used by the modesetting
+      driver (which is part of this package) for on hardware using KMS and which
+      offers acceleration.
     </para>
 
     <para>
@@ -186,6 +186,17 @@ EOF</userinput></screen>
       required by the server.
     </para>
 
+    <para>
+      <option>--enable-dmx</option>: Build DMX (Distributed Multihead X)
+      server.
+    </para>
+
+    <para>
+      <option>--enable-kdrive</option>: this option allows the
+      <command>configure</command> script to enable Xephyr if its dependencies
+      are met.
+    </para>
+
   </sect2>
 
   <sect2 role="content">
@@ -200,10 +211,11 @@ EOF</userinput></screen>
         <seg>
           cvt, dmxaddinput, dmxaddscreen, dmxinfo, dmxreconfig, dmxresize,
           dmxrminput, dmxrmscreen, dmxtodmx, dmxwininfo, gtf, vdltodmx, X,
-          Xdmx, xdmxconfig, Xnest, Xorg, and Xvfb
+          Xdmx, xdmxconfig, Xephyr, Xnest, Xorg, and Xvfb
         </seg>
         <seg>
-          several under $XORG_PREFIX/lib/xorg/modules/{,extensions,multimedia}
+          several under $XORG_PREFIX/lib/xorg/modules/{,drivers,extensions}
+          including modesetting_drv.so
         </seg>
         <seg>
           $XORG_PREFIX/include/xorg,
@@ -280,6 +292,18 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="Xephyr-x7">
+        <term><command>Xephyr</command></term>
+        <listitem>
+          <para>
+            is a nested X server which supports modern X extensions.
+          </para>
+          <indexterm zone="xorg-server Xephyr-x7">
+            <primary sortas="b-Xephyr">Xephyr</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="Xnest-x7">
         <term><command>Xnest</command></term>
         <listitem>
@@ -324,6 +348,20 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="xorg-server xdmxconfig-x7">
             <primary sortas="b-xdmxconfig">xdmxconfig</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="modesetting_drv-x7">
+        <term><filename class="libraryfile">modesetting_drv.so</filename></term>
+        <listitem>
+          <para>
+            provides a video driver for machines using Kernel Mode Setting (KMS).
+            This will use glamor if that has been enabled and the hardware offers
+            acceleration.
+          </para>
+          <indexterm zone="xorg-server modesetting_drv-x7">
+            <primary sortas="c-modesetting_drv">modesetting_drv.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
