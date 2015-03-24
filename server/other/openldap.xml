@@ -8,8 +8,8 @@
   <!ENTITY openldap-download-ftp  "ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-&openldap-version;.tgz">
   <!ENTITY openldap-md5sum        "423c1f23d2a0cb96b3e9baf7e9d7dda7">
   <!ENTITY openldap-size          "5.4 MB">
-  <!ENTITY openldap-buildsize     "47 MB (client) 101 MB (server - additional 5 MB for the tests)">
-  <!ENTITY openldap-time          "0.9 SBU (client) 1.8 SBU (server - additional 3.4 SBU for the tests)">
+  <!ENTITY openldap-buildsize     "47 MB (client), 101 MB (server, additional 5 MB for the tests)">
+  <!ENTITY openldap-time          "0.6 SBU (client), 1.1 SBU (server, additional 3.4 SBU for the tests)">
 ]>
 
 <sect1 id="openldap" xreflabel="OpenLDAP-&openldap-version;">
@@ -90,8 +90,7 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="db"/> (only if building server),
-      <xref linkend="cyrus-sasl"/>, and
+      <xref linkend="cyrus-sasl"/> and
       <xref linkend="openssl"/>
     </para>
 
@@ -104,18 +103,8 @@
         <xref linkend="postgresql"/> or 
         <ulink url="http://www.mysql.com/">MySQL</ulink>, 
       <ulink url="http://www.openslp.org/">OpenSLP</ulink>, and
-      <ulink url="http://symas.com/mdb/">LMDB</ulink>
+      <xref linkend="db"/> (not recommended by the developers)
     </para>
-
-    <note>
-      <para>
-        There are some potential licensing issues when integrating 
-        <xref linkend="db"/> with <application>OpenLDAP</application>.  The 
-        OpenLDAP foundation recommends using <application>LMDB</application>
-        for the database back end.
-      </para>
-      <para>See <ulink url="http://lwn.net/Articles/557820/"/> for more information.</para>
-    </note>
 
     <para condition="html" role="usernotes">User Notes:
       <ulink url="&blfs-wiki;/openldap"/>
@@ -136,8 +125,6 @@
 <screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs_paths-1.patch &amp;&amp;
 patch -Np1 -i ../openldap-&openldap-version;-symbol_versions-1.patch &amp;&amp;
 autoconf &amp;&amp;
-
-sed -i '/6.0.20/ a\\t__db_version_compat' configure &amp;&amp;
 
 ./configure --prefix=/usr     \
             --sysconfdir=/etc \
@@ -172,11 +159,9 @@ useradd -c "OpenLDAP Daemon Owner" -d /var/lib/openldap -u 83 \
       running the following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs_paths-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs_paths-2.patch &amp;&amp;
 patch -Np1 -i ../openldap-&openldap-version;-symbol_versions-1.patch &amp;&amp;
 autoconf &amp;&amp;
-
-sed -i '/6.0.20/ a\\t__db_version_compat' configure &amp;&amp;
 
 ./configure --prefix=/usr         \
             --sysconfdir=/etc     \
@@ -184,15 +169,21 @@ sed -i '/6.0.20/ a\\t__db_version_compat' configure &amp;&amp;
             --libexecdir=/usr/lib \
             --disable-static      \
             --disable-debug       \
+            --with-tls=openssl    \
+            --with-cyrus-sasl     \
             --enable-dynamic      \
             --enable-crypt        \
             --enable-spasswd      \
+            --enable-slapd        \
             --enable-modules      \
-            --enable-rlookups     \
             --enable-backends=mod \
-            --enable-overlays=mod \
             --disable-ndb         \
-            --disable-sql &amp;&amp;
+            --disable-sql         \
+            --disable-shell       \ 
+            --disable-bdb         \ 
+            --disable-hdb         \ 
+            --enable-overlays=mod \
+
 make depend &amp;&amp;
 make</userinput></screen>
 
@@ -231,12 +222,6 @@ cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></scree
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para>
-      <command>sed ... configure</command>: Fix  <command>configure</command>
-      script for building with <application>Berkeley DB-6.0.20</application> or
-      later.
-    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
