@@ -6,10 +6,10 @@
 
   <!ENTITY samba-download-http "https://download.samba.org/pub/samba/stable/samba-&samba-version;.tar.gz">
   <!ENTITY samba-download-ftp  " ">
-  <!ENTITY samba-md5sum        "8fed0f23a672e6a8d0716d96aca88671">
-  <!ENTITY samba-size          "19 MB">
-  <!ENTITY samba-buildsize     "416 MB (additional 397 MB for the quicktest, reputedly up to 500 MB additional for all tests)">
-  <!ENTITY samba-time          "2.7 SBU, using parallelism=4 (additional 4.5 SBU for the quicktest, reputedly up to 110 SBU to run all tests)">
+  <!ENTITY samba-md5sum        "5ef28ee4cda243d07a0066f038b7d6e0">
+  <!ENTITY samba-size          "20 MB">
+  <!ENTITY samba-buildsize     "485 MB (additional 399 MB for the quicktest, reputedly up to 500 MB additional for all tests)">
+  <!ENTITY samba-time          "2.1 SBU, using parallelism=4 (additional 5.5 SBU for the quicktest, reputedly up to 110 SBU to run all tests)">
 ]>
 
 <sect1 id="samba" xreflabel="Samba-&samba-version;">
@@ -69,7 +69,8 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="libxslt"/> (for documentation)
+      <xref linkend="libxslt"/> (for documentation) and
+      <xref linkend="openldap"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -77,20 +78,23 @@
       <xref linkend="avahi"/>,
       <xref linkend="cups"/>,
       <xref linkend="gnutls"/>,
+      <xref linkend="libarchive"/>,
       <xref linkend="libcap-pam"/>,
       <xref linkend="libgpg-error"/>,
       <xref linkend="linux-pam"/>,
       <xref linkend="mitkrb"/>,
-      <xref linkend="openldap"/>,
       <xref linkend="popt"/>,
       <xref linkend="valgrind"/> (optionally used by the test suite),
       <xref linkend="xfsprogs"/>,
+      <ulink url="https://ctdb.samba.org/">ctdb</ulink>,
       <ulink url="https://people.gnome.org/~veillard/gamin/">Gamin</ulink>,
-      <ulink url="http://ctdb.samba.org/">ctdb</ulink>,
+      <ulink url="http://www.h5l.org/">Heimdal</ulink>,
       <ulink url="http://ftp.de.debian.org/debian/pool/main/liba/libaio/">libaio</ulink>,
       <ulink url="http://www.nongnu.org/libunwind/">libunwind</ulink>,
-      <ulink url="http://www.openafs.org/">OpenAFS</ulink>, and
-      <ulink url="http://tdb.samba.org/">tdb</ulink>
+      <ulink url="https://www.samba.org/ftp/ldb/">ldb</ulink>,
+      <ulink url="http://www.openafs.org/">OpenAFS</ulink>,
+      <ulink url="https://tevent.samba.org/">tevent</ulink>, and
+      <ulink url="https://tdb.samba.org/">tdb</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -102,13 +106,12 @@
     <title>Installation of Samba</title>
 
     <note>
-      <para>If you wish to run the test suite after the binaries are built,
-      you must add the <option>-/-enable-socket-wrapper</option> 
-      and <option>-/-enable-selftest</option> parameters to
-      the <command>configure</command> script below. You may want to run
-      <command>configure</command> with the <option>-/-help</option> parameter
-      first. There may be other parameters needed to take advantage of
-      optional dependencies.</para>
+      <para>If you wish to run the test suite after the binaries are built, you
+      must add the <option>--enable-selftest</option> parameter to the
+      <command>configure</command> script below. You may want to run
+      <command>configure</command> with the <option>--help</option> parameter
+      first. There may be other parameters needed to take advantage of optional
+      dependencies.</para>
     </note>
 
     <para>Install <application>Samba</application> by running the following
@@ -121,8 +124,7 @@
     --with-piddir=/run/samba            \
     --with-pammodulesdir=/lib/security  \
     --without-systemd                   \
-    --enable-fhs                        \
-    --enable-nss-wrapper                &amp;&amp;
+    --enable-fhs                        &amp;&amp;
 
 make</userinput></screen>
 
@@ -180,9 +182,6 @@ install -v -m644    lib/ntdb/doc/design.pdf \
 
     <para><parameter>--enable-fhs</parameter>: Assigns all other file paths in
     a manner compliant with the Filesystem Hierarchy Standard (FHS).</para>
-
-    <para><parameter>--enable-nss-wrapper</parameter>: Builds the nss-wrapper
-    library.</para>
 
     <para><parameter>--without-systemd</parameter>: Disable
     <application>systemd</application> integration, which is not part of
@@ -467,34 +466,40 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
 
       <seglistitem>
 
-        <seg>cifsdd, dbwrap_tool, eventlogadm, gentest, ldbadd, ldbdel, ldbedit,
-        ldbmodify, ldbrename, ldbsearch, locktest, masktest, ndrdump, net, nmbd,
-        nmblookup, nmblookup4, ntdbbackup, ntdbdump, ntdbrestore, ntdbtool,
-        ntlm_auth, oLschema2ldif, pdbedit, pidl, profiles, regdiff, regpatch,
-        regshell, regtree, rpcclient, samba, samba_dnsupdate, samba_kcc,
-        samba-regedit, samba_spnupdate, samba-tool, samba_upgradedns, sharesec,
-        smbcacls, smbclient, smbclient4, smbcontrol, smbcquotas, smbd, smbget,
-        smbpasswd, smbspool, smbstatus, smbtar, smbta-util, smbtorture, smbtree,
-        tdbbackup, tdbdump, tdbrestore, tdbtool, testparm, wbinfo, and
-        winbindd</seg>
+        <seg>
+          cifsdd, dbwrap_tool, eventlogadm, gentest, ldbadd, ldbdel, ldbedit,
+          ldbmodify, ldbrename, ldbsearch, locktest, masktest, ndrdump, net,
+          nmbd, nmblookup, nmblookup4, ntdbbackup, ntdbdump, ntdbrestore,
+          ntdbtool, ntlm_auth, oLschema2ldif, pdbedit, pidl, profiles, regdiff,
+          regpatch, regshell, regtree, rpcclient, samba, samba_dnsupdate,
+          samba_kcc, samba-regedit, samba_spnupdate, samba-tool,
+          samba_upgradedns, sharesec, smbcacls, smbclient, smbclient4,
+          smbcontrol, smbcquotas, smbd, smbget, smbpasswd, smbspool, smbstatus,
+          smbtar, smbta-util, smbtorture, smbtree, tdbbackup, tdbdump,
+          tdbrestore, tdbtool, testparm, wbinfo, and winbindd
+        </seg>
 
-        <seg>libdcerpc-atsvc.so, libdcerpc-binding.so, libdcerpc-samr.so,
-        libdcerpc-server.so, libdcerpc.so, libgensec.so, libndr-krb5pac.so,
-        libndr-nbt.so, libndr.so, libndr-standard.so, libnetapi.so,
-        libnss_winbind.so, libnss_wins.so, libpdb.so, libregistry.so,
-        libsamba-credentials.so, libsamba-hostconfig.so, libsamba-policy.so,
-        libsamba-util.so, libsamdb.so, libsmbclient-raw.so, libsmbclient.so,
-        libsmbconf.so, libsmbldap.so, libsmbsharemodes.so, libtevent-util.so,
-        libtorture.so, libwbclient.so, mit_samba.so, and
-        winbind_krb5_locator.so; the pam_winbind.so and pam_smbpass.so PAM
-        libraries; and assorted character set, filesystem and support modules
-        under /usr/lib/{python&python2-majorver;,samba}</seg>
+        <seg>
+          libdcerpc-atsvc.so, libdcerpc-binding.so, libdcerpc-samr.so,
+          libdcerpc-server.so, libdcerpc.so, libgensec.so, libndr-krb5pac.so,
+          libndr-nbt.so, libndr.so, libndr-standard.so, libnetapi.so,
+          libnss_winbind.so, libnss_wins.so, libregistry.so,
+          libsamba-credentials.so, libsamba-hostconfig.so, libsamba-passdb.so,
+          libsamba-policy.so, libsamba-util.so, libsamdb.so,
+          libsmbclient-raw.so, libsmbclient.so, libsmbconf.so, libsmbldap.so,
+          libtevent-util.so, libtorture.so, libwbclient.so, mit_samba.so, and
+          winbind_krb5_locator.so; the pam_winbind.so and pam_smbpass.so PAM
+          libraries; and assorted character set, filesystem and support modules
+          under /usr/lib/{python&python2-majorver;,samba}
+        </seg>
         
-        <seg>/etc/samba, /run/samba, /usr/include/samba-4.0,
-        /usr/lib/perl5/vendor_perl/5.x.y/Parse/Pidl/{Samba{3,4},Wireshark},
-        /usr/lib/python&python2-majorver;/site-packages/samba, /usr/lib/samba,
-        /usr/share/doc/samba-&samba-version;, /usr/share/samba, and
-        /var/{cache,lib,lock,log,run}/samba</seg>
+        <seg>
+          /etc/samba, /run/samba, /usr/include/samba-4.0,
+          /usr/lib/perl5/vendor_perl/5.x.y/Parse/Pidl/{Samba{3,4},Wireshark},
+          /usr/lib/python&python2-majorver;/site-packages/samba,
+          /usr/lib/samba, /usr/share/doc/samba-&samba-version;,
+          /usr/share/samba, and /var/{cache,lib,lock,log,run}/samba
+        </seg>
 
       </seglistitem>
     </segmentedlist>
@@ -894,7 +899,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="libsmbsharemodes">
         <term><filename class='libraryfile'>libsmbsharemodes.so</filename></term>
         <listitem>
@@ -904,7 +909,7 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
             <primary sortas="c-libsmbsharemodes">libsmbsharemodes.so</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry>-->
 
       <varlistentry id="libwbclient">
         <term><filename class='libraryfile'>libwbclient.so</filename></term>

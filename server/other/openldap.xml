@@ -117,9 +117,9 @@
     <note>
       <para>
         If you only need to install the client side <command>ldap*</command>
-        binaries, corresponding man pages, libraries and header files (referred to
-        as a <quote>client-only</quote> install), issue these
-        commands instead of the following ones (no test suite available):
+        binaries, corresponding man pages, libraries and header files (referred
+        to as a <quote>client-only</quote> install), issue these commands
+        instead of the following ones (no test suite available):
       </para>
 
 <screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs_paths-1.patch &amp;&amp;
@@ -142,6 +142,19 @@ make</userinput></screen>
 <screen role="root"><userinput>make install</userinput></screen>
 
     </note>
+ 
+    <warning>
+      <para>If upgrading from a previos installation that used Berkely DB as
+      the backend, you will need to dump the database(s) using the
+      <command>slapcat</command> utility, relocate all files in
+      <filename class="directory">/var/lib/openldap</filename>, change all
+      instances of <option>bdb</option> to <option>mdb</option> in
+      <filename>/etc/openldap/slapd.conf</filename> and any files in
+      <filename class="directory">/etc/openldap/slapd.d</filename>, and import
+      using the <command>slapadd</command> utility after the installation is
+      completed.
+      </para>
+    </warning>
 
     <para>
       There should be a dedicated user and group to take control
@@ -182,7 +195,7 @@ autoconf &amp;&amp;
             --disable-shell       \ 
             --disable-bdb         \ 
             --disable-hdb         \ 
-            --enable-overlays=mod \
+            --enable-overlays=mod &amp;&amp;
 
 make depend &amp;&amp;
 make</userinput></screen>
@@ -198,15 +211,16 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 
-chmod -v 700 /var/lib/openldap                                         &amp;&amp;
-chown -v -R ldap:ldap /var/lib/openldap                                &amp;&amp;
-chmod -v 640 /etc/openldap/{slapd.{conf,ldif},DB_CONFIG.example}       &amp;&amp;
-chown -v root:ldap /etc/openldap/{slapd.{conf,ldif},DB_CONFIG.example} &amp;&amp;
-install -v -dm700 -o ldap -g ldap /etc/openldap/slapd.d                &amp;&amp;
+chmod -v 700 /var/lib/openldap                          &amp;&amp;
+chown -v -R ldap:ldap /var/lib/openldap                 &amp;&amp;
+chmod -v 640 /etc/openldap/slapd.{conf,ldif}            &amp;&amp;
+chown -v root:ldap /etc/openldap/slapd.{conf,ldif}      &amp;&amp;
+sed 's@bdb@mdb@g' -i /etc/openldap/slapd.conf           &amp;&amp;
+install -v -dm700 -o ldap -g ldap /etc/openldap/slapd.d &amp;&amp;
 
-install -v -dm755  /usr/share/doc/openldap-&openldap-version; &amp;&amp;
-cp -vfr doc/drafts /usr/share/doc/openldap-&openldap-version; &amp;&amp;
-cp -vfr doc/rfc    /usr/share/doc/openldap-&openldap-version; &amp;&amp;
+install -v -dm755  /usr/share/doc/openldap-&openldap-version;  &amp;&amp;
+cp -vfr doc/drafts /usr/share/doc/openldap-&openldap-version;  &amp;&amp;
+cp -vfr doc/rfc    /usr/share/doc/openldap-&openldap-version;  &amp;&amp;
 cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></screen>
 
     <para>
@@ -292,6 +306,13 @@ cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></scree
       <option>--enable-slp</option>: This switch enables
       SLPv2 support. Use it if you have installed
       <ulink url="http://www.openslp.org/">OpenSLP</ulink>.
+    </para>
+ 
+    <para>
+      <command>sed 's@bdb@mdb@g' -i /etc/openldap/slapd.conf</command>: This
+      command changes the default backend from the deprecated Berkely DB
+      (which was not included in the available backends) to LMDB as is
+      recommended by the OpenLDAP developers.
     </para>
 
     <note>
