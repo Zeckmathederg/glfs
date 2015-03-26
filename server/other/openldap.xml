@@ -75,13 +75,7 @@
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/openldap-&openldap-version;-blfs_paths-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/openldap-&openldap-version;-symbol_versions-1.patch"/>
+          <ulink url="&patch-root;/openldap-&openldap-version;-consolidated-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -122,8 +116,7 @@
         instead of the following ones (no test suite available):
       </para>
 
-<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs_paths-1.patch &amp;&amp;
-patch -Np1 -i ../openldap-&openldap-version;-symbol_versions-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-consolidated-1.patch &amp;&amp;
 autoconf &amp;&amp;
 
 ./configure --prefix=/usr     \
@@ -144,7 +137,7 @@ make</userinput></screen>
     </note>
  
     <warning>
-      <para>If upgrading from a previos installation that used Berkely DB as
+      <para>If upgrading from a previos installation that used Berkeley DB as
       the backend, you will need to dump the database(s) using the
       <command>slapcat</command> utility, relocate all files in
       <filename class="directory">/var/lib/openldap</filename>, change all
@@ -172,8 +165,7 @@ useradd -c "OpenLDAP Daemon Owner" -d /var/lib/openldap -u 83 \
       running the following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-blfs_paths-2.patch &amp;&amp;
-patch -Np1 -i ../openldap-&openldap-version;-symbol_versions-1.patch &amp;&amp;
+<screen><userinput>patch -Np1 -i ../openldap-&openldap-version;-consolidated-1.patch &amp;&amp;
 autoconf &amp;&amp;
 
 ./configure --prefix=/usr         \
@@ -211,26 +203,13 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 
-chmod -v 700 /var/lib/openldap                          &amp;&amp;
-chown -v -R ldap:ldap /var/lib/openldap                 &amp;&amp;
-chmod -v 640 /etc/openldap/slapd.{conf,ldif}            &amp;&amp;
-chown -v root:ldap /etc/openldap/slapd.{conf,ldif}      &amp;&amp;
-sed 's@bdb@mdb@g' -i /etc/openldap/slapd.conf           &amp;&amp;
+install -v -dm700 -o ldap -g ldap /var/lib/openldap     &amp;&amp;
 install -v -dm700 -o ldap -g ldap /etc/openldap/slapd.d &amp;&amp;
+chmod -v 640       /etc/openldap/slapd.{conf,ldif}      &amp;&amp;
+chown -v root:ldap /etc/openldap/slapd.{conf,ldif}      &amp;&amp;
 
-install -v -dm755  /usr/share/doc/openldap-&openldap-version;  &amp;&amp;
-cp -vfr doc/drafts /usr/share/doc/openldap-&openldap-version;  &amp;&amp;
-cp -vfr doc/rfc    /usr/share/doc/openldap-&openldap-version;  &amp;&amp;
-cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></screen>
-
-    <para>
-      Having slapd configuration files and ldap databases in /var/lib/openldap
-      readable by anyone is a SECURITY ISSUE, especially since a file stores
-      admin password in PLAIN TEXT. That's why mode 640 and root:ldap ownership
-      were used. Owner is root, so only root can modify the file, and group is
-      ldap, so that the group which owns slapd daemon could read but not modify
-      the file in case of a security breach. 
-    </para>
+install -v -dm755              /usr/share/doc/openldap-&openldap-version; &amp;&amp;
+cp -vfr doc/{drafts,rfc,guide} /usr/share/doc/openldap-&openldap-version;</userinput></screen>
 
   </sect2>
 
@@ -308,13 +287,6 @@ cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></scree
       <ulink url="http://www.openslp.org/">OpenSLP</ulink>.
     </para>
  
-    <para>
-      <command>sed 's@bdb@mdb@g' -i /etc/openldap/slapd.conf</command>: This
-      command changes the default backend from the deprecated Berkely DB
-      (which was not included in the available backends) to LMDB as is
-      recommended by the OpenLDAP developers.
-    </para>
-
     <note>
       <para>
         You can run <command>./configure --help</command> to see if there
@@ -322,6 +294,17 @@ cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></scree
         command to enable other options or dependency packages.
       </para>
     </note>
+
+    <para>
+      <command>install ...</command>, <command>chown ...</command>,
+      and <command>chmod ...</command>:
+      Having slapd configuration files and ldap databases in /var/lib/openldap
+      readable by anyone is a SECURITY ISSUE, especially since a file stores the
+      admin password in PLAIN TEXT. That's why mode 640 and root:ldap ownership
+      were used. The owner is root, so only root can modify the file, and group is
+      ldap, so that the group which owns slapd daemon could read but not modify
+      the file in case of a security breach. 
+    </para>
 
   </sect2>
 
@@ -383,9 +366,9 @@ cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></scree
         </listitem>
         <listitem>
           <para>
-            The <ulink url="http://www.openldap.org/doc/admin24/">
-            OpenLDAP 2.4 Administrator's Guide</ulink>
-            (also installed locally in <filename class='directory'>
+            The <ulink url="http://www.openldap.org/doc/admin24/"> OpenLDAP 2.4
+            Administrator's Guide</ulink> (also installed locally in 
+            <filename class='directory'>
             /usr/share/doc/openldap-&openldap-version;/guide/admin</filename>).
           </para>
         </listitem>
@@ -461,7 +444,7 @@ cp -vfr doc/guide  /usr/share/doc/openldap-&openldap-version;</userinput></scree
 <screen><computeroutput># extended LDIF
 #
 # LDAPv3
-# base &lt;&gt; with scope base
+# base &lt;&gt; with scope baseObject
 # filter: (objectclass=*)
 # requesting: namingContexts
 #
