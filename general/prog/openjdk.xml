@@ -388,7 +388,8 @@ echo Waiting for twm to initialize; sleep 1
 xhost +</userinput></screen>
 
     <para>
-      Then, it is necessary to modify some files:
+      Then, it is necessary to modify some files (replace &lt;N&gt; with the
+      number of JAVA VM allowed to run concurrently):
     </para>
 
 <screen role='nodump'><userinput>echo -e "
@@ -403,8 +404,12 @@ jdk_all = :jdk_core           \\
           javax/print         \\
           sun/pisces          \\
           com/sun/java/swing" >> jdk/test/TEST.groups &amp;&amp;
-sed -e 's/all:.*jck.*/all: jtreg/' \
-    -i langtools/test/Makefile</userinput></screen>
+sed -e 's/all:.*jck.*/all: jtreg/'      \
+    -i langtools/test/Makefile          &amp;&amp;
+sed -i 's@/win32@@' jdk/test/Makefile   &amp;&amp;
+sed -e 's@JTREG_HOME@JT_PLATFORM="" &amp;@' \
+    -e 's@TEST="@CONCURRENCY=&lt;N&gt; &amp;@'    \
+    -i test/Makefile</userinput></screen>
 
     <para>
       Some variables have to be set:
@@ -423,10 +428,11 @@ PRODUCT_HOME=$(echo $(pwd)/build/*/images/j2sdk-image)</userinput></screen>
             JT_HOME=${JT_HOME}              \
             JT_JAVA=${JT_JAVA}              \
             PRODUCT_HOME=${PRODUCT_HOME} all
-LANG=C ${JT_HOME}/linux/bin/jtreg -a -v:fail,error \
-                -dir:$(pwd)/hotspot/test    \
-                -k:\!ignore                 \
-                -jdk:${PRODUCT_HOME}        \
+LANG=C ${JT_HOME}/bin/jtreg -a -v:fail,error \
+                -dir:$(pwd)/hotspot/test     \
+                -k:\!ignore                  \
+                -jdk:${PRODUCT_HOME}         \
+                -agentvm -conc:&lt;N&gt;           \
                 :jdk</userinput></screen>
 
     <para>
