@@ -5,11 +5,11 @@
   %general-entities;
 
   <!ENTITY gnutls-download-http " ">
-  <!ENTITY gnutls-download-ftp  "ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-&gnutls-version;.tar.xz">
-  <!ENTITY gnutls-md5sum        "7f4465f8c564cf9cb8f5cb38b909f7ca">
-  <!ENTITY gnutls-size          "6 MB">
-  <!ENTITY gnutls-buildsize     "112 MB (additional 11 MB for tests and 3 MB for documentation)">
-  <!ENTITY gnutls-time          "0.8 SBU (additional 2 SBU for tests)">
+  <!ENTITY gnutls-download-ftp  "ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-&gnutls-version;.tar.xz">
+  <!ENTITY gnutls-md5sum        "aa015c2666b031044edfb01b01980d84">
+  <!ENTITY gnutls-size          "6.2 MB">
+  <!ENTITY gnutls-buildsize     "124 MB (with built in API documentation; additional 15 MB for tests)">
+  <!ENTITY gnutls-time          "0.8 SBU (additional 2.6 SBU for tests)">
 ]>
 
 <sect1 id="gnutls" xreflabel="GnuTLS-&gnutls-version;">
@@ -104,10 +104,12 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="doxygen"/>,
       <xref linkend="gtk-doc"/>,
       <xref linkend="guile"/>,
       <xref linkend="libidn"/>,
       <xref linkend="p11-kit"/>,
+      <xref linkend="texlive"/> or <xref linkend="tl-installer"/>,
       <xref linkend="unbound"/> (to build the DANE library), 
       <xref linkend="valgrind"/> (used during the test suite),
       <ulink url="http://ftp.gnu.org/gnu/autogen/">autogen</ulink>, and
@@ -133,7 +135,13 @@
       following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr \
+<screen><userinput>sed -e '/FUNCS=/ s/-d/&amp;|uniq/'    \
+    -e '/get_x509_crt/ {n;d}'     \
+    -e '/get_x509_key/ {n;d}'     \
+    -e '/get_verify_flags/ {n;d}' \
+    -i doc/manpages/Makefile      &amp;&amp;
+
+./configure --prefix=/usr \
             --with-default-trust-store-file=/etc/ssl/ca-bundle.crt &amp;&amp;
 make</userinput></screen>
 
@@ -149,10 +157,11 @@ make</userinput></screen>
 <screen role="root"><userinput>make install</userinput></screen>
 
     <para>
-      If you did not pass the <option>--enable-gtk-doc</option> parameter
-      to the <command>configure</command> script, you can install the API documentation
-      to the <filename class="directory">/usr/share/gtk-doc/html/gnutls</filename>
-      directory using the following command as the
+      If you did not pass the <option>--enable-gtk-doc</option> parameter to
+      the <command>configure</command> script, you can install the API
+      documentation to the <filename
+      class="directory">/usr/share/gtk-doc/html/gnutls</filename> directory
+      using the following command as the
       <systemitem class="username">root</systemitem> user:
     </para>
 
@@ -164,6 +173,11 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
+      <command>sed -e ... -i doc/manpages/Makefile</command>:
+      This command removes some duplicate lines and fixes the doc Makefile.
+    </para>
+
+    <para>
       <parameter>--with-default-trust-store-file=/etc/ssl/ca-bundle.crt</parameter>:
       This switch tells <command>configure</command> where to find the
       CA Certificates.
@@ -171,6 +185,11 @@ make</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/gtk-doc-rebuild.xml"/>
+
+    <para>
+      <option>--enable-openssl-compatibility</option>:
+      Use this switch if you wish building the OpenSSL compatibility library.
+    </para>
 
   </sect2>
 
