@@ -4,19 +4,20 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY biber-download-http   "http://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/&biber-version;/biblatex-biber.tar.gz">
-  <!ENTITY biber-download-ftp    " ">
-  <!ENTITY biber-md5sum          "aa2857f3a4b0c2ab2dfe3c4f657cbb50">
-  <!ENTITY biber-size            "2.0 MB">
-  <!-- for 1.9/2.9a buildsize includes extra space used by biblatex -->
-  <!ENTITY biber-buildsize       "25 MB">
-  <!ENTITY biber-time            "less than 0.1 SBU (0.6 SBU to run the tests)">
+<!-- temporarily point to higgs, until this is in the right place at anduin    
+  <!ENTITY biber-download-http   "&sources-anduin-http;/biblatex-biber-&biber-version;.tar.xz"> -->
+  <!ENTITY biber-download-http   "http://www.linuxfromscratch.org/~ken/tmp/biblatex-biber-&biber-version;.tar.xz">
+  <!ENTITY biber-download-ftp    "&sources-anduin-ftp;/biblatex-biber-&biber-version;.tar.xz">
+  <!ENTITY biber-md5sum          "7bb4c983243d12f0791bcc123c11178d">
+  <!ENTITY biber-size            "1.3 MB">
+  <!-- buildsize includes the installed biblatex -->
+  <!ENTITY biber-buildsize       "38 MB">
+  <!ENTITY biber-time            "less than 0.1 SBU (0.5 SBU to run the tests)">
 
-  <!-- biblatex directory is 2.9, filename is 2.9a -->
-  <!ENTITY biblatex-download-http   "http://sourceforge.net/projects/biblatex/files/biblatex-&biblatex-version;/biblatex-&biblatex-version;a.tds.tgz">
+  <!ENTITY biblatex-download-http   "http://sourceforge.net/projects/biblatex/files/biblatex-&biblatex-version;/biblatex-&biblatex-version;.tds.tgz">
   <!ENTITY biblatex-download-ftp    "">
-  <!ENTITY biblatex-md5sum          "955662dca33f8256933745c51ccd0af9">
-  <!ENTITY biblatex-size            "18 MB">
+  <!ENTITY biblatex-md5sum          "c6dad1c1f8a46785981610b5165d9fe5">
+  <!ENTITY biblatex-size            "19 MB">
 
 ]>
 
@@ -38,17 +39,9 @@
     <title>Introduction to biber</title>
 
     <para>Biber is a BibTeX replacement for users of biblatex, written in
-    <application>Perl</application>. Unusually, the tarball itself is
-    called just biblatex-biber.tar.gz but it will extract to a versioned
-    directory. Please ensure you download it from the correct versioned
-    directory at sourceforge.</para>
-
-    <para>This version fixes a problem when certain UTF-8 codepoints are
-    used in the "key" value of a bibliography entry and current
-    <application>perl</application> is used. It is shipped in current binary
-    versions of <application>texlive</application> but requires a newer
-    version of <application>biblatex</application> than is in the
-    <application>texlive</application> source.</para>
+    <application>Perl</application>. Upstream prefers to provide binaries
+    and no longer offers a source tarball, so that has been taken from the
+    tagged version in the git tree.</para>
 
     &lfs77_checked; &gcc5_checked;
 
@@ -113,29 +106,27 @@
       <xref linkend="perl-list-allutils"/>
       <xref linkend="perl-regexp-common"/>
       <xref linkend="perl-text-bibtex"/>
+      <xref linkend="perl-text-roman"/>
       <!-- Collate.pm ships in perl, but is sometimes too old, and we like current
       versions.  Make the latest version required so that everyone is using the
-      same version -->
+      same version.  In fact, the version in perl-5.20.2 is indeed too old for
+      biber-2.0 -->
       <xref linkend="perl-unicode-collate"/>
       <xref linkend="perl-unicode-linebreak"/>
       <xref linkend="perl-xml-libxml-simple"/>
       <xref linkend="perl-xml-libxslt"/>
       <xref linkend="perl-xml-writer"/> and
-      <!-- biblatex requires that the texmf directories already exist -->
+      <!-- untarring biblatex requires that the texmf directories already exist -->
       <xref linkend="texlive"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="required">
-      <xref linkend="perl-readonly-xs"/>, and
-      <xref linkend="perl-file-which"/> (to run the testsuite)
+      <xref linkend="perl-file-which"/>,
+      <xref linkend="perl-test-differences"/>,
+      <xref linkend="perl-test-pod"/> and
+      <xref linkend="perl-test-pod-coverage"/> (all needed to run the testsuite)
     </para>
-
-    <!-- commented while separate biblatex is used
-    <bridgehead renderas="sect4">Required (at runtime)</bridgehead>
-    <para role="optional">
-      <xref linkend="texlive"/>
-    </para> -->
 
     <note>
       <para>
@@ -157,9 +148,7 @@
     <para>Install <application>Biber</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i 's/use Encode;/&amp;\nuse File::Slurp;\nuse File::Spec;/' \
-  lib/Biber/LaTeX/Recode.pm &amp;&amp;
-perl ./Build.PL &amp;&amp;
+<screen><userinput>perl ./Build.PL &amp;&amp;
 ./Build</userinput></screen>
 
     <para>To test the results, enter: <command>./Build test</command></para>
@@ -176,15 +165,10 @@ texhash &amp;&amp;
     <title>Command Explanations</title>
 
     <para>
-      <parameter>sed -i 's/use Encode;/&amp;\nuse File::Slurp;\nuse File::Spec;/' ...</parameter>:
-      this sed fixes a runtime error with current <application>perl</application>.
-    </para>
-
-    <para>
       <parameter>tar -xf biblatex-&biblatex-version;a.tds.tar.gz -C
       /opt/texlive/&texlive-year;/texmf-dist</parameter>:
-      this installs the new <application>biblatex</application> files over the
-      previous version.
+      this installs the new <application>biblatex</application> files over those
+      installed by <application>texlive</application>.
     </para>
 
     <para>
