@@ -6,9 +6,9 @@
 
   <!ENTITY libtirpc-download-http "&sourceforge-repo;/project/libtirpc/libtirpc/&libtirpc-version;/libtirpc-&libtirpc-version;.tar.bz2">
   <!ENTITY libtirpc-download-ftp  " ">
-  <!ENTITY libtirpc-md5sum        "8cd41a5ef5a9b50d0fb6abb98af15368">
-  <!ENTITY libtirpc-size          "452 KB">
-  <!ENTITY libtirpc-buildsize     "6.4 MB">
+  <!ENTITY libtirpc-md5sum        "34b07c50e6e3fc1ca18182e9f0fd5a67">
+  <!ENTITY libtirpc-size          "468 KB">
+  <!ENTITY libtirpc-buildsize     "7.6 MB">
   <!ENTITY libtirpc-time          "less than 0.1 SBU">
 ]>
 
@@ -104,10 +104,13 @@
       commands:
     </para>
 
-<screen><userinput><!--patch -Np1 -i ../libtirpc-&libtirpc-version;-remove_nis-1.patch &amp;&amp;
-autoreconf -fi &amp;&amp;
+<screen><userinput>sed -e '/rpcsec_gss.h/ i #ifdef HAVE_RPCSEC_GSS'         \
+    -e '/svc_rpc_gss_parms_t;/ a #endif' \
+    -e '/svc_rpc_gss_parms_t / i #ifdef HAVE_RPCSEC_GSS' \
+    -e '/rpc_gss_rawcred_t /   a #endif' \
+    -i tirpc/rpc/svc_auth.h   &amp;&amp;
 
--->./configure --prefix=/usr     \
+./configure --prefix=/usr     \
             --sysconfdir=/etc \
             --disable-static  \
             --disable-gssapi  &amp;&amp;
@@ -129,6 +132,12 @@ ln -sfv ../../lib/libtirpc.so.1.0.10 /usr/lib/libtirpc.so</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -e ... -i tirpc/rpc/svc_auth.h</command>: This command fixes
+      build with GSSAPI disabled. Remove this switch if you have one installed
+      (for example <xref linkend="mitkrb"/>) and you wish to use it.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
@@ -162,7 +171,7 @@ ln -sfv ../../lib/libtirpc.so.1.0.10 /usr/lib/libtirpc.so</userinput></screen>
           libtirpc.so
         </seg>
         <seg>
-          /usr/include/libtirpc
+          /usr/include/tirpc
         </seg>
       </seglistitem>
     </segmentedlist>
