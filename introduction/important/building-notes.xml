@@ -6,7 +6,7 @@
 ]>
 
 <sect1 id="unpacking">
-  <?dbhtml filename="unpacking.html"?>
+  <?dbhtml filename="notes-on-building.html"?>
 
   <sect1info>
     <othername>$LastChangedBy$</othername>
@@ -132,6 +132,41 @@ bunzip2 -v patchname.bz2</userinput></screen>
     <command>exit $PIPESTATUS</command> command ensures the result of the
     <replaceable>&lt;command&gt;</replaceable> is returned as the result and not the
     result of the <command>tee</command> command.</para>
+
+  </sect2>
+
+  <sect2 id="parallel-builds" xreflabel="Using Multiple Processors">
+    <title>Using Multiple Processors</title>
+
+    <para>For many modern systems with multiple processors (or cores) the
+    compilation time for a package can be reduced by performing a "parallel
+    make" by either setting an environment variable or telling the make program
+    how many processors are available. For instance, a Core2Duo can support two
+    simultaneous processes with: </para>
+
+    <screen><userinput>export MAKEFLAGS='-j2'</userinput></screen>
+
+    <para>or just building with:</para>
+
+    <screen><userinput>make -j2</userinput></screen>
+
+    <para>Generally the number of processes should not exceed the number of
+    cores supported by the CPU.  To list the processors on your
+    system, issue: <userinput>grep processor /proc/cpuinfo</userinput>.
+    </para>
+
+    <para>In some cases, using multiple processors may result in a 'race'
+    condition where the success of the build depends on the order of the
+    commands run by the <command>make</command> program.  For instance, if an
+    execuatable needs File A and File B, attempting to link the program before
+    one of the dependent components is available will result in a failure.
+    This condition usually arises because the upstream developer has not
+    properly designated all the prerequsites needed to accomplish a step in the
+    Makefile.</para>
+
+    <para>If this occurs, the best way to proceed is to drop back to a
+    single processor build.  Adding '-j1' to a make command will override
+    the similar setting in the MAKEFLAGS environment variable.</para>
 
   </sect2>
 
