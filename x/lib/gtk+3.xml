@@ -124,7 +124,15 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr             \
+<screen><userinput>sed -e '/priv->decorated ||$/ a\    return;\n' \
+    -e 's/\(.*priv->decorated\) ||$/\1)/' \
+    -e '/(!gtk_window_should/ i\  if (!priv->client_decorated &amp;&amp;' \
+    -e '/ !priv->client_decorated) ||/ s/(!/!(/' \
+    -e 's/ !priv->client_decorated) ||//' \
+    -e 's/!\(gtk_window_supports.*\)/  \1)/' \
+    -i gtk/gtkwindow.c &amp;&amp;
+
+./configure --prefix=/usr             \
             --sysconfdir=/etc         \
             --enable-broadway-backend \
             --enable-x11-backend      \
@@ -169,6 +177,12 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed ... -i gtk/gtkwindow.c</command>: fix
+      <application>Gtk3</application> window resize bug (after upstream
+      committed patch).
+    </para>
 
     <para>
       <parameter>--enable-broadway-backend</parameter>: switch enables the
