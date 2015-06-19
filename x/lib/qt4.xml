@@ -116,6 +116,55 @@
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../xincludes/qt-alternatives.xml"/>
 
+  <sect2 role="qt4-prefix">
+    <title>Setting the installation prefix</title>
+
+    <bridgehead renderas="sect3">Installing in /usr</bridgehead>
+
+    <para>
+      If you want to install <application>Qt4</application>
+      in <filename class="directory">/usr</filename>, set the
+      following environment variable:
+    </para>
+
+<screen><userinput>export QT4PREFIX=/usr</userinput></screen>
+
+    <bridgehead renderas="sect3">Installing in /opt/qt4</bridgehead>
+
+    <para>
+      If you want to install <application>Qt4</application>
+      in a directory other than <filename
+      class="directory">/usr</filename>, ie
+      <filename class="directory">/opt/qt4</filename>, set
+      the following environment variable:
+    </para>
+
+<screen><userinput>export QT4PREFIX=/opt/qt4</userinput></screen>
+
+    <tip>
+      <para>
+        Sometimes, the installation paths are hardcoded into installed files.
+        This is the reason why <filename class="directory">/opt/qt4</filename>
+        is used as installation prefix instead of <filename
+        class="directory">/opt/qt-&qt4-version;</filename>. To create a 
+        versioned  <application>Qt4</application> directory, you may rename 
+        the directory and create a symlink:
+      </para>
+
+<screen role="root"><userinput>mkdir /opt/qt-&qt4-version;
+ln -sfnv qt-&qt4-version; /opt/qt4</userinput></screen>
+
+      <para>
+        Later on, you may want to install other versions of
+        <application>Qt4</application>. To do that, just remove the symlink
+        and use <filename class="directory">/opt/qt4</filename> as the
+        prefix again. Which version of <application>Qt4</application> you
+        use depends only on where the symlink points.
+      </para>
+    </tip>
+
+  </sect2>
+
   <sect2 role="installation">
     <title>Installation of Qt</title>
 
@@ -147,28 +196,23 @@
       </para>
     </note>
 
-<!-- ==== Method 1 ====== -->
-    <bridgehead renderas="sect3">Method 1: Installing in /usr</bridgehead>
-
     <para>
       Install <application>Qt4</application> into the <filename
       class='directory'>/usr</filename> hierarchy by running the following
       commands:
     </para>
 
-<screen><userinput>export QT4LINK=/usr
-
-./configure -prefix         /usr                 \
-            -bindir         /usr/bin             \
-            -plugindir      /usr/lib/qt4/plugins \
-            -importdir      /usr/lib/qt4/imports \
-            -headerdir      /usr/include/qt4     \
-            -datadir        /usr/share/qt4       \
-            -sysconfdir     /etc/xdg             \
-            -docdir         /usr/share/doc/qt4   \
-            -demosdir       /usr/share/doc/qt4/demos    \
-            -examplesdir    /usr/share/doc/qt4/examples \
-            -translationdir /usr/share/qt4/translations \
+<screen><userinput>./configure -prefix         $QT4PREFIX                        \
+            -sysconfdir     /etc/xdg                          \
+            -bindir         $QT4BINDIR                        \
+            -plugindir      $QT4PREFIX/lib/qt4/plugins        \
+            -importdir      $QT4PREFIX/lib/qt4/imports        \
+            -headerdir      $QT4PREFIX/include/qt4            \
+            -datadir        $QT4PREFIX/share/qt4              \
+            -docdir         $QT4PREFIX/share/doc/qt4          \
+            -translationdir $QT4PREFIX/share/qt4/translations \
+            -demosdir       $QT4PREFIX/share/doc/qt4/demos    \
+            -examplesdir    $QT4PREFIX/share/doc/qt4/examples \
             -confirm-license   \
             -opensource        \
             -release           \
@@ -177,7 +221,6 @@
             -system-sqlite     \
             -no-phonon         \
             -no-phonon-backend \
-            -no-nis            \
             -no-openvg         \
             -nomake demos      \
             -nomake examples   \
@@ -218,68 +261,12 @@ rm -rf /usr/tests</userinput></screen>
 done
 unset file</userinput></screen>
 
-<!-- ==== Method 2 ====== -->
-    <bridgehead renderas="sect3">Method 2: Installing in /opt/qt-&qt4-version;</bridgehead>
-
     <para>
-      This section provides for installing Qt4 almost all of the files in the
-      <filename class="directory">/opt</filename> directory.
+      Install images and create the menu entries 
+      for installed applications.  Be sure that the <envar>QT4PREFIX</envar>
+      variable is defined in root's environment and 
+      as the <systemitem class="username">root</systemitem> user:
     </para>
-
-<screen><userinput>export QT4DIR=/opt/qt-&qt4-version; &amp;&amp;
-export QT4LINK=/opt/qt4 &amp;&amp;
-
-./configure -prefix     $QT4DIR  \
-            -sysconfdir /etc/xdg \
-            -confirm-license     \
-            -opensource          \
-            -release             \
-            -dbus-linked         \
-            -openssl-linked      \
-            -system-sqlite       \
-            -plugin-sql-sqlite   \
-            -no-phonon           \
-            -no-phonon-backend   \
-            -no-nis              \
-            -no-openvg           \
-            -nomake demos        \
-            -nomake examples     \
-            -optimized-qmake     &amp;&amp;
-
-make</userinput></screen>
-
-    <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>make install
-ln -svfn $QT4DIR /opt/qt4</userinput></screen>
-
-    <para>
-      Remove references to the build directory from installed files by
-      running the following command as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>for file in `basename -a -s .prl $QT4DIR/lib/lib*.prl`; do
-       sed -r -e '/^QMAKE_PRL_BUILD_DIR/d'    \
-              -e 's/(QMAKE_PRL_LIBS =).*/\1/' \
-              -i $QT4DIR/lib/${file}.prl
-
-   perl -pi -e "s, -L$PWD/?\S+,,g" $QT4DIR/lib/pkgconfig/${file##lib}.pc
-done
-
-unset file</userinput></screen>
-
-<!-- ==== Common  ====== -->
-    <bridgehead renderas="sect3">Continuing for Both Methods</bridgehead>
-
-      <para>
-        For all methods, install images and create the menu entries 
-        for installed applications.  Be sure that the <envar>QT4LINK</envar>
-        variable is defined in root's environment and 
-        as the <systemitem class="username">root</systemitem> user:
-      </para>
 
 <screen role="root"><userinput>install -v -Dm644 src/gui/dialogs/images/qtlogo-64.png \
                   /usr/share/pixmaps/qt4logo.png       &amp;&amp;
@@ -302,7 +289,7 @@ cat &gt; /usr/share/applications/assistant-qt4.desktop &lt;&lt; EOF
 <literal>[Desktop Entry]
 Name=Qt4 Assistant 
 Comment=Shows Qt4 documentation and examples
-Exec=$QT4LINK/bin/assistant
+Exec=$QT4PREFIX/bin/assistant
 Icon=assistant-qt4.png
 Terminal=false
 Encoding=UTF-8
@@ -314,7 +301,7 @@ cat &gt; /usr/share/applications/designer-qt4.desktop &lt;&lt; EOF
 <literal>[Desktop Entry]
 Name=Qt4 Designer
 Comment=Design GUIs for Qt4 applications
-Exec=$QT4LINK/bin/designer
+Exec=$QT4PREFIX/bin/designer
 Icon=designer-qt4.png
 MimeType=application/x-designer;
 Terminal=false
@@ -327,7 +314,7 @@ cat &gt; /usr/share/applications/linguist-qt4.desktop &lt;&lt; EOF
 <literal>[Desktop Entry]
 Name=Qt4 Linguist 
 Comment=Add translations to Qt4 applications
-Exec=$QT4LINK/bin/linguist
+Exec=$QT4PREFIX/bin/linguist
 Icon=linguist-qt4.png
 MimeType=text/vnd.trolltech.linguist;application/x-linguist;
 Terminal=false
@@ -341,7 +328,7 @@ cat &gt; /usr/share/applications/qdbusviewer-qt4.desktop &lt;&lt; EOF
 Name=Qt4 QDbusViewer 
 GenericName=D-Bus Debugger
 Comment=Debug D-Bus applications
-Exec=$QT4LINK/bin/qdbusviewer
+Exec=$QT4PREFIX/bin/qdbusviewer
 Icon=qdbusviewer-qt4.png
 Terminal=false
 Encoding=UTF-8
@@ -353,7 +340,7 @@ cat &gt; /usr/share/applications/qtconfig-qt4.desktop &lt;&lt; EOF
 <literal>[Desktop Entry]
 Name=Qt4 Config 
 Comment=Configure Qt4 behavior, styles, fonts
-Exec=$QT4LINK/bin/qtconfig
+Exec=$QT4PREFIX/bin/qtconfig
 Icon=qt4logo.png
 Terminal=false
 Encoding=UTF-8
