@@ -6,16 +6,16 @@
 
   <!ENTITY texlive-download-http " ">
   <!ENTITY texlive-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-source.tar.xz">
-  <!ENTITY texlive-md5sum        "09ee265ff51637827559affc7304078c">
-  <!ENTITY texlive-size          "40 MB">
+  <!ENTITY texlive-md5sum        "e526bd57118c4c4d5e9d525d20b5ac02">
+  <!ENTITY texlive-size          "44 MB">
 
-  <!ENTITY texlive-buildsize      "3.6 GB including the additional download">
-  <!ENTITY texlive-time           "8.2 SBU including the additional download">
+  <!ENTITY texlive-buildsize      "4.0 GB including the additional download">
+  <!ENTITY texlive-time           "7.2 SBU including the additional download (+0.3 SBU for the tests)">
 
   <!ENTITY texlive-texmf-download-http " ">
-  <!ENTITY texlive-texmf-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-texmf.tar.xz">
-  <!ENTITY texlive-texmf-md5sum        "645a6f1d3a0ef4a9c279dae02588eab7">
-  <!ENTITY texlive-texmf-size          "1.7 GB">
+  <!ENTITY texlive-texmf-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texmf-version;-texmf.tar.xz">
+  <!ENTITY texlive-texmf-md5sum        "488c1e36ab42841b122cfd074ac42fa1">
+  <!ENTITY texlive-texmf-size          "1.8 GB">
 
 ]>
 
@@ -137,9 +137,30 @@
       Install TeX Live by running the following commands:
     </para>
 
-<!-- the configure switches should be identical to those in the
- first part of texlive itself -->
-<screen><userinput>TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
+    <para>The shared libraries will be installed into a texlive directory.
+    As the <systemitem class="username">root</systemitem> user, add it to
+    your <filename>/etc/ld.so.conf</filename>:</para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; EOF
+<literal># Begin texlive &texlive-year; addition
+
+/opt/texlive/&texlive-year;/lib
+
+# End texlive &texlive-year; addition</literal>
+EOF</userinput></screen>
+
+    <note>
+      <para>
+        From 2015 onwards, a successful install requires some texlive
+        commands to be run as the root user, so we will export the TEXARCH
+        variable to let <systemitem class="username">root</systemitem> use it.
+      </para>
+    </note>
+
+    <para>
+      Now, as a normal user:
+    </para>
+<screen><userinput>export TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
 mkdir texlive-build &amp;&amp;
 cd texlive-build    &amp;&amp;
 
@@ -147,49 +168,72 @@ cd texlive-build    &amp;&amp;
     --prefix=/opt/texlive/&texlive-year;                      \
     --bindir=/opt/texlive/&texlive-year;/bin/$TEXARCH         \
     --datarootdir=/opt/texlive/&texlive-year;                 \
-    --includedir=/usr/include                       \
+    --includedir=/opt/texlive/&texlive-year;/include          \
     --infodir=/opt/texlive/&texlive-year;/texmf-dist/doc/info \
-    --libdir=/usr/lib                               \
+    --libdir=/opt/texlive/&texlive-year;/lib                  \
     --mandir=/opt/texlive/&texlive-year;/texmf-dist/doc/man   \
     --disable-native-texlive-build                  \
     --disable-static --enable-shared                \
     --with-system-cairo                             \
     --with-system-fontconfig                        \
     --with-system-freetype2                         \
+    --with-system-gmp                               \
     --with-system-graphite2                         \
     --with-system-harfbuzz                          \
     --with-system-icu                               \
     --with-system-libgs                             \
     --with-system-libpaper                          \
     --with-system-libpng                            \
+    --with-system-mpfr                              \
     --with-system-pixman                            \
     --with-system-poppler                           \
     --with-system-xpdf                              \
     --with-system-zlib                              \
     --with-banner-add=" - BLFS" &amp;&amp;
-unset TEXARCH &amp;&amp;
 
 make</userinput></screen>
 
-    <para>To test the results, issue: <command>make -k check</command>
+    <para>To test the results, issue: <command>make check</command>
     One test in each of web2c, dvipng and ttf2pk2 will SKIP because kpathsea
     has not yet been installed.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem>
     user:</para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>make install-strip &amp;&amp;
 make texlinks</userinput></screen>
 
-    <para>And now, install the additional files as the
+    <note>
+      <para>
+        Only run <command>make texlinks</command> once. If it is rerun,
+        it can change all the program symlinks so that they point to
+        themselves and are useless.
+      </para>
+    </note>
+
+    <para>Now install the additional files as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>mkdir -pv /opt/texlive/&texlive-year; &amp;&amp;
-tar -xf ../../texlive-&texlive-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1</userinput></screen>
+<screen role="root"><userinput>tar -xf ../../texlive-&texmf-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1</userinput></screen>
+
+    <para>Still as the <systemitem class="username">root</systemitem> user,
+    ensure that the programs will be able to find <filename
+    class="libraryfile">libkpathsea</filename>, install a couple of essential
+    perl modules supplied in the source, fix up the PATH so that some of these
+    programs can be run, and initialise the new system (the commands
+    <command>fmtutil-sys --all</command> and <command>mtxrun --generate</command>
+    will produce a <emphasis>lot</emphasis> of output):</para>
+
+<screen role="root"><userinput>ldconfig &amp;&amp;
+mkdir -pv /opt/texlive/${TEXYEAR}/tlpkg/TeXLive/ &amp;&amp;
+install -v -m444 ../texk/tests/TeXLive/* /opt/texlive/${TEXYEAR}/tlpkg/TeXLive/ &amp;&amp;
+mktexlsr &amp;&amp;
+fmtutil-sys --all &amp;&amp;
+mtxrun --generate</userinput></screen>
 
     <para>You can now proceed to <xref linkend="asymptote"/>,
     <xref linkend="biber"/> and / or <xref linkend="xindy"/> if you
-    wish to complete your texlive installation.</para>
+    wish to install them.</para>
 
   </sect2>
 
@@ -211,13 +255,6 @@ tar -xf ../../texlive-&texlive-version;-texmf.tar.xz -C /opt/texlive/&texlive-ye
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/tex-system.xml"/>
 
-<!--    <para>
-      <parameter>\-\-with-system-xpdf</parameter>: Uniquely, this parameter has
-      a non-standard meaning, it tells <command>configure</command> to use the
-      system-installed <application>poppler</application> headers and library.
-      Again, omit this if you have not installed
-      <application>poppler</application>.
-    </para> -->
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/tex-xpdf.xml"/>
 
@@ -231,11 +268,35 @@ tar -xf ../../texlive-&texlive-version;-texmf.tar.xz -C /opt/texlive/&texlive-ye
       practice, several of the targets such as <command>xetex</command> are now
       separate binaries and for these it will report "file already exists".
     </para>
+
     <para>
-      <parameter>tar -xf texlive-&texlive-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1</parameter>:
+      <parameter>tar -xf texlive-&texmf-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1</parameter>:
       the tarball contains the files for the texmf-dist directory, and because
       of its size we do not want to waste time and space untarring it and then
       copying the files.
+    </para>
+
+    <para>
+      <parameter>install -v -m444 ../texk/tests/TeXLive/*
+      /opt/texlive/${TEXYEAR}/tlpkg/TeXLive/</parameter>: This puts the perl
+      modules <filename>TLConfig.pm</filename> and <filename>TLUtils.pm</filename>
+      into the directory where the binary installer puts them - it is at the
+      start of the perl @INC@ PATH within texlive when installed using the above
+      configure switches. Without these modules, texlive is unusable.
+    </para>
+
+    <para>
+      <parameter>mktexlsr</parameter>: Create an <filename>ls-R</filename> file
+      which lists what was installed - this is used by kpathsea to find files.
+    </para>
+
+    <para>
+      <parameter>fmtutil-sys --all</parameter>: This initialises the TeX formats,
+      Metafont bases and Metapost mems.
+    </para>
+
+    <para>
+      <parameter>mtxrun --generate</parameter>: This initialise the ConTeXt system.
     </para>
 
   </sect2>
@@ -250,9 +311,10 @@ tar -xf ../../texlive-&texlive-version;-texmf.tar.xz -C /opt/texlive/&texlive-ye
 
       <seglistitem>
         <seg>Over 300 binaries and symlinks to scripts</seg>
-        <seg>libkpathsea.so, libptexenc.so</seg>
-        <seg>/opt/texlive/&texlive-year;/bin, /opt/texlive/&texlive-year;/texmf-dist,
-        /usr/include/kpathsea, /usr/include/ptexenc</seg>
+        <seg>libkpathsea.so, libptexenc.so, libsynctex.so, libtexlua52.so,
+        libtexluajit.so</seg>
+        <seg>/opt/texlive/&texlive-year;/bin, /opt/texlive/&texlive-year;/include,
+        /opt/texlive/&texlive-year;/lib, /opt/texlive/&texlive-year;/texmf-dist</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -293,6 +355,42 @@ tar -xf ../../texlive-&texlive-version;-texmf.tar.xz -C /opt/texlive/&texlive-ye
           </para>
           <indexterm zone="texlive libptexenc">
             <primary sortas="c-libptexenc">libptexenc.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libsynctex">
+        <term><filename class="libraryfile">libsynctex.so</filename></term>
+        <listitem>
+          <para>
+            is the SyncTeX (Synchronize TeXnology) parser library.
+          </para>
+          <indexterm zone="texlive libsynctex">
+            <primary sortas="c-libsynctex">libsynctex.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libtexlua52">
+        <term><filename class="libraryfile">libtexlua52.so</filename></term>
+        <listitem>
+          <para>
+            provides Lua 5.2, modified for use with LuaTeX.
+          </para>
+          <indexterm zone="texlive libtexlua52">
+            <primary sortas="c-libtexlua52">libtexlua52.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libtexluajit">
+        <term><filename class="libraryfile">libtexluajit.so</filename></term>
+        <listitem>
+          <para>
+            provides LuaJIT, modified for use with LuaJITTeX.
+          </para>
+          <indexterm zone="texlive libtexluajit">
+            <primary sortas="c-libtexluajit">libtexluajit.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
