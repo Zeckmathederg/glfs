@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../general.ent">
+  %general-entities;
+
+  <!ENTITY phonon-download-http "&kde-download-http;phonon/&phonon-version;/src/phonon-&phonon-version;.tar.xz">
+  <!ENTITY phonon-download-ftp  "&kde-download-ftp;phonon/&phonon-version;/src/phonon-&phonon-version;.tar.xz">
+  <!ENTITY phonon-md5sum        "88bb9867261803eed61ff53a7c026338">
+  <!ENTITY phonon-size          "316 KB">
+  <!ENTITY phonon-buildsize     "11.7 MB">
+  <!ENTITY phonon-time          "0.4 SBU">
+]>
+
+<sect1 id="phonon" xreflabel="phonon-&phonon-version;">
+  <?dbhtml filename="phonon.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Phonon-&phonon-version;</title>
+
+  <indexterm zone="phonon">
+    <primary sortas="a-phonon">phonon</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Phonon</title>
+
+    <para><application>Phonon</application> is the multimedia API for KDE.
+    It replaces the old <application>aRts</application> package.
+    Phonon needs either the GStreamer or VLC backend.</para>
+
+    &lfs77_checked; &gcc5_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP): <ulink url="&phonon-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download (FTP): <ulink url="&phonon-download-ftp;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: &phonon-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &phonon-size;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated disk space required: &phonon-buildsize;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated build time: &phonon-time;</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Phonon Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="cmake"/>,
+      <xref linkend="glib2"/>, and
+      <xref linkend="qt4"/> or <xref linkend="qt5"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="pulseaudio"/> and
+      <ulink url="http://projects.kde.org/projects/kdesupport/libqzeitgeist/">QZeitgeist</ulink>
+    </para>
+
+    <para condition="html" role="usernotes">User Notes:
+    <ulink url="&blfs-wiki;/phonon"/></para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Phonon</title>
+
+    <para>The <application>Phonon</application> libraries are used by both KDE4
+    and KF5, but they must be linked to <xref linkend="qt4"/> and <xref
+    linkend="qt5"/> respectively.  The two versions to not conflict with each
+    other.</para>
+
+    <para>If building for KDE4, make sure <xref linkend="qt4"/> has been built
+    without the bundled <application>Phonon</application> library. This package
+    provides a better implementation.</para>
+
+    <para>Install the qt4 based version of <application>Phonon</application> by
+    running the following commands:</para>
+
+<screen><userinput>source /usr/bin/setqt4 &amp;&amp;
+
+sed -i "s:BSD_SOURCE:DEFAULT_SOURCE:g" cmake/FindPhononInternal.cmake &amp;&amp;
+
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr                                \
+      -DCMAKE_BUILD_TYPE=Release                                 \
+      -DCMAKE_INSTALL_LIBDIR=lib                                 \
+      -DPHONON_INSTALL_QT_EXTENSIONS_INTO_SYSTEM_QT=FALSE        \
+      -DDBUS_INTERFACES_INSTALL_DIR=/usr/share/dbus-1/interfaces \
+      -Wno-dev .. &amp;&amp;
+make</userinput></screen>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>Install qt5 based version of<application>Phonon</application> by
+    running the following commands:</para>
+
+    <note><para>If the extracted files of the package are still present from a
+    qt4 version of the build, be sure to remove it and extract a fresh copy of
+    the source files.</para></note>
+
+<screen><userinput>source /usr/bin/setqt5 &amp;&amp;
+
+sed -i "s:BSD_SOURCE:DEFAULT_SOURCE:g" cmake/FindPhononInternal.cmake &amp;&amp;
+
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DCMAKE_INSTALL_LIBDIR=lib     \
+      -D-DPHONON_BUILD_PHONON4QT5=ON \
+      -D__KDE_HAVE_GCC_VISIBILITY=NO \
+      -Wno-dev .. &amp;&amp;
+make</userinput></screen>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>sed ... cmake/FindPhononInternal.cmake</command>: Silence
+      a lot of warnings caused by the latest toolchain.
+    </para>
+
+    <para>
+      <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is used
+      to apply higher level of the compiler optimizations.
+    </para>
+
+    <para>
+      <parameter>-DPHONON_INSTALL_QT_EXTENSIONS_INTO_SYSTEM_QT=FALSE</parameter>:
+      This switch ensures that the plugins and mkspecs files get installed in
+      the correct location.
+    </para>
+
+    <para>
+     <parameter>-DDBUS_INTERFACES_INSTALL_DIR=/usr/share/dbus-1/interfaces</parameter>:
+      This switch sets the correct installation path for the 
+      <application>D-Bus</application> interfaces file.
+    </para>
+
+    <para>
+     <parameter>-DPHONON_BUILD_PHONON4QT5=ON</parameter>: This switch is used to 
+     ensure that Qt5 version of the library is built even if Qt4 is present. 
+    </para>
+
+    <para>
+     <parameter>-D__KDE_HAVE_GCC_VISIBILITY=NO</parameter>: This switch is used to 
+     disable a check that would cause cmake to fail when using Qt-5.4.2
+     and later.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          None
+        </seg>
+        <seg>
+          libphonon.so,
+          libphonon4qt5.so
+          libphononexperimental.so, and
+          libphonon4qt5experimental.so
+        </seg>
+        <seg>
+          /usr/include/KDE/Phonon,
+          /usr/include/phonon,
+          /usr/include/phonon4qt5,
+          /usr/lib/cmake/phonon,
+          /usr/lib/cmake/phonon4qt5,
+          /usr/share/phonon. amd 
+          /usr/share/phonon4qt5
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+  </sect2>
+
+</sect1>

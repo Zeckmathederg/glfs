@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  <!ENTITY % general-entities SYSTEM "../general.ent">
   %general-entities;
 
   <!ENTITY phonon-backend-gstreamer-download-http "&kde-download-http;phonon/phonon-backend-gstreamer/&phonon-backend-gstreamer-version;/src/phonon-backend-gstreamer-&phonon-backend-gstreamer-version;.tar.xz">
@@ -29,8 +29,11 @@
   <sect2 role="package">
     <title>Introduction to the Phonon-backend-gstreamer</title>
 
-    <para>This package provides a <application>Phonon</application> backend which
-    utilizes the <application>GStreamer</application> media framework.</para>
+    <para>This package provides a <application>Phonon</application> backend
+    which utilizes the <application>GStreamer</application> media framework.
+    Its library is used by both KDE4 and KF5, but they must be linked to <xref
+    linkend="qt4"/> and  <xref linkend="qt5"/> respectively. The two versions
+    do not conflict with each other. </para>
 
     &lfs77_checked; &gcc5_checked;
 
@@ -81,22 +84,39 @@
   <sect2 role="installation">
     <title>Installation of Phonon-backend-gstreamer</title>
 
-    <para>Install <application>Phonon-backend-gstreamer</application> by
-    running the following commands:</para>
+    <para>Install the qt4 based version of
+    <application>Phonon-backend-gstreamer</application> by running the
+    following commands:</para>
 
-    <note>
-      <para>
-        If you have both Qt4 and Qt5 installed, be sure to run
-        <userinput>source setqt4</userinput> before installing this package.
-      </para>
-    </note> 
+<screen><userinput>source /usr/bin/setqt4 &amp;&amp;
 
-<screen><userinput>mkdir build &amp;&amp;
+mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-cmake -DCMAKE_INSTALL_PREFIX=&kde-dir; \
-      -DCMAKE_INSTALL_LIBDIR=lib         \
-      -DCMAKE_BUILD_TYPE=Release         \
+cmake -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_INSTALL_LIBDIR=lib  \
+      -DCMAKE_BUILD_TYPE=Release  \
+      -Wno-dev .. &amp;&amp;
+make</userinput></screen>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>Install the qt5 based version of
+    <application>Phonon-backend-gstreamer</application> by running the
+    following commands:</para>
+
+<screen><userinput>source /usr/bin/setqt5 &amp;&amp;
+
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr    \
+      -DCMAKE_INSTALL_LIBDIR=lib     \
+      -DCMAKE_BUILD_TYPE=Release     \
+      -DPHONON_BUILD_PHONON4QT5=ON   \
+      -D__KDE_HAVE_GCC_VISIBILITY=NO \
       -Wno-dev .. &amp;&amp;
 make</userinput></screen>
 
@@ -112,6 +132,16 @@ make</userinput></screen>
     <para><option>-DCMAKE_BUILD_TYPE=Release</option>: This switch is used to
     apply higher level of compiler optimizations.</para>
 
+    <para><option>-DCMAKE_INSTALL_LIBDIR=lib</option>: This switch is used to
+     get libraries to install to /usr/lib instead of /usr/lib64 on a 64 bit 
+     system.</para>
+
+    <para><option>-DPHONON_BUILD_PHONON4QT5=ON</option>: This switch is used to
+    ensure that Qt5 version of the backend is built even if Qt4 is present.</para>
+
+    <para><option>-D__KDE_HAVE_GCC_VISIBILITY=NO</option>: This switch is used to
+    disable a check that would cause cmake to fail when using Qt-5.4.2 or later.</para>
+
   </sect2>
   
   <sect2 role="content">
@@ -124,8 +154,9 @@ make</userinput></screen>
 
       <seglistitem>
         <seg>none</seg>
-        <seg>phonon_gstreamer.so</seg>
-        <seg>/usr/lib/kde4/plugins/phonon_backend and 
+        <seg>phonon_gstreamer.so (two versions in different directories)</seg>
+        <seg>/usr/lib/kde4/plugins/phonon_backend,
+             /usr/lib/qt5/plugins/phonon4qt5_backend, and
              /usr/share/kde4/services/phononbackends</seg>
       </seglistitem>
     </segmentedlist>
