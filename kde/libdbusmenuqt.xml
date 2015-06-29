@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  <!ENTITY % general-entities SYSTEM "../general.ent">
   %general-entities;
 
-  <!ENTITY libdbusmenu-qt-download-http "http://launchpad.net/libdbusmenu-qt/trunk/&libdbusmenu-qt-version;/+download/libdbusmenu-qt-&libdbusmenu-qt-version;.tar.bz2">
+  <!ENTITY libdbusmenu-qt-download-http "http://anduin.linuxfromscratch.org/sources/other//libdbusmenu-qt-&libdbusmenu-qt-version;.tar.xz">
   <!ENTITY libdbusmenu-qt-download-ftp  " ">
-  <!ENTITY libdbusmenu-qt-md5sum        "9a49484927669cd2ec91b3bf9ba8b79e">
-  <!ENTITY libdbusmenu-qt-size          "37 KB">
-  <!ENTITY libdbusmenu-qt-buildsize     "3.8 MB">
-  <!ENTITY libdbusmenu-qt-time          "0.3 SBU">
+  <!ENTITY libdbusmenu-qt-md5sum        "d21a1f5569e0bc9c9245b4f71761c62f">
+  <!ENTITY libdbusmenu-qt-size          "40 KB">
+  <!ENTITY libdbusmenu-qt-buildsize     "2.6 MB">
+  <!ENTITY libdbusmenu-qt-time          "0.2 SBU">
 ]>
 
 <sect1 id="libdbusmenu-qt" xreflabel="libdbusmenu-qt-&libdbusmenu-qt-version;">
@@ -30,7 +30,10 @@
     <title>Introduction to libdbusmenu-qt</title>
 
     <para>This library provides a <application>Qt</application> implementation
-    of the DBusMenu specs, which goal is to expose menus on DBus.</para>
+    of the DBusMenu specs, which goal is to expose menus on DBus.  Its
+    libraries are used by both KDE4 and KF5, but they must be linked to <xref
+    linkend='qt4'/> and <xref linkend='qt5'/> respectively. The two versions to
+    not conflict with each other. </para>
 
     &lfs77_checked; &gcc5_checked;
 
@@ -56,20 +59,11 @@
       </listitem>
     </itemizedlist>
 
-<!--
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing='compact'>
-      <listitem>
-        <para>Required patch: <ulink
-        url="&patch-root;/libdbusmenu-qt-&libdbusmenu-qt-version;-fixes-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
--->
     <bridgehead renderas="sect3">libdbusmenu-qt Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-    <xref linkend="qt4"/>
+    <xref linkend="qt4"/> or <xref linkend="qt5"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -86,7 +80,8 @@
   <sect2 role="installation">
     <title>Installation of libdbusmenu-qt</title>
 
-    <para>Install <application>libdbusmenu-qt</application> by running the following
+    <para>Install the qt4 based version of
+    <application>libdbusmenu-qt</application> by running the following
     commands:</para>
 
 <screen><userinput>mkdir build &amp;&amp;
@@ -94,12 +89,38 @@ cd    build &amp;&amp;
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DCMAKE_BUILD_TYPE=Release  \
-      -DWITH_DOC=OFF .. &amp;&amp;
+      -DUSE_QT4=TRUE              \
+      -DWITH_DOC=OFF              \
+      -Wno-dev .. &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results
     (<ulink url="http://qjson.sourceforge.net/">QJson</ulink> must be installed),
-    issue: <command>make -k check</command>.</para>
+    issue: <command>make -k check</command>. One test is known to fail.</para>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>Install the qt5 based version of
+    <application>libdbusmenu-qt</application> by running the following
+    commands:</para>
+
+    <note><para>If building both versions of this application, be sure
+    to remove the previous version of the source and reextract them from
+    the original tar file.</para></note>
+
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release  \
+      -DWITH_DOC=OFF              \
+      -Wno-dev .. &amp;&amp;
+make</userinput></screen>
+
+    <para>The qt5 version of this package does not have a working test suite.
+    </para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -113,6 +134,9 @@ make</userinput></screen>
     <para><option>-DCMAKE_BUILD_TYPE=Release</option>: This switch is used to
     build without debugging symbols and apply a higher level of compiler 
     optimizations.</para>
+
+    <para><option>-DUSE_QT4=TRUE</option>: This switch is used to ensure that
+    Qt4 version of the library is built even if Qt5 is present.</para>
 
     <para><option>-DWITH_DOC=OFF</option>: This option is set to avoid building
     the API documentation. Omit it if you have <application>doxygen</application>
@@ -130,8 +154,9 @@ make</userinput></screen>
 
       <seglistitem>
         <seg>None</seg>
-        <seg>libdbusmenu-qt.so</seg>
-        <seg>&qt4-dir;/include/dbusmenu-qt</seg>
+        <seg>libdbusmenu-qt.so and libdbusmenu-qt5.so</seg>
+        <seg>/usr/include/dbusmenu-qt and
+             /usr/include/dbusmenu-qt5</seg>
       </seglistitem>
     </segmentedlist>
 <!--
