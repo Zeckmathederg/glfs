@@ -35,7 +35,7 @@
 
     <para>
       The <application>SDDM</application> package contains a lightweight
-      display manager written in <application>Qt</application> and QML.
+      display manager based upon <application>Qt</application> and QML.
     </para>
 
     &lfs77_checked; &gcc5_checked;
@@ -106,15 +106,14 @@
     <title>Installation of SDDM</title>
 
     <para>
-      It is recommended to have a dedicated user and group to take
+      First, create a dedicated user and group to take
       control of the <command>sddm</command> daemon after it is
       started. Issue the following commands as the
       <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>groupadd -g 64 sddm &amp;&amp;
-useradd -c "SDDM Daemon Owner" -d /var/lib/sddm -u 64 \
-        -g sddm -s /bin/false sddm</userinput></screen>
+useradd -c "SDDM Daemon" -d /var/lib/sddm -u 64 -g sddm -s /bin/false sddm</userinput></screen>
 
     <para>
       Install <application>SDDM</application> by running the following
@@ -149,7 +148,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
 
     <para>
       <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is used to
-      apply higher level of the compiler optimizations.
+      apply additional compiler optimizations.
     </para>
 
     <para>
@@ -161,6 +160,22 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
 
   <sect2 role="configuration">
     <title>Configuring SDDM</title>
+
+    <sect3 id="sddm-bootscript">
+      <title>Boot Script</title>
+
+      <para>
+        Install the <filename>/etc/rc.d/init.d/sddm</filename> init script from
+        the <xref linkend="bootscripts"/> package.
+      </para>
+
+      <indexterm zone="sddm sddm-bootscript">
+        <primary sortas="f-sddm">sddm</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-sddm</userinput></screen>
+
+    </sect3>
 
     <sect3>
       <title>Linux PAM Configuration</title>
@@ -190,6 +205,7 @@ session  include        system-session
 
 # End /etc/pam.d/sddm</literal>
 EOF
+
 cat &gt; /etc/pam.d/sddm-autologin &lt;&lt; "EOF" &amp;&amp;
 <literal># Begin /etc/pam.d/sddm-autologin
 
@@ -208,6 +224,7 @@ session  include        system-session
 
 # End /etc/pam.d/sddm-autologin</literal>
 EOF
+
 cat &gt; /etc/pam.d/sddm-greeter &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/sddm-greeter
 
@@ -228,30 +245,27 @@ EOF</userinput></screen>
       <title>Starting sddm</title>
 
       <para>
-        You can manually start <command>sddm</command>, e.g, if the bootscript
-        has been installed, by running, as <systemitem
-        class="username">root</systemitem> user:
+        If the sddm bootscript has been installed, start it by running, as
+        <systemitem class="username">root</systemitem> user:
       </para>
 
 <screen role="root"><userinput>/etc/rc.d/init.d/sddm start</userinput></screen>
 
       <para>
-        By definition, X should be executed at runlevel 5, consequently, the
-        same is true for <application>sddm</application>. However, BLFS default
-        runlevel is 3. Changing to runlevel 5, from the terminal, as
-        <systemitem class="username">root</systemitem> user, makes the
-        <command>sddm</command> bootscript to be executed, obtaining the
-        greeter screen:
+        By convertion, X should be executed at runlevel 5, consequently, the
+        same is true for <application>sddm</application>. However, LFS default
+        runlevel is 3. Changing to runlevel 5, from a console terminal, as
+        <systemitem class="username">root</systemitem> user, starts the
+        <command>sddm</command> bootscript, bringing up the greeter screen:
       </para>
 
 <screen role="root"><userinput>init 5</userinput></screen>
 
       <para>
-        In order to permanently set the default to 5, obtaining the
-        <command>sddm</command> greeter screen automatically, you can modify
-        <filename>/etc/inittab</filename>, as <systemitem
-        class="username">root</systemitem> user (the instructions below also
-        make a backup, so you can easily revert the modification):
+        In order to permanently set the default to 5, starting the
+        <command>sddm</command> greeter screen automatically, modify
+        <filename>/etc/inittab</filename>.  As the <systemitem
+        class="username">root</systemitem> user:
       </para>
 
 <screen role="root"><userinput>cp -v /etc/inittab{,-orig} &amp;&amp;
@@ -278,7 +292,7 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
         </seg>
         <seg>
           $QT5DIR/qml/SddmComponents,
-          /usr/share/sddm and
+          /usr/share/sddm, and
           /var/lib/sddm
         </seg>
       </seglistitem>
@@ -294,7 +308,7 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
         <listitem>
           <para>
             is a display and login manager based on
-            <application>Qt</application> technologies.
+            <application>Qt</application> libraries.
           </para>
           <indexterm zone="sddm sddm-prog">
             <primary sortas="b-sddm">sddm</primary>
@@ -307,8 +321,9 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
         <listitem>
           <para>
             is an auxiliary process that displays the greeter,
-            a graphical user interface to perform the
-            authentication and select the session to run.
+            a graphical user interface that performs user
+            authentication and initiates the selected window manager
+            or display environment.
           </para>
           <indexterm zone="sddm sddm-greeter">
             <primary sortas="b-sddm-greeter">sddm-greeter</primary>
