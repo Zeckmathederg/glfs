@@ -12,7 +12,7 @@
   <!ENTITY sddm-download-ftp  " ">
   <!ENTITY sddm-md5sum        "e110a7683867400dc9484d4744fd41dd">
   <!ENTITY sddm-size          "4.6 KB">
-  <!ENTITY sddm-buildsize     "19 MB">
+  <!ENTITY sddm-buildsize     "18 MB">
   <!ENTITY sddm-time          "0.6 SBU ">
 ]>
 
@@ -84,12 +84,14 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="linux-pam"/>
+      <xref linkend="linux-pam"/> and
+      <xref linkend="upower"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <ulink url="http://sourceforge.net/projects/docutils/">Docutils</ulink>
+      (for the man pages)
     </para>
 
     <bridgehead renderas="sect4">Runtime Dependencies</bridgehead>
@@ -116,6 +118,16 @@
 useradd -c "SDDM Daemon" -d /var/lib/sddm -u 64 -g sddm -s /bin/false sddm</userinput></screen>
 
     <para>
+      By default, <application>SDDM</application> starts the X server with the
+      parameter <parameter>-nolisten tcp</parameter>. If you need to remotely
+      connect to X, this is undesirable. You can optionally remove this
+      parameter by running:
+    </para>
+
+<screen><userinput>sed -e '/nolisten/d' \
+    -i src/daemon/XorgDisplayServer.cpp</userinput></screen>
+
+    <para>
       Install <application>SDDM</application> by running the following
       commands:
     </para>
@@ -126,7 +138,6 @@ cd    build &amp;&amp;
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DCMAKE_BUILD_TYPE=Release  \
       -DENABLE_JOURNALD=OFF       \
-      -DBUILD_MAN_PAGES=ON
       -Wno-dev .. &amp;&amp;
 make</userinput></screen>
 
@@ -156,10 +167,30 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
       BLFS does not support <application>systemd</application>.
     </para>
 
+    <para>
+      <option>-DBUILD_MAN_PAGES=ON</option>: This switch may be used if you want
+      the man pages to be installed. Notice that you need
+      <ulink url="http://sourceforge.net/projects/docutils/">Docutils</ulink>
+      to build them.
+    </para>
+
   </sect2>
 
   <sect2 role="configuration">
     <title>Configuring SDDM</title>
+
+    <sect3 id="sddm-config">
+      <title>Config File</title>
+
+      <para>
+        /etc/sddm.conf
+      </para>
+
+      <indexterm zone="sddm sddm-config">
+        <primary sortas="e-sddm.conf">/etc/sddm.conf</primary>
+      </indexterm>
+
+    </sect3>
 
     <sect3 id="sddm-bootscript">
       <title>Boot Script</title>
@@ -252,7 +283,7 @@ EOF</userinput></screen>
 <screen role="root"><userinput>/etc/rc.d/init.d/sddm start</userinput></screen>
 
       <para>
-        By convertion, X should be executed at runlevel 5, consequently, the
+        By convention, X should be executed at runlevel 5, consequently, the
         same is true for <application>sddm</application>. However, LFS default
         runlevel is 3. Changing to runlevel 5, from a console terminal, as
         <systemitem class="username">root</systemitem> user, starts the
@@ -270,6 +301,92 @@ EOF</userinput></screen>
 
 <screen role="root"><userinput>cp -v /etc/inittab{,-orig} &amp;&amp;
 sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="sddm-sessions">
+      <title>Available Sessions</title>
+
+      <para>
+        The greeter offers a list of available sessions,
+        depending on the Window Managers and Desktop Environments installed. The
+        list includes sessions which have a correspoding
+        <filename>.desktop</filename> file installed under
+        <filename class="directory">/usr/share/xsessions</filename>. Most of the
+        Window Managers and Desktop Environments automatically provide those
+        files, but if necessary, you may include a custom one.
+      </para>
+
+    </sect3>
+
+    <sect3 id="sddm-themes">
+      <title>Themes</title>
+
+      <para>
+        Four themes are installed at <filename class="directory">
+        /usr/share/sddm/themes</filename>:
+        circles,
+        elarun,
+        maldives, and
+        maui.
+        The default theme is <quote>maui</quote>. You can install other themes
+        in that directory. In order to change the theme, you need to edit
+        <filename>/etc/sddm.conf</filename>, which is not installed by default.
+        Before proceeding, make a backup of this file, if there is one already
+        installed. In order to generate <filename>/etc/sddm.conf</filename>,
+        issue, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>sddm --example-config > /etc/sddm.conf</userinput></screen>
+
+      <para>
+        Now, using your preferred text editor, change the default
+        <quote>maui</quote> theme, replacing <quote>Current=maui</quote> by
+        <quote>Current=<replaceable>&lt;insert new theme name here&gt;</replaceable></quote>,
+        e.g. <quote>Current=maldives</quote>.
+      </para>
+
+      <para>
+        In order to see the theme without leaving the session, issue:
+      </para>
+
+<screen><userinput>sddm-greeter --test-mode --theme <replaceable>&lt;theme path&gt;</replaceable></userinput></screen>
+
+    </sect3>
+
+    <sect3 id="sddm-Issues">
+      <title>Known Issues</title>
+
+      <para>
+        This applications works well, but there are issues. You find the
+        mainstream known issues at
+        <ulink url="https://github.com/sddm/sddm/issues">Issues</ulink>. The BLFS development team have found some issues.
+      </para>
+
+      <para>
+        Keyboard selection: the greeter shows a double question mark or the
+        wrong keyboard. When you start to type the password or user name
+        (depending on the theme, only password), magically the right keyboard
+        selection appears. Optionally a workaround is to include it in
+        <command>/usr/share/sddm/scripts/Xsetup</command> script, as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>echo "setxkbmap -option <replaceable>&lt;your keyboard option&gt;</replaceable>" &gt;&gt; /usr/share/sddm/scripts/Xsetup</userinput></screen>
+
+      <para>
+        Dircolors: the <filename>/etc/dircolors</filename> file is not
+        honoured. Particularly, the compressed files are not displayed in red
+        colour. If this happens, a workaround is to issue, as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>echo "source /etc/profile.d/dircolors.sh" &gt;&gt; /etc/bashrc</userinput></screen>
+
+      <para>
+        It has been reported that this package does not work with Xorg installed
+        in in prefix other than <filename class="directory">/usr</filename>.
+      </para>
 
     </sect3>
 
