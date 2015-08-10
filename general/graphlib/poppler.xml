@@ -4,20 +4,21 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY poppler-download-http
-           "http://poppler.freedesktop.org/poppler-&poppler-version;.tar.xz">
+  <!ENTITY poppler-download-http "http://poppler.freedesktop.org/poppler-&poppler-version;.tar.xz">
   <!ENTITY poppler-download-ftp       " ">
-  <!ENTITY poppler-md5sum             "7d788f85bca1c03d71773af0b902e203">
-  <!ENTITY poppler-size               "1.5 MB">
-  <!ENTITY poppler-buildsize          "185 MB (building Qt4 and 5 libraries, add'l 63 MB for tests)">
-  <!ENTITY poppler-time               "1.4 SBU (building Qt4 and 5 libraries, add'l 0.4 SBU for tests)">
+  <!ENTITY poppler-md5sum             "561ef4454bfabe59ef1b8b9cd4aa4c4b">
+  <!ENTITY poppler-size               "1.6 MB (additional 9 MB for the test suite)">
+  <!ENTITY poppler-buildsize          "64 MB (with Qt4 and Qt5 libraries, and tests)">
+  <!ENTITY poppler-time               "1.5 SBU (with Qt4 and Qt5 libraries, and tests)">
+
 
   <!ENTITY poppler-data-version       "0.4.7">
 
-  <!ENTITY poppler-data-download-http
-           "http://poppler.freedesktop.org/poppler-data-&poppler-data-version;.tar.gz">
+  <!ENTITY poppler-data-download-http "http://poppler.freedesktop.org/poppler-data-&poppler-data-version;.tar.gz">
   <!ENTITY poppler-data-md5sum        "636a8f2b9f6df9e7ced8ec0946961eaf">
   <!ENTITY poppler-data-size          "4.0 MB">
+  <!ENTITY poppler-data-buildsize     "24 MB">
+  <!ENTITY poppler-data-time          "less than 0.1 SBU">
 ]>
 
 <sect1 id="poppler" xreflabel="Poppler-&poppler-version;">
@@ -98,6 +99,16 @@
           Download size: &poppler-data-size;
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &poppler-data-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &poppler-data-time;
+        </para>
+      </listitem>
     </itemizedlist>
 
     <para>
@@ -147,8 +158,8 @@
     <title>Installation of Poppler</title>
 
     <para>
-      In order to optionally run the test suite, an additional download of about
-      9 MB using <xref linkend="git"/> is necessary.
+      In order to optionally run the test suite, an additional download using
+      <xref linkend="git"/> is necessary.
     </para>
 
 <screen><userinput>rm -rf testfiles &amp;&amp;
@@ -160,13 +171,13 @@ git clone git://git.freedesktop.org/git/poppler/test testfiles</userinput></scre
       Qt4 or Qt5. If you have only one, no modification is necessary. If both
       are installed, and you wish support for only one, before executing the
       <command>configure</command> command given below, use this command to
-      select Qt4: 
-      
-      <screen><userinput>source /usr/bin/setqt4</userinput></screen> 
+      select Qt4:
+
+      <screen><userinput>source /usr/bin/setqt4</userinput></screen>
 
       or this to select Qt5:
 
-      <screen><userinput>source /usr/bin/setqt5</userinput></screen> 
+      <screen><userinput>source /usr/bin/setqt5</userinput></screen>
     </para></note>
 
     <para>
@@ -174,12 +185,14 @@ git clone git://git.freedesktop.org/git/poppler/test testfiles</userinput></scre
       commands:
     </para>
 
-<screen><userinput>MOCQT4=$QT4DIR/bin/moc            \
-MOCQT5=$QT5DIR/bin/moc            \
-./configure --prefix=/usr         \
-            --sysconfdir=/etc     \
-            --disable-static      \
-            --enable-xpdf-headers \
+<screen><userinput>MOCQT4=$QT4DIR/bin/moc                  \
+MOCQT5=$QT5DIR/bin/moc                  \
+./configure --prefix=/usr               \
+            --sysconfdir=/etc           \
+            --disable-static            \
+            --enable-build-type=release \
+            --enable-cmyk               \
+            --enable-xpdf-headers       \
             --with-testdatadir=$PWD/testfiles &amp;&amp;
 make</userinput></screen>
 
@@ -234,6 +247,17 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
       is not necessary.
     </para>
 
+    <para>
+      <parameter>--enable-build-type=release</parameter>: This switch is used
+      to apply a higher level of compiler optimizations. Other options are:
+      [<option>relwithdebinfo/debug/debugfull/profile</option>]
+    </para>
+
+    <para>
+      <parameter>--enable-cmyk</parameter>:
+      Include support for CMYK rasterization.
+    </para>
+
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
@@ -245,7 +269,7 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
     </para>
 
     <para>
-      <option>--with-testdatadir=$PWD/testfiles</option>: Tell the test 
+      <option>--with-testdatadir=$PWD/testfiles</option>: Tell the test
       programs where the auxillary files are located.
     </para>
 
@@ -258,7 +282,7 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
 
     <para>
       <command>LC_ALL=en_US.UTF-8 make check</command>: Run the test suite.
-      The environment variable LC_ALL=en_US.UTF-8 is only needed if the 
+      The environment variable LC_ALL=en_US.UTF-8 is only needed if the
       default locale does not include UTF-8.
     </para>
 
@@ -285,10 +309,8 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
           libpoppler-qt5.so
         </seg>
         <seg>
-          /usr/include/poppler,
-          /usr/share/doc/poppler-&poppler-version;,
-          /usr/share/gtk-doc/html/poppler, and
-          /usr/share/poppler
+          /usr/{include,share/{gtk-doc/html,}}/poppler and
+          /usr/share/doc/poppler-&poppler-version;
         </seg>
       </seglistitem>
     </segmentedlist>
