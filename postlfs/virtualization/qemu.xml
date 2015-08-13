@@ -6,10 +6,10 @@
 
   <!ENTITY qemu-download-http "http://wiki.qemu.org/download/qemu-&qemu-version;.tar.bz2">
   <!ENTITY qemu-download-ftp  " ">
-  <!ENTITY qemu-md5sum        "2fab3ea4460de9b57192e5b8b311f221">
+  <!ENTITY qemu-md5sum        "186ee8194140a484a455f8e3c74589f4">
   <!ENTITY qemu-size          "24 MB">
-  <!ENTITY qemu-buildsize     "291 MB">
-  <!ENTITY qemu-time          "1.4 SBU">
+  <!ENTITY qemu-buildsize     "323 MB (398 MB, with tests)">
+  <!ENTITY qemu-time          "1.4 SBU (2.2 SBU, with tests)">
 ]>
 
 <sect1 id="qemu" xreflabel="qemu-&qemu-version;">
@@ -150,10 +150,14 @@ Device Drivers  ---&gt;
     <para>Install <application>qemu</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/usr \
-            --sysconfdir=/etc \
-            --docdir=/usr/share/doc/qemu-&qemu-version; \
-            --target-list=x86_64-softmmu &amp;&amp;
+<screen><userinput>./configure --prefix=/usr                      \
+            --sysconfdir=/etc                  \
+            --libexecdir=/usr/lib/qemu         \
+            $([ $(uname -m) = i686 ]           &amp;&amp;
+            echo --target-list=i386-softmmu)   \
+            $([ $(uname -m) = x86_64 ]         &amp;&amp;
+            echo --target-list=x86_64-softmmu) \
+            --docdir=/usr/share/doc/qemu-&qemu-version; &amp;&amp;
 make</userinput></screen>
 
     <para>To run the built in tests, run <command>make V=1 check</command>.</para>
@@ -161,12 +165,14 @@ make</userinput></screen>
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>make install &amp;&amp;
-[ -e  /usr/lib/libcacard.so ] &amp;&amp; chmod -v 755 /usr/lib/libcacard.so</userinput></screen>
+[ -e  /usr/lib/libcacard.so ] &amp;&amp;
+chmod -v 755 /usr/lib/libcacard.so</userinput></screen>
 
     <para>
       You will need a dedicated group that will contain users (other than root)
-      allowed to access the KVM device.  Create this group by running the following 
-      command as the <systemitem class="username">root</systemitem> user:
+      allowed to access the KVM device.  Create this group by running the
+      following command as the
+      <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>groupadd -g 61 kvm</userinput></screen>
@@ -202,10 +208,19 @@ EOF</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>--target-list=x86_64-softmmu</parameter>: This switch
-    limits the build target to the x86_64 architecture.  For other 
-    hardware emulation see the --target-list list in <command>configure</command>'s
-    help output.  Omitting this option will build all architectures.</para>
+    <para><parameter>$([ $(uname -m) = i686 ] &amp;&amp;
+    echo --target-list=i386-softmmu)</parameter>: This switch
+    tests and, if true, limits the build target to the i386 architecture.  For
+    other hardware emulation see the --target-list list in
+    <command>configure</command>'s help output.  Omitting the target option will
+    build all architectures.</para>
+
+    <para><parameter>$([ $(uname -m) = x86_64 ] &amp;&amp;
+    echo --target-list=x86_64-softmmu)</parameter>: This switch
+    tests and, if true, limits the build target to the x86_64 architecture.  For
+    other hardware emulation see the --target-list list in
+    <command>configure</command>'s help output.  Omitting the target option will
+    build all architectures.</para>
 
     <para>
       <option>--audio-drv-list=alsa</option>: This switch sets the audio driver
@@ -285,7 +300,7 @@ EOF</userinput></screen>
       </listitem>
 
       <listitem>
-        <para>Allow the network connection when running as a part of the 
+        <para>Allow the network connection when running as a part of the
         kvm group:</para>
 
 <screen role="root"><userinput>chgrp kvm  /usr/libexec/qemu-bridge-helper &amp;&amp;
