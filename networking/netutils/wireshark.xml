@@ -6,10 +6,10 @@
 
   <!ENTITY wireshark-download-http "https://www.wireshark.org/download/src/all-versions/wireshark-&wireshark-version;.tar.bz2">
   <!ENTITY wireshark-download-ftp  "ftp://ftp.uni-kl.de/pub/wireshark/src/wireshark-&wireshark-version;.tar.bz2">
-  <!ENTITY wireshark-md5sum        "25ad2bc1c2a21396827c238fcff51bf3">
+  <!ENTITY wireshark-md5sum        "c8ae53f648b1dcbf6e74495401a0f1ab">
   <!ENTITY wireshark-size          "28 MB">
   <!ENTITY wireshark-buildsize     "1.6 GB, with the Qt GUI">
-  <!ENTITY wireshark-time          "6.0 SBU, with the Qt GUI">
+  <!ENTITY wireshark-time          "6.2 SBU, with the Qt GUI">
 ]>
 
 <sect1 id="wireshark" xreflabel="Wireshark-&wireshark-version;">
@@ -118,7 +118,7 @@
     </bridgehead>
     <para role="optional">
       <xref linkend="gtk2"/>,
-      <xref linkend="qt4"/>, or 
+      <xref linkend="qt4"/>, or
       <xref linkend="qt5"/>
     </para>
 
@@ -159,7 +159,7 @@
       The kernel must have the Packet protocol enabled for <application>
       Wireshark</application> to capture live packets from the network:
     </para>
-      
+
 <screen><literal>[*] Networking support ---&gt;          [CONFIG_NET]
       Networking options ---&gt;
         &lt;*/M&gt; Packet socket          [CONFIG_PACKET]</literal></screen>
@@ -206,22 +206,22 @@ EOF</userinput></screen>
 <screen role="root"><userinput>groupadd -g 62 wireshark</userinput></screen>
 
     <para>
-      If you want to build a Qt GUI and have both <application>Qt4
-      </application> and 5 installed, issue either:
+      If you want to build the Qt GUI (see <quote>Command Explanations</quote>),
+      for the <application>Qt5</application> GUI, issue:
     </para>
 
-<screen><userinput>source setqt5</userinput></screen>
+<screen><userinput>source setqt5 &amp;&amp;
+
+sed -e 's/"-fPIE"/""/' \
+    -e 's/"-pie"/""/'  \
+    -i configure</userinput></screen>
 
     <para>
-      if you want the <application>Qt5</application> GUI built, or:
+      and add <envar>CXXFLAGS="-fPIC"</envar> to the configure line, or, for the <application>Qt4</application> GUI, issue:
     </para>
 
 <screen><userinput>source setqt4 &amp;&amp;
 sed -i 's/Qt5 Qt/Qt/' configure</userinput></screen>
-
-    <para>
-      if you want the <application>Qt4</application> GUI built.
-    </para>
 
     <para>
       Continue to install <application>Wireshark</application> by running
@@ -275,7 +275,8 @@ install -v -m644    image/*.{png,ico,xpm,bmp} \
       user:
     </para>
 
-<screen role="root"><userinput>install -v -m644 <replaceable>&lt;Downloaded_Files&gt;</replaceable> /usr/share/doc/wireshark-&wireshark-version;</userinput></screen>
+<screen role="root"><userinput>install -v -m644 <replaceable>&lt;Downloaded_Files&gt;</replaceable> \
+                 /usr/share/doc/wireshark-&wireshark-version;</userinput></screen>
 
     <para>
       Now, set ownership and permissions of sensitive applications to only
@@ -297,6 +298,12 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -e 's/"-fPIE"/""/' ... configure</command>: This command is
+      required for Qt-5.5, because it is necessary to compile with
+      <envar>CXXFLAGS="-fPIC"</envar>.
+    </para>
 
     <para>
       <command>sed -i 's/Qt5 Qt/Qt/' ...</command>: This command is required
