@@ -6,10 +6,10 @@
 
   <!ENTITY gdb-download-http "https://ftp.gnu.org/gnu/gdb/gdb-&gdb-version;.tar.xz">
   <!ENTITY gdb-download-ftp  "ftp://ftp.gnu.org/gnu/gdb/gdb-&gdb-version;.tar.xz">
-  <!ENTITY gdb-md5sum        "35374c77a70884eb430c97061053a36e">
+  <!ENTITY gdb-md5sum        "2a35bac41fa8e10bf04f3a0dd7f7f363">
   <!ENTITY gdb-size          "18 MB">
-  <!ENTITY gdb-buildsize     "406 MB (additional 105 MB for checks)">
-  <!ENTITY gdb-time          "2.2 SBU (add up to 6.0 SBU for checks)">
+  <!ENTITY gdb-buildsize     "421 MB (additional 170 MB for tests)">
+  <!ENTITY gdb-time          "2.4 SBU (add up to 7.0 SBU for tests)">
 ]>
 
 <sect1 id="gdb" xreflabel="GDB-&gdb-version;">
@@ -80,8 +80,9 @@
     <para role="optional">
       <xref linkend="dejagnu"/> (for tests),
       <xref linkend="doxygen"/>,
-      <xref linkend="guile"/>, and
-      <xref linkend="python2"/>
+      <xref linkend="guile"/>,
+      <xref linkend="python2"/>, and
+      <xref linkend="valgrind"/>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -108,13 +109,27 @@ make</userinput></screen>
 <screen><userinput>make -C gdb/doc doxy</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make -k check</command>. There are
-      many problems with the test suite. Depends on installed compilers, there
-      are differences if run locally or remotely, a large number of timeouts
-      (there is a variable that can be set to increase time for timeout, but
-      changing it, apparently the total number of tests is not conserved),
-      there are failures associated with system readline 6.x, between others.
-      Unexpected failures are of the order of 0.5%.
+      To test the results, issue:
+    </para>
+
+<screen><userinput>pushd gdb/testsuite &amp;&amp;
+make  site.exp      &amp;&amp;
+echo  "set gdb_test_timeout 120" &gt;&gt; site.exp &amp;&amp;
+runtest TRANSCRIPT=y
+popd</userinput></screen>
+
+    <para>
+      See <emphasis>gdb/testsuite/README</emphasis> and <ulink
+      url="https://sourceware.org/gdb/wiki/TestingGDB">TestingGDB</ulink>.
+      There are many problems with the test suite. First one is that you need
+      to clean some directories, if re-running the tests. For that reason, it
+      is recommended to make a copy of the compiled source code directory,
+      before the tests, in case you need to run the tests again. Results depend
+      on installed compilers, there are differences if run locally or remotely,
+      a large number of timeouts (there is a variable that can be set to
+      increase time for timeout, but changing it, apparently the total number
+      of tests is not conserved), there are failures associated with system
+      readline 6.x, between others.  Unexpected failures are less than 0.3%.
     </para>
 
     <para>
@@ -130,6 +145,7 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>install -d /usr/share/doc/gdb-&gdb-version; &amp;&amp;
+rm -rf gdb/doc/doxy/xml &amp;&amp;
 cp -Rv gdb/doc/doxy /usr/share/doc/gdb-&gdb-version;</userinput></screen>
 
   </sect2>
@@ -150,8 +166,7 @@ cp -Rv gdb/doc/doxy /usr/share/doc/gdb-&gdb-version;</userinput></screen>
           libinproctrace.so
         </seg>
         <seg>
-          /usr/include/gdb and
-          /usr/share/gdb
+          /usr/{include,share}/gdb and /usr/share/doc/gdb-&gdb-version;
         </seg>
       </seglistitem>
     </segmentedlist>
