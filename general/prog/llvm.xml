@@ -8,17 +8,17 @@
   <!ENTITY llvm-download-ftp  " ">
   <!ENTITY llvm-md5sum        "b98b9495e5655a672d6cb83e1a180f8e">
   <!ENTITY llvm-size          "14 MB">
-  <!ENTITY llvm-buildsize     "1.2 GB (with Clang)">
-  <!ENTITY llvm-time          "12 SBU, using -j4 (with Clang)">
+  <!ENTITY llvm-buildsize     "1.2 GB (with Clang), and 300 MB for tests">
+  <!ENTITY llvm-time          "47 SBU (with Clang)">
 
   <!ENTITY clang-download-http "http://llvm.org/releases/&llvm-version;/cfe-&llvm-version;.src.tar.xz">
   <!ENTITY clang-md5sum        "8f9d27335e7331cf0a4711e952f21f01">
-  <!ENTITY clang-size          " 8.8 MB">
+  <!ENTITY clang-size          " 8.7 MB">
 
   <!ENTITY rt-version                "&llvm-version;">
   <!ENTITY compiler-rt-download-http "http://llvm.org/releases/&rt-version;/compiler-rt-&rt-version;.src.tar.xz">
   <!ENTITY compiler-rt-md5sum        "383c10affd513026f08936b5525523f5">
-  <!ENTITY compiler-rt-size          "1.2 MB">
+  <!ENTITY compiler-rt-size          "1.1 MB">
 ]>
 
 <sect1 id="llvm" xreflabel="LLVM-&llvm-version;">
@@ -182,7 +182,7 @@ mv projects/compiler-rt-&rt-version;.src projects/compiler-rt</userinput></scree
 
 <!-- Only for 3.7.0: hopefully fixed on later versions -->
     <para>
-      the run-time library needs to be fixed for 32 bit installations:
+      The run-time library needs to be fixed for 32 bit installations:
     </para>
 
 <screen><userinput>sed -r "/ifeq.*CompilerTargetArch/s#i386#i686#g" \
@@ -199,15 +199,15 @@ mv projects/compiler-rt-&rt-version;.src projects/compiler-rt</userinput></scree
 mkdir -v build &amp;&amp;
 cd       build &amp;&amp;
 
-CC=gcc CXX=g++                        \
-../configure --prefix=/usr            \
-             --datarootdir=/usr/share \
-             --sysconfdir=/etc        \
-             --enable-libffi          \
-             --enable-optimized       \
-             --enable-shared          \
-             --enable-targets=host    \
-             --disable-assertions     \
+CC=gcc CXX=g++                          \
+../configure --prefix=/usr              \
+             --datarootdir=/usr/share   \
+             --sysconfdir=/etc          \
+             --enable-libffi            \
+             --enable-optimized         \
+             --enable-shared            \
+             --enable-targets=host,r600 \
+             --disable-assertions       \
              --docdir=/usr/share/doc/llvm-&llvm-version; &amp;&amp;
 make</userinput></screen>
 
@@ -216,11 +216,11 @@ make</userinput></screen>
       to generate manual pages, issue the following command:
     </para>
 
-<screen><userinput>make -C docs -f Makefile.sphinx man</userinput></screen>
+<screen><userinput>make -C ../docs -f Makefile.sphinx man</userinput></screen>
 
     <para>
       To test the results, issue: <command>make -k check-all</command>.
-      Some tests fail for unknown reasons.
+      Some tests may fail for unknown reasons.
     </para>
 
     <para>
@@ -261,7 +261,7 @@ unset prog</userinput></screen>
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>install -v -m644 docs/_build/man/* /usr/share/man/man1/</userinput></screen>
+<screen role="root"><userinput>install -v -m644 ../docs/_build/man/* /usr/share/man/man1/</userinput></screen>
 
   </sect2>
 
@@ -294,11 +294,12 @@ unset prog</userinput></screen>
     </para>
 
     <para>
-      <parameter>--enable-targets=host</parameter>: This switch enables building
-      for the same target as the host. Default is all. You can use a comma
-      separated list. Valid targets are: host, x86, x86_64, sparc, powerpc,
-      arm64, arm, aarch64, mips, hexagon, xcore, msp430, nvptx, systemz, r600,
-      bpf, wasm, and cpp
+      <parameter>--enable-targets=host,r600</parameter>: This switch enables
+      building for the same target as the host, and also for the r600 AMD GPU
+      used by the Mesa r600 and radeonsi drivers. Default is all. You can use
+      a comma separated list. Valid targets are: host, x86, x86_64, sparc,
+      powerpc, arm64, arm, aarch64, mips, hexagon, xcore, msp430, nvptx,
+      systemz, r600, amdgpu (equivalent to r600), bpf, wasm, and cpp.
     </para>
 
     <para>
