@@ -110,16 +110,21 @@
     <title>Installation of libxml2</title>
 
     <para>
-       Apply two upstream fixes, which correct bugs in
-       <command>xmlcatalog</command> and in the entity substitution
-       mechanism:
+       Apply three upstream fixes, which correct bugs in
+       <command>xmlcatalog</command>, in the entity substitution
+       mechanism, and in entity checking:
     </para>
 
-<screen><userinput>sed \
-  -e /xmlInitializeCatalog/d \
-  -e 's/((ent->checked =.*&amp;&amp;/(((ent->checked == 0) ||\
-          ((ent->children == NULL) \&amp;\&amp; (ctxt->options \&amp; XML_PARSE_NOENT))) \&amp;\&amp;/' \
-  -i parser.c</userinput></screen>
+<screen><userinput>sed -e /xmlInitializeCatalog/d \
+    -e 's/((ent->checked =.*&amp;&amp;/(((ent->checked == 0) ||\
+            ((ent->children == NULL) \&amp;\&amp; (ctxt->options \&amp; XML_PARSE_NOENT))) \&amp;\&amp;/' \
+    -i parser.c &amp;&amp;
+
+sed -e  "/The id is/{N;
+                     a if (ctxt != NULL)
+                    }" \
+    -i valid.c</userinput></screen>
+
 
     <para>
       Install <application>libxml2</application> by running the following
