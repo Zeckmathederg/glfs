@@ -8,12 +8,12 @@
   <!ENTITY TEMPLATE-version "">
   -->
 
-  <!ENTITY sddm-download-http "&sources-anduin-other-http;/sddm-&sddm-version;.tar.gz">
+  <!ENTITY sddm-download-http "https://github.com/sddm/sddm/releases/download/v0.12.0/sddm-&sddm-version;.tar.xz">
   <!ENTITY sddm-download-ftp  " ">
   <!ENTITY sddm-md5sum        "e110a7683867400dc9484d4744fd41dd">
-  <!ENTITY sddm-size          "4.6 KB">
-  <!ENTITY sddm-buildsize     "18 MB">
-  <!ENTITY sddm-time          "0.6 SBU ">
+  <!ENTITY sddm-size          "3.7 KB">
+  <!ENTITY sddm-buildsize     "11.4 MB">
+  <!ENTITY sddm-time          "0.7 SBU ">
 ]>
 
 <sect1 id="sddm" xreflabel="sddm-&sddm-version;">
@@ -121,16 +121,6 @@ useradd  -c "SDDM Daemon" \
          -s /bin/false sddm</userinput></screen>
 
     <para>
-      By default, <application>SDDM</application> starts the X server with the
-      parameter <parameter>-nolisten tcp</parameter>. If you need to remotely
-      connect to X, this is undesirable. You can optionally remove this
-      parameter by running:
-    </para>
-
-<screen><userinput>sed -e '/nolisten/d' \
-    -i src/daemon/XorgDisplayServer.cpp</userinput></screen>
-
-    <para>
       Install <application>SDDM</application> by running the following
       commands:
     </para>
@@ -206,12 +196,14 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
         You need to edit this file, if your system has any unconventional
         characteristics. For example, if Xorg is installed in /opt, use your
         preferred editor as the <systemitem class="username">root</systemitem>
-        user to replace the <emphasis>ServerPath</emphasis> default value by
-        <emphasis>/opt/xorg/bin/X</emphasis>. Or, as the <systemitem
+        user to replace the <emphasis>ServerPath</emphasis> and
+        <emphasis>XauthPath</emphasis> default paths by
+        <emphasis>/opt/xorg/bin/</emphasis>. Or, as the <systemitem
         class="username">root</systemitem> user, issue
       </para>
 
-<screen role="root"><userinput>sed -e 's|/usr/bin/X|/opt/xorg/bin/X|' \
+<screen role="root"><userinput>sed -e '/ServerPath/ s|usr|opt/xorg|' \
+    -e '/XauthPath/  s|usr|opt/xorg|' \
     -i.orig /etc/sddm.conf</userinput></screen>
 
       <para>
@@ -248,7 +240,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
         class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>cat &gt; /etc/pam.d/sddm &lt;&lt; "EOF"  &amp;&amp;
+<screen role="root"><userinput>cat &gt; /etc/pam.d/sddm &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/sddm
 
 auth     requisite      pam_nologin.so
@@ -266,7 +258,7 @@ session  include        system-session
 # End /etc/pam.d/sddm</literal>
 EOF
 
-cat &gt; /etc/pam.d/sddm-autologin &lt;&lt; "EOF" &amp;&amp;
+cat &gt; /etc/pam.d/sddm-autologin &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/sddm-autologin
 
 auth     requisite      pam_nologin.so
