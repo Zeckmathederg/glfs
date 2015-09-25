@@ -121,6 +121,18 @@ useradd  -c "SDDM Daemon" \
          -s /bin/false sddm</userinput></screen>
 
     <para>
+      First, fix the application to start <command>upowerd</command>,
+      if necessary, and after login, start the session with
+      <command>ck-launch-session</command>:
+    </para>
+
+<screen><userinput>sed -e '/UPOWER_SERVICE)/ s:^://:' \
+    -i src/daemon/PowerManager.cpp &amp;&amp;
+
+sed -e 's/eval exec/&amp; ck-launch-session /' \
+    -i data/scripts/Xsession</userinput></screen>
+
+    <para>
       Install <application>SDDM</application> by running the following
       commands:
     </para>
@@ -131,6 +143,7 @@ cd    build &amp;&amp;
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DCMAKE_BUILD_TYPE=Release  \
       -DENABLE_JOURNALD=OFF       \
+      -DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf \
       -Wno-dev .. &amp;&amp;
 make</userinput></screen>
 
@@ -161,6 +174,13 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
     </para>
 
     <para>
+      <parameter>-DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf</parameter>:
+      This switch is used for safety reason: other DMs already use
+      <filename>org.freedesktop.DisplayManager.conf</filename>. Verify in your
+      system taht this is not the case, if you wish to remove it.
+    </para>
+
+    <para>
       <option>-DBUILD_MAN_PAGES=ON</option>: This switch may be used if you want
       the man pages to be installed. Notice that you need
       <ulink url="http://sourceforge.net/projects/docutils/">Docutils</ulink>
@@ -185,30 +205,65 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
 
       <para>
         This file is not installed with the build instructions, and
-        default values are used by sddm. In order to generate the default
-        <filename>/etc/sddm.conf</filename>, issue, as the <systemitem
-        class="username">root</systemitem> user:
+        default values are used by sddm. In order to generate the example
+        <filename>sddm.example.conf</filename>, issue:
       </para>
 
-<screen role="root"><userinput>sddm --example-config > /etc/sddm.conf</userinput></screen>
+<screen><userinput>sddm --example-config > sddm.example.conf</userinput></screen>
 
       <para>
-        You need to edit this file, if your system has any unconventional
-        characteristics. For example, if Xorg is installed in /opt, use your
-        preferred editor as the <systemitem class="username">root</systemitem>
-        user to replace the <emphasis>ServerPath</emphasis> and
-        <emphasis>XauthPath</emphasis> default paths by
-        <emphasis>/opt/xorg/bin/</emphasis>. Or, as the <systemitem
+        We repeat, this command generates an example config file.  If there is
+        an already previously installed <filename>/etc/sddm.conf</filename>, it
+        will generate a replica. If there is no yet the
+        <filename>/etc/sddm.conf</filename> file, as the
+        <systemitem class="username">root</systemitem> user, copy the example
+        file to <filename>/etc/sddm.conf</filename>:
+      </para>
+
+<screen role="root"><userinput>cp -v sddm.example.conf /etc/sddm.conf</userinput></screen>
+
+      <para>
+        Normally, you want to edit this file. For example, if Xorg is installed
+        in /opt, use your preferred editor as the
+        <systemitem class="username">root</systemitem>
+        user to replace the <emphasis>XauthPath</emphasis> default path by
+        <emphasis>/usr/bin/xauth</emphasis>. Or, as the <systemitem
         class="username">root</systemitem> user, issue
       </para>
 
 <screen role="root"><userinput>sed -e '/ServerPath/ s|usr|opt/xorg|' \
-    -e '/XauthPath/  s|usr|opt/xorg|' \
     -i.orig /etc/sddm.conf</userinput></screen>
 
       <para>
         This command will do the substitution and create a copy of the original
         file with name <filename>/etc/sddm.conf.orig</filename>.
+      </para>
+
+      <para>
+        From now on, we will describe how to modify configurations using sed,
+        but of course you may rather use your preferred editor as the
+        <systemitem class="username">root</systemitem>, instead. You generally
+        want the server option that comes in sddm.example.conf, for security
+        reasons.  Unless you want a remote machine to use the local X server,
+        in which case, as the <systemitem class="username">root</systemitem>
+        user, issue:
+      </para>
+
+<screen role="root"><userinput>sed -e 's/-nolisten tcp//'\
+    -i /etc/sddm.conf</userinput></screen>
+
+      <para>
+        Desktop (Notebook) users, normally wish the Num Lock key on (off).  For
+        that, as the <systemitem
+        class="username">root</systemitem> user, issue:
+      </para>
+
+<screen role="root"><userinput>sed -e 's/\"none\"/\"on\"/' \
+    -i /etc/sddm.conf</userinput></screen>
+
+      <para>
+        That was for Desktop users. For Notebook users,
+        replace \"on\" by \"off\", in the command above.
       </para>
 
    </sect3>
@@ -377,6 +432,16 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
         The BLFS development team have found some issues.
       </para>
 
+      <note>
+        <para>
+          In the next couple of paragraphs, due to a problem with sddm-greeter,
+          we mention how to define the keyboard used there. Notice that this is
+          also the keyboard that will be used in the X session, unless there is
+          a configuration in the Desktop Environment or in the Window Manager
+          overriding it, afterwards.
+        </para>
+      </note>
+
       <para>
         Keyboard selection: the greeter shows a double question mark or the
         wrong keyboard. When you start to type the password or user name
@@ -390,8 +455,11 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
      /usr/share/sddm/scripts/Xsetup</userinput></screen>
 
       <para>
-        E.g. <command>echo 'setxkbmap "gb,br,us"' &gt;&gt;
-        /usr/share/sddm/scripts/Xsetup</command>
+        E.g. <command>echo 'setxkbmap "fr,gb,br,us"' &gt;&gt;
+        /usr/share/sddm/scripts/Xsetup</command>. You can be accurate defining
+        the keyboard(s), for example: <command>echo 'setxkbmap -model pc105
+        -layout br,us -variant abnt2,dvorak -keycodes evdev' &gt;&gt;
+        /usr/share/sddm/scripts/Xsetup</command>. See man setxkbmap.
       </para>
 
       <para>
