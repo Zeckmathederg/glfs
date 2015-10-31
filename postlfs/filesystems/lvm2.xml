@@ -6,10 +6,10 @@
 
   <!ENTITY lvm2-download-http " ">
   <!ENTITY lvm2-download-ftp  "ftp://sources.redhat.com/pub/lvm2/releases/LVM2.&lvm2-version;.tgz">
-  <!ENTITY lvm2-md5sum        "80af5af726949bbbb2aceb15b24b7d20">
+  <!ENTITY lvm2-md5sum        "48db435ed0ed6229a765b2644565c9c1">
   <!ENTITY lvm2-size          "1.8 MB">
   <!ENTITY lvm2-buildsize     "31 MB (during tests, transcient files can grow up to around 500 MB)">
-  <!ENTITY lvm2-time          "0.3 SBU (around 10 SBU with tests, see below)">
+  <!ENTITY lvm2-time          "0.3 SBU (around 28 SBU with tests, see below)">
 ]>
 
 <sect1 id="lvm2" xreflabel="LVM2-&lvm2-version;">
@@ -139,13 +139,18 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr       \
+<screen><userinput>
+SAVEPATH=$PATH                  &amp;&amp;
+pathappend /sbin:/usr/sbin      &amp;&amp;
+./configure --prefix=/usr       \
             --exec-prefix=      \
             --enable-applib     \
             --enable-cmdlib     \
             --enable-pkgconfig  \
             --enable-udev_sync  &amp;&amp;
-make</userinput></screen>
+make                            &amp;&amp;
+PATH=$SAVEPATH                  &amp;&amp;
+unset SAVEPATH</userinput></screen>
 
     <para>
       The tests use <application>udev</application> for logical volume
@@ -170,11 +175,11 @@ make -C libdm install</userinput></screen>
     </para>
     <para>
       Those tests do not implement the <quote>expected fail</quote> possibility,
-      and a small number of tests failures is expected by upstream. More
+      and a small number of test failures is expected by upstream. More
       failures may happen because some kernel options are missing. For example,
       the lack of the <emphasis>dm-delay</emphasis> device mapper target may
-      explain up to 10 failures or so. Some tests are incorrectly flagged
-      <quote>broken</quote> if
+      explain up to 10 failures or so. Some tests are flagged
+      <quote>warned</quote> if
       <ulink url='https://github.com/jthornber/thin-provisioning-tools'>
       thin-provisioning-tools</ulink> are not installed. A workaround is to
       add the following flags to <command>configure</command>:
@@ -190,10 +195,9 @@ make -C libdm install</userinput></screen>
      --with-cache-restore= \</userinput></screen>
 
     <para>
-      One test has been reported to hang, and can be disabled via <command>rm
-      test/shell/snapshot-remove-dmsetup.sh</command>. Other tests may hang
-      with kernel versions in the 4.1 and 4.2 series (see above). They can be
-      removed as well if necessary. The tests generate a lot
+      Some tests may hang with kernel versions in the 4.1 and 4.2 series (see
+      above). They can be removed if necessary, for example: <command>rm
+      test/shell/lvcreate-large-raid.sh</command>. The tests generate a lot
       of kernel messages, which may clutter your terminal. You can disable them
       by issuing <command>dmesg -D</command> before running the tests (do not
       forget to issue <command>dmesg -E</command> when tests are done).
@@ -209,6 +213,16 @@ make -C libdm install</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>pathappend /sbin:/usr/sbin</command>: The path
+      must contain <filename class="directory">/sbin</filename> and
+      <filename class='directory'>/usr/sbin</filename> for proper system tool
+      detection by the <command>configure</command> script. These instructions
+      ensure that it is properly set even if you build as an user. Note that
+      you need to provide equivalent commands if you have not set up your
+      startup files as in <xref linkend="postlfs-config-profile"/>.
+    </para>
 
     <para>
       <parameter>--enable-applib</parameter>: This switch enables
