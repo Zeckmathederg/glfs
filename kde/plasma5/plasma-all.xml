@@ -7,9 +7,9 @@
   <!ENTITY plasma5-download-http "http://download.kde.org/stable/plasma5/&plasma5-version;">
   <!ENTITY plasma5-download-ftp  " ">
   <!ENTITY plasma5-md5sum        "See Below">
-  <!ENTITY plasma5-size          "?? MB">
-  <!ENTITY plasma5-buildsize     "?? GB">
-  <!ENTITY plasma5-time          "?? SBU">
+  <!ENTITY plasma5-size          "129 MB">
+  <!ENTITY plasma5-buildsize     "933 GB">
+  <!ENTITY plasma5-time          "15 SBU (using parallelism=6)">
 ]>
 
 <sect1 id="plasma5-build" xreflabel="Plasma-&plasma5-version;">
@@ -27,16 +27,12 @@
   </indexterm>
 
   <para>KDE Plasma 5 is a collection of packages based on top of KDE Frameworks
-  5 and QML derived from the monolithic KDE 4 desktop. They implement the KDE
-  Display Environment (Plasma 5).</para>
+  5 and QML. It has been derived from the monolithic KDE 4 desktop. i
+  They implement the KDE Display Environment (Plasma 5).</para>
 
   <note>
     <para>The procedures below are under development.  They have not been 
     verified to work properly in an LFS-7.8 environment.</para>
-
-    <para>Additionally there are several packages not yet in the book
-    and mesa will need to be rebuilt with different settings.  New packages are
-    xcb-util-cursor and libxkbcommon.</para>
   </note>
 
   <!--&lfs78_checked;-->
@@ -71,23 +67,29 @@
   <bridgehead renderas="sect4">Required</bridgehead>
   <para role="required">
     <xref linkend="fontforge"/>, 
+    <xref linkend="gtk2"/>, 
+    <xref linkend="gtk3"/>, 
     <xref linkend="kf5-frameworks"/>,
+    <xref linkend="libcanberra"/>, 
     <xref linkend="libinput"/>, 
     <xref linkend="libpwquality"/>,
-    libxkbcommon,
-    xcb-util-cursor,
-    <xref linkend="lmdb"/>, 
-    <xref linkend="lm_sensors"/>, 
+    <xref linkend="libxkbcommon"/>,
+    <xref linkend="linux-pam"/>,
     <xref linkend="mesa"/> built with <xref linkend="wayland"/>,
-    <xref linkend="NetworkManager"/>, and
-    <xref linkend="taglib"/> 
+    <xref linkend="NetworkManager"/>, 
+    <xref linkend="oxygen-icons"/>, 
+    <xref linkend="pulseaudio"/>, 
+    <xref linkend="python2"/>, 
+    <xref linkend="taglib"/>, and 
+    <xref linkend="xcb-util-cursor"/>
   </para>
-
 
   <bridgehead renderas="sect4">Recommended</bridgehead>
   <para role="recommended">
-    <!--<xref linkend="avahi"/> (DNS-SD backend for KDNSSD),-->
-    To be determined.
+    <xref linkend="lm_sensors"/>, 
+    <xref linkend="pciutils"/>,
+    <xref linkend="xorg-synaptics-driver"/>
+    Others to be determined.
   </para>
 <!--
   <bridgehead renderas="sect4">Optional</bridgehead>
@@ -170,8 +172,7 @@ The options used here are:
     </para>
 
 <screen><userinput>cat &gt; plasma-&kf5-version;.md5 &lt;&lt; "EOF"
-<literal>
-bb94a0d6f06583456b8f0a2eae07edd6  kde-cli-tools-5.4.2.tar.xz
+<literal>bb94a0d6f06583456b8f0a2eae07edd6  kde-cli-tools-5.4.2.tar.xz
 67683fc1ae1fdf014f567780502b574a  kdecoration-5.4.2.tar.xz
 c0c0eef0f2bfb93a81e4e701d7557eb9  kwayland-5.4.2.tar.xz
 5b3c52fbf0172dfcf749cde12ebb48f3  libkscreen-5.4.2.tar.xz
@@ -244,14 +245,23 @@ EOF</userinput></screen>
        mkdir build
        cd    build
 
-       cmake -DCMAKE_INSTALL_PREFIX=$KF5_PREFIX      \
-             -DCMAKE_BUILD_TYPE=Debug                \
-             -DLIB_INSTALL_DIR=lib                   \
-             -DBUILD_TESTING=OFF                     \
-             -DQML_INSTALL_DIR=lib/qt5/qml           \
-             -DQT_PLUGIN_INSTALL_DIR=lib/qt5/plugins \
-             -DECM_MKSPECS_INSTALL_DIR=$KF5_PREFIX/share/qt5/mkspecs/modules \
-             -DOXYGEN_FONT_INSTALL_DIR=/usr/share/fonts/truetype/oxygen      \
+       OPTS=""
+
+       case $srcdir in
+         kwayland-&plasma5-version; )
+           OPTS="-DECM_MKSPECS_INSTALL_DIR=$KF5_PREFIX/share/mkspecs/modules"
+           ;;
+
+         oxygen-fonts-&plasma5-version; )
+           OPTS="-DOXYGEN_FONT_INSTALL_DIR=/usr/share/fonts/truetype/oxygen"
+           ;;
+       esac
+
+       cmake -DCMAKE_INSTALL_PREFIX=$KF5_PREFIX \
+             -DCMAKE_BUILD_TYPE=Release         \
+             -DLIB_INSTALL_DIR=lib              \
+             -DBUILD_TESTING=OFF                \
+             $OPTS                              \
              -Wno-dev ..  &amp;&amp;
 
         make
@@ -263,8 +273,13 @@ EOF</userinput></screen>
 
 done &lt; plasma-&kf5-version;.md5
 
-exit</userinput></screen>
+exit
 
+cd $KF5_PREFIX/share/plasma/plasmoids
+
+for j in $(find -name \*.js); do
+  ln -sfv ../code/$(basename $j) $(dirname $j)/../ui/
+done</userinput></screen>
 
   </sect2>
 
@@ -272,10 +287,63 @@ exit</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      Deferred.
+      <command>ln -sfv ../code/$(basename $j) $(dirname $j)/../ui/</command>:
+      Create symbolic links so qml files can find needed javascript modules.
     </para>
 
   </sect2>
+  <sect2 role="starting">
+    <title>Starting Plasma5</title>
+
+    <para>
+      You can start <application>Plasma5</application> from runlevel 3, using
+      <xref linkend="xinit"/>, or from runlevel 5, using a Display Manager,
+      such as <xref linkend="sddm"/>.
+    </para>
+
+    <para>
+      To start <application>Plasma5</application> using <xref linkend="xinit"/>,
+      run the following commands:
+    </para>
+
+<screen><userinput>cat &gt; ~/.xinitrc &lt;&lt; "EOF"
+<literal>ck-launch-session dbus-launch --exit-with-session $KF5_PREFIX/bin/startkde</literal>
+EOF
+
+startx</userinput></screen>
+
+    <para>
+      The X session starts on the first unused virtual terminal, normally vt7.
+      You can switch to another vt<emphasis>n</emphasis> simultaneously
+      pressing the keys Ctrl-Alt-F<emphasis>n</emphasis>
+      (<emphasis>n</emphasis>=1, 2, ...).  To switch back to the X session,
+      normally started at vt7, use Ctrl-Alt-F7. The vt where the command
+      <command>startx</command> was executed will display many messages,
+      including X starting messages, applications automatically started with
+      the session, and eventually, some warning and error messages. You may
+      prefer to redirect those messages to a log file, which not only will keep
+      the initial vt uncluttered, but can also be used for debugging purposes. This
+      can be done starting X with:
+    </para>
+
+    <screen><userinput>startx &amp;&gt; ~/.x-session-errors</userinput></screen>
+
+    <note>
+      <para>
+        You may wish to drop consolekit and/or dbus-launch, e.g., just using
+        startkde in ~/.xinitrc. However some capabilities such as mounting or
+        umounting file systems from a file manager will not be possible, or the
+        reboot option may be absent or inoperative, among other problems.
+      </para>
+    </note>
+    <para>
+      When shutting down or rebooting, the shutdown messages appear on the vt
+      where X was running. If you wish to see those messages, simultaneously
+      press keys Alt-F7 (assuming that X was running on vt7).
+    </para>
+
+  </sect2>
+
   <sect2 role="content">
     <title>Contents</title>
 
