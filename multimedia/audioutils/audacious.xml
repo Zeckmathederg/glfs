@@ -7,17 +7,17 @@
   <!ENTITY audacious-download-http
            "http://distfiles.audacious-media-player.org/audacious-&audacious-version;.tar.bz2">
   <!ENTITY audacious-download-ftp         " ">
-  <!ENTITY audacious-md5sum               "79132b694714c90dbcd8593919abed1c">
-  <!ENTITY audacious-size                 "528 KB">
-  <!ENTITY audacious-buildsize            "18 MB">
-  <!ENTITY audacious-time                 "0.2 SBU">
+  <!ENTITY audacious-md5sum               "e331bfbd01d070c34f2620949fadbe51">
+  <!ENTITY audacious-size                 "560 KB">
+  <!ENTITY audacious-buildsize            "47 MB (with Gtk and Qt5 user interfaces)">
+  <!ENTITY audacious-time                 "0.5 SBU (with Gtk and Qt5 user interfaces)">
 
   <!ENTITY audacious-plugins-download
            "http://distfiles.audacious-media-player.org/audacious-plugins-&audacious-plugins-version;.tar.bz2">
-  <!ENTITY audacious-plugins-md5sum       "b4340be4d3c1ec577937a2c5399c6d53">
+  <!ENTITY audacious-plugins-md5sum       "babbb3dbf9ccb649067550122ce1b7be">
   <!ENTITY audacious-plugins-size         "1.8 MB">
-  <!ENTITY audacious-plugins-buildsize    "60 MB">
-  <!ENTITY audacious-plugins-time         "0.6 SBU">
+  <!ENTITY audacious-plugins-buildsize    "140 MB (with Gtk and Qt5 user interfaces)">
+  <!ENTITY audacious-plugins-time         "1.5 SBU (with Gtk and Qt5 user interfaces)">
 ]>
 
 <sect1 id="audacious" xreflabel="Audacious-&audacious-version;">
@@ -111,7 +111,8 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="gtk3"/>,
+      <xref linkend="gtk3"/> or
+      <xref linkend="qt5"/> (or both),
       <xref linkend="libxml2"/> (plugins),
       <xref linkend="xorg-env"/> (plugins), and
       <xref linkend="x-window-system"/> (runtime)
@@ -127,9 +128,9 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="pcre"/> or
-      <ulink url="http://www.geocities.jp/kosako3/oniguruma/">Oniguruma</ulink>,
-      <xref linkend="valgrind"/> and
-      <ulink url="http://atheme.org/projects/libguess.html">libguess</ulink>
+      <ulink url="https://github.com/kkos/oniguruma">Oniguruma</ulink>, and
+      <xref linkend="valgrind"/>
+<!--      <ulink url="http://atheme.org/projects/libguess.html">libguess</ulink>-->
     </para>
 
     <bridgehead renderas="sect4">Optional (for Plugins)</bridgehead>
@@ -141,21 +142,20 @@
       <xref linkend="lame"/>,
       <xref linkend="libcdio"/> (to identify and play CDs),
       <xref linkend="libnotify"/>,
-      <xref linkend='libsamplerate'/>,
+      <xref linkend="libsamplerate"/>,
       <xref linkend="libsndfile"/>,
       <xref linkend="libvorbis"/>,
       <xref linkend="mpg123"/>,
       <xref linkend="neon"/> (for online mpg3 and ogg radio),
-      <xref linkend='pulseaudio'/>,
-      <xref linkend='qt5'/>,
+      <xref linkend="pulseaudio"/>,
       <xref linkend="sdl"/>,
       <ulink url="http://sourceforge.net/projects/bs2b/">The Bauer
         stereophonic-to-binaural DSP (bs2b) library</ulink>,
       <ulink url="http://sourceforge.net/apps/trac/fluidsynth/">FluidSynth</ulink>,
       <ulink url="http://jackit.sourceforge.net/">JACK</ulink>
         (requires <xref linkend="libsamplerate"/>),
-      <ulink url="http://sourceforge.net/projects/libbinio/">libbinio</ulink>
-        (to build the AdPlug plugin),
+<!--  <ulink url="http://sourceforge.net/projects/libbinio/">libbinio</ulink>
+        (to build the AdPlug plugin),-->
       <ulink url="http://sourceforge.net/projects/libcue/">libcue</ulink>,
       <ulink url="http://sourceforge.net/projects/modplug-xmms/">libmodplug</ulink>,
       <ulink url="http://sourceforge.net/projects/libmms">libmms</ulink>,
@@ -250,18 +250,22 @@ make</userinput></screen>
 
     <para>
       <parameter>TPUT=/bin/true</parameter>: the default is for
-      <command>make</command> to output text in color. This is fine if you're
+      <command>make</command> to output text in color. This is fine if you are
       building in a terminal, but if you script the build process and pipe the
       output from <command>make</command> to a log file then the control
       characters used to color the text can make the logfile unreadable. This
       option stops it coloring the text.
     </para>
 
-    <para><parameter>--with-buildstamp</parameter>: This switch appends 
+    <para><parameter>--with-buildstamp</parameter>: This switch appends
     the given text to the version string.</para>
+
+    <para><option>--disable-gtk</option>: Use this to disable GTK+ support.</para>
 
     <para><option>--disable-mp3</option>: Use this for the plugins if you have
     not installed mpg123 and do not wish to play mp3 files.</para>
+
+    <para><option>--enable-qt</option>: Use this to enable Qt support.</para>
 
     <para><option>--enable-valgrind</option>: Allow better Valgrind leak checks.</para>
 
@@ -274,6 +278,20 @@ make</userinput></screen>
       If you prefer the old, smaller Winamp/XMMS interface, click on View&gt;
       Interface&gt; Winamp Classic Interface.
     </para>
+
+    <para>
+      If you built with both Gtk and Qt user interfaces, the Qt version
+      can be executed from a terminal, issuing <command>audacious
+      --qt</command>. If you wish a desktop menu entry to execute this Qt
+      version, issue the following commands as the <systemitem
+      class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>cp -v /usr/share/applications/audacious{,-qt}.desktop &amp;&amp;
+
+sed -e '/^Name/ s/$/ Qt/' \
+    -e '/Exec=/ s/audacious/&amp; --qt/' \
+    -i /usr/share/applications/audacious-qt.desktop</userinput></screen>
 
   </sect2>
 
@@ -290,11 +308,11 @@ make</userinput></screen>
           audacious and audtool
         </seg>
         <seg>
-          libaudcore.so, libaudgui.so, libaudtag.so, and several plugin
-          libraries under /usr/lib/audacious/ sub-directories
+          libaudcore.so, libaudgui.so, libaudtag.so, libaudqt.so, and several
+          plugin libraries under /usr/lib/audacious/ sub-directories
         </seg>
         <seg>
-          /usr/include/{audacious,libaudcore,libaudgui},
+          /usr/include/{audacious,libaudcore,libaudgui,libaudqt},
           /usr/lib/audacious and
           /usr/share/audacious
         </seg>
