@@ -7,9 +7,14 @@
   <!ENTITY lua-download-http "http://www.lua.org/ftp/lua-&lua-version;.tar.gz">
   <!ENTITY lua-download-ftp  " ">
   <!ENTITY lua-md5sum        "797adacada8d85761c079390ff1d9961">
-  <!ENTITY lua-size          "276 KB">
-  <!ENTITY lua-buildsize     "3.9 MB (with test)">
-  <!ENTITY lua-time          "less than 0.1 SBU (with test)">
+  <!ENTITY lua-size          "284 KB">
+  <!ENTITY lua-buildsize     "4 MB (add 440 KB for the Basic tests)">
+  <!ENTITY lua-time          "less than 0.1 SBU (with Basic tests)">
+
+  <!ENTITY lua-tests-download-http "http://www.lua.org/tests/lua-&lua-version;-tests.tar.gz">
+  <!ENTITY lua-tests-download-ftp  " ">
+  <!ENTITY lua-tests-md5sum        "a2b7ab1b8ff82a0145376e233ef30a4a">
+  <!ENTITY lua-tests-size          "100 KB">
 ]>
 
 <sect1 id="lua" xreflabel="Lua-&lua-version;">
@@ -84,6 +89,26 @@
           <ulink url="&patch-root;/lua-&lua-version;-shared_library-1.patch"/>
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Optional Test Suite Download (HTTP): <ulink url="&lua-tests-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Optional Test Suite Download (FTP): <ulink url="&lua-tests-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Optional Test Suite Download MD5 sum: &lua-tests-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Optional Test Suite Download size: &lua-tests-size;
+        </para>
+      </listitem>
     </itemizedlist>
 
     <para condition="html" role="usernotes">User Notes:
@@ -100,12 +125,17 @@
     </para>
 
 <screen><userinput>patch -Np1 -i ../lua-&lua-version;-shared_library-1.patch &amp;&amp;
+
 sed -i '/#define LUA_ROOT/s:/usr/local/:/usr/:' src/luaconf.h &amp;&amp;
+
 make linux</userinput></screen>
 
     <para>
       To test the results, issue: <command>make test</command>.
-      <quote>This will run the interpreter and print its version.</quote>
+      <quote>This will run the interpreter and print its version.</quote>.
+      More comprehensive tests can be performed if you downloaded the "Test
+      suite" tarball. Those tests need to be executed after the package is
+      installed, thus we defer to describe then below.
     </para>
 
     <para>
@@ -114,6 +144,7 @@ make linux</userinput></screen>
 
 <screen role="root"><userinput>make INSTALL_TOP=/usr TO_LIB="liblua.so liblua.so.5.3 liblua.so.&lua-version;" \
      INSTALL_DATA="cp -d" INSTALL_MAN=/usr/share/man/man1 install &amp;&amp;
+
 mkdir -pv /usr/share/doc/lua-&lua-version; &amp;&amp;
 cp -v doc/*.{html,css,gif,png} /usr/share/doc/lua-&lua-version;</userinput></screen>
 
@@ -144,6 +175,16 @@ Libs: -L${libdir} -llua -lm
 Cflags: -I${includedir}</literal>
 EOF</userinput></screen>
 
+    <para>
+      We are going to describe only the "Basic tests". Untar the tarball and
+      change to the
+      <filename class="directory">lua-&lua-version;-tests</filename> directory,
+      then issue
+      <command>lua -e"_U=true" all.lua</command>. If the tests finish without
+      error, you will see a message containing the string "final OK", at the
+      end.
+    </para>
+
   </sect2>
 
   <sect2 role="commands">
@@ -172,8 +213,7 @@ EOF</userinput></screen>
           liblua.so
         </seg>
         <seg>
-          /usr/lib/lua,
-          /usr/share/lua and
+          /usr/{lib,share}/lua and
           /usr/share/doc/lua-&lua-version;
         </seg>
       </seglistitem>
