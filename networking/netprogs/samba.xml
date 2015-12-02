@@ -6,10 +6,10 @@
 
   <!ENTITY samba-download-http "https://download.samba.org/pub/samba/stable/samba-&samba-version;.tar.gz">
   <!ENTITY samba-download-ftp  " ">
-  <!ENTITY samba-md5sum        "e63a481cad0603db1a9239d7606cbc9a">
+  <!ENTITY samba-md5sum        "61188e76b272c1b1b3730bf1933a791f">
   <!ENTITY samba-size          "20 MB">
   <!ENTITY samba-buildsize     "499 MB (additional 408 MB for the quicktest, reputedly up to 500 MB additional for all tests)">
-  <!ENTITY samba-time          "2.2 SBU, using parallelism=4 (additional 22.5 SBU for the quicktest, reputedly up to 110 SBU to run all tests)">
+  <!ENTITY samba-time          "2.2 SBU, using parallelism=4 (additional 22.7 SBU for the quicktest, reputedly up to 110 SBU to run all tests)">
 ]>
 
 <sect1 id="samba" xreflabel="Samba-&samba-version;">
@@ -119,7 +119,14 @@
     <para>Install <application>Samba</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure                             \
+<screen><userinput>sed -e "/deps='LIBASYNC_REQ'/ \
+       {
+         s/$/,/
+         a\                 install=False
+       }" \
+    -i lib/async_req/wscript_build      &amp;&amp;
+
+./configure                             \
     --prefix=/usr                       \
     --sysconfdir=/etc                   \
     --localstatedir=/var                \
@@ -176,6 +183,13 @@ install -v -m755    examples/LDAP/{get*,ol*} \
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><command>sed ... -i ./lib/async_req/wscript_build</command>: Do not
+    install async_connect_send_test.</para><!-- Already pushed, so remove in the
+    next version
+    https://github.com/samba-team/samba/blob/632114584d3be0d4660e97a6c9e69e577a7bc1e2/lib/async_req/wscript_build
+    http://samba.2283325.n4.nabble.com/PATCH-lib-async-req-do-not-install-async-connect-send-test-td4695220.html-->
+
 
     <para><parameter>--enable-fhs</parameter>: Assigns all other file paths in
     a manner compliant with the Filesystem Hierarchy Standard (FHS).</para>
