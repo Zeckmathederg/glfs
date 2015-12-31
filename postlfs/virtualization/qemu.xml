@@ -6,10 +6,10 @@
 
   <!ENTITY qemu-download-http "http://wiki.qemu.org/download/qemu-&qemu-version;.tar.bz2">
   <!ENTITY qemu-download-ftp  " ">
-  <!ENTITY qemu-md5sum        "a895e93ec1dafc34bc64ed676f0d55a6">
-  <!ENTITY qemu-size          "24 MB">
-  <!ENTITY qemu-buildsize     "303 MB (additional 91 MB for tests)">
-  <!ENTITY qemu-time          "1.7 SBU (additional 1.0 SBU for tests)">
+  <!ENTITY qemu-md5sum        "f469f2330bbe76e3e39db10e9ac4f8db">
+  <!ENTITY qemu-size          "25 MB">
+  <!ENTITY qemu-buildsize     "419 MB (with tests)">
+  <!ENTITY qemu-time          "2.4 SBU (with tests)">
 ]>
 
 <sect1 id="qemu" xreflabel="qemu-&qemu-version;">
@@ -78,13 +78,18 @@
       <xref linkend="check"/>,
       <xref linkend="curl"/>,
       <xref linkend="cyrus-sasl"/>,
+      <xref linkend="gnutls"/>,
       <xref linkend="gtk2"/>,
       <xref linkend="gtk3"/>,
       <xref linkend="libusb"/>,
+      <xref linkend="libgcrypt"/>,
       <xref linkend="lzo"/>,
+      <xref linkend="nettle"/>,
       <xref linkend="nss"/> (for libcacard.so),
-      <xref linkend="mesa"/>, and
-      <xref linkend="vte"/>
+      <xref linkend="mesa"/>,
+      <xref linkend="sdl"/>,
+      <xref linkend="vte"/>,
+      <ulink url="http://www.libssh2.org">libssh2</ulink>
     </para>
 
     <note>
@@ -151,7 +156,7 @@ Device Drivers  ---&gt;
     commands:</para>
 
     <note><para>Qemu is capable of running many targets.  The build process
-    is also capable of building multiple targets at one time in a 
+    is also capable of building multiple targets at one time in a
     comma delimited list assigned to <option>--target-list</option>. Run
     <command>./configure --help</command> to get a complete list of
     available targets.</para></note>
@@ -163,9 +168,13 @@ else
    QEMU_ARCH=x86_64-softmmu
 fi
 
-./configure --prefix=/usr            \
-            --sysconfdir=/etc        \
-            --target-list=$QEMU_ARCH \
+mkdir -vp build &amp;&amp;
+cd        build &amp;&amp;
+
+./configure --prefix=/usr               \
+            --sysconfdir=/etc           \
+            --target-list=$QEMU_ARCH    \
+            --audio-drv-list=alsa       \
             --docdir=/usr/share/doc/qemu-&qemu-version; &amp;&amp;
 unset QEMU_ARCH &amp;&amp;
 
@@ -212,7 +221,7 @@ EOF</userinput></screen>
     <para>For convenience you may want to create a symbolic link to run
     the installed program. For instance:</para>
 
-    <screen role="root"><userinput>ln -sv qemu-system-x86_64 /usr/bin/qemu</userinput></screen>
+<screen role="root"><userinput>ln -sv qemu-system-`uname -m` /usr/bin/qemu</userinput></screen>
     </note>
 
   </sect2>
@@ -221,8 +230,8 @@ EOF</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <option>--audio-drv-list=alsa</option>: This switch sets the audio driver
-      to ALSA. For other drivers see the --audio-drv-list list in
+      <parameter>--audio-drv-list=alsa</parameter>: This switch sets the audio
+      driver to ALSA. For other drivers see the --audio-drv-list list in
       <command>configure</command>'s help output. The default audio driver is
       OSS.
     </para>
@@ -242,7 +251,7 @@ EOF</userinput></screen>
 
     <note><para>The following instructions assume you have created the optional
     symbolic link, <userinput>qemu</userinput>.  Additionally, you must run
-    <userinput>qemu</userinput> from an X Window System based terminal 
+    <userinput>qemu</userinput> from an X Window System based terminal
     (either locally or over ssh).</para></note>
 
     <para>To install an operating system, download an iso of your choice or use
@@ -390,20 +399,20 @@ chmod +x /etc/qemu-ifdown</userinput></screen>
 
       <seglistitem>
         <seg>
+          ivshmem-client,
+          ivshmem-server,
+          qemu (symlink),
           qemu-ga,
           qemu-img,
           qemu-io,
           qemu-nbd,
-          qemu-system-x86_64,
+          qemu-system-&lt;arch&gt;,
           virtfs-proxy-helper, and
           vscclient
         </seg>
         <seg>libcacard.so</seg>
         <seg>
-          /etc/qemu,
-          /usr/include/cacard,
-          /usr/lib/qemu,
-          /usr/share/qemu, and
+          /etc/qemu and
           /usr/share/doc/qemu-&qemu-version;
         </seg>
       </seglistitem>
