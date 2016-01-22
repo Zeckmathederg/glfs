@@ -100,14 +100,14 @@
       <xref linkend="libdvdcss"/>,
       <xref linkend="libdvdread"/>,
       <xref linkend="libdvdnav"/>,
+      <xref linkend="opencv"/>,
       <xref linkend="samba"/>,
       <xref linkend="v4l-utils"/>,
       <ulink url="http://www.videolan.org/developers/libbluray.html">libbluray</ulink>,
       <ulink url="http://sourceforge.net/projects/libdc1394/">libdc1394</ulink>,
       <ulink url="http://sourceforge.net/projects/libcddb/">libcddb</ulink>,
       <ulink url="http://code.google.com/p/libproxy/">libproxy</ulink>,
-      <ulink url="http://www.live555.com/">Live555</ulink>,
-      <ulink url="http://sourceforge.net/projects/opencvlibrary/">OpenCV</ulink>, and
+      <ulink url="http://www.live555.com/">Live555</ulink>, and
       <ulink url="http://www.gnu.org/software/vcdimager/">VCDImager</ulink>
       (requires <xref linkend="libcdio"/>)
     </para>
@@ -216,15 +216,15 @@
 <screen><userinput>sed -e 's:libsmbclient.h:samba-4.0/&amp;:' \
     -i modules/access/smb.c &amp;&amp;
 
+sed -e '/LUA_C/ i #define LUA_COMPAT_APIINTCASTS' \
+    -i modules/lua/vlc.h    &amp;&amp;
+
 ./bootstrap &amp;&amp;
 
-./configure --prefix=/usr &amp;&amp;
+./configure --prefix=/usr --enable-opencv=no &amp;&amp;
 
-sed -e 's/luaL_optint/(int)&amp;eger/' \
-    -i modules/lua/libs/{net,osd,volume}.c &amp;&amp;
-sed -e 's/luaL_checkint(/(int)luaL_checkinteger(/' \
-    -i modules/lua/{demux,libs/{configuration,net,osd,playlist}}.c \
-       modules/lua/{demux,libs/{stream,variables,volume}}.c &amp;&amp;
+sed -e '/seems to be moved/s/^/#/' \
+    -i.orig autotools/ltmain.sh libtool &amp;&amp;
 
 make</userinput></screen>
 
@@ -261,18 +261,25 @@ make</userinput></screen>
     </para>
 
     <para>
+      <command>sed -e ... -i modules/lua/vlc.h</command> This sed fixes
+      compilation with <application>lua</application> 5.3.
+    </para>
+
+    <para>
       <command>./bootstrap</command>: This command calls autoreconf to generate
       m4 macros and prepare Makefiles.
     </para>
 
     <para>
-      <command>sed -i ... {net,osd,volume}.c</command> This sed fixes
-      compilation with <application>lua</application> 5.3.
+      <command>sed -e ... -i.orig autotools/ltmain.sh libtool</command>: This
+      optional sed removes a lot of invalid build warnings.
+      If desired, remove it.
     </para>
 
     <para>
-      <command>sed -i ... variables,volume}}.c</command>: This sed fixes
-      compilation with <application>lua</application> 5.3.
+      <parameter>--enable-opencv=no</parameter>: This switch disables
+      <application>opencv</application> suport, because build is broken with
+      opencv-3.1.
     </para>
 
     <para>
