@@ -219,12 +219,19 @@
 sed -e '/LUA_C/ i #define LUA_COMPAT_APIINTCASTS' \
     -i modules/lua/vlc.h    &amp;&amp;
 
+sed -e '/core.h/ {
+        a #include &lt;opencv2/imgproc/imgproc_c.h&gt;
+        a #include &lt;opencv2/imgproc/imgproc.hpp&gt;
+    }' \
+    -i modules/video_filter/opencv_example.cpp &amp;&amp;
+
 ./bootstrap &amp;&amp;
 
-./configure --prefix=/usr --enable-opencv=no &amp;&amp;
+OPENCV_LIBS="-L/usr/share/OpenCV" \
+./configure --prefix=/usr &amp;&amp;
 
 sed -e '/seems to be moved/s/^/#/' \
-    -i.orig autotools/ltmain.sh libtool &amp;&amp;
+    -i autotools/ltmain.sh libtool &amp;&amp;
 
 make</userinput></screen>
 
@@ -266,6 +273,18 @@ make</userinput></screen>
     </para>
 
     <para>
+      <command>sed -e ... -i modules/video_filter/opencv_example.cpp</command>
+      This sed partially fixes compilation with
+      <application>OpenCV</application> 3.
+    </para>
+
+    <para>
+      <envar>OPENCV_LIBS="-L/usr/share/OpenCV"</envar> This environment variable
+      helps the linker to find <filename>libippicv.a</filename> installed by
+      <application>OpenCV</application> 3.
+    </para>
+
+    <para>
       <command>./bootstrap</command>: This command calls autoreconf to generate
       m4 macros and prepare Makefiles.
     </para>
@@ -277,9 +296,8 @@ make</userinput></screen>
     </para>
 
     <para>
-      <parameter>--enable-opencv=no</parameter>: This switch disables
-      <application>opencv</application> suport, because build is broken with
-      opencv-3.1.
+      <option>--enable-opencv=no</option>: This switch disables
+      <application>OpenCV</application> suport.
     </para>
 
     <para>
