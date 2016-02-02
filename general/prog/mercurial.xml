@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mercurial-download-http "http://mercurial.selenic.com/release/mercurial-&mercurial-version;.tar.gz">
+  <!ENTITY mercurial-download-http "https://www.mercurial-scm.org/release/mercurial-&mercurial-version;.tar.gz">
   <!ENTITY mercurial-download-ftp  " ">
-  <!ENTITY mercurial-md5sum        "25b6065487842a7851ba8cfcaa704b1f">
-  <!ENTITY mercurial-size          "4.4 MB">
-  <!ENTITY mercurial-buildsize     "52 MB (with documentation, additional 297 MB for tests)">
-  <!ENTITY mercurial-time          "less than 0.1 SBU (with documentation, additional 3.1 SBU for tests, using -j8)">
+  <!ENTITY mercurial-md5sum        "a175ce4f6660d87849589ee7d015db67">
+  <!ENTITY mercurial-size          "4.5 MB">
+  <!ENTITY mercurial-buildsize     "54 MB (with documentation, additional 384 MB for tests)">
+  <!ENTITY mercurial-time          "less than 0.1 SBU (with documentation, additional 3.4 SBU for tests, using -j8)">
 ]>
 
 <sect1 id="mercurial" xreflabel="Mercurial-&mercurial-version;">
@@ -98,16 +98,15 @@
 
 <screen><userinput>make doc</userinput></screen>
 
-    <para>Running the test suite is optional. If there are failures, e.g.
-    test-parse-date.t, those tests can be disabled. To test the results in the
-    subdiretory <filename class="directory">tests/tmp</filename>, skipping
-    failing tests, issue:</para>
+    <para>Running the test suite is optional. If some thest fails, it can be
+    disabled. To test the results in the subdiretory <filename
+    class="directory">tests/tmp</filename>, skipping failing tests,
+    issue:</para>
 
 <screen><userinput>cat &gt; tests/blacklists/failed-tests &lt;&lt; "EOF"
 <literal># Test Failures
   test-convert-svn-source.t
   test-convert-hg-svn.t
-  test-largefiles-update.t
   test-gpg.t</literal>
 EOF
 rm -rf tests/tmp &amp;&amp;
@@ -115,15 +114,29 @@ TESTFLAGS="-j<replaceable>&lt;N&gt;</replaceable> --tmpdir tmp --blacklist black
 make check</userinput></screen>
 
     <para>where <replaceable>&lt;N&gt;</replaceable> is an integer between one
-    and the number of processor threads, inclusive. In order to investigate a
-    particular apparently failing test, e.g <quote>test-parse-date.t</quote>,
-    issue the following commands (notice that omitting <option>--debug</option>
-    sometimes modifies the result):</para>
+    and the number of ( processor X threads ), inclusive. In order to
+    investigate the apparently failing tests, you may use the
+    <command>run-tests.py</command> scrypt. To see the almost forty switches,
+    some of them very useful, issue <command>tests/run-tests.py --help</command>.
+    Running the following commands, you will execute only the tests that failed
+    before:</para>
 
 <screen><userinput>pushd tests &amp;&amp;
 rm -rf tmp  &amp;&amp;
-./run-tests.py --debug --tmpdir tmp test-parse-date.t &amp;&amp;
+./run-tests.py --debug --tmpdir tmp      \
+               test-convert-svn-source.t \
+               test-convert-hg-svn.t     \
+               test-gpg.t &amp;&amp;
 popd</userinput></screen>
+
+    <para>Normally, failures will be repeated. However, if you add the switch
+    "--debug" before "--tmpdir", and run again, the failures are gone. Normally,
+    from now on, there will be no more failure whether you use the debug switch
+    or not. An interesting switch is "--time", which will generated at the end
+    of the test suite execution, a table with all executed tests and respective
+    start, end, user, system and real times.  Notice that the switches may be
+    used with <command>make check</command>, in the
+    <envar>TESTFLAGS</envar> environment variable.</para>
 
     <para>Install <application>Mercurial</application> by running the following
     command (as <systemitem class="username">root</systemitem>):</para>
@@ -159,12 +172,24 @@ EOF</userinput></screen>
       <title>Config Files</title>
 
       <para>
-        <filename>/etc/mercurial/hgrc</filename>
+        <filename>/etc/mercurial/hgrc</filename> and
+        <filename>~/.hgrc</filename>
       </para>
 
       <indexterm zone="mercurial mercurial-config">
         <primary sortas="e-etc-mercurial-hgrc">/etc/mercurial/hgrc</primary>
       </indexterm>
+
+      <indexterm zone="mercurial mercurial-config">
+        <primary sortas="e-AA.hgrc">~/.hgrc</primary>
+      </indexterm>
+
+      <para>
+        A great majority of extensions are disabled by default. Run <command>hg
+        help extensions</command> if you need to enable any, e.g. when
+        investigating test failures, and use one of the configuration files to
+        enable it.
+      </para>
 
       <para>
         If you have installed the <xref linkend="cacerts"/> and you want
