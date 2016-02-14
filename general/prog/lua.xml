@@ -119,40 +119,10 @@
   <sect2 role="installation">
     <title>Installation of Lua</title>
 
-    <para>
-      Install <application>Lua</application> by running the following
-      commands:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../lua-&lua-version;-shared_library-1.patch &amp;&amp;
-
-sed -i '/#define LUA_ROOT/s:/usr/local/:/usr/:' src/luaconf.h &amp;&amp;
-
-make MYCFLAGS="-DLUA_COMPAT_5_1" linux</userinput></screen>
-
-    <para>
-      To test the results, issue: <command>make test</command>.
-      <quote>This will run the interpreter and print its version.</quote>.
-      More comprehensive tests can be performed if you downloaded the "Test
-      suite" tarball. Those tests need to be executed after the package is
-      installed, thus we defer to describe then below.
-    </para>
-
-    <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>make INSTALL_TOP=/usr TO_LIB="liblua.so liblua.so.5.3 liblua.so.&lua-version;" \
-     INSTALL_DATA="cp -d" INSTALL_MAN=/usr/share/man/man1 install &amp;&amp;
-
-mkdir -pv /usr/share/doc/lua-&lua-version; &amp;&amp;
-cp -v doc/*.{html,css,gif,png} /usr/share/doc/lua-&lua-version;</userinput></screen>
-
     <para>Some packages check for the <application>pkg-config</application> file
-    for <application>Lua</application>. As the
-    <systemitem class="username">root</systemitem> user:</para>
+    for <application>Lua</application>, wich is created with:</para>
 
-<screen role="root"><userinput>cat &gt; /usr/lib/pkgconfig/lua.pc &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; lua.pc &lt;&lt; "EOF"
 <literal>V=5.3
 R=&lua-version;
 
@@ -176,6 +146,37 @@ Cflags: -I${includedir}</literal>
 EOF</userinput></screen>
 
     <para>
+      Install <application>Lua</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../lua-&lua-version;-shared_library-1.patch &amp;&amp;
+
+sed -i '/#define LUA_ROOT/s:/usr/local/:/usr/:' src/luaconf.h &amp;&amp;
+
+make MYCFLAGS="-DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1" linux</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make test</command>.
+      <quote>This will run the interpreter and print its version.</quote>.
+      More comprehensive tests can be performed if you downloaded the "Test
+      suite" tarball. Those tests need to be executed after the package is
+      installed, thus we defer to describe then below.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make INSTALL_TOP=/usr TO_LIB="liblua.so liblua.so.5.3 liblua.so.&lua-version;" \
+     INSTALL_DATA="cp -d" INSTALL_MAN=/usr/share/man/man1 install &amp;&amp;
+
+mkdir -pv /usr/share/doc/lua-&lua-version; &amp;&amp;
+cp -v doc/*.{html,css,gif,png} /usr/share/doc/lua-&lua-version; &amp;&amp;
+
+install -v -m644 -D lua.pc /usr/lib/pkgconfig/lua.pc</userinput></screen>
+
+    <para>
       We are going to describe only the "Basic tests". Untar the tarball and
       change to the
       <filename class="directory">lua-&lua-version;-tests</filename> directory,
@@ -196,10 +197,9 @@ EOF</userinput></screen>
     </para>
 
     <para>
-      <parameter>MYCFLAGS="-DLUA_COMPAT_5_1"</parameter>: This parameter
-      enables building of the <application>Lua</application> 5.1
-      functions into the shared library to allow applications which
-      still require them to function properly.
+      <envar>MYCFLAGS="-DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1"</envar>: This
+      environment variable includes compatibility layers with Lua 5.1 and 5.2
+      in the build.
     </para>
 
   </sect2>
