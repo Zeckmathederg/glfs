@@ -9,7 +9,7 @@
   <!ENTITY mdadm-md5sum        "04b8b21f637540350f8517c7e68d3c63">
   <!ENTITY mdadm-size          "416 KB">
   <!ENTITY mdadm-buildsize     "416 MB (12 MB with tests)">
-  <!ENTITY mdadm-time          "0.1 SBU (23 SBU, with tests)">
+  <!ENTITY mdadm-time          "0.1 SBU (tests take about an hour, only partially processor dependent)">
   <!-- tests statistcs repeated from previous one, given by Pierre-->
 ]>
 
@@ -33,7 +33,7 @@
     <para>The <application>mdadm</application> package contains administration
     tools for software RAID.</para>
 
-    &lfs78_checked;
+    &lfs79_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -59,12 +59,12 @@
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/mdadm"/></para>
-    <note>
+    <caution>
       <para>
-        Kernel versions in series 4.1 and 4.2 have a broken RAID
-        implementation. Use a kernel with version above 4.2.4.
+        Kernel versions in series 4.1 through 4.4.1 have a broken RAID
+        implementation. Use a kernel with version at or above 4.4.2.
       </para>
-    </note>
+    </caution>
 
   </sect2>
 
@@ -100,11 +100,18 @@
 <screen><userinput>make</userinput></screen>
 
     <para>If you wish to run the tests, ensure that your kernel supports
-    RAID and that a version of mdadm is not already running, and issue:
-    <command>make test</command> and then, as the
-    <systemitem class="username">root</systemitem> user:
-    <command>./test --keep-going --logdir=tests-logs --save-logs</command>.
-    Some tests fail for unknown reasons.</para>
+    RAID and that a version of mdadm is not already running.  As many as 51 out
+    of 123 tests may fail.</para>
+
+    <para>First fix the test script to avoid a bogus error message when 
+    tests fail and build the supporting programs:</para>
+
+<screen><userinput>sed -i 's# if.* == "1"#&amp; -a -e $targetdir/log#' test &amp;&amp;
+make test</userinput></screen>
+
+    <para>Run the tests as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput>./test --keep-going --logdir=test-logs --save-logs</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
@@ -128,8 +135,8 @@
     </para>
 
     <para>
-      <parameter>--logdir=tests-logs</parameter>: Defines that the directory
-      where tests logs are saved.
+      <parameter>--logdir=test-logs</parameter>: Defines that the directory
+      where test logs are saved.
     </para>
 
     <para>
