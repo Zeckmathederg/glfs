@@ -6,18 +6,18 @@
 
   <!ENTITY llvm-download-http "http://llvm.org/releases/&llvm-version;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "bf8b3a2c79e61212c5409041dfdbd319">
-  <!ENTITY llvm-size          "14 MB">
-  <!ENTITY llvm-buildsize     "1.6 GB (with Clang and tests)">
-  <!ENTITY llvm-time          "13 SBU (with Clang, tests and parallelism = 4)">
+  <!ENTITY llvm-md5sum        "07a7a74f3c6bd65de4702bf941b511a0">
+  <!ENTITY llvm-size          "16 MB">
+  <!ENTITY llvm-buildsize     "1.1 GB (with Clang, add 5.7GB for tests)">
+  <!ENTITY llvm-time          "50 SBU (with Clang, add 15 SBU for tests)">
 
   <!ENTITY clang-download-http "http://llvm.org/releases/&llvm-version;/cfe-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "0acd026b5529164197563d135a8fd83e">
-  <!ENTITY clang-size          " 8.7 MB">
+  <!ENTITY clang-md5sum        "cc99e7019bb74e6459e80863606250c5">
+  <!ENTITY clang-size          " 9.2 MB">
 
   <!ENTITY rt-version                "&llvm-version;">
   <!ENTITY compiler-rt-download-http "http://llvm.org/releases/&rt-version;/compiler-rt-&rt-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "1c6975daf30bb3b0473b53c3a1a6ff01">
+  <!ENTITY compiler-rt-md5sum        "d6fcbe14352ffb708e4d1ac2e48bb025">
   <!ENTITY compiler-rt-size          "1.2 MB">
 ]>
 
@@ -55,6 +55,7 @@
       <application>LLVM</application>.
     </para>
 
+<!--
     <note>
       <para>
         This package hits a bug in GCC-4.9.0 or an unpatched GCC-4.9.1.
@@ -63,7 +64,7 @@
         for <application>gcc</application> installation instructions.
       </para>
     </note>
-
+-->
     &lfs79_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -144,13 +145,15 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="libffi"/> and
+<!-- autotools are obsolete and should not be used anymore. Cmake will be
+     required for 3.9 -->
+      <xref linkend="cmake"/>,
+      <xref linkend="libffi"/>, and
       <xref linkend="python2"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="cmake"/>,
       <xref linkend="doxygen"/>,
       <xref linkend="graphviz"/>,
       <xref linkend="libxml2"/>,
@@ -180,61 +183,65 @@ tar -xf ../compiler-rt-&rt-version;.src.tar.xz -C projects &amp;&amp;
 mv tools/cfe-&llvm-version;.src tools/clang &amp;&amp;
 mv projects/compiler-rt-&rt-version;.src projects/compiler-rt</userinput></screen>
 
-<!-- Only for 3.7.0: hopefully fixed on later versions -->
+<!-- For 3.7.0: Now fixed at version 3.8.0
     <para>
       The run-time library needs to be fixed for 32 bit installations:
     </para>
 
 <screen><userinput>sed -r "/ifeq.*CompilerTargetArch/s#i386#i686#g" \
     -i projects/compiler-rt/make/platform/clang_linux.mk</userinput></screen>
-
+-->
     <para>
       Install <application>LLVM</application> by running the following
       commands:
     </para>
 
+<!-- Not used in the build system
 <screen><userinput>sed -e "s:/docs/llvm:/share/doc/llvm-&llvm-version;:" \
     -i Makefile.config.in &amp;&amp;
-
-mkdir -v build &amp;&amp;
+-->
+<screen><userinput>mkdir -v build &amp;&amp;
 cd       build &amp;&amp;
 
-CC=gcc CXX=g++                          \
-../configure --prefix=/usr              \
-             --datarootdir=/usr/share   \
-             --sysconfdir=/etc          \
-             --enable-libffi            \
-             --enable-optimized         \
-             --enable-shared            \
-             --enable-targets=host,r600 \
-             --disable-assertions       \
-             --docdir=/usr/share/doc/llvm-&llvm-version; &amp;&amp;
+CC=gcc CXX=g++                              \
+cmake -DCMAKE_INSTALL_PREFIX=/usr           \
+      -DLLVM_ENABLE_FFI=ON                  \
+      -DCMAKE_BUILD_TYPE=Release            \
+      -DBUILD_SHARED_LIBS=ON                \
+      -DLLVM_TARGETS_TO_BUILD="host;AMDGPU" \
+      -Wno-dev ..                           &amp;&amp;
 make</userinput></screen>
 
     <para>
       If you have installed <application>Sphinx</application> and wish
-      to generate manual pages, issue the following command:
+      to generate the html documentation and manual pages, issue the
+      following commands:
     </para>
-
+<!-- The following command still works but let's try the next one
 <screen><userinput>make -C ../docs -f Makefile.sphinx man</userinput></screen>
-
+-->
+<screen><userinput>cmake -DLLVM_ENABLE_SPHINX=ON         \
+      -DSPHINX_WARNINGS_AS_ERRORS=OFF \
+      -Wno-dev ..                     &amp;&amp;
+make docs-llvm-html  docs-llvm-man</userinput></screen>
     <para>
-      To test the results, issue: <command>make -k check-all</command>.
-      Some tests may fail for unknown reasons.
+      If you have downloaded the optional packages, the clang documentation
+      can be built too:
+    </para>
+<screen><userinput>make docs-clang-html docs-clang-man</userinput></screen>
+    <para>
+<!-- all tests pass for version 3.8.0-->
+      To test the results, issue: <command>make check-all</command>.
+<!--      Some tests may fail for unknown reasons.-->
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>make install</userinput></screen>
 
-for file in /usr/lib/lib{clang,LLVM,LTO}*.a
-do
-  test -f $file &amp;&amp; chmod -v 644 $file
-done
-unset file</userinput></screen>
-
+<!-- version 3.8.0: Clang-analyser is built and installed by default
     <para>
       If you had <xref linkend="python2"/> installed and you have
       built <application>Clang</application>, install the
@@ -256,57 +263,77 @@ ln -sfv /usr/bin/clang \
         /usr/lib/clang-analyzer/scan-build/ &amp;&amp;
 mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
         /usr/share/man/man1/</userinput></screen>
-
+-->
     <para>
-      If you have built manual pages, install them by running the
-      following command as the
-      <systemitem class="username">root</systemitem> user:
+      If you have built  the documentation, install it by running the
+      following command as the <systemitem class="username">root</systemitem>
+      user:
     </para>
 
-<screen role="root"><userinput>install -v -m644 ../docs/_build/man/* /usr/share/man/man1/</userinput></screen>
+<screen role="root"><userinput>install -v -m644 docs/man/* /usr/share/man/man1             &amp;&amp;
+install -v -d -m755 /usr/share/doc/llvm-&llvm-version;/llvm-html     &amp;&amp;
+cp -Rv docs/html/* /usr/share/doc/llvm-&llvm-version;/llvm-html</userinput></screen>
+
+    <para>
+      The cmake documentation can be installed in the same way (again as the
+      <systemitem class="username">root</systemitem> user):
+    </para>
+
+<screen role="root"><userinput>install -v -m644 tools/clang/docs/man/* /usr/share/man/man1 &amp;&amp;
+install -v -d -m755 /usr/share/doc/llvm-&llvm-version;/clang-html    &amp;&amp;
+cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+<!--
     <para>
       <command>sed -e ... Makefile.config.in</command>: This sed fixes
       location of the installed documentation.
     </para>
-
+-->
     <para>
-      <parameter>--enable-libffi</parameter>: This switch enables
+      <parameter>-DLLVM_ENABLE-FFI=ON</parameter>: This switch enables
       <application>LLVM</application> to use
       <application>libffi</application>. Remove if you did not
       install <application>libffi</application>.
     </para>
 
     <para>
-      <parameter>--enable-optimized</parameter>: This switch enables
-      compiler optimizations in order to speed up the code and reduce
-      its size.
+      <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch enables
+      compiler optimizations in order to speed up the code and reduce its size.
+      It also disables some compile checks, not necessary on a production
+      system.
     </para>
 
     <para>
-      <parameter>--enable-shared</parameter>: This switch enables
-      building of the <application>LLVM</application> shared
-      library which contains all of the static libraries linked into
-      a single library.
+      <parameter>-DBUILD_SHARED_LIBS=ON</parameter>: This switch enables
+      building all the <application>LLVM</application> libraries as shared
+      libraries instead of static.
     </para>
 
     <para>
-      <parameter>--enable-targets=host,r600</parameter>: This switch enables
-      building for the same target as the host, and also for the r600 AMD GPU
-      used by the Mesa r600 and radeonsi drivers. Default is all. You can use
-      a comma separated list. Valid targets are: host, x86, x86_64, sparc,
-      powerpc, arm64, arm, aarch64, mips, hexagon, xcore, msp430, nvptx,
-      systemz, r600, amdgpu (equivalent to r600), bpf, wasm, and cpp.
+      <parameter>-DLLVM_TARGETS_TO_BUILD="host;AMDGPU"</parameter>: This
+      switch enables building for the same target as the host, and also for
+      the r600 AMD GPU used by the Mesa r600 and radeonsi drivers. Default is
+      all. You can use a semicolon separated list. Valid targets are: host,
+      X86, Sparc, PowerPC, ARM, AArch64, Mips, Hexagon, Xcore, MSP430, NVPTX,
+      SystemZ, AMDGPU, BPF, CppBackend, or all.
     </para>
 
     <para>
-      <parameter>--disable-assertions</parameter>: Disable some compile checks,
-      not necessary on a production system.
+      <option>-DLLVM_BUILD_LLVM_DYLIB=ON</option>: if used instead of
+      <parameter>-DBUILD_SHARED_LIBS=ON</parameter>, builds libraries as
+      static and links all of them into an unique shared one.
+    </para>
+
+    <para>
+      <option>-DLLVM_ENABLE_DOXYGEN</option>: Enables the generation of
+      browsable HTML documentation if you have installed <xref
+      linkend="doxygen"/>. You should run <command>make doxygen-html</command>
+      afterwards, and install the generated documentation manually.
     </para>
 
   </sect2>
@@ -321,25 +348,26 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
 
       <seglistitem>
         <seg>
-          bugpoint, c-index-test, clang, clang++ (symlink), count, FileCheck,
-          clang-check, clang-format, clang-tblgen, llc, lli, lli-child-target,
-          llvm-ar, llvm-as, llvm-bcanalyzer, llvm-config, llvm-cov,
-          llvm-cxxdump, llvm-diff, llvm-dis, llvm-dsymutil, llvm-dwarfdump,
-          llvm-extract, llvm-link, llvm-mc, llvm-mcmarkup, llvm-nm,
-          llvm-objdump, llvm-pdbdump, llvm-profdata, llvm-ranlib (symlink),
-          llvm-readobj, llvm-rtdyld, llvm-size, llvm-stress, llvm-symbolizer,
-          llvm-tblgen, macho-dump, not, obj2yaml, opt, scan-build (symlink),
-          scan-view (symlink), verify-uselistorder, and yaml2obj
+          bugpoint, c-index-test, clang, clang++ (symlinks to
+          clang-&lt;version&gt;), clang-&lt;version&gt;, clang-check,
+          clang-format, git-clang-format,
+          llc, lli, llvm-ar, llvm-as, llvm-bcanalyzer, llvm-config, llvm-cov,
+          llvm-c-test, llvm-cxxdump, llvm-diff, llvm-dis, llvm-dsymutil,
+          llvm-dwarfdump, llvm-dwp, llvm-extract, llvm-lib (symlink to
+          llvm-ar), llvm-link, llvm-lto, llvm-mc, llvm-mcmarkup, llvm-nm,
+          llvm-objdump, llvm-pdbdump, llvm-profdata, llvm-ranlib (symlink to
+          llvm-ar), llvm-readobj, llvm-rtdyld, llvm-size, llvm-split,
+          llvm-stress, llvm-symbolizer, llvm-tblgen, obj2yaml, opt, san-cov,
+          scan-build, scan-view, verify-uselistorder, and yaml2obj
         </seg>
         <seg>
-          BugpointPasses.so, libclang.so, libLLVM-&llvm-version;.so,
-          libLTO.so,<!-- libprofile_rt.so,--> LLVMHello.so and numerous
-          static libraries in /usr/lib
+          BugpointPasses.so, libclang*.so (21 libraries), libLLVM*.so (53
+          libraries), libLTO.so, and LLVMHello.so
         </seg>
         <seg>
           /usr/include/{clang,clang-c,llvm,llvm-c},
-          /usr/lib/{clang,clang-analyzer}, and
-          /usr/share/{doc/llvm-&llvm-version;,llvm}
+          /usr/lib/clang, and
+          /usr/share/{clang,llvm,scan-build,scan-view,doc/llvm-&llvm-version;}
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -370,6 +398,19 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </para>
           <indexterm zone="llvm clang">
             <primary sortas="b-clang">clang</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="clang-format">
+        <term><command>clang-format</command></term>
+        <listitem>
+          <para>
+            is a tool to format C/C++/Java/JavaScript/Objective-C/Protobuf
+            code.
+          </para>
+          <indexterm zone="llvm clang-format">
+            <primary sortas="b-clang-format">clang-format</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -459,6 +500,18 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-c-test">
+        <term><command>llvm-c-test</command></term>
+        <listitem>
+          <para>
+            is a bytecode disassembler.
+          </para>
+          <indexterm zone="llvm llvm-c-test">
+            <primary sortas="b-llvm-c-test">llvm-c-test</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-cxxdump">
         <term><command>llvm-cxxdump</command></term>
         <listitem>
@@ -509,6 +562,30 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-dwarfdump">
+        <term><command>llvm-dwarfdump</command></term>
+        <listitem>
+          <para>
+            prints the content of DWARF sections in object files.
+          </para>
+          <indexterm zone="llvm llvm-dwarfdump">
+            <primary sortas="b-llvm-dwarfdump">llvm-dwarfdump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-dwp">
+        <term><command>llvm-dwp</command></term>
+        <listitem>
+          <para>
+            merge split DWARF files.
+          </para>
+          <indexterm zone="llvm llvm-dwp">
+            <primary sortas="b-llvm-dwp">llvm-dwp</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-extract">
         <term><command>llvm-extract</command></term>
         <listitem>
@@ -534,6 +611,31 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-lto">
+        <term><command>llvm-lto</command></term>
+        <listitem>
+          <para>
+            is the <application>LLVM</application> LTO (link time optimization)
+            linker.
+          </para>
+          <indexterm zone="llvm llvm-lto">
+            <primary sortas="b-llvm-lto">llvm-lto</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-mc">
+        <term><command>llvm-mc</command></term>
+        <listitem>
+          <para>
+            is a standalone machine code assembler/disassembler.
+          </para>
+          <indexterm zone="llvm llvm-mc">
+            <primary sortas="b-llvm-mc">llvm-mc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-nm">
         <term><command>llvm-nm</command></term>
         <listitem>
@@ -543,6 +645,18 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </para>
           <indexterm zone="llvm llvm-nm">
             <primary sortas="b-llvm-nm">llvm-nm</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-objdump">
+        <term><command>llvm-objdump</command></term>
+        <listitem>
+          <para>
+            is an <application>LLVM</application> object file dumper.
+          </para>
+          <indexterm zone="llvm llvm-objdump">
+            <primary sortas="b-llvm-objdump">llvm-objdump</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -558,19 +672,18 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </indexterm>
         </listitem>
       </varlistentry>
-<!--
-      <varlistentry id="llvm-prof">
-        <term><command>llvm-prof</command></term>
+
+      <varlistentry id="llvm-profdata">
+        <term><command>llvm-profdata</command></term>
         <listitem>
           <para>
-            is used to print execution profile of
-            <application>LLVM</application> program.
+            is a small tool to manipulate and print profile data files.
           </para>
-          <indexterm zone="llvm llvm-prof">
-            <primary sortas="b-llvm-prof">llvm-prof</primary>
+          <indexterm zone="llvm llvm-profdata">
+            <primary sortas="b-llvm-profdata">llvm-profdata</primary>
           </indexterm>
         </listitem>
-      </varlistentry>-->
+      </varlistentry>
 
       <varlistentry id="llvm-ranlib">
         <term><command>llvm-ranlib</command></term>
@@ -585,6 +698,54 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-readobj">
+        <term><command>llvm-readobj</command></term>
+        <listitem>
+          <para>
+            displays low-level format-specific information about object files.
+          </para>
+          <indexterm zone="llvm llvm-readobj">
+            <primary sortas="b-llvm-readobj">llvm-readobj</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-rtdyld">
+        <term><command>llvm-rtdyld</command></term>
+        <listitem>
+          <para>
+            <application>LLVM</application> MC-JIT tool.
+          </para>
+          <indexterm zone="llvm llvm-rtdyld">
+            <primary sortas="b-llvm-rtdyld">llvm-rtdyld</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-size">
+        <term><command>llvm-size</command></term>
+        <listitem>
+          <para>
+            <application>LLVM</application> object size dumper.
+          </para>
+          <indexterm zone="llvm llvm-size">
+            <primary sortas="b-llvm-size">llvm-size</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-split">
+        <term><command>llvm-split</command></term>
+        <listitem>
+          <para>
+            <application>LLVM</application> module splitter.
+          </para>
+          <indexterm zone="llvm llvm-split">
+            <primary sortas="b-llvm-split">llvm-split</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-stress">
         <term><command>llvm-stress</command></term>
         <listitem>
@@ -594,6 +755,18 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </para>
           <indexterm zone="llvm llvm-stress">
             <primary sortas="b-llvm-stress">llvm-stress</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-symbolizer">
+        <term><command>llvm-symbolizer</command></term>
+        <listitem>
+          <para>
+            converts adresses into source code locations.
+          </para>
+          <indexterm zone="llvm llvm-symbolizer">
+            <primary sortas="b-llvm-symbolizer">llvm-symbolizer</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -636,6 +809,18 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="sancov">
+        <term><command>sancov</command></term>
+        <listitem>
+          <para>
+            sanitizer coverage processing tool.
+          </para>
+          <indexterm zone="llvm sancov">
+            <primary sortas="b-sancov">sancov</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="scan-build">
         <term><command>scan-build</command></term>
         <listitem>
@@ -645,6 +830,32 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </para>
           <indexterm zone="llvm scan-build">
             <primary sortas="b-scan-build">scan-build</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="scan-view">
+        <term><command>scan-view</command></term>
+        <listitem>
+          <para>
+            is a viewer for <application>Clang</application> static analyzer
+            results.
+          </para>
+          <indexterm zone="llvm scan-view">
+            <primary sortas="b-scan-view">scan-view</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="verify-uselistorder">
+        <term><command>verify-uselistorder</command></term>
+        <listitem>
+          <para>
+            is the <application>LLVM</application> tool to verify use-list
+            order.
+          </para>
+          <indexterm zone="llvm verify-uselistorder">
+            <primary sortas="b-verify-uselistorder">verify-uselistorder</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -661,7 +872,7 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="libllvm">
         <term><filename class="libraryfile">libLLVM-&llvm-version;.so</filename></term>
         <listitem>
@@ -673,7 +884,7 @@ mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
           </indexterm>
         </listitem>
       </varlistentry>
-<!--
+
       <varlistentry id="libprofile_rt">
         <term><filename class="libraryfile">libprofile_rt.so</filename></term>
         <listitem>
