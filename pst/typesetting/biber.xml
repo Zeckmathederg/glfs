@@ -4,14 +4,15 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-<!--  <!ENTITY biber-download-http   "http://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/&biber-version;/biblatex-biber.tar.gz">-->
-  <!ENTITY biber-download-http   "&sources-anduin-http;/biblatex-biber/biblatex-biber-&biber-version;.tar.gz">
-  <!ENTITY biber-download-ftp    "&sources-anduin-ftp;/biblatex-biber/biblatex-biber-&biber-version;.tar.gz">
-  <!ENTITY biber-md5sum          "8bcfcc5c66a357521a2977c699a8c289">
-  <!ENTITY biber-size            "2.0 MB">
+  <!ENTITY biber-download-http   "http://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/&biber-version;/biblatex-biber.tar.gz">
+  <!ENTITY biber-download-ftp " ">
+<!-- <!ENTITY biber-download-http   "&sources-anduin-http;/biblatex-biber/biblatex-biber-&biber-version;.tar.gz">
+  <!ENTITY biber-download-ftp    "&sources-anduin-ftp;/biblatex-biber/biblatex-biber-&biber-version;.tar.gz">-->
+  <!ENTITY biber-md5sum          "530368acb20b0881e13d7df0e5976e11">
+  <!ENTITY biber-size            "1.1 MB">
   <!-- buildsize includes the installed biblatex -->
-  <!ENTITY biber-buildsize       "37 MB">
-  <!ENTITY biber-time            "less than 0.1 SBU (0.4 SBU to run the tests)">
+  <!ENTITY biber-buildsize       "32 MB">
+  <!ENTITY biber-time            "less than 0.1 SBU (0.8 SBU to run the tests)">
 
   <!ENTITY biblatex-download-http   "http://sourceforge.net/projects/biblatex/files/biblatex-&biblatex-version;/biblatex-&biblatex-version;.tds.tgz">
   <!ENTITY biblatex-download-ftp    "">
@@ -96,8 +97,10 @@
       <xref linkend="perl-business-isbn"/>
       <xref linkend="perl-business-ismn"/>
       <xref linkend="perl-business-issn"/>
+      <xref linkend="perl-class-accessor"/>
       <xref linkend="perl-data-compare"/>
       <xref linkend="perl-data-dump"/>
+      <xref linkend="perl-data-uniqid"/>
       <xref linkend="perl-date-simple"/>
       <xref linkend="perl-encode-eucjpascii"/>
       <xref linkend="perl-encode-hanextra"/>
@@ -138,44 +141,41 @@
       (or <xref linkend="tl-installer"/>)
     </para>
 
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="required">
-      <xref linkend="perl-file-which"/>,
-      <xref linkend="perl-test-differences"/>,
-      <xref linkend="perl-test-pod"/> and
-      <xref linkend="perl-test-pod-coverage"/> (all needed to run the testsuite)
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="perl-file-which"/> and
+      <xref linkend="perl-test-differences"/> to run the testsuite
     </para>
 
     <note>
 <!-- when a new release appears, use this para and link to sourceforge,
-     until we  have a versioned copy at anduin. \-\-\>
+     until we  have a versioned copy at anduin. -->
       <para>
         Although the tarball name is unversioned, it will untar to a
         correctly-versioned biblatex-biber-&biber-version; directory.
-      </para> -->
+      </para>
 
       <para>
-        It is possible to install (all) missing dependencies automatically.
+        It is almost possible to install all missing dependencies automatically.
         Except, from <application>perl-5.22.0</application> onwards,
         <xref linkend="perl-module-build"/> is no longer part of
-        the core distribution.  To automatically install the remaining perl
-        dependencies you will need to manually install that first.
+        the core perl distribution.  And for <xref linkend="perl-data-uniqid"/>
+        we have to patch it to skip over a test which always fails - that failing
+        test will probably break the automatic install.  To automatically install
+        the remaining perl dependencies you will need to manually install those
+        two modules first.
         You can then run <command>perl ./Build.PL</command> and when it
         prompts you, become the root user and run
         <command>./Build installdeps</command>
       </para>
-<!--
+    </note>
+
+    <note> <!-- remove this note when texlive-2016 is released -->
       <para>
-        If you run <command>./Build.PL</command> under versions of
-        <application>perl</application> after 5.20.2 it will tell you that the
-        version of <application>Unicode::Normalize</application> is too
-        <emphasis>new</emphasis>. In fact, the new version works, but is now
-        pure perl and takes longer to run : <emphasis>much</emphasis> longer
-        if you have a large bibliography.  You can find the old version at <ulink
-        url="http://backpan.perl.org/authors/id/S/SA/SADAHIRO/Unicode-Normalize-1.17.tar.gz"/>
-        and use the standard <xref linkend="perl-standard-install"/>
-        to install it if you wish. Further details are in the User Notes.
-      </para>-->
+        If you use external modules with biber, a change in v2.4 (to
+        \DeclareNameFormat) breaks at least some of them - if this applies to
+        you, you will need to update the affected module from CTAN.
+      </para>
     </note>
 
     <para condition="html" role="usernotes">User Notes:
@@ -189,12 +189,12 @@
     <para>Install <application>Biber</application> by running the following
     commands:</para>
 
-<!--<screen><userinput>sed -i 's/ 44/ 43/' t/bcfvalidation.t &amp;&amp;-->
 <screen><userinput>perl ./Build.PL &amp;&amp;
 ./Build</userinput></screen>
 
     <para>To test the results, enter: <command>./Build test</command> - you will
-    require the en_GB.UTF-8 and sv_SE.UTF-8 locales. Some tests will fail : for
+    require the en_GB.UTF-8 and sv_SE.UTF-8 locales. Test 12 of t/sort-order.t
+    will fail : for
     speed the tests use system locales instead of the default Unicode::Collation
     algorithm, and some minor details of the locales in OSX (where development
     takes place) differ from those in <application>glibc</application></para>
@@ -209,12 +209,6 @@ texhash &amp;&amp;
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-<!--
-    <para>
-      <parameter>sed -i 's/ 44/ 43/' t/bcfvalidation.t</parameter>: Although
-      the git master branch has 44 pairs of files for this test, the shipped
-      tarball only contains 43. The sed prevents it reporting a failure.
-    </para>-->
 
     <para>
       <command>tar -xf biblatex-&biblatex-version;.tds.tar.gz -C
