@@ -7,9 +7,9 @@
 <!--  <!ENTITY mutt-download-http "&sourceforge-repo;/mutt/mutt-&mutt-version;.tar.gz">-->
   <!ENTITY mutt-download-http " ">
   <!ENTITY mutt-download-ftp  "ftp://ftp.mutt.org/pub/mutt/mutt-&mutt-version;.tar.gz">
-  <!ENTITY mutt-md5sum        "7f25d27f3c7c82285ac07aac35f5f0f2">
+  <!ENTITY mutt-md5sum        "d05bb821d7040c61ba89b22d7c2bd388">
   <!ENTITY mutt-size          "3.8 MB">
-  <!ENTITY mutt-buildsize     "36 MB (plus a further 8MB for the PDF manual)">
+  <!ENTITY mutt-buildsize     "37 MB (plus a further 5MB for the PDF manual)">
   <!ENTITY mutt-time          "0.3 SBU (plus a further 0.2 SBU to build the PDF manual)">
 ]>
 
@@ -113,16 +113,6 @@
   <sect2 role="installation">
     <title>Installation of Mutt</title>
 
-    <note>
-      <para>This version of <application>Mutt</application> is a development
-      release.  The BLFS editors have determined that it provides a stable
-      program and fixes two issues in the current stable version of
-      <application>Mutt</application>: a segmentation fault that occurs under
-      certain conditions and a compilation problem when building with recent
-      versions of <application>GCC</application>.
-      </para>
-    </note>
-
     <para><application>Mutt</application> requires a group named
     <systemitem class="groupname">mail</systemitem>.  You can
     add this group, if it does not exist, with this command:</para>
@@ -145,16 +135,13 @@
     commands:</para>
 
 <screen><userinput>cp -v doc/manual.txt{,.shipped} &amp;&amp;
-./configure --prefix=/usr     \
-            --sysconfdir=/etc \
+./configure --prefix=/usr                           \
+            --sysconfdir=/etc                       \
             --with-docdir=/usr/share/doc/mutt-&mutt-version; \
-            --enable-pop      \
-            --enable-imap     \
-            --enable-hcache   \
-            --without-qdbm    \
-            --with-gdbm       \
-            --without-bdb     \
-            --without-tokyocabinet &amp;&amp;
+            --enable-external-dotlock               \
+            --enable-pop                            \
+            --enable-imap                           \
+            --enable-hcache                         &amp;&amp;
 make &amp;&amp;
 test -s doc/manual.txt || mv -v doc/manual.txt{.shipped,}</userinput></screen>
 
@@ -169,17 +156,34 @@ test -s doc/manual.txt || mv -v doc/manual.txt{.shipped,}</userinput></screen>
 
 <screen role='root'><userinput>make install</userinput></screen>
 
-    <para>If you generated the PDF manual, install it and the source TeX
-    file by issuing the following command as the
+    <para>If you generated the PDF manual, install it
+    by issuing the following command as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role='root'><userinput>install -v -m644 doc/manual.{pdf,tex} \
+<screen role='root'><userinput>install -v -m644 doc/manual.pdf \
     /usr/share/doc/mutt-&mutt-version;</userinput></screen>
+
+    <note>
+      <para>
+        If you used a DESTDIR method to only install to a temporary location as
+        a regular user (as part of a package menagement process), you will need
+        to run the following as the <systemitem class="username">root</systemitem>
+        user after completing the real install:
+      </para>
+
+<screen role="nodump"><userinput>chown root:mail /usr/bin/mutt_dotlock &amp;&amp;
+chmod -v 2755 /usr/bin/mutt_dotclock</userinput></screen>
+    </note>
+
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para><parameter>--enable-external-dotlock</parameter>: In some circumstances
+    the mutt-dotlock program is not created. This switch ensures it is always
+    created.</para>
 
     <para><parameter>--enable-pop</parameter>: This switch enables
     POP3 support.</para>
@@ -189,18 +193,6 @@ test -s doc/manual.txt || mv -v doc/manual.txt{.shipped,}</userinput></screen>
 
     <para><parameter>--enable-hcache</parameter>: This switch enables
     header caching.</para>
-
-    <para><parameter>--without-qdbm</parameter>: This switch disables
-    <application>QDBM</application> as the header cache backend.</para>
-
-    <para><parameter>--without-tokyocabinet</parameter>: This switch disables
-    <application>Tokyo Cabinet</application> as the header cache backend.</para>
-
-    <para><parameter>--with-gdbm</parameter>: This switch enables
-    <application>GDBM</application> as the header cache backend.</para>
-
-    <para><parameter>--without-bdb</parameter>: This switch disables
-     <application>Berkeley DB</application> as the header cache backend.</para>
 
     <para><option>--enable-smtp</option>: This switch enables
     SMTP relay support.</para>
@@ -215,10 +207,11 @@ test -s doc/manual.txt || mv -v doc/manual.txt{.shipped,}</userinput></screen>
     be needed for POP3 or IMAP. However, it is needed for SMTP
     authentication.</para>
 
-    <para><option>--with-slang</option>: Use <application>S-Lang
-    </application> instead of <application>Ncurses</application>.</para>
+    <!-- we do not normally list all possible switches. LFS installs ncurses.
+    <para><option>\-\-with-slang</option>: Use <application>S-Lang
+    </application> instead of <application>Ncurses</application>.</para> -->
 
-    <para><option>test -s doc/manual.txt || mv -v doc/manual.txt{.shipped,}</option>:
+    <para><parameter>test -s doc/manual.txt || mv -v doc/manual.txt{.shipped,}</parameter>:
     if the text manual is now empty (<application>libxslt</application> is installed,
     but without any of the specified text browsers), restore it from the copy.</para>
 
