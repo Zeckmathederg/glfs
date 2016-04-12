@@ -7,10 +7,10 @@
 <!--  <!ENTITY mitkrb-download-http "http://web.mit.edu/kerberos/www/dist/krb5/&mitkrb-major-version;/krb5-&mitkrb-version;-signed.tar">-->
   <!ENTITY mitkrb-download-http "http://web.mit.edu/kerberos/dist/krb5/&mitkrb-major-version;/krb5-&mitkrb-version;.tar.gz">
   <!ENTITY mitkrb-download-ftp  " ">
-  <!ENTITY mitkrb-md5sum        "0727968764d0208388b85ad31aafde24">
-  <!ENTITY mitkrb-size          "12 MB">
-  <!ENTITY mitkrb-buildsize     "165 MB (additional 26 MB for the testsuite)">
-  <!ENTITY mitkrb-time          "1 SBU (additional 5.5 SBU for the testsuite)">
+  <!ENTITY mitkrb-md5sum        "400de0cabbfbe85c2c36f60347bf7dc6">
+  <!ENTITY mitkrb-size          "11.7 MB">
+  <!ENTITY mitkrb-buildsize     "171 MB (additional 18 MB for the testsuite)">
+  <!ENTITY mitkrb-time          "1.1 SBU (additional 1.8 SBU for the testsuite)">
 ]>
 
 <sect1 id="mitkrb" xreflabel="MIT Kerberos V5-&mitkrb-version;">
@@ -103,41 +103,6 @@
 
   <sect2 role="installation">
     <title>Installation of MIT Kerberos V5</title>
-<!--
-    <para>
-      <application>MIT Kerberos V5</application> is distributed in a
-      TAR file containing a compressed TAR package and a detached PGP-2
-      <filename class="extension">ASC</filename> file. You'll need to unpack
-      the distribution tar file, then unpack the compressed tar file before
-      starting the build.
-    </para>
-
-    <para>
-      After unpacking the distribution tarball and if you have
-      <xref linkend="gnupg2"/> installed, you can
-      authenticate the package.  First, check the contents of the file
-      <filename>krb5-&mitkrb-version;.tar.gz.asc</filename>.
-    </para>
-
-<screen><userinput>gpg2 -\-verify krb5-&mitkrb-version;.tar.gz.asc krb5-&mitkrb-version;.tar.gz</userinput></screen>
-
-    <para>You will probably see output similar to:</para>
-
-<screen><literal>gpg: Signature made Fri May  8 23:40:13 2015 utc using RSA key ID 0055C305
-gpg: Can't check signature: No public key</literal></screen>
-
-    <para>
-      You can import the public key with:
-    </para>
-
-<screen><userinput>gpg2 -\-keyserver pgp.mit.edu -\-recv-keys 0055C305</userinput></screen>
-
-    <para>
-      Now re-verify the package with the first command above.  You should  get a
-      indication of a good signature, but the key will still not be certified
-      with a trusted signature.  Trusting the downloaded key is a separate
-      operation but it is up to you to determine the level of trust.
-    </para>-->
 
     <para>
       Build <application>MIT Kerberos V5</application> by running the
@@ -153,6 +118,9 @@ sed -e "s@python2.5/Python.h@&amp; python2.7/Python.h@g" \
 sed -e 's@\^u}@^u cols 300}@' \
     -i tests/dejagnu/config/default.exp &amp;&amp;
 
+sed -e '/eq 0/{N;s/12 //}' \
+    -i plugins/kdb/db2/libdb2/test/run.test &amp;&amp;
+
 autoconf &amp;&amp;
 ./configure --prefix=/usr            \
             --sysconfdir=/etc        \
@@ -164,13 +132,14 @@ autoconf &amp;&amp;
 make</userinput></screen>
 
     <para>
-      To test the build, issue: <command>make check</command>. You need at
-      least <xref linkend="tcl"/>, which is used to drive the testsuite.
-      Furthermore, <xref linkend="dejagnu"/> must be available for some
-      of the tests to run. If you have a former version of MIT Kerberos V5
+      To test the build, issue as the <systemitem
+      class="username">root</systemitem> user: <command>make check</command>.
+      You need at least <xref linkend="tcl"/>, which is used to drive the
+      testsuite.  Furthermore, <xref linkend="dejagnu"/> must be available for
+      some of the tests to run. If you have a former version of MIT Kerberos V5
       installed, it may happen that the test suite pick up the installed
-      versions of the libraries, rather than the newly built ones. If so,
-      it is better to run the tests after the installation.
+      versions of the libraries, rather than the newly built ones. If so, it is
+      better to run the tests after the installation.
     </para>
 
     <para>
@@ -179,11 +148,11 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 
-for LIBRARY in gssapi_krb5 gssrpc k5crypto kadm5clnt kadm5srv \
-               kdb5 kdb_ldap krad krb5 krb5support verto ; do
-    chmod -v 755 /usr/lib/lib$LIBRARY.so
+for f in gssapi_krb5 gssrpc k5crypto kadm5clnt kadm5srv \
+         kdb5 kdb_ldap krad krb5 krb5support verto ; do
+
+    find /usr/lib -type f -name "lib$f*.so*" -exec chmod -v 755 {} \;    
 done          &amp;&amp;
-unset LIBRARY &amp;&amp;
 
 mv -v /usr/lib/libkrb5.so.3*        /lib &amp;&amp;
 mv -v /usr/lib/libk5crypto.so.3*    /lib &amp;&amp;
@@ -199,7 +168,6 @@ chmod -v 755 /bin/ksu   &amp;&amp;
 install -v -dm755 /usr/share/doc/krb5-&mitkrb-version; &amp;&amp;
 cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
 
-
   </sect2>
 
   <sect2 role="commands">
@@ -208,31 +176,32 @@ cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
     <para>
       <command>sed -e ...</command>: The first <command>sed</command> fixes
       <application>Python</application> detection. The second one increases
-      the width of the virtual terminal used for some tests, to prevent
-      some spurious characters to be echoed, which is taken as a failure.
+      the width of the virtual terminal used for some tests to prevent
+      some spurious text in the output which is taken as a failure. The
+      third <command>sed</command> removes a test that is known to fail.
     </para>
 
     <para>
-      <parameter>--localstatedir=/var/lib</parameter>: This parameter is
+      <option>--localstatedir=/var/lib</option>: This option is
       used so that the Kerberos variable run-time data is located in
       <filename class="directory">/var/lib</filename> instead of
       <filename class="directory">/usr/var</filename>.
     </para>
 
     <para>
-      <parameter>--with-system-et</parameter>: This switch causes the build
+      <option>--with-system-et</option>: This switch causes the build
       to use the system-installed versions of the error-table support
       software.
     </para>
 
     <para>
-      <parameter>--with-system-ss</parameter>: This switch causes the build
+      <option>--with-system-ss</option>: This switch causes the build
       to use the system-installed versions of the subsystem command-line
       interface software.
     </para>
 
     <para>
-      <parameter>--with-system-verto=no</parameter>: This switch fixes a bug in
+      <option>--with-system-verto=no</option>: This switch fixes a bug in
       the package: it does not recognize its own verto library installed
       previously. This is not a problem, if reinstalling the same version,
       but if you are updating, the old library is used as system's one,
@@ -240,8 +209,27 @@ cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
     </para>
 
     <para>
-      <parameter>--enable-dns-for-realm</parameter>: This switch allows
+      <option>--enable-dns-for-realm</option>: This switch allows
       realms to be resolved using the DNS server.
+    </para>
+
+    <para>
+      <option>--with-ldap</option>: Use this switch if you want to compile
+      <application>OpenLDAP</application> database backend module.
+    </para>
+
+    <para>
+      <command>mv -v /usr/lib/libk... /lib </command> and 
+      <command>ln -v -sf ../../lib/libk... /usr/lib/libk...</command>: 
+      Move critical libraries to the
+      <filename class="directory">/lib</filename> directory so that they are
+      available when the <filename class="directory">/usr</filename>
+      filesystem is not mounted.
+    </para>
+
+    <para>
+      <command>find /usr/lib -type f -name "lib$f*.so*" -exec chmod -v 755 {} \;</command>: 
+      This command changes the permisison of installed libraries.  
     </para>
 
     <para>
@@ -250,11 +238,6 @@ cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
       <filename class="directory">/bin</filename> directory so that it is
       available when the <filename class="directory">/usr</filename>
       filesystem is not mounted.
-    </para>
-
-    <para>
-      <option>--with-ldap</option>: Use this switch if you want to compile
-      <application>OpenLDAP</application> database backend module.
     </para>
 
   </sect2>
@@ -507,8 +490,9 @@ EOF</userinput></screen>
         <seg>
           /usr/include/{gssapi,gssrpc,kadm5,krb5},
           /usr/lib/krb5,
-          /usr/share/{doc/krb5-&mitkrb-version;,examples/krb5}, and
-          /var/lib/{,run}/krb5kdc
+          /usr/share/{doc/krb5-&mitkrb-version;,examples/krb5},
+          /var/lib/krb5kdc, and 
+          /var/lib/run/krb5kdc 
         </seg>
       </seglistitem>
     </segmentedlist>
