@@ -6,12 +6,13 @@
 
   <!ENTITY gcc-java-download-http  "http://ftpmirror.gnu.org/gcc/gcc-&gcc-java-version;/gcc-&gcc-java-version;.tar.bz2">
   <!ENTITY gcc-java-download-ftp   "ftp://ftp.gnu.org/gnu/gcc/gcc-&gcc-java-version;/gcc-&gcc-java-version;.tar.bz2">
-  <!ENTITY gcc-java-md5sum         "c9616fd448f980259c31de613e575719">
-  <!ENTITY gcc-java-size           "92 MB">
-  <!ENTITY gcc-java-buildsize      "4.1 GB">
-  <!ENTITY gcc-java-time           "86 SBU (including 72 SBU for tests)">
+  <!ENTITY gcc-java-md5sum         "8fb6cb98b8459f5863328380fbf06bd1">
+  <!ENTITY gcc-java-size           "95 MB">
+  <!ENTITY gcc-java-buildsize      "5 GB">
+  <!ENTITY gcc-java-time           "29 SBU (with tests and parallelism=4)">
 
-  <!ENTITY ecj-download-ftp    "ftp://sourceware.org/pub/java/ecj-latest.jar">
+<!-- ecj-latest points to 4.5 while ecj-4.9 is available -->
+  <!ENTITY ecj-download-ftp    "ftp://sourceware.org/pub/java/ecj-4.9.jar">
 
   <!ENTITY antlr-version       "4.5.1">
   <!ENTITY antlr-download-http "http://www.antlr.org/download/antlr-&antlr-version;-complete.jar">
@@ -156,8 +157,10 @@
 
 <screen><userinput>sed -i 's/\(install.*:\) install-.*recursive/\1/' libffi/Makefile.in         &amp;&amp;
 sed -i 's/\(install-data-am:\).*/\1/'             libffi/include/Makefile.in &amp;&amp;
+sed -i 's/absolute/file normalize/' libjava/testsuite/lib/libjava.exp &amp;&amp;
+sed -i 's/major.*1000.*minor/major/' gcc/java/decl.c &amp;&amp;
 
-cp ../ecj-latest.jar ./ecj.jar &amp;&amp;
+cp ../ecj-4.9.jar ./ecj.jar &amp;&amp;
 
 mkdir build &amp;&amp;
 cd    build &amp;&amp;
@@ -217,10 +220,15 @@ ln -sfv ../../../usr/bin/ecj /opt/gcj/bin/javac</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      The two <command>sed</command> commands prevent the
+      The first two <command>sed</command> commands prevent the
       installation of the <application>libffi</application> library bundled
       with <application>GCC</application>, since it is outdated compared to
       <xref linkend="libffi"/>.
+    </para>
+
+    <para>
+      The next two <command>sed</command> commands implement upstream fixes
+      to the <application>GCC Java</application> compiler and tests.
     </para>
 
     <para>
@@ -297,9 +305,9 @@ ln -sfv ../../../usr/bin/ecj /opt/gcj/bin/javac</userinput></screen>
       <command>chown -v -R root:root
       /usr/lib/gcc/*linux-gnu/...</command>:
       If the package is built by a user other than root, the ownership of the
-      installed <filename class="directory">include</filename> directory (and its
-      content) will be incorrect. This commands changes the ownership to the
-      <systemitem class="username">root</systemitem> user and group.
+      installed <filename class="directory">include</filename> directory (and
+      its content) will be incorrect. This commands changes the ownership to
+      the <systemitem class="username">root</systemitem> user and group.
     </para>
 
     <para>
