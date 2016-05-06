@@ -4,14 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY imagemagick-patch-version "5">
+  <!ENTITY imagemagick-patch-version "1">
 
   <!ENTITY imagemagick-download-http "https://www.imagemagick.org/download/releases/ImageMagick-&imagemagick-version;-&imagemagick-patch-version;.tar.xz">
   <!ENTITY imagemagick-download-ftp  "ftp://ftp.imagemagick.org/pub/ImageMagick/releases/ImageMagick-&imagemagick-version;-&imagemagick-patch-version;.tar.xz">
-  <!ENTITY imagemagick-md5sum        "af1c85b8b8f817e919f9ca4408d86782">
-  <!ENTITY imagemagick-size          "8.4 MB">
-  <!ENTITY imagemagick-buildsize     "193 MB, with typical dependencies (222 MB with the test suite, reputedly 450 MB with all dependencies)">
-  <!ENTITY imagemagick-time          "2.0 SBU - typical build (additional 1.6 SBU to run the test suite and 1.4 SBU to run the validation suite)">
+  <!ENTITY imagemagick-md5sum        "24673d00fcc8aa00313eeca6aa20fd3c">
+  <!ENTITY imagemagick-size          "7.9 MB">
+  <!ENTITY imagemagick-buildsize     "200 MB, with typical dependencies (add 31 MB for the test suite)">
+  <!ENTITY imagemagick-time          "2.9 SBU - typical build (add 1.8 SBU for the test suite and 1.5 SBU for the validation suite)">
 ]>
 
 <!-- Editors: It is highly unlikely that the buildsize (disk space used) will
@@ -21,8 +21,13 @@
      dependencies are installed, which is what we want.
 
      Marked as 'typical' because nobody builds ALL the optional extras [ken]
+   
+     [bdubbs] I do; at least the internal ones.  I still got only 200 MB.
+
      Saved the "full" 450MB as a comment - feel free to update this iff you
      do build all dependencies, it's probably a lot bigger now.
+
+     [bdubbs] Just removed it.  I don't think it adds anything.
 
      Also, please look over the output from the configure command for any
      additional dependencies that need to be listed, as ImageMagick is
@@ -58,6 +63,7 @@
     </para>
 
     &lfs79_checked;
+    &gcc6_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -157,6 +163,7 @@
       <ulink url="http://djvu.sourceforge.net/">DjVuLibre</ulink>,
       <ulink url="ftp://ftp.imagemagick.org/pub/ImageMagick/delegates/">
       FlashPIX (libfpx)</ulink>,
+      <ulink url="https://github.com/FLIF-hub/FLIF/releases">FLIF</ulink>,
       <ulink url="http://www.cl.cam.ac.uk/~mgk25/jbigkit/">JBIG-KIT</ulink>,
       <ulink url="&gnome-download-http;/libgxps/">libgxps</ulink>,
       <ulink url="https://github.com/HOST-Oman/libraqm/">libraqm</ulink>,
@@ -210,7 +217,9 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr     \
+<screen><userinput>sed -i '/seems to be moved/ s/^/true #/' config/ltmain.sh &amp;&amp;
+
+./configure --prefix=/usr     \
             --sysconfdir=/etc \
             --enable-hdri     \
             --with-modules    \
@@ -243,6 +252,10 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed ...</command>: Removes a lot of invalid warnings.
+    </para>
 
     <para>
       <parameter>--enable-hdri</parameter>: Enables building of a
@@ -320,22 +333,23 @@ make</userinput></screen>
 
       <seglistitem>
         <seg>
-          animate, compare, composite, conjure, convert, display,
-          identify, import, Magick-config, Magick++-config, MagickCore-config,
-          MagickWand-config, mogrify, montage, stream, and Wand-config
+          magick, Magick++-config, MagickCore-config, and MagickWand-config.
+          (animate, compare, composite, conjure, convert, display,
+          identify, import, magick-script, mogrify, montage, and stream
+          are all symbolic links to magick)
         </seg>
         <seg>
-          libMagickCore-6.Q16HDRI.so,
-          libMagickWand-6.Q16HDRI.so and
-          libMagick++-6.Q16HDRI.so
+          libMagickCore-7.Q16HDRI.so,
+          libMagickWand-7.Q16HDRI.so and
+          libMagick++-7.Q16HDRI.so
         </seg>
         <seg>
-          /etc/ImageMagick-6,
-          /usr/include/ImageMagick-6,
+          /etc/ImageMagick-7,
+          /usr/include/ImageMagick-7,
           /usr/lib/ImageMagick-&imagemagick-version;,
-          /usr/lib/perl5/site_perl/&lfs-perl-version;/{,auto}/Image/Magick,
+          /usr/lib/perl5/site_perl/&lfs-perl-version;/$(uname -m)-linux/{,auto}/Image/Magick,
           /usr/share/doc/ImageMagick-&imagemagick-version;, and
-          /usr/share/ImageMagick-6
+          /usr/share/ImageMagick-7
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -426,7 +440,7 @@ make</userinput></screen>
     </varlistentry>
 
     <varlistentry id="magick-config">
-      <term><command>Magick{,++,Core,Wand}-config</command></term>
+      <term><command>Magick{++,Core,Wand}-config</command></term>
       <listitem>
         <para>show information about the installed versions of the
         <application>ImageMagick</application> libraries.</para>
@@ -463,16 +477,6 @@ make</userinput></screen>
          portion of the image to your choice of storage formats.</para>
         <indexterm zone="imagemagick stream">
           <primary sortas="b-stream">stream</primary>
-        </indexterm>
-      </listitem>
-    </varlistentry>
-
-    <varlistentry id="wand-config">
-      <term><command>Wand-config</command></term>
-      <listitem>
-        <para>shows the options required to use the Wand library.</para>
-        <indexterm zone="imagemagick wand-config">
-          <primary sortas="b-Wand-config">Wand-config</primary>
         </indexterm>
       </listitem>
     </varlistentry>
