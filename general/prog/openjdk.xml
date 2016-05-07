@@ -4,24 +4,24 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY ojdk-upd                  "77">
-  <!ENTITY ojdk-bd                   "b03">
+  <!ENTITY ojdk-upd                  "92">
+  <!ENTITY ojdk-bd                   "b14">
   <!ENTITY ojdk-tarball              "jdk8u&ojdk-upd;-&ojdk-bd;.tar.bz2">
   <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk8u/jdk8u">
   <!ENTITY ojdk-download             "&ojdk-repo;/archive/&ojdk-tarball;">
 
   <!ENTITY anduin-download           "&sources-anduin-http;/OpenJDK/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "1954ffeb123a7f4552472ba9f9e38b0d">
-  <!ENTITY ojdk-size                 "398 KB">
+  <!ENTITY ojdk-md5sum               "226f9051e34b70fbff031ec9d959773d">
+  <!ENTITY ojdk-size                 "399 KB">
 
-  <!ENTITY corba-md5sum              "eb7695323d3340214792114ad8e3bdce">
-  <!ENTITY hotspot-md5sum            "434e3dd4272d39b255ba9269838647b9">
-  <!ENTITY jaxp-md5sum               "fcc49430937eba2c64f8a53475edf99d">
-  <!ENTITY jaxws-md5sum              "f05a009f2e0fdb710c3405723ed42199">
-  <!ENTITY jdk-md5sum                "ffe70c01fc0fe513e329f170f4c922c1">
-  <!ENTITY langtools-md5sum          "a7e0ff3378d02e075284db7fe4a8dfbf">
-  <!ENTITY nashorn-md5sum            "1dee0e478002e80f87b235ae982edf6e">
+  <!ENTITY corba-md5sum              "9619e84a600aaf81737f7ed71430d3aa">
+  <!ENTITY hotspot-md5sum            "21e8fdc20ab17e7399752ef74c8e03e2">
+  <!ENTITY jaxp-md5sum               "567189edafbe0aabaff2d75d86c05456">
+  <!ENTITY jaxws-md5sum              "3e7db7d843ebbcd5eb2ba0a9e7e275d7">
+  <!ENTITY jdk-md5sum                "b06f2e3504357820bb3dd29e19ccfc0d">
+  <!ENTITY langtools-md5sum          "afbe0e3a8c0e9e2beac5567e1084f3ee">
+  <!ENTITY nashorn-md5sum            "e3641526c2875b5d4d1414980769f6ea">
   <!ENTITY total-download-size       "63 MB">
 
   <!ENTITY jtreg-version             "4.1-b12-496">
@@ -31,8 +31,8 @@
 
   <!ENTITY icedtea-web-download      "http://icedtea.classpath.org/download/source/icedtea-web-&icedtea-web-version;.tar.gz">
 
-  <!ENTITY ojdk-buildsize           "3.7 GB (additional 547 MB for tests)">
-  <!ENTITY ojdk-time                "11 SBU (additional 108 SBU for tests)">
+  <!ENTITY ojdk-buildsize           "3.7 GB (additional 546 MB for tests)">
+  <!ENTITY ojdk-time                "12 SBU (additional 130 SBU for tests)">
 ]>
 
 <sect1 id="openjdk"
@@ -61,7 +61,7 @@
       runtime environment to run <application>Java</application> programs.
     </para>
 
-    &lfs79_checked;
+    &lfs79_checked;&gcc6_checked;
 
     <note>
       <para>
@@ -272,8 +272,10 @@ sh ./configure                \
    --with-milestone=BLFS      \
    --enable-unlimited-crypto  \
    --with-zlib=system         \
-   --with-giflib=system       &amp;&amp;
-make DEBUG_BINARIES=true all  &amp;&amp;
+   --with-giflib=system       \
+   --with-extra-cflags="-std=c++98 -Wno-error -fno-delete-null-pointer-checks -fno-lifetime-dse" \
+   --with-extra-cxxflags="-std=c++98 -fno-delete-null-pointer-checks -fno-lifetime-dse" &amp;&amp;
+make DEBUG_BINARIES=true SCTP_WERROR= all  &amp;&amp;
 find build/*/images/j2sdk-image -iname \*.diz -delete
 </userinput></screen>
 
@@ -483,6 +485,13 @@ install -v -Dm0644 javaws.png /usr/share/pixmaps/javaws.png</userinput></screen>
     </para>
 
     <para>
+      <parameter>--with-extra-cflags=... --with-extra-cxxflags=...</parameter>:
+      Works around some defects in the code brought to light by the GCC 6
+      more rigorous checking of the C/C++ constructs. Remove those switches
+      if compiling with GCC 5.
+    </para>
+
+    <para>
       <option>--with-jobs=N</option>: Allows setting the number
       of jobs for <command>make</command> equal to N. The default is the
       result of a calculation involving the available memory and the number
@@ -500,8 +509,10 @@ install -v -Dm0644 javaws.png /usr/share/pixmaps/javaws.png</userinput></screen>
     </para>
 
     <para>
-      <command>make DEBUG_BINARIES=true all</command>: The build fails on
-      32 bit machines if DEBUG_BINARIES is not set to true.
+      <command>make DEBUG_BINARIES=true SCTP_WERROR= all</command>: The build
+      fails on 32 bit machines if DEBUG_BINARIES is not set to true. Unsetting
+      SCTP_WERROR is part of the workarounds needed to use GCC 6. You may omit
+      that part of the command if using GCC 5.
     </para>
 
     <para>
