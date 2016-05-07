@@ -5,12 +5,11 @@
   %general-entities;
 
   <!ENTITY vlc-download-http "http://download.videolan.org/vlc/&vlc-version;/vlc-&vlc-version;.tar.xz">
-      <!ENTITY vlc-download-ftp " ">
-<!--  <!ENTITY vlc-download-ftp "ftp://ftp.videolan.org/pub/videolan/vlc/&vlc-version;/vlc-&vlc-version;.tar.xz">-->
-  <!ENTITY vlc-md5sum        "f98d60f0f59ef72b6e3407f2ff09bda6">
-  <!ENTITY vlc-size          "22 MB">
-  <!ENTITY vlc-buildsize     "679 MB (with tests)">
-  <!ENTITY vlc-time          "4.4 SBU (with tests)">
+  <!ENTITY vlc-download-ftp  " ">
+  <!ENTITY vlc-md5sum        "ecbc65be549e5cc83e4cbe0129e66dcd">
+  <!ENTITY vlc-size          "21 MB">
+  <!ENTITY vlc-buildsize     "603 MB (add xx MB for tests)">
+  <!ENTITY vlc-time          "4.6 SBU (add x.y SBU for tests)">
 ]>
 
 <sect1 id="vlc" xreflabel="VLC-&vlc-version;">
@@ -71,6 +70,17 @@
       <listitem>
         <para>
           Estimated build time: &vlc-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink
+            url="&patch-root;/vlc-&vlc-version;-ffmpeg3-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -211,8 +221,8 @@
     <title>Installation of VLC</title>
 
     <para>
-      If both Qt4 and Qt5 are installed, Qt5 has to be hidden from
-      <envar>PKG_CONFIG_PATH</envar>, due to a bug. Temporarily do it, issuing:
+      If both Qt4 and Qt5 are installed, Qt5 needs to be hidden from
+      <envar>PKG_CONFIG_PATH</envar>, due to a bug. Temporarily do it by issuing:
     </para>
 
 <screen><userinput>SAVEPATH=$PKG_CONFIG_PATH &amp;&amp;
@@ -220,40 +230,23 @@ PKG_CONFIG_PATH="\
 `echo $PKG_CONFIG_PATH | sed 's@:/opt/qt5/lib/pkgconfig@@'`"</userinput></screen>
 
     <para>
-      If you wish to avoid thousands of annoying warnings, issue:
+      If you wish to avoid many invalid warnings, issue:
     </para>
 
-<screen><userinput>sed -i 's/ifndef __FAST_MATH__/if 0/g' configure.ac</userinput></screen>
+<screen><userinput>sed -i '/seems to be moved/s/^/#/' autotools/ltmain.sh</userinput></screen>
 
     <para>
       Install <application>VLC</application> by running the following commands:
     </para>
 
-<screen><userinput>sed -e 's:libsmbclient.h:samba-4.0/&amp;:' \
-    -i modules/access/smb.c &amp;&amp;
+<screen><userinput>patch -Np1 -i ../vlc-&vlc-version;-ffmpeg3-1.patch &amp;&amp;
 
-sed -e '/LUA_C/ i #define LUA_COMPAT_APIINTCASTS' \
-    -i modules/lua/vlc.h    &amp;&amp;
-
-sed -e '/core.h/ {
-        a #include &lt;opencv2/imgproc/imgproc_c.h&gt;
-        a #include &lt;opencv2/imgproc/imgproc.hpp&gt;
-    }' \
-    -i modules/video_filter/opencv_example.cpp &amp;&amp;
-
-./bootstrap &amp;&amp;
-
+CXX="g++ -std=c++11"              \
+CFLAGS="-DLUA_COMPAT_5_1"         \
 OPENCV_LIBS="-L/usr/share/OpenCV" \
 ./configure --prefix=/usr &amp;&amp;
 
-sed -e '/seems to be moved/s/^/#/' \
-    -i autotools/ltmain.sh libtool &amp;&amp;</userinput></screen>
-
-    <para>
-      In order to build with Lua 5.1 compatiblity, issue:
-    </para>
-
-<screen><userinput>CFLAGS='-fPIC -O2 -Wall -Wextra -DLUA_COMPAT_5_1' make </userinput></screen>
+make</userinput></screen>
 
     <para>
       Again, if both Qt4 and 5 are installed, restore
@@ -291,36 +284,19 @@ unset SAVEPATH</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed -i ...</command>: This sed fixes compilation with
-      <application>Samba</application> 4.
+      <envar>CXX="g++ -std=c++11"</envar> This environment variable
+      is needed for compatibility with <xref linkend='gcc'/>.
     </para>
 
     <para>
-      <command>sed -e ... -i modules/lua/vlc.h</command> This sed fixes
-      compilation with <application>lua</application> 5.3.
-    </para>
-
-    <para>
-      <command>sed -e ... -i modules/video_filter/opencv_example.cpp</command>
-      This sed partially fixes compilation with
-      <application>OpenCV</application> 3.
+      <envar>CFLAGS="-DLUA_COMPAT_5_1"</envar> This environment variable
+      is needed for compatibilty with <xref linkend='lua'/>.
     </para>
 
     <para>
       <envar>OPENCV_LIBS="-L/usr/share/OpenCV"</envar> This environment variable
       helps the linker to find <filename>libippicv.a</filename> installed by
       <application>OpenCV</application> 3.
-    </para>
-
-    <para>
-      <command>./bootstrap</command>: This command calls autoreconf to generate
-      m4 macros and prepare Makefiles.
-    </para>
-
-    <para>
-      <command>sed -e ... -i.orig autotools/ltmain.sh libtool</command>: This
-      optional sed removes a lot of invalid build warnings.
-      If desired, remove it.
     </para>
 
     <para>
@@ -363,25 +339,6 @@ unset SAVEPATH</userinput></screen>
       have <application>libgcrypt</application> installed.
     </para>
 
-<!--
-    <para>
-      <option>- -enable-shine</option>: Use this option if you wish to build the
-      <application>Shine</application> plugin.
-    </para>
-
-    <para>
-      <option>- -enable-tremor</option>: Use this option if you have
-      <application>Tremor</application> installed and wish to build the
-      <application>Tremor</application> plugin.
-    </para>
-
-    <para>
-      <option>- -enable-aa</option>: Use this option if you have
-      <application>AAlib</application> installed and wish to build the
-      <application>AAlib</application> plugin.
-    </para>
--->
-
     <note>
       <para>
         There are many options to <application>VLC</application>'s
@@ -405,7 +362,7 @@ unset SAVEPATH</userinput></screen>
           cvlc, nvlc, qvlc, rvlc, svlc, vlc and vlc-wrapper
         </seg>
         <seg>
-          libvlccore.so, libvlc.so and several plugins in
+          libvlccore.so, libvlc.so, and many plugins in
           /usr/lib/vlc/plugins
         </seg>
         <seg>
