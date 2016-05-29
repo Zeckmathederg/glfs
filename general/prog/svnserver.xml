@@ -21,26 +21,6 @@
     <para>This section will describe how to set up, administer and secure
     a <application>Subversion</application> server.</para>
 
-    <!-- <note>
-      <para>The default build instructions for
-      <application>Subversion</application> disabled the
-      <application>Berkeley DB</application> repository back-end due to the
-      errors encountered in the test suite while building the
-      <xref linkend="subversion"/> package. This should not present a
-      functionality issue as the FSFS repository back-end is now the default,
-      and recommended by the <application>Subversion</application> development
-      team.</para>
-
-      <para>If you have existing repositories based on a
-      <application>Berkeley DB</application> back-end and you followed the
-      BLFS instructions for building <application>Subversion</application>,
-      you'll need to dump the databases, create new repositories using the
-      FSFS back-end, then then reload the data into the new repositories.
-      Instructions for performing these operations can be found at <ulink
-      url="http://svnbook.red-bean.com/en/1.1/ch05s03.html#svn-ch-5-sect-3.5"/>.
-      </para>
-    </note> -->
-
     <bridgehead renderas="sect3">Subversion Server Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -111,24 +91,26 @@ chmod 0755 /usr/bin/svn{,serve}</userinput></screen>
     <sect3>
       <title>2. Create a Subversion repository.</title>
 
-      <para>With subversion-1.1.0 and greater, a new type of repository
-      data-store is available, FSFS. There is a tradeoff for speed with
-      the new backend, however, the repository can now be placed on a
-      network mount, and any corruption does not require an admin to
-      recover the repository.  For more information and comparison between
-      FSFS and BDB, see <ulink
-      url="http://svnbook.red-bean.com/svnbook-1.1/ch05.html#svn-ch-5-sect-1.2.A"/>.
+      <para>
+        There are several ways to set up a subversion repository. It is
+        recommended to have a look at the <ulink
+        url="http://svnbook.red-bean.com/nightly/en/svn.reposadmin.html">SVN
+        Book</ulink> corresponding chapter. A basic repository can be set up
+        with the instructions below.
       </para>
 
-      <para>Create a new <application>Subversion</application> repository with
-      the following commands:</para>
+      <para>
+        Create a new <application>Subversion</application> repository with
+        the following commands (as the <systemitem class="username">root
+        </systemitem> user):
+      </para>
 
 <screen role="root"><userinput>install -v -m 0755 -d /srv/svn &amp;&amp;
 install -v -m 0755 -o svn -g svn -d /srv/svn/repositories &amp;&amp;
-svnadmin create --fs-type fsfs /srv/svn/repositories/svntest</userinput></screen>
+svnadmin create /srv/svn/repositories/svntest</userinput></screen>
 
       <para>Now that the repository is created, it should be populated with
-      with something useful. You'll need to have a predefined directory
+      something useful. You'll need to have a predefined directory
       layout set up exactly as you want your repository to look. For
       example, here is a sample BLFS layout setup with a root of
       <filename>svntest/</filename>. You'll need to setup a directory
@@ -225,58 +207,9 @@ EOF</userinput></screen>
 
     <sect3 id="svnserver-init">
       <title>4. Starting the Server</title>
-<!--
-      <para>There are a couple of ways to start <command>svnserve</command>.
-      The most common way is to start it as an <command>inetd</command> or
-      <command>xinetd</command> process. Alternately, you can use a
-      bootscript to start the service at startup.</para>
 
-      <note>
-        <para>If you do not wish to provide anonymous access to your svn
-        repositories or use <command>svnserve</command>'s built-in
-        authentication, you do not need to run
-        <command>svnserve</command>.</para>
-      </note>
-
-      <para>If you use <command>inetd</command>, add a line to
-      <filename>/etc/inetd.conf</filename> using the following
-      commands:</para>
-
-      <indexterm zone="svnserver svnserver-init">
-        <primary sortas="e-etc-inetd.conf">/etc/inetd.conf</primary>
-      </indexterm>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/inetd.conf &lt;&lt; "EOF"
-<literal>svn stream tcp nowait svn /usr/bin/svnserve svnserve -i</literal>
-EOF</userinput></screen>
-
-      <para>If you use <command>xinetd</command>, the following command will
-      create the <application>Subversion</application> server file as
-      <filename>/etc/xinetd.d/svn</filename>:</para>
-
-      <indexterm zone="svnserver svnserver-init ">
-        <primary sortas="e-etc-xinetd.d-svn">/etc/xinetd.d/svn</primary>
-      </indexterm>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/xinetd.d/svn &lt;&lt; "EOF"
-<literal># Begin /etc/xinetd.d/svn
-
-service svn
-{
-        port                    = 3690
-        socket_type             = stream
-        protocol                = tcp
-        wait                    = no
-        user                    = svn
-        server                  = /usr/bin/svnserve
-        server_args             = -i -r /srv/svn/repositories
-}
-
-# End /etc/xinetd.d/svn</literal>
-EOF</userinput></screen> -->
-
-      <para>To start the server at boot time, install the svn bootscript included
-      in the <xref linkend="bootscripts"/> package.</para>
+      <para>To start the server at boot time, install the svn bootscript
+      included in the <xref linkend="bootscripts"/> package.</para>
 
       <indexterm zone="svnserver svnserver-init">
         <primary sortas="f-svn">svn</primary>
