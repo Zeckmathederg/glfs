@@ -29,7 +29,7 @@
   <sect2 role="package">
     <title>Introduction to D-Bus</title>
 
-    <para>
+    <para revision="sysv">
       <application>D-Bus</application> is a message bus system, a simple way
       for applications to talk to one another.
       <application>D-Bus</application> supplies both a system daemon (for
@@ -39,6 +39,12 @@
       of a general one-to-one message passing framework, which can be used by
       any two applications to communicate directly (without going through the
       message bus daemon).
+    </para>
+
+    <para revision="systemd">
+      Even though <application>D-Bus</application> was built in LFS, there are
+      some features provided by the package that other BLFS packages need, but
+      their dependencies didn't fit into LFS.
     </para>
 
     &lfs79_checked;&gcc6_checked;
@@ -131,7 +137,7 @@ useradd -c "D-Bus Message Daemon User" -d /var/run/dbus \
       <command>configure</command> command shown below):
     </para>
 
-<screen><userinput>./configure --prefix=/usr                  \
+<screen revision="sysv"><userinput>./configure --prefix=/usr                  \
             --sysconfdir=/etc              \
             --localstatedir=/var           \
             --disable-doxygen-docs         \
@@ -143,9 +149,31 @@ useradd -c "D-Bus Message Daemon User" -d /var/run/dbus \
             --docdir=/usr/share/doc/dbus-&dbus-version;   &amp;&amp;
 make</userinput></screen>
 
+<screen revision="systemd"><userinput>./configure --prefix=/usr                  \
+            --sysconfdir=/etc              \
+            --localstatedir=/var           \
+            --disable-doxygen-docs         \
+            --disable-xml-docs             \
+            --disable-static               \
+            --with-console-auth-dir=/run/console/ \
+            --docdir=/usr/share/doc/dbus-&dbus-version;   &amp;&amp;
+make</userinput></screen>
+
     <para>
       See below for test instructions.
     </para>
+
+    <warning revision="systemd">
+      <para>
+        Installing the package will override all files installed by
+        <application>D-Bus</application> in LFS. It is critical that
+        nothing uses <application>D-Bus</application> libraries or
+        programs during the installation phrase. Best way to achieve
+        that is to do the installation in the rescue mode. To switch
+        to the rescue mode, issue the following command as the
+        <systemitem class="username">root</systemitem> user from a TTY:
+      </para>
+    </warning>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -173,6 +201,15 @@ chmod -v      4750       /usr/libexec/dbus-daemon-launch-helper</userinput></scr
     </para>
 
 <screen role="root"><userinput>dbus-uuidgen --ensure</userinput></screen>
+
+    <para revision="systemd">
+      If not in chroot, at this point, you should reload the systemd daemon,
+      and reenter multi-user mode with the following commands (as the
+      <systemitem class="username">root</systemitem> user):
+    </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl daemon-reload
+systemctl start multi-user.target</userinput></screen>
 
     <para>
       The dbus tests cannot be run until after <xref linkend="dbus-glib"/> has
@@ -242,12 +279,12 @@ make check</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
-    <para>
+    <para revision="sysv">
       <parameter>--disable-systemd</parameter>: This switch disables systemd
       support in <application>D-Bus</application>.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>--without-systemdsystemunitdir</parameter>: This switch
       prevents installation of systemd unit files.
     </para>
@@ -343,23 +380,23 @@ EOF</userinput></screen>
 
     </sect3>
 
-    <sect3  id="dbus-init">
-      <title>Boot Script</title>
+    <sect3  id="dbus-init" revision="sysv">
+      <title>D-Bus Session Daemon</title>
 
-      <para>
+      <para revision="sysv">
         To automatically start <command>dbus-daemon</command> when the
         system is rebooted, install the
         <filename>/etc/rc.d/init.d/dbus</filename> bootscript from the
         <xref linkend="bootscripts"/> package.
       </para>
 
-      <indexterm zone="dbus dbus-init">
+      <indexterm zone="dbus dbus-init" revision="sysv">
         <primary sortas="f-dbus">dbus</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-dbus</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-dbus</userinput></screen>
 
-      <para>
+      <para revision="sysv">
         Note that this boot script only starts the system-wide
         <application>D-Bus</application> daemon. Each user requiring access to
         <application>D-Bus</application> services will also need to run a
@@ -369,6 +406,15 @@ EOF</userinput></screen>
         available parameters and options. Here are some suggestions and
         examples:
       </para>
+
+      <para revision="systemd">
+        There are many methods you can use to start a session daemon
+        using the <command>dbus-launch</command> command. Review the
+        <command>dbus-launch</command> man page for details about the
+        available parameters and options. Here are some suggestions and
+        examples:
+      </para>
+
 
       <itemizedlist spacing="compact">
         <listitem>
@@ -429,7 +475,7 @@ kill $DBUS_SESSION_BUS_PID</literal></userinput></screen>
 
   </sect2>
 
-  <sect2 role="content">
+  <sect2 role="content" revision="sysv">
     <title>Contents</title>
 
     <segmentedlist>
@@ -599,6 +645,18 @@ kill $DBUS_SESSION_BUS_PID</literal></userinput></screen>
     </variablelist>
 
   </sect2>
+  
+  <sect2 role="content" revision="systemd">
+    <title>Contents</title>
+
+      <para>
+        A list of the installed files, along with their short
+        descriptions can be found at
+        <ulink url="&lfs-root;/chapter06/dbus.html#contents-dbus"/>.
+      </para>
+
+  </sect2>
+
 
 </sect1>
 
