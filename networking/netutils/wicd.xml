@@ -101,9 +101,21 @@
     <para>Install <application>Wicd</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -e "/wpath.logrotate\|wpath.systemd/d" \
+<screen revision="sysv"><userinput>sed -e "/wpath.logrotate\|wpath.systemd/d" \
     -e "/detection failed/ a\                self.init=\'init\/default\/wicd\'" \
-    -i.orig setup.py &amp;&amp;;
+    -i.orig setup.py &amp;&amp;
+
+rm po/*.po           &amp;&amp;
+
+python setup.py configure --no-install-kde     \
+                          --no-install-acpi    \
+                          --no-install-pmutils \
+                          --no-install-init    \
+                          --no-install-gnome-shell-extensions \
+                          --docdir=/usr/share/doc/wicd-&wicd-version;</userinput></screen>
+
+<screen revision="systemd"><userinput>sed "/detection failed/ a\ self.init=\'init\/default\/wicd\'" \
+    -i.orig setup.py &amp;&amp;
 
 rm po/*.po           &amp;&amp;
 
@@ -126,10 +138,13 @@ python setup.py configure --no-install-kde     \
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -e ... -i setup.py</command>: The first expression in
-    this <command>sed</command> command prevents installation of logrotate and
-    systemd configuration files. You may omit it if you use these utilities. The
-    second one fixes building with BLFS.</para>
+    <para revision="sysv"><command>sed -e ... -i setup.py</command>: The first
+    expression in this <command>sed</command> command prevents installation of
+    logrotate and systemd configuration files. You may omit it if you use these
+    utilities. The second one fixes building with BLFS.</para>
+
+    <para revision="systemd"><command>sed -e ... -i setup.py</command>: Fix
+    and issue while building with BLFS.</para>
 
     <para><command>rm po/*.po</command>: This command removes the international
     messages associated with this package.  The command is required unless Babel
@@ -180,7 +195,8 @@ python setup.py configure --no-install-kde     \
       <para>To automatically start Wicd at boot time, you need to first install
       the Wicd bootscript,
       <filename>/etc/rc.d/init.d/wicd</filename>,
-      included in the <xref linkend="bootscripts"/> package
+      included in the <xref linkend="bootscripts" revision="sysv"/>
+      <xref linkend="systemd-units" revision="systemd"/> package
       (as user <systemitem class="username">root</systemitem>):</para>
 
       <indexterm zone="wicd wicd-init">
