@@ -177,14 +177,50 @@ nopriv_user=vsftpd
 secure_chroot_dir=&vsftpd-empty;</literal>
 EOF</userinput></screen>
 
+      <para>To enable local logins, append the following to the
+      <filename>/etc/vsftpd.conf</filename> file (as the
+      <systemitem class="username">root</systemitem> user):</para>
+
+<screen><userinput role="root">cat &gt;&gt; /etc/vsftpd.conf &lt;&lt; "EOF"
+<literal>local_enable=YES</literal>
+EOF</userinput></screen>
+
+      <para>In additon, if using <application>Linux-PAM</application> and
+      <application>vsftpd</application> with local user logins, you will need
+      a <application>Linux-PAM</application> configuration file. As the
+      <systemitem class="username">root</systemitem> user, create the
+      <filename>/etc/pam.d/vsftpd</filename> file, and add the needed
+      configuration changes for <application>Linux-PAM</application> session
+      support using the following commands:</para>
+
+<screen><userinput role="root">cat &gt; /etc/pam.d/vsftpd &lt;&lt; "EOF" &amp;&amp;
+<literal># Begin /etc/pam.d/vsftpd
+auth       required     /lib/security/pam_listfile.so item=user sense=deny \
+                                                      file=/etc/ftpusers \
+                                                      onerr=succeed
+auth       required     pam_shells.so
+auth       include      system-auth
+account    include      system-account
+session    include      system-session</literal>
+EOF
+
+cat &gt;&gt; /etc/vsftpd.conf &lt;&lt; "EOF"
+<literal>session_support=YES
+pam_service_name=vsftpd</literal>
+EOF</userinput></screen>
+
     </sect3>
 
     <sect3  id="vsftpd-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
-      <para>Install the <filename>/etc/rc.d/init.d/vsftpd</filename>
-      init script included in the
-      <xref linkend="bootscripts" revision="sysv"/>
+      <para revision="sysv">Install the
+      <filename>/etc/rc.d/init.d/vsftpd</filename> init script included in the
+      <xref linkend="bootscripts" revision="sysv"/> package.</para>
+
+      <para revision="systemd">Install the <filename>vsftpd.service</filename>
+      unit included in the
       <xref linkend="systemd-units" revision="systemd"/> package.</para>
 
 <screen role="root"><userinput>make install-vsftpd</userinput></screen>
