@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="advanced-network" revision="systemd">
+  <?dbhtml filename="advanced-network.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Advanced Network Setup</title>
+
+  <sect2 id="network-bridge">
+    <title>Network Bridge</title>
+
+    <sect3 role="kernel" id="advanced-network-bridge-kernel">
+      <title>Kernel Configuration</title>
+
+      <para>
+        Enable the following options in the kernel configuration
+        and recompile the kernel if necessary:
+      </para>
+
+<screen><literal>Networking support: Y
+  Networking options:
+    802.1d Ethernet Bridging: M or Y</literal></screen>
+
+      <indexterm zone="advanced-network advanced-network-bridge-kernel">
+        <primary sortas="d-advanced-network-bridge">Advanced Network Bridge</primary>
+      </indexterm>
+
+    </sect3>
+
+    <sect3>
+      <title>Setting up a Network Bridge</title>
+
+      <para>
+        In this section we are are going to discuss how to set up a network
+        bridge using <command>systemd-networkd</command>. In the examples
+        below, <replaceable>eth0</replaceable> represents the external
+        interface that is being bridged, while <replaceable>br0</replaceable>
+        represents the bridge interface.
+      </para>
+
+      <para>
+        To create a bridge interface, create the following configuration file
+        by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/systemd/network/50-br0.netdev &lt;&lt; EOF
+<literal>[NetDev]
+Name=<replaceable>br0</replaceable>
+Kind=bridge</literal>
+EOF</userinput></screen>
+
+      <para>
+        To assign a network interface to a bridge, create the following
+        configuration file by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/systemd/network/51-eth0.network &lt;&lt; EOF
+<literal>[Match]
+Name=<replaceable>eth0</replaceable>
+
+[Network]
+Bridge=<replaceable>br0</replaceable></literal>
+EOF</userinput></screen>
+
+      <para>
+        Repeat the process for any other interfaces that need to be bridged.
+        Note that it is important that nothing assigns any addresses to the
+        bridged interfaces. If you are using <xref linkend="NetworkManager"/>
+        or <xref linkend="wicd"/>, make sure you configure them to ignore
+        the bridged interfaces, as well as the bridge interface itself.
+      </para>
+
+      <para>
+        If you are on a network which uses DHCP for assigning ip addresses,
+        create the following configuration file by running the following
+        command as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/systemd/network/60-br0.network &lt;&lt; EOF
+<literal>[Match]
+Name=<replaceable>br0</replaceable>
+
+[Network]
+DHCP=yes</literal>
+EOF</userinput></screen>
+
+      <para>
+        Alternatively, if using a static ip setup, create the following
+        configuration file by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/systemd/network/60-br0.network &lt;&lt; EOF
+<literal>[Match]
+Name=<replaceable>br0</replaceable>
+
+[Network]
+Address=192.168.0.2/24
+Gateway=192.168.0.1
+DNS=192.168.0.1</literal>
+EOF</userinput></screen>
+
+      <para>
+        To bring up the bridge interface, simply restart the
+        <command>systemd-networkd</command> daemon by running the following
+        command as the  <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>systemctl restart systemd-networkd</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <!-- <sect2 id="network-interface-bonding">
+    <title>Network Interface Bonding</title>
+
+    <sect3 role="kernel" id="advanced-network-bonding-kernel">
+      <title>Kernel Configuration</title>
+
+      <para>
+        Enable the following options in the kernel configuration
+        and recompile the kernel if necessary:
+      </para>
+
+<screen><literal>Device Drivers:
+  Network device support: Y
+    Bonding driver support: M or Y</literal></screen>
+
+      <indexterm zone="advanced-network advanced-network-bonding-kernel">
+        <primary sortas="d-advanced-network-bonding">Advanced Network Bonding</primary>
+      </indexterm>
+
+    </sect3>
+
+    <sect3>
+      <title>Setting up Network Interface Bonding</title>
+
+    </sect3>
+
+  </sect2> -->
+
+</sect1>
