@@ -80,6 +80,21 @@
       <xref linkend="JS"/>
     </para>
 
+    <bridgehead renderas="sect4" revision="systemd">Recommended</bridgehead>
+    <para role="recommended" revision="systemd">
+      <xref linkend="linux-pam"/>
+    </para>
+
+    <note revision="systemd">
+      <para>
+        Since <command>systemd-logind</command> uses PAM to register user
+        sessions, it is a good idea to build <application>Polkit</application>
+        with PAM support so <command>systemd-logind</command> can track
+        <application>Polkit</application> sessions.
+      </para>
+    </note>
+
+
     <bridgehead renderas="sect4">Optional (Required if building GNOME)</bridgehead>
     <para role="optional">
       <xref linkend="gobject-introspection"/>
@@ -89,18 +104,24 @@
     <para role="optional">
       <xref linkend="DocBook"/>,
       <xref linkend="docbook-xsl"/>,
-      <xref linkend="gtk-doc"/>,
-      <xref linkend="libxslt"/> and
-      <xref linkend="linux-pam"/>
+      <xref linkend="gtk-doc"/>, <phrase revision="systemd">and </phrase>
+      <xref linkend="libxslt"/><phrase revision="sysv">, and
+      <xref linkend="linux-pam"/></phrase>
+    </para>
+
+    <bridgehead renderas="sect4" revision="systemd">Required Runtime Dependencies</bridgehead>
+    <para role="required" revision="systemd">
+      <xref linkend="systemd"/>
     </para>
 
     <note>
       <para>
-        If <xref linkend="libxslt"/> is installed, then <xref linkend="DocBook"/>
-        and <xref linkend="docbook-xsl"/> are required. If you have installed
-        <xref linkend="libxslt"/>, but you do not want to install any of the
-        DocBook packages mentioned, you will need to use
-        <option>--disable-man-pages</option> in the instructions below.
+        If <xref linkend="libxslt"/> is installed,
+        then <xref linkend="DocBook"/> and <xref linkend="docbook-xsl"/> are
+        required. If you have installed <xref linkend="libxslt"/>, but you do
+        not want to install any of the DocBook packages mentioned, you will
+        need to use <option>--disable-man-pages</option> in the instructions
+        below.
       </para>
     </note>
 
@@ -123,17 +144,38 @@
 useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
         -g polkitd -s /bin/false polkitd</userinput></screen>
 
+    <note revision="systemd">
+      <para>
+        When building <application>Polkit</application> with
+        <application>systemd</application> logind support, the
+        <command>configure</command> script explicitly checks if
+        system is booted using <application>systemd</application>.
+        This can cause problems if building the package in chroot,
+        where the <command>configure</command> would fail to
+        detect <application>systemd</application>. To workaround
+        the problem, simply run the following command:
+      </para>
+
+<screen><userinput>sed -i "s:/sys/fs/cgroup/systemd/:/sys:g" configure</userinput></screen>
+    </note>
+
     <para>
       Install <application>Polkit</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr                \
+<screen revision="sysv"><userinput>./configure --prefix=/usr                \
             --sysconfdir=/etc            \
             --localstatedir=/var         \
             --disable-static             \
             --enable-libsystemd-login=no \
             --with-authfw=shadow         &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --disable-static     &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -155,18 +197,25 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para>
+    <para revision="sysv">
       <parameter>--enable-libsystemd-login=no</parameter>: This parameter fixes
       building without <application>systemd</application>, which is not part
       of LFS/BLFS. If you use <application>systemd</application>,
       replace "no" by "yes".
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>--with-authfw=shadow</parameter>: This parameter configures the
       package to use the <application>Shadow</application> rather than the
-      <application>Linux PAM</application> Authentication framework. Remove it
-      if you would like to use <application>Linux PAM</application>.
+      <application>Linux-PAM</application> Authentication framework. Remove it
+      if you would like to use <application>Linux-PAM</application>.
+    </para>
+
+    <para revision="systemd">
+      <option>--with-authfw=shadow</option>: This switch enables the
+      package to use the <application>Shadow</application> rather than the
+      <application>Linux PAM</application> Authentication framework. Use it
+      if you have not installed <application>Linux PAM</application>.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"

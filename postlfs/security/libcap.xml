@@ -29,9 +29,10 @@
   <sect2 role="package">
     <title>Introduction to libcap with PAM</title>
 
-    <para>The <application>libcap</application> package was installed in
-    LFS, but if PAM support is desired, it needs to be reinstalled after
-    PAM is built.</para>
+    <para>The <application>libcap</application> package was installed in 
+    LFS, but if <application>Linux-PAM</application> support is desired,
+    the PAM module must be built (after installation of
+    <application>Linux-PAM</application>).</para>
 
     &lfs79_checked;&gcc6_checked;
 
@@ -60,7 +61,9 @@
     <bridgehead renderas="sect3">libcap Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="linux-pam"/></para>
+    <para role="required">
+      <xref linkend="linux-pam"/>
+    </para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/libcap"/></para>
@@ -73,46 +76,14 @@
     <para>Install <application>libcap</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i 's:LIBDIR:PAM_&amp;:g' pam_cap/Makefile &amp;&amp;
-make</userinput></screen>
+<screen><userinput>make -C pam_cap</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
 
-    <para>
-      If you want to disable installing the static library, use this sed:
-    </para>
-
-<screen><userinput>sed -i '/install.*STALIBNAME/ s/^/#/' libcap/Makefile</userinput></screen>
-
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make prefix=/usr \
-     SBINDIR=/sbin \
-     PAM_LIBDIR=/lib \
-     RAISE_SETFCAP=no install</userinput></screen>
-
-   <para>
-     Still as the <systemitem class="username">root</systemitem> user,
-     clean up some library locations and permissions:
-   </para>
-
-<screen role="root"><userinput>chmod -v 755 /usr/lib/libcap.so &amp;&amp;
-mv -v /usr/lib/libcap.so.* /lib &amp;&amp;
-ln -sfv ../../lib/libcap.so.2 /usr/lib/libcap.so</userinput></screen>
-
-  </sect2>
-
-  <sect2 role="commands">
-    <title>Command Explanations</title>
-
-    <para>
-      <command>sed -i '...'</command>, <parameter>PAM_LIBDIR=/lib</parameter>:
-      These correct PAM module install location.
-    </para>
-
-    <para><parameter>RAISE_SETFCAP=no</parameter>: This parameter skips trying
-    to use <application>setcap</application> on itself.  This avoids an installation
-    error if the kernel or file system do not support extended capabilities.</para>
+<screen role="root"><userinput>install -v -m755 pam_cap/pam_cap.so /lib/security &amp;&amp;
+install -v -m644 pam_cap/capability.conf /etc/security</userinput></screen>
 
   </sect2>
 
@@ -121,72 +92,15 @@ ln -sfv ../../lib/libcap.so.2 /usr/lib/libcap.so</userinput></screen>
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Library</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>capsh, getcap, getpcaps, and setcap</seg>
-        <seg>libcap.{so,a} and pam_cap.so</seg>
+        <seg>None</seg>
+        <seg>pam_cap.so</seg>
         <seg>None</seg>
       </seglistitem>
     </segmentedlist>
-
-    <variablelist>
-      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
-      <?dbfo list-presentation="list"?>
-      <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="capsh">
-        <term><command>capsh</command></term>
-        <listitem>
-          <para>is a shell wrapper to explore and constrain capability support.</para>
-          <indexterm zone="libcap-pam capsh">
-            <primary sortas="b-capsh">capsh</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="getcap">
-        <term><command>getcap</command></term>
-        <listitem>
-          <para>examines file capabilities.</para>
-          <indexterm zone="libcap-pam getcap">
-            <primary sortas="b-getcap">getcap</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="getpcaps">
-        <term><command>getpcaps</command></term>
-        <listitem>
-          <para>displays the capabilities on the queried process(es).</para>
-          <indexterm zone="libcap-pam getpcaps">
-            <primary sortas="b-getpcaps">getpcaps</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="setcap">
-        <term><command>setcap</command></term>
-        <listitem>
-          <para>sets file file capabilities.</para>
-          <indexterm zone="libcap-pam setcap">
-            <primary sortas="b-setcap">setcap</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="libcap-lib">
-        <term><filename class='libraryfile'>libcap.{so,a}</filename></term>
-        <listitem>
-          <para>contains the <application>libcap</application> API functions.</para>
-          <indexterm zone="libcap-pam libcap-lib">
-            <primary sortas="c-libcap">libcap.{so,a}</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
 
   </sect2>
 

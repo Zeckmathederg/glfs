@@ -140,22 +140,26 @@
       comprehensive information about building your own firewall.</para>
     </caution>
 
-    <para>The firewall configuration script installed in the iptables section
-    differs from the standard configuration script. It only has two of
-    the standard targets: start and status. The other targets are clear
-    and lock. For instance if you issue:</para>
+    <para revision="sysv">The firewall configuration script installed in the
+    iptables section differs from the standard configuration script. It only
+    has two of the standard targets: start and status. The other targets are
+    clear and lock. For instance if you issue:</para>
 
-<screen role="root"><userinput>/etc/rc.d/init.d/iptables start</userinput></screen>
+<screen role="root" revision="sysv"><userinput>/etc/rc.d/init.d/iptables start</userinput></screen>
 
-    <para>the firewall will be restarted just as it is upon system startup.
-    The status target will present a list of all currently implemented
-    rules. The clear target turns off all firewall rules and the lock
-    target will block all packets in and out of the computer with the
+    <para revision="sysv">the firewall will be restarted just as it is upon
+    system startup. The status target will present a list of all currently
+    implemented rules. The clear target turns off all firewall rules and the
+    lock target will block all packets in and out of the computer with the
     exception of the loopback interface.</para>
 
-    <para>The main startup firewall is located in the file
+    <para revision="sysv">The main startup firewall is located in the file
     <filename>/etc/rc.d/rc.iptables</filename>. The sections below provide
     three different approaches that can be used for a system.</para>
+
+    <para revision="systemd">The main startup firewall is located in the file
+    <filename>/etc/systemd/scripts/iptables</filename>. The sections below
+    provide three different approaches that can be used for a system.</para>
 
     <note>
       <para>You should always run your firewall rules from a script.
@@ -177,7 +181,7 @@
       Linux 2.4 Packet Filtering HOWTO</ulink>. It is still applicable
       to the Linux 2.6 kernels.</para>
 
-<screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
 <literal>#!/bin/sh
 
 # Begin rc.iptables
@@ -253,6 +257,85 @@ iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
 EOF
 chmod 700 /etc/rc.d/rc.iptables</userinput></screen>
 
+
+<screen role="root" revision="systemd"><?dbfo keep-together="auto"?><userinput>install -v -dm755 /etc/systemd/scripts
+
+cat &gt; /etc/systemd/scripts/iptables &lt;&lt; "EOF"
+<literal>#!/bin/sh
+
+# Begin /etc/systemd/scripts/iptables
+
+# Insert connection-tracking modules
+# (not needed if built into the kernel)
+modprobe nf_conntrack
+modprobe xt_LOG
+
+# Enable broadcast echo Protection
+echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Disable Source Routed Packets
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/accept_source_route
+
+# Enable TCP SYN Cookie Protection
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# Disable ICMP Redirect Acceptance
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/accept_redirects
+
+# Do not send Redirect Messages
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/send_redirects
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/send_redirects
+
+# Drop Spoofed Packets coming in on an interface, where responses
+# would result in the reply going out a different interface.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/rp_filter
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/rp_filter
+
+# Log packets with impossible addresses.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/log_martians
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/log_martians
+
+# be verbose on dynamic ip-addresses  (not needed in case of static IP)
+echo 2 &gt; /proc/sys/net/ipv4/ip_dynaddr
+
+# disable Explicit Congestion Notification
+# too many routers are still ignorant
+echo 0 &gt; /proc/sys/net/ipv4/tcp_ecn
+
+# Set a known state
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# These lines are here in case rules are already in place and the
+# script is ever rerun on the fly. We want to remove all rules and
+# pre-existing user defined chains before we implement new rules.
+iptables -F
+iptables -X
+iptables -Z
+
+iptables -t nat -F
+
+# Allow local-only connections
+iptables -A INPUT  -i lo -j ACCEPT
+
+# Free output on any interface to any ip for any service
+# (equal to -P ACCEPT)
+iptables -A OUTPUT -j ACCEPT
+
+# Permit answers on already established connections
+# and permit new connections related to established ones
+# (e.g. port mode ftp)
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Log everything else. What's Windows' latest exploitable vulnerability?
+iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
+
+# End /etc/systemd/scripts/iptables</literal>
+EOF
+chmod 700 /etc/systemd/scripts/iptables</userinput></screen>
+
       <para>This script is quite simple, it drops all traffic coming
       into your computer that wasn't initiated from your computer, but
       as long as you are simply surfing the Internet you are unlikely
@@ -283,7 +366,7 @@ chmod 700 /etc/rc.d/rc.iptables</userinput></screen>
       makes a daemon on your system crash, or even worse, that implements
       a worm via a buffer-overflow).</para>
 
-<screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
 <literal>#!/bin/sh
 
 # Begin rc.iptables
@@ -373,6 +456,102 @@ iptables -A OUTPUT  -j LOG --log-prefix "FIREWALL:OUTPUT "
 echo 1 &gt; /proc/sys/net/ipv4/ip_forward</literal>
 EOF
 chmod 700 /etc/rc.d/rc.iptables</userinput></screen>
+
+<screen role="root" revision="systemd"><?dbfo keep-together="auto"?><userinput>install -v -dm755 /etc/systemd/scripts
+
+cat &gt; /etc/systemd/scripts/iptables &lt;&lt; "EOF"
+<literal>#!/bin/sh
+
+# Begin /etc/systemd/scripts/iptables
+
+echo
+echo "You're using the example configuration for a setup of a firewall"
+echo "from Beyond Linux From Scratch."
+echo "This example is far from being complete, it is only meant"
+echo "to be a reference."
+echo "Firewall security is a complex issue, that exceeds the scope"
+echo "of the configuration rules below."
+
+echo "You can find additional information"
+echo "about firewalls in Chapter 4 of the BLFS book."
+echo "http://www.&lfs-domainname;/blfs"
+echo
+
+# Insert iptables modules (not needed if built into the kernel).
+
+modprobe nf_conntrack
+modprobe nf_conntrack_ftp
+modprobe xt_conntrack
+modprobe xt_LOG
+modprobe xt_state
+
+# Enable broadcast echo Protection
+echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Disable Source Routed Packets
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+
+# Enable TCP SYN Cookie Protection
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# Disable ICMP Redirect Acceptance
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_redirects
+
+# Don't send Redirect Messages
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/send_redirects
+
+# Drop Spoofed Packets coming in on an interface where responses
+# would result in the reply going out a different interface.
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/rp_filter
+
+# Log packets with impossible addresses.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/log_martians
+
+# Be verbose on dynamic ip-addresses  (not needed in case of static IP)
+echo 2 &gt; /proc/sys/net/ipv4/ip_dynaddr
+
+# Disable Explicit Congestion Notification
+# Too many routers are still ignorant
+echo 0 &gt; /proc/sys/net/ipv4/tcp_ecn
+
+# Set a known state
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# These lines are here in case rules are already in place and the
+# script is ever rerun on the fly. We want to remove all rules and
+# pre-existing user defined chains before we implement new rules.
+iptables -F
+iptables -X
+iptables -Z
+
+iptables -t nat -F
+
+# Allow local connections
+iptables -A INPUT  -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow forwarding if the initiated on the intranet
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD ! -i ppp+ -m conntrack --ctstate NEW       -j ACCEPT
+
+# Do masquerading
+# (not needed if intranet is not using private ip-addresses)
+iptables -t nat -A POSTROUTING -o ppp+ -j MASQUERADE
+
+# Log everything for debugging
+# (last of all rules, but before policy rules)
+iptables -A INPUT   -j LOG --log-prefix "FIREWALL:INPUT "
+iptables -A FORWARD -j LOG --log-prefix "FIREWALL:FORWARD "
+iptables -A OUTPUT  -j LOG --log-prefix "FIREWALL:OUTPUT "
+
+# Enable IP Forwarding
+echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+
+# End /etc/systemd/scripts/iptables</literal>
+EOF
+chmod 700 /etc/systemd/scripts/iptables</userinput></screen>
 
       <para>With this script your intranet should be reasonably secure
       against external attacks. No one should be able to setup a new
