@@ -111,7 +111,13 @@
     <para>Install <application>Autofs</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure --prefix=/         \
+<screen revision="sysv"><userinput>./configure --prefix=/         \
+            --without-openldap \
+            --mandir=/usr/share/man &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>./configure --prefix=/         \
+            --with-systemd     \            
             --without-openldap \
             --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
@@ -126,6 +132,11 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para revision="systemd">
+      <parameter>--with-systemd</parameter>: This switch enables installation
+      of the bundled systemd units.
+    </para>
 
     <para>
       <option>--with-libtirpc</option>: This switch enables libtirpc support if
@@ -243,27 +254,44 @@ EOF</userinput></screen>
     </sect3>
 
     <sect3  id="autofs-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
-      <para> <application>autofs</application> installs its own boot script,
-      but it has no capability for logging or visual conformance with other
-      BLFS scripts.</para>
+      <para revision="sysv"><application>autofs</application> installs its own
+      boot script, but it has no capability for logging or visual conformance
+      with other BLFS scripts.</para>
 
-      <para>Install the <filename>/etc/init.d/autofs</filename> mount script
-      included with the <xref linkend="bootscripts" revision="sysv"/>
-      <xref linkend="systemd-units" revision="systemd"/> package.</para>
+      <para revision="sysv">Install the <filename>/etc/init.d/autofs</filename>
+      mount script included with the <xref linkend="bootscripts"/>
+      package.</para>
+
+      <para revision="systemd">
+        To start <application>Autofs</application> at boot, enable the
+        previously installed systemd unit by running the following command as
+        the <systemitem class="username">root</systemitem> user:
+      </para>
 
       <indexterm zone="autofs autofs-init">
         <primary sortas="f-autofs-init">autofs</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-autofs</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-autofs</userinput></screen>
 
-      <para>The time-out variable is set in
+<screen role="root" revision="systemd"><userinput>systemctl enable autofs</userinput></screen>
+
+      <para revision="sysv">The time-out variable is set in
       <filename>/etc/sysconfig/autofs.conf</filename>. The installed file sets
       a default of 60 seconds of inactivity before unmounting the device.  A
       much shorter time may be necessary to protect buffer writing to a floppy
       if users tend to remove the media prior to the timeout setting.</para>
+
+      <note revision="systemd">
+        <para>
+          You can also specify <envar>OPTIONS</envar> variable in the
+          <filename>/etc/sysconfig/autofs</filename> file with any additional
+          parameters that you might want to pass to the automount daemon.
+        </para>
+      </note>
 
     </sect3>
 
