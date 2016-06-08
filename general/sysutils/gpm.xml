@@ -117,15 +117,23 @@ install -v -m644    doc/{FAQ,HACK_GPM,README*}        \
     <title>Configuring GPM</title>
 
     <sect3 id="gpm-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
       <indexterm zone="gpm gpm-init">
         <primary sortas="f-gpm-init">gpm</primary>
       </indexterm>
 
-      <para>Install the <filename>/etc/rc.d/init.d/gpm</filename> init script
-      included in the <xref linkend="bootscripts" revision="sysv"/>
-      <xref linkend="systemd-units" revision="systemd"/> package.</para>
+      <para revision="sysv">Install the
+      <filename>/etc/rc.d/init.d/gpm</filename> init script included in the
+      <xref linkend="bootscripts"/> package.</para>
+
+      <para revision="systemd">
+        To start the <command>gpm</command> daemon at boot,
+        install the systemd unit from the <xref linkend="systemd-units"/>
+        package by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
 
 <screen role="root"><userinput>make install-gpm</userinput></screen>
 
@@ -138,12 +146,12 @@ install -v -m644    doc/{FAQ,HACK_GPM,README*}        \
       <filename>~/.gpm-root</filename>: The default and individual user
       <command>gpm-root</command> configuration files.</para>
 
-      <para><filename>/etc/sysconfig/mouse</filename>:
+      <para revision="sysv"><filename>/etc/sysconfig/mouse</filename>:
       This file contains the name of your mouse device and the protocol
       it uses.  To create this file, run the following as the
       <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>cat &gt; /etc/sysconfig/mouse &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/sysconfig/mouse &lt;&lt; "EOF"
 <literal># Begin /etc/sysconfig/mouse
 
 MDEVICE="<replaceable>&lt;yourdevice&gt;</replaceable>"
@@ -161,7 +169,7 @@ EOF</userinput></screen>
         <primary sortas="e-etc-gpm-root.conf">/etc/gpm-root.conf</primary>
       </indexterm>
 
-      <indexterm zone="gpm gpm-config">
+      <indexterm zone="gpm gpm-config" revision="sysv">
         <primary sortas="e-etc-sysconfig-mouse">/etc/sysconfig/mouse</primary>
       </indexterm>
 
@@ -170,14 +178,15 @@ EOF</userinput></screen>
     <sect3>
       <title>Configuration Information</title>
 
-      <para>Examples of values to set <envar>MDEVICE</envar>,
+      <para revision="sysv">Examples of values to set <envar>MDEVICE</envar>,
       <envar>PROTOCOL</envar>, and <envar>GPMOPTS</envar> to are:</para>
 
-<screen><literal>MDEVICE="/dev/input/mice"
+<screen revision="sysv"><literal>MDEVICE="/dev/input/mice"
 PROTOCOL="imps2"
 GPMOPTS=""</literal></screen>
 
-      <para>A list of which protocol values are known can be found by running
+      <para revision="sysv">A list of which protocol values are known can be
+      found by running
       <command>gpm -m <replaceable>[device]</replaceable> -t -help</command>.
       The <envar>MDEVICE</envar> setting depends on which type of mouse you
       have.  For example, <filename>/dev/ttyS0</filename> for a serial mouse
@@ -185,6 +194,18 @@ GPMOPTS=""</literal></screen>
       used for USB mice and <filename>/dev/psaux</filename> for PS2 mice.
       <envar>GPMOPTS</envar> is the 'catch all' for any additional options that
       are needed for your hardware.</para>
+
+      <para revision="systemd">
+        <application>GPM</application> is by default started with
+        the following parameters:
+        <parameter>-m /dev/input/mice -t imps2</parameter>. If the
+        mentioned parameters don't suit your needs, you can override
+        them by running the following the following commands as
+        the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root" revision="systemd"><userinput>install -v -dm755 /etc/systemd/system/gpm.service.d
+echo "ExecStart=/usr/sbin/gpm &lt;list of parameters&gt;" > /etc/systemd/system/gpm.service.d/99-user.conf</userinput></screen>
 
     </sect3>
 
