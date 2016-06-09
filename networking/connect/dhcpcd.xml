@@ -242,6 +242,82 @@ EOF</userinput></screen>
 
     </sect3>
 
+   <sect3 id="dhcpcd-init3" revision="systemd">
+      <title>General Configuration Information</title>
+
+      <para>
+        If you want to configure network interfaces at boot using
+        <command>dhcpcd</command>, you need to install the
+        systemd unit included in <xref linkend="systemd-units"/>
+        package by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>make install-dhcpcd</userinput></screen>
+
+      <indexterm zone="dhcpcd dhcpcd-init3">
+        <primary sortas="f-dhcpcd">dhcpcd</primary>
+      </indexterm>
+
+      <para>
+        Whenever <command>dhcpcd</command> configures or shuts down
+        a network interface, it executes hook scripts. For more details
+        about those scripts, see the <command>dhcpcd-run-hooks</command> and
+        <command>dhcpcd</command> man pages.
+      </para>
+
+      <note>
+        <para id="dhcpcd-config5">The default behavior of
+        <command>dhcpcd</command> sets the hostname and mtu settings. It also
+        overwrites <filename>/etc/resolv.conf</filename> and
+        <filename>/etc/ntp.conf</filename>.
+
+        These modifications to system files and settings on system
+        configuration files are done by hooks which are stored in <filename
+        class="directory">/lib/dhcpcd/dhcpcd-hooks</filename>.
+
+        Setup <command>dhcpcd</command> by removing or adding hooks from/to
+        that directory.  The execution of hooks can be disabled by using the
+        <option>--nohook</option> (<option>-C</option>) command line option or
+        by the <option>nohook</option> option in the
+        <filename>/etc/dhcpcd.conf</filename> file.</para>
+      </note>
+
+      <indexterm zone="dhcpcd dhcpcd-config5">
+        <primary sortas="e-etc-resolv.conf">/etc/resolv.conf</primary>
+      </indexterm>
+
+    <note>
+      <para>
+        Make sure that you disable the <command>systemd-networkd</command>
+        service or configure it not to manage the interfaces you want to manage
+        with <application>dhcpcd</application>.
+      </para>
+    </note>
+
+      <para>
+        At this point you can test if <command>dhcpcd</command> is
+        behaving as expected by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>systemctl start dhcpcd@<replaceable>eth0</replaceable></userinput></screen>
+
+      <para>
+        To start <command>dhcpcd</command> on a specific interface
+        at boot, enable the previously installed systemd unit by
+        running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>systemctl enable dhcpcd@<replaceable>eth0</replaceable></userinput></screen>
+
+      <para>
+        Replace <replaceable>eth0</replaceable> with the actual interface name.
+      </para>
+
+    </sect3>
+
   </sect2>
 
   <sect2 role="content">
