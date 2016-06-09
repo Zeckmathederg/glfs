@@ -220,7 +220,7 @@
       Install <application>PHP</application> by running the following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr                \
+<screen revision="sysv"><userinput>./configure --prefix=/usr                \
             --sysconfdir=/etc            \
             --localstatedir=/var         \
             --datadir=/usr/share/php     \
@@ -242,6 +242,28 @@
             --with-readline              &amp;&amp;
 make</userinput></screen>
 
+<screen revision="systemd"><userinput>./configure --prefix=/usr                \
+            --sysconfdir=/etc            \
+            --localstatedir=/var         \
+            --datadir=/usr/share/php     \
+            --mandir=/usr/share/man      \
+            --enable-fpm                 \
+            --with-fpm-user=apache       \
+            --with-fpm-group=apache      \
+            --with-fpm-systemd           \
+            --with-config-file-path=/etc \
+            --with-zlib                  \
+            --enable-bcmath              \
+            --with-bz2                   \
+            --enable-calendar            \
+            --enable-dba=shared          \
+            --with-gdbm                  \
+            --with-gmp                   \
+            --enable-ftp                 \
+            --with-gettext               \
+            --enable-mbstring            \
+            --with-readline              &amp;&amp;
+make</userinput></screen>
     <para>
       To test the results, issue: <command>make test</command>. A few
       tests may fail, in which case you are asked whether you want to send
@@ -298,6 +320,11 @@ gunzip -v /usr/share/doc/php-&php-version;/php_manual_en.html.gz</userinput></sc
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+      <para revision="systemd">
+        <command>sed -i "s|lsystemd-daemon|lsystemd|g" configure</command>:
+        This command fixes the detection of the systemd library.
+      </para>
+
       <para>
         <parameter>--with-datadir=/usr/share/php</parameter>: This works
         around a bug in the build machinery, which installs some data to a
@@ -307,6 +334,11 @@ gunzip -v /usr/share/doc/php-&php-version;/php_manual_en.html.gz</userinput></sc
       <para>
         <parameter>--enable-fpm</parameter>: This parameter allows
         building the fastCGI Process Manager.
+      </para>
+
+      <para revision="systemd">
+        <parameter>--with-fpm-systemd</parameter>: This parameter allows
+        the FastCGI Process Manager to integrate with systemd.
       </para>
 
       <para>
@@ -510,7 +542,8 @@ gunzip -v /usr/share/doc/php-&php-version;/php_manual_en.html.gz</userinput></sc
     </sect3>
 
     <sect3  id="php-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
       <para revision="sysv">
         To automatically start the <command>php-fpm</command> daemon when the
@@ -521,9 +554,9 @@ gunzip -v /usr/share/doc/php-&php-version;/php_manual_en.html.gz</userinput></sc
       </para>
 
       <para revision="systemd">
-        To automatically start the <command>php-fpm</command> daemon when the
-        system is rebooted, install the <filename>php-fpm.service</filename>
-        unit from the <xref linkend="systemd-units"/> package as the
+        To start the <command>php-fpm</command> daemon at boot,
+        install the systemd unit from the <xref linkend="systemd-units"/>
+        package by running the following command as the
         <systemitem class="username">root</systemitem> user:
       </para>
 
