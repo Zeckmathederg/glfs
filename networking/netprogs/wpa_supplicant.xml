@@ -214,6 +214,14 @@ popd</userinput></screen>
 install -v -m644 doc/docbook/wpa_supplicant.conf.5 /usr/share/man/man5/ &amp;&amp;
 install -v -m644 doc/docbook/wpa_{cli,passphrase,supplicant}.8 /usr/share/man/man8/</userinput></screen>
 
+    <para revision="systemd">
+      Install the <application>systemd</application> support files by
+      running the following command as the <systemitem
+      class="username">root</systemitem> user:
+    </para>
+
+<screen role="root" revision="systemd"><userinput>install -v -m644 systemd/*.service /lib/systemd/system/</userinput></screen>
+
     <para>
       If you have built <application>WPA Supplicant</application> with
       <application>D-Bus</application> support, you will need to install
@@ -226,6 +234,17 @@ install -v -m644 doc/docbook/wpa_{cli,passphrase,supplicant}.8 /usr/share/man/ma
                  /usr/share/dbus-1/system-services/ &amp;&amp;
 install -v -m644 dbus/dbus-wpa_supplicant.conf \
                  /etc/dbus-1/system.d/wpa_supplicant.conf</userinput></screen>
+
+    <para revision="systemd">
+      Additionally, enable the <filename>wpa_supplicant.service</filename>
+      so that <application>systemd</application> can properly activate the
+      <application>D-Bus</application> service. Note that the 
+      per-connection service and the D-Bus service cannot be enabled 
+      at the same time. Run the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable wpa_supplicant</userinput></screen>
 
     <para>
       If you have built the <application>WPA Supplicant</application> GUI
@@ -257,13 +276,22 @@ install -v -m644 wpa_gui-qt4/icons/wpa_gui.svg /usr/share/pixmaps/</userinput></
     <sect3 id="wpa_supplicant-config">
       <title>Config File</title>
 
-      <para>
+      <para revision="sysv">
         <filename>/etc/sysconfig/wpa_supplicant-*.conf</filename>
       </para>
 
-      <indexterm zone="wpa_supplicant wpa_supplicant-config">
+      <para revision="systemd">
+        <filename>/etc/wpa_supplicant/wpa_supplicant-*.conf</filename>
+      </para>
+
+      <indexterm zone="wpa_supplicant wpa_supplicant-config" revision="sysv">
         <primary
         sortas="e-etc-sysconfig-wpa_supplicant-star.conf">/etc/sysconfig/wpa_supplicant-*.conf</primary>
+      </indexterm>
+
+      <indexterm zone="wpa_supplicant wpa_supplicant-config" revision="systemd">
+        <primary
+        sortas="e-etc-wpa_supplicant-wpa_supplicant-star.conf">/etc/wpa_supplicant/wpa_supplicant-*.conf</primary>
       </indexterm>
 
     </sect3>
@@ -273,26 +301,34 @@ install -v -m644 wpa_gui-qt4/icons/wpa_gui.svg /usr/share/pixmaps/</userinput></
 
       <para>
         To connect to an access point that uses a password, you need to put
-        the pre-shared key in <filename>
-        /etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename>.
+        the pre-shared key in
+        <phrase revision="sysv"><filename>
+        /etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename>.</phrase>
+        <phrase revision="systemd"><filename>
+        /etc/wpa_supplicant/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename>.</phrase>
         SSID is the string that the access point/router transmits to
         identify itself. Run the following command as the
         <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>wpa_passphrase <replaceable>SSID</replaceable> <replaceable>SECRET_PASSWORD</replaceable> &gt; /etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</userinput></screen>
+<screen role="root" revision="sysv"><userinput>wpa_passphrase <replaceable>SSID</replaceable> <replaceable>SECRET_PASSWORD</replaceable> &gt; /etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>install -v -dm755 /etc/wpa_supplicant &amp;&amp;
+wpa_passphrase <replaceable>SSID</replaceable> <replaceable>SECRET_PASSWORD</replaceable> &gt; /etc/wpa_supplicant/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</userinput></screen>
 
       <para>
-        <filename>/etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf
-        </filename> can hold the details of several access points. When
+        <phrase revision="sysv"><filename>/etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf </filename></phrase>
+        <phrase revision="systemd"><filename>/etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename></phrase> 
+        can hold the details of several access points. When
         <command>wpa_supplicant</command> is started, it will scan for the
         SSIDs it can see and choose the appropriate password to connect.
         </para>
 
       <para>
         If you want to connect to an access point that isn't password
-        protected, put an entry like this in <filename>
-        /etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename>.
+        protected, put an entry like this in
+        <phrase revision="sysv"><filename>/etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename></phrase>
+        <phrase revision="systemd"><filename>/etc/sysconfig/wpa_supplicant-<replaceable>wifi0</replaceable>.conf</filename></phrase>.
         Replace "Some-SSID" with the SSID of the access point/router.
       </para>
 
@@ -313,21 +349,20 @@ install -v -m644 wpa_gui-qt4/icons/wpa_gui.svg /usr/share/pixmaps/</userinput></
     <sect3>
       <title>Connecting to an Access Point</title>
 
-      <para id="wpa-service">
+      <para id="wpa-service" revision="sysv">
         If you want to configure network interfaces at boot using
         <command>wpa_supplicant</command>, you need to install the
         <filename>/lib/services/wpa</filename> script
-        included in <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/> package:
+        included in <xref linkend="bootscripts"/> package:
       </para>
 
-<screen role="root"><userinput>make install-service-wpa</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-service-wpa</userinput></screen>
 
-      <indexterm zone="wpa_supplicant wpa-service">
+      <indexterm zone="wpa_supplicant wpa-service" revision="sysv">
         <primary sortas="f-wpa">wpa</primary>
       </indexterm>
 
-      <para>
+      <para revision="sysv">
         If your router/access point uses DHCP to allocate IP addresses, you
         can install <xref linkend="dhcp"/> client and use it to
         automatically obtain network addresses. Create the
@@ -336,7 +371,7 @@ install -v -m644 wpa_gui-qt4/icons/wpa_gui.svg /usr/share/pixmaps/</userinput></
         <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>cat &gt; /etc/sysconfig/ifconfig.<replaceable>wifi0</replaceable> &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/sysconfig/ifconfig.<replaceable>wifi0</replaceable> &lt;&lt; "EOF"
 <literal>ONBOOT="yes"
 IFACE="<replaceable>wlan0</replaceable>"
 SERVICE="wpa"
@@ -357,7 +392,7 @@ PRINTIP="no"
 PRINTALL="no"</literal>
 EOF</userinput></screen>
 
-      <para>
+      <para revision="sysv">
         If you prefer <xref linkend="dhcpcd"/> instead of
         <xref linkend="dhcp"/> client, then create the
         <filename>/etc/sysconfig/ifconfig-<replaceable>wifi0</replaceable>
@@ -365,7 +400,7 @@ EOF</userinput></screen>
         <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>cat &gt; /etc/sysconfig/ifconfig.<replaceable>wifi0</replaceable> &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/sysconfig/ifconfig.<replaceable>wifi0</replaceable> &lt;&lt; "EOF"
 <literal>ONBOOT="yes"
 IFACE="<replaceable>wlan0</replaceable>"
 SERVICE="wpa"
@@ -378,7 +413,7 @@ DHCP_START="-b -q <replaceable>&lt;insert appropriate start options here&gt;</re
 DHCP_STOP="-k <replaceable>&lt;insert additional stop options here&gt;</replaceable>"</literal>
 EOF</userinput></screen>
 
-      <para>
+      <para revision="sysv">
         Alternatively, if you use static addresses on your local network,
         then create the
         <filename>/etc/sysconfig/ifconfig-<replaceable>wifi0</replaceable>
@@ -386,7 +421,7 @@ EOF</userinput></screen>
         <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>cat &gt; /etc/sysconfig/ifconfig.<replaceable>wifi0</replaceable> &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/sysconfig/ifconfig.<replaceable>wifi0</replaceable> &lt;&lt; "EOF"
 <literal>ONBOOT="yes"
 IFACE="<replaceable>wlan0</replaceable>"
 SERVICE="wpa"
@@ -401,15 +436,45 @@ PREFIX="24"
 BROADCAST="192.168.1.255"</literal>
 EOF</userinput></screen>
 
+      <para revision="systemd">
+        There are 3 types of <application>systemd</application> units
+        that were installed:
+      </para>
+
+      <itemizedlist spacing="compact" revision="systemd">
+        <listitem>
+          <para>
+            wpa_supplicant@.service
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            wpa_supplicant-nl80211@.service
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            wpa_supplicant-wired@.service
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      <para revision="systemd">
+        The only difference between 3 of them is what driver
+        is used for connecting (-D option). The first one uses
+        the default driver, the second one uses the nl80211
+        driver and the third one uses the wired driver.
+      </para>
+
       <para>
         You can connect to the wireless access point by
         running the following command as the
         <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>ifup <replaceable>wifi0</replaceable></userinput></screen>
+<screen role="root" revision="sysv"><userinput>ifup <replaceable>wifi0</replaceable></userinput></screen>
 
-      <para>
+      <para revision="sysv">
         Replace <replaceable>wlan0</replaceable> with the correct
         wireless interface and <replaceable>wifi0</replaceable>
         with desired name for the configuration file. Please note
@@ -417,6 +482,30 @@ EOF</userinput></screen>
         <filename>ifconfig.*</filename> configuration files need
         to have identical names, ie both contain
         <replaceable>wifi0</replaceable> in their name.
+      </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl start wpa_supplicant@<replaceable>wlan0</replaceable></userinput></screen>
+
+      <para revision="systemd">
+        To connect to the wireless access point at
+        boot, simply enable the appropriate
+        <command>wpa_supplicant</command> service
+        by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable wpa_supplicant@<replaceable>wlan0</replaceable></userinput></screen>
+
+      <para revision="systemd">
+        Depending on your setup, you can replace the
+        <filename>wpa_supplicant@.service</filename>
+        with any other listed above.
+      </para>
+
+      <para revision="systemd">
+        To assign a network address to your wireless interface, consult the
+        <ulink url="&lfs-root;/chapter07/network.html">General Network Configuration</ulink>
+        page in LFS.
       </para>
 
     </sect3>

@@ -164,20 +164,51 @@ EOF</userinput></screen>
     </sect3>
 
     <sect3 id="rsync-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
       <para>Note that you only want to start the
       <application>rsync</application> server if you want to provide an
       <application>rsync</application> archive on your local machine.
-      You don't need this script to run the
+      You don't need this <phrase revision="sysv">script</phrase>
+      <phrase revision="systemd">unit</phrase> to run the
       <application>rsync</application> client.</para>
 
-      <para>Install the <filename>/etc/rc.d/init.d/rsyncd</filename> init
-      script included in the
+      <para>Install the
+      <phrase revision="sysv"><filename>/etc/rc.d/init.d/rsyncd</filename> init
+      script</phrase>
+      <phrase revision="systemd"><filename>rsyncd.service</filename>
+      unit</phrase> included in the
       <xref linkend="bootscripts" revision="sysv"/>
       <xref linkend="systemd-units" revision="systemd"/> package.</para>
 
 <screen role="root"><userinput>make install-rsyncd</userinput></screen>
+
+      <note revision="systemd">
+        <para>This package comes with two types of units: A service file and a
+        socket file. The service file will start rsync daemon once at boot
+        and it will keep running until the system shuts down. The socket file
+        will make systemd listen on rsync port (Default 873, needs to be
+        edited for anything else) and will start rsync daemon when something
+        tries to connect to that port and stop the daemon when the connection
+        is terminated. This is called socket activation and is analogous to
+        using <application>{,x}inetd</application> on a SysVinit based 
+        system.</para>
+
+
+        <para>By default, the first method is used - rsync daemon is started
+        at boot and stopped at shutdown. If the socket method is desired, you
+        need to run as the
+        <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>systemctl stop rsyncd &amp;&amp;
+systemctl disable rsyncd &amp;&amp;
+systemctl enable rsyncd.socket &amp;&amp;
+systemctl start rsyncd.socket</userinput></screen>
+
+        <para>Note that socket method is only useful for remote backups. For
+        local backups you'll need the service method.</para>
+      </note>
 
     </sect3>
 

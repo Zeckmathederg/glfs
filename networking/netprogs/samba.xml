@@ -120,7 +120,7 @@
     <para>Install <application>Samba</application> by running the following
     commands:</para>
 
-<screen><userinput>./configure                            \
+<screen revision="sysv"><userinput>./configure                            \
     --prefix=/usr                      \
     --sysconfdir=/etc                  \
     --localstatedir=/var               \
@@ -129,6 +129,15 @@
     --enable-fhs                       \
     --without-ad-dc                    \
     --without-systemd                  &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>./configure                            \
+    --prefix=/usr                      \
+    --sysconfdir=/etc                  \
+    --localstatedir=/var               \
+    --with-piddir=/run/samba           \
+    --with-pammodulesdir=/lib/security \
+    --enable-fhs &amp;&amp;
 make</userinput></screen>
 
 <!--
@@ -182,16 +191,16 @@ install -v -m755    examples/LDAP/{get*,ol*} \
     <para><parameter>--enable-fhs</parameter>: Assigns all other file paths in
     a manner compliant with the Filesystem Hierarchy Standard (FHS).</para>
 
-    <para><parameter>--without-systemd</parameter>: Disable
+    <para revision="sysv"><parameter>--without-systemd</parameter>: Disable
     <application>systemd</application> integration, which is not part of
     LFS/BLFS. If you use <application>systemd</application>, replace by
     <parameter>--with-systemd</parameter>.</para>
 
-    <para><option>--without-ad-dc</option>: Disable Active Directory Domain
-    Controller functionality. See <ulink
+    <para revision="sysv"><option>--without-ad-dc</option>: Disable Active
+    Directory Domain Controller functionality. See <ulink
     url="https://wiki.samba.org/index.php/Setup_a_Samba_Active_Directory_Domain_Controller">
     Setup a Samba Active Directory Domain Controller</ulink> for detailed
-    information. </para>
+    information.</para>
 
     <para><option>--with-selftest-prefix=SELFTEST_PREFIX</option>: This option
     specify the test suite work directory (default=./st).</para>
@@ -202,7 +211,8 @@ install -v -m755    examples/LDAP/{get*,ol*} \
 
     <para><command>ln -v -sf ../../lib/libnss_winbind.so.2 /usr/lib/libnss_winbind.so</command>
     and <command>ln -v -sf ../../lib/libnss_wins.so.2    /usr/lib/libnss_wins.so</command>:
-    These symlinks are required when applicates build against these libraries.</para>
+    These symlinks are required when applicationss build against these
+    libraries.</para>
 
     <para><command>install -v -m644 examples/LDAP/* /etc/openldap/schema</command>:
     These commands are used to copy sample Samba schemas to the OpenLDAP
@@ -406,13 +416,12 @@ install -v -m755    examples/LDAP/{get*,ol*} \
 
       </sect4>
 
-      <sect4 id="samba-init">
+      <sect4 id="samba-init" revision="sysv">
         <title>Boot Script</title>
 
         <para>For your convenience, boot scripts have been provided for
         <application>Samba</application>. There are two included in the
-        <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/> package. The first,
+        <xref linkend="bootscripts"/> package. The first,
         <filename>samba</filename>, will start the <command>smbd</command>
         and <command>nmbd</command> daemons needed to provide SMB/CIFS
         services. The second script, <filename>winbind</filename>, starts
@@ -452,7 +461,69 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
 
 <screen role="root"><userinput>make install-winbindd</userinput></screen>
 
-       </sect4>
+      </sect4>
+
+      <sect4 id="samba-init-sysd" revision="systemd">
+        <title>Systemd Units</title>
+
+        <para>The default <application>Samba</application> installation uses the
+        <systemitem class='username'>nobody</systemitem> user for guest access
+        to the server. This can be overridden by setting the
+        <option>guest account =</option> parameter in the
+        <filename>/etc/samba/smb.conf</filename> file. If you utilize the
+        <option>guest account =</option> parameter, ensure this user exists in
+        the <filename>/etc/passwd</filename> file.</para>
+
+        <para>
+          To start the <application>Samba</application> daemons at boot,
+          install the systemd units from the <xref linkend="systemd-units"/>
+          package by running the following command as the
+          <systemitem class="username">root</systemitem> user:
+        </para>
+
+        <indexterm zone="samba samba-init-sysd">
+          <primary sortas="f-samba">samba</primary>
+        </indexterm>
+
+<screen role="root"><userinput>make install-samba</userinput></screen>
+
+        <para>
+          To start the <command>winbindd</command> daemon at boot,
+          install the systemd unit from the <xref linkend="systemd-units"/>
+          package by running the following command as the
+          <systemitem class="username">root</systemitem> user:
+        </para>
+
+        <indexterm zone="samba samba-init-sysd">
+          <primary sortas="f-winbindd">winbindd</primary>
+        </indexterm>
+
+<screen role="root"><userinput>make install-winbindd</userinput></screen>
+
+        <note>
+        <para>This package comes with two types of units: A service file and a
+        socket file. The service file will start the smbd daemon once at boot
+        and it will keep running until the system shuts down. The socket file
+        will make systemd listen on the smbd port (Default 445, needs to be
+        edited for anything else) and will start the smbd daemon when something
+        tries to connect to that port and stop the daemon when the connection
+        is terminated. This is called socket activation and is analogous to
+        using <application>{,x}inetd</application> on a SysVinit based
+        system.</para>
+
+        <para>By default, the first method is used - the smbd daemon is started
+        at boot and stopped at shutdown. If the socket method is desired, you
+        need to run the following commands as the
+        <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>systemctl stop smbd &amp;&amp;
+systemctl disable smbd &amp;&amp;
+systemctl enable smbd.socket &amp;&amp;
+systemctl start smbd.socket</userinput></screen>
+
+        <para>Note that only the smbd daemon can be socket activated.</para>
+        </note>
+      </sect4>
 
     </sect3>
 

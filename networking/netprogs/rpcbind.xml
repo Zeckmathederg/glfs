@@ -82,6 +82,17 @@
   <sect2 role="installation">
     <title>Installation of rpcbind</title>
 
+    <para revision="systemd">
+      There should be a dedicated user and group to take control
+      of the <command>rpcbind</command> daemon after it is started.
+      Issue the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root" revision="systemd"><userinput>groupadd -g 28 rpc &amp;&amp;
+useradd -c "RPC Bind Daemon Owner" -d /dev/null -g rpc \
+        -s /bin/false -u 28 rpc</userinput></screen>
+
     <!-- Packages should adapt to standards, not the other way around -->
     <para>In order to get <application>rpcbind</application> to work
     properly, first fix the package to use correct service name:</para>
@@ -101,9 +112,9 @@ make</userinput></screen>
 
 <screen revision="systemd"><userinput>patch -Np1 -i ../rpcbind-&rpcbind-version;-tirpc_fix-1.patch &amp;&amp;
 
-./configure --prefix=/usr       \
-            --bindir=/sbin      \
-            --with-rpcuser=root &amp;&amp;
+./configure --prefix=/usr  \
+            --bindir=/sbin \
+            --with-rpcuser=rpc &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -117,11 +128,16 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>--with-rpcuser=root</command>: This works around an error in
-    the configure script.</para>
+    <para revision="sysv"><command>--with-rpcuser=root</command>: This works
+    around an error in the configure script.</para>
 
     <para revision="sysv"><command>--without-systemdsystemunitdir</command>:
     BLFS does not support systemd.</para>
+
+    <para revision="systemd"><parameter>--with-rpcuser=rpc</parameter>:
+    This switch is used so the <command>rpcbind</command> daemon will
+    run as an unprivileged user instead of the
+    <systemitem class="username">root</systemitem> user.</para>
 
   </sect2>
 
@@ -129,14 +145,23 @@ make</userinput></screen>
     <title>Configuring rpcbind</title>
 
     <sect3 id="rpcbind-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
-      <para>Install the <filename>/etc/rc.d/init.d/rpcbind</filename> init
-      script included in the <xref linkend="bootscripts" revision="sysv"/>
+      <para>Install the
+      <phrase revision="sysv"><filename>/etc/rc.d/init.d/rpcbind</filename>
+      init script</phrase>
+      <phrase revision="systemd"><filename>rpcbind.service</filename>
+      unit</phrase> included in the
+      <xref linkend="bootscripts" revision="sysv"/>
       <xref linkend="systemd-units" revision="systemd"/> package.</para>
 
-      <indexterm zone="rpcbind rpcbind-init">
+      <indexterm zone="rpcbind rpcbind-init" revision="sysv">
          <primary sortas="f-rpcbind">rpcbind</primary>
+      </indexterm>
+
+      <indexterm zone="rpcbind rpcbind-init" revision="systemd">
+         <primary sortas="f-rpcbind">rpcbind.service</primary>
       </indexterm>
 
 <screen role="root"><userinput>make install-rpcbind</userinput></screen>
