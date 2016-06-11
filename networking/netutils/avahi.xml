@@ -123,7 +123,7 @@ useradd -c "Avahi Daemon Owner" -d /var/run/avahi-daemon -u 84 \
     commands:</para>
 
 <!-- final part of sed removes " -DGDK_DISABLE_DEPRECATED=1 -DGTK_DISABLE_DEPRECATED=1 \" -->
-<screen><userinput>./configure --prefix=/usr        \
+<screen revision="sysv"><userinput>./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --localstatedir=/var \
             --disable-static     \
@@ -135,6 +135,20 @@ useradd -c "Avahi Daemon Owner" -d /var/run/avahi-daemon -u 84 \
             --enable-core-docs   \
             --with-distro=none   \
             --with-systemdsystemunitdir=no &amp;&amp;
+make</userinput></screen>
+
+<screen revision="sysstemd"><userinput>./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --disable-static     \
+            --disable-mono       \
+            --disable-monodoc    \
+            --disable-python     \
+            --disable-qt3        \
+            --disable-qt4        \
+            --enable-core-docs   \
+            --with-distro=none   \
+            --with-systemdsystemunitdir=/lib/systemd/system &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -191,10 +205,16 @@ make</userinput></screen>
       boot script in the distribution for LFS. This option disables it.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>--with-systemdsystemunitdir=no</parameter>: Without it, the
       daemon fails to start in BLFS, which does not support
       <application>systemd</application>.
+    </para>
+
+    <para revision="systemd">
+      <parameter>--with-systemdsystemunitdir=/lib/systemd/system</parameter>:
+      This parameter is used to set the correct installation directory for
+      systemd units.
     </para>
 
     <para>
@@ -241,19 +261,34 @@ make</userinput></screen>
     <sect3  id="avahi-init">
       <title>Boot Script</title>
 
-      <para>
+      <para revision="sysv">
         To automatically start the <command>avahi-daemon</command>
         when the system is rebooted, install the
         <filename>/etc/rc.d/init.d/avahi</filename> bootscript from
-        the <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/> package.
+        the <xref linkend="bootscripts"/> package.
+      </para>
+
+      <para revision="systemd">
+        To start the <command>avahi-daemon</command> daemon at boot, enable
+        the previously installed systemd unit by running the following command
+        as the <systemitem class="username">root</systemitem> user:
       </para>
 
       <indexterm zone="avahi avahi-init">
         <primary sortas="f-avahi">avahi</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-avahi</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-avahi</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable avahi-daemon</userinput></screen>
+
+      <para revision="systemd">
+        To start the <command>avahi-dnsconfd</command> daemon at boot, enable
+        the previously installed systemd unit by running the following command
+        as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable avahi-dnsconfd</userinput></screen>
 
     </sect3>
 

@@ -41,6 +41,14 @@
 
     &lfs79_checked;&gcc6_checked;
 
+    <note revision="systemd">
+      <para>
+        Make sure that you disable the <command>systemd-networkd</command>
+        service or configure it not to manage the interfaces you want to manage
+        with <application>NetworkManager</application>.
+      </para>
+    </note>
+
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -96,6 +104,7 @@
       <xref linkend="libsoup"/>,
       <xref linkend="newt"/> (for <command>nmtui</command>),
       <xref linkend="polkit"/>,
+      <phrase revision="systemd"><xref linkend="systemd"/>,</phrase>
       <xref linkend="upower"/>,
       <xref linkend="vala"/>, and
       <xref linkend="wpa_supplicant"/> (built with D-Bus support),
@@ -106,10 +115,15 @@
       <xref linkend="bluez"/>,
       <xref linkend="gtk-doc"/>,
       <xref linkend="qt5"/> (for examples),
+      <phrase revision="systemd"><xref linkend="ModemManager"/>,</phrase>
+      <phrase revision="systemd"><xref linkend="pygobject3"/>,</phrase>
       <xref linkend="valgrind"/>,
-      <ulink url="http://libteam.org/">libteam</ulink>, and
-      <ulink url="http://www.freedesktop.org/software/ModemManager/">
-      ModemManager</ulink>
+      <ulink url="http://libteam.org/">libteam</ulink>,
+      <phrase revision="sysv"><ulink 
+      url="http://www.freedesktop.org/software/ModemManager/">
+      ModemManager</ulink>,</phrase>
+      <ulink url="https://www.samba.org/ftp/ppp/">PPP</ulink>, and
+      <ulink url="https://www.roaringpenguin.com/products/pppoe">RP-PPPoE</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -132,13 +146,24 @@
       following commands:
     </para>
 
-<screen><userinput>CXXFLAGS="-O2 -fPIC"             \
+<screen revision="sysv"><userinput>CXXFLAGS="-O2 -fPIC"             \
 ./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --localstatedir=/var \
             --with-nmtui         \
             --disable-ppp        \
             --with-systemdsystemunitdir=no \
+            --docdir=/usr/share/doc/network-manager-&NetworkManager-version; &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>CXXFLAGS="-O2 -fPIC"                                        \
+./configure --prefix=/usr                                   \
+            --sysconfdir=/etc                               \
+            --localstatedir=/var                            \
+            --with-nmtui                                    \
+            --disable-ppp                                   \
+            --with-session-tracking=systemd                 \
+            --with-systemdsystemunitdir=/lib/systemd/system \
             --docdir=/usr/share/doc/network-manager-&NetworkManager-version; &amp;&amp;
 make</userinput></screen>
 
@@ -168,10 +193,22 @@ make</userinput></screen>
       <command>nmtui</command>.
     </para>
 
-    <para>
+    <para revision="systemd">
+      <parameter>--with-session-tracking=systemd</parameter>: This switch
+      is used to set <command>systemd-logind</command> as the default
+      program for session tracking.
+    </para>
+
+    <para revision="sysv">
       <parameter>--with-systemdsystemunitdir=no</parameter>: This parameter is
       used for sysv init systems. If you use systemd, replace "no" by the
       proper directory.
+    </para>
+
+    <para revision="systemd">
+      <parameter>--with-systemdsystemunitdir=/lib/systemd/system</parameter>:
+      This switch is used to set the correct installation directory for
+      systemd units.
     </para>
 
     <para>
@@ -235,21 +272,40 @@ EOF</userinput></screen>
     </sect3>
 
     <sect3 id="NetworkManager-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
 
-      <para>
-        To automatically start the <command>NetworkManager</command> daemon when the
-        system is rebooted, install the
-        <filename>/etc/rc.d/init.d/networkmanager</filename> bootscript from the
-        <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/> package.
+      <para revision="sysv">
+        To automatically start the <command>NetworkManager</command> daemon
+        when the system is rebooted, install the
+        <filename>/etc/rc.d/init.d/networkmanager</filename>bootscript from the 
+        <xref linkend="bootscripts"/> package.
+      </para>
+
+      <para revision="systemd">
+        To start the <command>NetworkManager</command> daemon at boot, enable
+        the previously installed systemd unit by running the following command
+        as the <systemitem class="username">root</systemitem> user:
       </para>
 
       <indexterm zone="NetworkManager NetworkManager-init">
         <primary sortas="f-NetworkManager">NetworkManager</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-networkmanager</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-networkmanager</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable NetworkManager</userinput></screen>
+
+      <para revision="systemd">
+        <application>NetworkManager</application> also ships a systemd unit
+        called <filename>NetworkManager-wait-online.service</filename> which
+        can be used to prevent services that require network connectivity
+        from starting until <application>NetworkManager</application> has
+        established the connection. To enable it, run the following command
+        as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable NetworkManager-wait-online</userinput></screen>
 
     </sect3>
 
