@@ -214,7 +214,7 @@
       Build <application>Cups</application> by running the following commands:
     </para>
 
-<screen><userinput>sed -i 's:555:755:g;s:444:644:g' Makedefs.in                                  &amp;&amp;
+<screen revision="sysv"><userinput>sed -i 's:555:755:g;s:444:644:g' Makedefs.in                                  &amp;&amp;
 sed -i '/MAN.EXT/s:.gz::g' configure config-scripts/cups-manpages.m4          &amp;&amp;
 sed -i '/LIBGCRYPTCONFIG/d' config-scripts/cups-ssl.m4                        &amp;&amp;
 <!--sed -i 's@else /\* HAVE_AVAHI \*/@elif defined(HAVE_AVAHI)@' test/ippserver.c &amp;&amp;
@@ -225,6 +225,22 @@ autoconf -I config-scripts &amp;&amp;
 CC=gcc \
 ./configure --libdir=/usr/lib            \
             --disable-systemd            \
+            --with-rcdir=/tmp/cupsinit   \
+            --with-system-groups=lpadmin \
+            --with-docdir=/usr/share/cups/doc-&cups-version; &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>sed -i 's:555:755:g;s:444:644:g' Makedefs.in
+&amp;&amp;
+sed -i '/MAN.EXT/s:.gz::g' configure config-scripts/cups-manpages.m4
+&amp;&amp;
+sed -i '/LIBGCRYPTCONFIG/d' config-scripts/cups-ssl.m4
+&amp;&amp;
+aclocal  -I config-scripts &amp;&amp;
+autoconf -I config-scripts &amp;&amp;
+
+CC=gcc \
+./configure --libdir=/usr/lib            \
             --with-rcdir=/tmp/cupsinit   \
             --with-system-groups=lpadmin \
             --with-docdir=/usr/share/cups/doc-&cups-version; &amp;&amp;
@@ -292,7 +308,7 @@ ln -svnf ../cups/doc-&cups-version; /usr/share/doc/cups-&cups-version;</userinpu
       which shows up when <application>avahi</application> is not present.
     </para>-->
 
-    <para>
+    <para revision="sysv">
       <parameter>--disable-systemd</parameter>: Systemd is not supported by
       BLFS.
     </para>
@@ -402,21 +418,29 @@ EOF</userinput></screen>
     </sect3>
 
     <sect3 id="cups-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
+
+      <para revision="sysv">
+        If you want the <application>Cups</application> print service to start
+        automatically when the system is booted, install the init script
+        included in the <xref linkend="bootscripts"/> package:
+      </para>
 
       <para>
-        If you want the <application>Cups</application> print service to start
-        automatically when the system is booted, install the init
-        script included in the <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/>
-        package:
+        To start the <command>cupsd</command> daemon when something tries to
+        access it, enable the previously installed systemd units by running
+        the following command as the
+        <systemitem class="username">root</systemitem> user:
       </para>
 
       <indexterm zone="cups cups-init">
         <primary sortas="f-cups">cups</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-cups</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-cups</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable org.cups.cupsd</userinput></screen>
 
     </sect3>
 
