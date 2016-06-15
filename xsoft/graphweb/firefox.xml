@@ -6,10 +6,10 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp " ">
-  <!ENTITY firefox-md5sum        "3e3b90268b8a634f7c60a25eb3a04c8c">
-  <!ENTITY firefox-size          "179 MB">
-  <!ENTITY firefox-buildsize     "4.6 GB (84 MB installed)">
-  <!ENTITY firefox-time          "11.5 SBU (with parallelism=4)">
+  <!ENTITY firefox-md5sum        "0bd5991a6c821dd1a34ead0f8bbb301a 	">
+  <!ENTITY firefox-size          "180 MB">
+  <!ENTITY firefox-buildsize     "5.3 GB (85 MB installed)">
+  <!ENTITY firefox-time          "11.3 SBU (with parallelism=4 on a recent intel i7, much longer on lesser CPUs)">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -34,8 +34,7 @@
       <application>Mozilla</application> codebase.
     </para>
 
-    &lfs79_checked;
-    &gcc6_checked;
+    &lfs79_checked;&gcc6_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -71,6 +70,23 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch if using gtk+-3.20 or later (do not use with earlier versions)
+          <ulink url="&patch-root;/firefox-&firefox-version;-gtk320-1.patch"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Optional patch to allow system versions of <xref linkend="graphite2"/>
+          and <xref linkend="harfbuzz"/> - this should be regarded as experimental
+          <ulink url="&patch-root;/firefox-&firefox-version;-system_graphite2_harfbuzz-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <note>
       <para>
         The tarball <emphasis>firefox-&firefox-version;.source.tar.xz</emphasis>
@@ -83,8 +99,9 @@
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="alsa-lib"/>,
-      <xref linkend="gtk2"/>
-      (or <xref linkend="gtk3"/> if you change the mozconfig where indicated),
+      <xref linkend="autoconf213"/>,
+      <xref linkend="gtk3"/>
+      (or <xref linkend="gtk2"/> if you change the mozconfig where indicated),
       <xref linkend="nss"/>,
       <xref linkend="unzip"/>,
       <xref linkend="yasm"/>, and
@@ -142,8 +159,11 @@
       <xref linkend="wireless_tools"/>,
       <ulink url="https://hunspell.github.io/">Hunspell</ulink>,
       <ulink url="http://sourceforge.net/projects/liboauth/files/">liboauth</ulink>, and
-      <ulink url="https://github.com/libproxy/libproxy">libproxy</ulink>, and
-      <ulink url="https://www.rust-lang.org/">Rust</ulink>
+      <ulink url="https://github.com/libproxy/libproxy">libproxy</ulink>,
+      <ulink url="https://www.rust-lang.org/">Rust</ulink>,
+      and (with the patch)
+      <xref linkend="graphite2"/> and
+      <xref linkend="harfbuzz"/>
     </para>
 
     <para condition="html" role="usernotes">
@@ -187,8 +207,8 @@ ac_add_options --disable-necko-wifi
 ac_add_options --disable-gstreamer
 #ac_add_options --enable-gstreamer=1.0
 
-# Comment out this option if you wish to build with gtk+-3
-ac_add_options --enable-default-toolkit=cairo-gtk2
+# Uncomment this option if you wish to build with gtk+-2
+#ac_add_options --enable-default-toolkit=cairo-gtk2
 
 # Uncomment these lines if you have installed optional dependencies:
 #ac_add_options --enable-system-hunspell
@@ -209,6 +229,16 @@ ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-icu
 
+# If you are going to apply the patch for system graphite
+# and system harfbuzz, uncomment these lines:
+#ac_add_options --with-system-graphite2
+#ac_add_options --with-system-harfbuzz
+
+# Stripping is now enabled by default.
+# Uncomment these lines if you need to run a debugger:
+#ac_add_options --disable-strip
+#ac_add_options --disable-install-strip
+
 # The BLFS editors recommend not changing anything below this line:
 ac_add_options --prefix=/usr
 ac_add_options --enable-application=browser
@@ -218,8 +248,6 @@ ac_add_options --disable-updater
 ac_add_options --disable-tests
 
 ac_add_options --enable-optimize
-ac_add_options --enable-strip
-ac_add_options --enable-install-strip
 
 ac_add_options --enable-gio
 ac_add_options --enable-official-branding
@@ -247,6 +275,22 @@ EOF</userinput></screen>
       commands:
     </para>
 
+    <para>
+      If you are using gtk+-3.20 or later, apply a patch to restore the
+      slider on scrollbars:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-gtk320-1.patch</userinput></screen>
+
+    <para>
+      If you have installed system versions of graphite2 and harfbuzz and wish
+      firefox to use those instead of its shipped versions, apply the patch and
+      uncomment the appropriate entries in the <filename>mozconfig</filename>
+      file:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-system_graphite2_harfbuzz-1.patch</userinput></screen>
+
     <note><para>
       If you are compiling <application>Firefox</application> in chroot, make
       sure you have <envar>$SHELL</envar> environment variable set or prepend
@@ -261,7 +305,8 @@ sed -e '/#include/a\
     print OUT "#undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS\\n"\;' \
     -i nsprpub/config/make-system-wrappers.pl
 
-CXX='g++ -std=c++11' make -f client.mk</userinput></screen>
+CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -283,8 +328,14 @@ ln    -sfv   ../../mozilla/plugins /usr/lib/firefox-&firefox-version;/browser</u
     <title>Command Explanations</title>
 
      <para>
-      <command>sed ...</command>: These commads correct the source to be
-      compatible with gcc6.
+      <command>sed ...</command>: These commands correct the source to be
+      compatible with gcc6 by preventing c++ scope errors.
+    </para>
+
+    <para>
+      <command>CFLAGS= ... CXXFLAGS= ...</command>: These settings work around
+      code which gcc6 would otherwise regard as out-of-specification and allow
+      it to produce a working program.
     </para>
 
     <para>
