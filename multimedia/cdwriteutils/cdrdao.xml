@@ -8,8 +8,8 @@
   <!ENTITY cdrdao-download-ftp  " ">
   <!ENTITY cdrdao-md5sum        "8d15ba6280bb7ba2f4d6be31d28b3c0c">
   <!ENTITY cdrdao-size          "1.4 MB">
-  <!ENTITY cdrdao-buildsize     "64 MB">
-  <!ENTITY cdrdao-time          "1.3 SBU (includes building <command>gcdmaster</command>)">
+  <!ENTITY cdrdao-buildsize     "51 MB">
+  <!ENTITY cdrdao-time          "0.3 SBU">
 ]>
 
 <sect1 id="cdrdao" xreflabel="Cdrdao-&cdrdao-version;">
@@ -33,7 +33,7 @@
     CD recording utilities. These are useful for burning a
     CD in disk-at-once mode.</para>
 
-  &lfs79_checked;
+  &lfs79_checked;&gcc6_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -66,33 +66,6 @@
       <xref linkend="libmad"/>, and
       <xref linkend="lame"/> (required to build <command>toc2mp3</command>)
     </para>
-<!--
-    <bridgehead renderas="sect4">Optional (Required to Build the
-    <command>gcdmaster</command> Program)</bridgehead>
-
-    <para>Note that the following packages must be built in
-    the order listed. Use the current <quote>stable</quote> version of
-    each package.</para>
-
-    <para role="optional">
-      <xref linkend="libsigc"/>,
-      <xref linkend="glibmm"/>,
-      <xref linkend="gtkmm2"/>,
-      <ulink url="http://www.gtkmm.org/">libglademm</ulink>,
-      <ulink url="http://www.gtkmm.org/">libgnomecanvasmm</ulink>,
-      <ulink url="http://www.gtkmm.org/">gconfmm</ulink>,
-      <ulink url="http://www.gtkmm.org/">gnome-vfsmm</ulink>,
-      <ulink url="http://www.gtkmm.org/">libgnomemm</ulink>, and
-      <ulink url="http://www.gtkmm.org/">libgnomeuimm</ulink>
-    </para>
-
-    <para>There are two additional optional dependencies that can be used by
-    the <application>Cdrdao</application> build:
-    <ulink url="http://cdrecord.berlios.de/private/cdrecord.html">Cdrtools</ulink>
-    and <ulink url="http://www.polhode.com/pccts133mr.html">PCCTS</ulink>.
-    The pieces of these two packages required to build
-    <application>Cdrdao</application> are also included in the source tree
-    and are used by default.</para>-->
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/cdrdao"/></para>
@@ -105,7 +78,8 @@
     <para>Install <application>Cdrdao</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i '/ioctl/a #include &lt;sys/stat.h&gt;' dao/ScsiIf-linux.cc &amp;&amp;
+<screen><userinput>sed -i '/ioctl/a #include &lt;sys/stat.h&gt;' dao/ScsiIf-linux.cc    &amp;&amp;
+sed -i 's/\(char .*REMOTE\)/unsigned \1/' dao/CdrDriver.{cc,h} &amp;&amp;
 
 ./configure --prefix=/usr --mandir=/usr/share/man &amp;&amp;
 make</userinput></screen>
@@ -129,6 +103,12 @@ install -v -m644 README /usr/share/doc/cdrdao-&cdrdao-version;</userinput></scre
     </para>
 
     <para>
+      <command>sed -i 's/\(char .*REMOTE\)/unsigned \1/' ...</command>: This
+      sed stops <application>gcc-6.1</application> failing to build because
+      c++ now treats narrowing from 'int' to 'char' as an error.
+    </para>
+
+    <para>
       <command>--mandir=/usr/share/man</command>: Install manual pages in
       /usr/share/man instead of /usr/man.
     </para>
@@ -144,11 +124,10 @@ install -v -m644 README /usr/share/doc/cdrdao-&cdrdao-version;</userinput></scre
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>cdrdao, cue2toc, toc2cddb, toc2cue and optionally, gcdmaster and
+        <seg>cdrdao, cue2toc, toc2cddb, toc2cue and optionally
         toc2mp3</seg>
         <seg>None</seg>
-        <seg>/usr/share/cdrdao, /usr/share/doc/cdrdao-&cdrdao-version;
-        and /usr/share/gcdmaster</seg>
+        <seg>/usr/share/cdrdao, /usr/share/doc/cdrdao-&cdrdao-version;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -174,17 +153,6 @@ install -v -m644 README /usr/share/doc/cdrdao-&cdrdao-version;</userinput></scre
           <para>converts CUE to TOC format for audio CDs.</para>
           <indexterm zone="cdrdao cue2toc">
             <primary sortas="b-cue2toc">cue2toc</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="gcdmaster">
-        <term><command>gcdmaster</command></term>
-        <listitem>
-          <para>is a graphical front end to <command>cdrdao</command> for
-          composing audio CDs.</para>
-          <indexterm zone="cdrdao gcdmaster">
-            <primary sortas="b-gcdmaster">gcdmaster</primary>
           </indexterm>
         </listitem>
       </varlistentry>
