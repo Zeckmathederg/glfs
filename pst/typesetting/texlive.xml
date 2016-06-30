@@ -6,16 +6,16 @@
 
   <!ENTITY texlive-download-http " ">
   <!ENTITY texlive-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-source.tar.xz">
-  <!ENTITY texlive-md5sum        "e526bd57118c4c4d5e9d525d20b5ac02">
+  <!ENTITY texlive-md5sum        "1e75db3412b3e2945fa94b0a423a29c7">
   <!ENTITY texlive-size          "44 MB">
 
-  <!ENTITY texlive-buildsize      "4.0 GB including the additional download">
-  <!ENTITY texlive-time           "7.2 SBU including the additional download (+0.3 SBU for the tests)">
+  <!ENTITY texlive-buildsize      "4.9 GB including the additional download">
+  <!ENTITY texlive-time           "8.3 SBU including the additional download (+0.3 SBU for the tests)">
 
   <!ENTITY texlive-texmf-download-http " ">
   <!ENTITY texlive-texmf-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texmf-version;-texmf.tar.xz">
-  <!ENTITY texlive-texmf-md5sum        "488c1e36ab42841b122cfd074ac42fa1">
-  <!ENTITY texlive-texmf-size          "1.8 GB">
+  <!ENTITY texlive-texmf-md5sum        "65da9b4e2514379d128d4cf4e889b63b">
+  <!ENTITY texlive-texmf-size          "2.0 GB">
 
 ]>
 
@@ -50,7 +50,7 @@
     should start at <xref linkend="tex-path"/> so that the final commands to
     initialise the new installation will be found.</para>
 
-    &lfs79_checked;
+    &lfs79_checked;&gcc6_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -74,7 +74,7 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Required Additional Download</bridgehead>
+    <bridgehead renderas="sect3">Required Additional Downloads</bridgehead>
 
       <para>Much of the texlive environment (including scripts, documentation,
       fonts and various other files) is not part of the source tarball. You must
@@ -100,6 +100,14 @@
       </listitem>
       <listitem>
         <para>Download size: &texlive-texmf-size;</para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/texlive-&texlive-version;-source-upstream_fixes-1.patch"/></para>
+      </listitem>
+      <listitem>
+        <para>Required patch: <ulink
+        url="&patch-root;/texlive-&texlive-version;-texmf-upstream_fixes-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -162,6 +170,9 @@ EOF</userinput></screen>
       Now, as a normal user:
     </para>
 <screen><userinput>export TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
+
+patch -Np1 -i ../texlive-&texlive-version;-source-upstream_fixes-1.patch &amp;&amp;
+
 mkdir texlive-build &amp;&amp;
 cd texlive-build    &amp;&amp;
 
@@ -195,7 +206,7 @@ cd texlive-build    &amp;&amp;
 make</userinput></screen>
 
     <para>To test the results, issue: <command>make check</command>
-    One test in each of web2c, dvipng and ttf2pk2 will SKIP because kpathsea
+    A few tests may SKIP because kpathsea
     has not yet been installed.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem>
@@ -205,7 +216,7 @@ make</userinput></screen>
 make texlinks &amp;&amp;
 ldconfig &amp;&amp;
 mkdir -pv /opt/texlive/&texlive-year;/tlpkg/TeXLive/ &amp;&amp;
-install -v -m444 ../texk/tests/TeXLive/* /opt/texlive/&texlive-year;/tlpkg/TeXLive/</userinput></screen>
+install -v -m644 ../texk/tests/TeXLive/* /opt/texlive/&texlive-year;/tlpkg/TeXLive/</userinput></screen>
 
     <note>
       <para>
@@ -218,7 +229,11 @@ install -v -m444 ../texk/tests/TeXLive/* /opt/texlive/&texlive-year;/tlpkg/TeXLi
     <para>Now install the additional files as the
     <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>tar -xf ../../texlive-&texmf-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1</userinput></screen>
+<screen role="root"><userinput>tar -xf ../../texlive-&texmf-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1 &amp;&amp;
+pushd /opt/texlive/&texlive-year; &amp;&amp;
+patch -Np1 -i /sources/texlive-&texlive-version;-texmf-upstream_fixes-1.patch &amp;&amp;
+popd
+</userinput></screen>
 
     <para>Still as the <systemitem class="username">root</systemitem> user,
     initialise the new system (the commands <command>fmtutil-sys --all</command>
@@ -237,6 +252,12 @@ mtxrun --generate</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <parameter>patch -Np1 -i ../texlive-&texlive-version;-source...</parameter>:
+      This fixes a segfault in upmendex which was corrected after the source was
+      released and is included in the binary installer.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
      href="../../xincludes/tex-prefix.xml"/>
@@ -275,7 +296,15 @@ mtxrun --generate</userinput></screen>
     </para>
 
     <para>
-      <parameter>install -v -m444 ../texk/tests/TeXLive/*
+      <parameter>patch -Np1 -i /sources/texlive-&texlive-version;-texmf...</parameter>:
+      This fixes various problems in epstopdf which were found after the source
+      was released and are included in the binary installer.  Because this is
+      applied to the installated texmf (to minimise disk space) it is necessary
+      to point to /sources instead of using  ../
+    </para>
+
+    <para>
+      <parameter>install -v -m644 ../texk/tests/TeXLive/*
       /opt/texlive/&texlive-year;/tlpkg/TeXLive/</parameter>: This puts the perl
       modules <filename>TLConfig.pm</filename> and <filename>TLUtils.pm</filename>
       into the directory where the binary installer puts them - it is at the
