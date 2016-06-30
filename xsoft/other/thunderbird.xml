@@ -77,7 +77,7 @@
       <listitem>
         <para>
           Required patch, if building with gcc-6:
-          <ulink url="&patch-root;/thunderbird-&thunderbird-version;-gcc6-1.patch"/>
+          <ulink url="&patch-root;/thunderbird-&thunderbird-version;-gcc6-2.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -97,9 +97,11 @@
     <para role="recommended">
       <xref linkend="libevent"/>,
       <xref linkend="libvpx"/>,
-      <xref linkend="nspr"/>,
-      <xref linkend="nss"/>, and
+      <xref linkend="nspr"/>, and
+      <xref linkend="nss"/><!-- , and
       <xref linkend="sqlite"/>
+      Do not use system SQLite until TB-48/52 because it uses insecure 
+      routines (FTS3) that are not built in BLFS -->
     </para>
 
     <note>
@@ -141,6 +143,7 @@
       <xref linkend="gst10-libav"/> at runtime),
       <xref linkend="openjdk"/>,
       <xref linkend="pulseaudio"/>,
+      <xref linkend="sqlite"/> (not recommended),
       <xref linkend="startup-notification"/>,
       <xref linkend="wget"/>,
       <xref linkend="wireless_tools"/>, and
@@ -203,7 +206,8 @@ ac_add_options --disable-gconf
 
 # Comment out following options if you have not installed
 # recommended dependencies:
-ac_add_options --enable-system-sqlite
+# Do not use system SQLite for Thunderbird 45.x
+#ac_add_options --enable-system-sqlite
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
@@ -247,7 +251,7 @@ EOF</userinput></screen>
 test $(uname -m) = "i686" && sed -i 's/enable-optimize/disable-optimize/' mozconfig || true &&-->
     <para>Fix some issues with GCC-6.1:</para>
 
-<screen><userinput>patch -Np1 -i ../thunderbird-&thunderbird-version;-gcc6-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../thunderbird-&thunderbird-version;-gcc6-2.patch</userinput></screen>
 
     <para>
       Compile <application>Thunderbird</application> by issuing the following
@@ -261,6 +265,7 @@ test $(uname -m) = "i686" && sed -i 's/enable-optimize/disable-optimize/' mozcon
 
 <screen><userinput>CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
 CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+export CFLAGS CXXFLAGS
 make -f client.mk</userinput></screen>
 
     <para>
