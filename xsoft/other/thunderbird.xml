@@ -7,10 +7,10 @@
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
 <!--  <!ENTITY thunderbird-download-ftp "&mozilla-ftp;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">-->
   <!ENTITY thunderbird-download-ftp " ">
-  <!ENTITY thunderbird-md5sum            "19e1a8eb1aa99927c35ea2fcfbd7f255">
+  <!ENTITY thunderbird-md5sum            "e46b0d17809d52e6be479a1b77b6445c">
   <!ENTITY thunderbird-size              "192 MB">
-  <!ENTITY thunderbird-buildsize         "3.8 GB (73 MB installed)">
-  <!ENTITY thunderbird-time              "9.3 SBU (with -j4, estimated 30 SBU with -j1)">
+  <!ENTITY thunderbird-buildsize         "4.8 GB (80 MB installed)">
+  <!ENTITY thunderbird-time              "18 SBU (with -j4, estimated 63 SBU with -j1)">
 ]>
 
 <sect1 id="thunderbird" xreflabel="Thunderbird-&thunderbird-version;">
@@ -68,16 +68,6 @@
       <listitem>
         <para>
           Estimated build time: &thunderbird-time;
-        </para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch, if building with gcc-6:
-          <ulink url="&patch-root;/thunderbird-&thunderbird-version;-gcc6-2.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -249,9 +239,6 @@ EOF</userinput></screen>
 
 <!-- might be necessary
 test $(uname -m) = "i686" && sed -i 's/enable-optimize/disable-optimize/' mozconfig || true &&-->
-    <para>Fix some issues with GCC-6.1:</para>
-
-<screen><userinput>patch -Np1 -i ../thunderbird-&thunderbird-version;-gcc6-2.patch</userinput></screen>
 
     <para>
       Compile <application>Thunderbird</application> by issuing the following
@@ -263,9 +250,19 @@ test $(uname -m) = "i686" && sed -i 's/enable-optimize/disable-optimize/' mozcon
       prepend <envar>SHELL=/bin/sh</envar> to the <!--first -->make command below.
     </para></note>
 
-<screen><userinput>CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
-CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
-export CFLAGS CXXFLAGS
+<screen><userinput>sed -e '/#include/i\
+    print OUT "#define _GLIBCXX_INCLUDE_NEXT_C_HEADERS\\n"\;' \
+    -i mozilla/nsprpub/config/make-system-wrappers.pl
+
+sed -e '/#include/a\
+    print OUT "#undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS\\n"\;' \
+    -i mozilla/nsprpub/config/make-system-wrappers.pl
+
+export CFLAGS_HOLD=$CFLAGS
+export CXXFLAGS_HOLD=$CXXFLAGS
+export CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+export CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+
 make -f client.mk</userinput></screen>
 
     <para>
@@ -278,7 +275,10 @@ make -f client.mk</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make -f client.mk install INSTALL_SDK= &amp;&amp;
-chown -R 0:0 /usr/lib/thunderbird-&thunderbird-version;</userinput></screen>
+chown -R 0:0 /usr/lib/thunderbird-&thunderbird-version;
+export CFLAGS=$CFLAGS_HOLD
+export CXXFLAGS=$CFLAGS_HOLD
+unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
 
 <!-- thunderbuild directory does not exist anymore. Leaving as comment,
 in case an editor figures out how to install the development environment.
@@ -305,9 +305,14 @@ in case an editor figures out how to install the development environment.
     </para>-->
 
     <para>
-      <command>CFLAGS= ... CXXFLAGS= ...</command>: These settings work around
-      code which gcc6 would otherwise regard as out-of-specification and allow
-      it to produce a working program.
+      <command>sed ...</command>: These commands correct the source to be
+      compatible with gcc6 by preventing c++ scope errors.
+    </para>
+
+    <para>
+      <command>export CFLAGS= ... export CXXFLAGS= ...</command>: These
+      settings work around code which gcc6 would otherwise regard as
+      out-of-specification and allow it to produce a working program.
     </para>
 
     <para>
