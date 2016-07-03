@@ -74,6 +74,12 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
+          Required patch if using gcc-6 or later
+          <ulink url="&patch-root;/firefox-&firefox-version;-gcc6-1.patch"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           Required patch if using gtk+-3.20 or later (do not use with earlier versions)
           <ulink url="&patch-root;/firefox-&firefox-version;-gtk320-1.patch"/>
         </para>
@@ -276,6 +282,12 @@ EOF</userinput></screen>
     </para>
 
     <para>
+      Fix an issue with GCC-6.0 and higher:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-gcc6-1.patch</userinput></screen>
+
+    <para>
       If you are using gtk+-3.20 or later, apply a patch to restore the
       slider on scrollbars:
     </para>
@@ -297,16 +309,10 @@ EOF</userinput></screen>
       <envar>SHELL=/bin/sh</envar>.
     </para></note>
 
-<screen><userinput>sed -e '/#include/i\
-    print OUT "#define _GLIBCXX_INCLUDE_NEXT_C_HEADERS\\n"\;' \
-    -i nsprpub/config/make-system-wrappers.pl
-
-sed -e '/#include/a\
-    print OUT "#undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS\\n"\;' \
-    -i nsprpub/config/make-system-wrappers.pl
-
-CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
-CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+<screen><userinput>export CFLAGS_HOLD=$CFLAGS &amp;&amp;
+export CXXFLAGS_HOLD=$CXXFLAGS &amp;&amp;
+export CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
+export CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
 
 make -f client.mk</userinput></screen>
 
@@ -322,7 +328,11 @@ make -f client.mk</userinput></screen>
 chown -R 0:0 /usr/lib/firefox-&firefox-version;   &amp;&amp;
 
 mkdir -pv    /usr/lib/mozilla/plugins  &amp;&amp;
-ln    -sfv   ../../mozilla/plugins /usr/lib/firefox-&firefox-version;/browser</userinput></screen>
+ln    -sfv   ../../mozilla/plugins /usr/lib/firefox-&firefox-version;/browser &amp;&amp;
+
+export CFLAGS=$CFLAGS_HOLD &amp;&amp;
+export CXXFLAGS=$CXXFLAGS_HOLD &amp;&amp;
+unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
 
   </sect2>
 
