@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY colord1-download-http "http://www.freedesktop.org/software/colord/releases/colord-&colord1-version;.tar.xz">
+  <!ENTITY colord1-download-ftp  " ">
+  <!ENTITY colord1-md5sum        "ceea6df374a2c36a8a4bafe50b11cdd1">
+  <!ENTITY colord1-size          "1.2 MB">
+  <!ENTITY colord1-buildsize     "32 MB (with tests)">
+  <!ENTITY colord1-time          "0.5 SBU (with tests)">
+]>
+
+<!-- Try to keep the indentation used in this file-->
+<sect1 id="colord1" xreflabel="colord-&colord1-version;" revision="systemd">
+  <?dbhtml filename="colord1.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Colord-&colord1-version;</title>
+
+  <indexterm zone="colord1">
+    <primary sortas="a-colord1">Colord</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Colord</title>
+
+    <para>
+      <application>Colord</application> is a system service that makes it easy
+      to manage, install, and generate color profiles. It is used mainly by
+      <application>GNOME Color Manager</application> for system integration
+      and use when no users are logged in.
+    </para>
+
+    &lfs79_checked;&gcc6_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&colord1-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&colord1-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &colord1-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &colord1-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &colord1-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &colord1-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Colord Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="dbus"/>,
+      <xref linkend="glib2"/>,
+      <xref linkend="lcms2"/>, and
+      <xref linkend="sqlite"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="gobject-introspection"/>,
+      <xref linkend="libgudev"/>,
+      <xref linkend="libgusb"/>,
+      <xref linkend="polkit"/>,
+      <xref linkend="systemd"/>, and
+      <xref linkend="vala"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="docbook-utils"/>,
+      <xref linkend="gnome-desktop"/> and
+      <xref linkend="colord-gtk"/> (to build the example tools),
+      <xref linkend="gtk-doc"/>,
+      <xref linkend="libxslt"/>,
+      <xref linkend="sane"/>,
+      <ulink url="http://www.argyllcms.com/">ArgLLCMS</ulink>, and
+      <ulink url="http://www.bash-completion.alioth-debian.org/">Bash Completion</ulink>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/colord1"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Colord</title>
+    
+    <warning>
+      <para>
+        This package will overwrite any previous version of Colord that you
+        may have on your system. This package is a development version
+        and is only intended to be used by gnome-color-manager at this time.
+      </para>
+    </warning>
+
+    <para>
+      There should be a dedicated user and group to take control of the colord
+      daemon after it has started. Issue the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>groupadd -g 71 colord &amp;&amp;
+useradd -c "Color Daemon Owner" -d /var/lib/colord -u 71 \
+        -g colord -s /bin/false colord</userinput></screen>
+
+    <para>
+      Install <application>Colord</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr              \
+            --sysconfdir=/etc          \
+            --localstatedir=/var       \
+            --with-daemon-user=colord  \
+            --enable-vala              \
+            --enable-daemon            \
+            --enable-session-helper    \
+            --enable-libcolordcompat   \
+            --disable-rpath            \
+            --disable-argyllcms-sensor \
+            --disable-bash-completion  \
+            --disable-static &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make -k check</command>.
+      At least one test, 
+      <filename>./lib/colord/.libs/lt-cd-test-daemon</filename>, may fail.
+      The test suite must be run after the package is installed, and the
+      system-wide D-Bus Daemon must be running.
+    </para>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>--with-daemon-user=colord</parameter>: This switch is used
+      so the colord daemon will run as an unprivileged user instead of the
+      <systemitem class="username">root</systemitem> user.
+    </para>
+
+    <para>
+      <parameter>--enable-vala</parameter>: This switch enables building the
+      <application>Vala</application> bindings. Remove if you don't have
+      <xref linkend="vala"/> installed.
+    </para>
+
+    <para>
+      <parameter>--enable-daemon</parameter>: This switch enables building
+      the <application>Colord</application> daemon.
+    </para>
+
+    <para>
+      <parameter>--enable-session-helper</parameter>: This switch enables
+      building the session helper for <application>Colord</application>.
+    </para>
+
+    <para>
+      <parameter>--enable-libcolordcompat</parameter>: This switch enables
+      building a compatibility library for older packages that use
+      <application>Colord</application>.
+    </para>
+
+    <para>
+      <parameter>--disable-rpath</parameter>: This switch prevents the build
+      process from hard-coding library paths into its executables.
+    </para>
+
+    <para>
+      <parameter>--disable-argyllcms-sensor</parameter>: This switch disables
+      the ArgLLCMS sensor driver. Omit if you have
+      <ulink url="http://www.argyllcms.com/">ArgLLCMS</ulink> installed
+      and wish to use it.
+    </para>
+
+    <para>
+      <parameter>--disable-bash-completion</parameter>: This switch disables
+      Bash Completion support for Colord applications.
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../../xincludes/gtk-doc-rebuild.xml"/>
+
+    <para>
+      <option>--disable-gusb</option>: Use this switch if you don't have
+      <application>libgusb</application> installed.
+    </para>
+
+    <para>
+      <option>--disable-udev</option>: Use this switch if you don't have
+      <application>libgudev</application> installed.
+    </para>
+
+    <para>
+      <option>--disable-polkit</option>: Use this switch if you don't have
+      <application>polkit</application> installed.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          cd-create-profile,
+          cd-fix-profile,
+          cd-iccdump,
+          cd-it8, and
+          colormgr
+        </seg>
+        <seg>
+          libcolord.so,
+          libcolordcompat.so,
+          libcolordprivate.so, and
+          libcolorhug.so
+        </seg>
+        <seg>
+          /usr/include/colord-1,
+          /usr/lib/colord-{plugins,sensors},
+          /usr/share/color{d},
+          /usr/share/gtk-doc/html/colord, and
+          /var/lib/colord
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <!-- If the program or library name conflicts (is the same) as the
+      package name, add -prog or -lib to the varlistentry entity id
+      and the 2nd entry of the indexterm zone entity -->
+
+      <varlistentry id="cd-create-profile1">
+        <term><command>cd-create-profile</command></term>
+        <listitem>
+          <para>
+            is the Color Manager Profile Creation Tool.
+          </para>
+          <indexterm zone="colord1 cd-create-profile">
+            <primary sortas="b-cd-create-profile1">cd-create-profile</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="cd-fix-profile1">
+        <term><command>cd-fix-profile</command></term>
+        <listitem>
+          <para>
+            is a tool used to fix metadata in ICC profiles.
+          </para>
+          <indexterm zone="colord1 cd-fix-profile">
+            <primary sortas="b-cd-fix-profile1">cd-fix-profile</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="cd-iccdump1">
+        <term><command>cd-iccdump</command></term>
+        <listitem>
+          <para>
+            dumps the contents of an ICC profile as human readable text.
+          </para>
+          <indexterm zone="colord1 cd-iccdump">
+            <primary sortas="b-cd-iccdump1">cd-iccdump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="cd-it81">
+        <term><command>cd-it8</command></term>
+        <listitem>
+          <para>
+            is the Color Manager Testing Tool.
+          </para>
+          <indexterm zone="colord1 cd-it8">
+            <primary sortas="b-cd-it81">cd-it8</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="colormgr1">
+        <term><command>colormgr</command></term>
+        <listitem>
+          <para>
+            is a text-mode program that allows you to interact with colord on
+            the command line.
+          </para>
+          <indexterm zone="colord1 colormgr">
+            <primary sortas="b-colormgr1">colormgr</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libcolord.so">
+        <term><filename class="libraryfile">libcolord.so</filename></term>
+        <listitem>
+          <para>
+            contains the <application>Colord</application> API functions.
+          </para>
+          <indexterm zone="colord1 libcolord.so">
+            <primary sortas="c-libcolord.so1">libcolord.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libcolordcompat.so">
+        <term><filename class="libraryfile">libcolordcompat.so</filename></term>
+        <listitem>
+          <para>
+            contains legacy API functions for compatiblity with older
+            applications.
+          </para>
+          <indexterm zone="colord1 libcolordcompat.so">
+            <primary sortas="c-libcolordcompat.so1">libcolordcompat.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libcolordprivate.so">
+        <term><filename class="libraryfile">libcolordprivate.so</filename></term>
+        <listitem>
+          <para>
+            contains internal API functions for the programs included with
+            <application>Colord</application>.
+          </para>
+          <indexterm zone="colord1 libcolordprivate.so">
+            <primary sortas="c-libcolordprivate.so1">libcolordprivate.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libcolorhug.so">
+        <term><filename class="libraryfile">libcolorhug.so</filename></term>
+        <listitem>
+          <para>
+            contains a simple display hardware colorimiter.
+          </para>
+          <indexterm zone="colord libcolorhug.so">
+            <primary sortas="c-libcolorhug.so1">libcolorhug.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
