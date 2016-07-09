@@ -81,6 +81,16 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch if using gcc-6 or later
+          <ulink url="&patch-root;/seamonkey-&seamonkey-version;-gcc6-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <note>
       <para>
         The tarball
@@ -105,9 +115,15 @@
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
       <xref linkend="libvpx"/>,
-      <xref linkend="nspr"/>,
-      <xref linkend="nss"/>, and
-      <xref linkend="sqlite"/>
+      <xref linkend="nspr"/>, and
+      <xref linkend="nss"/><!--, and
+      <xref linkend="sqlite"/>-->
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="sqlite"/> (not recommended due to potential
+      security concerns)
     </para>
 
     <note>
@@ -202,7 +218,8 @@ ac_add_options --disable-gconf
 
 # Comment out following options if you have not installed
 # recommended dependencies:
-ac_add_options --enable-system-sqlite
+# Do not use system SQLite for SeaMonkey based on XUL-47
+#ac_add_options --enable-system-sqlite
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
@@ -257,7 +274,7 @@ EOF</userinput></screen>
 
     <para>
       Compile <application>SeaMonkey</application> by running the following
-      command:
+      commands:
     </para>
 <!--  Should not be needed if Xorg setup instructions were followed
     <note><para>If you did not install Xorg in /usr, be sure to specify the
@@ -267,7 +284,18 @@ EOF</userinput></screen>
 export C_INCLUDE_PATH=$XORG_PREFIX/include</userinput></screen>
     </note>
 -->
-<screen><userinput>make -f client.mk</userinput></screen>
+    <para>
+      Fix an issue with GCC-6.0 and higher:
+    </para>
+
+<screen><userinput>patch -d mozilla/ -Np1 -i ../../seamonkey-&seamonkey-version;-gcc6-1.patch</userinput></screen>
+
+<screen><userinput>export CFLAGS_HOLD=$CFLAGS &amp;&amp;
+export CXXFLAGS_HOLD=$CXXFLAGS &amp;&amp;
+export CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
+export CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
+
+make -f client.mk</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -278,9 +306,15 @@ export C_INCLUDE_PATH=$XORG_PREFIX/include</userinput></screen>
       commands as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make  -f client.mk install INSTALL_SDK= &amp;&amp;
-chown -R 0:0 /usr/lib/seamonkey-&seamonkey-version;    &amp;&amp;
-cp    -v moz-build-dir/dist/man/man1/seamonkey.1 /usr/share/man/man1</userinput></screen>
+<screen role="root"><userinput>
+make  -f client.mk install INSTALL_SDK=                              &amp;&amp;
+chown -R 0:0 /usr/lib/seamonkey-&seamonkey-version;                  &amp;&amp;
+cp    -v moz-build-dir/dist/man/man1/seamonkey.1 /usr/share/man/man1 &amp;&amp;
+
+export CFLAGS=$CFLAGS_HOLD &amp;&amp;
+export CXXFLAGS=$CXXFLAGS_HOLD &amp;&amp;
+unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
+
 
     <bridgehead renderas="sect3" id="devel-seamonkey" xreflabel="SeaMonkey">
       All the Development Libraries and Headers
@@ -301,6 +335,12 @@ cp    -v moz-build-dir/dist/man/man1/seamonkey.1 /usr/share/man/man1</userinput>
     <para>
       <command>mkdir -vp mozilla/moz-build-dir</command>: fixes a build failure
       of Makefile at the beginning of the build, where a file cannot be found.
+    </para>
+
+    <para>
+      <command>export CFLAGS= ... export CXXFLAGS= ...</command>: These
+      settings work around code which gcc6 would otherwise regard as
+      out-of-specification and allow it to produce a working program.
     </para>
 
     <para>
