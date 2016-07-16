@@ -6,10 +6,10 @@
 
   <!ENTITY mesa-download-http " ">
   <!ENTITY mesa-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/&mesa-version;/mesa-&mesa-version;.tar.xz">
-  <!ENTITY mesa-md5sum        "e0ec73f7273662a74366f0d76dd19ac3">
-  <!ENTITY mesa-size          "7.5 MB">
-  <!ENTITY mesa-buildsize     "267 MB (with tests and docs)">
-  <!ENTITY mesa-time          "3.5 SBU (with tests and docs - all with parallelism = 4)">
+  <!ENTITY mesa-md5sum        "27c57dbcd569bf8d45866112c2b0679b">
+  <!ENTITY mesa-size          "8.2 MB">
+  <!ENTITY mesa-buildsize     "388 MB (with tests and docs)">
+  <!ENTITY mesa-time          "3.5 SBU (with tests and docs - all with parallelism = 4),">
 ]>
 
 <sect1 id="mesa" xreflabel="Mesa-&mesa-version;">
@@ -88,13 +88,18 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="xorg7-lib"/> and
-      <xref linkend="libdrm"/>
+      <xref linkend="xorg7-lib"/>,
+      <xref linkend="libdrm"/>, and
+      <xref linkend="python2"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="elfutils"/> (required for Gallium3D radeonsi driver),
+      <phrase revision="systemd"><xref linkend="libva"/> (to build drivers for 
+      supported hardware, note that there is a circular dependency. You must
+      build <application>libva</application> first without EGL and GLX support,
+      install this package, and rebuild <application>libva</application>.),</phrase>
       <xref linkend="libvdpau"/> (to build VDPAU drivers),
       <xref linkend="llvm"/> (required for Gallium3D r300, r600 and radeonsi
       drivers and also for llvmpipe which is intended to be the fastest of the
@@ -106,7 +111,8 @@
     <para role="optional">
       <xref linkend="libgcrypt"/>,
       <xref linkend="nettle"/>,
-     (<xref linkend="wayland"/> required for <xref linkend='plasma5-build'/>),
+     (<xref linkend="wayland"/> required for <xref linkend='plasma5-build'/>
+      <phrase revision="systemd"> and for <application>GNOME</application></phrase>),
       <ulink url="ftp://ftp.freedesktop.org/pub/mesa/demos/">mesa-demos</ulink>
       (provides more than 300 extra demos to test
       <application>Mesa</application>; this includes the same programs
@@ -118,12 +124,12 @@
     <note>
       <para>
         The instructions below assume that <application>elfutils</application>
-        and <application>LLVM</application> with the r600/amdgpu backend are
-        installed. You will need to modify the instructions if you choose not
-        to install them. Please note that <application>elfutils</application>
-        and <application>LLVM</application> are <emphasis>required</emphasis>
-        for Gallium3D r300, r600 and radeonsi drivers. For an explanation of
-        Gallium3D please see
+        and <application>LLVM</application> with the r600/amdgpu and host 
+        backends are installed. You will need to modify the instructions if you
+        choose not to install them. Please note that 
+        <application>elfutils</application> and <application>LLVM</application>
+        are <emphasis>required</emphasis> for the Gallium3D r300, r600,
+        radeonsi, and SWR drivers. For an explanation of Gallium3D please see
         <ulink url="https://en.wikipedia.org/wiki/Gallium3D"/>.
       </para>
     </note>
@@ -151,11 +157,13 @@
 
     <note>
       <para>Add wayland to the <option>--with-egl-platforms</option> option
-      below if you plan on building <xref linkend='plasma5-build'/>.</para>
+      below if you plan on building <xref linkend='plasma5-build'/>
+      <phrase revision="systemd">or GNOME</phrase>.</para>
     </note>
 
-<screen><userinput>GLL_DRV="nouveau,r300,r600,radeonsi,svga,swrast" &amp;&amp;
+<screen><userinput>GLL_DRV="nouveau,r300,r600,radeonsi,svga,swrast,swr" &amp;&amp;
 
+sed -i "/pthread-stubs/d" configure.ac      &amp;&amp;
 ./autogen.sh CFLAGS='-O2' CXXFLAGS='-O2'    \
             --prefix=$XORG_PREFIX           \
             --sysconfdir=/etc               \
@@ -213,6 +221,12 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
+      <command>sed -i ...</command>: This sed removes a dependency on the
+      <application>libpthread-stubs</application> package which is useless
+      on Linux.
+    </para>
+
+    <para>
       <parameter>CFLAGS="-O2" CXXFLAGS="-O2"</parameter>: By default,
       <application>Autoconf</application> sets CFLAGS and CXXFLAGS to
       "-g -O2". That results in binaries and libraries being built with
@@ -229,16 +243,16 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
 
     <para>
       <parameter>--enable-gles1</parameter>: This switch enables support for
-      OpenGL ES 1.x API.
+      the OpenGL ES 1.x API.
     </para>
 
     <para>
       <parameter>--enable-gles2</parameter>: This switch enables support for
-      OpenGL ES 2.x API.
+      the OpenGL ES 2.x API.
     </para>
 
     <para>
-      <parameter>--enable-osmesa</parameter>: This switch enables building of
+      <parameter>--enable-osmesa</parameter>: This switch enables building
       the <filename class="libraryfile">libOSMesa</filename> library.
     </para>
 
@@ -266,10 +280,10 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     <para>
       <parameter>--with-gallium-drivers="..."</parameter>: This parameter
       controls which Gallium3D drivers should be built. Available drivers
-      are: i915, ilo, nouveau, r300, r600, radeonsi, svga and swrast. You
-      will need to remove r300, r600 and radeonsi from the list if you did
+      are: i915, ilo, nouveau, r300, r600, radeonsi, svga, swrast, and swr. You
+      will need to remove r300, r600, radeonsi, and swr from the list if you did
       not install <application>elfutils</application> and
-      <application>LLVM</application> with the r600/amdgpu backend.
+      <application>LLVM</application> with the r600/amdgpu and host backends.
     </para>
 
     <para>
@@ -278,7 +292,7 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
       for graphics shaders which claims to speed up the driver.
     </para>
 
-    <para>
+    <para revision="sysv">
       <option>--enable-sysfs</option>: Use this switch to enable simple PCI
       identification method, required for building DRI on systems without udev.
     </para>
@@ -305,6 +319,8 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           libGLESv2.so,
           libGL.so,
           libOSMesa.so,
+          libswrAVX.so,
+          libswrAVX2.so,
           libxatracker.so,
           libXvMCnouveau.so,
           and libXvMCr600.so
