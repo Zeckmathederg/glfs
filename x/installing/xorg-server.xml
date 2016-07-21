@@ -100,9 +100,15 @@
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended">
+    <para role="recommended" revision="sysv">
       <xref linkend="libepoxy"/> (required for glamor, see command
       explanations below) and
+      <xref linkend="xcb-util-keysyms"/> (used by Xnest)
+    </para>
+    <para role="recommended" revision="systemd">
+      <xref linkend="libepoxy"/> (needed for glamor and Xwayland),
+      <xref linkend="wayland"/> (needed for Xwayland),
+      <xref linkend="systemd"/>, and
       <xref linkend="xcb-util-keysyms"/> (used by Xnest)
     </para>
 
@@ -115,8 +121,10 @@
       <xref linkend="xcb-util-keysyms"/> (used by Xnest),
       <xref linkend="xcb-util-image"/>,
       <xref linkend="xcb-util-renderutil"/>,
-      <xref linkend="xcb-util-wm"/> (all three to build Xephyr) and
+      <xref linkend="xcb-util-wm"/> (all three to build Xephyr)
+      <phrase revision="sysv">and</phrase>
       <xref linkend="xmlto"/> (to build documentation)
+      <phrase revision="systemd">and <ulink url="http://download.savannah.gnu.org/releases/libunwind">libunwind</ulink></phrase>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -145,12 +153,18 @@
       Install the server by running the following commands:
     </para>
 
-<screen><userinput>./configure $XORG_CONFIG            \
+<screen revision="sysv"><userinput>./configure $XORG_CONFIG            \
            --enable-glamor          \
            --enable-install-setuid  \
            --enable-suid-wrapper    \
            --disable-systemd-logind \
            --with-xkb-output=/var/lib/xkb &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>./configure $XORG_CONFIG          \
+            --enable-glamor       \
+            --enable-suid-wrapper \
+            --with-xkb-output=/var/lib/xkb &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -162,12 +176,15 @@ make</userinput></screen>
       user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root" revision="sysv"><userinput>make install &amp;&amp;
 mkdir -pv /etc/X11/xorg.conf.d &amp;&amp;
 cat &gt;&gt; /etc/sysconfig/createfiles &lt;&lt; "EOF"
 <literal>/tmp/.ICE-unix dir 1777 root root
 /tmp/.X11-unix dir 1777 root root</literal>
 EOF</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>make install &amp;&amp;
+mkdir -pv /etc/X11/xorg.conf.d</userinput></screen>
 
   </sect2>
 
@@ -183,7 +200,7 @@ EOF</userinput></screen>
       offers acceleration.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>--enable-install-setuid</parameter>: The Xorg binary must run
       as the root user. This switch ensures that the binary is installed
       setuid when <command>make</command> is run by an unprivileged user.
@@ -194,14 +211,21 @@ EOF</userinput></screen>
       legacy driver support on rootless xserver systems.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>--disable-systemd-logind</parameter>: Do not build
       systemd-logind support, otherwise, an error (EE), logged in
       <filename>/var/log/Xorg.0.log</filename>, occurs when starting the X
       server.  Systemd is not supported by BLFS.
     </para>
 
-    <para>
+    <para revision="systemd">
+      <parameter>--disable-systemd-logind --enable-install-setuid</parameter>:
+      These switches disable systemd-logind integration and restore the setuid
+      bit to the Xorg executable, allowing Xorg Server to work
+      without having the systemd PAM module installed and set up.
+    </para>
+
+    <para revision="sysv">
       <command>cat &gt;&gt; /etc/sysconfig/createfiles...</command>: This
       command creates the <filename class="directory">/tmp/.ICE-unix</filename>
       and <filename class="directory">/tmp/.X11-unix</filename> directories at
