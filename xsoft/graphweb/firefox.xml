@@ -6,10 +6,10 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp " ">
-  <!ENTITY firefox-md5sum        "aba4b673b10e3fdcee80f88300829613">
+  <!ENTITY firefox-md5sum        "df52f6cfdf98e10b3f036479f38406c4">
   <!ENTITY firefox-size          "180 MB">
-  <!ENTITY firefox-buildsize     "5.7 GB (85 MB installed)">
-  <!ENTITY firefox-time          "18 SBU (with parallelism=4 on a recent intel i7, much longer on lesser CPUs)">
+  <!ENTITY firefox-buildsize     "5.3 GB (84 MB installed)">
+  <!ENTITY firefox-time          "12 SBU (with parallelism=4 on a recent intel i7, much longer on lesser CPUs)">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -74,12 +74,6 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch if using gcc-6 or later
-          <ulink url="&patch-root;/firefox-&firefox-version;-gcc6-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
           Required patch if using gtk+-3.20 or later (do not use with earlier versions)
           <ulink url="&patch-root;/firefox-&firefox-version;-gtk320-1.patch"/>
         </para>
@@ -88,7 +82,7 @@
         <para>
           Optional patch to allow system versions of <xref linkend="graphite2"/>
           and <xref linkend="harfbuzz"/> - this should be regarded as experimental
-          <ulink url="&patch-root;/firefox-&firefox-version;-system_graphite2_harfbuzz-1.patch"/>
+          <ulink url="&patch-root;/firefox-&firefox-version;-system_graphite2_harfbuzz-2.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -97,6 +91,21 @@
       <para>
         The tarball <emphasis>firefox-&firefox-version;.source.tar.xz</emphasis>
         will untar to <emphasis>firefox-&firefox-version;</emphasis> directory.
+        However, if you do this in a directory where the sticky bit is set, such
+        as <filename class="directory">/tmp</filename> it will end with error
+        messages:
+      </para>
+
+<literallayout>tar: .: Cannot utime: Operation not permitted
+tar: .: Cannot change mode to rwxr-xr-t: Operation not permitted
+tar: Exiting with failure status due to previous errors
+</literallayout>
+
+      <para>
+        This does finish with non-zero status, but it does
+        <emphasis>NOT</emphasis> mean there is a real problem.
+        Do not untar as the <systemitem class="username">root</systemitem> user
+        in a directory where the sticky bit is set - that will unset it.
       </para>
     </note>
 
@@ -152,10 +161,8 @@
       <xref linkend="dbus-glib"/>,
       <xref linkend="doxygen"/>,
       <xref linkend="GConf"/>,
-      <xref linkend="ffmpeg"/> (runtime) or
-      <xref linkend="gst10-plugins-base"/> (with
-      <xref linkend="gst10-plugins-good"/> and
-      <xref linkend="gst10-libav"/> at runtime),
+      <xref linkend="evince"/> (for a plugin to display tiff, {e,}ps, Comic Book),
+      <xref linkend="ffmpeg"/> (runtime),
       <xref linkend="libwebp"/>,
       <xref linkend="openjdk"/>,
       <xref linkend="pulseaudio"/>,
@@ -204,14 +211,6 @@ ac_add_options --disable-dbus
 # wireless-tools, and you wish to use geolocation web services, comment out
 # this line
 ac_add_options --disable-necko-wifi
-
-# GStreamer is necessary for H.264 video playback in HTML5 Video Player if
-# FFmpeg is not found at runtime;
-# to be enabled, also remember to set "media.gstreamer.enabled" to "true"
-# in about:config. If you have GStreamer 1.x.y, comment out this line and
-# uncomment the following one:
-ac_add_options --disable-gstreamer
-#ac_add_options --enable-gstreamer=1.0
 
 # Uncomment this option if you wish to build with gtk+-2
 #ac_add_options --enable-default-toolkit=cairo-gtk2
@@ -280,12 +279,6 @@ EOF</userinput></screen>
       Compile <application>Firefox</application> by issuing the following
       commands:
     </para>
-
-    <para>
-      Fix an issue with GCC-6.0 and higher:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-gcc6-1.patch</userinput></screen>
 
     <para>
       If you are using gtk+-3.20 or later, apply a patch to restore the
@@ -374,14 +367,6 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
     <title>Configuring Firefox</title>
 
     <para>
-      If you did not add the <option>--disable-webm</option> option to your
-      <filename>mozconfig</filename>, your <application>Firefox</application>
-      can play most YouTube videos without the need for the Flash plugin.
-      Go to <ulink url="http://www.youtube.com/html5"/> to see which HTML5
-      video features your browser supports on YouTube.
-    </para>
-
-    <para>
       If you use a desktop environment like <application>Gnome</application> or
       <application>KDE</application> you may like to create a
       <filename>firefox.desktop</filename> file so that
@@ -445,7 +430,7 @@ ln -sfv /usr/lib/firefox-&firefox-version;/browser/icons/mozicon128.png \
         <term><command>firefox</command></term>
         <listitem>
           <para>
-            is a <application>GTK+ 2</application> internet browser that uses the
+            is a <application>GTK+ 3</application> internet browser that uses the
             Mozilla Gecko rendering engine.
           </para>
           <indexterm zone="firefox firefox-prog">
