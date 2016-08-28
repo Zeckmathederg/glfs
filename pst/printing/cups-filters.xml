@@ -7,9 +7,9 @@
   <!ENTITY cups-filters-download-http
   "https://www.openprinting.org/download/cups-filters/cups-filters-&cups-filters-version;.tar.xz">
   <!ENTITY cups-filters-download-ftp  " ">
-  <!ENTITY cups-filters-md5sum        "d84c6cb3df637a9655e46dfae41dce50">
+  <!ENTITY cups-filters-md5sum        "1c2397093639aa728e4ba866bbdc440c">
   <!ENTITY cups-filters-size          "1.3 MB">
-  <!ENTITY cups-filters-buildsize     "40 MB (with tests)">
+  <!ENTITY cups-filters-buildsize     "42 MB (with tests)">
   <!ENTITY cups-filters-time          "0.5 SBU (with tests)">
 ]>
 
@@ -37,7 +37,7 @@
       maintained by Apple Inc.
     </para>
 
-    &lfs79_checked;&gcc6_checked;
+    &lfs7a_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -126,6 +126,13 @@
   <sect2 role="installation">
     <title>Installation of CUPS Filters</title>
 
+    <para revision="systemd">
+      First, fix the systemd unit file to work with
+      <application>CUPS</application> 2.0 and later:
+    </para>
+
+<screen revision="systemd"><userinput>sed -i "s:cups.service:org.cups.cupsd.service:g" utils/cups-browsed.service</userinput></screen>
+
     <para>
       Install <application>CUPS Filters</application> by running the following
       commands:
@@ -143,6 +150,10 @@
         --docdir=/usr/share/doc/cups-filters-&cups-filters-version; &amp;&amp;
 make</userinput></screen>
 
+<!-- The test suite still bombs out for me. I'll leave the instructions for it
+     here though. I didn't have the Dejavu font installed, but used one of the
+     ones installed by X. -->
+
     <para>
       To test the results, issue: <command>make check 2&gt;&amp;1 &gt;testlog</command>.
     </para>
@@ -152,6 +163,13 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>make install</userinput></screen>
+
+    <para revision="systemd">
+      Install the systemd unit by running the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root" revision="systemd"><userinput>install -v -m644 utils/cups-browsed.service /lib/systemd/system/cups-browsed.service</userinput></screen>
 
   </sect2>
 
@@ -187,14 +205,14 @@ make</userinput></screen>
       href="../../xincludes/static-libraries.xml"/>
 
     <para>
-      <command>make check 2&gt;&amp;1 &gt;testlog</command>: the testsuite
+      <command>make check 2&gt;&amp;1 &gt;testlog</command>: The testsuite
       dumps a stream of bytes into the input buffer after it finishes. Sending
       the output to a file keeps the history usable, but some debug information
       will still appear on the screen.
     </para>
 
     <para>
-      <option>--with-test-path=<replaceable>VALUE</replaceable></option> : if you wish to run the tests, but
+      <option>--with-test-path=<replaceable>VALUE</replaceable></option>: If you wish to run the tests, but
       you do not have the default
       <filename>/usr/share/fonts/dejavu/DejaVuSans.ttf</filename> use this switch
       to specify where <filename>DejaVuSans.ttf</filename> (or perhaps some other
@@ -204,6 +222,28 @@ make</userinput></screen>
   </sect2>
 
 <!-- TODO: Write a bootscript for cups-browsed -->
+
+  <sect2 role="configuration" revision="systemd">
+    <title>Configuring CUPS Filters</title>
+
+    <sect3 id="cups-filters-init">
+      <title>Systemd Units</title>
+
+      <para>
+        To start the <command>cups-browsed</command> daemon at boot, enable
+        the previously installed systemd unit by running the following command
+        as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+      <indexterm zone="cups-filters cups-filters-init">
+        <primary sortas="f-cups-browsed">cups-browsed</primary>
+      </indexterm>
+
+<screen role="root"><userinput>systemctl enable cups-browsed</userinput></screen>
+
+    </sect3>
+   
+  </sect2>
 
   <sect2 role="content">
     <title>Contents</title>
