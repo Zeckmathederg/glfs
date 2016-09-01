@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY tripwire-download-http "&sourceforge-repo;/tripwire/tripwire-&tripwire-version;-src.tar.bz2">
+  <!ENTITY tripwire-download-http "https://github.com/Tripwire/tripwire-open-source/archive/&tripwire-version;.tar.gz">
   <!ENTITY tripwire-download-ftp  " ">
-  <!ENTITY tripwire-md5sum        "2462ea16fb0b5ae810471011ad2f2dd6">
-  <!ENTITY tripwire-size          "704 KB">
-  <!ENTITY tripwire-buildsize     "31 MB">
-  <!ENTITY tripwire-time          "1.3 SBU (includes interactive time during install)">
+  <!ENTITY tripwire-md5sum        "36c7f1beb5431db870506d5604c0d060">
+  <!ENTITY tripwire-size          "812 KB">
+  <!ENTITY tripwire-buildsize     "27 MB">
+  <!ENTITY tripwire-time          "1.6 SBU (includes interactive time during install)">
 ]>
 
 <sect1 id="tripwire" xreflabel="Tripwire-&tripwire-version;">
@@ -32,7 +32,7 @@
     <para>The <application>Tripwire</application> package contains programs
     used to verify the integrity of the files on a given system.</para>
 
-    &lfs79_checked;
+    &lfs7a_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -56,6 +56,20 @@
       </listitem>
     </itemizedlist>
 
+    <note>
+      <para>
+        The <application>tripwire</application> source tarball shown above
+        downloads with the correct name, tripwire-open-source-&tripwire-version;.tar.gz,
+        if using a browser such as Firefox. If you prefer to use a command line
+        program such as wget, you normally would obtain
+        &tripwire-version;.tar.gz. To obtain this package with the proper
+        filename, run:
+
+<screen><userinput>wget -c https://github.com/Tripwire/tripwire-open-source/archive/&tripwire-version;.tar.gz \
+     -O tripwire-open-source-&tripwire-version;.tar.gz</userinput></screen>.
+      </para>
+    </note>
+
     <bridgehead renderas="sect3">Tripwire Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -76,16 +90,12 @@
     <para>Compile <application>Tripwire</application> by running the following
     commands:</para>
 
-<screen><userinput>sed -i -e 's@TWDB="${prefix}@TWDB="/var@' install/install.cfg            &amp;&amp;
-sed -i -e 's/!Equal/!this->Equal/' src/cryptlib/algebra.h                &amp;&amp;
-sed -i -e '/stdtwadmin.h/i#include &lt;unistd.h&gt;' src/twadmin/twadmincl.cpp &amp;&amp;
-sed -i -e '/TWMAN/ s|${prefix}|/usr/share|' \
-       -e '/TWDOCS/s|${prefix}/doc/tripwire|/usr/share/doc/tripwire-&tripwire-version;|' \
-       install/install.cfg                                               &amp;&amp;
-sed -i -e 's/eArchiveOpen e\([^)]*)\)/throw ( eArchiveOpen\1 )/' \
-       -e '/throw e;/d' src/core/archive.cpp                             &amp;&amp;
+<screen><userinput>sed -e 's|TWDB="${prefix}|TWDB="/var|'   \
+    -e '/TWMAN/ s|${prefix}|/usr/share|' \
+    -e '/TWDOCS/s|${prefix}/doc/tripwire|/usr/share/doc/tripwire-&tripwire-version;| \
+    -i   install/install.cfg                         &amp;&amp;                     
 
-./configure --prefix=/usr --sysconfdir=/etc/tripwire                     &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc/tripwire &amp;&amp;
 make</userinput></screen>
 
     <note><para>The default configuration is to use a local MTA. If
@@ -105,22 +115,10 @@ cp -v policy/*.txt /usr/share/doc/tripwire-&tripwire-version;</userinput></scree
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed -i -e 's@TWDB="${prefix}@TWDB="/var@'
-    install/install.cfg</command>: This command tells the package to install
-    the program database and reports in
-    <filename class="directory">/var/lib/tripwire</filename>.</para>
-
-    <para><command>sed ... src/cryptlib/algebra.h</command>:
-    Fix a compilation issue with gcc-4.7.</para>
-
-    <para><command>sed ... src/twadmin/twadmincl.cpp</command>:
-    Fix a compilation issue with gcc-4.7.</para>
-
-    <para><command>sed ... install/install.cfg</command>:
-    Fix the location of the man and doc directories.</para>
-
-    <para><command>sed ... src/core/archive.cpp</command>:
-    Fix compilation with gcc-4.9.</para>
+    <para><command>sed ... install/install.cfg</command>: This command tells the 
+    package to install the program database and reports in
+    <filename class="directory">/var/lib/tripwire</filename> and sets the
+    proper location for man pages and documentation.</para>
 
     <para><command>make install</command>: This command creates the
     <application>Tripwire</application> security keys as well as installing
@@ -139,7 +137,7 @@ cp -v policy/*.txt /usr/share/doc/tripwire-&tripwire-version;</userinput></scree
     <para>Of course, you should do this with dummy passwords and change them
     later.</para></note>
 
-    <para><command>cp -v policy/*.txt /usr/doc/tripwire</command>: This command
+    <para><command>cp -v policy/*.txt /usr/doc/tripwire-&tripwire-version;</command>: This command
     installs the <application>tripwire</application> sample policy files with
     the other <application>tripwire</application> documentation.</para>
 
