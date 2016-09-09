@@ -16,7 +16,7 @@
   <!ENTITY sddm-time          "0.6 SBU ">
 ]>
 
-<sect1 id="sddm" xreflabel="sddm-&sddm-version;" revision='sysv'>
+<sect1 id="sddm" xreflabel="sddm-&sddm-version;">
   <?dbhtml filename="sddm.html"?>
 
   <sect1info>
@@ -121,13 +121,13 @@ useradd  -c "SDDM Daemon" \
          -u 64 -g sddm    \
          -s /bin/false sddm</userinput></screen>
 
-    <para>
+    <para revision="sysv">
       Next, fix the application to start <command>upowerd</command>,
       if necessary, and after login, start the session with
       <command>ck-launch-session</command>:
     </para>
 
-<screen><userinput>sed -e '/UPOWER_SERVICE)/ s:^://:' \
+<screen revision="sysv"><userinput>sed -e '/UPOWER_SERVICE)/ s:^://:' \
     -i src/daemon/PowerManager.cpp &amp;&amp;
 
 sed -e '/\$@$/s/exec/&amp; ck-launch-session/' \
@@ -138,13 +138,21 @@ sed -e '/\$@$/s/exec/&amp; ck-launch-session/' \
       commands:
     </para>
 
-<screen><userinput>mkdir build &amp;&amp;
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DCMAKE_BUILD_TYPE=Release  \
       -DENABLE_JOURNALD=OFF       \
       -DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf \
+      -Wno-dev .. &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release  \
       -Wno-dev .. &amp;&amp;
 make</userinput></screen>
 
@@ -169,12 +177,12 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
       apply additional compiler optimizations.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>-DENABLE_JOURNALD=OFF</parameter>: This switch is used because
       BLFS does not support <application>systemd</application>.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>-DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf</parameter>:
       This switch prevents the file <filename>
       /etc/dbus-1/system.d/org.freedesktop.DisplayManager.conf</filename> from
@@ -287,7 +295,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
       <title>Boot Script</title>
 
       <para>
-        Install the <filename>/etc/rc.d/init.d/sddm</filename> init script from
+        Install the <filename revision="sysv">/etc/rc.d/init.d/sddm</filename> init script from
         the <xref linkend="bootscripts" revision="sysv"/>
         <xref linkend="systemd-units" revision="systemd"/> package.
       </para>
@@ -296,7 +304,9 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
         <primary sortas="f-sddm">sddm</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-sddm</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-sddm</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable sddm</userinput></screen>
 
     </sect3>
 
@@ -311,7 +321,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
         class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>cat &gt; /etc/pam.d/sddm &lt;&lt; "EOF"
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/pam.d/sddm &lt;&lt; "EOF"
 <literal># Begin /etc/pam.d/sddm
 
 auth     requisite      pam_nologin.so
@@ -362,9 +372,60 @@ session  required       pam_unix.so
 # End /etc/pam.d/sddm-greeter</literal>
 EOF</userinput></screen>
 
+<screen role="root" revision="systemd"><userinput>cat &gt; /etc/pam.d/sddm &lt;&lt; "EOF" &amp;&amp;
+<literal># Begin /etc/pam.d/sddm
+
+auth     requisite      pam_nologin.so
+auth     required       pam_env.so
+
+auth     required       pam_succeed_if.so uid &gt;=1000 quiet
+auth     include        system-auth
+
+account  include        system-account
+password include        system-password
+
+session  required       pam_limits.so
+session  include        system-session
+
+# End /etc/pam.d/sddm</literal>
+EOF
+
+cat &gt; /etc/pam.d/sddm-autologin &lt;&lt; "EOF" &amp;&amp;
+<literal># Begin /etc/pam.d/sddm-autologin
+
+auth     requisite      pam_nologin.so
+auth     required       pam_env.so
+
+auth     required       pam_succeed_if.so uid &gt;=1000 quiet
+auth     required       pam_permit.so
+
+account  include        system-account
+
+password required       pam_deny.so
+
+session  required       pam_limits.so
+session  include        system-session
+
+# End /etc/pam.d/sddm-autologin</literal>
+EOF
+
+cat &gt; /etc/pam.d/sddm-greeter &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/sddm-greeter
+
+auth     required       pam_env.so
+auth     required       pam_permit.so
+
+account  required       pam_permit.so
+password required       pam_deny.so
+session  required       pam_unix.so
+-session optional       pam_systemd.so
+
+# End /etc/pam.d/sddm-greeter</literal>
+EOF</userinput></screen>
+
     </sect3>
 
-    <sect3 id="sddm-init">
+    <sect3 id="sddm-init" revision="sysv">
       <title>Starting sddm</title>
 
       <para>
