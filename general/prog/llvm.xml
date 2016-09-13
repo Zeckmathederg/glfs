@@ -207,7 +207,7 @@ CC=gcc CXX=g++                              \
 cmake -DCMAKE_INSTALL_PREFIX=/usr           \
       -DLLVM_ENABLE_FFI=ON                  \
       -DCMAKE_BUILD_TYPE=Release            \
-      -DBUILD_SHARED_LIBS=ON                \
+      -DLLVM_BUILD_LLVM_DYLIB=ON            \
       -DLLVM_TARGETS_TO_BUILD="host;AMDGPU" \
       -Wno-dev ..                           &amp;&amp;
 make</userinput></screen>
@@ -217,9 +217,6 @@ make</userinput></screen>
       to generate the html documentation and manual pages, issue the
       following commands:
     </para>
-<!-- The following command still works but let's try the next one
-<screen><userinput>make -C ../docs -f Makefile.sphinx man</userinput></screen>
--->
 <screen><userinput>cmake -DLLVM_ENABLE_SPHINX=ON         \
       -DSPHINX_WARNINGS_AS_ERRORS=OFF \
       -Wno-dev ..                     &amp;&amp;
@@ -242,29 +239,6 @@ make docs-llvm-html  docs-llvm-man</userinput></screen>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
-<!-- version 3.8.0: Clang-analyser is built and installed by default
-    <para>
-      If you had <xref linkend="python2"/> installed and you have
-      built <application>Clang</application>, install the
-      <application>Clang Analyzer</application> by running the
-      following command as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>install -v -dm755 /usr/lib/clang-analyzer &amp;&amp;
-
-for prog in scan-build scan-view
-do
-  cp -rfv ../tools/clang/tools/$prog /usr/lib/clang-analyzer/ &amp;&amp;
-  ln -sfv ../lib/clang-analyzer/$prog/$prog /usr/bin/
-done
-unset prog &amp;&amp;
-
-ln -sfv /usr/bin/clang \
-        /usr/lib/clang-analyzer/scan-build/ &amp;&amp;
-mv -v   /usr/lib/clang-analyzer/scan-build/scan-build.1 \
-        /usr/share/man/man1/</userinput></screen>
--->
     <para>
       If you have built  the documentation, install it by running the
       following command as the <systemitem class="username">root</systemitem>
@@ -289,12 +263,6 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!--
-    <para>
-      <command>sed -e ... Makefile.config.in</command>: This sed fixes
-      location of the installed documentation.
-    </para>
--->
     <para>
       <parameter>-DLLVM_ENABLE-FFI=ON</parameter>: This switch enables
       <application>LLVM</application> to use
@@ -303,16 +271,16 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
     </para>
 
     <para>
+      <parameter>-DLLVM_BUILD_LLVM_DYLIB=ON</parameter>: builds libraries as
+      static and links all of them into an unique shared one. This is the
+      recommended way of building a shared library.
+    </para>
+
+    <para>
       <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch enables
       compiler optimizations in order to speed up the code and reduce its size.
       It also disables some compile checks, not necessary on a production
       system.
-    </para>
-
-    <para>
-      <parameter>-DBUILD_SHARED_LIBS=ON</parameter>: This switch enables
-      building all the <application>LLVM</application> libraries as shared
-      libraries instead of static.
     </para>
 
     <para>
@@ -325,9 +293,16 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
     </para>
 
     <para>
-      <option>-DLLVM_BUILD_LLVM_DYLIB=ON</option>: if used instead of
-      <parameter>-DBUILD_SHARED_LIBS=ON</parameter>, builds libraries as
-      static and links all of them into an unique shared one.
+      <option>-DLLVM_LINK_LLVM_DYLIB=ON</option>: Used in conjunction with
+      <parameter>-DLLVM_BUILD_LLVM_DYLIB=ON</parameter>, this switch enables
+      linking the tools against the shared library instead of the static ones.
+    </para>
+
+    <para>
+      <option>-DBUILD_SHARED_LIBS=ON</option>: if used instead of
+      <parameter>-DLLVM_BUILD_LLVM_DYLIB=ON</parameter>, builds all the
+      <application>LLVM</application> libraries (about 60) as shared
+      libraries instead of static.
     </para>
 
     <para>
@@ -362,8 +337,8 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           scan-build, scan-view, verify-uselistorder, and yaml2obj
         </seg>
         <seg>
-          BugpointPasses.so, libclang*.so (21 libraries), libLLVM*.so (53
-          libraries), libLTO.so, and LLVMHello.so
+          BugpointPasses.so,  LLVMHello.so, libLLVM.so, libLLVM*.a (57
+          libraries), libLTO.so, libclang.so and libclang*.a (24 libraries)
         </seg>
         <seg>
           /usr/include/{clang,clang-c,llvm,llvm-c},
