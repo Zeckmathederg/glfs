@@ -95,16 +95,18 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="elfutils"/> (required for Gallium3D radeonsi driver),
+      <xref linkend="elfutils"/> (required for the radeonsi driver),
+      
       <phrase revision="systemd"><xref linkend="libva"/> (to build drivers for 
       supported hardware, note that there is a circular dependency. You must
       build <application>libva</application> first without EGL and GLX support,
       install this package, and rebuild <application>libva</application>.),</phrase>
+      
       <xref linkend="libvdpau"/> (to build VDPAU drivers),
+      
       <xref linkend="llvm"/> (required for Gallium3D r300, r600 and radeonsi
-      drivers and also for llvmpipe which is intended to be the fastest of the
-      three sw rasterizers, see
-      <ulink url="http://www.mesa3d.org/systems.html"/>)
+      drivers and for the llvmpipe software rasterizer. See
+      <ulink url="http://www.mesa3d.org/systems.html"/> for more information.)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -112,13 +114,17 @@
       <xref linkend="libgcrypt"/>,
       <xref linkend="nettle"/>,
       <xref linkend="wayland"/> (required for
-      <xref linkend='plasma5-build'/><phrase revision="systemd">,</phrase>
-      <phrase revision="sysv">and</phrase>
-      <xref linkend='lxqt'/><phrase revision="systemd">, and GNOME</phrase>),
+        <xref linkend='plasma5-build'/>
+          <phrase revision="systemd">,</phrase>
+          <phrase revision="sysv">and</phrase>
+        <xref linkend='lxqt'/>
+          <phrase revision="systemd">, and GNOME</phrase>),
+      
       <ulink url="ftp://ftp.freedesktop.org/pub/mesa/demos/">mesa-demos</ulink>
       (provides more than 300 extra demos to test
-      <application>Mesa</application>; this includes the same programs
-      added by the patch above), and
+      <application>Mesa</application>; this includes the same programs added by
+      the patch above), and
+      
       <ulink url="http://omxil.sourceforge.net/">Bellagio OpenMAX Integration
       Layer</ulink> (for mobile platforms)
     </para>
@@ -128,10 +134,7 @@
         The instructions below assume that <application>elfutils</application>
         and <application>LLVM</application> with the r600/amdgpu and host 
         backends are installed. You will need to modify the instructions if you
-        choose not to install them. Please note that 
-        <application>elfutils</application> and <application>LLVM</application>
-        are <emphasis>required</emphasis> for the Gallium3D r300, r600,
-        radeonsi, and SWR drivers. For an explanation of Gallium3D please see
+        choose not to install them.  For an explanation of Gallium3D see
         <ulink url="https://en.wikipedia.org/wiki/Gallium3D"/>.
       </para>
     </note>
@@ -152,6 +155,15 @@
 
 <screen><userinput>patch -Np1 -i ../mesa-&mesa-version;-add_xdemos-1.patch</userinput></screen>
 
+   <para>Now, select the drivers you wish to install.  The available 
+   drivers are i915, ilo, nouveau, r300, r600, radeonsi, freedreno, svga,
+   swrast, vc4, and virgl.  The default is 'r300,r600,svga,swrast'. Modify
+   the command below for any desired drivers.  The listed drivers will cover 
+   most modern video cards.  For help in selecting 
+   drivers see <ulink url='http://www.mesa3d.org/systems.html'/>.</para>
+
+<screen><userinput>GLL_DRV="i915,nouveau,radeonsi,svga,swrast"</userinput></screen>
+
     <para>
       Install <application>Mesa</application> by running the following
       commands:
@@ -167,19 +179,15 @@
       </para>
     </note>
 
-<screen><userinput>GLL_DRV="nouveau,r300,r600,radeonsi,svga,swrast" &amp;&amp;
-
-sed -i "/pthread-stubs/d" configure.ac      &amp;&amp;
+<screen><userinput>sed -i "/pthread-stubs/d" configure.ac      &amp;&amp;
 sed -i "/seems to be moved/s/^/: #/" bin/ltmain.sh &amp;&amp;
+
 ./autogen.sh CFLAGS='-O2' CXXFLAGS='-O2'    \
             --prefix=$XORG_PREFIX           \
             --sysconfdir=/etc               \
             --enable-texture-float          \
-            --enable-gles1                  \
-            --enable-gles2                  \
             --enable-osmesa                 \
             --enable-xa                     \
-            --enable-gbm                    \
             --enable-glx-tls                \
             --with-egl-platforms="drm,x11"  \
             --with-gallium-drivers=$GLL_DRV &amp;&amp;
@@ -254,16 +262,6 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
 
     <para>
-      <parameter>--enable-gles1</parameter>: This switch enables support for
-      the OpenGL ES 1.x API.
-    </para>
-
-    <para>
-      <parameter>--enable-gles2</parameter>: This switch enables support for
-      the OpenGL ES 2.x API.
-    </para>
-
-    <para>
       <parameter>--enable-osmesa</parameter>: This switch enables building
       the <filename class="libraryfile">libOSMesa</filename> library.
     </para>
@@ -291,19 +289,7 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
 
     <para>
       <parameter>--with-gallium-drivers="..."</parameter>: This parameter
-      controls which Gallium3D drivers should be built. Available drivers
-      are: i915, ilo, nouveau, r300, r600, radeonsi, svga, swrast, and swr. You
-      will need to remove r300, r600, radeonsi, and swr from the list if you did
-      not install <application>elfutils</application> and
-      <application>LLVM</application> with the r600/amdgpu and host backends.
-      Note that swr is in an early development stage, and the BLFS team does
-      not recommend building it.
-    </para>
-
-    <para>
-      <option>--enable-r600-llvm-compiler</option>: Use this switch to
-      enable an experimental R600 <application>LLVM</application> backend
-      for graphics shaders which claims to speed up the driver.
+      controls which Gallium3D drivers should be built. 
     </para>
 
     <para revision="sysv">
