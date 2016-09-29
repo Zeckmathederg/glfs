@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
+  <!ENTITY chromium-download-ftp  " ">
+  <!ENTITY chromium-md5sum        "7035148d1566ddeab3153b2007b86613">
+  <!ENTITY chromium-size          "440 MB">
+  <!ENTITY chromium-buildsize     "6.2 GB">
+  <!ENTITY chromium-time          "111 SBU">
+]>
+
+<sect1 id="chromium" xreflabel="Chromium-&chromium-version;">
+  <?dbhtml filename="chromium.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Chromium-&chromium-version;</title>
+
+  <indexterm zone="chromium">
+    <primary sortas="a-Chromium">Chromium</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Chromium</title>
+
+    <para><application>Chromium</application> is an open-source browser project
+    that aims to build a safer, faster, and more stable way for all users to
+    experience the web.</para>
+
+    &lfs7a_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP): <ulink url="&chromium-download-http;"/></para>
+      </listitem>
+<!--      <listitem>
+        <para>Download (FTP): <ulink url="&chromium-download-ftp;"/></para>
+      </listitem> -->
+      <listitem>
+        <para>Download MD5 sum: &chromium-md5sum;</para>
+      </listitem>
+      <listitem>
+        <para>Download size: &chromium-size;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated disk space required: &chromium-buildsize;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated build time: &chromium-time;</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <note><para>Download this file via wget as:</para>
+<screen><userinput>wget https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz \
+     -O chromium-launcher-3.tar.gz</userinput></screen>
+    </note>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Optional launcher (to eanble Pepper Flash - x86_64 only):
+        <ulink url="https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>Optional Chrome distribution (to copy plugins - x86_64 only):
+        <ulink url="http://mirror.ufs.ac.za/google-chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_53.0.2785.116-1_amd64.deb"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Chromium Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="alsa-lib"/>,
+      <xref linkend="cups"/>,
+      <xref linkend="desktop-file-utils"/>,
+      <xref linkend="dbus"/>,
+      <xref linkend="gtk2"/>,
+      <xref linkend="hicolor-icon-theme"/>,
+      <xref linkend="mesa"/>,
+      <xref linkend="ninja"/>,
+      <xref linkend="nss"/>,
+      <xref linkend="python2"/>, and
+      <xref linkend="x-window-system"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="flac"/>,
+      <xref linkend="GConf"/>,
+      <xref linkend="gnome-keyring"/>,
+      <xref linkend="hicolor-icon-theme"/>,
+      <xref linkend="libevent"/>,
+      <xref linkend="libexif"/>,
+      <xref linkend="libjpeg"/>,
+      <xref linkend="libpng"/>,
+      <xref linkend="libsecret"/>,
+      <xref linkend="pciutils"/>,
+      <xref linkend="pulseaudio"/>,
+      <xref linkend="xdg-utils"/>, and
+      <xref linkend="yasm"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="ffmpeg"/>,
+      <xref linkend="git"/> (required to build PNaCL on i686),
+      <ulink url="http://www.gnu.org/software/gperf">gperf</ulink>,
+      <xref linkend="icu"/>,
+      <xref linkend="libxml2"/>,
+      <xref linkend="libvpx"/>,
+      <ulink url="http://www.freebsoft.org/speechd">speech-dispatcher</ulink>
+      (for the screen reader), and
+      <ulink url="https://google.github.io/snappy">snappy</ulink>
+    </para>
+
+    <para condition="html" role="usernotes">User Notes:
+    <ulink url="&blfs-wiki;/chromium"/></para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Chromium</title>
+
+    <para>If you'd like to import binary Pepper plugins from Chrome, you'll
+    need to enable PNaCL. PNaCL is a sandboxed environment for running
+    untrusted code, but the binary toolchain is availalbe only on x86_64.
+    Download the binary PNaCL toolchain with the following commands:</para>
+
+<screen><userinput>python build/download_nacl_toolchains.py --packages \
+    nacl_x86_newlib,pnacl_newlib,pnacl_translator \
+    sync --extract</userinput></screen>
+
+<!--    <para>If on any other arch than x86_64, you will have to build the PNaCL
+    environment yourself. Please report if this works without issue as this
+    has not been tested. Instuctions were taken directly from
+    <ulink url="https://www.chromium.org/nativeclient/pnacl/building-pnacl-components-for-distribution-packagers">
+    here</ulink>. Note that Google no longer support i686 builds, so any
+    plugin extracted from the binary installation of Chrome (libwidevinecdm.so)
+    will be necessarely out of date.</para>
+
+<screen><userinput>toolchain_build/toolchain_build_pnacl.py \
+    - -verbose - -sync - -clobber - -gcc - -no-use-cached-results \
+    - -no-use-remote-cache - -disable-git-cache - -build-sbtc
+build/package_version/package_version.py - -packages pnacl_newlib \
+    - -tar-dir toolchain_build/out/packages - -dest-dir toolchain/ \
+    extract - -skip-missing
+build/package_version/package_version.py - -packages pnacl_translator \
+    - -tar-dir toolchain_build/out/packages - -dest-dir toolchain/ \
+    extract - -skip-missing</userinput></screen> -->
+
+    <para>To enable use of
+    <ulink url="http://www.widevine.com/">WideVine</ulink>, needed for Netflix
+    support (see the binary Chrome plugins section below), in addition to
+    enabling PNaCL above, you'll need to define an availalbe product name
+    ("Pinkie Pie" in this case) with the following command:</para>
+
+<screen><userinput>sed "s/WIDEVINE_CDM_AVAILABLE/&amp;\n\n#define WIDEVINE_CDM_VERSION_STRING \"Pinkie Pie\"/" \
+    -i third_party/widevine/cdm/stub/widevine_cdm_version.h</userinput></screen>
+
+    <para>Setup <application>Chromium</application> build options by running
+    the following commands:</para>
+
+    <note>
+      <para>
+        Chromium uses many exteranl projects, the selections below are not set
+        in stone, however they have been tested thoroughly. With 53.0.2785.116,
+        system versions of icu, libxml2, libvpx, and zlib are known to break
+        the build at this time.</para>
+        <!-- This should be remedied by 55.x as updates are coming upstream -->
+
+        <!-- Taken from Arch Linux - an immensely helpful link - Thanks -->
+        <para>Additionally, the Google API Key and 0Auth tokens below are
+        specific to LFS. If using these instructions for another distro, or if
+        you intend to distribute binary copies of the software using these
+        instructions, please obtain your own keys following the instructions
+        located at
+        <ulink url="http://www.chromium.org/developers/how-tos/api-keys"/>.
+        <!-- BLFS Devs, register an account at Google with your
+        @linuxfromscratch.org email address, and I'll make you an administrator
+        for the 'Chromium for LFS' project (where the API and 0Auth keys were
+        created for the book).-->
+      </para>
+    </note>
+
+<screen><userinput>CHROMIUM_CONFIG=(
+-Dgoogle_api_key=AIzaSyDxKL42zsPjbke5O8_rPVpVrLrJ8aeE9rQ
+-Dgoogle_default_client_id=595013732528-llk8trb03f0ldpqq6nprjp1s79596646.apps.googleusercontent.com
+-Dgoogle_default_client_secret=5ntt6GbbkjnTVXx-MSxbmx5e
+-Dwerror=
+-Dclang=0
+-Dpython_ver=2.7
+-Dlinux_link_gsettings=1
+-Dlinux_link_libpci=1
+-Dlinux_link_pulseaudio=1
+-Dlinux_strip_binary=1
+-Dlinux_use_bundled_binutils=0
+-Dlinux_use_bundled_gold=0
+-Dlinux_use_gold_flags=0
+-Dicu_use_data_file_flag=1
+-Dlogging_like_official_build=1
+-Dtracing_like_official_build=1
+-Dfieldtrial_testing_like_official_build=1
+-Drelease_extra_cflags="$CFLAGS"
+-Dffmpeg_branding=Chrome
+-Dproprietary_codecs=1
+-Duse_gnome_keyring=0
+-Duse_system_bzip2=1
+-Duse_system_flac=1
+-Duse_system_ffmpeg=0
+-Duse_system_harfbuzz=1
+-Duse_system_icu=0
+-Duse_system_libevent=1
+-Duse_system_libjpeg=1
+-Duse_system_libpng=1
+-Duse_system_libvpx=0
+-Duse_system_libxml=0
+-Duse_system_snappy=0
+-Duse_system_xdg_utils=1
+-Duse_system_yasm=1
+-Duse_system_zlib=0
+-Dusb_ids_path=/usr/share/hwdata/usb.ids
+-Duse_mojo=0
+-Duse_gconf=1
+-Duse_sysroot=0
+-Denable_hangout_services_extension=1
+-Denable_widevine=1
+-Ddisable_fatal_linker_warnings=1
+-Ddisable_glibc=1)</userinput></screen>
+
+<!--    <para>If you are not on x86_64 (or you elected to rebuild the PNaCL
+    sandbox manually on x86_64), execute the following commands:</para>
+
+<screen><userinput>CHROMIUM_CONFIG+=(
+-Dpnacl_newlib_toolchain=$PWD/toolchain/linux_x86/pnacl_newlib
+-Dpnacl_translator_dir=PWD/toolchain/linux_x86/pnacl_translator
+)</userinput></screen> -->
+
+    <para>Fix a build issue with GCC-6.</para>
+
+<screen><userinput>export CFLAGS+=' -fno-delete-null-pointer-checks'</userinput></screen>
+
+    <para>Fix a build issue with cups-2.2.</para>
+
+<screen><userinput>sed 's/#include &lt;cups\/cups\.h&gt;/&amp;\n#include &lt;cups\/ppd.h&gt;/' \
+    -i printing/backend/cups_helper.h</userinput></screen>
+
+    <para>Fix a potential build issue on Linux-4.5+:</para>
+
+<screen><userinput>sed "s/#include \&lt;sys\/mman.h\&gt;/&amp;\n\n#if defined(MADV_FREE)\n#undef MADV_FREE\n#endif\n\n/" \
+    -i third_party/WebKit/Source/wtf/allocator/PageAllocator.cpp</userinput></screen>
+
+    <para>Replace a missing file to allow the test suite to run:</para>
+
+<screen><userinput>touch chrome/test/data/webui/i18n_process_css_test.html</userinput></screen>
+
+    <para><application>Chromium</application> uses
+    <ulink url="https://gyp.gsrc.io/">GYP</ulink> to generate the
+    <application>Ninja</application> build files. Complete configuration of
+    the buld using the following commands:</para>
+
+<screen><userinput>build/linux/unbundle/replace_gyp_files.py "${CHROMIUM_CONFIG[@]}" &amp;&amp;
+build/gyp_chromium --depth=. "${CHROMIUM_CONFIG[@]}"</userinput></screen>
+
+    <para>Build <application>Chromium</application> using the following
+    command:</para>
+
+<screen><userinput>ninja -C out/Release chrome chrome_sandbox chromedriver</userinput></screen>
+
+    <para>This package was already tested as part of the build.</para>
+
+    <para>Now, as the <systemitem class="username">root</systemitem> user,
+    install the pacakage:</para>
+
+<screen role="root"><userinput>install -vDm755  out/Release/chrome \
+                 /usr/lib/chromium/chromium              &amp;&amp;
+install -vDm4755 out/Release/chrome_sandbox \
+                 /usr/lib/chromium/chrome-sandbox        &amp;&amp;
+install -vDm755  out/Release/chromedriver \
+                 /usr/lib/chromium/chromedriver          &amp;&amp;
+ln -svf /usr/lib/chromium/chromium /usr/bin              &amp;&amp;
+ln -svf /usr/lib/chromium/chromedriver /usr/bin/         &amp;&amp;
+install -vDm644 out/Release/icudtl.dat /usr/lib/chromium &amp;&amp;
+
+install -vm644 out/Release/{*.pak,*.bin} \
+               /usr/lib/chromium/                        &amp;&amp;
+
+cp -av out/Release/locales /usr/lib/chromium/            &amp;&amp;
+chown -Rv root:root /usr/lib/chromium/locales            &amp;&amp;
+
+install -vDm644 out/Release/chrome.1 \
+                /usr/share/man/man1/chromium.1</userinput></screen>
+
+    <para>While still the <systemitem class="username">root</systemitem> user,
+    install icons and the .desktop file:</para>
+
+<screen><userinput role="root">for size in 16 32; do
+    install -vDm644 \
+        "chrome/app/theme/default_100_percent/chromium/product_logo_$size.png" \
+        "/usr/share/icons/hicolor/${size}x${size}/apps/chromium.png"
+done &amp;&amp;
+
+for size in 22 24 48 64 128 256; do
+    install -vDm644 "chrome/app/theme/chromium/product_logo_$size.png" \
+        "/usr/share/icons/hicolor/${size}x${size}/apps/chromium.png"
+done &amp;&amp;
+
+cat &gt; /usr/share/applications/chromium.desktop &lt;&lt; "EOF"
+[Desktop Entry]
+Encoding=UTF-8
+Name=Chromium Web Browser
+Comment=Access the Internet
+GenericName=Web Browser
+Exec=chromium %u
+Terminal=false
+Type=Application
+Icon=chromium
+Categories=GTK;Network;WebBrowser;
+MimeType=application/xhtml+xml;text/xml;application/xhtml+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
+EOF</userinput></screen>
+
+    <para>If you've enabled PNaCL support, while still the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput role="root">install -vm755 out/Release/nacl_helper{,_bootstrap} \
+              out/Release/nacl_irt_*.nexe \
+              /usr/lib/chromium/</userinput></screen>
+
+    <para>If you've enabled <application>WideVine</application> support, while
+    still the <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput role="root">install -vm755 out/Release/libwidevinecdmadapter.so \
+               /usr/lib/chromium/</userinput></screen>
+
+    <bridgehead renderas="sect3">Chromium Lanucher</bridgehead>
+    <para><application>Chromium Launcher</application> is a wrapper for
+    <application>chromium</application> that allows use of the Pepper Flash
+    plugin. If you intend to use the <application>Pepper Flash</application>
+    plugin, build <application>Chromium Launcher</application> by running the
+    following commands:</para>
+
+<screen><userinput>tar -xf ../chromium-launcher-3.tar.gz &amp;&amp;
+cd chromium-launcher-3 &amp;&amp;
+make PREFIX=/usr</userinput></screen>
+
+    <para>Install Chromium Launcher with the following commands (as the
+    <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>rm -f /usr/bin/chromium        &amp;&amp;
+make PREFIX=/usr install-strip &amp;&amp;
+cd ..</userinput></screen>
+
+    <bridgehead renderas="sect3">Extracting binary plugins from Chrome</bridgehead>
+
+    <para>Extract the downloaded deb file with the following commands:</para>
+
+<screen><userinput>mkdir temp                                  &amp;&amp;
+cd temp                                     &amp;&amp;
+ar -x ../../google-chrome-stable_&chromium-version;*.deb &amp;&amp;
+tar -xf data.tar.xz</userinput></screen>
+
+    <bridgehead renderas="sect4">Pepper Flash</bridgehead>
+
+    <para>As the <systemitem class="username">root</systemitem> user, install
+    the Pepper Flash plugin with the following command:</para>
+
+<screen role="root"><userinput>install -vdm755 /usr/lib/PepperFlash &amp;&amp;
+install -vm755 opt/google/chrome/PepperFlash/* /usr/lib/PepperFlash</userinput></screen>
+
+    <bridgehead renderas="sect4">WideVine</bridgehead>
+
+    <para>As the <systemitem class="username">root</systemitem> user, install
+    the WideVine plugin with the following command:</para>
+
+<screen role="root"><userinput>install -vm755 opt/google/chrome/libwidevinecdm.so /usr/lib/chromium/</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><command>CHROMIUM_CONFIG=(...)</command>: this array contains
+    all of the defines used in the build.</para>
+
+    <para><command>sed 's/#include &lt;cups...</command>: this command fixes
+    a build issue with Cups 2.2 and newer where functions are defined in a
+    different file (cups/ppd.h).</para>
+
+    <para><command>sed "s/#include &lt;sys...</command>: this command udefines
+    MADV_FREE to fix a build issue with Linux-4.5 and newer.</para>
+
+    <para><command>build/linux/unbundle/replace_gyp_files.py "${CHROMIUM_CONFIG[@]}"</command>:
+    this command replaces defines in the gyp file with the values contained in 
+    <envar>${CHROMIUM_CONFIG[@]}</envar>.</para>
+
+    <para><command>build/gyp_chromium --depth=. "${CHROMIUM_CONFIG[@]}"</command>:
+    this command runs a Google modified version of
+    <application>gyp</application> on the source tree to produce
+    a <application>Ninja</application> configuration suitable for the build
+    machine.</para>
+
+    <para><command>ar -x ../../google-chrome-stable_53.0.2785.116*.deb</command>:
+    the <command>ar</command> utility is used to extract Debian archives.</para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>/usb/bin/chromium, /usr/lib/chromium/chromium,
+        /usr/lib/chromium/chromedriver, and
+        /usr/lib/chromium/chrome-sandbox</seg>
+        <seg>none</seg>
+        <seg>/usr/lib/chromium</seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="chromium-prog">
+        <term><command>/usr/bin/chromium</command></term>
+        <listitem>
+          <para> is a wrapper for the main chromium binary (in
+          /usr/lib/chromium) that allow use of the Pepper Flash plugin.</para>
+          <indexterm zone="chromium chromium-prog">
+            <primary sortas="b-chromium">chromium</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="chromium-lib">
+        <term><command>/usr/lib/chromium/chromium</command></term>
+        <listitem>
+          <para> is the main chromium executable.</para>
+          <indexterm zone="chromium chromium-lib">
+            <primary sortas="b-chromiumlib">chromium</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="chromedriver">
+        <term><command>/usr/bin/chromedriver</command></term>
+        <listitem>
+          <para> is a
+          <ulink url="http://www.seleniumhq.org/projects/webdriver/">
+          WebDriver</ulink> for Chromium.</para>
+          <indexterm zone="chromium chromedriver">
+            <primary sortas="b-chromedriver">chromedriver</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="chrome-sandbox">
+        <term><command>/usr/lib/chromium/chrome-sandbox</command></term>
+        <listitem>
+          <para> creates a sandboxed environment for running untrusted
+          code (plugins).</para>
+          <indexterm zone="chromium chrome-sandbox">
+            <primary sortas="b-chrome-sandbox">chrome-sandbox</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
