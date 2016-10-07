@@ -6,10 +6,11 @@
 
   <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
   <!ENTITY chromium-download-ftp  " ">
-  <!ENTITY chromium-md5sum        "7035148d1566ddeab3153b2007b86613">
+  <!ENTITY chromium-md5sum        "fdc737af242421b2a9a0bb84f6b17040">
   <!ENTITY chromium-size          "440 MB">
   <!ENTITY chromium-buildsize     "6.2 GB">
   <!ENTITY chromium-time          "111 SBU">
+  <!-- I got a very high build time (222 SBU), but I can't verify it. -->
 ]>
 
 <sect1 id="chromium" xreflabel="Chromium-&chromium-version;">
@@ -70,7 +71,7 @@
       </listitem>
       <listitem>
         <para>Optional Chrome distribution (to copy plugins - x86_64 only):
-        <ulink url="http://mirror.ufs.ac.za/google-chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_53.0.2785.116-1_amd64.deb"/>
+        <ulink url="http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_&chromium-version;-1_amd64.deb"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -86,10 +87,12 @@
       <xref linkend="perl-file-basedir"/>,
       <xref linkend="gtk2"/>,
       <xref linkend="hicolor-icon-theme"/>,
+      <xref linkend="mitkrb"/>,
       <xref linkend="mesa"/>,
       <xref linkend="ninja"/>,
       <xref linkend="nss"/>,
-      <xref linkend="python2"/>, and
+      <xref linkend="python2"/>,
+      <xref linkend="usbutils"/>, and
       <xref linkend="x-window-system"/>
     </para>
 
@@ -114,11 +117,11 @@
     <para role="optional">
       <xref linkend="ffmpeg"/>,
       <xref linkend="git"/> (required to build PNaCL on i686),
-      <ulink url="http://www.gnu.org/software/gperf">gperf</ulink>,
+<!--       <ulink url="http://www.gnu.org/software/gperf">gperf</ulink>, Its in BLFS. -->
       <xref linkend="icu"/>,
       <xref linkend="libxml2"/>,
       <xref linkend="libvpx"/>,
-      <ulink url="http://www.freebsoft.org/speechd">speech-dispatcher</ulink>
+      <ulink url="https://devel.freebsoft.org/speechd">speech-dispatcher</ulink>
       (for the screen reader), and
       <ulink url="https://google.github.io/snappy">snappy</ulink>
     </para>
@@ -133,7 +136,7 @@
 
     <para>If you'd like to import binary Pepper plugins from Chrome, you'll
     need to enable PNaCL. PNaCL is a sandboxed environment for running
-    untrusted code, but the binary toolchain is availalbe only on x86_64.
+    untrusted code, but the binary toolchain is available only on x86_64.
     Download the binary PNaCL toolchain with the following commands:</para>
 
 <screen><userinput>python build/download_nacl_toolchains.py --packages \
@@ -161,7 +164,7 @@ build/package_version/package_version.py - -packages pnacl_translator \
     <para>To enable use of
     <ulink url="http://www.widevine.com/">WideVine</ulink>, needed for Netflix
     support (see the binary Chrome plugins section below), in addition to
-    enabling PNaCL above, you'll need to define an availalbe product name
+    enabling PNaCL above, you'll need to define an available product name
     ("Pinkie Pie" in this case) with the following command:</para>
 
 <screen><userinput>sed "s/WIDEVINE_CDM_AVAILABLE/&amp;\n\n#define WIDEVINE_CDM_VERSION_STRING \"Pinkie Pie\"/" \
@@ -172,7 +175,7 @@ build/package_version/package_version.py - -packages pnacl_translator \
 
     <note>
       <para>
-        Chromium uses many exteranl projects, the selections below are not set
+        Chromium uses many external projects, the selections below are not set
         in stone, however they have been tested thoroughly. With 53.0.2785.116,
         system versions of icu, libxml2, libvpx, and zlib are known to break
         the build at this time.</para>
@@ -256,17 +259,19 @@ build/package_version/package_version.py - -packages pnacl_translator \
 
     <para>Fix a potential build issue on Linux-4.5+:</para>
 
-<screen><userinput>sed "s/#include \&lt;sys\/mman.h\&gt;/&amp;\n\n#if defined(MADV_FREE)\n#undef MADV_FREE\n#endif\n\n/" \
-    -i third_party/WebKit/Source/wtf/allocator/PageAllocator.cpp</userinput></screen>
+<screen><userinput>sed 's/#include \&lt;sys\/mman\.h&gt;/&amp;\n\n#if defined(MADV_FREE)\n#undef MADV_FREE\n#endif\n/' \
+    -i.bak third_party/WebKit/Source/wtf/allocator/PageAllocator.cpp</userinput></screen>
 
+<!-- This does not seem to be needed anymore... 
     <para>Replace a missing file to allow the test suite to run:</para>
 
 <screen><userinput>touch chrome/test/data/webui/i18n_process_css_test.html</userinput></screen>
+-->
 
     <para><application>Chromium</application> uses
     <ulink url="https://gyp.gsrc.io/">GYP</ulink> to generate the
     <application>Ninja</application> build files. Complete configuration of
-    the buld using the following commands:</para>
+    the build using the following commands:</para>
 
 <screen><userinput>build/linux/unbundle/replace_gyp_files.py "${CHROMIUM_CONFIG[@]}" &amp;&amp;
 build/gyp_chromium --depth=. "${CHROMIUM_CONFIG[@]}"</userinput></screen>
@@ -353,7 +358,7 @@ cd chromium-launcher-3 &amp;&amp;
 make PREFIX=/usr</userinput></screen>
 
     <para>Install Chromium Launcher with the following commands (as the
-    <systemitem class="username">root</systemitem> user:</para>
+    <systemitem class="username">root</systemitem> user):</para>
 
 <screen role="root"><userinput>rm -f /usr/bin/chromium        &amp;&amp;
 make PREFIX=/usr install-strip &amp;&amp;
@@ -395,7 +400,7 @@ install -vm755 opt/google/chrome/PepperFlash/* /usr/lib/PepperFlash</userinput><
     a build issue with Cups 2.2 and newer where functions are defined in a
     different file (cups/ppd.h).</para>
 
-    <para><command>sed "s/#include &lt;sys...</command>: this command udefines
+    <para><command>sed "s/#include &lt;sys...</command>: this command undefines
     MADV_FREE to fix a build issue with Linux-4.5 and newer.</para>
 
     <para><command>build/linux/unbundle/replace_gyp_files.py "${CHROMIUM_CONFIG[@]}"</command>:
@@ -422,11 +427,12 @@ install -vm755 opt/google/chrome/PepperFlash/* /usr/lib/PepperFlash</userinput><
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>/usb/bin/chromium, /usr/lib/chromium/chromium,
+        <seg>/usr/bin/chromium, /usr/lib/chromium/chromium,
         /usr/lib/chromium/chromedriver, and
         /usr/lib/chromium/chrome-sandbox</seg>
         <seg>none</seg>
-        <seg>/usr/lib/chromium</seg>
+        <seg>/usr/lib/chromium, /usr/lib/chromium-launcher,
+        and (optionally) /usr/lib/PepperFlash</seg>
       </seglistitem>
     </segmentedlist>
 
