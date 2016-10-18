@@ -6,10 +6,10 @@
 
   <!ENTITY lxqt-panel-download-http "&lxqt-http-repo;/&lxqt-version;/lxqt-panel-&lxqt-panel-version;.tar.xz">
   <!ENTITY lxqt-panel-download-ftp  " ">
-  <!ENTITY lxqt-panel-md5sum        "4a884aa9a59b2f554204ab3491663edc">
-  <!ENTITY lxqt-panel-size          "324 KB">
-  <!ENTITY lxqt-panel-buildsize     "31 MB">
-  <!ENTITY lxqt-panel-time          "1.8 SBU">
+  <!ENTITY lxqt-panel-md5sum        "6548d7dcb8bf55eef75ba1c601eb4992">
+  <!ENTITY lxqt-panel-size          "257 KB">
+  <!ENTITY lxqt-panel-buildsize     "23 MB">
+  <!ENTITY lxqt-panel-time          "1.3 SBU">
 ]>
 
 <sect1 id="lxqt-panel" xreflabel="lxqt-panel-&lxqt-panel-version;">
@@ -78,9 +78,8 @@
       (<xref linkend="lxqt-kguiaddons"/> and 
        <xref linkend="lxqt-solid"/>) (keyboard indicator plugin),     
       <xref linkend="lxqt-globalkeys"/>,
-      <xref linkend="libdbusmenu-qt"/> (built against Qt5),
+      <xref linkend="libdbusmenu-qt"/>,
       <xref linkend="liblxqt"/>,
-      <xref linkend="libxkbcommon"/>,
       <xref linkend="lxmenu-data"/>, and
       <xref linkend="menu-cache"/>
     </para>
@@ -89,9 +88,16 @@
     <para role="recommended">
       <xref linkend="alsa-lib"/> or
       <xref linkend="pulseaudio"/> (volume plugin),
-      <xref linkend="libstatgrab"/> (system statistics plugin),
-      <xref linkend="libsysstat"/> (CPU and network monitor plugins), and
+      <xref linkend="libstatgrab"/> (network monitor and CPU load plugins),
+      <xref linkend="libsysstat"/> (CPU and network monitor plugins),
+      <xref linkend="libxkbcommon"/> (keyboard indicator plugin), and
       <xref linkend="lm_sensors"/> (sensors plugin)
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="git"/> (to download translation files) or
+      <xref linkend="lxqt-l10n"/> (to add localization files)
     </para>
 
     <para condition="html" role="usernotes">
@@ -107,14 +113,12 @@
       commands:
     </para>
 
-<screen><userinput>sed -e 's:&lt;KF5/KWindowSystem/:&lt;:' \
-    -i plugin-taskbar/lxqttaskgroup.{h,cpp} &amp;&amp;
-
-mkdir -v build &amp;&amp;
+<screen><userinput>mkdir -v build &amp;&amp;
 cd       build &amp;&amp;
 
 cmake -DCMAKE_INSTALL_PREFIX=$LXQT_PREFIX \
       -DCMAKE_BUILD_TYPE=Release          \
+      -DPULL_TRANSLATIONS=no              \
       -DCMAKE_INSTALL_LIBDIR=lib          \
       ..                                  &amp;&amp;
 make</userinput></screen>
@@ -135,7 +139,22 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed ...</command>: Fixes the headers for KF5.
+      <parameter>-DPULL_TRANSLATIONS=no</parameter>: Removes the need for
+      <xref linkend="git"/>, which would otherwise be requested to download
+      the translation files.
+    </para>
+
+    <para>
+      <option>-D&lt;plugin&gt;_PLUGIN=no</option>: Disable $lt;plugin&gt;,
+      where &lt;plugin&gt; may be CLOCK, COLORPICKER, CPULOAD, DIRECTORYMENU,
+      DESKTOPSWITCH, KBINDICATOR, MAINMENU, MOUNT, QUICKLAUNCH, SENSORS,
+      SHOWDESKTOP, NETWORKMONITOR, SYSSTAT, TASKBAR, STATUSNOTIFIER, TRAY,
+      VOLUME, WORLDCLOCK, or SPACER,
+    </para>
+
+    <para>
+      <option>-DVOLUME_USE_&lt;backend&gt;=no</option>: Disable support
+      for &lt;backend&gt; in volume plugin, where backend is ALSA or PULSEAUDIO.
     </para>
 
   </sect2>
@@ -157,7 +176,7 @@ make</userinput></screen>
         </seg>
         <seg>
           /etc/xdg/lxqt,
-          $LXQT_PREFIX/share/lxqt/{,translations/}lxqt-panel and
+          $LXQT_PREFIX/share/lxqt/lxqt-panel and
           $LXQT_PREFIX/lib/lxqt-panel
         </seg>
       </seglistitem>
