@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY obconf-qt-download-http "&sources-anduin-http;/other/obconf-qt-&obconf-qt-version;.tar.xz">
+  <!ENTITY obconf-qt-download-http "https://downloads.lxqt.org/obconf-qt/&obconf-qt-version;/obconf-qt-&obconf-qt-version;.tar.xz">
   <!ENTITY obconf-qt-download-ftp  " ">
-  <!ENTITY obconf-qt-md5sum        "dc0b9515fec3cf81cf809192e75daa3f">
-  <!ENTITY obconf-qt-size          "344 KB">
-  <!ENTITY obconf-qt-buildsize     "3.5 MB">
-  <!ENTITY obconf-qt-time          "0.1 SBU">
+  <!ENTITY obconf-qt-md5sum        "12de451f5ab442bf6174ea285f2670e9">
+  <!ENTITY obconf-qt-size          "34 KB">
+  <!ENTITY obconf-qt-buildsize     "2.1 MB">
+  <!ENTITY obconf-qt-time          "0.15 SBU">
 ]>
 
 <sect1 id="obconf-qt" xreflabel="obconf-qt-&obconf-qt-version;">
@@ -69,20 +69,20 @@
       </listitem>
     </itemizedlist>
 
-    <para>
-      The source tarball shown above was created by the BLFS team by cloning
-      the source code repository, finding the correct version to rename
-      accordingly the source code directory and finally making the compressed
-      tarball. No other modification has been made.
-    </para>
-
     <bridgehead renderas="sect3">obconf-qt Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="cmake"/>,
-      <xref linkend="openbox"/>, and
-      <xref linkend="qt5"/> 
+      <xref linkend="gtk2"/> (for <command>gtk-update-icon-cache</command>),
+      <xref linkend="hicolor-icon-theme"/>,
+      <xref linkend="liblxqt"/>, and
+      <xref linkend="openbox"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="git"/> (to download translation files) or
+      <xref linkend="lxqt-l10n"/> (to add localization files)
     </para>
 
     <para condition="html" role="usernotes">
@@ -94,10 +94,8 @@
     <title>Installation of obconf-qt</title>
 
     <para>
-       For compilation with <application>Qt4</application>, see <quote>Command
-       Explanations</quote>, below. Install
-       <application>obconf-qt</application>, linked to
-       <application>Qt5</application>, by running the following commands:
+       Install <application>obconf-qt</application> by running the following
+       commands:
     </para>
 
 <screen><userinput>mkdir -v build &amp;&amp;
@@ -105,6 +103,7 @@ cd       build &amp;&amp;
 
 cmake -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_INSTALL_PREFIX=/usr \
+      -DPULL_TRANSLATIONS=no      \
       ..       &amp;&amp;
 make</userinput></screen>
 
@@ -124,14 +123,30 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
+    <para>
+      If <xref linkend="lxqt-l10n"/> is not installed in <filename
+      class="directory">/usr</filename>, the translation files are not found.
+      To cure that, run, as the <systemitem class="username">root</systemitem>:
+    </para>
+
+<screen role="root"><userinput>if [ "$LXQT_PREFIX" != /usr ]; then
+  ln -s $LXQT_PREFIX/share/obconf-qt /usr/share
+fi</userinput></screen>
+
+    <para>
+      Note that the above instruction works only if <envar>LXQT_PREFIX</envar>
+      has been set as explained in <xref linkend="lxqt-pre-install"/>.
+    </para>
+
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <option>-DUSE_QT4=ON</option>: Use this switch, if you prefer to build
-      this application linked to <application>Qt4</application>.
+      <parameter>-DPULL_TRANSLATIONS=no</parameter>: Removes the need for
+      <xref linkend="git"/>, which would otherwise be requested to download
+      the translation files.
     </para>
 
   </sect2>
@@ -152,7 +167,7 @@ make</userinput></screen>
           None
         </seg>
         <seg>
-          /usr/share/obconf-qt
+          None
         </seg>
       </seglistitem>
     </segmentedlist>
