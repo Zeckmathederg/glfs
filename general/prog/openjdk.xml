@@ -552,14 +552,15 @@ install -v -Dm0644 javaws.png /usr/share/pixmaps/javaws.png</userinput></screen>
       <para>
         <application>OpenJDK</application> uses its own format for the
         CA certificates. Those certificates are located in a file named
-        <filename>/opt/jdk/jre/lib/security/cacerts</filename>. That file
-        may be generated from the one installed using the instructions on the
-        <xref linkend="cacerts"/> page, with the following procedure.
-        First, generate the <command>mkcacerts</command> script
+        <filename>/etc/ssl/java/cacerts</filename>. That file should be
+        generated using the system PKI trust store. The instructions
+        on the <xref linkend="cacerts"/> page will be used to do the update
+        by calling the following script. Install the
+        <command>mkcacerts</command> script and setup a symlink in the java
         as the <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>cat &gt; /opt/jdk/bin/mkcacerts &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; /opt/jdk/bin/mkcacerts &lt;&lt; "EOF" &amp;&amp;
 <literal>#!/bin/sh
 # Simple script to extract x509 certificates and create a JRE cacerts file.
 
@@ -776,7 +777,8 @@ fi
 exit 0</literal>
 EOF
 
-chmod -c 0755 /opt/jdk/bin/mkcacerts</userinput></screen>
+chmod -c 0755 /opt/jdk/bin/mkcacerts &amp;&amp;
+ln -sfv /etc/ssl/java/cacerts /opt/jdk/jre/lib/security/cacerts</userinput></screen>
 
   <note>
     <para>
@@ -790,21 +792,21 @@ chmod -c 0755 /opt/jdk/bin/mkcacerts</userinput></screen>
       file as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>if [ -f /opt/jdk/jre/lib/security/cacerts ]; then
-  mv /opt/jdk/jre/lib/security/cacerts \
-     /opt/jdk/jre/lib/security/cacerts.bak
+<screen role="root"><userinput>if [ -f /etc/ssl/java/cacerts ]; then
+  mv /etc/ssl/java/cacerts \
+     /etc/ssl/java/cacerts.bak
 fi &amp;&amp;
 /opt/jdk/bin/mkcacerts                 \
         -d "/etc/ssl/certs/"           \
         -k "/opt/jdk/bin/keytool"      \
         -s "/usr/bin/openssl"          \
-        -o "/opt/jdk/jre/lib/security/cacerts"</userinput></screen>
+        -o "/etc/ssl/java/cacerts"</userinput></screen>
 
     <para>Use the following commands to check if the
     <filename>cacerts</filename> file has been successfully installed:</para>
 
 <screen role="root"><userinput>cd /opt/jdk
-bin/keytool -list -keystore jre/lib/security/cacerts</userinput></screen>
+bin/keytool -list -keystore /etc/ssl/java/cacerts</userinput></screen>
 
     <para>At the prompt "Enter keystore password:", press the "Enter" key if
     there is no keystore password defined. If the <filename>cacerts</filename>
