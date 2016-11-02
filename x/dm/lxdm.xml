@@ -110,12 +110,20 @@
     </para>
 
 <screen><userinput>cat &gt; pam/lxdm &lt;&lt; "EOF" &amp;&amp;
-<literal>#%PAM-1.0
-auth        required    pam_unix.so
-auth        requisite   pam_nologin.so
-account     required    pam_unix.so
-password    required    pam_unix.so
-session     required    pam_unix.so</literal>
+<literal># Begin /etc/pam.d/lxdm
+
+auth     requisite      pam_nologin.so
+auth     required       pam_env.so
+auth     include        system-auth
+
+account  include        system-account
+
+password include        system-password
+
+session  required       pam_limits.so
+session  include        system-session
+
+# End /etc/pam.d/lxdm</literal>
 EOF
 
 sed -i 's:sysconfig/i18n:profile.d/i18n.sh:g' data/lxdm.in &amp;&amp;
@@ -139,7 +147,8 @@ make</userinput></screen>
 
 <screen revision="systemd"><userinput>./configure --prefix=/usr     \
             --sysconfdir=/etc \
-            --with-pam        &amp;&amp;
+            --with-pam        \
+            --with-systemdsystemunitdir=/lib/systemd/system &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -215,17 +224,22 @@ make</userinput></screen>
    <sect3 id="lxdm-init">
       <title>Boot Script</title>
 
-      <para>
+      <para revision="sysv">
         Install the <filename>/etc/rc.d/init.d/lxdm</filename> init script from
-        the <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/> package.
+        the <xref linkend="bootscripts"/> package.
+      </para>
+
+      <para revision="systemd">
+        To start <application>LXDM</application> at boot execute the following
+        command as the <systemitem class="username">root</systemitem> user:
       </para>
 
       <indexterm zone="lxdm lxdm-init">
         <primary sortas="f-lxdm">lxdm</primary>
       </indexterm>
 
-<screen role="root"><userinput>make install-lxdm</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-lxdm</userinput></screen>
+<screen role="root" revision="systemd"><userinput>systemctl enable lxdm.service</userinput></screen>
 
     </sect3>
 
