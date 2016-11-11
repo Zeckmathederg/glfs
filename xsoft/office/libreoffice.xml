@@ -7,24 +7,24 @@
   <!ENTITY libreoffice-dl "http://download.documentfoundation.org/libreoffice/src/&libreoffice-version;">
 
   <!ENTITY libreoffice-core-download-http "&libreoffice-dl;/libreoffice-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-core-md5sum        "4a001b0b43e58a3e584cb703d72cf19d">
-  <!ENTITY libreoffice-core-size          "174 MB">
+  <!ENTITY libreoffice-core-md5sum        "6177d8be5ca358929277a19292cae36d">
+  <!ENTITY libreoffice-core-size          "175 MB">
 
   <!ENTITY libreoffice-dict-download-http "&libreoffice-dl;/libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-dict-md5sum        "96e9ffae7c4c3163ebc0896652b4bd51">
-  <!ENTITY libreoffice-dict-size          "39 MB">
+  <!ENTITY libreoffice-dict-md5sum        "113eaf27048a8d2443852b917b03988c">
+  <!ENTITY libreoffice-dict-size          "40 MB">
 
   <!ENTITY libreoffice-help-download-http "&libreoffice-dl;/libreoffice-help-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-help-md5sum        "ea273836b1e1b670eee6f211bd5d9acf">
-  <!ENTITY libreoffice-help-size          "1.9 MB">
+  <!ENTITY libreoffice-help-md5sum        "d37cf576bf6df067474f96f3bf6369d6">
+  <!ENTITY libreoffice-help-size          "1.8 MB">
 
   <!ENTITY libreoffice-translations-download-http "&libreoffice-dl;/libreoffice-translations-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-translations-md5sum        "2b4d20576fbf5c26f57d268791bfa84c">
-  <!ENTITY libreoffice-translations-size          "126 MB">
+  <!ENTITY libreoffice-translations-md5sum        "2346cacee8b4e797ba23765b748cf3ae">
+  <!ENTITY libreoffice-translations-size          "135 MB">
 
 
-  <!ENTITY libreoffice-buildsize          "7.7 GB (594 MB installed)">
-  <!ENTITY libreoffice-time               "41 SBU with parallelism = 4 + download time"> 
+  <!ENTITY libreoffice-buildsize          "8.2 GB (610 MB installed)">
+  <!ENTITY libreoffice-time               "32 SBU with parallelism = 8 + download time">
 
 ]>
 
@@ -137,13 +137,13 @@
           Translations size: &libreoffice-translations-size;
         </para>
       </listitem>
-<!--
+
       <listitem>
         <para>
-          Required patch to use <xref linkend="boost"/>:
-          <ulink url="&patch-root;/libreoffice-&libreoffice-dlversion;-boost_1_60_0-1.patch"/>
+          Required patch to fix building with system <xref linkend="icu"/>:
+          <ulink url="&patch-root;/libreoffice-&libreoffice-dlversion;-icu_58-1.patch"/>
         </para>
-      </listitem>-->
+      </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">LibreOffice Dependencies</bridgehead>
@@ -169,7 +169,7 @@
 
     <para role="recommended">
       <xref linkend="apr"/>,
-      <xref linkend="boost"/> <!--(currently, broken with boost-1.60.0)-->,
+      <xref linkend="boost"/>,
       <xref linkend="clucene"/>,
       <xref linkend="cups"/>,
       <xref linkend="curl"/>,
@@ -190,6 +190,7 @@
       <xref linkend="mesa"/>,
       <xref linkend="neon"/>,
       <xref linkend="nss"/>,
+      <xref linkend="apache-ant"/>,
       <xref linkend="openldap"/> (if connecting to an LDAP server),
       <xref linkend="openssl"/> or
       <xref linkend="gnutls"/>,
@@ -214,7 +215,6 @@
       <xref linkend="mariadb"/> or <ulink url="http://www.mysql.com/">MySQL</ulink>,
       <xref linkend="mitkrb"/>,
       <xref linkend="nasm"/>,
-      <xref linkend="openjdk"/>,
       <xref linkend="sane"/>,
       <xref linkend="valgrind"/>,
       <xref linkend="vlc"/>,
@@ -321,12 +321,12 @@ ln -sv ../../../libreoffice-help-&libreoffice-dlversion;.tar.xz         external
     </para>
 
 <screen><userinput>export LO_PREFIX=<replaceable>&lt;PREFIX&gt;</replaceable></userinput></screen>
-<!--
+
     <para>
-     Fix build failures introduced by <application>boost-&boost-version;</application>:
+     Fix build failures introduced by <xref linkend="icu"/>:
     </para>
 
-<screen><userinput>patch -Np1 -i ../libreoffice-&libreoffice-dlversion;-boost_1_60_0-1.patch</userinput></screen>-->
+<screen><userinput>patch -Np1 -i ../libreoffice-&libreoffice-dlversion;-icu_58-1.patch</userinput></screen>
 
     <para>
       Locales "fr" and "en-GB", you will find below, are just examples; you
@@ -344,11 +344,6 @@ ln -sv ../../../libreoffice-help-&libreoffice-dlversion;.tar.xz         external
     -i bin/distro-install-desktop-integration &amp;&amp;
 
 sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
-<!-- Seems to be fixed in 5.1.2.2
-sed -i "s#isnan#std::&amp;#g" xmloff/source/draw/ximp3dscene.cxx &amp;&amp; -->
-
-<!-- fixed in 5.2.0.4
-chmod -v +x bin/unpack-sources &amp;&amp; -->
 
 ./autogen.sh --prefix=$LO_PREFIX         \
              --sysconfdir=/etc           \
@@ -357,7 +352,7 @@ chmod -v +x bin/unpack-sources &amp;&amp; -->
              --with-help                 \
              --with-myspell-dicts        \
              --with-alloc=system         \
-             --without-java              \
+             --without-junit             \
              --without-system-dicts      \
              --disable-dconf             \
              --disable-odk               \
@@ -365,7 +360,7 @@ chmod -v +x bin/unpack-sources &amp;&amp; -->
              --enable-release-build=yes  \
              --enable-python=system      \
              --with-system-apr           \
-             --with-system-boost=yes     \
+             --with-system-boost         \
              --with-system-cairo         \
              --with-system-clucene       \
              --with-system-curl          \
@@ -409,8 +404,6 @@ chmod -v +x bin/unpack-sources &amp;&amp; -->
     </para>
 
 <screen role="root"><userinput>make distro-pack-install</userinput></screen>
-<!-- $LO_PREFIX/share/appdata/*.xml gets installed by distro-pack-install
-in 5.2.0.4 -->
 
     <para>
        If installed in <filename
@@ -511,12 +504,10 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <parameter>--with-system-boost=<replaceable>&lt;yes/no&gt;</replaceable></parameter>:
-      This switch enables/disables use of system boost, so bundled one may be or
-      not used, because currently, depending on the user decision, or if the
-      build is broken with latest <application>Boost</application> in BLFS,
-      which frequently occurs and there is a delay until either a fix is found
-      or it is fixed upstream.
+      <parameter>--with-system-boost</parameter>: This switch enables using
+      system boost. From time to time, recent versions of boost break
+      the build of libreoffice. In this case, it is possible to use the
+      bundled copy of boost, by removing this flag.
     </para>
 
     <para>
@@ -526,17 +517,17 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <parameter>--without-system-dicts</parameter>: This switch disables use
-      of  dictionaries from system paths, so the ones installed by this package
-      are used.
+      <parameter>--without-junit</parameter>: This switch disables the HSQLDB
+      tests (the HSQLDB driver is written in Java). If you want to run the
+      tests, be sure to install <filename>junit.jar</filename> and <filename>
+      hamcrest.jar</filename> in <filename class="directory">/usr/share/java
+      </filename>.
     </para>
 
     <para>
-      <parameter>--without-java</parameter>: This switch disables
-      <application>Java</application> support in
-      <application>LibreOffice</application>. Remove this option if
-      <application>Java</application> is installed and needed.  Most users will
-      not need <application>Java</application> in this application.
+      <parameter>--without-system-dicts</parameter>: This switch disables use
+      of  dictionaries from system paths, so the ones installed by this package
+      are used.
     </para>
 
     <para>
@@ -574,11 +565,10 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <parameter>--with-parallelism=&lt;count&gt;</parameter>: This switch
+      <option>--with-parallelism=&lt;count&gt;</option>: This switch
       tells <application>LibreOffice</application> to use &lt;count&gt; CPU
       cores to compile in parallel.  (Do not include literal angle brackets.)
-      The default is $(getconf _NPROCESSORS_ONLN) which uses all availalble
-      cores on the system.
+      The default is to use all available cores on the system.
     </para>
 
     <para>
@@ -628,6 +618,14 @@ fi</userinput></screen>
       includes a number of third-party TrueType fonts. If you have already
       installed some or all of the same fonts, you may prefer to use the system
       versions.
+    </para>
+
+    <para>
+      <option>--without-java</option>: This switch disables
+      <application>Java</application> support in
+      <application>LibreOffice</application>. Java is needed for the HSQLDB
+      driver, which allows reading databases created by other programs into
+      libreoffice <application>base</application>.
     </para>
 
   </sect2>
