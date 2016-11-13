@@ -33,10 +33,11 @@
 
     <para>
       <application>NetworkManager</application> is a set of co-operative
-      tools that make networking simple and straightforward. Whether WiFi, wired,
-      3G, or Bluetooth, NetworkManager allows you to quickly move from one network
-      to another: Once a network has been configured and joined once, it can be
-      detected and re-joined automatically the next time it's available.
+      tools that make networking simple and straightforward. Whether WiFi,
+      wired, 3G, or Bluetooth, NetworkManager allows you to quickly move from
+      one network to another: Once a network has been configured and joined
+      once, it can be detected and re-joined automatically the next time it's
+      available.
     </para>
 
     &lfs7a_checked;
@@ -248,11 +249,10 @@ make</userinput></screen>
 
       <para>
         For <application>NetworkManager</application> to work, at least
-        minimal configuration file must be present. Such file is not
-        installed with <command>make install</command>. Issue following
-        command as the
-        <systemitem class="username">root</systemitem> user to create
-        minimal <filename>NetworkManager.conf</filename> file:
+        a minimal configuration file must be present. Such file is not
+        installed with <command>make install</command>. Issue the following
+        command as the <systemitem class="username">root</systemitem> user to
+        create minimal <filename>NetworkManager.conf</filename> file:
       </para>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/NetworkManager/NetworkManager.conf &lt;&lt; "EOF"
@@ -266,6 +266,25 @@ EOF</userinput></screen>
          <command>man 5 NetworkManager.conf</command>
          for any additional options.
       </para>
+
+      <para>
+        To allow regular users permission to configure network connections,
+        you should add them to the
+        <systemitem class="groupname">netdev</systemitem>
+        group, and create a <application>polkit</application> rule that grants
+        access. Run the following commands as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>/sbin/usermod -a -G netdev <replaceable>&lt;username&gt;</replaceable>
+
+cat &gt; /usr/share/polkit-1/rules.d/org.freedesktop.NetworkManager.rules &lt;&lt; "EOF"
+<literal>polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 &amp;&amp; subject.isInGroup("netdev")) {
+        return polkit.Result.YES;
+    }
+});</literal>
+EOF</userinput></screen>
 
     </sect3>
 
@@ -286,6 +305,15 @@ EOF</userinput></screen>
         as the <systemitem class="username">root</systemitem> user:
       </para>
 
+      <note>
+        <para>
+          If using <application>Network Manager</application> to manage
+          an interface, any previous configuration for that interface should be
+          removed, and the interface brought down prior to starting
+          <application>Network Manager</application>.
+        </para>
+      </note>
+         
       <indexterm zone="NetworkManager NetworkManager-init">
         <primary sortas="f-NetworkManager">NetworkManager</primary>
       </indexterm>
