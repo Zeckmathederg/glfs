@@ -4,11 +4,16 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
+  <!ENTITY certhost              "https://hg.mozilla.org/">
+  <!ENTITY certpath              "/lib/ckfw/builtins/certdata.txt">
+  <!ENTITY ca-bundle-download    "&sources-anduin-http;/other/certdata.txt">
+  <!ENTITY ca-bundle-size        "1.6 MB">
+  <!ENTITY cacerts-buildsize     "4.7 MB (with all runtime deps)">
+  <!ENTITY cacerts-time          "0.2 SBU (with all runtime deps)">
+
   <!ENTITY make-ca-download      "&sources-anduin-http;/other/make-ca.sh">
-  <!ENTITY make-ca-size          "4.1 KB">
-  <!ENTITY make-ca-md5sum        "487ca7ce6f7b81b3e46362138f93310c">
-  <!ENTITY cacerts-buildsize     "1.4 MB">
-  <!ENTITY cacerts-time          "0.1 SBU">
+  <!ENTITY make-ca-size          "11 KB">
+  <!ENTITY make-ca-md5sum        "fbc5687ce7fd5533edbb4e616a1080de">
 ]>
 
 <sect1 id="cacerts" xreflabel="Certificate Authority Certificates">
@@ -21,14 +26,23 @@
 
   <title>Certificate Authority Certificates</title>
 
-  <para>The Public Key Infrastructure is used for many security features in a
-  Linux system.  In order for a certificate to be trusted, it must be signed by
-  a trusted agent called a Certificate Authority (CA). The certificates
-  installed in this section are obtained from the Mozilla version control
-  system, and reformatted for use by <xref linkend='openssl'/> and
-  <xref linkend='gnutls'/>. The certificates can also be used by other
-  applications, either directly or indirectly by linking to one of these
-  packages.</para>
+  <para>Public Key Infrastructure (PKI) is a method to validate the
+  authenticity of an othewise unknown entity across untrusted networks. PKI
+  works by establishing a chain of trust, rather than trusting each individual
+  host or entity explicitly. In order for a certificate presented by a remote
+  entity to be trusted, that certificate must pesent a complete chain of
+  certificates that can be validated using the root certificate of a
+  Certificate Authority (CA) that is trusted by the local machine.</para>
+  
+  <para>Establishing trust with a CA involves validating things like company
+  address, ownership, contact information, etc., and ensuring that the CA has
+  followed best practices, such as udergoing periodic security audits by
+  independent investegators and maintaining an always avaialable certificate
+  revocation list. This is well outside the scope of BLFS (as it is for most
+  Linux distributions). The certificate store provided here is taken from the
+  Mozilla Foundation, who have established very strict inclusion policies
+  described
+  <ulink url="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/">here</ulink>.</para>
 
   &lfs7a_checked;
 
@@ -58,11 +72,26 @@
       </listitem>
     </itemizedlist>
 
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          CA Certificates
+          <ulink url="&ca-bundle-download;"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Certificate Authority Certificates Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="openssl"/> and
-    <xref linkend="curl"/></para>
+    <para role="required"><xref linkend="openssl"/></para>
+
+   <bridgehead renderas="sect4">Optional (runtime)</bridgehead>
+    <para role="optional">
+    <xref linkend="java"/> or <xref linkend="openjdk"/>, and
+    <xref linkend="nss"/></para>
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url='&blfs-wiki;/cacerts'/></para>
@@ -71,45 +100,93 @@
   <sect2 role="installation">
     <title>Installation of Certificate Authority Certificates</title>
 
-   <para>The <application>make-ca.sh</application> script will download a set
-   of certificates from one of five projects (aurora, beta, central, nss, or
-   release) in the Mozialla version control system. It defaults to the release
-   branch, which is identical to the version that ships with the Mozilla
-   products in this book. If you'd like to change the branch that is retrieved,
-   edit the file and set <envar>CERTSOURCE</envar> to one of the five values
-   above.</para>
+    <para>The <application>make-ca.sh</application> script will adapt the
+    certificates included in the <filename>certdata.txt</filename> file
+    for use in multiple certificate stores (if the associated applications are
+    present on the system). Additionally, any local certificates stored in
+    <filename>/etc/ssl/local</filename> will be imported to the ceritificate
+    stores. Certificates in this directory should be stored as PEM encoded
+    <application>OpenSSL</application> trusted certificates.</para>
 
-   <para>Additionally, any local certificates stored in
-   <filename>/etc/ssl/local</filename> will be copied into both the single-file
-   <filename>/etc/ssl/ca-bundle.crt</filename> (used by programs that link to
-   <application>gnutls</application>), and into the certificate store directory
-   <filename>/etc/ssl/certs</filename> (used by programs that link to
-   <application>OpenSSL</application>). All certificates will pass a date and
-   trust validation, and any existing certificates in
-   <filename>/etc/ssl/ca-bundle.crt</filename> or
-   <filename>/etc/ssl/certs</filename> will be removed upon successful
-   completion of this script.</para>
+    <para>To create an <application>OpenSSL</application> trusted certificate
+    from a regular PEM encoded file, provided by a CA not included in Mozilla's
+    certificate distribution, you need to add trust arguments to the
+    <command>openssl</command> command, and create a new certificate. There are
+    three trust types that are recognised by the
+    <application>make-ca.sh</application> script, SSL/TLS, S/Mime, and code
+    signing. For example, to allow a certificate to be trusted for both
+    SSL/TLS and S/Mime, but explicitly rejected for code signing, you could use
+    the following commands to create a new trusted ceritificate that has those
+    trust attributes:</para>
 
-   <para>Finally, if you've installed <xref linkend="java"/> or <xref
-   linkend="openjdk"/>, then it will also update the java cacerts file at
-   <filename>/etc/ssl/java/cacerts</filename>.</para>
+<screen><literal>openssl x509 -in MyRootCA.pem -text -fingerprint -setalias "My Root CA 1"     \
+        -addtrust serverAuth -addtrust emailProtection -addreject codeSigning \
+        > MyRootCA-trusted.pem</literal></screen>
 
-    <para>First install the above script into the correct location. As the
-    <systemitem class="username">root</systemitem> user:</para>
+    <para>If a trust argument is omitted, the certificate is neither trusted,
+    nor rejected. Clients that use <application>OpenSSL</application> or
+    <application>NSS</application> encountering this certificate will present
+    a warning to the user. Clients using <application>GnuTLS</application>
+    without <application>p11-kit</application> support are not aware of trusted
+    certificates. To include this CA into the ca-bundle.crt (used for
+    <application>GnuTLS</application>), it must, at very least, have the
+    serverAuth trust.</para> 
 
-<screen role="root"><userinput>install -vm750 make-ca.sh /usr/sbin</userinput></screen>
+    <para>To install the various certificate stores, first install the
+    <application>make-ca.sh</application> script into the correct location.
+    As the <systemitem class="username">root</systemitem> user:</para>
 
-   <para>As the <systemitem class="username">root</systemitem> user, create the
-   needed directories, and update the certificate store:</para>
+<screen role="root"><userinput>install -vm755 make-ca.sh /usr/sbin</userinput></screen>
 
-<screen role="root"><userinput>install -vdm755 /etc/ssl/{certs,java,local} &amp;&amp;
-/usr/sbin/make-ca.sh
-</userinput></screen>
+   <para>As the <systemitem class="username">root</systemitem> user, make sure
+   that certdata.txt is in the current direcotry, and update the certificate
+   stores with the following command:</para>
 
-    <para>You should periodically run the <application>make-ca.sh</application>
-    script (as the <systemitem class="username">root</systemitem> user), or as
-    part of a monthly <application>cron</application> job to ensure that you
-    have the latest available version of the certificates.</para>
+<screen role="root"><userinput>/usr/sbin/make-ca.sh</userinput></screen>
+
+    <para>You should periodically download a copy of
+    <filename>certdata.txt</filename> and run the
+    <application>make-ca.sh</application> script (as the
+    <systemitem class="username">root</systemitem> user), or as part of a
+    monthly <application>cron</application> job to ensure that you have the
+    latest available version of the certificates.</para>
+
+    <para>The <filename>certdata.txt</filename> file provided by BLFS is
+    obtained from the mozilla-release branch, and is modified to provide a
+    simple dated revision. This will be the correct verision for most
+    systems. There are, however, several other variants of the file available
+    for use that might be preferred for one reason or another, including all
+    Mozilla products in this book. RedHat and OpenSUSE, for instace, use the
+    version included in <xref linkend="nss"/>. Additional download locations
+    are available at:</para>
+
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Mozilla Release (the version provided by BLFS):
+        <ulink url="&certhost;releases/mozilla-release/raw-file/default/security/nss&certpath;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>NSS (this is the latest availalbe version):
+        <ulink url="&certhost;projects/nss/raw-file/tip/lib&certpath;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>Mozilla Central:
+        <ulink url="&certhost;mozilla-central/raw-file/default/security/nss&certpath;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>Mozilla Beta:
+        <ulink url="&certhost;releases/mozilla-beta/raw-file/default/security/nss&certpath;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>Mozilla Aurora:
+        <ulink url="&certhost;releases/mozilla-aurora/raw-file/default/security/nss&certpath;"/>
+        </para>
+      </listitem>
+    </itemizedlist>
 
   </sect2>
 
@@ -124,7 +201,7 @@
       <seglistitem>
         <seg>make-ca.sh</seg>
         <seg>None</seg>
-        <seg>/etc/ssl/{certs,java,local}</seg>
+        <seg>/etc/ssl/{certs,java,local} and /etc/pki/{nssdb,anchors}</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -136,7 +213,7 @@
       <varlistentry id="make-ca">
         <term><command>make-ca.sh</command></term>
         <listitem>
-          <para>is a shell script that downloads a current version of
+          <para>is a shell script that adapts a current version of
           <filename>certdata.txt</filename>, and prepares it for use
           as the system certificate store.</para>
           <indexterm zone="cacerts make-ca">
