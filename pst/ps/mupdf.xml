@@ -8,10 +8,10 @@
 can be found there, no need to change directory -->
   <!ENTITY mupdf-download-http "http://www.mupdf.com/downloads/archive/mupdf-&mupdf-version;-source.tar.gz">
   <!ENTITY mupdf-download-ftp  " ">
-  <!ENTITY mupdf-md5sum        "6677c6386e8408a72826a0b7bc647a45">
-  <!ENTITY mupdf-size          "20 MB">
-  <!ENTITY mupdf-buildsize     "145 MB">
-  <!ENTITY mupdf-time          "0.4 SBU">
+  <!ENTITY mupdf-md5sum        "fbe3313cc2e7455aa21cacc64262088b">
+  <!ENTITY mupdf-size          "40 MB">
+  <!ENTITY mupdf-buildsize     "325 MB">
+  <!ENTITY mupdf-time          "0.5 SBU">
 ]>
 
 <sect1 id="mupdf" xreflabel="mupdf-&mupdf-version;">
@@ -75,14 +75,8 @@ can be found there, no need to change directory -->
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch:
-          <ulink url="&patch-root;/mupdf-&mupdf-version;-upstream_fix-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
           Recommended patch:
-          <ulink url="&patch-root;/mupdf-&mupdf-version;-openjpeg21-1.patch"/>
+          <ulink url="&patch-root;/mupdf-&mupdf-version;-shared_libs-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -105,6 +99,7 @@ can be found there, no need to change directory -->
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="openssl"/>,
+      <xref linkend="xdg-utils"/> (runtime),
       <ulink url="http://www.glfw.org/">GLFW</ulink>, and
       <ulink url="http://downloads.ghostscript.com/public/jbig2dec/">jbig2dec</ulink>
     </para>
@@ -134,8 +129,9 @@ rm -rf thirdparty/jpeg     &amp;&amp;
 rm -rf thirdparty/openjpeg &amp;&amp;
 rm -rf thirdparty/zlib     &amp;&amp;
 
-patch -Np1 -i ../mupdf-&mupdf-version;-upstream_fix-1.patch &amp;&amp;
-patch -Np1 -i ../mupdf-&mupdf-version;-openjpeg21-1.patch &amp;&amp;
+sed '/OPJ_STATIC$/d' -i source/fitz/load-jpx.c &amp;&amp;
+
+patch -Np1 -i ../mupdf-&mupdf-version;-shared_libs-1.patch &amp;&amp;
 
 make build=release</userinput></screen>
 
@@ -147,9 +143,29 @@ make build=release</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>install -v -m 755 build/release/mupdf-x11-curl /usr/bin/mupdf &amp;&amp;
+<screen role="root"><userinput>make prefix=/usr                      \
+     build=release                    \
+     docdir=/usr/share/doc/mupdf-&mupdf-version; \
+     install                          &amp;&amp;
+ln -sfv mupdf-x11-curl /usr/bin/mupdf</userinput></screen>
 
-install -v -m 644 docs/man/mupdf.1 /usr/share/man/man1/</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>sed '/OPJ_STATIC$/d' ... </command>: Remove a switch, which
+      prevents using shared libraries for <application>openjpeg2</application>.
+    </para>
+
+    <para>
+      <command>ln -sfv mupdf-x11-curl /usr/bin/mupdf </command>: Three
+      <command>mupdf</command> executables are installed:
+      <command>mupdf-gl</command>, <command>mupdf-x11</command>, and
+      <command>mupdf-x11-curl</command>. This symbolic link allows to choose
+      which one is used when running <command>mupdf</command>.
+    </para>
 
   </sect2>
 
@@ -162,9 +178,10 @@ install -v -m 644 docs/man/mupdf.1 /usr/share/man/man1/</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>mupdf</seg>
-        <seg>None</seg>
-        <seg>None</seg>
+        <seg>mujstest, mupdf(symlink), mupdf-gl, mupdf-x11, mupdf-x11-curl,
+        muraster, mutool</seg>
+        <seg>libmupdf.so, libmupdfthird.so</seg>
+        <seg>/usr/include/mupdf, /usr/share/doc/mupdf-&mupdf-version;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -173,17 +190,118 @@ install -v -m 644 docs/man/mupdf.1 /usr/share/man/man1/</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
+      <varlistentry id="mujstest">
+        <term><command>mujstest</command></term>
+        <listitem>
+          <para>
+            is a test program for mupdf + javascript
+          </para>
+          <indexterm zone="mupdf mujstest">
+            <primary sortas="b-mujstest">mujstest</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="mupdf-prog">
         <term><command>mupdf</command></term>
         <listitem>
           <para>
-            is a program for viewing PDF and XPS documents.
+            is a program for viewing PDF, XPS, EPUB, and CBZ documents,
+            and various image formats such as PNG, JPEG, GIFF, and TIFF.
           </para>
           <indexterm zone="mupdf mupdf-prog">
             <primary sortas="b-mupdf">mupdf</primary>
           </indexterm>
         </listitem>
       </varlistentry>
+
+      <varlistentry id="mupdf-gl">
+        <term><command>mupdf-gl</command></term>
+        <listitem>
+          <para>
+            same as <command>mupdf</command>, using an opengl renderer.
+          </para>
+          <indexterm zone="mupdf mupdf-gl">
+            <primary sortas="b-mupdf-gl">mupdf-gl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mupdf-x11">
+        <term><command>mupdf-x11</command></term>
+        <listitem>
+          <para>
+            same as <command>mupdf</command>, using an X Window renderer.
+          </para>
+          <indexterm zone="mupdf mupdf-x11">
+            <primary sortas="b-mupdf-x11">mupdf-x11</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mupdf-x11-curl">
+        <term><command>mupdf-x11-curl</command></term>
+        <listitem>
+          <para>
+            same as <command>mupdf</command>, using an X Window renderer,
+            with the capability of rendering web pages, using an
+            <quote>http://...</quote> url.
+          </para>
+          <indexterm zone="mupdf mupdf-x11-curl">
+            <primary sortas="b-mupdf-x11-curl">mupdf-x11-curl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="muraster">
+        <term><command>muraster</command></term>
+        <listitem>
+          <para>
+            transforms files in one of the formats displayable by mupdf into
+            a graphic file.
+          </para>
+          <indexterm zone="mupdf muraster">
+            <primary sortas="b-muraster">muraster</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="mutool">
+        <term><command>mutool</command></term>
+        <listitem>
+          <para>
+            deals with document files in various manners.
+          </para>
+          <indexterm zone="mupdf mutool">
+            <primary sortas="b-mutool">mutool</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libmupdf">
+        <term><filename class="libraryfile">libmupdf.so</filename></term>
+        <listitem>
+          <para>
+            contains the mupdf API functions.
+          </para>
+          <indexterm zone="mupdf libmupdf">
+            <primary sortas="c-libmupdf">libmupdf.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libmupdfthird">
+        <term><filename class="libraryfile">libmupdfthird.so</filename></term>
+        <listitem>
+          <para>
+            contains the third party libraries compiled for mudpf.
+          </para>
+          <indexterm zone="mupdf libmupdfthird">
+            <primary sortas="c-libmupdfthird">libmupdfthird.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
     </variablelist>
 
   </sect2>
