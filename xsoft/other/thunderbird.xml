@@ -7,10 +7,10 @@
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
 <!--  <!ENTITY thunderbird-download-ftp "&mozilla-ftp;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">-->
   <!ENTITY thunderbird-download-ftp " ">
-  <!ENTITY thunderbird-md5sum            "f90365e69f33efa8c2e69bbc6bb5b3a3">
+  <!ENTITY thunderbird-md5sum            "39b50c7659fa106eb53e5ea4c8bc7b2a">
   <!ENTITY thunderbird-size              "192 MB">
-  <!ENTITY thunderbird-buildsize         "3.6 GB (80 MB installed)">
-  <!ENTITY thunderbird-time              "11 SBU (with -j4, 35 SBU with -j1)">
+  <!ENTITY thunderbird-buildsize         "3.6 GB (88 MB installed)">
+  <!ENTITY thunderbird-time              "11 SBU (with -j4, 36 SBU with -j1)">
 ]>
 
 <sect1 id="thunderbird" xreflabel="Thunderbird-&thunderbird-version;">
@@ -206,6 +206,11 @@ ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-icu
 
+# Set CFLAGS and CXXFLAGS to prevent segfaults due to agressive
+# optimizations in GCC-6:
+export CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+export CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2"
+
 # The BLFS editors recommend not changing anything below this line:
 ac_add_options --prefix=/usr
 ac_add_options --enable-application=mail
@@ -249,7 +254,7 @@ test $(uname -m) = "i686" && sed -i 's/enable-optimize/disable-optimize/' mozcon
 
     <note><para>
       If you are compiling <application>Thunderbird</application> in chroot,
-      prepend <envar>SHELL=/bin/sh</envar> to the <!--first -->make command below.
+      prepend <envar>SHELL=/bin/sh</envar> to the make command below.
     </para></note>
 
 <screen><userinput>sed -e '/#include/i\
@@ -260,10 +265,6 @@ sed -e '/#include/a\
     print OUT "#undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS\\n"\;' \
     -i mozilla/nsprpub/config/make-system-wrappers.pl &amp;&amp;
 
-export CFLAGS_HOLD=$CFLAGS &amp;&amp;
-export CXXFLAGS_HOLD=$CXXFLAGS &amp;&amp;
-export CFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
-export CXXFLAGS+=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
 
 make -f client.mk</userinput></screen>
 
@@ -278,14 +279,6 @@ make -f client.mk</userinput></screen>
 
 <screen role="root"><userinput>make -f client.mk install INSTALL_SDK= &amp;&amp;
 chown -R 0:0 /usr/lib/thunderbird-&thunderbird-version;</userinput></screen>
-
-    <para>
-      Set the compilation flags back to their original values:
-    </para>
-
-<screen><userinput>export CFLAGS=$CFLAGS_HOLD     &amp;&amp;
-export CXXFLAGS=$CXXFLAGS_HOLD &amp;&amp;
-unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
 
 <!-- thunderbuild directory does not exist anymore. Leaving as comment,
 in case an editor figures out how to install the development environment.
