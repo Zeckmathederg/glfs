@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY x7legacy-download-http "&xorg-download-http;/">
+  <!ENTITY x7legacy-download-ftp  "&xorg-download-ftp;/">
+  <!ENTITY x7legacy-size          "1.7 MB">
+  <!ENTITY x7legacy-buildsize     "70 MB">
+  <!ENTITY x7legacy-time          "0.4 SBU">
+
+  <!ENTITY libXfont-version                "1.5.2">
+  <!ENTITY libXfont-md5sum                 "254ee42bd178d18ebc7a73aacfde7f79">
+
+  <!ENTITY bdftopcf-version                "1.0.5">
+  <!ENTITY bdftopcf-md5sum                 "53a48e1fdfec29ab2e89f86d4b7ca902">
+
+  <!ENTITY font-adobe-100dpi-version       "1.0.3">
+  <!ENTITY font-adobe-100dpi-md5sum        "1347c3031b74c9e91dc4dfa53b12f143">
+
+]>
+
+<sect1 id="xorg7-legacy" xreflabel="Xorg Legacy">
+  <?dbhtml filename="x7legacy.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Xorg Legacy</title>
+
+  <indexterm zone="xorg7-legacy">
+    <primary sortas="a-xorg7-legacy">Xorg Legacy</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Xorg Legacy</title>
+
+    <para><application>Xorg</application>&apos;s ancestor (X11R1, in 1987) at
+    first only provided bitmap fonts, with a tool (<command>bdftopcf</command>)
+    to assist in their installation. With the introduction of
+    <application>xorg-server-1.19.0</application>
+    and <application>libXfont2</application> many people will not need them.
+    There are still a few old packages which might require, or benefit from,
+    these deprecated fonts and so the following packages are shown here.</para>
+
+    <note>
+      <para>
+        The font-adobe-100dpi package installs 100 dots per inch versions of
+        Courier, Helvetica, New Century Schoolbook and Times fonts. In previous
+        versions of BLFS a lot more fonts were installed, and also 75 dots per
+        inch versions.
+      </para>
+
+      <para revision="sysv">
+       Please consult the BLFS-7.10 book at <ulink
+       url="http://www.linuxfromscratch.org/blfs/view/7.10/x/x7font.html"/>
+       if you wish to install any of those other fonts.
+      </para>
+
+      <para revision="systemd">
+       Please consult the BLFS-7.10 systemd book at <ulink
+       url="http://www.linuxfromscratch.org/blfs/view/7.10-systemd/x/x7font.html"/>
+       if you wish to install any of those other fonts.
+      </para>
+    </note>
+
+    &lfs7a_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP): <ulink url="&x7legacy-download-http;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download (FTP): <ulink url="&x7legacy-download-ftp;"/></para>
+      </listitem>
+      <listitem>
+        <para>Download size: &x7legacy-size;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated disk space required: &x7legacy-buildsize;</para>
+      </listitem>
+      <listitem>
+        <para>Estimated build time: &x7legacy-time;</para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Xorg Legacy Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="xcursor-themes"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional"><xref linkend="xmlto"/> with one or more of the
+    following: <xref linkend="fop"/>,
+    <xref linkend="Links"/>,
+    <xref linkend="lynx"/>,
+    and <xref linkend="w3m"/> (to generate additional PDF or text
+    documentation for the libXfont package).</para>
+
+    <para condition="html" role="usernotes">User Notes:
+    <ulink url='&blfs-wiki;/Xorg7Legacy'/></para>
+
+  </sect2>
+
+  <sect2>
+    <title>Downloading Xorg Legacy</title>
+
+    <para>First, create a list of files to be downloaded. This file will also
+    be used to verify the integrity of the downloads when complete:</para>
+
+<screen><userinput>cat &gt; legacy.dat &lt;&lt; "EOF"
+<literal>&libXfont-md5sum; lib/ libXfont-&libXfont-version;.tar.bz2
+&bdftopcf-md5sum; app/ bdftopcf-&bdftopcf-version;.tar.bz2
+&font-adobe-100dpi-md5sum; font/ font-adobe-100dpi-&font-adobe-100dpi-version;.tar.bz2</literal>
+EOF</userinput></screen>
+
+    <para>To download the needed files using <application>wget</application>,
+    use the following commands:</para>
+
+<screen><userinput>mkdir legacy &amp;&amp;
+cd legacy &amp;&amp;
+grep -v '^#' ../legacy.dat | awk '{print $2$3}' | wget -i- -c \
+    -B &xorg-download-http;/ &amp;&amp;
+grep -v '^#' ../legacy.dat | awk '{print $1 " " $3}' >../legacy.md5 &amp;&amp;
+md5sum -c ../legacy.md5</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Xorg Legacy</title>
+
+&as_root;
+
+    <para>First, start a subshell that will exit on error:</para>
+
+<screen><userinput>bash -e</userinput></screen>
+
+    <para>Install all of the packages by running the following
+    commands:</para>
+
+<screen><userinput>for package in $(grep -v '^#' ../legacy.md5 | awk '{print $2}')
+do
+  packagedir=${package%.tar.bz2}
+  tar -xf $package
+  pushd $packagedir
+  case $packagedir in
+    libXfont-[0-9]* )
+      ./configure $XORG_CONFIG --disable-devel-docs
+    ;;
+    * )
+      ./configure $XORG_CONFIG
+    ;;
+  esac
+  make
+  as_root make install
+  popd
+  rm -rf $packagedir
+  as_root /sbin/ldconfig
+done</userinput></screen>
+
+    <para>Finally, exit the shell that was started earlier:</para>
+
+<screen><userinput>exit</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para><parameter>--disable-devel-docs</parameter>: Disable generation of
+    text documentation in the libXfont package if
+    <xref linkend="xmlto"/> is installed without a text browser. Omit
+    this parameter (or the entire <command>case</command> statement) if a text
+    browser is installed.</para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>bdftopcf</seg>
+        <seg>libXfont</seg>
+        <seg><envar>$XORG_PREFIX</envar>/share/fonts/100dpi</seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="bdftopcf-x7">
+        <term><command>bdftopcf</command></term>
+        <listitem>
+          <para>converts an X font from Bitmap Distribution Format to Portable
+          Compiled Format.</para>
+          <indexterm zone="xorg7-legacy bdftopcf-x7">
+            <primary sortas="b-bdftopcf">bdftopcf</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libXfont">
+        <term><filename class="libraryfile">libXfont.so</filename></term>
+        <listitem>
+          <para>is an old version of the X font library.</para>
+          <indexterm zone="xorg7-legacy libXfont">
+            <primary sortas="c-libXfont">libXfont.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
