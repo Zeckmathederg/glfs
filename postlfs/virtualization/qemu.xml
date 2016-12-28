@@ -6,10 +6,10 @@
 
   <!ENTITY qemu-download-http "http://wiki.qemu.org/download/qemu-&qemu-version;.tar.bz2">
   <!ENTITY qemu-download-ftp  " ">
-  <!ENTITY qemu-md5sum        "08d4d06d1cb598efecd796137f4844ab">
-  <!ENTITY qemu-size          "26 MB">
-  <!ENTITY qemu-buildsize     "579 MB (with tests)">
-  <!ENTITY qemu-time          "3.5 SBU (with tests)">
+  <!ENTITY qemu-md5sum        "17940dce063b6ce450a12e719a6c9c43">
+  <!ENTITY qemu-size          "27 MB">
+  <!ENTITY qemu-buildsize     "435 MB (add 315 MB for tests)">
+  <!ENTITY qemu-time          "2.1 SBU (add 1.6 SBU for tests)">
 ]>
 
 <sect1 id="qemu" xreflabel="qemu-&qemu-version;">
@@ -68,7 +68,7 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="sdl"/>
+      <xref linkend="sdl2"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -85,11 +85,12 @@
       <xref linkend="libgcrypt"/>,
       <xref linkend="lzo"/>,
       <xref linkend="nettle"/>,
-      <xref linkend="nss"/> (for libcacard.so),
       <xref linkend="mesa"/>,
       <xref linkend="sdl"/>,
-      <xref linkend="vte"/>, and
-      <ulink url="http://www.libssh2.org">libssh2</ulink>
+      <xref linkend="vte"/> or <xref linkend="vte2"/>,
+<!-- libcacard has been a standalone project since qemu-2.5.-->
+      <ulink url="https://www.spice-space.org/page/Libcacard">libcacard</ulink>,
+      and <ulink url="http://www.libssh2.org">libssh2</ulink>
     </para>
 
     <note>
@@ -137,8 +138,11 @@
     <para>The Intel or AMD settings are not both required, but the one matching
     your system processor is required.</para>
 
-    <para>For networking, check that <xref linkend='bridgeutils'/> is installed
-    and the following options in the kernel configuration are enabled:</para>
+    <para>
+      To use the <quote>bridge</quote> network device, as explained below,
+      check that <xref linkend='bridgeutils'/> is installed
+      and the following options in the kernel configuration are enabled:
+    </para>
 
 <screen><literal>[*] Networking support  ---&gt;                         [CONFIG_NET]
   Networking options  ---&gt;
@@ -151,6 +155,21 @@ Device Drivers  ---&gt;
 
   <sect2 role="installation">
     <title>Installation of qemu</title>
+
+    <para>
+      You will need a dedicated group that will contain users (other than root)
+      allowed to access the KVM device.  Create this group by running the
+      following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>groupadd -g 61 kvm</userinput></screen>
+
+    <para>
+      Add any users that might use the KVM device to that group:
+    </para>
+
+<screen role="root"><userinput>usermod -a -G kvm <replaceable>&lt;username&gt;</replaceable></userinput></screen>
 
     <para>Install <application>qemu</application> by running the following
     commands:</para>
@@ -175,6 +194,7 @@ cd        build &amp;&amp;
              --sysconfdir=/etc           \
              --target-list=$QEMU_ARCH    \
              --audio-drv-list=alsa       \
+             --with-sdlabi=2.0           \
              --docdir=/usr/share/doc/qemu-&qemu-version; &amp;&amp;
 
 unset QEMU_ARCH &amp;&amp;
@@ -185,33 +205,28 @@ make</userinput></screen>
       To run the built in tests, run <command>make V=1 -k check</command>.
     </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
     <para>
-      You will need a dedicated group that will contain users (other than root)
-      allowed to access the KVM device.  Create this group by running the
-      following command as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>groupadd -g 61 kvm</userinput></screen>
-
-    <para>
-      Add any users that might use the KVM device to that group:
-    </para>
-
-<screen role="root"><userinput>usermod -a -G kvm <replaceable>&lt;username&gt;</replaceable></userinput></screen>
-
-    <para>
-      You will also need to add a Udev rule so that the KVM device gets correct
+      You will also need to add an Udev rule so that the KVM device gets correct
       permissions:
     </para>
 
 <screen role="root"><userinput>cat > /lib/udev/rules.d/65-kvm.rules &lt;&lt; "EOF"
 <literal>KERNEL=="kvm", GROUP="kvm", MODE="0660"</literal>
 EOF</userinput></screen>
+
+    <para>
+      Change the permissions and ownership of a helper script, which is needed
+      when using the <quote>bridge</quote> network device (see below):
+    </para>
+
+<screen role="root"><userinput>chgrp kvm  /usr/libexec/qemu-bridge-helper &amp;&amp;
+chmod 4750 /usr/libexec/qemu-bridge-helper</userinput></screen>
 
     <note>
       <para>For convenience you may want to create a symbolic link to run
@@ -232,86 +247,191 @@ EOF</userinput></screen>
       OSS.
     </para>
 
+    <para>
+      <parameter>--with-sdlabi=2.0</parameter>: Chooses to build with SDL-2 if
+      both SDL and SDL-2 are installed.
+    </para>
+
+    <para>
+      <option>--with-gtkabi=3.0</option>: builds with GTK+-3 if both GTK+-2
+      and GTK+-3 are installed.
+    </para>
+
   </sect2>
 
-  <sect2 role="configuration">
-    <title>Configuring qemu</title>
+  <sect2 role="using">
+    <title>Using Qemu</title>
 
-    <para>To generate an image, run:</para>
+    <para>
+      Since using qemu means using a virtual computer, the steps to set up
+      the virtual machine are in close analogy with those to set up a real
+      computer. You'll need to decide about CPU, memory, disk, USB devices,
+      network card(s), screen size, etc. Once the <quote>hardware</quote> is
+      decided, you'll have for example to choose how to connect the machine
+      to internet, and/or to install an OS. In the following, we show basic
+      ways of performing those steps. But qemu is much more than this, and it
+      is strongly advised to read the qemu documentation in
+      <filename>/usr/share/doc/qemu-&qemu-version;/qemu-doc.html</filename>.
+    </para>
 
-    <screen><userinput>qemu-img create -f qcow2 vdisk.img 10G</userinput></screen>
+    <note>
+      <para>
+        It is standard practice to name the computer running qemu
+        <quote>host</quote> and the emulated machine running under qemu the
+        <quote>guest</quote>. We'll use those notations in the following.
+      </para>
+    </note>
 
-    <para>Adjust the virtual disk size and image filename as desired.  The
-    actual size of the file will be less than specified, but will expand as it
-    is used.</para>
+    <note>
+      <para>
+        The following instructions assume the optional symbolic link,
+        <filename>qemu</filename>, has been created. Additionally,
+        <command>qemu</command> must be run from an X Window System based
+        terminal (either locally or over ssh).
+      </para>
+    </note>
 
-    <note><para>The following instructions assume you have created the optional
-    symbolic link, <userinput>qemu</userinput>.  Additionally, you must run
-    <userinput>qemu</userinput> from an X Window System based terminal
-    (either locally or over ssh).</para></note>
+    <bridgehead renderas="sect3">Disk</bridgehead>
+    <para>
+      A virtual disk may be set up in the following way:
+    </para>
 
-    <para>To install an operating system, download an iso of your choice or use
-    a pre-installed cdrom device.  For the purposes of this example, use
-    Fedora 16 that is downloaded as
-    <filename>Fedora-16-x86_64-Live-LXDE.iso</filename> in the current
-    directory.  Run the following:</para>
+<screen><userinput>VDISK_SIZE=<replaceable>50G</replaceable>
+VDISK_FILENAME=<replaceable>vdisk.img</replaceable>
+qemu-img create -f qcow2 $VDISK_FILENAME $VDISK_SIZE</userinput></screen>
 
-<screen><userinput>qemu -enable-kvm -hda vdisk.img            \
+    <para>
+      The virtual disk size and filename should be ajusted as desired. The
+      actual size of the file will be less than specified, but will expand as
+      needed, so it is safe to put a high value.
+    </para>
+
+    <bridgehead renderas="sect3">Operating System</bridgehead>
+    <para>
+      To install an operating system, download an iso image from your prefered
+      Linux distribution. For the purposes of this example, we'll use
+      <filename>Fedora-16-x86_64-Live-LXDE.iso</filename> in the current
+      directory. Run the following:
+    </para>
+
+<screen><userinput>qemu -enable-kvm                           \
+     -drive file=$VDISK_FILENAME           \
      -cdrom Fedora-16-x86_64-Live-LXDE.iso \
      -boot d                               \
-     -m 384</userinput></screen>
+     -m <replaceable>1G</replaceable></userinput></screen>
 
-    <para>Follow the normal installation procedures for the chosen
-    distribution.  The -boot option specifies the boot order of drives as a
-    string of drive letters. Valid drive letters are: a, b (floppy 1 and 2), c
-    (first hard disk), d (first CD-ROM).  The -m option is the amount of memory
-    to use for the virtual machine.  If you have sufficient memory (2G or
-    more), 1G is a reasonable value.  For computers with 512MB of RAM it's safe
-    to use -m 192, or even -m 128 (the default).  The -enable-kvm option allows
-    for hardware acceleration.  Without this switch, the emulation is
-    relatively slow.</para>
+    <para>
+      Follow the normal installation procedures for the chosen distribution.
+      The <parameter>-boot</parameter> option specifies the boot order of
+      drives as a string of drive letters. Valid drive letters are: a, b
+      (floppy 1 and 2), c (first hard disk), d (first CD-ROM). The
+      <parameter>-m</parameter> option is the amount of memory to use for the
+      virtual machine. The choice depends on the load of the host. Modern
+      distributions should be comfortable with 1GB.
+      The <parameter>-enable-kvm</parameter> option allows hardware
+      acceleration. Without this switch, the emulation is much slower.
+    </para>
 
-    <para>To run the newly installed operating system, run:</para>
+    <bridgehead renderas="sect3">Defining the virtual hardware</bridgehead>
+    <para>
+      The virtual machine hardware is defined by the qemu command line.
+      An example command is given below:
+    </para>
 
-<screen><userinput>qemu -enable-kvm vdisk.img -m 384</userinput></screen>
+<screen><userinput>qemu -enable-kvm                     \
+     -smp 4                          \
+     -cpu host                       \
+     -m 1G                           \
+     -drive file=$VDISK_FILENAME     \
+     -cdrom grub-img.iso             \
+     -boot order=c,once=d,menu=on    \
+     -net nic,netdev=net0            \
+     -netdev user,id=net0            \
+     -soundhw ac97                   \
+     -vga std                        \
+     -serial mon:stdio               \
+     -name "fedora-16"</userinput></screen>
 
-    <para>You may have problem with <parameter>-enable-kvm</parameter>.  Also,
-    you may want to define audio and video drivers, number of cpu cores and
-    threads. An alternative command to install the operating system is (see qemu
-    man page for the parameters definitions):</para>
+    <bridgehead renderas="sect3">Meaning of the command line options</bridgehead>
+    <para>
+      <parameter>-enable-kvm</parameter>: enable full KVM virtualization
+      support. On some hardware, it may be necessary to add the undocumented
+      <option>-machine smm=off</option> option in order to enable KVM.
+    </para>
 
-<screen><userinput>qemu -enable-kvm             \
-     -cdrom /home/fernando/ISO/linuxmint-17.1-mate-32bit.iso \
-     -boot order=d           \
-     -m 1G,slots=3,maxmem=4G \
-     -machine smm=off        \
-     -soundhw es1370         \
-     -cpu host               \
-     -smp cores=4,threads=2  \
-     -vga std                \
-     vdisk.img</userinput></screen>
+    <para>
+      <parameter>-smp &lt;N&gt;</parameter>: enable symmetric multiprocessing
+      with &lt;N&gt; CPUs.
+    </para>
 
-    <para>One parameter not appearing in the qemu man page is
-    <parameter>-machine smm=off</parameter>, and is used to allow
-    <parameter>-enable-kvm</parameter> in some systems. In order to run the
-    machine, you can alternatively issue:</para>
+    <para>
+      <parameter>-cpu &lt;model&gt;</parameter>: simulate CPU &lt;model&gt;.
+      the list of supported models can be obtained with <option>-cpu
+      help</option>.
+    </para>
 
-<screen><userinput>qemu -enable-kvm             \
-     -machine smm=off        \
-     -boot order=d           \
-     -m 1G,slots=3,maxmem=4G \
-     -soundhw es1370         \
-     -cpu host               \
-     -smp cores=4,threads=2  \
-     -vga vmware             \
-     -hda vdisk.img</userinput></screen>
+    <para>
+      <parameter>-drive file=&lt;filename&gt;</parameter>: defines a virtual
+      disk whose image is stored in <filename>&lt;filename&gt;</filename>.
+    </para>
 
-    <para>Sometimes, you want the machine to have different screen sizes than
-    the ones natively offered by the virtual grahics card. The example below is
-    for qemu vmware graphics card, which uses <xref
-    linkend="xorg-vmmouse-driver"/> and is set to give maximum screen size of
-    1600x900. As the <systemitem class="username">root</systemitem> user,
-    issue:</para>
+    <para>
+      <parameter>-cdrom grub-img.iso</parameter>: defines an iso formated file
+      to use as a cdrom. Here we use a grub rescue disk, which may turn handy
+      when something goes wrong at boot time.
+    </para>
+
+    <para>
+      <parameter>-boot order=c,once=d,menu=on</parameter>: defines the boot
+      order for the virtual BIOS.
+    </para>
+
+    <para>
+      <parameter>-net nic,netdev=&lt;netid&gt;</parameter>: defines a network
+      card connected to the network device with id &lt;netid&gt;.
+    </para>
+
+    <para>
+      <parameter>-netdev user,id=&lt;netid&gt;</parameter>: defines the
+      network <quote>user</quote> device. This is a virtual local network
+      with addresses 10.0.2.0/24, where the host has address 10.0.2.2 and
+      acts as a gateway to internet, and with a name server at address
+      10.0.2.3, and an smb server at address 10.0.2.4. A builtin DHCP server
+      can allocate addresses between 10.0.2.15 and 10.0.2.31.
+    </para>
+
+    <para>
+      <parameter>-soundhw &lt;model&gt;</parameter>: defines the soundcard
+      model. The list may be obtained with <option>-soundhw help</option>.
+    </para>
+
+    <para>
+      <parameter>-vga &lt;type&gt;</parameter>: defines the type of vga card
+      to emulate.
+    </para>
+
+    <para>
+      <parameter>-serial mon:stdio</parameter>: sends the serial port of the
+      guest (<filename>/dev/ttyS0</filename> on linux guests), multiplexed with
+      the qemu monitor, to the standard input and output of the qemu
+      process.
+    </para>
+
+    <para>
+      <parameter>-name &lt;name&gt;</parameter>: sets the name of the guest.
+      This name is displayed in the guest window caption. It may be useful
+      if you run several guests at the same time.
+    </para>
+
+    <bridgehead renderas="sect3">Controling the Emulated Display</bridgehead>
+    <para>
+      It may happen that the guest window displayed by qemu does not correspond
+      to the full capability of the emulated vga card. For example, the vmware
+      card is 1600x900 capable, but only 1024x768 is displayed by default.
+      A suitable Xorg configuration on the guest allows to use the full size
+      (Note that the Xorg video driver to use is <xref
+      linkend="xorg-vmware-driver"/>):
+    </para>
 
 <screen role="root"><userinput>cat &gt; /usr/share/X11/xorg.conf.d/20-vmware.conf &lt;&lt; "EOF"
 <literal>Section         "Monitor"
@@ -343,126 +463,68 @@ Section         "Screen"
 EndSection</literal>
 EOF</userinput></screen>
 
-    <para>New sizes will be available besides the native ones. You need to
-    restart X in order to have the new sizes available.</para>
+    <para>
+      New sizes will be available besides the native ones. You need to
+      restart X in order to have the new sizes available.
+    </para>
 
-    <para><!--To add networking to the instance add "-net nic -net user" to the
-    command above.  -->qemu provides a DHCP server for the VM and, depending on
-    the client system, sets up networking though the host.</para>
+    <bridgehead renderas="sect3">Networking</bridgehead>
+    <para>
+      The above solution for networking allows the guest to access the local
+      network through the host (and possibly to access internet through the
+      local routers), but the converse is not true. Not even the host can
+      access the guest, unless port forwarding is enabled. And in the case
+      several guests are running, they cannot communicate with each other.
+      Other network devices can be used for this purpose. For example, there
+      is the <quote>socket</quote> device, which allows several guests to
+      share a common virtual network. In the following, we describe in more
+      details how to set up the <quote>bridge</quote> device, which allows
+      the guests to appear as if connected to the local network. All the
+      commands below should be run as the <systemitem
+      class="username">root</systemitem> user.
+    </para>
 
-    <para>One problem with the above networking solution is that it does not
-    provide the ability to connect with the local network.  To do that, there are
-    several additional steps that need to be done, all as the <systemitem
-    class="username">root</systemitem> user:</para>
+    <para revision="sysv">
+      Set up bridging with <xref linkend="bridgeutils"/>. Only the physical
+      interface(s) should be set up at boot. The virtual interface(s) will be
+      added as needed when qemu is started.
+    </para>
+<!-- Place holder for systemd: bridgeutils page does not have configuration
+     information for systemd:
+    <para revision="systemd">
+      TODO
+    </para>-->
 
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Set up bridging with <xref linkend='bridgeutils'/>.</para>
-      </listitem>
+    <para revision="systemd"><!-- On SYS-V, IP_FORWARD is enabled by the
+                                  bridge script. -->
+      Allow the host to forward IP packets:
+    </para>
 
-      <listitem>
-        <para>Allow the host system to forward IP packets.</para>
+<screen role="root"
+        revision="systemd"><userinput>sysctl -w net.ipv4.ip_forward=1</userinput></screen>
 
-<screen role="root"><userinput>sysctl -w net.ipv4.ip_forward=1</userinput></screen>
+    <para revision="systemd">
+      To make this permanent, add the command to
+      <filename>/etc/sysctl.d/60-net-forward.conf:</filename>
+    </para>
 
-        <para revision="sysv">To make this permanent, add the command to
-        <filename>/etc/sysctl.conf:</filename></para>
-
-<screen role="root" revision="sysv"><userinput>cat &gt;&gt; /etc/sysctl.conf &lt;&lt; EOF
+<screen role="root"
+        revision="systemd"><userinput>cat &gt;&gt; /etc/sysctl.d/60-net-forward.conf &lt;&lt; EOF
 net.ipv4.ip_forward=1
 EOF</userinput></screen>
 
-        <para revision="systemd">To make this permanent, add the command to
-        <filename>/etc/sysctl.d/60-net-forward.conf:</filename></para>
-
-<screen role="root" revision="systemd"><userinput>cat &gt;&gt; /etc/sysctl.d/60-net-forward.conf &lt;&lt; EOF
-net.ipv4.ip_forward=1
-EOF</userinput></screen>
-
-
-      </listitem>
-
-      <listitem>
-        <para>Allow the network connection when running as a part of the
-        kvm group:</para>
-
-<screen role="root"><userinput>chgrp kvm  /usr/libexec/qemu-bridge-helper &amp;&amp;
-chmod 4750 /usr/libexec/qemu-bridge-helper</userinput></screen>
-
-      </listitem>
-
-      <listitem>
-        <para>Set up a required configuration file:</para>
+    <para>
+      Set up a required configuration file:
+    </para>
 
 <!-- /etc/qemu has not been installed by "make install" since version 2.4 -->
 <screen role="root"><userinput>install -vdm 755 /etc/qemu &amp;&amp;
 echo allow br0 &gt; /etc/qemu/bridge.conf</userinput></screen>
 
-      </listitem>
-
-<!--
-      <listitem>
-        <para>Create scripts for qemu to attach the client network
-        device, usually visible as tap0, to the host bridge.</para>
-
-<screen role="root"><userinput>cat &gt; /etc/qemu-ifup &lt;&lt; EOF
-#!/bin/bash
-
-switch=br0
-
-if [ -n "\$1" ]; then
-  # Add new tap0 interface to bridge
-  /sbin/ip link set \$1 up
-  sleep 0.5s
-  /usr/sbin/brctl addif \$switch \$1
-else
-  echo "Error: no interface specified"
-  exit 1
-fi
-
-exit 0
-EOF
-
-chmod +x /etc/qemu-ifup</userinput></screen>
-
-<screen role="root"><userinput>cat &gt; /etc/qemu-ifdown &lt;&lt; EOF
-#!/bin/bash
-
-switch=br0
-
-if [ -n "\$1" ]; then
-  # Remove tap0 interface from bridge
-  /usr/sbin/brctl delif \$switch \$1
-else
-  echo "Error: no interface specified"
-  exit 1
-fi
-
-exit 0
-EOF
-
-chmod +x /etc/qemu-ifdown</userinput></screen>
-
-      </listitem>
-    </itemizedlist>
-
-      <note><para>The backslashes in the above script are for convenience
-      for cut/paste operations.  The backslashes should <emphasis>not</emphasis>
-      appear in the final scripts.</para></note>
-
-    <itemizedlist spacing="compact"> -->
-      <listitem>
-        <!--<para>Start qemu with "-net nic -net tap" options.  </para>-->
-        <para>Start qemu with "-net nic -net bridge" options.  </para>
-      </listitem>
-
-      <listitem>
-        <para>If a connection, such as ssh, from the local network to the
-        client VM is desired, the client should be configured
-        with a static IP address.</para>
-      </listitem>
-
-    </itemizedlist>
+    <para>
+      In the command above, replace the switch <parameter>-netdev user,...
+      </parameter> with <parameter>-netdev bridge,id=net0</parameter>.
+    </para>
 
   </sect2>
 
@@ -483,13 +545,12 @@ chmod +x /etc/qemu-ifdown</userinput></screen>
           qemu-img,
           qemu-io,
           qemu-nbd,
-          qemu-system-&lt;arch&gt;,
-          virtfs-proxy-helper, and
-          vscclient
+          qemu-system-&lt;arch&gt;, and
+          virtfs-proxy-helper
         </seg>
-        <seg>libcacard.so</seg>
+        <seg>None</seg>
         <seg>
-          /etc/qemu and
+          /usr/share/qemu and
           /usr/share/doc/qemu-&qemu-version;
         </seg>
       </seglistitem>
@@ -499,6 +560,26 @@ chmod +x /etc/qemu-ifdown</userinput></screen>
       <bridgehead renderas="sect3">Short Description</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="ivshmem-client">
+        <term><command>ivshmem-client</command></term>
+        <listitem>
+          <para>is a standalone client for using the ivshmem device.</para>
+          <indexterm zone="qemu ivshmem-client">
+            <primary sortas="b-ivshmem-client">ivshmem-client</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="ivshmem-server">
+        <term><command>ivshmem-server</command></term>
+        <listitem>
+          <para>is an example server for the ivshmem device.</para>
+          <indexterm zone="qemu ivshmem-server">
+            <primary sortas="b-ivshmem-server">ivshmem-server</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="qemu-ga">
         <term><command>qemu-ga</command></term>
@@ -566,7 +647,7 @@ chmod +x /etc/qemu-ifdown</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!-- libcacard has been a standalone project since qemu-2.5
       <varlistentry id="vscclient">
         <term><command>vscclient</command></term>
         <listitem>
@@ -586,7 +667,7 @@ chmod +x /etc/qemu-ifdown</userinput></screen>
             <primary sortas="c-libcacard">libcacard.so</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry>-->
 
     </variablelist>
 
