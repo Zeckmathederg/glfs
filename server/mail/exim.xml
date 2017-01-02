@@ -12,9 +12,9 @@
   <!ENTITY exim-download-ftp    "ftp://ftp.exim.org/pub/exim/exim4/exim-&exim-version;.tar.bz2">
   <!-- if above don't work, please use one of the official mirrors at
        http://www.exim.org/mirmon/ftp_mirrors.html -->
-  <!ENTITY exim-md5sum          "2effc2bd47ad2dc010f655c11a1b1173">
+  <!ENTITY exim-md5sum          "4cc10c910fd18bb9e299e98bc0a32ed2">
   <!ENTITY exim-size            "1.7 MB">
-  <!ENTITY exim-buildsize       "17 MB">
+  <!ENTITY exim-buildsize       "14 MB">
   <!ENTITY exim-time            "0.2 SBU">
 
 
@@ -83,6 +83,11 @@
       <xref linkend="pcre"/>
     </para>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="openssl"/>
+    </para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="db"/> or
@@ -94,10 +99,11 @@
       <xref linkend="mariadb"/> or
       <ulink url="http://www.mysql.com/">MySQL</ulink>,
       <xref linkend="openldap"/>,
-      <xref linkend="openssl"/> or <xref linkend="gnutls"/>,
+      <xref linkend="gnutls"/>,
       <xref linkend="postgresql"/>,
       <xref linkend="sqlite"/>,
-      <xref linkend="x-window-system"/>, and
+      <xref linkend="x-window-system"/>,
+      <ulink url="http://www.hl5.org">Heimdal GSSAPI</ulink>, and
       <ulink url="http://www.trusteddomain.org/opendmarc/">OpenDMARC</ulink>
     </para>
 
@@ -120,9 +126,11 @@ useradd -d /dev/null -c "Exim Daemon" -g exim -s /bin/false -u 31 exim</userinpu
     <para>Install <application>Exim</application> with the following
     commands:</para>
 
-<screen><userinput>sed -e 's,^BIN_DIR.*$,BIN_DIRECTORY=/usr/sbin,' \
+<screen><userinput>sed -e 's,^BIN_DIR.*$,BIN_DIRECTORY=/usr/sbin,'    \
     -e 's,^CONF.*$,CONFIGURE_FILE=/etc/exim.conf,' \
-    -e 's,^EXIM_USER.*$,EXIM_USER=exim,' \
+    -e 's,^EXIM_USER.*$,EXIM_USER=exim,'           \
+    -e '/SUPPORT_TLS/s,^#,,'                       \
+    -e '/USE_OPENSSL/s,^#,,'                       \
     -e 's,^EXIM_MONITOR,#EXIM_MONITOR,' src/EDITME > Local/Makefile &amp;&amp;
 printf "USE_GDBM = yes\nDBMLIB = -lgdbm\n" >> Local/Makefile &amp;&amp;
 make</userinput></screen>
@@ -146,8 +154,8 @@ install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
     <title>Command Explanations</title>
 
     <para><command>sed -e ... > Local/Makefile</command>: Most of
-    <application>Exim</application>'s configuration options are compiled in using
-    the directives in <filename>Local/Makefile</filename> which is created from
+    <application>Exim</application>'s configuration options are defined
+    in <filename>Local/Makefile</filename>, which is created from
     the <filename>src/EDITME</filename> file. This command specifies the minimum
     set of options. Descriptions for the options are listed below.</para>
 
@@ -168,6 +176,17 @@ install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
     <systemitem class="username">root</systemitem> privileges, the process
     hands off the daemon to the <systemitem
     class="username">exim</systemitem> user.</para>
+
+    <para><parameter>SUPPORT_TLS=yes</parameter>: This allows to support
+    STARTTLS connexions. If you use this option, you need to select
+    whether <application>OpenSSL</application> or
+    <application>GnuTLS</application> is used (see
+    <filename>src/EDITME</filename>).</para>
+
+    <para><parameter>USE_OPENSSL_PC=openssl</parameter>: This tells the
+    build system to use <application>OpenSSL</application>, and to
+    find the needed libraries with <application>pkg-config</application>.
+    </para>
 
     <para><parameter>#EXIM_MONITOR</parameter>: This defers building the
     <application>Exim</application> monitor program, as it requires
@@ -211,7 +230,7 @@ install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
     scanning software directly from access control lists, uncomment the
     <option>WITH_CONTENT_SCAN=yes</option> parameter and review the information
     found at <ulink
-    url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch41.html"/>.</para>
+    url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch45.html"/>.</para>
 
     <para>To use a backend database other than <application>Berkeley
     DB</application>, see the instructions at <ulink
@@ -220,14 +239,14 @@ install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
     <para>For SSL functionality, see the instructions at <ulink
     url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch04.html#SECTinctlsssl"/>
     and <ulink
-    url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch39.html"/>.</para>
+    url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch42.html"/>.</para>
 
     <para>For <application>tcpwrappers</application> functionality, see the
     instructions at <ulink
     url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch04.html#SECID27"/>.</para>
 
     <para>For information about adding authentication mechanisms to the
-    build, see chapters 33-37 of <ulink
+    build, see chapters 33&mdash;41 of <ulink
     url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/index.html"/>.</para>
 
     <para>For information about linking <application>Linux-PAM</application>,
@@ -248,7 +267,10 @@ install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
     syslog instead of the default
     <filename class='directory'>/var/spool/exim/log</filename> directory. See the
     information at <ulink
-    url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch49.html"/>.</para>
+    url="http://exim.org/exim-html-&exim-version;/doc/html/spec_html/ch52.html"/>.</para>
+
+    <para>A wealth of information can be also found at the <ulink url=
+    "https://github.com/Exim/exim/wiki">Exim Wiki</ulink>.</para>
 
   </sect2>
 
