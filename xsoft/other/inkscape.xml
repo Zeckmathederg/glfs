@@ -99,6 +99,7 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="imagemagick6"/>,
       <xref linkend="lcms2"/> or
       <xref linkend="lcms"/>
     </para>
@@ -108,7 +109,6 @@
       <xref linkend="aspell"/>,
       <xref linkend="dbus"/>,
       <xref linkend="doxygen"/>,
-      <xref linkend="imagemagick"/>,
       <xref linkend="poppler"/>,
 
       <!-- these document foundation links work from firefox's address bar, or
@@ -160,7 +160,11 @@
 sed -e 's/ScopedPtr&lt;char&gt;/make_unique_ptr_gfree/' \
     -i src/ui/clipboard.cpp  &amp;&amp;
 
-CXXFLAGS="-g -O2 -std=c++11" ./configure --prefix=/usr &amp;&amp;
+CXXFLAGS="-g -O2 -std=c++11" \
+IMAGEMAGICK_CFLAGS=-I/usr/include/ImageMagick-6 \
+IMAGEMAGICK_LIBS="-lMagickCore-6.Q16HDRI -lMagick++-6.Q16HDRI -lMagickWand-6.Q16HDRI" \
+./configure --prefix=/usr &amp;&amp;
+
 make</userinput></screen>
 
     <para>
@@ -186,7 +190,16 @@ make</userinput></screen>
     </para>
 
     <para>
-      <command>CXXFLAGS="-g -O2 -std=c++11" ./configure...</command>: Inkscape
+      <command>IMAGE_MAGICK_CFLAGS= ... IMAGE_MAGICK_LIBS= ...</command>:
+      The configure script looks for ImageMagick-6 using the normal
+      unversioned pkgconfig file names which are also used by the newer
+      ImageMAgick-7 - in BLFS we patched it to rename those files, so
+      these variables will allow <command>configure</command> to find
+      the things it needs.
+    </para>
+
+    <para>
+      <command>CXXFLAGS="-g -O2 -std=c++11" </command>: Inkscape
       has not yet been ported to the 2011 ISO C++ standard, one of its
       dependencies is compiled with this standard.
       <command>-std=c++11</command> has
