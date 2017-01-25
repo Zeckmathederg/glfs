@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="TTF-and-OTF-fonts">
+  <?dbhtml filename="TTF-and-OTF-fonts.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>TTF and OTF fonts</title>
+
+  <indexterm zone="TTF-and-OTF-fonts">
+    <primary sortas="a-TTF-and-OTF-fonts">TTF and OTF fonts</primary>
+  </indexterm>
+
+  <!-- although indexterm entries can be added for the individual fonts, and
+   will link to the correct part of the page, that seems unnecessary unless
+   the font is linked from other pages -->
+
+    <sect2 role="configuration">
+    <title>About TTF and OTF fonts</title>
+
+    <para>
+      Originally, Xorg provided only bitmap fonts. Later, some scalable
+      Type1 fonts were added, but the desktop world moved on to using TrueType
+      and Open Type fonts. To support these, Xorg uses Xft, the X FreeType
+      interface library.
+    </para>
+
+    <para>
+      These fonts can provide hints, which <application>fontconfig</application>
+      uses to adjust them for maximum readability on computer monitors. On linux
+      you should always prefer the hinted versions, if available (in general the
+      latin, cyrillic and greek alphabets can use hints, most other writing
+      systems do not use hinting).
+    </para>
+
+    <para>
+      A few fonts are provided as collections (TTC or OTC) where font data
+      is shared between different fonts, thus saving disk space. Treat these in
+      exactly the same way as individual TTF or OTF files.
+    </para>
+
+    <para>
+      If a font provides both TTF and OTF forms, prefer the OTF form in
+      linux, it may provide more features for programs which know how to use them
+      (such as xelatex).
+    </para>
+
+    <para>
+      For some scripts <application>pango</application> is required to
+      render things correctly, either by selecting different glyph forms, or by
+      combining glyphs - in both cases, according to the context. This applies
+      particularly to arabic and indic scripts.
+    </para>
+
+    <para>
+      Standard scalable fonts that come with <application>X</application>
+      provide very poor Unicode coverage.  You may notice in applications that
+      use <application>Xft</application> that some characters appear as a box
+      with four binary digits inside.  In this case, a font with the
+      required glyphs has not been found.  Other times, applications that
+      don't use other font families by default and don't accept substitutions
+      from <application>Fontconfig</application> will display blank lines when
+      the default font doesn't cover the orthography of the user's language.
+    </para>
+
+    <para>
+      The fonts available to a program are those which were present when
+      it was started, so if you add an extra font and wish to use it in a program
+      which is currently running, then you will have to close and restart that
+      program.
+    </para>
+
+    <para>
+      Some people are happy to have dozens, or even hundreds, of font files
+      available, but if you ever wish to select a specific font in a desktop
+      application (for example in a word processor) then scrolling through a lot of
+      fonts to find the right one is slow and awkward - fewer is better. So, for
+      some font packages you might decide to install only one of the fonts - but
+      nevertheless install the different variants (italic, bold, etc) as these are
+      all variations for the same font name.
+    </para>
+
+    <para>
+      In the past, everybody recommended running <command>fc-cache</command>
+      as the <systemitem class="username">root</systemitem> user after installing
+      or removing fonts, but this is no-longer necessary on linux,
+      <application>fontconfig</application> will do it automatically if needed and
+      if its caches are more than 30 seconds old. But if you add a font and want to
+      immediately use it then you can run that command (as a normal user).
+    </para>
+
+    <para>
+      There are several references below to CJK characters. This stands for
+      Chinese, Japanese and Korean, although modern Korean is now almost all
+      written using the phonetic Hangul glyphs (it used to sometimes use Hanja
+      glyphs which are similar to Chinese and Japanese). Unicode decided to go
+      for <ulink
+      url="https://en.wikipedia.org/wiki/Han_unification">Han Unification</ulink>
+      and to map some Chinese and Japanese glyphs to the same codepoints. This
+      was very unpopular in Japan, and the result is that different fonts will
+      render some codepoints in quite different shapes. In addition, Simplified
+      Chinese will sometimes use the same codepoint as Traditional Chinese but
+      will show it differently, somewhat analagous to the different shapes used
+      for the letters 'a' and 'g' in English (single-storey and two-storey),
+      except that in a language context one will look "wrong" rather than just
+      "different".
+    </para>
+
+    <para>
+      Unlike most other packages in this book, the BLFS editors do not
+      monitor the versions of the fonts on this page - once a font is good enough
+      for general use, the typical additions in a new version are minor (e.g. new
+      currency symbols, or glyphs not for a modern language, such as emojis or
+      playing cards). Therefore, none of these fonts show version or md5
+      information.
+    </para>
+
+    <para>
+      The list below will not provide complete Unicode coverage.
+      Unicode is updated every year, and most additions are now for historic
+      writing systems. For almost-complete coverage you can install <xref
+      linkend="noto-fonts"/> (about 180 fonts when last checked) but that
+      number of fonts makes it <emphasis>much</emphasis> less convenient to
+      select a specific font in a document, and most people will regard many
+      of them as a waste of space. We used to recommend the <ulink
+      url="http://unifont.org/fontguide/">Unicode Font Guide</ulink>, but that
+      has not been updated since 2008 and many of its links are dead.
+    </para>
+
+    <para>
+      Rendered examples of most of these fonts, and many others, with
+      details of what languages they cover, some examples of latin fonts with
+      the same metrics (listed as "Substitute latin fonts") and various files
+      of dummy text to compare fonts of similar types, can be found at this
+      <ulink url="http://zarniwhoop.uk/ttf-otf-notes.html#examples">
+      font comparison</ulink> page. That site also covers other current
+      writing systems.
+    </para>
+
+    <para>
+      Fonts are often supplied in zip files, requiring <xref linkend="unzip"/>
+      to list and extract them, but even if the current release is a tarball
+      you should still check to see if it will create a directory (scatterring
+      the contents of a zipfile or tarball across the current directory can be
+      very messy, and a few fonts create odd __MACOSX/ directories. In addition,
+      many fonts are supplied with permissions which do not let 'other' read
+      them - if a font is to be installed for system-wide use, any directories
+      must be mode 755 and all the files mode 644, so change them if necessary.
+      If you forget, the root user may be  able to see a particular font in
+      <command>fc-list</command> but a normal user will not.
+    </para>
+
+    <para>
+      As a font installation example, consider the installation of the
+      <xref linkend="dejavu-fonts"/>. In this particular package, the TTF files
+      are in a subdirectory. From the unpacked source directory, run the
+      following commands as the <systemitem class="username">root</systemitem>
+      user:
+    </para>
+
+<screen role="root"><userinput>install -v -d -m755 /usr/share/fonts/dejavu &amp;&amp;
+install -v -m644 ttf/*.ttf /usr/share/fonts/dejavu &amp;&amp;
+fc-cache -v /usr/share/fonts/dejavu</userinput></screen>
+
+    <para>
+      If you wish, you can also install any licenses or other documentation,
+      either alongside the font or in a corresponding directory under
+      <filename class="directory">/usr/share/doc/</filename>.
+    </para>
+
+    <para>
+      A few fonts ship with source as well as with the completed TTF or OTF
+      file(s). Unless you intend to modify the font, and have the correct tools
+      (sometimes <xref linkend="fontforge"/>, but often commercial tools), the
+      source will provide no benefit, so do not install it. One or two fonts even
+      ship with Web Open Font Format (WOFF) files - useful if you run a webserver
+      and want to use that font on it, but not useful for desktops.
+    </para>
+
+    <para>
+      To provide greater Unicode coverage, you are recommended to install
+      some of the following fonts, depending on what webistes and languages you
+      wish to read.  The next part of this page details some fonts which cover
+      at least latin alphabets, the final part deals with come CJK issues.
+    </para>
+
+    <note>
+      <para>
+        You are strongly recommended to install the <xref
+        linkend="dejavu-fonts"/>.
+      </para>
+    </note>
+
+    <!-- fonts covering at least latin languages, order alphabetically
+    NB the xreflabel in the bridgehead is used in any link names, the
+    associated text is embiggened for the heading, the text for the
+    sortas appears as the key in the longindex -->
+
+    <bridgehead renderas="sect3" id="Caladea"
+    xreflabel="Caladea">Caladea</bridgehead>
+
+      <para><ulink
+      url="http://gsdview.appspot.com/chromeos-localmirror/distfiles/crosextrafonts-20130214.tar.gz">Caladea</ulink>
+      (created as a Chrome OS extra font, hence the 'crosextrafonts' tarball
+      name) is metrically compatible with MS Cambria and can be used if you have
+      to edit a document which somebody started in Microsoft Office using
+      Cambria and then return it to them.</para>
+
+    <bridgehead renderas="sect3" id="cantarell-fonts"
+    xreflabel="Cantarell fonts">Cantarell fonts</bridgehead>
+
+    <indexterm zone="TTF-and-OTF-fonts cantarell-fonts">
+      <primary sortas="a-cantarell-fonts">Cantarell fonts</primary>
+    </indexterm>
+
+      <para><ulink
+      url="&gnome-download-http;/cantarell-fonts/0.0/">Cantarell fonts</ulink>
+      - The Cantarell typeface family provides a contemporary Humanist sans
+      serif. It is particularly optimised for legibility at small sizes and is
+      the preferred font family for the <application>GNOME-3</application> user
+      interface.</para>
+
+    <bridgehead renderas="sect3" id="Carlito"
+    xreflabel="Carlito">Carlito</bridgehead>
+
+      <para><ulink
+      url="http://gsdview.appspot.com/chromeos-localmirror/distfiles/crosextrafonts-carlito-20130920.tar.gz">Carlito</ulink>
+      (created as another Chrome OS extra font, again the 'crosextrafonts-'
+      prefix in the tarball name) is metrically compatible with MS Calibri and
+      can be used if you have to edit a document which somebody started in
+      Microsoft Office using Calibri and then return it to them.</para>
+
+    <bridgehead renderas="sect3" id="dejavu-fonts"
+    xreflabel="Dejavu fonts">DejaVu fonts</bridgehead>
+
+    <indexterm zone="TTF-and-OTF-fonts dejavu-fonts">
+      <primary sortas="a-dejavu-fonts">DejaVu fonts</primary>
+    </indexterm>
+
+    <para>
+      <ulink
+      url="https://sourceforge.net/projects/dejavu/files/dejavu/">DejaVu
+      fonts</ulink> - These fonts are an extension of, and replacement for, the
+      Bitstream Vera fonts and provide Latin-based scripts with accents and
+      punctuation such as "smart-quotes" and variant spacing characters, as well
+      as Cyrillic, Greek, Arabic, Hebrew, Armenian, Georgian and some other
+      glyphs. In the absence of the Bitstream Vera fonts (which had much less
+      coverage), these are the default fallback fonts.
+    </para>
+
+    <bridgehead renderas="sect3" id="kdefonts"
+    xreflabel="kdefonts">Fonts used by KDE</bridgehead>
+
+    <para>
+      When KDE Frameworks 5 began, it used <xref linkend="oxygen-fonts"/>
+      in 'startkde'. Those fonts are no-longer actively maintained, so KDE made
+      a decision to switch to <xref linkend="noto-fonts"/>. At the moment Noto
+      Sans is primarily used when running Gtk applications within KDE, and
+      Oxygen continues to be used by 'startkde'.
+    </para>
+
+    <para>
+      Those pages will eventually be merged into this section. If you use a
+      language which is not written in a latin, greek or cyrillic alphabet then
+      you should probably install at least Noto Sans itself (for any latin,
+      ASCII, common digits and punctuation), perhaps Noto Sans Symbols (for
+      currency symbols) and the separate Noto (Sans, if available) font
+      appropriate to that language, as well as the Oxygen fonts. An updated
+      link to download individual Noto fonts is <ulink
+      url="https://www.google.com/get/noto/">https://www.google.com/get/noto/</ulink>.
+    </para>
+
+    <para>
+      However, you should be aware that <application>fontconfig</application>
+      knows nothing about Noto fonts. The 'Noto Sans Something' fonts are each
+      treated as separate fonts (and for Arabic there is not a specifically Sans
+      name), so if you have other fonts installed then the choice of which font
+      to use for missing glyphs where 'Noto Sans' is specified will be random,
+      except that Sans fonts will be preferred over <emphasis>known</emphasis>
+      Serif and Monospace fonts because Sans is the fallback for unknown fonts.
+    </para>
+
+    <bridgehead renderas="sect3" id="freefont"
+    xreflabel="freefont">GNU FreeFont</bridgehead>
+
+    <para>
+      <ulink url="http://download.savannah.nongnu.org/releases/freefont/">GNU
+      FreeFont</ulink> - This set of fonts covers many non-CJK characters, in
+      particular some of the variants of latin and cyrillic letters used in
+      minority languages, but the glyphs are comparatively small (unlike DejaVu
+      fonts which are comparatively large) and rather light weight ("less black"
+      when black on white is used) which means that in some contexts such as
+      terminals they are not visually pleasing, for example when most other
+      glyphs are provided by another font.  On the other hand, some fonts used
+      primarily for printed output, and many CJK fonts, are also light weight.
+    </para>
+
+    <bridgehead renderas="sect3" id="Gelasio"
+    xreflabel="Gelasio">Gelasio</bridgehead>
+
+    <para>
+      <ulink url="https://fontlibrary.org/ru/font/gelasio">Gelasio</ulink> is
+      metrically compatible with MS Georgia and
+      <application>fontconfig</application> will use it if ever Georgia is
+      requested but not installed.
+    </para>
+
+    <bridgehead renderas="sect3" id="liberation-fonts"
+    xreflabel="Liberation fonts">Liberation fonts</bridgehead>
+
+    <indexterm zone="TTF-and-OTF-fonts liberation-fonts">
+      <primary sortas="a-liberation-fonts">Liberation fonts</primary>
+    </indexterm>
+
+    <para>
+      The <ulink url="https://fedorahosted.org/liberation-fonts/">Liberation
+      fonts</ulink> provide libre substitutes for Arial, Courier New, and Times
+      New Roman. <application>Fontconfig</application> will use them as
+      substitutes for those fonts, and also for the similar Helvetica, Courier,
+      Times Roman although for these latter it can prefer a different font (see
+      the examples in the 'Substitutes' PDFs at <ulink
+      url="http://zarniwhoop.uk/files/PDF-substitutes/"> zarniwhoop.uk).</ulink>
+    </para>
+
+    <para>
+      Many people will find the Liberation fonts useful for pages where one of
+      those fonts is requested.
+    </para>
+
+    <bridgehead renderas="sect3" id="corefonts"
+    xreflabel="corefonts">Microsoft Core Fonts</bridgehead>
+
+    <para>The <ulink url="http://corefonts.sourceforge.net/">Microsoft Core
+       fonts</ulink> date from 2002. They were supplied with old versions of
+       Microsoft Windows and were apparently made available for general use.
+       You can extract them from the 'exe' files using
+       <application>bsd-tar</application> from <xref linkend="libarchive"/>.
+       Be sure to read the license before using them. At one time some of
+       these fonts (particularly Arial, Times New Roman, and to a lesser
+       extent Courier New) were widely specified on web pages. The full set
+       contains Andale Mono, Arial, Arial Black, Comic Sans MS, Courier
+       New, Georgia, Impact, Times New Roman, Trebuchet MS, Verdana and
+       Webdings.
+    </para>
+
+    <para>
+      Please note that if you only want to use a font with the same metrics
+      (character size, etc) as Arial, Courier New, or Times New Roman you can
+      use the libre Liberation Fonts (above), and similarly you can replace
+      Georgia with Gelasio.
+    </para>
+
+    <para>
+      Although many old posts recommend installing these fonts for
+      better-looking output, there are more recent posts that these are ugly
+      or 'broken'. One suggestion is that they do not support anti-aliasing.
+    </para>
+
+    <para>
+      The newer fonts which Microsoft made their defaults in later releases of
+      MS Windows or MS Office (Calibri and Cambria) have never been freely
+      available. But if you do not have them installed you can find metric
+      equivalents (Carlito, Caladea) above.
+    </para>
+
+    <bridgehead renderas="sect3" id="CJKfonts"
+    xreflabel="CJKfonts">CJK fonts:</bridgehead>
+
+    <para>
+      As indicated earlier, usage of a combination of Chinese, Japanese
+      and Korean can be tricky - each font only covers a subset of the available
+      codepoints, the preferred shapes of the glyphs can differ between the
+      languages, and many of the CJK fonts do not actually support modern
+      Korean.
+    </para>
+
+    <para>
+      Also, by default <application>fontconfig</application> prefers Chinese to
+      Japanese. Tuning that is covered at <xref
+      linkend="prefer-chosen-CJK-fonts"/>.
+    </para>
+
+    <para>
+      Although Unicode has been extended to allow a very large number of CJK
+      codepoints, those outside the Base Plane (greater than U+0xFFFF) are not
+      commonly used in Mandarin (the normal form of written Chinese, whether
+      Simplified (PRC) or Traditional (Taiwan)), or Japanese.
+    </para>
+
+    <para>
+      For Hong Kong, which uses Traditional Chinese and where Cantonese is the
+      dominant language, the Hong Kong Supplementary Character Set was added to
+      Unicode in 2005 and revised in 2009 (it is part of CJK Extension B and
+      contains more than 1900 characters). Earlier fonts will not be able to
+      support either Cantonese or use of these characters where local names are
+      written in Mandarin. The UMing HK, Noto Sans CJK HK and WenQuanYi Zen Hei
+      fonts all seem to cover Hong Kong usage
+      (<application>fontconfig</application> disagrees about Noto Sans CJK HK).
+    </para>
+
+    <para>
+      The Han glyphs are double-width, other glyphs in the same font may be
+      narrower. For their CJK content, all of these fonts can be regarded as
+      monospaced (i.e. fixed width).
+    </para>
+
+    <para>
+      If all you wish to do is to be able to render CJK glyphs, installing
+      <xref linkend="wenquanyi-zenhei"/> may be a good place to start if you do
+      not already have a preference.
+    </para>
+
+    <bridgehead renderas="sect3" id="Chinese-fonts"
+    xreflabel="Chinese fonts">Chinese fonts:</bridgehead>
+
+    <para>
+      In Chinese, there are three font styles in common use: Sung (also
+      known as Song or Ming) which is the most-common ornamented ("serif")
+      form, Kai ("brush strokes") which is an earlier ornamented style that
+      looks quite different, and modern Hei ("sans"). Unless you appreciate the
+      differences, you probably do not want to install Kai fonts.
+    </para>
+
+<!-- prefer the less-old Opendesktop-fonts to fireflysung
+      <bridgehead renderas="sect4" id="fireflysung"
+      xreflabel="fireflysung">Fireflysung</bridgehead>
+
+      <para>
+        <ulink
+        url="http://ftp.osuosl.org/pub/blfs/conglomeration/Xorg//fireflysung-1.3.0.tar.gz">fireflysung</ulink>
+        - This font ('AR PL New Sung') was one of the first libre fonts to
+        provides Chinese coverage. <application>fontconfig</application> knows
+        it is to be treated as a Serif font.
+      </para> -->
+
+      <bridgehead renderas="sect4" id="NotoSansCJK"
+      xreflabel="Noto Sans CJK">Noto Sans CJK</bridgehead>
+
+      <!-- indexterm entry retained for future linkage from kde -->
+      <indexterm zone="TTF-and-OTF-fonts NotoSansCJK">
+        <primary sortas="a-noto-sans-cjk">Noto Sans CJK</primary>
+      </indexterm>
+
+      <para><ulink
+        url="https://www.google.com/get/noto/help/cjk/">Noto Sans CJK</ulink>
+        - Sans-Serif sets of all CJK fonts in a ttc - as the link says, you can
+          choose to install the TTC and cover all the languages in all weights in
+          a 110MB file, or you can download subsets. There are also Monospace
+          versions.
+       </para>
+
+      <bridgehead renderas="sect4" id="Opendesktop-fonts"
+      xreflabel="Opendesktop-fonts">Opendesktop fonts</bridgehead>
+
+      <para>A copy of version 1.4.2 of the <ulink
+        url="https://sources.archlinux.org/other/opendesktop-fonts/">opendesktop-fonts</ulink>
+        is preserved at Arch. This was a later development of fireflysung which
+        BLFS used to recommend, adding Kai and Mono fonts. The name of the Sung
+        font remains 'AR PL New Sung' so they cannot both be installed together.
+      </para>
+
+      <para>
+        At one time there was a 1.6 release, and more recently some versions at
+        github, which also included a Sans font (Odohei), but those have dropped
+        off the web and it is unclear if there was a problem.
+        <application>Fontconfig</application> does not know anything about the
+        later fonts (AR PL New Kai, AR PL New Sung Mono) and will default to
+        treating them as Sans.
+      </para>
+
+<!-- comment, because not recommended
+      <bridgehead renderas="sect4" id="UKai"
+      xreflabel="UKai">UKai</bridgehead>
+
+      <para>
+        <ulink
+        url="http://packages.debian.org/sid/fonts-arphic-ukai">UKai fonts</ulink>
+        - sets of Chinese Kai fonts in a ttc which contain variations of
+        Simplified and Traditional (Taiwanese, second variant for different
+        <ulink url="https://en.wikipedia.org/wiki/Bopomofo">bopomofo</ulink>,
+        and Cantonese). This ships with old-syntax files which can install to
+        <filename class="directory">/etc/fonts/conf.d/</filename> but see <xref
+        linkend="editing-old-style-conf-files"/>.
+      </para>
+-->
+
+      <bridgehead renderas="sect4" id="UMing"
+      xreflabel="UMing">UMing</bridgehead>
+
+      <para>
+        <ulink
+        url="http://packages.debian.org/sid/fonts-arphic-uming">UMing fonts</ulink>
+        - sets of Chinese Ming fonts (from Debian, use the '.orig' tarball) in
+        a ttc which contain variations of Simplified and Traditional Chinese
+        (Taiwanese, with second variant for different
+        <ulink url="https://en.wikipedia.org/wiki/Bopomofo">bopomofo</ulink>,
+        and Cantonese for Hong Kong). This ships with old-syntax files which you
+        can install to
+        <filename class="directory">/etc/fonts/conf.d/</filename> but see <xref
+        linkend="editing-old-style-conf-files"/>.
+      </para>
+
+      <bridgehead renderas="sect4" id="wenquanyi-zenhei"
+      xreflabel="WenQuanYi ZenHei">WenQuanYi Zen Hei</bridgehead>
+
+      <indexterm zone="TTF-and-OTF-fonts wenquanyi-zenhei">
+        <primary sortas="a-wenquanyi-zenhei">WenQuanYi Zen Hei</primary>
+      </indexterm>
+
+      <para>
+        <ulink
+        url="https://sourceforge.net/projects/wqy/files/wqy-zenhei/">WenQuanYi
+        Zen Hei</ulink> provides a Sans-Serif font which covers all CJK scripts
+        including Korean. Although it includes old-style conf files, these are
+        not required: <application>fontconfig</application> will already treat
+        these fonts (the 'sharp' contains bitmaps, the monospace appears not
+        to be Mono in its ASCII part) as Sans, Serif, and Monospace. If all
+        you wish to do is to be able to render Han and Korean text without
+        worrying about the niceties of the shapes used, the main font from
+        this package is a good font to use.
+      </para>
+
+
+    <bridgehead renderas="sect3" id="Japanese-fonts"
+    xreflabel="Japanese fonts">Japanese fonts:</bridgehead>
+
+      <para>
+        In Japanese, Gothic fonts are Sans, Mincho are Serif. BLFS used to
+        only mention the Kochi fonts, but those appear to now be the
+        least-preferred of the Japanese fonts.
+      </para>
+
+      <para>
+        Apart from the fonts detailed below, also consider <xref
+        linkend="NotoSansCJK"/>.
+      </para>
+
+      <bridgehead renderas="sect4" id="IPAex"
+      xreflabel="IPAex fonts">IPAex fonts</bridgehead>
+
+       <!-- indexterm retained for expected link from tuning fontconfig -->
+      <indexterm zone="TTF-and-OTF-fonts IPAex">
+        <primary sortas="a-ipaex-fonts">IPAex fonts</primary>
+      </indexterm>
+
+      <para>
+        The <ulink url="http://ipafont.ipa.go.jp/">IPAex fonts</ulink> are
+        the current version of the IPA fonts. Click on 'English' at the link and
+        then click on the Download icon to find IPAex Font Ver.003.01.
+        Unfortunately, <application>fontconfig</application> only knows about
+        the older IPAfonts and the forked IPA Mona font (which is not easily
+        available and which apparently does not meet Debian's Free Software
+        guidelines). Therefore if you install the IPAex fonts you may wish
+        to make it known to fontconfig, see <xref
+        linkend="prefer-chosen-CJK-fonts"/> for one possible way to do this.
+      </para>
+
+      <bridgehead renderas="sect4" id="Kochi"
+      xreflabel="Kochi">Kochi fonts</bridgehead>
+
+      <para>
+        The <ulink url="https://osdn.net/projects/efont/releases/p1357">Kochi
+        Substitute fonts</ulink> were the first truly libre Japanese fonts (the
+        earlier Kochi fonts were allegedly plagiarized from a commercial font).
+      </para>
+
+      <bridgehead renderas="sect4" id="VLGothic"
+      xreflabel="VL Gothic">VL Gothic</bridgehead>
+
+      <indexterm zone="TTF-and-OTF-fonts VLGothic">
+        <primary sortas="a-vlgothic-fonts">VL Gothic</primary>
+      </indexterm>
+
+      <para>
+        The <ulink url="https://osdn.net/projects/vlgothic/releases/">VL
+        Gothic</ulink> font is a modern Japanese font in two variants with
+        monotonic or proportional spacing for the non-Japanese characters.
+      </para>
+
+
+    <bridgehead renderas="sect3" id="Korean-fonts"
+    xreflabel="Korean fonts">Korean fonts:</bridgehead>
+
+    <para>
+      In Korean, Batang or Myeongjo (the older name) are Serif, Dotum or
+      Gothic are the main Sans fonts. BLFS previously recommended the Baekmuk
+      fonts, but the Nanum and Un fonts are now preferred to Baekmuk by
+      <application>fontconfig</application> because of user requests.
+    </para>
+
+    <!-- when testing, my previous Nanum link gave permission errors, so
+    link to a general page, at the cost of making it more complicated to
+    download -->
+
+    <para>
+      A convenient place to see examples of these and many other Korean
+      fonts is <ulink url="http://www.freekoreanfont.com/">Free Korean
+      Fonts</ulink>. Click on 'Gothic Fonts' or 'All Categories -> Myeongjo
+      Fonts', then click on the font example to see more details including the
+      License, and click on the link to download it. For Nanum, you will need
+      to be able to read Korean to find the download link on the page you get
+      to. For Un there are direct links and you can find the un-fonts-core
+      tarball in the <filename class="directory">releases/</filename>
+      directory.
+    </para>
+
+    <para>Alternatively, consider <xref linkend="NotoSansCJK"/> (a11 of the
+      variants cover Hangul) or <xref linkend="wenquanyi-zenhei"/>.
+    </para>
+
+    </sect2>
+
+</sect1>
