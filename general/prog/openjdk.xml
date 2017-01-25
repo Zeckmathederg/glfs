@@ -4,35 +4,35 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY ojdk-upd                  "112">
-  <!ENTITY ojdk-bd                   "b15">
+  <!ENTITY ojdk-upd                  "121">
+  <!ENTITY ojdk-bd                   "b13">
   <!ENTITY ojdk-tarball              "jdk8u&ojdk-upd;-&ojdk-bd;.tar.bz2">
   <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk8u/jdk8u">
   <!ENTITY ojdk-download             "&ojdk-repo;/archive/&ojdk-tarball;">
 
   <!ENTITY anduin-download           "&sources-anduin-http;/OpenJDK/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "d2c9c29c00609a56ec68b0f91e34a455">
+  <!ENTITY ojdk-md5sum               "5f3def798fa3a0b2c60ae891856dc9c5">
   <!ENTITY ojdk-size                 "401 KB">
 
-  <!ENTITY corba-md5sum              "9bf02dac9f3f79a220af140778ed003e">
-  <!ENTITY hotspot-md5sum            "41f78a61f81ca93d1110d417d06454b2">
-  <!ENTITY jaxp-md5sum               "2fd39b1985c8ac9af222af34d8e5f945">
-  <!ENTITY jaxws-md5sum              "15a8b60355209145680a8da1aee9b12d">
-  <!ENTITY jdk-md5sum                "b8da9095c290358a85f533a089570b66">
-  <!ENTITY langtools-md5sum          "ced983a635486e02a2a7bc3c2a9416dd">
-  <!ENTITY nashorn-md5sum            "d34ca91c7e0040635aaf9e9d9b5f86b6">
+  <!ENTITY corba-md5sum              "9c052259b93646687fdcfb71643b69b4">
+  <!ENTITY hotspot-md5sum            "0ca6e85dcbd96dfa24ac1bdd833aab2e">
+  <!ENTITY jaxp-md5sum               "c2b5c1947c4aef684b27a463e4149d06">
+  <!ENTITY jaxws-md5sum              "5a83842eca3881c7bf6abeaccac8f05d">
+  <!ENTITY jdk-md5sum                "0325b88a2b39d7d72ef0726e91ea4a1d">
+  <!ENTITY langtools-md5sum          "4dbe002af94423cbe382dda03e3e6a9d">
+  <!ENTITY nashorn-md5sum            "c87f96bc7ba9596fb5587e307a8f1ec6">
   <!ENTITY total-download-size       "63 MB">
 
-  <!ENTITY jtreg-version             "4.2-b03-675">
+  <!ENTITY jtreg-version             "4.2-b05-747">
   <!ENTITY jtreg-download            "&anduin-download;/jtreg-&jtreg-version;.tar.gz">
-  <!ENTITY jtreg-md5sum              "af4d3fc659cac0c4f5e2f78c57790345">
+  <!ENTITY jtreg-md5sum              "560d275d055112487ea879c44a985b30">
   <!ENTITY jtreg-size                "7.2 MB">
 
   <!ENTITY icedtea-web-download      "http://icedtea.classpath.org/download/source/icedtea-web-&icedtea-web-version;.tar.gz">
 
-  <!ENTITY ojdk-buildsize           "3.5 GB (additional 413 MB for tests)">
-  <!ENTITY ojdk-time                "5 SBU with 4 jobs in parallel (additional 84 SBU for tests)">
+  <!ENTITY ojdk-buildsize           "3.5 GB (additional 420 MB for tests)">
+  <!ENTITY ojdk-time                "5 SBU with 4 jobs in parallel (up to 120 SBU for tests, see below)">
 ]>
 
 <sect1 id="openjdk"
@@ -315,8 +315,7 @@ echo Waiting for twm to initialize; sleep 1
 xhost +</userinput></screen>
 
     <para>
-      Then, it is necessary to modify some files<!-- (replace &lt;N&gt; with the
-      number of JAVA VM allowed to run concurrently)-->:
+      Then, it is necessary to modify some files:
     </para>
 
 <screen role='nodump'><userinput>echo -e "
@@ -333,11 +332,7 @@ jdk_all = :jdk_core           \\
           com/sun/java/swing" >> jdk/test/TEST.groups &amp;&amp;
 sed -e 's/all:.*jck.*/all: jtreg/'      \
     -e '/^JTREG /s@\$(JT_PLATFORM)/@@'  \
-    -i langtools/test/Makefile<!--          &amp;&amp;
-sed -i 's@/win32@@' jdk/test/Makefile   &amp;&amp;
-sed -e 's@JTREG_HOME@JT_PLATFORM="" &amp;@' \
-    -e 's@TEST="@CONCURRENCY=&lt;N&gt; &amp;@'    \
-    -i test/Makefile--></userinput></screen>
+    -i langtools/test/Makefile</userinput></screen>
 
     <para>
       Some variables have to be set:
@@ -360,8 +355,14 @@ LANG=C ${JT_HOME}/bin/jtreg -a -v:fail,error \
                 -dir:$(pwd)/hotspot/test     \
                 -k:\!ignore                  \
                 -jdk:${PRODUCT_HOME}         \
-<!--                -agentvm -conc:&lt;N&gt;           \
--->                :jdk</userinput></screen>
+                :jdk</userinput></screen>
+
+    <para>
+      Tests duration depends on various factors such as the network speed
+      and the number of concurrent VM, which is computed from the number
+      of cores and threads, and the amount of RAM installed. A maximum of
+      120 SBU has been observed, but it may be as <quote>low</quote> as 80 SBU.
+    </para>
 
     <para>
       The test results can be compared to <ulink
@@ -556,7 +557,7 @@ install -v -Dm0644 javaws.png /usr/share/pixmaps/javaws.png</userinput></screen>
         generated using the system PKI trust store. The instructions
         on the <xref linkend="cacerts"/> page should be used to update the file
         located in <filename>/etc/ssl/java</filename>. Setup a symlink in the
-        defualt location as the <systemitem class="username">root</systemitem>
+        default location as the <systemitem class="username">root</systemitem>
         user:
       </para>
 
