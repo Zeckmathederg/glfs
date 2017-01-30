@@ -5,13 +5,13 @@
   %general-entities;
 
   <!ENTITY NetworkManager-download-http
-           "&gnome-download-http;/NetworkManager/1.4/NetworkManager-&NetworkManager-version;.tar.xz">
+           "&gnome-download-http;/NetworkManager/1.6/NetworkManager-&NetworkManager-version;.tar.xz">
   <!ENTITY NetworkManager-download-ftp
-           "&gnome-download-ftp;/NetworkManager/1.4/NetworkManager-&NetworkManager-version;.tar.xz">
-  <!ENTITY NetworkManager-md5sum        "63f1e0d6d7e9099499d062c84c927a75">
+           "&gnome-download-ftp;/NetworkManager/1.6/NetworkManager-&NetworkManager-version;.tar.xz">
+  <!ENTITY NetworkManager-md5sum        "ccdac1d03133a59065cbb93a09fa54b0">
   <!ENTITY NetworkManager-size          "3.6 MB">
-  <!ENTITY NetworkManager-buildsize     "534 MB (with tests)">
-  <!ENTITY NetworkManager-time          "3.3 SBU (with tests)">
+  <!ENTITY NetworkManager-buildsize     "580 MB (with tests)">
+  <!ENTITY NetworkManager-time          "2.8 SBU (with tests)">
 ]>
 
 <sect1 id="NetworkManager" xreflabel="NetworkManager-&NetworkManager-version;">
@@ -120,6 +120,7 @@
       <phrase revision="systemd"><xref linkend="pygobject3"/>,</phrase>
       <xref linkend="valgrind"/>,
       <ulink url="http://www.thekelleys.org.uk/dnsmasq/doc.html">dnsmasq</ulink>,
+      <ulink url="http://www.digip.org/jansson/">Jansson</ulink>,
       <ulink url="http://libteam.org/">libteam</ulink>,
       <ulink url="https://www.samba.org/ftp/ppp/">PPP</ulink>, and
       <ulink url="https://www.roaringpenguin.com/products/pppoe">RP-PPPoE</ulink>
@@ -145,12 +146,13 @@
       following commands:
     </para>
 
-<screen revision="sysv"><userinput>CXXFLAGS="-O2 -fPIC"             \
-./configure --prefix=/usr        \
-            --sysconfdir=/etc    \
-            --localstatedir=/var \
-            --with-nmtui         \
-            --disable-ppp        \
+<screen revision="sysv"><userinput>CXXFLAGS="-O2 -fPIC"                       \
+./configure --prefix=/usr                  \
+            --sysconfdir=/etc              \
+            --localstatedir=/var           \
+            --with-nmtui                   \
+            --disable-ppp                  \
+	    --disable-json-validation      \
             --with-systemdsystemunitdir=no \
             --docdir=/usr/share/doc/network-manager-&NetworkManager-version; &amp;&amp;
 make</userinput></screen>
@@ -161,6 +163,7 @@ make</userinput></screen>
             --localstatedir=/var                            \
             --with-nmtui                                    \
             --disable-ppp                                   \
+	    --disable-json-validation                       \
             --with-session-tracking=systemd                 \
             --with-systemdsystemunitdir=/lib/systemd/system \
             --docdir=/usr/share/doc/network-manager-&NetworkManager-version; &amp;&amp;
@@ -214,6 +217,13 @@ make</userinput></screen>
       <parameter>--disable-ppp</parameter>: This parameter disables parameteral
       <application>PPP</application> support in
       <application>NetworkManager</application>.
+    </para>
+
+    <para>
+      <parameter>--disable-json-validation</parameter>: This parameter allows
+      building without <application>Jansson</application>, which is needed
+      for <quote>team</quote> configuration validation (team is one way
+      of bonding network interfaces for increased throughput).
     </para>
 
     <para>
@@ -347,8 +357,8 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          NetworkManager, nmcli, nm-online, and, hardlinked to each other:
-          nmtui, nmtui-connect, nmtui-edit, and nmtui-hostname
+          NetworkManager, nmcli, nm-online, nmtui, and, symlinked to nmtui:
+          nmtui-connect, nmtui-edit, and nmtui-hostname
         </seg>
         <seg>
           libnm-glib.so, libnm-glib-vpn.so, libnm.so, libnm-util.so, and
@@ -359,7 +369,8 @@ EOF</userinput></screen>
           /usr/include/{libnm,libnm-glib,NetworkManager},
           /usr/lib/NetworkManager,
           /usr/share/doc/NetworkManager-&NetworkManager-version;,
-          /usr/share/gtk-doc/html/{libnm,libnm-glib,libnm-util,NetworkManager},
+	  /usr/share/gtk-doc/html/{libnm,libnm-glib,libnm-util,NetworkManager}
+	  (if the documentation is built),
           and
           /var/{lib,run}/NetworkManager
         </seg>
