@@ -6,10 +6,10 @@
 
   <!ENTITY tripwire-download-http "https://github.com/Tripwire/tripwire-open-source/archive/&tripwire-version;.tar.gz">
   <!ENTITY tripwire-download-ftp  " ">
-  <!ENTITY tripwire-md5sum        "36c7f1beb5431db870506d5604c0d060">
-  <!ENTITY tripwire-size          "812 KB">
-  <!ENTITY tripwire-buildsize     "27 MB">
-  <!ENTITY tripwire-time          "1.6 SBU (includes interactive time during install)">
+  <!ENTITY tripwire-md5sum        "4ec693b96112e4933235f75908695951">
+  <!ENTITY tripwire-size          "945 KB">
+  <!ENTITY tripwire-buildsize     "33 MB">
+  <!ENTITY tripwire-time          "1.2 SBU (scripting install)">
 ]>
 
 <sect1 id="tripwire" xreflabel="Tripwire-&tripwire-version;">
@@ -92,10 +92,14 @@
 
 <screen><userinput>sed -e 's|TWDB="${prefix}|TWDB="/var|'   \
     -e '/TWMAN/ s|${prefix}|/usr/share|' \
-    -e '/TWDOCS/s|${prefix}/doc/tripwire|/usr/share/doc/tripwire-&tripwire-version;| \
-    -i   install/install.cfg                         &amp;&amp;                     
+    -e '/TWDOCS/s|${prefix}/doc/tripwire|/usr/share/doc/tripwire-&tripwire-version;|' \
+    -i installer/install.cfg                               &amp;&amp;
+find . -name Makefile.am | xargs                           \
+    sed -i 's/^[[:alpha:]_]*_HEADERS.*=/noinst_HEADERS =/' &amp;&amp;
+sed '/dist/d' -i man/man?/Makefile.am                      &amp;&amp;
+autoreconf -fi                                             &amp;&amp;
 
-./configure --prefix=/usr --sysconfdir=/etc/tripwire &amp;&amp;
+./configure --prefix=/usr --sysconfdir=/etc/tripwire       &amp;&amp;
 make</userinput></screen>
 
     <note><para>The default configuration is to use a local MTA. If
@@ -110,36 +114,53 @@ make</userinput></screen>
 <screen role="root"><userinput>make install &amp;&amp;
 cp -v policy/*.txt /usr/share/doc/tripwire-&tripwire-version;</userinput></screen>
 
+    <note>
+      <para>
+        During <command>make install</command>, several questions
+        are asked, including passwords. If you want to make a script, you have
+        to apply a <application>sed</application> before running
+        <command>make install</command>:
+      </para>
+
+<screen><userinput>sed -i -e 's@installer/install.sh@&amp; -n -s <replaceable>&lt;site-password&gt;</replaceable> -l <replaceable>&lt;local-password&gt;</replaceable>@' Makefile</userinput></screen>
+
+      <para>
+        Of course, you should do this with dummy passwords and change them
+	later.
+      </para>
+    </note>
+
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>sed ... install/install.cfg</command>: This command tells the 
-    package to install the program database and reports in
-    <filename class="directory">/var/lib/tripwire</filename> and sets the
-    proper location for man pages and documentation.</para>
-
-    <para><command>make install</command>: This command creates the
-    <application>Tripwire</application> security keys as well as installing
-    the binaries. There are two keys: a site key and a local key which are
-    stored in <filename class="directory">/etc/tripwire/</filename>.</para>
-
-    <note><para>During <command>make install</command>, several questions
-    are asked, including passwords. If you want to make a script, you have
-    to apply a <application>sed</application> before running
-    <command>make install</command>:</para>
-
     <para>
-    <command>sed -i -e 's@install/install.sh@&amp; -n -s<replaceable>&lt;site-password&gt;</replaceable> -l<replaceable>&lt;local-password&gt;</replaceable>@' Makefile</command>
+      <command>sed ... installer/install.cfg</command>: This command tells
+      the package to install the program database and reports in
+      <filename class="directory">/var/lib/tripwire</filename> and sets the
+      proper location for man pages and documentation.
     </para>
 
-    <para>Of course, you should do this with dummy passwords and change them
-    later.</para></note>
+    <para>
+      <command>find ...</command>, <command>sed ...</command>, and
+      <command>autoreconf -fi</command>: The build system is unusable as is, and
+      has to be modified for the build to succeed.
+    </para>
 
-    <para><command>cp -v policy/*.txt /usr/doc/tripwire-&tripwire-version;</command>: This command
-    installs the <application>tripwire</application> sample policy files with
-    the other <application>tripwire</application> documentation.</para>
+    <para>
+      <command>make install</command>: This command creates the
+      <application>Tripwire</application> security keys as well as installing
+      the binaries. There are two keys: a site key and a local key which are
+      stored in <filename class="directory">/etc/tripwire/</filename>.
+    </para>
+
+    <para>
+      <command>cp -v policy/*.txt /usr/doc/tripwire-&tripwire-version;</command>:
+      This command installs the <application>tripwire</application> sample
+      policy files with the other <application>tripwire</application>
+      documentation.i
+    </para>
 
   </sect2>
 
@@ -214,7 +235,7 @@ tripwire --init</userinput></screen>
       <para>Reports are stored in binary and, if desired, encrypted.  View reports,
       as the <systemitem class="username">root</systemitem> user, with:</para>
 
-<screen role="root">twprint --print-report -r /var/lib/tripwire/report/<replaceable>&lt;report-name.twr&gt;</replaceable></screen>
+<screen role="root"><userinput>twprint --print-report -r /var/lib/tripwire/report/<replaceable>&lt;report-name.twr&gt;</replaceable></userinput></screen>
 
       <para>After you run an integrity check, you should examine the
       report (or email) and then modify the <application>Tripwire</application>
@@ -270,7 +291,8 @@ tripwire --init</userinput></screen>
       <seglistitem>
         <seg>siggen, tripwire, twadmin, and twprint</seg>
         <seg>None</seg>
-        <seg>/etc/tripwire, /var/lib/tripwire, and /usr/share/doc/tripwire</seg>
+	<seg>/etc/tripwire, /var/lib/tripwire,
+        and /usr/share/doc/tripwire-&tripwire-version;</seg>
       </seglistitem>
     </segmentedlist>
 
