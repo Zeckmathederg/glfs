@@ -6,9 +6,9 @@
 
   <!ENTITY shadow-download-http "http://pkg-shadow.alioth.debian.org/releases/shadow-&shadow-version;.tar.xz">
   <!ENTITY shadow-download-ftp  " ">
-  <!ENTITY shadow-md5sum        "2bfafe7d4962682d31b5eba65dba4fc8">
-  <!ENTITY shadow-size          "1.5 MB">
-  <!ENTITY shadow-buildsize     "53 MB">
+  <!ENTITY shadow-md5sum        "c06f8c2571b44899e60662f9ad259dd6">
+  <!ENTITY shadow-size          "1.6 MB">
+  <!ENTITY shadow-buildsize     "31 MB">
   <!ENTITY shadow-time          "0.2 SBU">
 ]>
 
@@ -120,14 +120,17 @@
     </para>
 
 <screen><userinput>sed -i 's/groups$(EXEEXT) //' src/Makefile.in &amp;&amp;
-find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \; &amp;&amp;
+
+find man -name Makefile.in -exec sed -i 's/groups\.1 / /'   {} \; &amp;&amp;
 find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \; &amp;&amp;
 find man -name Makefile.in -exec sed -i 's/passwd\.5 / /'   {} \; &amp;&amp;
 
 sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
        -e 's@/var/spool/mail@/var/mail@' etc/login.defs &amp;&amp;
 
-sed -i 's/1000/999/' etc/useradd &amp;&amp;
+sed -i 's/1000/999/' etc/useradd                           &amp;&amp;
+sed -i -e '/snprintf/s@_msg,@_msg, 256,@' src/su.c         &amp;&amp;
+sed -i -e '47 d' -e '60,65 d'             libmisc/myname.c &amp;&amp;
 
 ./configure --sysconfdir=/etc --with-group-name-max-length=32 &amp;&amp;
 make</userinput></screen>
@@ -175,6 +178,17 @@ mv -v /usr/bin/passwd /bin</userinput></screen>
     <para>
       <command>sed -i 's/1000/999/' etc/useradd</command>: Make a minor change
       to make the default useradd consistent with the LFS groups file.
+    </para>
+
+    <para>
+      <command>sed -i -e '/snprintf/s@_msg,@_msg, 256,@' src/su.c</command>: Fix
+      a build error that only occurs if <xref linkend="linux-pam"/> is detected
+      by <command>configure</command>.
+    </para>
+
+    <para>
+      <command>sed -i '47 d' -e '60,65 d' libmisc/myname.c</command>: Apply
+      a security fix from upstream.
     </para>
 
     <para>
