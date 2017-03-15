@@ -96,10 +96,14 @@
     released. These updates only last until the machine is powered off, so they
     need to be applied on every boot.</para>
 
-    <para>There are two ways of loading the microcode, described as 'early' and
-    'late'. Early loading happens before userspace has been started, late
-    loading happens when userspace has started. Not surprisingly, early loading
-    is preferred, (see e.g. an explanatory comment in a kernel commit noted at
+    <para>Intel provide frequent updates of their microcode. It is not uncommon
+    to find a newer version of microcode for an Intel processor even two years
+    after its release. New versions of AMD firmware are less common.</para>
+
+    <para>There used to be two ways of loading the microcode, described as 'early'
+    and 'late'. Early loading happens before userspace has been started, late
+    loading happens after userspace has started. Not surprisingly, early loading
+    was preferred, (see e.g. an explanatory comment in a kernel commit noted at
     <ulink url="https://lwn.net/Articles/530346/">x86/microcode: Early load
     microcode </ulink> on LWN.)  Indeed, it is needed to work around one
     particular erratum in early Intel Haswell processors which had TSX enabled.
@@ -107,54 +111,21 @@
     url="http://www.anandtech.com/show/8376/intel-disables-tsx-instructions-erratum-found-in-haswell-haswelleep-broadwellyi/">
     Intel Disables TSX Instructions: Erratum Found in Haswell, Haswell-E/EP,
     Broadwell-Y</ulink>.) Without this update glibc can do the wrong thing in
-    uncommon situations.</para>
+    uncommon situations. </para>
 
-    <para>It is much simpler to begin by building a kernel which boots on
-    your hardware, try late microcode loading to see if there is an update (in
-    many cases the BIOS or UEFI will have already applied any update), and then
-    take the extra steps required for early loading.</para>
-
-    <para>This means you will be reconfiguring your kernel if you use early
-    loading, so keep the built source around to minimise what gets rebuilt, and
-    if you are at all uncertain, add your own identifier (A,B, etc) to the end
-    of the EXTRAVERSION in the kernel configuration, e.g. "EXTRAVERSION -A" if
-    nothing was set.</para>
+    <para>As a result, early loading is now expected, although for the moment
+    (4.9 kernels) it is still possible to manually force late loading of
+    microcode for testing. You will need to reconfigure your kernel for either
+    method. The instructions here will create a kernel
+    <filename>.config</filename> to suite early loading, before forcing late
+    loading to see if there is any microcode. If there is, the instructions
+    then show you how to create an initrd for early loading.</para>
 
     <para>To confirm what processor(s) you have (if more than one, they will be
     identical) look in /proc/cpuinfo.</para>
 
     <sect3 id="intel-microcode">
       <title>Intel Microcode for the CPU</title>
-<!--
-      <bridgehead renderas="sect4">Required Package</bridgehead>
-      <para role='required'>
-         <ulink url='http://fedorahosted.org/released/microcode_ctl/'/></para>
-
-      <para>For Intel CPUs an extra package, microcode_ctl, is required. The
-      package chosen is the version hosted at fedora &mdash; there is an
-      alternative version at github from the same packager, but that still
-      includes a redundant old version of an AMD microcode container, and also
-      requires the unzip package.</para>
-
-      <para>Download the latest version from the link above; when last checked
-      this was 2.1-8 and is updated when Intel releases new microcode.</para>
-
-      <para>This package reformats the microcode supplied by Intel into a
-      format which the kernel can apply. The program
-      <userinput>intel-microcode2ucode</userinput> is built and invoked by the
-      Makefile to create the individual firmware blobs, so there is no reason
-      to install it.</para>
-
-      <para>Begin by extracting the tarball and changing to the directory it created.
-      Then change to the source directory and run:</para>
-
-<screen><userinput>make</userinput></screen>
-
-      <para>This creates various blobs with names in the form XX-YY-ZZ. Now you
-      need to determine your processor's identity, to see if there is any
-      microcode for it. Determine the decimal values of the cpu family, model
-      and stepping by running:</para>
--->
 
       <bridgehead renderas="sect4">Required File</bridgehead>
       <para role='required'>
@@ -200,9 +171,9 @@
 <screen><userinput>head -n7 /proc/cpuinfo</userinput></screen>
 
       <para>Convert the cpu family, model and stepping to pairs of hexadecimal
-      digits. For a SandyBridge i3-2120 (described as Intel(R) Core(TM) i3-2120
-      CPU) the relevant values are cpu family 6, model 42, stepping 7 so in
-      this case the required identification is 06-2a-07. A look at the blobs
+      digits. For a Haswell i7-4790 (described as Intel(R) Core(TM) i7-4790
+      CPU) the relevant values are cpu family 6, model 60, stepping 3 so in
+      this case the required identification is 06-3c-03. A look at the blobs
       will show that there is one for this CPU (although it might
       have already been applied by the BIOS). If there is a blob for your
       system then test if it will be applied by copying it (replace &lt;XX-YY-ZZ&gt;
@@ -212,33 +183,35 @@
 cp -v intel-ucode/&lt;XX-YY-ZZ&gt; /lib/firmware/intel-ucode</userinput></screen>
 
       <para>Now that the Intel microcode has been prepared, use the following
-      options when you configure the kernel to try late loading of the Intel
+      options when you configure the kernel to load Intel
       microcode:</para>
 
-<screen><literal>Processor type and features  ---&gt;
-  &lt;M&gt; CPU microcode loading support  [CONFIG_MICROCODE]
-  [*]      Intel microcode loading support [CONFIG_MICROCODE_INTEL]</literal></screen>
+<screen><literal>General Setup ---&gt;
+  [y] Initial RAM filesystem and RAM disk (initramfs/initrd) support [CONFIG_BLK_DEV_INITRD]
+Processor type and features  ---&gt;
+  [y] CPU microcode loading support  [CONFIG_MICROCODE]
+  [y]      Intel microcode loading support [CONFIG_MICROCODE_INTEL]</literal></screen>
 
-      <para>After you have successfully booted the new system, use the command
-      <userinput>dmesg | grep microcode</userinput> and study the results to
-      see if the message new patch_level appears.  This example from the
-      SandyBridge i3:</para>
+      <para>After you have successfully booted the new system, force late loading by
+      using the command:</para>
 
-<screen><literal>[    0.059906] perf_event_intel: PEBS disabled due to CPU errata, please upgrade microcode
-[    2.603083] microcode: CPU0 sig=0x206a7, pf=0x2, revision=0x23
-[    2.669378] microcode: CPU0 sig=0x206a7, pf=0x2, revision=0x23
-[    2.669994] microcode: CPU0 updated to revision 0x29, date = 2013-06-12
-[    2.670069] microcode: CPU1 sig=0x206a7, pf=0x2, revision=0x23
-[    2.670139] microcode: CPU1 sig=0x206a7, pf=0x2, revision=0x23
-[    2.670501] microcode: CPU1 updated to revision 0x29, date = 2013-06-12
-[    2.670509] microcode: CPU2 sig=0x206a7, pf=0x2, revision=0x23
-[    2.670540] microcode: CPU2 sig=0x206a7, pf=0x2, revision=0x23
-[    2.670917] microcode: CPU2 updated to revision 0x29, date = 2013-06-12
-[    2.670955] microcode: CPU3 sig=0x206a7, pf=0x2, revision=0x23
-[    2.670988] microcode: CPU3 sig=0x206a7, pf=0x2, revision=0x23
-[    2.671348] microcode: CPU3 updated to revision 0x29, date = 2013-06-12
-[    2.671356] perf_event_intel: PEBS enabled due to microcode update
-[    2.671412] microcode: Microcode Update Driver: v2.00 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
+<screen><userinput>echo 1 > /sys/devices/system/cpu/microcode/reload</userinput></screen>
+
+      <para>Then use the following command to see if anything was loaded:</para>
+
+<screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
+
+      <para>This example from the Haswell i7 which was released in Q2 2014 and is
+      not affected by the TSX errate shows it has been updated from revision 0x19
+      in the BIOS/UEFI to revision 0x20. Unlike in older kernels, the individual
+      CPUs are not separately reported:</para>
+
+<screen><literal>[    0.000000] Linux version 4.9.12 (ken@plexi) (gcc version 6.3.0 (GCC) )
+               #3 SMP PREEMPT Mon Mar 6 03:29:27 GMT 2017
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.9.12-sda8 root=/dev/sda8 ro
+[    0.913685] microcode: sig=0x306c3, pf=0x2, revision=0x19
+[    0.913905] microcode: Microcode Update Driver: v2.01 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba
+[  148.723932] microcode: updated to revision 0x20, date = 2016-03-16</literal></screen>
 
     <para>If the microcode was not updated, there is no new microcode for
     this system's processor. If it did get updated, you can now proceed to <xref
@@ -260,23 +233,35 @@ cp -v intel-ucode/&lt;XX-YY-ZZ&gt; /lib/firmware/intel-ucode</userinput></screen
 <screen><userinput>mkdir -pv /lib/firmware/amd-ucode
 cp -v microcode_amd* /lib/firmware/amd-ucode</userinput></screen>
 
-      <para>When you configure the kernel, use the following options to try
-      late loading of AMD microcode:</para>
+      <para>When you configure the kernel, use the following options when you
+      configure the kernel to load AMD microcode:</para>
 
-<screen><literal>Processor type and features  ---&gt;
-  &lt;M&gt; CPU microcode loading support   [CONFIG_MICROCODE]
-  [*]   AMD microcode loading support [CONFIG_MICROCODE_AMD]</literal></screen>
+<screen><literal>General Setup ---&gt;
+  [y] Initial RAM filesystem and RAM disk (initramfs/initrd) support [CONFIG_BLK_DEV_INITRD]
+Processor type and features  ---&gt;
+  [y] CPU microcode loading support  [CONFIG_MICROCODE]
+  [y]      AMD microcode loading support [CONFIG_MICROCODE_AMD]</literal></screen>
 
-      <para>After you have successfully booted the new system, use the command
-      <userinput>dmesg | grep microcode</userinput> and study the results to see
-      if the message new patch_level appears, as in this example from an old
-      Athlon(tm) II X2:</para>
+      <para>After you have successfully booted the new system, force late loading by
+      using the command:</para>
 
-<screen><literal>[    4.183907] microcode: CPU0: patch_level=0x010000b6
-[    4.184271] microcode: CPU0: new patch_level=0x010000c8
-[    4.184278] microcode: CPU1: patch_level=0x010000b6
-[    4.184283] microcode: CPU1: new patch_level=0x010000c8
-[    4.184359] microcode: Microcode Update Driver: v2.00 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
+<screen><userinput>echo 1 > /sys/devices/system/cpu/microcode/reload</userinput></screen>
+
+      <para>Then use the following command to see if anything was loaded:</para>
+
+<screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
+      <para>This example from an old Athlon(tm) II X2 shows it has been updated.
+      For the moment, all CPUs are still reported in the microcode details on AMD
+      machines:</para>
+
+<screen><literal>[    0.000000] Linux version 4.9.8 (ken@testserver) (gcc version 6.3.0 (GCC) )
+               #1 SMP Mon Mar 6 22:27:18 GMT 2017
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.9.8-sdc6 root=/dev/sdc6 ro
+[    0.907752] microcode: CPU0: patch_level=0x010000b6
+[    0.907788] microcode: CPU1: patch_level=0x010000b6
+[    0.907844] microcode: Microcode Update Driver: v2.01 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba
+[  121.952667] microcode: CPU0: new patch_level=0x010000c8
+[  121.952687] microcode: CPU1: new patch_level=0x010000c8</literal></screen>
 
     <para>If the microcode was not updated, there is no new microcode for
     this system's processor. If it did get updated, you can now proceed to <xref
@@ -289,9 +274,8 @@ cp -v microcode_amd* /lib/firmware/amd-ucode</userinput></screen>
 
       <para>If you have established that updated microcode is available for
       your system, it is time to prepare it for early loading. This requires
-      an additional package, <xref linkend='cpio'/>, as well as changes to
-      the kernel config and the creation of an initrd which will need to be
-      added to grub.cfg.</para>
+      an additional package, <xref linkend='cpio'/> and the creation of an
+      initrd which will need to be added to grub.cfg.</para>
 
       <para>It does not matter where you prepare the initrd, and once it is
       working you can apply the same initrd to later LFS systems or newer
@@ -315,14 +299,7 @@ cd initrd</userinput></screen>
 
 <screen><userinput>find . | cpio -o -H newc &gt; /boot/microcode.img</userinput></screen>
 
-      <para>You will now need to reconfigure and rebuild your kernel. It is
-      safer to either add/change the EXTRAVERSION in the kernel's configuration
-      and install the newer kernel with a new name, or else (unless you have a
-      machine which requires an early firmware update) wait for the next
-      SUBLEVEL kernel release so that you can fall back to the existing kernel
-      in the event that something goes wrong.</para>
-
-      <para>You will also need to add a new entry to /boot/grub/grub.cfg and
+      <para>You now need to add a new entry to /boot/grub/grub.cfg and
       here you should add a new line after the linux line within the stanza.
       If /boot is a separate mountpoint: </para>
 
@@ -332,56 +309,32 @@ cd initrd</userinput></screen>
 
 <screen><userinput>initrd /boot/microcode.img</userinput></screen>
 
-      <para>You must also change the kernel config:</para>
+      <para>You can now reboot with the added initrd, and then use the same
+      command to check that the early load worked.</para>
 
-<screen><literal>General Setup ---&gt;
-  [y] Initial RAM filesystem and RAM disk (initramfs/initrd) support [CONFIG_BLK_DEV_INITRD]
-  [y] CPU microcode loading support                                  [CONFIG_MICROCODE]</literal></screen>
+<screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
 
-      <para>Retain the setting for INTEL or AMD microcode. When you have saved
-      the .config file, either CONFIG_MICROCODE_INTEL_EARLY=y or
-      CONFIG_MICROCODE_AMD_EARLY=y should be set, together with
-      CONFIG_MICROCODE_EARLY=y.</para>
+      <para>The places and times where early loading happens are very different
+      in AMD and Intel machines. First, an Intel example from an updated stable
+      kernel, showing that the first notification comes before the kernel version
+      is mentioned:</para>
 
-      <para>When you have installed and booted this kernel, you should check
-      the output of dmesg to confirm that the early load worked. The places and
-      times where this happens are very different in AMD and Intel machines.
-      First, an Intel example where a development kernel is being tested,
-      showing that the first notification comes before the kernel version is
-      mentioned:</para>
+<screen><literal>[    0.000000] microcode: microcode updated early to revision 0x20, date = 2016-03-16
+[    0.000000] Linux version 4.9.14 (ken@plexi) (gcc version 6.3.0 (GCC) )
+               #6 SMP PREEMPT Mon Mar 13 16:19:11 GMT 2017
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.9.14-sda8 root=/dev/sda8 ro
+[    0.920217] microcode: sig=0x306c3, pf=0x2, revision=0x20
+[    0.920514] microcode: Microcode Update Driver: v2.01 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
 
-<screen><literal>[    0.000000] CPU0 microcode updated early to revision 0x29, date = 2013-06-12
-[    0.000000] Linux version 4.0.0-rc6 (ken@jtm1) (gcc version 4.9.2 (GCC) )
-               #3 SMP PREEMPT Mon Mar 30 21:26:02 BST 2015
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.0.0-rc6-sda13 root=/dev/sda13 ro
-...
-[    0.103091] CPU1 microcode updated early to revision 0x29, date = 2013-06-12
-[    0.113241]  #2
-[    0.134631]  #3
-[    0.147821] x86: Booted up 1 node, 4 CPUs
-[    0.147936] smpboot: Total of 4 processors activated (26338.66 BogoMIPS)
-...
-[    0.272643] microcode: CPU0 sig=0x206a7, pf=0x2, revision=0x29
-[    0.272709] microcode: CPU1 sig=0x206a7, pf=0x2, revision=0x29
-[    0.272775] microcode: CPU2 sig=0x206a7, pf=0x2, revision=0x29
-[    0.272842] microcode: CPU3 sig=0x206a7, pf=0x2, revision=0x29
-[    0.272941] microcode: Microcode Update Driver: v2.00 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
+      <para>An AMD example for the same kernel version:</para>
 
-      <para>A second AMD example is where the machine was running a stable
-      kernel on an older version of LFS. Note that here there is no mention of
-      the previous microcode version &mdash; compare this output to the AMD
-      late loading messages (above) from the same machine:</para>
-
-<screen><literal>[    0.000000] Linux version 3.18.11 (ken@milliways) (gcc version 4.9.1 (GCC) )
-               #4 SMP Thu Apr 9 21:51:05 BST 2015
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-3.18.11-sda5 root=/dev/sda5 video=800x600 ro
-...
-[    0.584009] Trying to unpack rootfs image as initramfs...
-[    0.584092] microcode: updated early to new patch_level=0x010000c8
-...
-[    0.586733] microcode: CPU0: patch_level=0x010000c8
-[    0.586778] microcode: CPU1: patch_level=0x010000c8
-[    0.586866] microcode: Microcode Update Driver: v2.00 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
+<screen><literal>[    0.000000] Linux version 4.9.14 (ken@testserver) (gcc version 6.3.0 (GCC) )
+               #2 SMP Mon Mar 13 22:23:44 GMT 2017
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.9.14-sdc6 root=/dev/sdc6 ro
+[    0.907648] microcode: microcode updated early to new patch_level=0x010000c8
+[    0.907690] microcode: CPU0: patch_level=0x010000c8
+[    0.907733] microcode: CPU1: patch_level=0x010000c8
+[    0.907808] microcode: Microcode Update Driver: v2.01 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
 
     </sect3>
 
