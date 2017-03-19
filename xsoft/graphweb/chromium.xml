@@ -60,37 +60,44 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <note><para>Download this file via wget as:</para>
-<screen><userinput>wget --content-disposition \
-     https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz</userinput></screen>
-    </note>
+    <bridgehead renderas="sect4">Recommended patch to use the system
+    <application>FFmpeg</application>:</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Optional launcher (to use the Flash Player PPAPI plugin):
-          <ulink url="https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Patch to use the system installed <application>FFmpeg</application>:
           <ulink url="&patch-root;/chromium-&chromium-version;-system_ffmpeg-1.patch"/>
         </para>
       </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect4">Optional Chrome binaries to extract the
+    <application>WideVine</application> plug-in (Netflix) support:</bridgehead>
+    <itemizedlist spacing="compact">
       <listitem>
+        <para>Download (HTTP):</para>
         <para>
-          Optional Chrome distribution (to copy widevine plugin):
-          <ulink url="http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_&chromium-version;-1_amd64.deb"/> or
-          <ulink url="http://mirror.retrosnub.co.uk/apt/google/pool/main/g/google-chrome-stable/google-chrome-stable_48.0.2564.116-1_i386.deb"/>
-          (i386 is no longer officially supported)
+          <ulink url="http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_&chromium-version;-1_amd64.deb"/>
         </para>
       </listitem>
       <listitem>
+        <para>Download MD5 sum: ba137093ddd19e643988e66d5821eb3d</para>
+      </listitem>
+      <listitem>
+        <para>Download size: 45 MB</para>
+      </listitem>
+    </itemizedlist>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Download (HTTP):</para>
         <para>
-          Optional Flash Player plugin:
-          <ulink url="https://fpdownload.adobe.com/pub/flashplayer/pdc/&flashplayer-version;/flash_player_ppapi_linux.x86_64.tar.gz"/> or
-          <ulink url="https://fpdownload.adobe.com/pub/flashplayer/pdc/&flashplayer-version;/flash_player_ppapi_linux.i386.tar.gz"/>
+          <ulink url="http://mirror.retrosnub.co.uk/apt/google/pool/main/g/google-chrome-stable/google-chrome-stable_48.0.2564.116-1_i386.deb"/>
         </para>
+      </listitem>
+      <listitem>
+        <para>Download MD5 sum: 895e877b9bfe5da05a061369c2078626</para>
+      </listitem>
+      <listitem>
+        <para>Download size: 45 MB</para>
       </listitem>
     </itemizedlist>
 
@@ -317,52 +324,25 @@ Categories=GTK;Network;WebBrowser;
 MimeType=application/xhtml+xml;text/xml;application/xhtml+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
 EOF</userinput></screen>
 
-    <bridgehead renderas="sect3">Chromium Launcher</bridgehead>
-    <para><application>Chromium Launcher</application> is a wrapper for
-    <application>chromium</application> that allows use of the Pepper Flash
-    plugin. If you intend to use the <application>Pepper Flash</application>
-    plugin, build <application>Chromium Launcher</application> by running the
-    following commands:</para>
-
-<screen><userinput>tar -xf ../chromium-launcher-3.tar.gz &amp;&amp;
-cd chromium-launcher-3                &amp;&amp;
-make PREFIX=/usr</userinput></screen>
-
-    <para>Install Chromium Launcher with the following commands (as the
-    <systemitem class="username">root</systemitem> user):</para>
-
-<screen role="root"><userinput>rm -f /usr/bin/chromium        &amp;&amp;
-make PREFIX=/usr install-strip &amp;&amp;
-cd ..</userinput></screen>
-
     <bridgehead renderas="sect3">Extracting the WideVine plugin from Chrome</bridgehead>
 
     <para>Extract the downloaded deb file with the following commands:</para>
 
 <screen><userinput>mkdir temp                                         &amp;&amp;
 cd temp                                            &amp;&amp;
-ar -x ../../google-chrome-stable_&chromium-version;*.deb &amp;&amp;
-tar -xf data.tar.xz</userinput></screen>
+case $(uname -m) in
+    x86_64) ar -x ../../google-chrome-stable_&chromium-version;-1_amd64.deb
+    ;;
+    x86) ar -x ../../google-chrome-stable_48.0.2564.116-1_i386.deb
+    ;;
+esac</userinput></screen>
 
     <para>As the <systemitem class="username">root</systemitem> user, install
     the WideVine plugin with the following command:</para>
 
-<screen role="root"><userinput>install -vm755 opt/google/chrome/libwidevinecdm.so \
+<screen role="root"><userinput>tar -xf data.tar.xz
+install -vm755 opt/google/chrome/libwidevinecdm.so \
     /usr/lib/chromium/</userinput></screen>
-
-
-    <bridgehead renderas="sect3">Installing the Pepper Flash plugin:</bridgehead>
-
-    <para>Extract the <application>Flash Player</application> plugin with the
-    following command:</para>
-
-<screen><userinput>tar -xf ../../flash_player_ppapi_linux.*.tar.gz</userinput></screen>
-    <para>As the <systemitem class="username">root</systemitem> user, install
-    the Pepper Flash plugin with the following command:</para>
-
-<screen role="root"><userinput>install -vdm755 /usr/lib/PepperFlash                     &amp;&amp;
-install -vm755 libpepflashplayer.so /usr/lib/PepperFlash &amp;&amp;
-install -vm644 manifest.json /usr/lib/PepperFlash</userinput></screen>
 
   </sect2>
 
@@ -396,12 +376,11 @@ install -vm644 manifest.json /usr/lib/PepperFlash</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>/usr/bin/chromium, /usr/lib/chromium/chromium,
+        <seg>/usr/lib/chromium/chromium,
         /usr/lib/chromium/chromedriver, and
         /usr/lib/chromium/chrome-sandbox</seg>
         <seg>none</seg>
-        <seg>/usr/lib/chromium, /usr/lib/chromium-launcher,
-        and (optionally) /usr/lib/PepperFlash</seg>
+        <seg>/usr/lib/chromium</seg>
       </seglistitem>
     </segmentedlist>
 
