@@ -61,25 +61,35 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <note><para>Download this file via wget as:</para>
-<screen><userinput>wget https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz \
-     -O chromium-launcher-3.tar.gz</userinput></screen>
+<screen><userinput>wget --content-disposition \
+     https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz</userinput></screen>
     </note>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Optional launcher (to use the Flash Player PPAPI plugin):
-        <ulink url="https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz"/>
+        <para>
+          Optional launcher (to use the Flash Player PPAPI plugin):
+          <ulink url="https://github.com/foutrelis/chromium-launcher/archive/v3.tar.gz"/>
         </para>
       </listitem>
       <listitem>
-        <para>Optional Chrome distribution (to copy widevine plugin):
-        <ulink url="http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_&chromium-version;-1_amd64.deb"/> or
-        <ulink url="http://mirror.retrosnub.co.uk/apt/google/pool/main/g/google-chrome-stable/google-chrome-stable_48.0.2564.116-1_i386.deb"/>
-        (i386 is no longer officially supported)</para>
+        <para>
+          Patch to use the system installed <application>FFmpeg</application>:
+          <ulink url="&patch-root;/chromium-&chromium-version;-system_ffmpeg-1.patch"/>
+        </para>
       </listitem>
       <listitem>
-        <para>Optional Flash Player plugin:
-        <ulink url="https://fpdownload.adobe.com/pub/flashplayer/pdc/&flashplayer-version;/flash_player_ppapi_linux.x86_64.tar.gz"/> or
-        <ulink url="https://fpdownload.adobe.com/pub/flashplayer/pdc/&flashplayer-version;/flash_player_ppapi_linux.i386.tar.gz"/>
+        <para>
+          Optional Chrome distribution (to copy widevine plugin):
+          <ulink url="http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_&chromium-version;-1_amd64.deb"/> or
+          <ulink url="http://mirror.retrosnub.co.uk/apt/google/pool/main/g/google-chrome-stable/google-chrome-stable_48.0.2564.116-1_i386.deb"/>
+          (i386 is no longer officially supported)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Optional Flash Player plugin:
+          <ulink url="https://fpdownload.adobe.com/pub/flashplayer/pdc/&flashplayer-version;/flash_player_ppapi_linux.x86_64.tar.gz"/> or
+          <ulink url="https://fpdownload.adobe.com/pub/flashplayer/pdc/&flashplayer-version;/flash_player_ppapi_linux.i386.tar.gz"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -106,10 +116,14 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="ffmpeg"/>,
       <xref linkend="flac"/>,
       <xref linkend="git"/>,
+      <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
       <xref linkend="libexif"/>,
+      <xref linkend="libjpeg"/>,
+      <xref linkend="libpng"/>,
       <xref linkend="libsecret"/>,
       <xref linkend="libwebp"/>,
       <xref linkend="pciutils"/>,
@@ -120,12 +134,8 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="ffmpeg"/>,
       <xref linkend="GConf"/>,
       <xref linkend="gnome-keyring"/>,
-      <xref linkend="icu"/>,
-      <xref linkend="libjpeg"/>,
-      <xref linkend="libpng"/>,
       <xref linkend="libxml2"/>,
       <xref linkend="libvpx"/>,
       <ulink url="https://devel.freebsoft.org/speechd">speech-dispatcher</ulink>
@@ -141,10 +151,10 @@
   <sect2 role="installation">
     <title>Installation of Chromium</title>
 
-   <para>Fix a build issue on Linux-4.5+:</para>
+   <para>Apply a patch to allow use of the system
+   <application>FFmpeg</application>:</para>
 
-<screen><userinput>sed 's/#include &lt;sys\/mman\.h&gt;/&amp;\n\n#if defined(MADV_FREE)\n#undef MADV_FREE\n#endif\n/' \
-    -i third_party/WebKit/Source/wtf/allocator/PageAllocator.cpp</userinput></screen>
+<screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-system_ffmpeg-1.patch</userinput></screen>
 
     <para>Fix a build issue with GCC-6:</para>
 
@@ -166,25 +176,31 @@
       <para>
         Chromium uses many external projects, the selections below are not set
         in stone, however they have been tested thoroughly. With Chromium
-        &chromium-version;, system versions of icu, libjpeg, libpng, libxml2,
-        libvpx, and zlib are known to break the build at this time.
-        <!-- This should be partially remedied in 56.x but yet to verify all 
-             libvpx still requires experimental vp9 as of 0.6 -->
+        &chromium-version;, system versions of libxml2, libvpx, and zlib
+        are known to break the build at this time.
+        <!-- libxml2: https://bugs.archlinux.org/task/29939 -->
+        <!-- libvpx still requires experimental vp9 as of 0.6 -->
+        <!-- zlib requires libminizip -->
       </para>
     </note>
 
 <!-- Again, thanks to Arch, this is much better than listing all the needed
 shipped libs required to use the remove_bundled_files.py script -->
-<screen><userinput>for LIB in flac harfbuzz-ng libwebp libxslt yasm; do
-    find -type f -path "*third_party/$LIB/*" \
-        \! -path "*third_party/$LIB/chromium/*" \
-        \! -path "*third_party/$LIB/google/*" \
+<screen><userinput>for LIB in ffmpeg flac harfbuzz-ng icu libevent libjpeg \
+           libjpeg_turbo libpng libwebp libxslt yasm; do
+    find -type f -path "*third_party/$LIB/*"     \
+        \! -path "*third_party/$LIB/chromium/*"  \
+        \! -path "*third_party/$LIB/google/*"    \
+        \! -path "*base/third_party/icu/*"       \
+        \! -path "*base/third_party/libevent/*"  \
         \! -regex '.*\.\(gn\|gni\|isolate\|py\)' \
         -delete
 done &amp;&amp;
 
 python build/linux/unbundle/replace_gn_files.py \
-    --system-libraries flac harfbuzz-ng libwebp libxslt yasm</userinput></screen>
+    --system-libraries ffmpeg flac harfbuzz-ng icu libevent libjpeg \
+                       libpng libwebp libxslt yasm &amp;&amp;
+python third_party/libaddressinput/chromium/tools/update-strings.py</userinput></screen>
 
     <para><application>Chromium</application> uses an internal tool, <ulink
     url="https://chromium.googlesource.com/chromium/src/tools/gn">gn</ulink>,
@@ -262,7 +278,6 @@ ln -svf /usr/lib/chromium/chromedriver /usr/bin/              &amp;&amp;
 
 install -vm755 out/Release/libwidevinecdmadapter.so \
                /usr/lib/chromium/                             &amp;&amp;
-install -vDm644 out/Release/icudtl.dat /usr/lib/chromium      &amp;&amp;
 install -vDm644 out/Release/gen/content/content_resources.pak \
                 /usr/lib/chromium/                            &amp;&amp;
 install -vm644 out/Release/{*.pak,*.bin} \
@@ -356,9 +371,6 @@ install -vm644 manifest.json /usr/lib/PepperFlash</userinput></screen>
 
     <para><command>GN_CONFIG=(...)</command>: this array contains
     all of the defines used in the build.</para>
-
-    <para><command>sed "s/#include &lt;sys...</command>: this command undefines
-    MADV_FREE to fix a build issue with Linux-4.5 and newer.</para>
 
     <para><command>python tools/gn/bootstrap/bootstrap.py --gn-gen-args "${GN_CONFIG[*]}"</command>:
     this command replaces defines in the gn files with the values contained in 
