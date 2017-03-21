@@ -7,13 +7,13 @@
   <!ENTITY radeon-wiki "http://wiki.x.org/wiki/RadeonFeature">
   <!ENTITY radeon-marketing-names "&radeon-wiki;#Decoder_ring_for_engineering_vs_marketing_names">
 
-  <!ENTITY xorg-ati-driver-version "7.8.0">
+  <!ENTITY xorg-ati-driver-version "7.9.0">
 
   <!ENTITY xorg-ati-driver-download-http "&xorg-download-http;/driver/xf86-video-ati-&xorg-ati-driver-version;.tar.bz2">
   <!ENTITY xorg-ati-driver-download-ftp  "&xorg-download-ftp;/driver/xf86-video-ati-&xorg-ati-driver-version;.tar.bz2">
-  <!ENTITY xorg-ati-driver-md5sum        "f34d04a755e761e03b459155fa3ddcbb">
-  <!ENTITY xorg-ati-driver-size          "826 KB">
-  <!ENTITY xorg-ati-driver-buildsize     "19 MB">
+  <!ENTITY xorg-ati-driver-md5sum        "bf3dfdae23879bdc0c8a7b955572ad90">
+  <!ENTITY xorg-ati-driver-size          "829 KB">
+  <!ENTITY xorg-ati-driver-buildsize     "20 MB">
   <!ENTITY xorg-ati-driver-time          "0.2 SBU">
 ]>
 
@@ -37,7 +37,7 @@
       <para>
         The <application>Xorg ATI Driver</application> package contains the X.Org
         Video Driver for ATI Radeon video cards including all chipsets ranging
-        from R100 to R900 and the newer RAxx chipsets.
+        from R100 to the "Volcanic Islands" chipsets.
       </para>
 
       &lfs80_checked;
@@ -98,10 +98,10 @@
 
       <note>
         <para>
-          Glamor is <emphasis>required for "Southern Islands" and later
-          GPUs</emphasis> but optional for R300 to R700, Evergreen and
-          "Northern Islands" GPUs - see the link in <xref
-          linkend="ati-glamor-accel"/> below.
+          Glamor is required for Southern, Sea or Volcanic Islands GPUs, and
+          used by default in all other R600 or later radeon GPUs. To see which
+          GPUs are in these categories, read the <ulink url="&radeon-marketing-names;">
+          Decoder ring for engineering vs marketing names</ulink>.
         </para>
       </note>
 
@@ -141,7 +141,7 @@
         etc. Note that for R600 and R700 family, generic
         <filename>R600_rlc.bin</filename> and <filename>R700_rlc.bin</filename> are
         necessary in addition to the model specific firmware, while for later generations
-        (Evergreen, "Northern Islands" and probably "Southern Islands") you need the
+        you need the
         <filename>BTC_rlc.bin</filename> in addition to the model specific firmware.
         Below is an example for Radeon HD6470, which is "Northern Islands" GPU with a
         network card that also requires the firmware:
@@ -194,20 +194,27 @@ make</userinput></screen>
         Now, as the <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>
+make install                         &amp;&amp;
+install -v -m644 conf/10-radeon.conf \
+  $XORG_CONFIG/share/X11/xorg.conf.d
+</userinput></screen>
     </sect3>
 
+<!--
     <sect3 id="ati-glamor-accel">
       <title>Glamor Acceleration</title>
 
       <para>
         Glamor is an acceleration library which uses cards' 3D capabilities
-        to accelerate 2D rendering. Glamor acceleration is required for
-        Radeon "Southern Islands" GPUs which use "radeonsi" Gallium3D driver
-        from <xref linkend="mesa"/>. To see which cards fall under
-        "Southern Islands" category, read the
-        <ulink url="&radeon-marketing-names;">
-        Decoder ring for engineering vs marketing names</ulink>. Please note
+        to accelerate 2D rendering. Glamor acceleration is either required
+        or used by default for all R600 and later GPUs. To see which GPUs are
+        in these categories, read the <ulink url="&radeon-marketing-names;">
+        Decoder ring for engineering vs marketing names</ulink>.
+      </para>
+
+      <para>
+        Please note
         that Glamor acceleration can be used with other chips as well, from the
         R300 onwards. On at least some Northern Islands chips it is beneficial.
       </para>
@@ -229,6 +236,18 @@ make</userinput></screen>
         Option "AccelMethod" "glamor"
 EndSection</literal>
 EOF</userinput></screen>
+
+    </sect3>-->
+
+    <sect3 role="commands">
+    <title>Command Explanations</title>
+
+
+      <para>
+        <command>install -v -m644 conf/10-radeon.conf ...</command>: this
+        ensures that the radeon driver can be loaded automatically even if
+        the ati wrapper driver has not been installed.
+      </para>
 
     </sect3>
 
