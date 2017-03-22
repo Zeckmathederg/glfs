@@ -6,9 +6,9 @@
 
   <!ENTITY asymptote-download-http "&sourceforge-repo;/sourceforge/asymptote/asymptote-&asymptote-version;.src.tgz">
   <!ENTITY asymptote-download-ftp  " ">
-  <!ENTITY asymptote-md5sum        "69df7cbe85f8daed0ea58b38c2cbe0d8">
+  <!ENTITY asymptote-md5sum        "33a17fbb0b9592ea73fbcd32e643e2ef">
   <!ENTITY asymptote-size          "3.4 MB">
-  <!ENTITY asymptote-buildsize     "147 MB">
+  <!ENTITY asymptote-buildsize     "149 MB">
   <!ENTITY asymptote-time          "1.7 SBU">
 ]>
 
@@ -73,20 +73,21 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="freeglut"/>,
       <xref linkend="gs"/>,
       <xref linkend="texlive"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="freeglut"/>,
       <xref linkend="gc"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <ulink url="http://www.fftw.org/">FFTW</ulink>,
-      <xref linkend="gsl"/>
+      <xref linkend="gsl"/>,
+      <xref linkend="libsigsegv"/>,
+      <ulink url="http://www.fftw.org/">FFTW</ulink>
     </para>
 
     <bridgehead renderas="sect4">Optional (at runtime, to use xasy)</bridgehead>
@@ -115,7 +116,6 @@
     </para>
 
 <screen><userinput>export TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
-export CFLAGS="-g -O2" &amp;&amp;
 ./configure --prefix=/opt/texlive/&texlive-year; \
  --bindir=/opt/texlive/&texlive-year;/bin/$TEXARCH \
  --datarootdir=/opt/texlive/&texlive-year;/texmf-dist \
@@ -136,33 +136,19 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>
+make install                                                &amp;&amp;
+rm -fv /opt/texlive/&texlive-year;/texmf-dist/doc/info/asymptote.info
+
+</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para>
-      <command>export CFLAGS="-g -O2"</command>: by default CXXFLAGS of -g -O2
-      and CFLAGS of -g -O3 are used, but the CFLAGS follow the CXXFLAGS and
-      therefore override them. With gcc-6.3.0, using -O3 here breaks the build.
-      If you normally remove '-g' in your own CFLAGS and CXXFLAGS you can do
-      that here.
-    </para>
-
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
      href="../../xincludes/tex-prefix.xml"/>
-
-    <para>
-      Exceptionally, asymptote will create an <filename
-      class="directory">asymptote/</filename> subdirectory for
-      <filename>asymptote.info</filename> even though the
-      <filename>asy-faq.info</filename> file will be in the main
-      <application>texlive</application>
-      <filename class="directory">info/</filename> directory. Both files
-      <emphasis>will</emphasis> be found by <command>info</command>.
-    </para>
 
     <para><parameter>--libdir=/opt/texlive/&texlive-year;/texmf-dist;</parameter>:
     This parameter ensures that the <filename class="directory">asymptote</filename>
@@ -176,6 +162,19 @@ make</userinput></screen>
     ensure that style files and a tex file will be installed into the
     <application>texlive</application> directories instead of creating a
     <filename class="directory">texmf-local</filename> directory for them.</para>
+
+    <para>
+      <command>rm -fv /opt/texlive/.../asymptote.info</command>:
+      This deletes the file installed by <application>texlive</application>.
+      Exceptionally, asymptote will create an <filename
+      class="directory">asymptote/</filename> subdirectory for its own
+      <filename>asymptote.info</filename> even though a possibly older
+      version from <xref linkend="texlive"/> is in the main
+      <application>texlive</application>
+      <filename class="directory">info/</filename> directory. Both the
+      new version and the existing <filename>asy-faq.info</filename>
+      <emphasis>will</emphasis> be found by <command>info</command>.
+    </para>
 
   </sect2>
 
