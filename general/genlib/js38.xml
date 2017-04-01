@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY js38-download-http "https://people.mozilla.org/~sstangl/mozjs-&JS38-version;.rc0.tar.bz2">
+  <!ENTITY js38-download-ftp  " ">
+  <!ENTITY js38-md5sum        "cb602e21f5fc798b88163a3aa4e03e0a">
+  <!ENTITY js38-size          "24 MB">
+  <!ENTITY js38-buildsize     "1.7 GB">
+  <!ENTITY js38-time          "3.3 SBU">
+]>
+
+<sect1 id="js38" xreflabel="js38-&JS38-version;">
+  <?dbhtml filename="js38.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>JS-&JS38-version;</title>
+
+  <indexterm zone="js38">
+    <primary sortas="a-js38">js38</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to JS</title>
+
+    <para>
+      <application>JS</application> is Mozilla's JavaScript engine
+      written in C.
+    </para>
+
+    &lfs80_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&js38-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&js38-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &js38-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &js38-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &js38-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &js38-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/js38-&JS38-version;-upstream_fixes-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">JS38 Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="autoconf213"/>,
+      <xref linkend="icu"/>,
+      <xref linkend="libffi"/>,
+      <xref linkend="nspr"/>,
+      <xref linkend="python2"/>, and
+      <xref linkend="zip"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="doxygen"/>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/js38"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of JS</title>
+
+    <warning>
+      <para>The tarball extracts to mozjs-38.0.0, rather than what is
+      listed in the download section.</para>
+    </warning>
+
+    <para>
+      First, apply a patch to fix the build and to prevent segmentation
+      faults.
+    </para>
+
+<screen><userinput remap="pre">patch -Np1 -i ../js38-&JS38-version;-upstream_fixes-1.patch</userinput></screen>
+
+    <para>
+      Install <application>JS</application> by running the following
+      commands:
+    </para>
+
+<!-- Spaces are significant in <screen> sections -->
+<screen><userinput>cd js/src &amp;&amp;
+autoconf2.13 &amp;&amp;
+
+sed -i 's|\^\[:space:\]|^\[\[:space:\]\]|g' configure &amp;&amp;
+./configure --prefix=/usr       \
+            --with-intl-api     \
+            --with-system-zlib  \
+            --with-system-ffi   \
+            --with-system-nspr  \
+            --with-system-icu   \
+            --enable-threadsafe \
+            --enable-readline   &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      This package does not come with a working test suite.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+  </sect2>
+
+  <!--Optional section-->
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>autoconf213</command>: This command regenerates the configure
+      script with the changes from the patch.
+    </para>
+
+    <para>
+      <command>sed -i ... configure</command>: This command allows the configure
+      script to function with <application>sed</application> 4.4.
+    </para>
+
+    <para>
+      <parameter>--with-*</parameter>: These parameters allow the build system
+      to use system versions of the above libriares. These are required for
+      stability.
+    </para>
+
+    <para>
+      <parameter>--enable-readline</parameter>: This switch enables Readline
+      support in the JS shell.
+    </para>
+    
+    <para>
+      <parameter>--enable-threadsafe</parameter>: This switch enables support
+      for multiple threads at one time. This increases performance as well as
+      stability.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries)</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          js38 and js38-config
+        </seg>
+        <!-- Yes, the static library is required. -->
+        <seg>
+          libmozjs-38.so and libjs_static.ajs
+        </seg>
+        <seg>
+          /usr/include/mozjs-38
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="js3-js38">
+        <term><command>js38</command></term>
+        <listitem>
+          <para>
+            provides a command line interface to the
+            <application>JavaScript</application> engine.
+          </para>
+          <indexterm zone="js38 js38">
+            <primary sortas="b-js38">js38</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="js38-config">
+        <term><command>js38-config</command></term>
+        <listitem>
+          <para>
+            is used to find the JS compiler and linker flags.
+          </para>
+          <indexterm zone="js38 js38-config">
+            <primary sortas="b-js38-config">js38-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libmozjs-38">
+        <term><filename class="libraryfile">libmozjs-38.so</filename></term>
+        <listitem>
+          <para>
+            contains the Mozilla JavaScript API functions.
+          </para>
+          <indexterm zone="js38 libmozjs-38">
+            <primary sortas="c-libmozjs38">libmozjs-38.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
