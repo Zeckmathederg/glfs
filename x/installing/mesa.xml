@@ -105,20 +105,19 @@
       <xref linkend="libvdpau"/> (to build VDPAU drivers),
       
       <xref linkend="llvm"/> (required for Gallium3D, r300, and radeonsi
-      drivers and for the llvmpipe software rasterizer. See
-      <ulink url="http://www.mesa3d.org/systems.html"/> for more information.)
+      drivers and for the llvmpipe software rasterizer. See <ulink
+      url="http://www.mesa3d.org/systems.html"/> for more information)<phrase
+      revision="systemd">, and
+      <xref linkend="wayland"/> (required for <xref linkend='plasma5-build'/>,
+      <xref linkend='lxqt'/>, and GNOME)</phrase>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="libgcrypt"/>,
       <xref linkend="nettle"/>,
-      <xref linkend="wayland"/> (required for
-        <xref linkend='plasma5-build'/>
-          <phrase revision="systemd">,</phrase>
-          <phrase revision="sysv">and</phrase>
-        <xref linkend='lxqt'/>
-          <phrase revision="systemd">, and GNOME</phrase>),
+      <phrase revision="sysv"><xref linkend="wayland"/> (required for
+        <xref linkend='plasma5-build'/> and <xref linkend='lxqt'/>),</phrase>
       
       <ulink url="ftp://ftp.freedesktop.org/pub/mesa/demos/">mesa-demos</ulink>
       (provides more than 300 extra demos to test
@@ -172,17 +171,15 @@
       commands:
     </para>
 
-    <note>
+    <note revision="sysv">
       <para>
         Add wayland to the <parameter>--with-egl-platforms</parameter> switch
         below if you plan on building
-        <xref linkend='plasma5-build'/><phrase revision="systemd">,</phrase>
-        <phrase revision="sysv">or</phrase>
-        <xref linkend='lxqt'/><phrase revision="systemd">, or GNOME</phrase>.
+        <xref linkend='plasma5-build'/> or <xref linkend='lxqt'/>.
       </para>
     </note>
 
-<screen><userinput>sed -i "/pthread_stubs_possible=/s/yes/no/" configure.ac &amp;&amp;
+<screen revision="sysv"><userinput>sed -i "/pthread_stubs_possible=/s/yes/no/" configure.ac &amp;&amp;
 
 ./autogen.sh CFLAGS='-O2' CXXFLAGS='-O2'    \
             --prefix=$XORG_PREFIX           \
@@ -193,6 +190,21 @@
             --enable-glx-tls                \
             --with-egl-platforms="drm,x11"  \
             --with-gallium-drivers=$GLL_DRV &amp;&amp;
+
+unset GLL_DRV &amp;&amp;
+
+make</userinput></screen>
+<screen revision="systemd"><userinput>sed -i "/pthread_stubs_possible=/s/yes/no/" configure.ac &amp;&amp;
+
+./autogen.sh CFLAGS='-O2' CXXFLAGS='-O2'           \
+            --prefix=$XORG_PREFIX                  \
+            --sysconfdir=/etc                      \
+            --enable-texture-float                 \
+            --enable-osmesa                        \
+            --enable-xa                            \
+            --enable-glx-tls                       \
+            --with-egl-platforms="drm,x11,wayland" \
+            --with-gallium-drivers=$GLL_DRV        &amp;&amp;
 
 unset GLL_DRV &amp;&amp;
 
