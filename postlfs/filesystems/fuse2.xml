@@ -4,25 +4,25 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY fuse-download-http "https://github.com/libfuse/libfuse/releases/download/fuse-&fuse-version;/fuse-&fuse-version;.tar.gz">
-  <!ENTITY fuse-download-ftp  " ">
-  <!ENTITY fuse-md5sum        "d4d8bc7aa8202e4fca1ad47ff844206f">
-  <!ENTITY fuse-size          "732 KB">
-  <!ENTITY fuse-buildsize     "11 MB">
-  <!ENTITY fuse-time          "0.2 SBU">
+  <!ENTITY fuse2-download-http "https://github.com/libfuse/libfuse/releases/download/fuse-&fuse-version;/fuse-&fuse-version;.tar.gz">
+  <!ENTITY fuse2-download-ftp  " ">
+  <!ENTITY fuse2-md5sum        "9bd4ce8184745fd3d000ca2692adacdb">
+  <!ENTITY fuse2-size          "646 KB">
+  <!ENTITY fuse2-buildsize     "8.2 MB (9.8 MB with API documentation)">
+  <!ENTITY fuse2-time          "0.1 SBU">
 ]>
 
-<sect1 id="fuse" xreflabel="Fuse-&fuse-version;">
-  <?dbhtml filename="fuse.html"?>
+<sect1 id="fuse2" xreflabel="Fuse-&fuse2-version;">
+  <?dbhtml filename="fuse2.html"?>
 
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
   </sect1info>
 
-  <title>Fuse-&fuse-version;</title>
+  <title>Fuse-&fuse2-version;</title>
 
-  <indexterm zone="fuse">
+  <indexterm zone="fuse2">
     <primary sortas="a-Fuse">Fuse</primary>
   </indexterm>
 
@@ -43,51 +43,55 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Download (HTTP): <ulink url="&fuse-download-http;"/>
+          Download (HTTP): <ulink url="&fuse2-download-http;"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Download (FTP): <ulink url="&fuse-download-ftp;"/>
+          Download (FTP): <ulink url="&fuse2-download-ftp;"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Download MD5 sum: &fuse-md5sum;
+          Download MD5 sum: &fuse2-md5sum;
         </para>
       </listitem>
       <listitem>
         <para>
-          Download size: &fuse-size;
+          Download size: &fuse2-size;
         </para>
       </listitem>
       <listitem>
         <para>
-          Estimated disk space required: &fuse-buildsize;
+          Estimated disk space required: &fuse2-buildsize;
         </para>
       </listitem>
       <listitem>
         <para>
-          Estimated build time: &fuse-time;
+          Estimated build time: &fuse2-time;
         </para>
       </listitem>
     </itemizedlist>
 
-<!--
     <bridgehead renderas="sect3">Fuse Dependencies</bridgehead>
--->
-<!-- HTML documentation is prebuilt now, dox/Doxyfile appares not to work
+
+    <bridgehead renderas="sect3">Required</bridgehead>
+    <para role="required">
+      <xref linkend="fuse"/> (runtime only)
+    </para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="doxygen"/> (to build the API documentation)
+      <xref linkend="doxygen"/> (to build the API documentation - not
+      recommended)
     </para>
--->
+
     <para condition="html" role="usernotes">
-      User Notes: <ulink url="&blfs-wiki;/fuse"/>
+      User Notes: <ulink url="&blfs-wiki;/fuse2"/>
     </para>
   </sect2>
 
-  <sect2 role="kernel" id="fuse-kernel">
+  <sect2 role="kernel" id="fuse2-kernel">
     <title>Kernel Configuration</title>
 
     <para>
@@ -98,7 +102,7 @@
 <screen><literal>File systems  ---&gt;
   &lt;*/M&gt; FUSE (Filesystem in Userspace) support [CONFIG_FUSE_FS]</literal></screen>
 
-    <indexterm zone="fuse fuse-kernel">
+    <indexterm zone="fuse2 fuse2-kernel">
       <primary sortas="d-fuse">fuse</primary>
     </indexterm>
   </sect2>
@@ -113,14 +117,10 @@
 
 <screen><userinput>./configure --prefix=/usr    \
             --disable-static \
-            --exec-prefix=/  \
-            INIT_D_PATH=/tmp/init.d &amp;&amp;
-make</userinput></screen>
+            --exec-prefix=/  &amp;&amp;
 
-<!--    <para>
-      If you have <xref linkend="doxygen"/> installed and wish to build the API
-      documentation, issue <command>doxygen doc/Doxyfile</command>.
-    </para> -->
+make &amp;&amp;
+make DESTDIR=$PWD/Dest install</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -130,25 +130,18 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>cp -v Dest/lib/*.so*       /lib                     &amp;&amp;
+cp -v Dest/lib/*.la        /usr/lib                 &amp;&amp;
+cp -v Dest/lib/pkgconfig/* /usr/lib/pkgconfig       &amp;&amp; 
 
-rm -rf  /tmp/init.d &amp;&amp;
-install -v -m755 -d /usr/share/doc/fuse-&fuse-version; &amp;&amp;
-install -v -m644    doc/{README.NFS,kernel.txt} \
-                    /usr/share/doc/fuse-&fuse-version; &amp;&amp;
-cp -Rv doc/html /usr/share/doc/fuse-&fuse-version;</userinput></screen>
+cp -v Dest/bin/*  /bin                              &amp;&amp;
 
-<!--
-    <para>
-      If you built the API documentation, install it as the
-      <systemitem class="username">root</systemitem> user by issuing the
-      following commands:
-    </para>
+install -vdm755                 /usr/include/fuse   &amp;&amp;
+cp -v Dest/usr/include/*.h      /usr/include        &amp;&amp;
+cp -v Dest/usr/include/fuse/*.h /usr/include/fuse/  &amp;&amp;
 
-<screen role="root"><userinput>install -v -m755 -d /usr/share/doc/fuse-&fuse-version;/api &amp;&amp;
-install -v -m644    doc/html/* \
-                    /usr/share/doc/fuse-&fuse-version;/api</userinput></screen>
--->
+cp -v Dest/usr/share/man/man1/* /usr/share/man/man1</userinput></screen>
+
   </sect2>
 
   <sect2 role="commands">
@@ -165,46 +158,22 @@ install -v -m644    doc/html/* \
     </para>
 
     <para>
-      <parameter>INIT_D_PATH=/tmp/init.d</parameter>: This parameter installs
-      the bootscript into <filename class="directory">/tmp/init.d</filename> as
-      a bootscript is not required.
-    </para>
-
-    <para>
-      <command>rm -rf /tmp/init.d</command>: This removes the unneeded
-      bootscript.
+      <command>make DESTDIR=$PWD/Dest install</command>: This command installs
+      the files to a temporary directory, so that the needed files can be
+      installed.
     </para>
 
   </sect2>
 
-  <sect2 role="configuration" id="fuse-configuration">
+  <sect2 role="configuration">
     <title>Configuring fuse</title>
 
-    <sect3 id="fuse-config">
+    <sect3 id="fuse2-config">
       <title>Config Files</title>
 
       <para>
-        Some options regarding mount policy can be set in the file
-        <filename>/etc/fuse.conf</filename>. To install the file run the
-        following command as the <systemitem class="username">root</systemitem>
-        user:
-      </para>
-
-<screen role="root"><userinput>cat &gt; /etc/fuse.conf &lt;&lt; "EOF"
-# Set the maximum number of FUSE mounts allowed to non-root users.
-# The default is 1000.
-#
-#mount_max = 1000
-
-# Allow non-root users to specify the 'allow_other' or 'allow_root'
-# mount options.
-#
-#user_allow_other
-EOF</userinput></screen>
-
-      <para>
-        Additional information about the meaning of the configuration
-        options are found in the man page.
+        Information on configuring fuse can be found at
+        <xref linkend="fuse-configuration"/>.
       </para>
 
     </sect3>
@@ -221,13 +190,13 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          fusermount3, mount.fuse3
+          fusermount, mount.fuse, and ulockmgr_server
         </seg>
         <seg>
-          libfuse3.so
+          libfuse.so and libulockmgr.so
         </seg>
         <seg>
-          /usr/include/fuse3 and /usr/share/doc/fuse-&fuse-version;
+          /usr/include/fuse
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -237,44 +206,67 @@ EOF</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="fusermount3">
-        <term><command>fusermount3</command></term>
+      <varlistentry id="fusermount2">
+        <term><command>fusermount</command></term>
         <listitem>
           <para>
             is a set users ID root program to mount and unmount Fuse
             filesystems.
           </para>
-          <indexterm zone="fuse fusermount3">
-            <primary sortas="b-fusermount3">fusermount3</primary>
+          <indexterm zone="fuse2 fusermount2">
+            <primary sortas="b-fusermount2">fusermount</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="mount.fuse3">
-        <term><command>mount.fuse3</command></term>
+      <varlistentry id="mount.fuse2">
+        <term><command>mount.fuse</command></term>
         <listitem>
           <para>
             is the command <command>mount</command> would call to mount a Fuse
             filesystem.
           </para>
-          <indexterm zone="fuse mount.fuse3">
-            <primary sortas="b-mount.fuse3">mount.fuse3</primary>
+          <indexterm zone="fuse2 mount.fuse2">
+            <primary sortas="b-mount.fuse2">mount.fuse</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libfuse3">
-        <term><filename class="libraryfile">libfuse3.so</filename></term>
+      <varlistentry id="ulockmgr_server2">
+        <term><command>ulockmgr_server</command></term>
+        <listitem>
+          <para>
+            is the Userspace Lock Manager Server for Fuse filesystems.
+          </para>
+          <indexterm zone="fuse2 ulockmgr_server2">
+            <primary sortas="b-ulockmgr_server2">ulockmgr_server</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libfuse2">
+        <term><filename class="libraryfile">libfuse.so</filename></term>
         <listitem>
           <para>
             contains the <application>FUSE</application> API functions.
           </para>
-          <indexterm zone="fuse libfuse3">
-            <primary sortas="c-libfuse3">libfuse3.so</primary>
+          <indexterm zone="fuse2 libfuse2">
+            <primary sortas="c-libfuse2">libfuse.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="libulockmgr2">
+        <term><filename class="libraryfile">libulockmgr.so</filename></term>
+        <listitem>
+          <para>
+            contains the Userspace Lock Manager API functions.
+          </para>
+          <indexterm zone="fuse2 libulockmgr2">
+            <primary sortas="c-libulockmgr2">libulockmgr.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
     </variablelist>
 
   </sect2>
