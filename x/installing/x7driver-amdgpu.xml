@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY radeon-wiki "http://wiki.x.org/wiki/RadeonFeature">
+  <!ENTITY radeon-marketing-names "&radeon-wiki;#Decoder_ring_for_engineering_vs_marketing_names">
+
+  <!ENTITY xorg-amdgpu-driver-version "1.3.0">
+
+  <!ENTITY xorg-amdgpu-driver-download-http "&xorg-download-http;/driver/xf86-video-amdgpu-&xorg-amdgpu-driver-version;.tar.gz">
+  <!ENTITY xorg-amdgpu-driver-download-ftp  "&xorg-download-ftp;/driver/xf86-video-amdgpu-&xorg-amdgpu-driver-version;.tar.gz">
+  <!ENTITY xorg-amdgpu-driver-md5sum        "c0c3d95fb2865008f1347bf9f38c0f44">
+  <!ENTITY xorg-amdgpu-driver-size          "488 KB">
+  <!ENTITY xorg-amdgpu-driver-buildsize     "6.0 MB">
+  <!ENTITY xorg-amdgpu-driver-time          "0.1 SBU">
+]>
+
+  <!-- Begin Xorg AMDGPU Driver -->
+  <sect2 id="xorg-amdgpu-driver" xreflabel="Xorg AMDGPU Driver-&xorg-amdgpu-driver-version;">
+
+  <sect2info>
+    <othername>$LastChangedBy: ken $</othername>
+    <date>$Date: 2016-11-21 02:40:26 +0100 (Pon, 21 Nov 2016) $</date>
+  </sect2info>
+
+    <title>Xorg AMDGPU Driver-&xorg-amdgpu-driver-version;</title>
+
+    <indexterm zone="xorg-amdgpu-driver">
+      <primary sortas="a-xorg-amdgpu-driver">xorg-amdgpu-driver</primary>
+    </indexterm>
+
+    <sect3 role="package">
+      <title>Introduction to Xorg AMDGPU Driver</title>
+
+      <para>
+        The <application>Xorg AMDGPU Driver</application> package contains the X.Org
+        Video Driver for newer AMD Radeon video cards starting from Volcanic Islands.
+        It can also be used for Southern and Sea Islands if the experimental support
+        was enabled in the kernel.
+      </para>
+
+      &lfs80_checked;
+
+      <note>
+        <para>
+          For Direct Rendering to work, you need to enable the radeonsi Gallium
+          driver at <xref linkend="mesa"/> build time. Also, all cards
+          require Firmware to be available when the kernel driver is loaded.
+          Firmware can be obtained from <ulink
+          url="&sources-anduin-http;/linux-firmware/"/>.
+          See <xref linkend="xorg-amdgpu-firmware-kernel"/> below for additional
+          firmware.
+        </para>
+      </note>
+
+      <bridgehead renderas="sect4">Package Information</bridgehead>
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>
+            Download (HTTP): <ulink url="&xorg-amdgpu-driver-download-http;"/>
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Download (FTP): <ulink url="&xorg-amdgpu-driver-download-ftp;"/>
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Download MD5 sum: &xorg-amdgpu-driver-md5sum;
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Download size: &xorg-amdgpu-driver-size;
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Estimated disk space required: &xorg-amdgpu-driver-buildsize;
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Estimated build time: &xorg-amdgpu-driver-time;
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      <bridgehead renderas="sect4">Xorg AMDGPU Driver Dependencies</bridgehead>
+
+      <bridgehead renderas="sect5">Required</bridgehead>
+      <para role="required">
+        <xref linkend="xorg-server"/> (must be built with glamor enabled)
+      </para>
+
+      <para condition="html" role="usernotes">
+        User Notes: <ulink url="&blfs-wiki;/xorg-amdgpu-driver"/>
+      </para>
+    </sect3>
+
+    <sect3 role="kernel" id="xorg-amdgpu-driver-kernel">
+      <title>Kernel Configuration</title>
+
+      <para>
+        Enable the following options in the kernel configuration and recompile
+        the kernel if necessary:
+      </para>
+
+<!-- Editor note: CONFIG_DRM_AMDGPU_SI available in 4.9+ -->
+<screen><literal>Device Drivers  ---&gt;
+  Graphics support ---&gt;
+   &lt;*&gt; Direct Rendering Manager (XFree86 ... support) ---&gt; [CONFIG_DRM]
+   &lt;*/M&gt; AMD GPU                                           [CONFIG_DRM_AMDGPU]
+    [ /*] Enable amdgpu support for SI parts               [CONFIG_DRM_AMDGPU_SI]
+    [ /*] Enable amdgpu support for CIK parts              [CONFIG_DRM_AMDGPU_CIK]</literal></screen>
+
+      <para>
+        The last two options enable experimental support for Southern and
+        Sea Islands AMD GPUs so they can be used with this driver. Note that
+        the support is marked experimental and disabled by default.
+        <xref linkend="xorg-ati-driver"/> should be used for those GPUs.
+      </para>
+
+      <indexterm zone="xorg-amdgpu-driver xorg-amdgpu-driver-kernel">
+        <primary sortas="d-xorg-amdgpu-driver">xorg-amdgpu-driver</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3 role="kernel" id="xorg-amdgpu-firmware-kernel">
+      <title>Kernel Configuration for additional firmware</title>
+
+      <para>
+        If you need to add firmware, install the file(s) and then point to them in the
+        kernel configuration and recompile the kernel if necessary. To find out which
+        firmware you need, consult the <ulink url="&radeon-marketing-names;">
+        Decoder ring for engineering vs marketing names</ulink>. Download any firmware
+        for your card which is named like:
+        <filename><replaceable>&lt;ENGINEERING_NAME&gt;</replaceable>_rlc.bin</filename>,
+        etc. Below is an example for Radeon R7 M340 GPU, which is codenamed
+        Iceland/Topaz, along with a network card that also requires the firmware:
+      </para>
+
+<screen><literal>CONFIG_EXTRA_FIRMWARE="amdgpu/topaz_ce.bin amdgpu/topaz_k_smc.bin amdgpu/topaz_mc.bin
+                       amdgpu/topaz_me.bin amdgpu/topaz_mec2.bin amdgpu/topaz_mec.bin
+                       amdgpu/topaz_pfp.bin amdgpu/topaz_rlc.bin amdgpu/topaz_sdma1.bin
+                       amdgpu/topaz_sdma.bin amdgpu/topaz_smc.bin rtl_nic/rtl8168e-3.fw"
+CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"</literal></screen>
+
+      <note>
+        <para>
+          CONFIG_EXTRA_FIRMWARE should all be on one line. It is shown above as
+          multiple lines for presentation only.
+        </para>
+      </note>
+
+      <tip>
+        <para>
+          You can check <command>dmesg</command> output after boot to see which firmware
+          is missing.
+        </para>
+      </tip>
+
+      <para>
+        Alternatively, if you change CONFIG_DRM_AMDGPU to '=m' in your linux
+        kernel .config the firmware can be loaded automatically from
+        /lib/firmware/amdgpu/ when it installs the module. This offers a tiny
+        space saving, but also means that the screen will be blank for a longer
+        time before the framebuffer appears. Distros take this approach because
+        it is not practical to specify every possible firmware and the kernel
+        would be excessively big.
+      </para>
+
+      <indexterm zone="xorg-amdgpu-driver xorg-amdgpu-firmware-kernel">
+        <primary sortas="d-xorg-amdgpu-firmware">xorg-amdgpu-firmware</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3 role="installation">
+      <title>Installation of Xorg AMDGPU Driver</title>
+
+      <para>
+        Install <application>Xorg AMDGPU Driver</application> by running the following
+        commands:
+      </para>
+
+<screen><userinput>./configure $XORG_CONFIG &amp;&amp;
+make</userinput></screen>
+
+      <para>
+        This package does not come with a test suite.
+      </para>
+
+      <para>
+        Now, as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+    </sect3>
+
+    <sect3 role="content">
+      <title>Contents</title>
+
+      <segmentedlist>
+        <segtitle>Installed Xorg Driver</segtitle>
+
+        <seglistitem>
+          <seg>
+            &emsp;amdgpu_drv.so
+          </seg>
+        </seglistitem>
+      </segmentedlist>
+
+      <variablelist>
+        <bridgehead renderas="sect4">Short Descriptions</bridgehead>
+        <?dbfo list-presentation="list"?>
+        <?dbhtml list-presentation="table"?>
+
+        <varlistentry id="amdgpu_drv">
+          <term><filename class="libraryfile">amdgpu_drv.so</filename></term>
+          <listitem>
+            <para>
+              is an Xorg video driver for latest AMD Radeon video cards.
+            </para>
+            <indexterm zone="xorg-amdgpu-driver amdgpu_drv">
+              <primary sortas="c-amdgpu_drv">amdgpu_drv.so</primary>
+            </indexterm>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </sect3>
+
+  </sect2>
+  <!-- End Xorg AMDGPU Driver -->
