@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY rust-download-http "http://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
+  <!ENTITY rust-download-ftp  "">
+  <!ENTITY rust-md5sum        "c11d94d9e62f71838b20058f0797357a">
+  <!ENTITY rust-size          "28 MB">
+  <!ENTITY rust-buildsize     "1.5 GB (208 MB installed) plus 118MB for cargo files">
+  <!ENTITY rust-time          "14 SBU (with 4 processors)">
+]>
+
+<sect1 id="rust" xreflabel="rustc-&rust-version;">
+  <?dbhtml filename="rust.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Rustc-&rust-version;</title>
+
+  <indexterm zone="rust">
+    <primary sortas="a-rust">Rust</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Rust</title>
+
+    <para>
+      The <application>Rust</application> programming language is designed
+      to be a safe, concurrent, practical language.
+    </para>
+
+    <para>
+      As with many  other programming languages, rustc (the rust compiler)
+      needs a binary from which to bootstrap. It will download a stage0 binary,
+      and several cargo files (these are actually .tar.gz source archives) at
+      the start of the build, so you cannot compile it without an internet
+      connection.
+    </para>
+
+    <para>
+      The current <application>rustbuild</application> build-system will use
+      all available processors, although it does not scale well and often falls
+      back to just using one core while waiting for a library to compile.
+    </para>
+
+    <para>
+      At the moment <application>Rust</application> does not provide any
+      guarantees of a stable ABI, and it is likely that the next few versions
+      of <application>firefox</application> will each require the latest version
+      of <application>Rust</application>.
+    </para>
+
+    &lfs80_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&rust-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&rust-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &rust-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &rust-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &rust-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &rust-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Rust Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="curl"/>,
+      <xref linkend="cmake"/> (if not using the recommended <xref linkend="llvm-old"/>),
+      <xref linkend="python2"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <!-- acceptable versions of llvm are listed in the tests
+           of LLVM_VERSION in configure, currently 3.{7-9}*    -->
+      <xref linkend="llvm-old"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="gdb"/> (often required for the testsuite, but some of the
+      gdb tests may still fail),
+      <xref linkend="ninja"/>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/rust"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Rust</title>
+
+    <para>
+      Install <application>Rust</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>
+mkdir build                                        &amp;&amp;
+cd build                                           &amp;&amp;
+
+./configure --prefix=/usr                          \
+  --docdir=/usr/share/doc/rustc-&rust-version;             \
+  --llvm-root=/opt/llvm3 --enable-llvm-link-shared &amp;&amp;
+./x.py build</userinput></screen>
+
+    <para>
+      The testsuite in this package selects random subsets of the
+      possible tests.  There is no correlation between how long a
+      particular run of the testsuite takes, and how many tests
+      were run. On occasion, the chosen tests will run in much
+      less than 1.0 SBU, on other occasions they may take more
+      than 20 SBU. Although it is normal to run the testsuite for
+      a compiler, in this case that is very hard to recommend.
+    </para>
+
+    <para>
+      Nevertheless, if you insist on running the tests issue
+      <command>./x.py test</command>: as with the build, that will
+      use all available CPUs.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>
+test -f /usr/lib/libLLVM-3.9.so ||
+  ln -sv /opt/llvm3/lib/libLLVM-3.9.so /usr/lib &amp;&amp;
+
+./x.py dist --install</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>--llvm-root=/opt/llvm3 --enable-llvm-link-shared</command>:
+      This tells rust to use the system verison of llvm3 installed in
+      <filename class="directory">/opt/llvm3</filename>, linking to the
+      shared libraries.
+    </para>
+
+    <para>
+      <option>--enable-dist-host-only</option>: If you did not install a
+      system version of <xref linkend="llvm-old"/>, use this alternative command
+      to build the shipped static version of llvm. It will
+      <emphasis>compile</emphasis> for all the available linux cross-compilers
+      (Aarch64, MIPS, PowerPC, SystemZ, etc) but with this switch it will only
+      <emphasis>install</emphasis> for the host architecture.
+    </para>
+
+    <para>
+      <option>RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi"</option>: use this if
+      you need to link against a version of LLVM-3 which was compiled against
+      <xref linkend="libffi"/>.
+    </para>
+
+    <para>
+      <command>ln -sv /opt/llvm3/lib/libLLVM-3.9.so /usr/lib</command>:
+      Although the <emphasis>build</emphasis> of <application>Rust</application>
+      finds the shared library in
+      <filename class="directory">/opt/llvm3/lib</filename>, several of the steps
+      run by the <application>rustbuild</application>
+      <emphasis>installer</emphasis> do not find
+      <filename>libLLVM-3.9.so</filename>. This conditional symlink fixes that,
+      and works even if <filename>libLLVM-3.9.{0,1}</filename> has already been
+      installed in <filename class="directory">/usr</filename>.
+      <emphasis>Omit this command if you did not install a system version of
+      <xref linkend="llvm-old"/></emphasis>.
+    </para>
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Program(s)</segtitle>
+      <segtitle>Installed Librar(y,ies)</segtitle>
+      <segtitle>Installed Director(y,ies)</segtitle>
+
+      <seglistitem>
+        <seg>
+          rust-gdb, rust-lldb, rustc, rustdoc.
+        </seg>
+        <seg>
+          Many libraries (libarena, libflate, libfmt_macros, libgetopts,
+          libgraphviz, liblog, libproc_macro, librustc*, libserialize,
+          libstd, libsyntax, libterm, libtest), all containing a hash in
+          their names.
+        </seg>
+        <seg>
+          ~/.cargo,
+          /usr/lib/rustlib,
+          /usr/share/doc/rustc-&rust-version;.
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="rust-gdb">
+        <term><command>rust-gdb</command></term>
+        <listitem>
+          <para>
+            is a Python wrapper script for gdb.
+          </para>
+          <indexterm zone="rust rust-gdb">
+            <primary sortas="b-rust-gdb">rust-gdb</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rust-lldb">
+        <term><command>rust-lldb</command></term>
+        <listitem>
+          <para>
+            is a Python wrapper script for LLDB (the LLVM debugger).
+          </para>
+          <indexterm zone="rust rust-lldb">
+            <primary sortas="b-rust-lldb">rust=lldb</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rustc">
+        <term><command>rustc</command></term>
+        <listitem>
+          <para>
+            is the rust compiler.
+          </para>
+          <indexterm zone="rust rustc">
+            <primary sortas="b-rustc">rustc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rustdoc">
+        <term><command>rustdoc</command></term>
+        <listitem>
+          <para>
+            generates documentation from rust source code.
+          </para>
+          <indexterm zone="rust rustdoc">
+            <primary sortas="b-rustdoc">rustdoc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libstd">
+        <term><filename class="libraryfile">libstd-&lt;16-byte-hash&gt;.so</filename></term>
+        <listitem>
+          <para>
+            is the Rust Standard Library, the foundation of portable Rust software.
+          </para>
+          <indexterm zone="rust libstd">
+            <primary sortas="c-libstd">libstd-&lt;16-byte-hash&gt;.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>

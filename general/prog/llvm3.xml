@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!-- for the moment, this is internally llvm-old but visibly llvm3
+   so that when rust eventually understands a less-old version the
+   visible fields, and the page itself, can be moved to that newer
+   number -->
+  <!ENTITY llvm-old-download-http "http://llvm.org/releases/&llvm-old-version;/llvm-&llvm-old-version;.src.tar.xz">
+  <!ENTITY llvm-old-download-ftp  " ">
+  <!ENTITY llvm-old-md5sum        "3259018a7437e157f3642df80f1983ea">
+  <!ENTITY llvm-old-size          "18 MB">
+  <!ENTITY llvm-old-buildsize     "663 MB (112 MB installed) plus 101 MB for the testsuite">
+  <!ENTITY llvm-old-time          "6.9 SBU (plus 1.8 SBU for the testsuite, both with parallelism=4)">
+]>
+
+<sect1 id="llvm-old" xreflabel="LLVM-&llvm-old-version;">
+  <?dbhtml filename="llvm-old.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>LLVM-&llvm-old-version;</title>
+
+  <indexterm zone="llvm-old">
+    <primary sortas="a-llvm3">LLVM3</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to llvm3</title>
+
+    <para>
+      This is an old version of <application>llvm</application>, installed
+      in /opt so that <xref linkend="rust"/> can use it. For normal use you
+      should install <xref linkend="llvm"/>.
+    </para>
+
+    <para>
+      This version of the <application>LLVM</application> package contains old
+      versions of the libraries, using the API which
+      <application>Rust</application> expects. Although <xref linkend="rust"/>
+      ships with a version of LLVM-3.9 and will build and link to it statically,
+      its <application>rustbuild</application> build-system will always compile
+      a large number of cross-compilers for different architectures. Using a
+      separate LLVM avoids that.
+    </para>
+
+    <para>
+      By using a separate <application>LLVM-3.9.1</application> it will be
+      possible to save time when upgrading <application>Rust</application> (the
+      overall time for the first build will be similar both with and without
+      separate <application>LLVM-3.9.1</application>).
+    </para>
+
+    &lfs80_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&llvm-old-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&llvm-old-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &llvm-old-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &llvm-old-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &llvm-old-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &llvm-old-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">llvm3 Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="cmake"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="python2"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="doxygen"/>,
+      <xref linkend="graphviz"/>,
+      <xref linkend="libffi"/> (if you force this to be
+      used, the build of <xref linkend="rust"/> will need to be altered)
+      <xref linkend="libxml2"/>,
+      <xref linkend="texlive"/> (or <xref linkend="tl-installer"/>),
+      <xref linkend="valgrind"/>,
+      <xref linkend="zip"/>,
+      <ulink url="http://www.ocaml.org/">OCaml</ulink>, and
+      <ulink url="http://pypi.python.org/pypi/Sphinx">Sphinx</ulink>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/llvm3"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of llvm3</title>
+
+    <para>
+      Install <application>llvm3</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>echo "/opt/llvm3/lib" >> /etc/ld.so.conf &amp;&amp;
+mkdir -v build                           &amp;&amp;
+cd       build                           &amp;&amp;
+
+CC=gcc CXX=g++                           \
+cmake -DCMAKE_INSTALL_PREFIX=/opt/llvm3  \
+      -DCMAKE_BUILD_TYPE=Release         \
+      -DLLVM_BUILD_LLVM_DYLIB=ON         \
+      -DLLVM_LINK_LLVM_DYLIB=ON          \
+      -DLLVM_TARGETS_TO_BUILD="host"     \
+      -DLLVM_INSTALL_UTILS=ON            \
+      -Wno-dev ..                        &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make check-all</command>. The tests
+      are run using the maximum number of processors/threads available, but the
+      main part of the added time is spent compiling the test programs. This
+      works fine with parallel make.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>
+make install                              &amp;&amp;
+ldconfig                                  &amp;&amp;
+ln -sfv /opt/llvm3/bin/FileCheck /usr/bin
+</userinput></screen>
+
+    <para>
+      Building the documentation for <emphasis>current</emphasis> LLVM is
+      covered in <xref linkend="llvm"/>, building docs for this old version
+      would be similar, but almost everyone who needs this old version will
+      also need the current version for <xref linkend="mesa"/> so it is
+      redundant to install the docs here.
+    </para>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>-DLLVM_INSTALL_UTILS_=ON</parameter>: This switch enables
+      the installation of old utility programs. Of those,
+      <application>rust</application> looks for <command>FileCheck</command>
+      when its configure checks for a system LLVM, the others are not used.
+    </para>
+
+    <para>
+      <parameter>ldconfig</parameter>: This ensures the libraries can be
+      found.
+    </para>
+
+    <para>
+      <parameter>ln -sfv /opt/llvm3/bin/FileCheck /usr/bin</parameter>: This
+      ensures that FileCheck can be found by <application>rust</application>
+      even though <filename class="directory">/opt/llvm3/bin</filename> is not
+      on the PATH (having two versions of <application>LLVM</application>
+      generally available has been known to cause pain).
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Program(s)</segtitle>
+      <segtitle>Installed Librar(y,ies)</segtitle>
+      <segtitle>Installed Director(y,ies)</segtitle>
+
+      <seglistitem>
+        <seg>
+          bugpoint, count, FileCheck,
+          llc, lli, llvm-ar, llvm-as, llvm-bcanalyzer, llvm-config, llvm-cov,
+          llvm-c-test, llvm-cxxdump, llvm-diff, llvm-dis, llvm-dsymutil,
+          llvm-dwarfdump, llvm-dwp, llvm-extract, llvm-lib (symlink to
+          llvm-ar), llvm-link, llvm-lto, llvm-mc, llvm-mcmarkup, llvm-nm,
+          llvm-objdump, llvm-pdbdump, llvm-profdata, llvm-ranlib (symlink to
+          llvm-ar), llvm-readobj, llvm-rtdyld, llvm-size, llvm-split,
+          llvm-stress, llvm-symbolizer, llvm-tblgen, not, obj2yaml, opt, sancov,
+          sanstats, verify-uselistorder, yaml-bench and yaml2obj
+        </seg>
+        <seg>
+          BugpointPasses.so,  LLVMHello.so, libLLVM.so, libLLVM*.a (50
+          libraries), libLTO.so
+        </seg>
+        <seg>
+          /opt/llvm3
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="FileCheck">
+        <term><command>FileCheck</command></term>
+        <listitem>
+          <para>
+            reads two files (one from standard input,the other specified on the
+            command line) and uses one to verify the other.
+          </para>
+          <indexterm zone="llvm-old FileCheck">
+            <primary sortas="b-FileCheck">FileCheck</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+    <para>
+      For details of the other items in this package, see <xref linkend="llvm"/>.
+    </para>
+
+  </sect2>
+</sect1>
