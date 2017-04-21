@@ -6,10 +6,10 @@
 
   <!ENTITY curl-download-http "https://curl.haxx.se/download/curl-&curl-version;.tar.lzma">
   <!ENTITY curl-download-ftp  " ">
-  <!ENTITY curl-md5sum        "78fce113c34e7a7941080bcd0d21fecc">
+  <!ENTITY curl-md5sum        "3cf2de0ca4ac43e59067eb6b4f876982">
   <!ENTITY curl-size          "2.0 MB">
-  <!ENTITY curl-buildsize     "39 MB (additional 10 MB for tests)">
-  <!ENTITY curl-time          "0.4 SBU (additional 11.1 SBU for tests)">
+  <!ENTITY curl-buildsize     "37 MB (additional 10 MB for tests)">
+  <!ENTITY curl-time          "0.4 SBU (additional 11.5 SBU for tests)">
 ]>
 
 <sect1 id="curl" xreflabel="cURL-&curl-version;">
@@ -131,52 +131,45 @@
     </para>
 
 <screen><userinput>patch -Np1 -i ../curl-&curl-version;-valgrind_filter-1.patch &amp;&amp;
+
 ./configure --prefix=/usr                           \
             --disable-static                        \
             --enable-threaded-resolver              \
             --with-ca-path=/etc/ssl/certs &amp;&amp;
 make</userinput></screen>
 
-<!--    <para>
+<!--
+   For version 7.54.0 I got:
+   TESTDONE: 893 tests out of 893 reported OK: 100%
+   TESTDONE: 1082 tests were considered during 1231 seconds.
+
+    <para>
       Running the test suite is optional. About 2% of the tests fail. Increase
       in test time by each failed test is about 10%. Tests SBU above was
       obtained disabling failing tests, with:
     </para>
+-->
+    <note>
+      <para>
+      To run the tests for this package, valgrind requires a version of the
+      /lib/ld-2.23.so (or later) library with debugging symbols present.
+      Normally in LFS these debugging symbols are stripped at the end of
+      Chapter 6. To get this library, glibc must be rebuilt with the current
+      glibc version using the same compiler that was used to build LFS. The
+      ld-2.23.so can then be renamed to ld-2.23.so.dbg and copied to /lib. Then
+      a symlink needs to be changed: 
+      </para>
 
-<screen><userinput>cat &gt;&gt; tests/data/DISABLED &lt;&lt; "EOF"
-<literal>564
-700
-701
-703
-706
-707
-708
-709
-710
-711
-712</literal>
-EOF</userinput></screen>
+      <screen role="nodump"><userinput>ln -sfv ld-2.23.so.dbg /lib/ld-linux-x86-64.so.2</userinput></screen>
 
-I had the following fail:
- 300  301  303  304  306 309 310 311  312  325
- 400  401  403  406  407 408 409 560 1112 2034
-2035 2037 2038 2041 2042
-
-  - Bruce 20151016
-
-Tests may be using capabilites removed from recent ssh due to
-security issues.
-
+      <para>
+      Adjust the above instruction as needed for a 32-bit system
+      or for a different version of glibc
+      </para>
+    </note>
 
     <para>
-       and running <command>make test</command>.
-    </para>-->
-
-    <para>
-      To run the test suite, issue: <command>make test</command>. <!-- Two tests,
-      1139 and 1140, may fail. Works fine for me. Douglas 20160720 --><!--  Some
-      tests (up to 2%) may fail due to timing issues, kernel configuration,
-      or other issues.-->
+      To run the test suite, issue: <command>make test</command>. 
     </para>
 
     <para>
@@ -192,7 +185,7 @@ find docs \( -name Makefile\* \
           -o -name \*.1       \
           -o -name \*.3 \)    \
           -exec rm {} \;      &amp;&amp;
-install -v -d -m755 /usr/share/doc/curl-&curl-version; &amp;&amp;
+install -v -d -m755 /usr/share/doc/coro-&curl-version; &amp;&amp;
 cp -v -R docs/*     /usr/share/doc/curl-&curl-version;</userinput></screen>
 
     <para>
