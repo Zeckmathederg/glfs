@@ -6,10 +6,10 @@
 
   <!ENTITY fop-download-http "https://archive.apache.org/dist/xmlgraphics/fop/source/fop-&fop-version;-src.tar.gz">
   <!ENTITY fop-download-ftp  " ">
-  <!ENTITY fop-md5sum        "13b5b497dfb0ba8a01093dfc1a89d106">
-  <!ENTITY fop-size          "23 MB">
-  <!ENTITY fop-buildsize     "342 MB">
-  <!ENTITY fop-time          "0.3 SBU">
+  <!ENTITY fop-md5sum        "6d2388bd8851b4883d3258c0afc96895">
+  <!ENTITY fop-size          "24 MB">
+  <!ENTITY fop-buildsize     "493 MB (add 39 MB for tests)">
+  <!ENTITY fop-time          "0.7 SBU (add 0.7 SBU for tests)">
 
   <!ENTITY jai-version       "1_1_3">
   <!ENTITY jai-download      "http://download.java.net/media/jai/builds/release/&jai-version;/jai-&jai-version;-lib-linux-i586.tar.gz">
@@ -19,11 +19,9 @@
   <!ENTITY jai64-download    "http://download.java.net/media/jai/builds/release/&jai-version;/jai-&jai-version;-lib-linux-amd64.tar.gz">
   <!ENTITY jai64-md5sum      "4a906db35612f668aeef2c0606d7075b">
   <!ENTITY jai64-size        "3.4 MB">
-<!--
-  <!ENTITY offo-download     "&sourceforge-repo;/offo/offo-hyphenation_v2.0.zip">
-  <!ENTITY offo-md5sum       "a78171d47c9af223c51bbd42df36f26d">
-  <!ENTITY offo-size         "858 KB">
--->
+  <!ENTITY offo-download     "&sourceforge-repo;/projects/offo/files/offo-hyphenation/2.2/offo-hyphenation.zip">
+  <!ENTITY offo-md5sum       "bf9c09bf05108ef9661b8f08d91c2336">
+  <!ENTITY offo-size         "862 KB">
 ]>
 
 <sect1 id="fop" xreflabel="fop-&fop-version;">
@@ -81,7 +79,6 @@
     <itemizedlist spacing="compact">
       <title>Recommended packages</title>
 
-<!--
       <listitem>
         <para>Objects for Formatting Objects (OFFO) hyphenation patterns:
           <simplelist>
@@ -91,7 +88,7 @@
           </simplelist>
         </para>
       </listitem>
--->
+
       <listitem>
         <para>Java Advanced Imaging (JAI) API components (architecture dependent):
           <simplelist>
@@ -108,14 +105,14 @@
         </para>
       </listitem>
     </itemizedlist>
-    <itemizedlist spacing="compact">
+<!--    <itemizedlist spacing="compact">
       <title>Required patch</title>
       <listitem>
         <para>
           <ulink url="&patch-root;/fop-&fop-version;-listNPE-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist>-->
 
     <bridgehead renderas="sect3">fop Dependencies</bridgehead>
 
@@ -128,14 +125,13 @@
     <para role="optional">
       <xref linkend="junit"/> (to run tests),
       <xref linkend="x-window-system"/> (to run tests),
-      <ulink url="http://www.oracle.com/technetwork/java/javasebusiness/downloads/java-archive-downloads-java-client-419417.html">JIMI SDK</ulink>,
-      <ulink url="http://www.xmlunit.org/">XMLUnit</ulink>,
-      <ulink url="https://java.net/projects/jai-imageio">JAI Image I/O Tools</ulink>,
-      <ulink url="http://jeuclid.sourceforge.net/">JEuclid</ulink>,
-      <ulink url="https://pmd.github.io/">PMD</ulink>
-          (requires <ulink url="http://jaxen.org/">Jaxen</ulink>), and
-      <ulink url="http://forrest.apache.org/">Forrest</ulink> (Forrest used only
-      to build the documentation)
+      <ulink url="https://maven.apache.org/">Maven</ulink>,
+      <ulink url="https://java.net/projects/jai-imageio">JAI Image I/O Tools</ulink>, and
+      <ulink url="http://jeuclid.sourceforge.net/">JEuclid</ulink>
+<!-- [pierre 2017-04-29] Note to devs: there are a lot of bundled dependencies.
+     Some were listed here, but not all. I am not sure it is possible to
+     use system ones. So, I have removed them, an kept only those which
+     are not bundled. -->
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -153,23 +149,21 @@
       corresponding <filename class='extension'>.jar</filename> files can be
       found via the <envar>CLASSPATH</envar> environment variable.
     </para>
-<!--
+
     <sect3>
       <title>Installing OFFO Hyphenation Patterns</title>
 
       <para>
-        First, unpack the <application>fop</application> source tarball and
-        the hyphenation zipfile from the same directory, then change directories
-        into the root of the <application>fop</application> source tree. Copy
-        the XML hyphenation patterns into the <application>fop</application>
-        source tree by running the following commands:
+        Copy the XML hyphenation patterns into the fop source tree by running
+        the following commands:
       </para>
 
-<screen><userinput>cp ../offo-hyphenation/hyph/* hyph &amp;&amp;
-rm -rf ../offo-hyphenation</userinput></screen>
+<screen><userinput>unzip ../offo-hyphenation.zip &amp;&amp;
+cp offo-hyphenation/hyph/* fop/hyph &amp;&amp;
+rm -rf offo-hyphenation</userinput></screen>
 
     </sect3>
--->
+
     <sect3>
       <title>Installing Java Advanced Imaging (JAI) API components</title>
 
@@ -206,34 +200,43 @@ esac</userinput></screen>
 
 <screen><userinput>sed -i '\@&lt;/javad@i\
 &lt;arg value="-Xdoclint:none"/&gt;\
-&lt;arg value="--allow-script-in-comments"/&gt;' build.xml</userinput></screen>
+&lt;arg value="--allow-script-in-comments"/&gt;' fop/build.xml</userinput></screen>
 
+      <para>
+        The stack size set in <filename>build.xml</filename> for building the
+        hyphenation patterns is not enough. Change it by running:
+      </para>
+
+<screen><userinput>sed -e '/hyph\.stack/s/512k/1M/' \
+    -i fop/build.xml</userinput></screen>
       <para>
         Then, compile <application>fop</application> by running the
         following commands:
       </para>
 
-<screen><userinput>patch -Np1 -i ../fop-&fop-version;-listNPE-1.patch &amp;&amp;
+<screen><userinput>cd fop                    &amp;&amp;
+export LC_ALL=en_US.UTF-8 &amp;&amp;
 
-ant compile &amp;&amp;
-ant jar-main &amp;&amp;
-ant javadocs &amp;&amp;
+ant compile               &amp;&amp;
+ant jar-main              &amp;&amp;
+ant jar-hyphenation       &amp;&amp;
+ant javadocs              &amp;&amp;
 mv build/javadocs .</userinput></screen>
 
-<!-- ant docs target is not present anymore in fop-2.0
       <para>
-        If <application>Forrest</application> is installed,
-        build the full set of documentation:
+        To test the application, first modify <filename>build.xml</filename>
+        so that tests do not stop when an error is encountered:
       </para>
+ 
+<screen><userinput>sed -e '/haltonfailure/s/yes/off/' \
+    -i build.xml</userinput></screen>
 
-<screen><userinput>ant docs</userinput></screen>
--->
       <para>
-        To test the application, run <command>ant junit-all</command>. The
-        hyphenation tests will fail.  To see a list of other test targets, use
-        <command>ant -p</command>. You must run the tests from an X-window using
-        a GL-aware <application>Xorg</application> server or some of the
-        <application>JUnit</application> tests will hang.
+        Then, run <command>ant junit</command>. The hyphenation tests will
+        fail if OFFO hyphenation has not been compiled. To see a list of other
+        test targets, use <command>ant -p</command>. You must run the tests
+        from an X-window using a GL-aware <application>Xorg</application>
+        server or some of the <application>JUnit</application> tests will hang.
       </para>
 
       <para>
@@ -241,10 +244,11 @@ mv build/javadocs .</userinput></screen>
       </para>
 
 <screen role="root"><userinput>install -v -d -m755 -o root -g root          /opt/fop-&fop-version; &amp;&amp;
-cp -v  KEYS LICENSE NOTICE README            /opt/fop-&fop-version; &amp;&amp;
+cp -v  ../{KEYS,LICENSE,NOTICE,README}       /opt/fop-&fop-version; &amp;&amp;
 cp -vR build conf examples fop* javadocs lib /opt/fop-&fop-version; &amp;&amp;
+chmod a+x /opt/fop-&fop-version;/fop                                &amp;&amp;
 
-ln -v -sf fop-&fop-version; /opt/fop</userinput></screen>
+ln -v -sfn fop-&fop-version; /opt/fop</userinput></screen>
 
     </sect3>
 
@@ -260,15 +264,16 @@ ln -v -sf fop-&fop-version; /opt/fop</userinput></screen>
     </para>
 
     <para>
-      <command>patch -Np1 -i ../fop-2.1-listNPE-1.patch</command>: This patch
-      fixes a bug leading to segmentation faults when processing some inputs.
+      <command>export LC_ALL=en_US.UTF-8</command>: the compiler fails if using
+      an ASCII locale.
     </para>
 
     <para>
       <command>ant <option>target</option></command>: This reads the file
       <filename>build.xml</filename> and builds the target: <option>compile
       </option> compiles the java sources, <option>jar-main</option> generates
-      jar archives, and <option>javadocs</option> builds the documentation.
+      jar archives, <option>jar-hyphenation</option> generates the hyphenation
+      patterns for FOP, and <option>javadocs</option> builds the documentation.
     </para>
 
     <para>
