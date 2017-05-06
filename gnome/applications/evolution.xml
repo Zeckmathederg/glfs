@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY evolution-download-http "&gnome-download-http;/evolution/&gnome-minor-22;/evolution-&evolution-version;.tar.xz">
-  <!ENTITY evolution-download-ftp  "&gnome-download-ftp;/evolution/&gnome-minor-22;/evolution-&evolution-version;.tar.xz">
-  <!ENTITY evolution-md5sum        "0b839838df678bc6e50b41059856fadb">
+  <!ENTITY evolution-download-http "&gnome-download-http;/evolution/&gnome-minor-24;/evolution-&evolution-version;.tar.xz">
+  <!ENTITY evolution-download-ftp  "&gnome-download-ftp;/evolution/&gnome-minor-24;/evolution-&evolution-version;.tar.xz">
+  <!ENTITY evolution-md5sum        "d3c7638be893d215b3727c559ac4d8a5">
   <!ENTITY evolution-size          "12 MB">
-  <!ENTITY evolution-buildsize     "569 MB">
-  <!ENTITY evolution-time          "18 SBU">
+  <!ENTITY evolution-buildsize     "472 MB">
+  <!ENTITY evolution-time          "3.1 SBU">
 ]>
 
 <sect1 id="evolution" xreflabel="Evolution-&evolution-version;" revision="systemd">
@@ -93,7 +93,8 @@
       <xref linkend="highlight"/>,
       <xref linkend="libcanberra"/>,
       <xref linkend="libgweather"/>,
-      <xref linkend="libnotify"/>, and
+      <xref linkend="libnotify"/>, 
+      <xref linkend="openldap"/>, and
       <xref linkend="seahorse"/>
     </para>
 
@@ -104,7 +105,6 @@
       <xref linkend="geocode-glib"/>, and
       <xref linkend="libchamplain"/> (Contact Maps plugin),
       <xref linkend="gtk-doc"/>,
-      <xref linkend="openldap"/>,
       <ulink url="https://wiki.gnome.org/Projects/GTK%2B/GtkImageView/">GtkImageView</ulink>,
       <ulink url="http://gtkspell.sourceforge.net/">GtkSpell3</ulink>,
       <ulink url="&gnome-download-http;/libcryptui/">libcryptui</ulink>,
@@ -126,11 +126,17 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr         \
-            --sysconfdir=/etc     \
-            --disable-gtkspell    \
-            --disable-pst-import  \
-            --disable-libcryptui  &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd build &amp;&amp;
+cmake -DCMAKE_INSTAL_PREFIX=/usr \
+      -DSYSCONF_INSTALL_DIR=/etc \
+      -DENABLE_INSTALLED_TESTS=ON \
+      -DENABLE_LIBCRYPTUI=OFF    \
+      -DENABLE_PST_IMPORT=OFF    \
+      -DENABLE_GTKSPELL=OFF      \
+      -DENABLE_YTNEF=OFF         \
+      -DENABLE_CONTACT_MAPS=OFF  \
+      .. &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -157,19 +163,19 @@ make</userinput></screen>
 -->
 
     <para>
-      <parameter>--disable-libcryptui</parameter>: This switch disables
+      <parameter>-DENABLE_LIBCRYPTUI=OFF</parameter>: This switch disables
       the usage of libcryptui because it is not part of BLFS. Omit
       this switch if you have it installed and wish to use it.
     </para>
 
     <para>
-      <parameter>--disable-gtkspell</parameter>: This switch is used to
+      <parameter>-DENABLE_GTKSPELL=OFF</parameter>: This switch is used to
       disable the gtkspell plugin because
       <application>GtkSpell</application> is not part of BLFS.
     </para>
 
     <para>
-      <parameter>--disable-pst-import</parameter>: This switch is
+      <parameter>-DENABLE_PST_IMPORT=OFF</parameter>: This switch is
       used to disable the pst-import plugin because
       <application>libpst</application> is not part of BLFS.
     </para>
@@ -182,20 +188,25 @@ make</userinput></screen>
     </para>
 -->
 
+<!--
     <para>
-      <option>--with-openldap</option>: This switch will enable
+      <option>- -with-openldap</option>: This switch will enable
       <application>OpenLDAP</application> support in
       <application>Evolution</application>.
     </para>
+No equivalent. -->
 
     <para>
-      <option>--enable-contact-maps</option>: Use this switch if you
+      <option>-DENABLE_CONTACT_MAPS=ON</option>: Use this switch if you
       have installed the necessary dependencies and wish to build the
       Contact Maps plugin.
     </para>
 
+<!--
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/gtk-doc-rebuild.xml"/>
+We need to make one for CMake.
+-->
 
   </sect2>
 
@@ -213,8 +224,11 @@ make</userinput></screen>
         </seg>
         <seg>
           libeabutil.so,
+          libeabwidgets.so,
           libecontacteditor.so,
           libecontactlisteditor.so,
+          libecontactprint.so,
+          libedomutils.so,
           libemail-engine.so,
           libessmime.so,
           libevolution-addressbook-importers.so,
@@ -236,6 +250,7 @@ make</userinput></screen>
           /usr/lib/evolution,
           /usr/libexec/evolution,
           /usr/share/evolution,
+          /usr/share/installed-tests/evolution,
           /usr/share/gtk-doc/html/{evolution-mail-composer,evolution-mail-engine},
           /usr/share/gtk-doc/html/{evolution-mail-formatter,evolution-shell},
           /usr/share/gtk-doc/html/evolution-util, and
