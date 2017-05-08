@@ -36,7 +36,9 @@
 
     <note><para>When testing <application>Xorg</application> with the
     <application>twm</application> window manager, there will be several
-    warnings in the Xorg log file, <filename>/var/log/Xorg.0.log</filename>,
+    warnings in the Xorg log file, <filename revision="sysv">
+    /var/log/Xorg.0.log</filename><filename revision="systemd">
+    $HOME/.local/share/xorg/Xorg.0.log</filename>,
     about missing font files.  In addition, there will be several warnings on
     the text mode terminal (usually tty1) about missing fonts.  These warnings
     do not affect functionality, but can be removed if desired by installing
@@ -49,17 +51,21 @@
     </sect2>
 
     <sect2 role="configuration" id="checking-dri" xreflabel="Checking the DRI installation">
-    <title>Checking the Direct Rendering Infrastructure (DRI) Installation</title>
+    <title>Checking the Direct Rendering Infrastructure (DRI)
+    Installation</title>
 
     <para>
-      DRI is a framework for allowing software to access graphics hardware in a safe and
-      efficient manner. It is installed in <application>X</application> by default
-      (using <application>Mesa</application>) if you have a supported video card.
+      DRI is a framework for allowing software to access graphics hardware in
+      a safe and efficient manner. It is installed in
+      <application>X</application> by default (using
+      <application>Mesa</application>) if you have a supported video card.
     </para>
 
     <para>
       To check if DRI drivers are installed properly, check the log file
-      <filename>/var/log/Xorg.0.log</filename> for statements such as:
+      <filename revision="sysv">/var/log/Xorg.0.log</filename><filename
+      revision="systemd">$HOME/.local/share/xorg/Xorg.0.log</filename> for
+      statements such as:
     </para>
 
 <screen><literal>(II) intel(0): direct rendering: DRI2 Enabled</literal></screen>
@@ -78,23 +84,25 @@
     </note>
 
     <para>
-      Although all users can use software acceleration, any hardware acceleration (DRI2)
-      is only available to <systemitem class="username">root</systemitem> and members
-      of the <systemitem class="groupname">video</systemitem> group.
-    </para>
-<!--
-    <para>
-      To see if hardware acceleration is available for your driver, look in
-      <filename>/var/log/Xorg.0.log</filename> for statements like:
-    </para>
-
-<screen><literal>(II) intel(0): direct rendering: DRI2 Enabled</literal></screen>
--->
-    <para>
-      If your driver is supported, add any users that might use X to that group:
+      Although all users can use software acceleration, any hardware
+      acceleration (DRI2) is only available to <systemitem
+      class="username">root</systemitem> and members of the <systemitem
+      class="groupname">video</systemitem> group, but
+      <phrase revision="sysv"><emphasis>ConsoleKit2</emphasis></phrase>
+      <phrase revision="systemd"><emphasis>systemd-logind</emphasis></phrase>
+      takes care of adding any logged in user to the user ACL's of
+      <filename>/dev/dri/card*</filename>, the special file(s) allowing access
+      to hardware acceleration.<phrase revision="systemd"> So, no further
+      configuration is needed.</phrase>
     </para>
 
-<screen role="root"><userinput>usermod -a -G video <replaceable>&lt;username&gt;</replaceable></userinput></screen>
+    <para revision="sysv">
+      If your driver is supported and <emphasis>ConsoleKit2</emphasis> is not
+      installed, add any users that might use X to the <systemitem
+      class="groupname">video</systemitem> group:
+    </para>
+
+<screen role="root" revision="sysv"><userinput>usermod -a -G video <replaceable>&lt;username&gt;</replaceable></userinput></screen>
 
     <para>
       Another way to determine if DRI is working properly is to use one of the
@@ -109,8 +117,8 @@ direct rendering: Yes</computeroutput></screen>
 
     <para>
       If direct rendering is enabled, you can add verbosity by running
-      <command>LIBGL_DEBUG=verbose glxinfo</command>. This will show the drivers,
-      device nodes and files used by the DRI system.
+      <command>LIBGL_DEBUG=verbose glxinfo</command>. This will show the
+      drivers, device nodes and files used by the DRI system.
     </para>
 
     <para>
@@ -124,14 +132,14 @@ direct rendering: Yes</computeroutput></screen>
 
     <para>
       If your hardware does not have any DRI2 driver available, it will use a
-      Software Rasterizer for Direct Rendering. In such cases, you can use a new,
-      LLVM-accelerated, Software Rasterizer called LLVMPipe. In order to build
-      LLVMPipe just make sure that <xref linkend="llvm"/> is present at Mesa
-      build time. Note that all decoding is done on the CPU instead of the GPU,
-      so the display will run slower than with hardware acceleration.
-      To check if you are using LLVMpipe,
-      review the output ot the glxinfo command above.  An example of the
-      output using the Software Rasterizer is shown below:
+      Software Rasterizer for Direct Rendering. In such cases, you can use a
+      new, LLVM-accelerated, Software Rasterizer called LLVMPipe. In order to
+      build LLVMPipe just make sure that <xref linkend="llvm"/> is present at
+      Mesa build time. Note that all decoding is done on the CPU instead of
+      the GPU, so the display will run slower than with hardware acceleration.
+      To check if you are using LLVMpipe, review the output of the glxinfo
+      command above.  An example of the output using the Software Rasterizer
+      is shown below:
     </para>
 
 <screen><computeroutput>OpenGL vendor string: VMware, Inc.
@@ -139,8 +147,9 @@ OpenGL renderer string: Gallium 0.4 on llvmpipe (LLVM 3.5, 256 bits)
 OpenGL version string: 3.0 Mesa 10.4.5</computeroutput></screen>
 
     <para>
-      You can also force LLVMPipe by exporting the <envar>LIBGL_ALWAYS_SOFTWARE=1</envar>
-      environment variable when starting Xorg.
+      You can also force LLVMPipe by exporting the
+      <envar>LIBGL_ALWAYS_SOFTWARE=1</envar> environment variable when
+      starting Xorg.
     </para>
 
     <para>
@@ -156,27 +165,29 @@ OpenGL version string: 3.0 Mesa 10.4.5</computeroutput></screen>
 
     </sect2>
 
-    <sect2 role="configuration" id="hybrid-graphics" xreflabel="Hybrid Graphics">
+    <sect2 role="configuration" id="hybrid-graphics" xreflabel="Hybrid
+    Graphics">
     <title>Hybrid Graphics</title>
 
     <para>
-      Hybrid Graphics is still in experimental state for Linux. Xorg Developers have
-      developed a technology called PRIME that can be used for switching between
-      integrated and muxless discrete GPU at will. Automatic switching is not
-      possible at the moment.
+      Hybrid Graphics is still in experimental state for Linux. Xorg Developers
+      have developed a technology called PRIME that can be used for switching
+      between integrated and muxless discrete GPU at will. Automatic switching
+      is not possible at the moment.
     </para>
 
     <para>
-      In order to use PRIME for GPU switching, make sure that you are using Linux
-      Kernel 3.4 or later (recommended). You will need latest DRI and DDX drivers
-      for your hardware and <application>Xorg Server</application> 1.13 or later
-      with an optional patch applied.
+      In order to use PRIME for GPU switching, make sure that you are using
+      Linux Kernel 3.4 or later (recommended). You will need latest DRI and
+      DDX drivers for your hardware and <application>Xorg Server</application>
+      1.13 or later with an optional patch applied.
     </para>
 
     <para>
-      <application>Xorg Server</application> should load both GPU drivers automaticaly.
-      In order to run a GLX application on a discrete GPU, you will need to export
-      the <envar>DRI_PRIME=1</envar> environment variable. For example,
+      <application>Xorg Server</application> should load both GPU drivers
+      automaticaly.  In order to run a GLX application on a discrete GPU, you
+      will need to export the <envar>DRI_PRIME=1</envar> environment variable.
+      For example,
 
 <screen><userinput>DRI_PRIME=1 glxinfo | egrep "(OpenGL vendor|OpenGL renderer|OpenGL version)"</userinput></screen>
 
@@ -202,19 +213,25 @@ OpenGL version string: 3.0 Mesa 10.4.5</computeroutput></screen>
     <sect3 id="xinput">
     <title>Setting up X Input Devices</title>
     <para>For most input devices, no additional configuration will be
-    necessary.  This section is provided for informational purposes only.</para>
+    necessary. This section is provided for informational purposes only.</para>
 
     <para>A sample default XKB setup could look like the following (executed as
     the <systemitem class="username">root</systemitem> user):</para>
 
-<screen><userinput role="username">cat &gt; /etc/X11/xorg.conf.d/xkb-defaults.conf &lt;&lt; "EOF"
+<screen role="root"><userinput>cat &gt; /etc/X11/xorg.conf.d/xkb-defaults.conf &lt;&lt; "EOF"
 Section "InputClass"
     Identifier "XKB Defaults"
     MatchIsKeyboard "yes"
+    Option "XkbLayout" "fr"
     Option "XkbOptions" "terminate:ctrl_alt_bksp"
 EndSection
 EOF</userinput></screen>
 
+    <para>
+      The <quote>XkbLayout</quote> line is an example for a French (AZERTY)
+      keyboard. Change it to your keyboard model. That line is not needed for
+      a QWERTY (US/GB) keyboard.
+    </para>
   </sect3>
 
   <sect3 id="xdisplay">
