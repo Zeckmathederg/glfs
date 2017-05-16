@@ -6,10 +6,10 @@
 
   <!ENTITY vlc-download-http "http://get.videolan.org/vlc/&vlc-version;/vlc-&vlc-version;.tar.xz">
   <!ENTITY vlc-download-ftp  " ">
-  <!ENTITY vlc-md5sum        "55666c9898f658c7fcca12725bf7dd1b">
+  <!ENTITY vlc-md5sum        "7ab63964ffec4c92a54deb018f23318b">
   <!ENTITY vlc-size          "21 MB">
-  <!ENTITY vlc-buildsize     "559 MB (add 4 MB for tests)">
-  <!ENTITY vlc-time          "5.0 SBU (add 0.2 SBU for tests)">
+  <!ENTITY vlc-buildsize     "486 MB (add 1 MB for tests)">
+  <!ENTITY vlc-time          "1.3 SBU (using parallism-4; add 0.1 SBU for tests)">
 ]>
 
 <sect1 id="vlc" xreflabel="VLC-&vlc-version;">
@@ -81,13 +81,6 @@
           Required patch:
           <ulink
             url="&patch-root;/vlc-&vlc-version;-ffmpeg3-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Required patch:
-          <ulink
-            url="&patch-root;/vlc-&vlc-version;-gcc6_fixes-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -229,7 +222,7 @@
     </para>
 
 <screen><userinput>patch -Np1 -i ../vlc-&vlc-version;-ffmpeg3-1.patch    &amp;&amp;
-patch -Np1 -i ../vlc-&vlc-version;-gcc6_fixes-1.patch &amp;&amp;
+sed -i 's/error-implicit-function-declaration//' configure &amp;&amp;
 
 CFLAGS="-DLUA_COMPAT_5_1" \
 ./configure --prefix=/usr --disable-atmo &amp;&amp;
@@ -248,7 +241,8 @@ make</userinput></screen>
     <note>
       <para>
         If the XORG_PREFIX is not /usr, make sure the LIBRARY_PATH
-        environment variable is set properly when doing the install, For example:
+        environment variable is set properly for the root user when 
+        doing the install, For example:
         <command>sudo make LIBRARY_PATH=$XORG_PREFIX/lib ... install</command>.
       </para>
     </note>
@@ -264,7 +258,12 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <envar>CFLAGS="-DLUA_COMPAT_5_1"</envar> This environment variable
+      <command>sed ... configure</command>: This command removes 
+      a gcc option that treats a warning as an error.
+    </para>
+
+    <para>
+      <envar>CFLAGS="-DLUA_COMPAT_5_1"</envar>: This environment variable
       ensures the use of the correct variation of <xref linkend='lua'/>.
     </para>
 
