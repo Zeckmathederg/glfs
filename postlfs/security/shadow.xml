@@ -6,7 +6,7 @@
 
   <!ENTITY shadow-download-http "https://github.com/shadow-maint/shadow/releases/download/&shadow-version;/shadow-&shadow-version;.tar.xz">
   <!ENTITY shadow-download-ftp  " ">
-  <!ENTITY shadow-md5sum        "c06f8c2571b44899e60662f9ad259dd6">
+  <!ENTITY shadow-md5sum        "c350da50c2120de6bb29177699d89fe3">
   <!ENTITY shadow-size          "1.6 MB">
   <!ENTITY shadow-buildsize     "31 MB">
   <!ENTITY shadow-time          "0.2 SBU">
@@ -42,6 +42,7 @@
     </para>
 
     &lfs80_checked;
+    &gcc7_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -129,29 +130,6 @@ sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
        -e 's@/var/spool/mail@/var/mail@' etc/login.defs &amp;&amp;
 
 sed -i 's/1000/999/' etc/useradd                           &amp;&amp;
-sed -i -e '/snprintf/s@_msg,@_msg, 256,@' src/su.c         &amp;&amp;
-sed -i -e '47 d' -e '60,65 d'             libmisc/myname.c &amp;&amp;
-
-echo '--- src/useradd.c   (old)
-+++ src/useradd.c   (new)
-@@ -2027,6 +2027,8 @@
-        is_shadow_grp = sgr_file_present ();
- #endif
- 
-+       get_defaults ();
-+
-        process_flags (argc, argv);
- 
- #ifdef ENABLE_SUBIDS
-@@ -2036,8 +2038,6 @@
-            (!user_id || (user_id &lt;= uid_max &amp;&amp; user_id &gt;= uid_min));
- #endif                         /* ENABLE_SUBIDS */
- 
--       get_defaults ();
--
- #ifdef ACCT_TOOLS_SETUID
- #ifdef USE_PAM
-        {' | patch -p0 -l &amp;&amp;
 
 ./configure --sysconfdir=/etc --with-group-name-max-length=32 &amp;&amp;
 make</userinput></screen>
@@ -199,23 +177,6 @@ mv -v /usr/bin/passwd /bin</userinput></screen>
     <para>
       <command>sed -i 's/1000/999/' etc/useradd</command>: Make a minor change
       to make the default useradd consistent with the LFS groups file.
-    </para>
-
-    <para>
-      <command>sed -i -e '/snprintf/s@_msg,@_msg, 256,@' src/su.c</command>: Fix
-      a build error that only occurs if <xref linkend="linux-pam"/> is detected
-      by <command>configure</command>.
-    </para>
-
-    <para>
-      <command>sed -i '47 d' -e '60,65 d' libmisc/myname.c</command>: Apply
-      a security fix from upstream.
-    </para>
-
-    <para>
-      <command>echo '--- ...</command>: This command illustrates another
-      way to apply patches. Without the patch, <command>useradd</command>
-      does not use the defaults in <filename>/etc/default/useradd</filename>.
     </para>
 
     <para>
