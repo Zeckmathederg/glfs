@@ -113,25 +113,30 @@
     from a regular PEM encoded file, provided by a CA not included in Mozilla's
     certificate distribution, you need to add trust arguments to the
     <command>openssl</command> command, and create a new certificate. There are
-    three trust types that are recognised by the
+    three trust types that are recognized by the
     <application>make-ca.sh</application> script, SSL/TLS, S/Mime, and code
-    signing. For example, to allow a certificate to be trusted for both
-    SSL/TLS and S/Mime, but explicitly rejected for code signing, you could use
-    the following commands to create a new trusted certificate that has those
-    trust attributes:</para>
+    signing. For example, using the
+    <ulink url="http://www.cacert.org/">CAcert</ulink> root, if you want it to
+    be trusted for all three roles, the following commands will create an
+    appropriate OpenSSL trusted certificate:</para>
 
-<screen><literal>openssl x509 -in MyRootCA.pem -text -fingerprint -setalias "My Root CA 1"     \
-        -addtrust serverAuth -addtrust emailProtection -addreject codeSigning \
-        > MyRootCA-trusted.pem</literal></screen>
+<screen role="root"><userinput>install -vdm755 /etc/ssl/local &amp;&amp;
+wget http://www.cacert.org/certs/root.crt &amp;&amp;
+openssl x509 -in root.crt -text -fingerprint -setalias "CAcert Class 1 root" \
+        -addtrust serverAuth -addtrust emailProtection -addtrust codeSigning \
+        > /etc/ssl/local/CAcert_Class_1_root.pem</userinput></screen>
 
-    <para>If a trust argument is omitted, the certificate is neither trusted,
-    nor rejected. Clients that use <application>OpenSSL</application> or
-    <application>NSS</application> encountering this certificate will present
-    a warning to the user. Clients using <application>GnuTLS</application>
-    without <application>p11-kit</application> support are not aware of trusted
+    <para>If one of the three trust arguments is omitted, the certificate is
+    neither trusted, nor rejected for that role. Clients that use
+    <application>OpenSSL</application> or <application>NSS</application>
+    encountering this certificate will present a warning to the user. Clients
+    using <application>GnuTLS</application> without
+    <application>p11-kit</application> support are not aware of trusted
     certificates. To include this CA into the ca-bundle.crt (used for
     <application>GnuTLS</application>), it must have <envar>serverAuth</envar>
-    trust.</para> 
+    trust. Additionally, to explicitly disallow a certificate for a particular
+    use, replace the <parameter>-addtrust</parameter> flag with the
+    <parameter>-addreject</parameter> flag.</para> 
 
     <para>To install the various certificate stores, first install the
     <application>make-ca.sh</application> script into the correct location.
