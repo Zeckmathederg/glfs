@@ -6,9 +6,9 @@
 
   <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
   <!ENTITY chromium-download-ftp  " ">
-  <!ENTITY chromium-md5sum        "4e62ff17ba34c2aab2a2fc53e49c2bef">
-  <!ENTITY chromium-size          "494 MB">
-  <!ENTITY chromium-buildsize     "5.3 GB">
+  <!ENTITY chromium-md5sum        "aca4aeff806e1230912aa9c9df6b7be7">
+  <!ENTITY chromium-size          "495 MB">
+  <!ENTITY chromium-buildsize     "5.6 GB">
   <!ENTITY chromium-time          "94 SBU (with 4 threads)">
   <!-- Ninja defaults to parallel build unless supplying -j1, SBU measured on
   dual core, hyperthreaded CPU (4 threads).                               -->
@@ -60,6 +60,16 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect4">Required patch to fix build issues with
+    <application>gcc-7.1.0</application>:</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          <ulink url="&patch-root;/chromium-&chromium-version;-gcc7-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect4">Recommended patch to use the system
     <application>FFmpeg</application>:</bridgehead>
     <itemizedlist spacing="compact">
@@ -80,10 +90,10 @@
         </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: 13a77d042f8b8967744d22f5ff6d26d3</para>
+        <para>Download MD5 sum: 97b313ad0abeba57d916bdb88c3ded90</para>
       </listitem>
       <listitem>
-        <para>Download size: 51 MB</para>
+        <para>Download size: 52 MB</para>
       </listitem>
     </itemizedlist>
     <itemizedlist spacing="compact">
@@ -160,6 +170,11 @@
 
   <sect2 role="installation">
     <title>Installation of Chromium</title>
+
+   <para>Apply a patch to fix errors with building with
+   <application>GCC-7.1.0</application>:</para>
+
+<screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-gcc7-1.patch</userinput></screen>
 
    <para>Apply a patch to allow use of the system
    <application>FFmpeg</application>:</para>
@@ -278,6 +293,15 @@ python third_party/libaddressinput/chromium/tools/update-strings.py</userinput><
 python tools/gn/bootstrap/bootstrap.py --gn-gen-args "${GN_CONFIG[*]}" &amp;&amp;
 out/Release/gn gen out/Release --args="${GN_CONFIG[*]}"</userinput></screen>
 
+    <warning>
+      <para>Ninja, by default, sets the number of jobs to the number of
+      availalble threads. If your machine is memory constrained, with regard to
+      number of threads, you should reduce the number of jobs by passing the 
+      <parameter>-j#</parameter> switch to the <command>ninja</command> command
+      below. Plan for roughly 1.25GB per thread while linking
+      <application>WebKit</application> to avoid out of memery errors.</para>
+    </warning>
+
     <para>Build <application>Chromium</application> using the following
     commands:</para>
 
@@ -347,7 +371,7 @@ cd temp                                            &amp;&amp;
 case $(uname -m) in
     x86_64) ar -x ../../google-chrome-stable_&chromium-version;-1_amd64.deb
     ;;
-    x86) ar -x ../../google-chrome-stable_48.0.2564.116-1_i386.deb
+    i?86)   ar -x ../../google-chrome-stable_48.0.2564.116-1_i386.deb
     ;;
 esac</userinput></screen>
 
