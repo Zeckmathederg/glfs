@@ -4,14 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY qtwebkit-major "5.8">
+  <!ENTITY qtwebkit-major "5.9">
   <!ENTITY qtwebkit-url   "http://download.qt.io/community_releases/&qtwebkit-major;/&qtwebkit-version;-final">
 
   <!ENTITY qtwebkit-download-http "&qtwebkit-url;/qtwebkit-opensource-src-&qtwebkit-version;.tar.xz">
   <!ENTITY qtwebkit-download-ftp  " ">
-  <!ENTITY qtwebkit-md5sum        "60a6935aca4a7c553d0ec4646ceed3b4">
+  <!ENTITY qtwebkit-md5sum        "1fc0ed873cc9326b823a8a83126714f5">
   <!ENTITY qtwebkit-size          "34 MB">
-  <!ENTITY qtwebkit-buildsize     "766 MB (50 MB installed)">
+  <!ENTITY qtwebkit-buildsize     "668 MB (38 MB installed)">
   <!ENTITY qtwebkit-time          "11 SBU (using parallelism=4)">
 ]>
 
@@ -116,21 +116,21 @@
 
 <screen><userinput>patch -Np1 -i ../qtwebkit-&qtwebkit-version;-icu_59-1.patch</userinput></screen>
 
+    <para>If desired, adjust the build settings to avoid literally thousands
+    of unneeded warning messages:</para>
+
+<screen><userinput>sed -e '/CONFIG/a QMAKE_CXXFLAGS += -Wno-expansion-to-defined' \
+    -i Tools/qmake/mkspecs/features/unix/default_pre.prf</userinput></screen>
+
     <para>
       Install <application>Qtwebkit</application> by running the following commands:
     </para>
 
-<screen><userinput>SAVEPATH=$PATH             &amp;&amp;
-export PATH=$PWD/bin:$PATH &amp;&amp;
-
-mkdir -p build        &amp;&amp;
+<screen><userinput>mkdir -p build        &amp;&amp;
 cd       build        &amp;&amp;
 
 qmake ../WebKit.pro   &amp;&amp;
-make                  &amp;&amp;
-
-export PATH=$SAVEPATH &amp;&amp;
-unset SAVEPATH </userinput></screen>
+make</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -146,35 +146,18 @@ unset SAVEPATH </userinput></screen>
     $QT5DIR directory tree.</para></note>
 
     <para>
-      Remove references to the build directory from the installed
-      <filename class="extension">.pc</filename> files by running
-      the following command as the
-      <systemitem class="username">root</systemitem> user:
+      Remove references to the build directory from installed 
+      profile include (pri) files by running the following
+      command as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>find $QT5DIR/lib/pkgconfig -name "*.pc" -exec perl -pi -e "s, -L$PWD/?\S+,,g" {} \;</userinput></screen>
-
-    <para>
-      Remove references to the build directory from installed library
-      dependency (prl) and profile include (pri) files by running the following
-      commands as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>find $QT5DIR/ -name qt_lib_bootstrap_private.pri \
-   -exec sed -i -e "s:$PWD/qtbase:/$QT5DIR/lib/:g" {} \; &amp;&amp;
-
-find $QT5DIR/ -name \*.prl \
+<screen role="root"><userinput>find $QT5DIR/ -name \*.prl \
    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para>
-      <command>export PATH=$PWD/bin:$PATH</command>: sets a temporary path needed
-      to complete the build and install process.
-    </para>
 
     <para>
       <command>qmake</command>: is a Qt tool that automates the generation of 
