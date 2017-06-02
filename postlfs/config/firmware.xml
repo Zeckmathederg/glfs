@@ -56,8 +56,9 @@
        microcode.</para>
     </listitem>
     <listitem>
-      <para>Firmware for video controllers. On x86 machines this seems to only
-      apply to ATI devices : Radeons require firmware to be able to use KMS
+      <para>Firmware for video controllers. On x86 machines this seems to mostly
+      apply to ATI devices : Radeons, the later AMD amdgpu chips, and Nvidia
+      Maxwell cards require firmware to be able to use KMS
       (kernel modesetting - the preferred option) as well as for Xorg. For
       earlier radeon chips (before the R600), the firmware is still in the
       kernel.</para>
@@ -114,7 +115,7 @@
     uncommon situations. </para>
 
     <para>As a result, early loading is now expected, although for the moment
-    (4.9 kernels) it is still possible to manually force late loading of
+    (4.11 kernels) it is still possible to manually force late loading of
     microcode for testing. You will need to reconfigure your kernel for either
     method. The instructions here will create a kernel
     <filename>.config</filename> to suite early loading, before forcing late
@@ -127,46 +128,18 @@
     <sect3 id="intel-microcode">
       <title>Intel Microcode for the CPU</title>
 
-      <bridgehead renderas="sect4">Required File</bridgehead>
-      <para role='required'>
-         <ulink url='&sources-anduin-http;/intel-microcode/intel-microcode2ucode.c'/>
-      </para>
-
-      <para>For Intel CPUs an extra program, intel-microcode2ucode, is required. 
-      This is done a little differently since it is only a single source
-      code file.  The reason for this is that there are different versions
-      available, but most are specific to commercial distributions.</para>
-
-      <para>This program reformats the microcode supplied by Intel into a
-      format which the kernel can apply. The program
-      <userinput>intel-microcode2ucode</userinput> is used to create the
-      individual firmware blobs </para>
-
-      <para>Create the program by downloading the source file and running:</para>
-
-<screen><userinput>gcc -g -Wall -O2 -o intel-microcode2ucode intel-microcode2ucode.c</userinput></screen>
-
-      <para>Now install the program as the <systemitem class="username">root</systemitem> user:</para>
-
-<screen><userinput>install intel-microcode2ucode /usr/bin</userinput></screen>
-
-     <para>The next step is to get the most recent version of the Intel
+     <para>The first step is to get the most recent version of the Intel
      microcode.  This must be done by navigating to 
      <ulink url='https://downloadcenter.intel.com/download/26400/Linux-Processor-Microcode-Data-File'/>
      and following the instructions there.  As of this writing the most recent
-     version of the microcode is <filename>microcode-20161104.tgz</filename>.
-     This file is a tar file, but expands to <filename>microcode.dat</filename>
-     in the current directory.</para>
-
-     <para>Next, create various blobs with names in the form XX-YY-ZZ in a
-     subdirectory named <filename class="directory">intel-ucode/</filename>:
-     </para>
-
-<screen><userinput>intel-microcode2ucode microcode.dat</userinput></screen>
+     version of the microcode is <filename>microcode-20170511.tgz</filename>.
+     Extract this file in the normal way to create an <filename>intel-ucode</filename>
+     directory, containing various blobs with names in the form XX-YY-ZZ.</para>
 
      <para>Now you need to determine your processor's identity to see if there
      is any microcode for it. Determine the decimal values of the cpu family,
-     model and stepping by running:</para>
+     model and stepping by running the following command (it will also report
+     the current microcode version):</para>
 
 <screen><userinput>head -n7 /proc/cpuinfo</userinput></screen>
 
@@ -203,15 +176,16 @@ Processor type and features  ---&gt;
 
       <para>This example from the Haswell i7 which was released in Q2 2014 and is
       not affected by the TSX errata shows it has been updated from revision 0x19
-      in the BIOS/UEFI to revision 0x20. Unlike in older kernels, the individual
+      in the BIOS/UEFI to revision 0x22. Unlike in older kernels, the individual
       CPUs are not separately reported:</para>
 
-<screen><literal>[    0.000000] Linux version 4.9.12 (ken@plexi) (gcc version 6.3.0 (GCC) )
-               #3 SMP PREEMPT Mon Mar 6 03:29:27 GMT 2017
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.9.12-sda8 root=/dev/sda8 ro
-[    0.913685] microcode: sig=0x306c3, pf=0x2, revision=0x19
-[    0.913905] microcode: Microcode Update Driver: v2.01 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba
-[  148.723932] microcode: updated to revision 0x20, date = 2016-03-16</literal></screen>
+<screen><literal>[    0.000000] Linux version 4.11.0 (lfs@plexi) (gcc version 7.1.0 (GCC) )
+               #1 SMP PREEMPT Sun May 14 16:00:00 BST 2017
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.11.0-sda6 root=/dev/sda6 ro
+[    0.913685] microcode: sig=0x306c3, pf=0x2, revision=0x22
+[    0.913905] microcode: Microcode Update Driver: v2.2.
+[  148.723932] microcode: updated to revision 0x22, date = 2017-01-27</literal></screen>
+    <para>That may be followed by individual reports for each core.</para>
 
     <para>If the microcode was not updated, there is no new microcode for
     this system's processor. If it did get updated, you can now proceed to <xref
@@ -321,18 +295,18 @@ cd initrd</userinput></screen>
 <screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
 
       <para>The places and times where early loading happens are very different
-      in AMD and Intel machines. First, an Intel example from an updated stable
+      in AMD and Intel machines. First, an Intel example from an updated
       kernel, showing that the first notification comes before the kernel version
       is mentioned:</para>
 
-<screen><literal>[    0.000000] microcode: microcode updated early to revision 0x20, date = 2016-03-16
-[    0.000000] Linux version 4.9.14 (ken@plexi) (gcc version 6.3.0 (GCC) )
-               #6 SMP PREEMPT Mon Mar 13 16:19:11 GMT 2017
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.9.14-sda8 root=/dev/sda8 ro
-[    0.920217] microcode: sig=0x306c3, pf=0x2, revision=0x20
-[    0.920514] microcode: Microcode Update Driver: v2.01 &lt;tigran@aivazian.fsnet.co.uk&gt;, Peter Oruba</literal></screen>
+<screen><literal>[    0.000000] microcode: microcode updated early to revision 0x22, date = 2017-01-27
+[    0.000000] Linux version 4.11.0 (lfs@plexi) (gcc version 7.1.0 (GCC) )
+               #2 SMP PREEMPT Sun May 14 17:58:53 BST 2017
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.11.0-sda6 root=/dev/sda6 ro
+[    0.928947] microcode: sig=0x306c3, pf=0x2, revision=0x22
+[    0.929160] microcode: Microcode Update Driver: v2.2.</literal></screen>
 
-      <para>An AMD example for the same kernel version:</para>
+      <para>An AMD example for an earlier stable kernel version:</para>
 
 <screen><literal>[    0.000000] Linux version 4.9.14 (ken@testserver) (gcc version 6.3.0 (GCC) )
                #2 SMP Mon Mar 13 22:23:44 GMT 2017
