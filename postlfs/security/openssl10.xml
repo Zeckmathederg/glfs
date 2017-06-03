@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY openssl10-download-http
+           "https://openssl.org/source/openssl-&openssl10-version;.tar.gz">
+  <!ENTITY openssl10-download-ftp
+           "ftp://openssl.org/source/openssl-&openssl10-version;.tar.gz">
+  <!ENTITY openssl10-md5sum        "f85123cd390e864dfbe517e7616e6566">
+  <!ENTITY openssl10-size          "5.2 MB">
+  <!ENTITY openssl10-buildsize     "58 MB (with tests)">
+  <!ENTITY openssl10-time          "1.6 SBU (with tests)">
+]>
+
+<sect1 id="openssl10" xreflabel="OpenSSL-&openssl10-version; Libraries">
+  <?dbhtml filename="openssl10.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>OpenSSL-&openssl10-version;</title>
+
+  <indexterm zone="openssl10">
+    <primary sortas="a-OpenSSL10">OpenSSL-&openssl10-version;</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to OpenSSL-&openssl10-version; Libraries</title>
+
+    <para>
+      The <application>OpenSSL-&openssl10-version;</application> package
+      contains libraries relating to cryptography.  These are useful for
+      providing cryptographic functions to other packages, such as
+      email applications and web browsers (for accessing HTTPS sites). This
+      package provides only the libraries and headers for packages that have
+      not yet been ported to <xref linkend="openssl"/>.
+    </para>
+
+    &lfs80_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&openssl10-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&openssl10-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &openssl10-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &openssl10-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &openssl10-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &openssl10-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>Required patch: <ulink url="&patch-root;/openssl-&openssl10-version;-compat_versioned_symbols-1.patch"/></para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">OpenSSL-&openssl10-version; Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="mitkrb"/>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url='&blfs-wiki;/OpenSSL'/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of OpenSSL-&openssl10-version; Libraries</title>
+
+    <note>
+      <para>
+        This package does not support parallel build.
+      </para>
+    </note>
+ 
+    <para>
+      Install <application>OpenSSL-&openssl10-version; Libraries</application>
+      with the following commands:
+    </para>
+
+
+<screen><userinput> patch -Np1 -i ../openssl-&openssl10-version;-compat_versioned_symbols-1.patch &amp;&amp;
+
+./config --prefix=/usr            \
+         --openssldir=/etc/ssl    \
+         --libdir=lib/openssl-1.0 \
+         shared                   \
+         zlib-dynamic             &amp;&amp;
+
+make depend                       &amp;&amp;
+make -j1</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make -j1 test</command>.  The
+      test suite does not support parallel jobs.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make INSTALL_PREFIX=$PWD/Dest install_sw                      &amp;&amp;
+install -vdm755 /usr/lib/openssl-1.0                          &amp;&amp;
+cp -Rv Dest/usr/lib/openssl-1.0/* /usr/lib/openssl-1.0        &amp;&amp;
+mv -v  /usr/lib/openssl-1.0/lib{crypto,ssl}.so.1.0.0 /usr/lib &amp;&amp;
+ln -sv ../libssl.so.1.0.0 /usr/lib/openssl-1.0                &amp;&amp;
+ln -sv ../libcrypto.so.1.0.0 /usr/lib/openssl-1.0             &amp;&amp;
+install -vdm755 /usr/include/openssl-1.0                      &amp;&amp;
+cp -Rv Dest/usr/include/openssl /usr/include/openssl-1.0      &amp;&amp;
+sed 's@/include$@/include/openssl-1.0@' -i /usr/lib/openssl-1.0/pkgconfig/*.pc</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>shared</parameter>: This parameter forces the creation of
+      shared libraries along with the static libraries.
+    </para>
+
+    <para>
+      <parameter>zlib-dynamic</parameter>: This parameter adds
+      compression/decompression functionality using the
+      <filename class="libraryfile">libz</filename> library.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          libcrypto.so.1.0.0 and libssl.so.1.0.0
+        </seg>
+        <seg>
+          /usr/lib/openssl-1.0 and /usr/include/openssl-1.0
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="libcrypto10">
+        <term><filename class="libraryfile">libcrypto.so.1.0.0</filename></term>
+        <listitem>
+          <para>
+            implements a wide range of cryptographic algorithms used in various
+            Internet standards. The services provided by  this library are used
+            by the <application>OpenSSL</application> implementations of SSL,
+            TLS and S/MIME, and they have also been used to implement
+            <application>OpenSSH</application>,
+            <application>OpenPGP</application>, and other cryptographic
+            standards.
+          </para>
+          <indexterm zone="openssl10 libcrypto10">
+            <primary sortas="c-libcrypto10">libcrypto.so.1.0.0</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libssl10">
+        <term><filename class="libraryfile">libssl.so.1.0.0</filename></term>
+        <listitem>
+          <para>
+            implements the Transport Layer Security (TLS v1) protocol.
+            It provides a rich API, documentation
+            on which can be found by running <command>man 3 ssl</command>.
+          </para>
+          <indexterm zone="openssl10 libssl10">
+            <primary sortas="c-libssl10">libssl.so.1.0.0</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>

@@ -8,10 +8,10 @@
            "https://openssl.org/source/openssl-&openssl-version;.tar.gz">
   <!ENTITY openssl-download-ftp
            "ftp://openssl.org/source/openssl-&openssl-version;.tar.gz">
-  <!ENTITY openssl-md5sum        "f965fc0bf01bf882b31314b61391ae65">
+  <!ENTITY openssl-md5sum        "7b521dea79ab159e8ec879d2333369fa">
   <!ENTITY openssl-size          "5.1 MB">
-  <!ENTITY openssl-buildsize     "50 MB (with tests)">
-  <!ENTITY openssl-time          "1.4 SBU (with tests)">
+  <!ENTITY openssl-buildsize     "70 MB (with tests)">
+  <!ENTITY openssl-time          "1.5 SBU (with tests)">
 ]>
 
 <sect1 id="openssl" xreflabel="OpenSSL-&openssl-version;">
@@ -75,23 +75,6 @@
         </para>
       </listitem>
     </itemizedlist>
-<!--
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/openssl-&openssl-version;-fix_parallel_build-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
--->
-    <bridgehead renderas="sect3">OpenSSL Dependencies</bridgehead>
-
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional">
-      <xref linkend="mitkrb"/>
-    </para>
 
     <para condition="html" role="usernotes">
       User Notes: <ulink url='&blfs-wiki;/OpenSSL'/>
@@ -101,12 +84,6 @@
   <sect2 role="installation">
     <title>Installation of OpenSSL</title>
 
-    <note>
-      <para>
-        This package does not support parallel build.
-      </para>
-    </note>
- 
     <para>
       Install <application>OpenSSL</application> with the following commands:
     </para>
@@ -117,19 +94,19 @@
          --libdir=lib          \
          shared                \
          zlib-dynamic &amp;&amp;
-make depend           &amp;&amp;
-make -j1</userinput></screen>
+make</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make -j1 test</command>.  The
-      test suite does not support parallel jobs.
+      To test the results, issue: <command>make test</command>. One test will
+      fail if not run as the <systemitem class="username">root</systemitem>
+      user (not recommended).
     </para>
 
     <para>
       If you want to disable installing the static libraries, use this sed:
     </para>
 
-<screen><userinput>sed -i 's# libcrypto.a##;s# libssl.a##' Makefile</userinput></screen>
+<screen><userinput>sed -i 's# libcrypto.a##;s# libssl.a##;/INSTALL_LIBS/s#libcrypto.a##' Makefile</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -137,9 +114,9 @@ make -j1</userinput></screen>
 
 <!-- dev note: make INSTALL_PREFIX=<DESTDIR> MANDIR=/usr/share/man MANSUFFIX=ssl install -->
 
-<screen role="root"><userinput>make MANDIR=/usr/share/man MANSUFFIX=ssl install &amp;&amp;
-install -dv -m755 /usr/share/doc/openssl-&openssl-version;  &amp;&amp;
-cp -vfr doc/*     /usr/share/doc/openssl-&openssl-version;</userinput></screen>
+<screen role="root"><userinput>make MANSUFFIX=ssl install           &amp;&amp;
+mv -v /usr/share/doc/openssl{,-&openssl-version;} &amp;&amp;
+cp -vfr doc/* /usr/share/doc/openssl-&openssl-version;</userinput></screen>
 
   </sect2>
 
@@ -165,12 +142,9 @@ cp -vfr doc/*     /usr/share/doc/openssl-&openssl-version;</userinput></screen>
     </para>
 
     <para>
-      <command>make MANDIR=/usr/share/man MANSUFFIX=ssl install</command>:
-      This command installs <application>OpenSSL</application> with the man
-      pages in <filename class="directory">/usr/share/man</filename>
-      instead of <filename class="directory">/etc/ssl/man</filename> and
-      appends "ssl" suffix to the manual page names to avoid conflicts with
-      manual pages installed by other packages.
+      <command>make MANSUFFIX=ssl install</command>:
+      This command appends an "ssl" suffix to the manual page names to avoid
+      conflicts with manual pages installed by other packages.
     </para>
 
   </sect2>
