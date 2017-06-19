@@ -9,10 +9,10 @@
   -->
   <!ENTITY mariadb-download-http " ">
   <!ENTITY mariadb-download-ftp  "ftp://mirrors.fe.up.pt/pub/mariadb/mariadb-&mariadb-version;/source/mariadb-&mariadb-version;.tar.gz">
-  <!ENTITY mariadb-md5sum        "1a7392cc05c7c249acd4495022719ca8">
-  <!ENTITY mariadb-size          "59 MB">
-  <!ENTITY mariadb-buildsize     "1.2 GB (with tests)">
-  <!ENTITY mariadb-time          "6.4 SBU, (with parallelism=4 and tests)">
+  <!ENTITY mariadb-md5sum        "3d454cdadbd3208e1c9c23e5338a62b0">
+  <!ENTITY mariadb-size          "64 MB">
+  <!ENTITY mariadb-buildsize     "1.3 GB">
+  <!ENTITY mariadb-time          "8.0 SBU (with parallelism=4, add 0.5 SBU for tests)">
 ]>
 
 <sect1 id="mariadb" xreflabel="MariaDB-&mariadb-version;">
@@ -39,6 +39,7 @@
     </para>
 
     &lfs80_checked;
+    &gcc7_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -74,16 +75,9 @@
       </listitem>
     </itemizedlist>
 
-    <note><para>The installed size of MariaDB is 422 MB, but this can be
-    reduced by about 177 MB, if desired, by removing the /usr/share/mysql/test
+    <note><para>The installed size of MariaDB is 473 MB, but this can be
+    reduced by about 200 MB, if desired, by removing the /usr/share/mysql/test
     directory after installation.</para></note>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink url="&patch-root;/mariadb-&mariadb-version;-openssl-1.1.0-1.patch"/></para>
-      </listitem>
-    </itemizedlist>
 
     <bridgehead renderas="sect3">MariaDB Dependencies</bridgehead>
 
@@ -152,35 +146,48 @@ useradd -c "MySQL Server" -d /srv/mysql -g mysql -s /bin/false -u 40 mysql</user
       following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../mariadb-&mariadb-version;-openssl-1.1.0-1.patch   &amp;&amp;
-sed -i "s@data/test@\${INSTALL_MYSQLTESTDIR}@g" sql/CMakeLists.txt &amp;&amp;
+<screen><userinput>sed -i "s@data/test@\${INSTALL_MYSQLTESTDIR}@g" sql/CMakeLists.txt &amp;&amp;
 
 mkdir build &amp;&amp;
 cd build    &amp;&amp;
 
-cmake -DCMAKE_BUILD_TYPE=Release                       \
-      -DCMAKE_INSTALL_PREFIX=/usr                      \
+cmake -DCMAKE_BUILD_TYPE=Release                      \
+      -DCMAKE_INSTALL_PREFIX=/usr                     \
       -DINSTALL_DOCDIR=share/doc/mariadb-&mariadb-version;       \
       -DINSTALL_DOCREADMEDIR=share/doc/mariadb-&mariadb-version; \
-      -DINSTALL_MANDIR=share/man                       \
-      -DINSTALL_MYSQLSHAREDIR=share/mysql              \
-      -DINSTALL_MYSQLTESTDIR=share/mysql/test          \
-      -DINSTALL_PLUGINDIR=lib/mysql/plugin             \
-      -DINSTALL_SBINDIR=sbin                           \
-      -DINSTALL_SCRIPTDIR=bin                          \
-      -DINSTALL_SQLBENCHDIR=share/mysql/bench          \
-      -DINSTALL_SUPPORTFILESDIR=share/mysql            \
-      -DMYSQL_DATADIR=/srv/mysql                       \
-      -DMYSQL_UNIX_ADDR=/run/mysqld/mysqld.sock        \
-      -DWITH_EXTRA_CHARSETS=complex                    \
-      -DWITH_EMBEDDED_SERVER=ON                        \
-      -DTOKUDB_OK=0                                    \
+      -DINSTALL_MANDIR=share/man                      \
+      -DINSTALL_MYSQLSHAREDIR=share/mysql             \
+      -DINSTALL_MYSQLTESTDIR=share/mysql/test         \
+      -DINSTALL_PLUGINDIR=lib/mysql/plugin            \
+      -DINSTALL_SBINDIR=sbin                          \
+      -DINSTALL_SCRIPTDIR=bin                         \
+      -DINSTALL_SQLBENCHDIR=share/mysql/bench         \
+      -DINSTALL_SUPPORTFILESDIR=share/mysql           \
+      -DMYSQL_DATADIR=/srv/mysql                      \
+      -DMYSQL_UNIX_ADDR=/run/mysqld/mysqld.sock       \
+      -DWITH_EXTRA_CHARSETS=complex                   \
+      -DWITH_EMBEDDED_SERVER=ON                       \
+      -DSKIP_TESTS=ON                                 \
+      -DTOKUDB_OK=0                                   \
       .. &amp;&amp;
 make</userinput></screen>
 
     <para>
       To test the results, issue: <command>make test</command>.
     </para>
+
+    <note><para>
+      A more extensive set of tests can be run with the following:</para>
+
+<screen><userinput>pushd mysql-test
+./mtr --parallel &lt;N&gt; --mem --force
+popd</userinput></screen>
+
+    <para>
+      Where N is the number of tests to run in parallel. A little
+      over 3700 tests are fun in about 14 SBU with N=4.  Three tests 
+      are known to fail due to character set issues.  
+    </para></note>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -209,15 +216,14 @@ make</userinput></screen>
       support for the complex character sets.
     </para>
 
-    <!-- Manually-specified variables were not used by the project: WITH_LIBEVENT
     <para>
-      <parameter>-DWITH_LIBEVENT=system</parameter>: This switch is used to
-      tell the build system to use installed <application>libevent</application>.
-      Remove it if you didn't install <application>libevent</application>.
-    </para> -->
+      <parameter>-DKIP_TESTS=ON</parameter>: This switch disables
+      tests for MariaDB Connector/C which are not supored without 
+      additional setup.
+    </para>
 
     <para>
-      <option>-DWITHOUT_SERVER=ON -DWITH_UNIT_TESTS=OFF</option>: Use these
+      <option>-DWITHOUT_SERVER=ON</option>: Use these
       switches if you don't want the server and would like to build the client
       only.
     </para>
