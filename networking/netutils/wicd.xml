@@ -102,7 +102,7 @@
     commands:</para>
 
 <screen revision="sysv"><userinput>sed -e "/wpath.logrotate\|wpath.systemd/d" \
-    -e "/detection failed/ a\                self.init=\'init\/default\/wicd\'" \
+    -e "/detection failed/ a                self.init='init/default/wicd'" \
     -i.orig setup.py &amp;&amp;
 
 rm po/*.po           &amp;&amp;
@@ -114,7 +114,7 @@ python setup.py configure --no-install-kde     \
                           --no-install-gnome-shell-extensions \
                           --docdir=/usr/share/doc/wicd-&wicd-version;</userinput></screen>
 
-<screen revision="systemd"><userinput>sed "/detection failed/ a\ self.init=\'init\/default\/wicd\'" \
+<screen revision="systemd"><userinput>sed -e "/detection failed/ a                self.init='init/default/wicd'" \
     -i.orig setup.py &amp;&amp;
 
 rm po/*.po           &amp;&amp;
@@ -143,7 +143,7 @@ python setup.py configure --no-install-kde     \
     logrotate and systemd configuration files. You may omit it if you use these
     utilities. The second one fixes building with BLFS.</para>
 
-    <para revision="systemd"><command>sed -e ... -i setup.py</command>: Fix
+    <para revision="systemd"><command>sed ... -i.orig setup.py</command>: Fix
     and issue while building with BLFS.</para>
 
     <para><command>rm po/*.po</command>: This command removes the international
@@ -164,8 +164,13 @@ python setup.py configure --no-install-kde     \
     <para><option>--no-install-pmutils</option>: Prevent installation of hooks
     for pm-utils. Omit this option if you use pm-utils.</para>
 
-    <para><option>--no-install-init</option>: Prevent installation of any init
-    scripts, as a bootscript is installed later in the instructions.</para>
+    <para revision="sysv"><option>--no-install-init</option>: Prevent
+    installation of any init scripts, as a bootscript is installed later in the
+    instructions.</para>
+
+    <para revision="systemd"><option>--no-install-init</option>: Prevent
+    installation of service files twice.  They are installed as a part of
+    the sed to setup.py.</para>
 
     <para><option>--no-install-gnome-shell-extensions</option>: Prevent
     installation of the respective extensions. Remove this switch, if you are
@@ -200,19 +205,17 @@ python setup.py configure --no-install-kde     \
         </para>
       </note>
 
-      <para>To automatically start Wicd at boot time, you need to first install
-      the Wicd bootscript,<phrase revision="sysv">
-      <filename>/etc/rc.d/init.d/wicd</filename></phrase>
-      <phrase revision="systemd"><filename>wicd.service</filename></phrase>,
-      included in the <xref linkend="bootscripts" revision="sysv"/>
-      <xref linkend="systemd-units" revision="systemd"/> package
-      (as user <systemitem class="username">root</systemitem>):</para>
+      <para revision="sysv">To automatically start Wicd at boot time, you need
+      to first install the Wicd bootscript,
+      <filename>/etc/rc.d/init.d/wicd</filename> included in the <xref
+      linkend="bootscripts"/> package (as user <systemitem
+      class="username">root</systemitem>):</para>
 
-      <indexterm zone="wicd wicd-init">
+      <indexterm zone="wicd wicd-init" revision="sysv">
         <primary sortas="f-wicd">wicd (bootscript)</primary>
       </indexterm>
 
-      <screen role='root'><userinput>make install-wicd</userinput></screen>
+      <screen role='root' revision="sysv"><userinput>make install-wicd</userinput></screen>
 
       <para revision="sysv">Since Wicd will now handle all configuration of
       network devices, the network bootscript installed by LFS should be
@@ -221,6 +224,11 @@ python setup.py configure --no-install-kde     \
       symlinks in the <filename>/etc/rc*.d</filename> directories or by setting
       <literal>ONBOOT=no</literal> in any
       <filename>/etc/sysconfig/ifconfig.*</filename> files.</para>
+
+      <para revision="systemd">To enable wice at boot time, as the
+      <systemitem class="username">root</systemitem>) user, run:</para>
+
+      <screen role='root' revision="systemd"><userinput>systemctl enable wicd</userinput></screen>
 
       <para>No manual configuration of Wicd is needed if you use the graphical
       frontends. If you are only going to use Wicd from command-line, you can
