@@ -6,9 +6,9 @@
 
   <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
   <!ENTITY chromium-download-ftp  " ">
-  <!ENTITY chromium-md5sum        "aca4aeff806e1230912aa9c9df6b7be7">
-  <!ENTITY chromium-size          "495 MB">
-  <!ENTITY chromium-buildsize     "5.6 GB">
+  <!ENTITY chromium-md5sum        "81885367434a85aecdb7b5a8d666590d">
+  <!ENTITY chromium-size          "507 MB">
+  <!ENTITY chromium-buildsize     "5.7 GB">
   <!ENTITY chromium-time          "94 SBU (with 4 threads)">
   <!-- Ninja defaults to parallel build unless supplying -j1, SBU measured on
   dual core, hyperthreaded CPU (4 threads).                               -->
@@ -70,6 +70,16 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect4">Required patch to fix build issues with
+    <application>linux-4.6.x</application>:</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          <ulink url="&patch-root;/chromium-&chromium-version;-kernel_dmabuf-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect4">Recommended patch to use the system
     <application>FFmpeg</application>:</bridgehead>
     <itemizedlist spacing="compact">
@@ -90,10 +100,10 @@
         </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: 97b313ad0abeba57d916bdb88c3ded90</para>
+        <para>Download MD5 sum: 3f3fcb30019a49d799e8820a57bcabc6</para>
       </listitem>
       <listitem>
-        <para>Download size: 52 MB</para>
+        <para>Download size: 58 MB</para>
       </listitem>
     </itemizedlist>
     <itemizedlist spacing="compact">
@@ -145,7 +155,6 @@
       <xref linkend="libsecret"/>,
 <!--      <xref linkend="libvpx"/>, -->
       <xref linkend="libwebp"/>,
-      <xref linkend="libxml2"/>,
       <xref linkend="pciutils"/>,
       <xref linkend="pulseaudio"/>,
       <xref linkend="xdg-utils"/>, and
@@ -158,6 +167,7 @@
       <xref linkend="icu"/> (currently broken),
       <xref linkend="gnome-keyring"/>,
       <xref linkend="libvpx"/> (currently broken),
+      <xref linkend="libxml2"/> (currently broken),
       <ulink url="https://devel.freebsoft.org/speechd">speech-dispatcher</ulink>
       (for the screen reader), and
       <ulink url="https://google.github.io/snappy">snappy</ulink>
@@ -176,15 +186,19 @@
 
 <screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-gcc7-1.patch</userinput></screen>
 
+    <para>Apply a patch to fix an issue when building against Linux-4.6:</para>
+
+<screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-kernel_dmabuf-1.patch</userinput></screen>
+
    <para>Apply a patch to allow use of the system
    <application>FFmpeg</application>:</para>
 
 <screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-system_ffmpeg-1.patch</userinput></screen>
 
-    <para>Fix a build issue with GCC-6:</para>
+<!--    <para>Fix a build issue with GCC-7:</para>
 
 <screen><userinput>sed 's/^config("compiler") {/&amp;\ncflags_cc = [ "-fno-delete-null-pointer-checks" ]/' \
-    -i build/config/linux/BUILD.gn</userinput></screen>
+    -i build/config/linux/BUILD.gn</userinput></screen> -->
 
     <para>Enable the use of the
     <ulink url="http://www.widevine.com/">WideVine</ulink> plugin, needed for
@@ -201,10 +215,11 @@
       <para>
         Chromium uses many external projects, the selections below are not set
         in stone, however they have been tested thoroughly. With Chromium
-        &chromium-version;, system versions of icu, libvpx, and zlib
+        &chromium-version;, system versions of icu, libvpx, libxml2, and zlib
         are known to break the build at this time.
-        <!-- icu: Not at 59 internally, should be at chromium-59 -->
-        <!-- libvpx: https://bugs.gentoo.org/show_bug.cgi?id=611394 -->
+        <!-- icu: Not at 59 internally -->
+        <!-- libvpx: breaks build in gfx -->
+        <!-- libxml2: breaks build with ui -->
         <!-- zlib requires libminizip -->
       </para>
     </note>
@@ -222,7 +237,7 @@ shipped libs required to use the remove_bundled_files.py script -->
         -delete
 done &amp;&amp; -->
 <screen><userinput>for LIB in ffmpeg flac harfbuzz-ng libevent libjpeg \
-           libjpeg_turbo libpng libwebp libxml libxslt yasm; do
+           libjpeg_turbo libpng libwebp<!-- libxml libvpx--> libxslt yasm; do
     find -type f -path "*third_party/$LIB/*"     \
         \! -path "*third_party/$LIB/chromium/*"  \
         \! -path "*third_party/$LIB/google/*"    \
@@ -232,8 +247,8 @@ done &amp;&amp; -->
 done &amp;&amp;
 
 python build/linux/unbundle/replace_gn_files.py \
-    --system-libraries ffmpeg flac harfbuzz-ng<!--icu--> libevent libjpeg \
-                       libpng libwebp libxml libxslt yasm &amp;&amp;
+    --system-libraries ffmpeg flac harfbuzz-ng<!-- icu--> libevent libjpeg \
+                       libpng libwebp<!-- libxml libvpx--> libxslt yasm &amp;&amp;
 python third_party/libaddressinput/chromium/tools/update-strings.py</userinput></screen>
 
     <para><application>Chromium</application> uses an internal tool, <ulink
@@ -263,6 +278,7 @@ python third_party/libaddressinput/chromium/tools/update-strings.py</userinput><
 'enable_hangout_services_extension=true'
 'enable_nacl=false'
 'enable_nacl_nonsfi=false'
+'enable_swiftshader=false'
 'enable_widevine=true'
 'fatal_linker_warnings=false'
 'ffmpeg_branding="Chrome"'
@@ -288,9 +304,7 @@ python third_party/libaddressinput/chromium/tools/update-strings.py</userinput><
     <para>Build <application>gn</application> and use it to prepare the
     <application>Ninja</application> build files:</para>
 
-<screen><userinput>sed "/internal\.cc',/a\      'base/callback_helpers.cc'," \
-    -i tools/gn/bootstrap/bootstrap.py &amp;&amp;
-python tools/gn/bootstrap/bootstrap.py --gn-gen-args "${GN_CONFIG[*]}" &amp;&amp;
+<screen><userinput>python tools/gn/bootstrap/bootstrap.py --gn-gen-args "${GN_CONFIG[*]}" &amp;&amp;
 out/Release/gn gen out/Release --args="${GN_CONFIG[*]}"</userinput></screen>
 
     <warning>
@@ -393,9 +407,6 @@ install -vm755 opt/google/chrome/libwidevinecdm.so  /usr/lib/chromium/</userinpu
 
     <para><command>GN_CONFIG=(...)</command>: this array contains
     all of the defines used in the build.</para>
-
-    <para><command>sed...tools/gn/bootstrap/bootstrap.py</command>: Fix a
-    build issue with <application>gn</application>.</para>
 
     <para><command>python tools/gn/bootstrap/bootstrap.py --gn-gen-args "${GN_CONFIG[*]}"</command>:
     this command replaces defines in the gn files with the values contained in 
