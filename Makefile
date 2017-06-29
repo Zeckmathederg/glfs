@@ -112,7 +112,7 @@ clean:
 	$(Q)rm -f $(RENDERTMP)/blfs*
 
 validate: $(RENDERTMP)/$(BLFSFULL)
-$(RENDERTMP)/$(BLFSFULL): general.ent $(ALLXML) $(ALLXSL)
+$(RENDERTMP)/$(BLFSFULL): general.ent packages.ent $(ALLXML) $(ALLXSL)
 	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
 
 	@echo "Adjusting for revision $(REV)..."
