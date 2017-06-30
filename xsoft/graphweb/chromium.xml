@@ -65,7 +65,7 @@
       <listitem>
         <para>Download (HTTP):</para>
         <para>
-          <ulink url="&sources-anduin-http;/other/chromium-freetype2.tar.xz"/>
+          <ulink url="&sources-anduin-http;/other/chromium-freetype.tar.xz"/>
         </para>
       </listitem>
       <listitem>
@@ -156,7 +156,7 @@
       <xref linkend="desktop-file-utils"/>,
       <xref linkend="dbus"/>,
       <xref linkend="perl-file-basedir"/>,
-      <xref linkend="gtk2"/>,
+      <xref linkend="gtk3"/>,
       <xref linkend="hicolor-icon-theme"/>,
       <xref linkend="mitkrb"/>,
       <xref linkend="mesa"/>,
@@ -174,7 +174,7 @@
       <xref linkend="flac"/>,
       <xref linkend="git"/>,
 <!--      <xref linkend="icu"/>, -->
-      <xref linkend="libevent"/>,
+<!--      <xref linkend="libevent"/>, -->
       <xref linkend="libexif"/>,
       <xref linkend="libjpeg"/>,
       <xref linkend="libpng"/>,
@@ -192,6 +192,7 @@
       <xref linkend="GConf"/>,
       <xref linkend="icu"/> (currently broken),
       <xref linkend="gnome-keyring"/>,
+      <xref linkend="libevent"/> (currently broken),
       <xref linkend="libvpx"/> (currently broken),
       <xref linkend="libxml2"/> (currently broken),
       <ulink url="https://devel.freebsoft.org/speechd">speech-dispatcher</ulink>
@@ -249,9 +250,10 @@
       <para>
         Chromium uses many external projects, the selections below are not set
         in stone, however they have been tested thoroughly. With Chromium
-        &chromium-version;, system versions of icu, libvpx, libxml2, and zlib
-        are known to break the build at this time.
+        &chromium-version;, system versions of icu, libevent, libvpx, libxml2,
+        and zlib are known to break the build at this time.
         <!-- icu: Not at 59 internally -->
+        <!-- libevent: needs internal headers -->
         <!-- libvpx: breaks build in gfx -->
         <!-- libxml2: breaks build with ui -->
         <!-- zlib requires libminizip -->
@@ -260,8 +262,8 @@
 
 <!-- Again, thanks to Arch, this is much better than listing all the needed
 shipped libs required to use the remove_bundled_files.py script -->
-<!--<screen><userinput>for LIB in ffmpeg flac harfbuzz-ng icu libevent libjpeg \
-           libjpeg_turbo libpng libvpx libwebp libxslt yasm; do
+<screen><userinput>for LIB in ffmpeg flac harfbuzz-ng<!-- icu libevent--> libjpeg \
+           libjpeg_turbo libpng libwebp<!-- libxml libvpx--> libxslt yasm; do
     find -type f -path "*third_party/$LIB/*"     \
         \! -path "*third_party/$LIB/chromium/*"  \
         \! -path "*third_party/$LIB/google/*"    \
@@ -269,19 +271,10 @@ shipped libs required to use the remove_bundled_files.py script -->
         \! -path "*base/third_party/libevent/*"  \
         \! -regex '.*\.\(gn\|gni\|isolate\|py\)' \
         -delete
-done &amp;&amp; -->
-<screen><userinput>for LIB in ffmpeg flac harfbuzz-ng libevent libjpeg \
-           libjpeg_turbo libpng libwebp<!-- libxml libvpx--> libxslt yasm; do
-    find -type f -path "*third_party/$LIB/*"     \
-        \! -path "*third_party/$LIB/chromium/*"  \
-        \! -path "*third_party/$LIB/google/*"    \
-        \! -path "*base/third_party/libevent/*"  \
-        \! -regex '.*\.\(gn\|gni\|isolate\|py\)' \
-        -delete
 done &amp;&amp;
 
 python build/linux/unbundle/replace_gn_files.py \
-    --system-libraries ffmpeg flac harfbuzz-ng<!-- icu--> libevent libjpeg \
+    --system-libraries ffmpeg flac harfbuzz-ng<!-- icu libevent--> libjpeg \
                        libpng libwebp<!-- libxml libvpx--> libxslt yasm &amp;&amp;
 python third_party/libaddressinput/chromium/tools/update-strings.py</userinput></screen>
 
@@ -330,7 +323,7 @@ python third_party/libaddressinput/chromium/tools/update-strings.py</userinput><
 'use_gconf=false'
 'use_gnome_keyring=false'
 'use_gold=false'
-'use_gtk3=false'
+'use_gtk3=true'
 'use_kerberos=true'
 'use_pulseaudio=true'
 'use_sysroot=false')</userinput></screen>
@@ -410,6 +403,12 @@ Icon=chromium
 Categories=GTK;Network;WebBrowser;
 MimeType=application/xhtml+xml;text/xml;application/xhtml+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
 EOF</userinput></screen>
+
+    <note>
+      <para>If upgrading from a previous build of chromium using gtk+-2.x, you
+      may need to remove the <filename
+      class="directory">~/.config/chromium</filename> directory.</para>
+    </note>
 
     <bridgehead renderas="sect3">Extracting the WideVine plugin from Chrome</bridgehead>
 
