@@ -9,10 +9,10 @@
 
   <!ENTITY qt5-download-http "&qt5-url;/qt-everywhere-opensource-src-&qt5-version;.tar.xz">
   <!ENTITY qt5-download-ftp  " ">
-  <!ENTITY qt5-md5sum        "9c8bc8b828c2b56721980368266df9d9">
-  <!ENTITY qt5-size          "439 MB">
-  <!ENTITY qt5-buildsize     "8.9 GB (214 MB installed)">
-  <!ENTITY qt5-time          "29 SBU (using parallelism=4)">
+  <!ENTITY qt5-md5sum        "77b4af61c49a09833d4df824c806acaf">
+  <!ENTITY qt5-size          "440 MB">
+  <!ENTITY qt5-buildsize     "8.8 GB (214 MB installed)">
+  <!ENTITY qt5-time          "26 SBU (using parallelism=4)">
 ]>
 
 <sect1 id="qt5" xreflabel="Qt-&qt5-version;">
@@ -240,6 +240,10 @@ ln -sfnv qt-&qt5-version; /opt/qt5</userinput></screen>
                      qtbase/src/network/network.pro         &amp;&amp;
 export OPENSSL_LIBS='-L/usr/lib/openssl-1.0 -lssl -lcrypto' &amp;&amp;
 
+sed -e "/qsql_mysql_p.h/ a #include &lt;mysql/mysql_version.h&gt;" \
+     -i qtbase/src/plugins/sqldrivers/mysql/qsql_mysql.cpp  &amp;&amp;
+
+
 ./configure -prefix $QT5PREFIX                          \
             -sysconfdir /etc/xdg                        \
             -confirm-license                            \
@@ -263,26 +267,11 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
-<!-- Not needed any more
-    <para>
-      Remove references to the build directory from the installed
-      <filename class="extension">.pc</filename> files by running
-      the following command as the
-      <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>find $QT5PREFIX/lib/pkgconfig -name "*.pc" -exec perl -pi -e "s, -L$PWD/?\S+,,g" {} \;</userinput></screen>
--->
     <para>
       Remove references to the build directory from installed library
       dependency (prl) <!--and profile include (pri)--> files by running the following
       command as the <systemitem class="username">root</systemitem> user:
     </para>
-
-<!-- Not needed any more
-find $QT5PREFIX/ -name qt_lib_bootstrap_private.pri \
-   -exec sed -i -e "s:$PWD/qtbase:/$QT5PREFIX/lib/:g" {} \; &amp;&amp;
--->
 
 <screen role="root"><userinput>find $QT5PREFIX/ -name \*.prl \
    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;</userinput></screen>
@@ -384,6 +373,13 @@ done</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
+      <command>sed ... qsql_mysql.cpp </command>: The
+      <command>configure</command> now searches for mysql/mariadb and sets up
+      Qt to use it if found.  This command compensates for a change in the
+      mariadb-10.2 include files.
+    </para>
+
+    <para>
       <parameter>-confirm-license</parameter>: Accept license
       without prompting user during configuration.
     </para>
@@ -392,11 +388,6 @@ done</userinput></screen>
       <parameter>-opensource</parameter>: Install the opensource
       version of <application>Qt</application>.
     </para>
-<!-- default as of QT-5.7:
-    <para>
-      <parameter>-release</parameter>: This switch disables
-      building with debugging symbols.
-    </para>-->
 
     <para>
       <parameter>-nomake examples</parameter>: This switch
@@ -409,12 +400,6 @@ done</userinput></screen>
       <parameter>-system-sqlite</parameter>: This switch enables use
       of the system version of <application>SQLite</application>.
     </para>
-<!-- Tested during configure, and not built if not found:
-    <para>
-      <parameter>-no-nis</parameter>: This switch disables support
-      for Network Information Service (NIS) which has been
-      removed from recent versions of <application>Glibc</application>.
-    </para>-->
 
     <para>
       <parameter>-dbus-linked -openssl-linked</parameter>: These
