@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY wireshark-download-http "https://www.wireshark.org/download/src/all-versions/wireshark-&wireshark-version;.tar.bz2">
+  <!ENTITY wireshark-download-http "https://www.wireshark.org/download/src/all-versions/wireshark-&wireshark-version;.tar.xz">
   <!ENTITY wireshark-download-ftp  " ">
-  <!ENTITY wireshark-md5sum        "a4d880554c7f925dafef60fa313b580d">
-  <!ENTITY wireshark-size          "31 MB">
-  <!ENTITY wireshark-buildsize     "1.6 GB (with default GUI front-ends, and SBC codec)">
-  <!ENTITY wireshark-time          "3.5 SBU (with parallelism=4 and default GUI front-ends)">
+  <!ENTITY wireshark-md5sum        "655106f8cf3bb8f521336d3a8ab5b10b">
+  <!ENTITY wireshark-size          "27 MB">
+  <!ENTITY wireshark-buildsize     "1.9 GB (with default GUI front-end, and all optional dependencies available in the BLFS book)">
+  <!ENTITY wireshark-time          "10.3 SBU (with default GUI front-end and all optional dependencies available in the BLFS book)">
 ]>
 
 <sect1 id="wireshark" xreflabel="Wireshark-&wireshark-version;">
@@ -74,7 +74,7 @@
         <para>
           Optional patch:
           <ulink url=
-              "&patch-root;/wireshark-&wireshark-version;-lua_5_3_1-1.patch"/>
+              "&patch-root;/wireshark-&wireshark-version;-lua_5_3-1.patch"/>
           (allows building the LUA bindings if <xref linkend="lua"/> is
           installed and LUA is not disabled by passing <option>--without-lua
           </option> to <command>configure</command>)
@@ -93,12 +93,12 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="glib2"/>
+      <xref linkend="glib2"/> and
+      <xref linkend="libgcrypt"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="gtk3"/> (for the <application>Gtk+3</application> GUI),
       <xref linkend="libpcap"/> (required to capture data), and
       <xref linkend="qt5"/> (for the <application>Qt5</application> GUI)
     </para>
@@ -107,41 +107,28 @@
     <para role="optional">
       <xref linkend="c-ares"/>,
       <xref linkend="gnutls"/>,
-      <xref linkend="libgcrypt"/>,
+      <xref linkend="gtk3"/> or <xref linkend="gtk2"/> (for the legacy GTK GUI),
       <xref linkend="libnl"/>,
       <xref linkend="lua"/>,
       <xref linkend="mitkrb"/>,
+      <xref linkend="nghttp2"/>,
       <xref linkend="openssl"/>,
       <xref linkend="sbc"/>,
-      <ulink url="http://www.gnu.org/software/adns/adns.html">adns</ulink>,
       <ulink url="http://www.ibr.cs.tu-bs.de/projects/libsmi/">libsmi</ulink>,
-      <ulink url="http://www.maxmind.com/app/c">GeoIP</ulink>, and
+      <ulink url="http://lz4.github.io/lz4/">lz4</ulink>,
+      <ulink url="http://www.maxmind.com/app/c">GeoIP</ulink>,
+      <ulink url="https://www.libssh.org/">libssh</ulink>,
       <ulink url="http://www.portaudio.com/">PortAudio</ulink>
-      (for GTK+ RTP player)
-    </para>
-
-    <bridgehead renderas="sect4">Optional (for GUI front-ends)
-    </bridgehead>
-    <para role="optional">
-      <xref linkend="gtk2"/>
+      (for GTK+ RTP player),
+      <ulink url="http://google.github.io/snappy/">Snappy</ulink>, and
+      <ulink url="https://www.soft-switch.org/">Spandsp</ulink>
     </para>
 
     <note>
       <para>
-        The <application>GTK+</application> GUI needs one of <xref linkend=
-        "gtk2"/> or <xref linkend="gtk3"/>. If both are installed, GTK+3
-        is used by default.
-      </para>
-
-      <para>
-        The <application>Qt</application> GUI needs <xref linkend="qt5"/>. 
-      </para>
-
-      <para>
-        Both GTK+ and Qt GUI front-ends are built, as recommended by the
-        upstream developers.  If you want to override the defaults, some
-        configure switches have to be set (see <quote>Command
-        Explanations</quote>).
+        The Qt GUI front-end is built by default, if <xref linkend="qt5"/> is
+        found. If you want to build the GTK+ GUI front-end, some configure
+        switches have to be set (see <quote>Command Explanations</quote>).
       </para>
     </note>
 
@@ -193,7 +180,7 @@
       the following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../wireshark-&wireshark-version;-lua_5_3_1-1.patch  &amp;&amp;
+<screen><userinput>patch -Np1 -i ../wireshark-&wireshark-version;-lua_5_3-1.patch  &amp;&amp;
 
 ./configure --prefix=/usr --sysconfdir=/etc &amp;&amp;
 make</userinput></screen>
@@ -257,23 +244,20 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <option>--with-gtk2=[yes/no]</option>: For the Gtk+2 GUI. If both Gtk+2
-      and 3 are installed, default is no. Notice that the GUI for only one Gtk+
-      version (either 2 or 3) can be built.
+      <option>--with-gtk=[yes/no/2/3]</option>: For the Gtk+ GUI. Default is no.
+      If both Gtk+2 and 3 are installed, and <quote>yes</quote> is selected,
+      default is 3. Obviously, <xref linkend="gtk2"/> or <xref linkend="gtk3"/>
+      must have been built for this to work.
     </para>
 
     <para>
-      <option>--with-gtk3=[yes/no]</option>: For the Gtk+3 GUI. If both Gtk+2
-      and 3 are installed, default is yes.
-    </para>
-
-    <para>
-      <option>--with-qt=[yes/no/4/5]</option>: For the Qt GUI. Default is yes.
+      <option>--with-qt=[yes/no/4/5]</option>: For the Qt GUI. Default is yes,
+      if <xref linkend="qt5"/> is found on the system.
     </para>
 
     <para>
       <option>--disable-wireshark</option>: Use this switch if you
-      have <application>GTK+</application> installed but do not want to build
+      have <application>Qt</application> installed but do not want to build
       any of the GUIs.
     </para>
 
@@ -333,8 +317,8 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
       <seglistitem>
         <seg>
           capinfos, captype, dftest, dumpcap, editcap, idl2wrs,
-          mergecap, randpkt, rawshark, reordercap, text2pcap, tshark, wireshark,
-          and wireshark-gtk
+          mergecap, randpkt, rawshark, reordercap, sharkd,
+          text2pcap, tshark, wireshark, and wireshark-gtk (optional)
         </seg>
         <seg>
           libwireshark.so, libwiretap.so, libwscodecs.so (optional),
@@ -446,6 +430,16 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
           <para>reorder timestamps of input file frames into output file.</para>
           <indexterm zone="wireshark reordercap">
             <primary sortas="b-reordercap">reordercap</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="sharkd">
+        <term><command>sharkd</command></term>
+        <listitem>
+          <para>is a daemon that listens on UNIX sockets.</para>
+          <indexterm zone="wireshark sharkd">
+            <primary sortas="b-sharkd">sharkd</primary>
           </indexterm>
         </listitem>
       </varlistentry>
