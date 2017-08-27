@@ -192,14 +192,44 @@ OpenGL version string: 3.0 Mesa 10.4.5</computeroutput></screen>
       In order to use PRIME for GPU switching, make sure that you are using
       Linux Kernel 3.4 or later (recommended). You will need latest DRI and
       DDX drivers for your hardware and <application>Xorg Server</application>
-      1.13 or later with an optional patch applied.
+      1.13 or later.
     </para>
 
     <para>
       <application>Xorg Server</application> should load both GPU drivers
-      automaticaly.  In order to run a GLX application on a discrete GPU, you
-      will need to export the <envar>DRI_PRIME=1</envar> environment variable.
-      For example,
+      automaticaly. You can check that by running:
+    </para>
+
+<screen><userinput>xrandr --listproviders</userinput></screen>
+
+    <para>
+      There should be two (or more) providers listed, for example:
+    </para>
+
+<screen><computeroutput>Providers: number : 2
+Provider 0: id: 0x7d cap: 0xb, Source Output, Sink Output, Sink Offload crtcs: 3 outputs: 4 associated providers: 1 name:Intel
+Provider 1: id: 0x56 cap: 0xf, Source Output, Sink Output, Source Offload, Sink Offload crtcs: 6 outputs: 1 associated providers: 1 name:radeon</computeroutput></screen>
+
+    <para>
+      In order to be able to run a GLX application on a discrete GPU, you will
+      need to run the following command, where &lt;provider&gt; is the more
+      powerful discrete card, and &lt;sink&gt; is the card which has a display
+      connected:
+    </para>
+
+<screen><userinput>xrandr --setprovideroffloadsink <replaceable>&lt;provider&gt; &lt;sink&gt;</replaceable></userinput></screen>
+
+    <note>
+      <para>
+        With newer <application>Xorg</application> drivers, such as modesetting
+        or intel, which are DRI3 capable, the above command is no longer
+        necessary. It does no harm however.
+      </para>
+    </note>
+
+    <para>
+      Then, you will need to export the <envar>DRI_PRIME=1</envar> environment
+      variable each time you want the powerful GPU to be used. For example,
 
 <screen><userinput>DRI_PRIME=1 glxinfo | egrep "(OpenGL vendor|OpenGL renderer|OpenGL version)"</userinput></screen>
 
