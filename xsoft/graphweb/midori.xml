@@ -110,7 +110,17 @@
       commands:
     </para>
 
-<screen><userinput>mkdir build &amp;&amp;
+<screen><userinput>sed -e 's/protected Tally/public Tally/g'  \
+    -i midori/midori-notebook.vala         &amp;&amp;
+sed -e 's/%d other files/%u other files/g' \
+    -i extensions/transfers.vala           &amp;&amp;
+
+for f in transfers adblock/widgets apps history-list notes; do
+    sed -e 's/.remove (iter/.remove (ref iter/g' \
+        -i "extensions/$f.vala"
+done        &amp;&amp;
+
+mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
@@ -136,8 +146,16 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is
-    used to apply a higher level of compiler optimizations.</para>
+    <para>
+      <command>sed ...</command>: The recent release of vala generates errors
+      for some constructs that were accepted before. The <command>sed</command>
+      commands fix those errors.
+    </para>
+
+    <para>
+      <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is
+      used to apply a higher level of compiler optimizations.
+    </para>
 
     <para>
       <parameter>-DUSE_ZEITGEIST=OFF</parameter>: Remove this switch if
