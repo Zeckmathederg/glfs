@@ -9,7 +9,7 @@
   <!ENTITY libxslt-md5sum        "70becbbcb1dad55f14de0b84171b91d5">
   <!ENTITY libxslt-size          "3.3 MB">
   <!ENTITY libxslt-buildsize     "39 MB (with tests)">
-  <!ENTITY libxslt-time          "0.2 SBU (with tests)">
+  <!ENTITY libxslt-time          "0.3 SBU (with tests)">
 ]>
 
 <sect1 id="libxslt" xreflabel="libxslt-&libxslt-version;">
@@ -113,7 +113,11 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --disable-static            &amp;&amp;
+<screen><userinput>
+sed -i '/WITH_MODULES=.*--variable/ a \\t\tXML_CONFIG="$PKG_CONFIG libxml-2.0"' \
+ configure.in                                                                   &amp;&amp;
+autoreconf -fiv                                                                 &amp;&amp;
+./configure --prefix=/usr --disable-static                                      &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -131,14 +135,12 @@ make</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!--
     <para>
-      <command>sed -i '/#include &lt;xlocale.h&gt;/d' libxslt/xsltlocale.h</command>:
-      with glibc-2.26, <filename>xlocale.h</filename> is no-longer installed,
-      any package using it should use <filename>locale.h</filename> but
-      <application>libxslt</application> references that on the previous line
-      of the header, so just delete this.
-    </para>-->
+      <command>sed -i '/WITH_MODULES=.*--variable/ ...</command>:
+      this, and the following <command>autoreconf</command>, ensure that
+      any package using <command>xslt-config --cflags</command> to discover
+      how to compile against libxslt will get the correct result.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
