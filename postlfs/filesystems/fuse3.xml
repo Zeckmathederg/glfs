@@ -6,10 +6,10 @@
 
   <!ENTITY fuse3-download-http "https://github.com/libfuse/libfuse/releases/download/fuse-&fuse3-version;/fuse-&fuse3-version;.tar.gz">
   <!ENTITY fuse3-download-ftp  " ">
-  <!ENTITY fuse3-md5sum        "20b10f24b825062c1db9a21a35157f97">
-  <!ENTITY fuse3-size          "804 KB">
-  <!ENTITY fuse3-buildsize     "8.5 MB">
-  <!ENTITY fuse3-time          "0.1 SBU">
+  <!ENTITY fuse3-md5sum        "79e862bf915864aceef179607c0b3e4d">
+  <!ENTITY fuse3-size          "280 KB">
+  <!ENTITY fuse3-buildsize     "9.0 MB">
+  <!ENTITY fuse3-time          "less than 0.1 SBU">
 ]>
 
 <sect1 id="fuse3" xreflabel="Fuse-&fuse3-version;">
@@ -108,12 +108,11 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr    \
-            --disable-static \
-            --exec-prefix=/  \
-            --with-pkgconfigdir=/usr/lib/pkgconfig \
-            INIT_D_PATH=/tmp/init.d &amp;&amp;
-make</userinput></screen>
+<screen><userinput>sed -i '/^udev/,$ s/^/#/' util/meson.build &amp;&amp;
+
+meson --prefix=/usr $PWD build &amp;&amp;
+cd build                       &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       The API documentation is included in the package, but 
@@ -129,41 +128,40 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install                                         &amp;&amp;
-rm -v /lib/libfuse3.{so,la}                          &amp;&amp;
-ln -sfv ../../lib/libfuse3.so.3 /usr/lib/libfuse3.so &amp;&amp;
+<screen role="root"><userinput>ninja install                                             &amp;&amp;
 
-rm -rf  /tmp/init.d &amp;&amp;
+mv -vf   /usr/lib/libfuse3.so.3*     /lib                 &amp;&amp;
+ln -sfvn ../../lib/libfuse3.so.3.2.0 /usr/lib/libfuse3.so &amp;&amp;
 
-install -v -m755 -d /usr/share/doc/fuse-&fuse3-version; &amp;&amp;
-install -v -m644    doc/{README.NFS,kernel.txt} \
-                    /usr/share/doc/fuse-&fuse3-version; &amp;&amp;
-cp -Rv doc/html /usr/share/doc/fuse-&fuse3-version;</userinput></screen>
+mv -vf /usr/bin/fusermount3  /bin  &amp;&amp;
+mv -vf /usr/sbin/mount.fuse3 /sbin &amp;&amp;
+
+install -v -m755 -d /usr/share/doc/fuse-&fuse3-version;      &amp;&amp;
+install -v -m644    ../doc/{README.NFS,kernel.txt} \
+                    /usr/share/doc/fuse-&fuse3-version;      &amp;&amp;
+cp -Rv doc/html     /usr/share/doc/fuse-&fuse3-version;      &amp;&amp;
+
+gunzip /usr/share/man/{man1/fusermount3.1,man8/mount.fuse.8}.gz
+</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
     <para>
-      <parameter>--exec-prefix=/</parameter>: This parameter moves programs and
-      libraries that could be needed before the
-      <filename class="directory">/usr</filename> directory is mounted, to the
-      root filesystem.
+      <command>sed ... util/meson.build</command>: This command disables the
+      installation of a boot script and udev rule that are not needed.
     </para>
 
     <para>
-      <parameter>INIT_D_PATH=/tmp/init.d</parameter>: This parameter installs
-      the bootscript into <filename class="directory">/tmp/init.d</filename> as
-      a bootscript is not required.
+      <command>mv ... libfuse3.so.3*; ln ... libfuse3.so</command>: 
+      These commands install the libraries in the /lib directory.
     </para>
 
     <para>
-      <command>rm -rf /tmp/init.d</command>: This removes the unneeded
-      bootscript.
+      <command>unzip ...</command>: This uncompresses the installed man pages
+      to be consistent with the rest of the man pages.
     </para>
 
   </sect2>
@@ -232,8 +230,7 @@ EOF</userinput></screen>
         <term><command>fusermount3</command></term>
         <listitem>
           <para>
-            is a set users ID root program to mount and unmount Fuse
-            filesystems.
+            is a suid root program to mount and unmount Fuse filesystems.
           </para>
           <indexterm zone="fuse3 fusermount3">
             <primary sortas="b-fusermount3">fusermount3</primary>
@@ -245,7 +242,7 @@ EOF</userinput></screen>
         <term><command>mount.fuse3</command></term>
         <listitem>
           <para>
-            is the command <command>mount</command> would call to mount a Fuse
+            is the command <command>mount</command> calls to mount a Fuse
             filesystem.
           </para>
           <indexterm zone="fuse3 mount.fuse3">
