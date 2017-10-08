@@ -6,10 +6,10 @@
 
   <!ENTITY poppler-download-http "https://poppler.freedesktop.org/poppler-&poppler-version;.tar.xz">
   <!ENTITY poppler-download-ftp  " ">
-  <!ENTITY poppler-md5sum        "6e44408a3b4f4a738f8a6770d0aea8a5">
-  <!ENTITY poppler-size          "1.6 MB">
-  <!ENTITY poppler-buildsize     "50 MB (with Qt5 library; add 11 MB for test)">
-  <!ENTITY poppler-time          "1.3 SBU (with Qt5 library)">
+  <!ENTITY poppler-md5sum        "7648416d51a6e9fbc4a75b6f8b53dd7c">
+  <!ENTITY poppler-size          "1.4 MB">
+  <!ENTITY poppler-buildsize     "58 MB (with Qt5 library and tests)">
+  <!ENTITY poppler-time          "0.5 SBU (with parallelism=4, Qt5 library, and tests)">
 
 
   <!ENTITY poppler-data-version       "0.4.8">
@@ -123,6 +123,7 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
+      <xref linkend="cmake"/> and
       <xref linkend="fontconfig"/>
     </para>
 
@@ -132,19 +133,19 @@
       <xref linkend="libjpeg"/>,
       <xref linkend="libpng"/>,
       <xref linkend="nss"/>, and
-      <xref linkend="openjpeg"/>
+      <xref linkend="openjpeg2"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="curl"/>,
+      <xref linkend="gdk-pixbuf"/>,
+      <xref linkend="git"/> (for test files),
       <xref linkend="gobject-introspection"/>,
       <xref linkend="gtk-doc"/>,
-      <xref linkend="gtk2"/>,
-      <xref linkend="lcms"/> or <xref linkend="lcms2"/>,
+      <xref linkend="gtk3"/>,
+      <xref linkend="lcms2"/>,
       <xref linkend="libtiff"/>,
-      <xref linkend="openjpeg2"/>
-      (preference is for OpenJPEG1, due to regressions with OpenJPEG2), and
       <xref linkend="qt5"/>
       (required for PDF support in <xref linkend="okular5"/>)
     </para>
@@ -162,13 +163,16 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr               \
-            --sysconfdir=/etc           \
-            --disable-static            \
-            --enable-build-type=release \
-            --enable-cmyk               \
-            --enable-xpdf-headers       \
-            --with-testdatadir=$PWD/testfiles &amp;&amp;
+<screen><userinput>mkdir build                         &amp;&amp;
+cd    build                         &amp;&amp;
+
+cmake  -DCMAKE_BUILD_TYPE=Release   \
+       -DCMAKE_INSTALL_PREFIX=/usr  \
+       -DTESTDATADIR=$PWD/testfiles \
+       -DENABLE_XPDF_HEADERS=ON     \
+       -DENABLE_GTK_DOC=ON          \
+       ..                           &amp;&amp;
+
 make</userinput></screen>
 
     <para>
@@ -176,15 +180,19 @@ make</userinput></screen>
       be obtained only from a git repository. The command to download
       them is:
 <command>git clone git://git.freedesktop.org/git/poppler/test testfiles</command>.
-      Then issue: <command>LC_ALL=en_US.UTF-8 make check</command>. It seems
-      that only the Qt4/5 libraries are tested.
+      Then issue: <command>LC_ALL=en_US.UTF-8 make check</command>. 
+      Only the Qt5 libraries are tested.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>
+make        install &amp;&amp;
+make -C qt5 install &amp;&amp;
+
+install -m644 poppler-qt5.pc usr/lib/pkgconfig</userinput></screen>
 
     <para>
       To install the documentation, run the following commands as
@@ -192,7 +200,6 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>install -v -m755 -d        /usr/share/doc/poppler-&poppler-version; &amp;&amp;
-install -v -m644 README*   /usr/share/doc/poppler-&poppler-version; &amp;&amp;
 cp -vr glib/reference/html /usr/share/doc/poppler-&poppler-version;</userinput></screen>
 
 <!-- ==== Poppler Data ====== -->
@@ -218,42 +225,19 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--enable-build-type=release</parameter>: This switch is used
-      to apply a higher level of compiler optimizations. Other options are:
-      [<option>relwithdebinfo/debug/debugfull/profile</option>]
+      <option>-DCMAKE_BUILD_TYPE=Release</option>: This switch is used
+      to apply a higher level of compiler optimizations. 
     </para>
 
     <para>
-      <parameter>--enable-cmyk</parameter>:
-      Include support for CMYK rasterization.
-    </para>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
-    <para>
-      <parameter>--enable-xpdf-headers</parameter>: Install some old
-      <application>Xpdf</application> headers required by certain programs (e.g.
-      <application>Okular</application>, <application>LibreOffice</application>
-      and <application>Inkscape</application>).
-    </para>
-
-    <para>
-      <parameter>--with-testdatadir=$PWD/testfiles</parameter>: Tell the test
+      <option>-DTESTDATADIR=$PWD/testfiles</option>: Tell the test
       programs where the auxiliary files are located.
     </para>
 
     <para>
-      <option>--enable-libcurl</option>: Use libcurl for HTTP support.
-    </para>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
-
-    <para>
-      <option>--disable-poppler-qt5</option>: Don't compile poppler Qt5 wrapper,
-      when Qt5 is installed. Note that Qt5 support is required for PDF support
-      in <xref linkend="okular5"/>.
+      <option>-DENABLE_GTK_DOC=ON</option>: Use this parameter if 
+      GTK-Doc is installed and you wish to rebuild and install 
+      the API documentation.
     </para>
 
     <para>
@@ -275,8 +259,8 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
       <seglistitem>
         <seg>
           pdfdetach, pdffonts, pdfimages, pdfinfo, pdfseparate, pdfsig,
-          pdftocairo, pdftohtml, pdftoppm, pdftops, pdftotext,
-          pdfunite, and poppler-glib-demo
+          pdftocairo, pdftohtml, pdftoppm, pdftops, pdftotext, and
+          pdfunite
         </seg>
         <seg>
           libpoppler.so,
@@ -285,8 +269,8 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
           libpoppler-qt5.so
         </seg>
         <seg>
-          /usr/{include,share,share/gtk-doc/html}/poppler and
-          /usr/share/doc/poppler-&poppler-version;
+          /usr/include/poppler and
+          /usr/share/gtk-doc/poppler
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -444,19 +428,6 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="poppler-glib-demo">
-        <term><command>poppler-glib-demo</command></term>
-        <listitem>
-          <para>
-            is a tool to demonstrate the API, and for use when debugging and
-            testing <application>Poppler</application>.
-          </para>
-          <indexterm zone="poppler poppler-glib-demo">
-            <primary sortas="b-poppler-glib-demo">poppler-glib-demo</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="libpoppler">
         <term><filename class="libraryfile">libpoppler.so</filename></term>
         <listitem>
@@ -493,21 +464,6 @@ cd poppler-data-&poppler-data-version;</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
-<!--
-      <varlistentry id="libpoppler-qt4">
-        <term><filename class="libraryfile">libpoppler-qt4.so</filename></term>
-        <listitem>
-          <para>
-            is a wrapper library used to interface the PDF rendering functions
-            with <application>Qt</application>4.
-          </para>
-          <indexterm zone="poppler libpoppler-qt4">
-            <primary sortas="c-libpoppler-qt4">libpoppler-qt4.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
 
       <varlistentry id="libpoppler-qt5">
         <term><filename class="libraryfile">libpoppler-qt5.so</filename></term>
