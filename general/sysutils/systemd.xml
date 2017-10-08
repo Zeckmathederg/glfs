@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY systemd-download-http "http://anduin.linuxfromscratch.org/sources/other/systemd/systemd-&systemd-version;-lfs.tar.xz">
+  <!ENTITY systemd-download-http "https://github.com/systemd/archive/v&systemd-version;/systemd-&systemd-version;.tar.xz">
   <!ENTITY systemd-download-ftp  " ">
-  <!ENTITY systemd-md5sum        "be1338f2775713dc33da74ac0146e37b">
-  <!ENTITY systemd-size          "4.0 MB">
-  <!ENTITY systemd-buildsize     "371 MB (an additional 29 MB for tests)">
-  <!ENTITY systemd-time          "7.7 SBU (an additional 0.5 SBU for tests)">
+  <!ENTITY systemd-md5sum        "2d8f6ebded3462ac0d1a6275e54db561">
+  <!ENTITY systemd-size          "4.6 MB">
+  <!ENTITY systemd-buildsize     "225 MB (an additional 8 MB for tests)">
+  <!ENTITY systemd-time          "0.2 SBU (an additional 0.2 SBU for tests)">
 
 ]>
 
@@ -117,35 +117,28 @@
 
   <sect2 role="installation">
     <title>Installation of systemd</title>
-<!--
-    <para>
-      Disable two tests that always fail:
-    </para>
-We didn't remove this? -->
 
     <para>
       Rebuild <application>systemd</application> by running the
       following commands:
     </para>
 
-<!-- The logic behind - -disable-manpages is that you will already have the
-     manpages from this version of systemd installed. This is a rebuild, not
-     a fresh installation of a new version, and previous versions manpages
-     generally apply. This may change in a future update. -->
-
-<screen><userinput>./configure --prefix=/usr            \
-            --sysconfdir=/etc        \
-            --localstatedir=/var     \
-            --with-rootprefix=       \
-            --with-rootlibdir=/lib   \
-            --enable-split-usr       \
-            --disable-firstboot      \
-            --disable-ldconfig       \
-            --disable-sysusers       \
-            --disable-manpages       \
-            --with-default-dnssec=no \
-            --docdir=/usr/share/doc/systemd-&systemd-version; &amp;&amp;
-make</userinput></screen>
+<screen><userinput>meson --prefix /usr                   \
+      --sysconfdir /etc               \
+      --localstatedir /var            \
+      -Dblkid=true                    \
+      -Dbuildtype=release             \
+      -Ddefault-dnssec=no             \
+      -Dfirstboot=false               \
+      -Dldconfig=false                \
+      -Drootprefix=                   \
+      -Drootlibdir=/lib               \
+      -Dsplit-usr=true                \
+      -Dsysusers=false                \
+      -Db_lto=false                   \
+      $PWD build                      &amp;&amp;
+cd build                              &amp;&amp;
+ninja</userinput></screen>
 
     <note>
       <para>
@@ -156,7 +149,7 @@ make</userinput></screen>
     </note>
 
     <para>
-      To test the results, issue: <command>make check</command>.
+      To test the results, issue: <command>ninja test</command>.
     </para>
 
     <warning>
@@ -178,7 +171,7 @@ make</userinput></screen>
      Now, as the <systemitem class="username">root</systemitem> user:
    </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
       If <application>RPM</application> is not installed, remove an
