@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY sddm-download-http "https://github.com/sddm/sddm/releases/download/v&sddm-version;/sddm-&sddm-version;.tar.gz">
+  <!ENTITY sddm-download-http "https://github.com/sddm/sddm/releases/download/v&sddm-version;/sddm-&sddm-version;.tar.xz">
   <!ENTITY sddm-download-ftp  " ">
-  <!ENTITY sddm-md5sum        "ce07882e0c670e4ab94f849a9e6139b4">
-  <!ENTITY sddm-size          "3.1 MB">
-  <!ENTITY sddm-buildsize     "14 MB">
-  <!ENTITY sddm-time          "0.4 SBU ">
+  <!ENTITY sddm-md5sum        "b41182cc9d53d75485c112ab82dc95d0">
+  <!ENTITY sddm-size          "3.2 MB">
+  <!ENTITY sddm-buildsize     "20 MB">
+  <!ENTITY sddm-time          "0.6 SBU ">
 ]>
 
 <sect1 id="sddm" xreflabel="sddm-&sddm-version;">
@@ -129,6 +129,15 @@ useradd  -c "SDDM Daemon" \
 sed -e '/\$@$/s/exec/&amp; ck-launch-session/' \
     -i data/scripts/Xsession</userinput></screen>
 
+    <para revision="sysv">
+      For sddm-0.16.0, ConsoleKit support has been added, but is broken. Remove
+      it with:
+    </para>
+<!-- This removes also logind support. Hopefully should be fixed for next
+     version -->
+<screen revision="sysv"><userinput>sed -e '/available.*true/s/true/false/' \
+    -i src/daemon/LogindDBusTypes.cpp</userinput></screen>
+
     <para>
       Install <application>SDDM</application> by running the following
       commands:
@@ -175,7 +184,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
 
     <para revision="sysv">
       <parameter>-DENABLE_JOURNALD=OFF</parameter>: This switch is used because
-      BLFS does not support <application>systemd</application>.
+      this version of BLFS does not support <application>systemd</application>.
     </para>
 
     <para revision="sysv">
@@ -198,45 +207,32 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
     <title>Configuring SDDM</title>
 
     <sect3 id="sddm-config">
-      <title>Config File</title>
+      <title>Config Files</title>
 
       <para>
-        /etc/sddm.conf
+        /usr/lib/sddm/sddm.conf.d/*, /etc/sddm.conf.d/*, and /etc/sddm.conf
       </para>
+
+      <indexterm zone="sddm sddm-config">
+        <primary sortas="e-usr-lib-sddm.conf.d">/usr/lib/sddm/sddm.conf.d</primary>
+      </indexterm>
+
+      <indexterm zone="sddm sddm-config">
+        <primary sortas="e-sddm.conf.d">/etc/sddm.conf.d</primary>
+      </indexterm>
 
       <indexterm zone="sddm sddm-config">
         <primary sortas="e-sddm.conf">/etc/sddm.conf</primary>
       </indexterm>
 
       <para>
-        This file is not installed with the build instructions, and
-        default values are used by sddm. In order to generate the example
-        <filename>sddm.example.conf</filename>, issue:
+        Only <filename>/etc/sddm.conf</filename> is installed, but the
+        configuration files are read in the following order: all files in
+        <filename class="directory">/usr/lib/sddm/sddm.conf.d</filename> in
+        alphabetical order, then all files in <filename class="directory">
+        /etc/sddm.conf.d</filename> in alphabetical order, and finally
+        <filename>/etc/sddm.conf</filename>.
       </para>
-
-<screen><userinput>sddm --example-config > sddm.example.conf</userinput></screen>
-
-      <note>
-        <para>
-          This command generates an <emphasis>example</emphasis> config file,
-          which depends on several conditions of the system where it is
-          generated. A few options are <emphasis>defaults</emphasis> from
-          upstream.  If there is a previously installed
-          <filename>/etc/sddm.conf</filename>, it will generate a replica. When
-          it is generated during an X session, some session configurations are
-          replicated, e.g. if the cursor from the Adwaita theme is already
-          configured, you will obtain <emphasis>CursorTheme=Adwaita</emphasis>
-          in the example file generated.
-        </para>
-      </note>
-
-      <para>
-        If there is no <filename>/etc/sddm.conf</filename> file yet, as the
-        <systemitem class="username">root</systemitem> user, copy the example
-        file to <filename>/etc/sddm.conf</filename>:
-      </para>
-
-<screen role="root"><userinput>cp -v sddm.example.conf /etc/sddm.conf</userinput></screen>
 
       <para>
         Normally, you want to edit this file. For example, if Xorg is installed
@@ -291,8 +287,8 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm</userinput></screen>
       <title>Boot Script</title>
 
       <para>
-        Install the <filename revision="sysv">/etc/rc.d/init.d/sddm</filename> init script from
-        the <xref linkend="bootscripts" revision="sysv"/>
+        Install the <filename revision="sysv">/etc/rc.d/init.d/sddm</filename>
+        init script from the <xref linkend="bootscripts" revision="sysv"/>
         <xref linkend="systemd-units" revision="systemd"/> package.
       </para>
 
@@ -472,18 +468,16 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
       <title>Themes</title>
 
       <para>
-        Four themes are installed at <filename class="directory">
+        Three themes are installed at <filename class="directory">
         /usr/share/sddm/themes</filename>:
-        circles,
         elarun,
         maldives, and
-        maui.
-        The default theme is <quote>maui</quote>. You can install other themes
-        in that directory. In order to change the theme, you need to edit
-        <filename>/etc/sddm.conf</filename>, using your preferred text editor,
-        to change the default <quote>maui</quote> theme, replacing
-        <quote>Current=maui</quote> by <quote>Current=<replaceable>&lt;insert
-        new theme name here&gt;</replaceable></quote>, e.g.
+        maya.
+        There is also a default theme, which is not present in that directory.
+        You can install other themes in that directory. In order to change the
+        theme, you need to edit <filename>/etc/sddm.conf</filename>,
+        to change the default (empty) theme, replacing <quote>Current=</quote>
+        with <quote>Current=&lt;new theme&gt;</quote>, e.g.
         <quote>Current=maldives</quote>.
       </para>
 
