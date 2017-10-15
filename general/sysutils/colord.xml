@@ -100,7 +100,7 @@
       <xref linkend="gtk-doc"/>,
       <xref linkend="libxslt"/>,
       <xref linkend="sane"/>,
-      <ulink url="http://www.argyllcms.com/">ArgLLCMS</ulink>, and
+      <ulink url="http://www.argyllcms.com/">ArgyllCMS</ulink>, and
       <ulink url="https://github.com/scop/bash-completion/">Bash Completion</ulink>
     </para>
 
@@ -111,14 +111,14 @@
 
   <sect2 role="installation">
     <title>Installation of Colord</title>
-    
+<!-- Is this still relevant?
     <warning>
       <para>
         This package will overwrite any previous version of Colord that you
         may have on your system. This package is a development version
         and is only intended to be used by gnome-color-manager at this time.
       </para>
-    </warning>
+    </warning>-->
 
     <para>
       There should be a dedicated user and group to take control of the colord
@@ -135,7 +135,22 @@ useradd -c "Color Daemon Owner" -d /var/lib/colord -u 71 \
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr              \
+<screen revision="sysv"><userinput>./configure --prefix=/usr              \
+            --sysconfdir=/etc          \
+            --localstatedir=/var       \
+            --with-daemon-user=colord  \
+            --enable-vala              \
+            --enable-daemon            \
+            --enable-session-helper    \
+            --enable-libcolordcompat   \
+            --disable-rpath            \
+            --disable-argyllcms-sensor \
+            --disable-bash-completion  \
+            --disable-systemd-login    \
+            --disable-static &amp;&amp;
+make</userinput></screen>
+
+<screen revision="systemd"><userinput>./configure --prefix=/usr              \
             --sysconfdir=/etc          \
             --localstatedir=/var       \
             --with-daemon-user=colord  \
@@ -204,13 +219,20 @@ make</userinput></screen>
     <para>
       <parameter>--disable-argyllcms-sensor</parameter>: This switch disables
       the ArgLLCMS sensor driver. Omit if you have
-      <ulink url="http://www.argyllcms.com/">ArgLLCMS</ulink> installed
+      <ulink url="http://www.argyllcms.com/">ArgyllCMS</ulink> installed
       and wish to use it.
     </para>
 
     <para>
       <parameter>--disable-bash-completion</parameter>: This switch disables
       Bash Completion support for Colord applications.
+    </para>
+
+    <para revision="sysv">
+      <parameter>--disable-systemd-login</parameter>: This switch disables
+      support for <application>systemd</application> login in Colord
+      applications. Default is to enable, and to fail if systemd is not found
+      on the system.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
