@@ -6,10 +6,10 @@
 
   <!ENTITY gparted-download-http "&sourceforge-dl;/gparted/gparted-&gparted-version;.tar.gz">
   <!ENTITY gparted-download-ftp  " ">
-  <!ENTITY gparted-md5sum        "e29cb2061da59c6a279d9d294cf2a343">
+  <!ENTITY gparted-md5sum        "09b12d3831e91b26ec8726b00eecd43d">
   <!ENTITY gparted-size          "3.6 MB">
-  <!ENTITY gparted-buildsize     "69 MB">
-  <!ENTITY gparted-time          "1.1 SBU">
+  <!ENTITY gparted-buildsize     "72 MB">
+  <!ENTITY gparted-time          "0.3 SBU (using aprallelism=4)">
 ]>
 
 <sect1 id="gparted" xreflabel="Gparted-&gparted-version;">
@@ -128,6 +128,12 @@ make</userinput></screen>
       <application>GNOME Doc Utils</application>.
     </para>
 
+    <para>
+      <parameter>--enable-xhost-root</parameter>: This switch  provides an
+      interim workaround to allow GParted to run under Wayland by using xhost
+      to grant and revoke root access to the X11 display. 
+    </para>
+
   </sect2>
 
   <sect2 role="using">
@@ -144,8 +150,7 @@ make</userinput></screen>
       <xref linkend="ntfs-3g"/>,
       <xref linkend="reiserfs"/>,
       <xref linkend="xfsprogs"/>,
-      <ulink url="https://btrfs.wiki.kernel.org/index.php/Btrfs_source_repositories">
-        btrfs-progs</ulink>,
+      <xref linkend="btrfs-progs"/>
       <ulink url="https://github.com/dosfstools/dosfstools/">dosfstools</ulink>,
       <ulink url="http://ftp.gnu.org/pub/gnu/mtools/">mtools</ulink> (required
       to read and write FAT16/32 volume labels and UUIDs),
@@ -200,15 +205,15 @@ sed -i 's/Exec=/Exec=sudo -A /'               /usr/share/applications/gparted.de
 
 <screen role="root"><userinput>cp -v /usr/share/applications/gparted.desktop \
                                      /usr/share/applications/gparted.desktop.back &amp;&amp;
-sed -i 's:/usr/sbin/gparted:/usr/sbin/gparted_polkit:' \
-                                     /usr/share/applications/gparted.desktop      &amp;&amp;
+sed -i 's:/usr/bin/gparted:/usr/bin/gparted_polkit:' \
+                                   /usr/share/applications/gparted.desktop      &amp;&amp;
 
-cat &gt; /usr/sbin/gparted_polkit &lt;&lt; "EOF" &amp;&amp;
+cat &gt; /usr/bin/gparted_polkit &lt;&lt; "EOF" &amp;&amp;
 <literal>#!/bin/bash
 
-pkexec /usr/sbin/gparted $@</literal>
+pkexec /usr/bin/gparted $@</literal>
 EOF
-chmod -v 0755 /usr/sbin/gparted_polkit</userinput></screen>
+chmod -v 0755 /usr/bin/gparted_polkit</userinput></screen>
 
         <para>
           Still as the <systemitem class="username">root</systemitem> user,
@@ -231,7 +236,7 @@ chmod -v 0755 /usr/sbin/gparted_polkit</userinput></screen>
       &lt;allow_inactive&gt;no&lt;/allow_inactive&gt;
       &lt;allow_active&gt;auth_admin_keep&lt;/allow_active&gt;
     &lt;/defaults&gt;
-    &lt;annotate key="org.freedesktop.policykit.exec.path"&gt;/usr/sbin/gparted&lt;/annotate&gt;
+    &lt;annotate key="org.freedesktop.policykit.exec.path"&gt;/usr/bin/gparted&lt;/annotate&gt;
     &lt;annotate key="org.freedesktop.policykit.exec.allow_gui"&gt;true&lt;/annotate&gt;
   &lt;/action&gt;
 
