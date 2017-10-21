@@ -4,14 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY libinput-version "1.8.3">
+  <!ENTITY libinput-version "1.9.0">
 
   <!ENTITY libinput-download-http "https://www.freedesktop.org/software/libinput/libinput-&libinput-version;.tar.xz">
   <!ENTITY libinput-download-ftp  " ">
-  <!ENTITY libinput-md5sum        "5265244853ad7cf41232b0d3ee805ab9">
-  <!ENTITY libinput-size          "920 KB">
-  <!ENTITY libinput-buildsize     "16 MB (add 8 MB for tests)">
-  <!ENTITY libinput-time          "0.1 SBU (add 14 minutes for tests, not CPU dependent)">
+  <!ENTITY libinput-md5sum        "b33b5505f639bf01a6e2e3a01892e91f">
+  <!ENTITY libinput-size          "448 KB">
+  <!ENTITY libinput-buildsize     "9.2 MB (add 8 MB for tests)">
+  <!ENTITY libinput-time          "less than 0.1 SBU (add 14 minutes for tests, not CPU dependent)">
 ]>
 
 <sect2 id="libinput" xreflabel="libinput-&libinput-version;">
@@ -106,17 +106,19 @@
       commands:
     </para>
 
-<screen><userinput>./configure $XORG_CONFIG            \
-            --disable-libwacom      \
-            --disable-debug-gui     \
-            --disable-tests         \
-            --disable-documentation \
-            --with-udev-dir=/lib/udev &amp;&amp;
-make</userinput></screen>
+<screen><userinput>meson --prefix $XORG_PREFIX \
+      -Dudev-dir=/lib/udev  \
+      -Ddebug-gui=false     \
+      -Dtests=false         \
+      -Ddocumentation=false \
+      -Dlibwacom=false      \
+      build &amp;&amp;
+cd build    &amp;&amp;
+ninja</userinput></screen>
 
     <note>
-      <para>If you want to run the tests, remove --disable-tests from the
-      <command>configure</command> command above. The external
+      <para>If you want to run the tests, remove -Dtests from the
+      <command>meson</command> command above. The external
       library, libunwind, must be installed.</para>
 
       <para> To run the tests for this package, valgrind requires a version of
@@ -143,7 +145,7 @@ make</userinput></screen>
       <xref linkend="valgrind"/> packages installed, the regression
       tests can be run as the <systemitem
       class="username">root</systemitem> user with
-      <userinput>make check</userinput>. Note that depending on
+      <userinput>ninja check</userinput>. Note that depending on
       the system configuration and hardware, some tests may fail.
     </para>
 
@@ -151,7 +153,7 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
       If <xref linkend="doxygen"/> and <xref linkend="graphviz"/> were
@@ -169,32 +171,32 @@ cp -rv doc/html/* $XORG_PREFIX/share/doc/libinput-&libinput-version;</userinput>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--disable-libwacom</parameter>: Remove this 
-      option if you have the external library libwacom installed.
+      <option>-Dudev-dir=/lib/udev</option>: This switch
+      specifies where UDev rules and hwdb files will be installed.
     </para>
 
     <para>
-      <parameter>--disable-debug-gui</parameter>: This switch
+      <option>-Ddebug-gui=false</option>: This switch
       disables creation of a visual debug helper for libinput. Remove
       if you want it, and you have <xref linkend="gtk3"/> installed.
     </para>
 
     <para>
-      <parameter>--disable-tests</parameter>: This switch disables compilation
+      <option>-Dtests=false</option>: This switch disables compilation
       of tests. Remove if you want to run the tests, and you have the external
       library, libunwind, installed.
     </para>
 
     <para>
-      <parameter>--disable-documentation</parameter>: This switch disables
+      <option>-Ddocumentation=false</option>: This switch disables
       generation of the documentation. Remove if you want to generate it, and
       you have <xref linkend="doxygen"/> and <xref linkend="graphviz"/>
       installed.
     </para>
 
     <para>
-      <parameter>--with-udev-dir=/lib/udev</parameter>: This switch
-      specifies where UDev rules and hwdb files will be installed.
+      <option>-Dlibwacom=false</option>: Remove this 
+      option if you have the external library libwacom installed.
     </para>
 
   </sect3>
