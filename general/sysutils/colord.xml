@@ -6,9 +6,9 @@
 
   <!ENTITY colord-download-http "https://www.freedesktop.org/software/colord/releases/colord-&colord-version;.tar.xz">
   <!ENTITY colord-download-ftp  " ">
-  <!ENTITY colord-md5sum        "a8e7fcf0a45383ca7a65cef91ca5e019">
-  <!ENTITY colord-size          "1.2 MB">
-  <!ENTITY colord-buildsize     "44 MB (with tests)">
+  <!ENTITY colord-md5sum        "f457be5b7c44827e6c747ec80a6dc69a">
+  <!ENTITY colord-size          "1.8 MB">
+  <!ENTITY colord-buildsize     "26 MB (with tests)">
   <!ENTITY colord-time          "0.7 SBU (with tests)">
 ]>
 
@@ -111,14 +111,6 @@
 
   <sect2 role="installation">
     <title>Installation of Colord</title>
-<!-- Is this still relevant?
-    <warning>
-      <para>
-        This package will overwrite any previous version of Colord that you
-        may have on your system. This package is a development version
-        and is only intended to be used by gnome-color-manager at this time.
-      </para>
-    </warning>-->
 
     <para>
       There should be a dedicated user and group to take control of the colord
@@ -135,45 +127,45 @@ useradd -c "Color Daemon Owner" -d /var/lib/colord -u 71 \
       commands:
     </para>
 
-<screen revision="sysv"><userinput>./configure --prefix=/usr              \
-            --sysconfdir=/etc          \
-            --localstatedir=/var       \
-            --with-daemon-user=colord  \
-            --enable-vala              \
-            --enable-daemon            \
-            --enable-session-helper    \
-            --enable-libcolordcompat   \
-            --disable-rpath            \
-            --disable-argyllcms-sensor \
-            --disable-bash-completion  \
-            --disable-systemd-login    \
-            --disable-static &amp;&amp;
-make</userinput></screen>
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
+cd build &amp;&amp;
+meson --prefix=/usr                   \
+      --sysconfdir=/etc               \
+      --localstatedir=/var            \
+      -Dwith-daemon-user=colord       \
+      -Denable-vala=true              \
+      -Denable-systemd=false          \
+      -Denable-libolordcompat=true    \
+      -Denable-argyllcms-sensor=false \
+      -Denable-bash-completion=false  \
+      -Denable-docs=false             \
+      -Denable-man=false ..           &amp;&amp;
+ninja</userinput></screen>
 
-<screen revision="systemd"><userinput>./configure --prefix=/usr              \
-            --sysconfdir=/etc          \
-            --localstatedir=/var       \
-            --with-daemon-user=colord  \
-            --enable-vala              \
-            --enable-daemon            \
-            --enable-session-helper    \
-            --enable-libcolordcompat   \
-            --disable-rpath            \
-            --disable-argyllcms-sensor \
-            --disable-bash-completion  \
-            --disable-static &amp;&amp;
-make</userinput></screen>
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
+cd build &amp;&amp;
+meson --prefix=/usr                   \
+      --sysconfdir=/etc               \
+      --localstatedir=/var            \
+      -Dwith-daemon-user=colord       \
+      -Denable-vala=true              \
+      -Denable-systemd=true           \
+      -Denable-libolordcompat=true    \
+      -Denable-argyllcms-sensor=false \
+      -Denable-bash-completion=false  \
+      -Denable-docs=false             \
+      -Denable-man=false ..           &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make -k check</command>.
-      At least one test, 
-      <filename>./lib/colord/.libs/lt-cd-test-daemon</filename>, may fail.
+      To test the results, issue: <command>ninja -k 2 test</command>.
+      One test, <filename>colord-self-test-daemon</filename>, will fail.
       The test suite must be run after the package is installed, and the
       system-wide D-Bus Daemon must be running.
     </para>
@@ -184,76 +176,55 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--with-daemon-user=colord</parameter>: This switch is used
+      <parameter>-Dwith-daemon-user=colord</parameter>: This switch is used
       so the colord daemon will run as an unprivileged user instead of the
       <systemitem class="username">root</systemitem> user.
     </para>
 
     <para>
-      <parameter>--enable-vala</parameter>: This switch enables building the
-      <application>Vala</application> bindings. Remove if you don't have
+      <parameter>-Denable-vala=true</parameter>: This switch enables building
+      the <application>Vala</application> bindings. Remove if you don't have
       <xref linkend="vala"/> installed.
     </para>
 
-    <para>
-      <parameter>--enable-daemon</parameter>: This switch enables building
-      the <application>Colord</application> daemon.
+    <para revision="sysv">
+      <parameter>-Denable-systemd=false</parameter>: This switch disables
+      support for <application>systemd</application> login in Colord
+      applications. 
+    </para>
+
+    <para revision="systemd">
+      <parameter>-Denable-systemd=true</parameter>: This switch enables
+      installation of the <application>systemd</application> service.
     </para>
 
     <para>
-      <parameter>--enable-session-helper</parameter>: This switch enables
-      building the session helper for <application>Colord</application>.
-    </para>
-
-    <para>
-      <parameter>--enable-libcolordcompat</parameter>: This switch enables
+      <parameter>-Denable-libcolordcompat=true</parameter>: This switch enables
       building a compatibility library for older packages that use
       <application>Colord</application>.
     </para>
 
     <para>
-      <parameter>--disable-rpath</parameter>: This switch prevents the build
-      process from hard-coding library paths into its executables.
-    </para>
-
-    <para>
-      <parameter>--disable-argyllcms-sensor</parameter>: This switch disables
-      the ArgLLCMS sensor driver. Omit if you have
+      <parameter>-Denable-argyllcms-sensor=false</parameter>: This switch
+      disables the ArgLLCMS sensor driver. Omit if you have
       <ulink url="http://www.argyllcms.com/">ArgyllCMS</ulink> installed
       and wish to use it.
     </para>
 
     <para>
-      <parameter>--disable-bash-completion</parameter>: This switch disables
-      Bash Completion support for Colord applications.
-    </para>
-
-    <para revision="sysv">
-      <parameter>--disable-systemd-login</parameter>: This switch disables
-      support for <application>systemd</application> login in Colord
-      applications. Default is to enable, and to fail if systemd is not found
-      on the system.
-    </para>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gtk-doc-rebuild.xml"/>
-
-    <para>
-      <option>--disable-gusb</option>: Use this switch if you don't have
-      <application>libgusb</application> installed.
+      <parameter>-Denable-bash-completion=false</parameter>: This switch
+      disables Bash Completion support for Colord applications.
     </para>
 
     <para>
-      <option>--disable-udev</option>: Use this switch if you don't have
-      <application>libgudev</application> installed.
+      <parameter>-Denable-docs=false</parameter>: This switch disables building
+      of documentation. Omit if you have <xref linkend="gtk-doc"/> avaialable.
     </para>
 
     <para>
-      <option>--disable-polkit</option>: Use this switch if you don't have
-      <application>polkit</application> installed.
+      <parameter>-Denable-man=false</parameter>: This switch disables building
+      of man pages. Omit if you have <xref linkend="docbook-utils"/>
+      avaialable.
     </para>
 
   </sect2>
