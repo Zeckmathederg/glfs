@@ -6,10 +6,10 @@
 
   <!ENTITY glib2-download-http "&gnome-download-http;/glib/2.54/glib-&glib2-version;.tar.xz">
   <!ENTITY glib2-download-ftp  "&gnome-download-ftp;/glib/2.54/glib-&glib2-version;.tar.xz">
-  <!ENTITY glib2-md5sum        "6e4db71816ccbc8dabf0e58fa7228e76">
+  <!ENTITY glib2-md5sum        "50f83e08f080f99b1e2f0ad2b760fb81">
   <!ENTITY glib2-size          "7.5 MB">
-  <!ENTITY glib2-buildsize     "190 MB (additional 74 MB for tests)">
-  <!ENTITY glib2-time          "1.0 SBU (additional 4.6 SBU for tests)">
+  <!ENTITY glib2-buildsize     "166 MB (add 1 MB for tests)">
+  <!ENTITY glib2-time          "0.2 SBU (using parallelism=4; add 0.5 SBU for tests)">
 ]>
 
 <sect1 id="glib2" xreflabel="GLib-&glib2-version;">
@@ -76,6 +76,13 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
+          Required file:
+          <ulink url=
+"https://raw.githubusercontent.com/GNOME/glib/master/gio/tests/gengiotypefuncs.py"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           Optional patch:
           <ulink url="&patch-root;/glib-&glib2-version;-skip_warnings-1.patch"/>
         </para>
@@ -83,12 +90,7 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">GLib Dependencies</bridgehead>
-<!--
-    <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required">
-      <xref linkend="python2"/> or <xref linkend="python3"/>
-    </para>
--->
+
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="pcre"/> (built with Unicode properties)
@@ -97,11 +99,13 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="dbus"/> (required for some tests),
-      <xref linkend="elfutils"/>,
-      <xref linkend="gtk-doc"/>,
-      <xref linkend="python2"/>,
-      <ulink url="ftp://oss.sgi.com/projects/fam/download/stable/">FAM library</ulink>, and
-      <ulink url="https://www.gnu.org/software/indent/">GNU Indent</ulink>
+      <xref linkend="elfutils"/> and
+        <xref linkend="DocBook"/>,
+        <xref linkend="docbook-xsl"/>, and
+        <xref linkend="libxslt"/> (to build manual pages)
+
+      <!-- <xref linkend="gtk-doc"/> cound not find a reference to this 
+      in the meson build -->
     </para>
 
     <bridgehead renderas="sect4">Additional Runtime Dependencies</bridgehead>
@@ -154,10 +158,13 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr      \
-            --with-pcre=system \
-            --with-python=/usr/bin/python3 &amp;&amp;
-make</userinput></screen>
+<screen><userinput>cp ../gengiotypefuncs.py gio/tests &amp;&amp;
+
+mkdir build-glib &amp;&amp;
+cd    build-glib &amp;&amp;
+
+meson --prefix=/usr -Dwith-pcre=system -Dwith-docs=no .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       The <application>GLib</application> test suite requires
@@ -172,7 +179,16 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+    <note><para>
+      If <xref linkend="libxslt"> is installed, the following command may
+      indicate several (about 33) errors that start with "Error: no ID for
+      constraint linkend:" when installing the man pages.  These are harmless.
+    </para></note>
+
+<screen role="root"><userinput>ninja install &amp;&amp;
+
+mkdir -p /usr/share/doc/glib-&glib2-version; &amp;&amp;
+cp -r ../docs/reference/{NEWS,README,gio,glib,gobject} /usr/share/doc/glib-&glib2-version;</userinput></screen>
 
     <para>
       You should now install <xref linkend="desktop-file-utils"/> and proceed to
@@ -181,7 +197,9 @@ make</userinput></screen>
 
     <para>
       To test the results, after having installed the package, issue:
-      <command>make -k check</command>.
+      <command>ninja test</command>.  When run in a graphical environment, 
+      one test, appinfo, fails if <xref linkend='gnome-terminal'/> is not 
+      installed.
     </para>
 
   </sect2>
@@ -190,18 +208,15 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--with-pcre=system</parameter>: This switch causes the
+      <parameter>-Dwith-pcre=system</parameter>: This switch causes the
       build to use a system-provided version of the
       <application>PCRE</application> library instead of an internal
       version.
     </para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
-
     <para>
-      <option>--with-python=/usr/bin/python3</option>: Add this switch if you
-      want GLib to use Python3 instead of Python2.
+      <parameter>-Dwith-docs=no</parameter>: This switch prevents
+      rebuilding the package documentation.
     </para>
 
   </sect2>
@@ -216,21 +231,27 @@ make</userinput></screen>
 
       <seglistitem>
         <seg>
-          gapplication, gdbus, gdbus-codegen, gio, gio-querymodules,
+          gapplication,           gdbus, gdbus-codegen, 
+          gio,                    gio-querymodules,
           glib-compile-resources, glib-compile-schemas,
-          glib-genmarshal, glib-gettextize, glib-mkenums,
-          gobject-query, gresource, gsettings, gtester,
-          and gtester-report
+          glib-genmarshal,        glib-gettextize, 
+          glib-mkenums,           gobject-query, 
+          gresource,              gsettings, 
+          gtester, and            gtester-report
         </seg>
         <seg>
-          libgio-2.0.so, libglib-2.0.so, libgmodule-2.0.so,
-          libgobject-2.0.so, and libgthread-2.0.so
+          libgio-2.0.so, 
+          libglib-2.0.so, 
+          libgmodule-2.0.so,
+          libgobject-2.0.so, and 
+          libgthread-2.0.so
         </seg>
         <seg>
           /usr/include/gio-unix-2.0,
-          /usr/{include,lib,share}/glib-2.0,
-          /usr/lib/gio, and
-          /usr/share/gtk-doc/html/g{io,lib,object}
+          /usr/include/glib-2.0,
+          /usr/lib/gio, 
+          /usr/lib/glib-2.0, and 
+          /usr/share/glib-2.0
         </seg>
       </seglistitem>
     </segmentedlist>
