@@ -76,9 +76,8 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required file:
-          <ulink url=
-"https://raw.githubusercontent.com/GNOME/glib/master/gio/tests/gengiotypefuncs.py"/>
+          Required patch:
+          <ulink url="&patch-root;/glib-&glib2-version;-meson_fixes-1.patch"/>
         </para>
       </listitem>
       <listitem>
@@ -153,14 +152,45 @@
 
 <screen><userinput>patch -Np1 -i ../glib-&glib2-version;-skip_warnings-1.patch</userinput></screen>
 
+    <warning>
+      <para>
+        If upgrading from a previous version of GLib that was built using
+        autotools, and the <application>libtool</application> archives were
+        installed, you will need to adjust all installed libtool archives to
+        replace references to the libtool archives for this package,
+        <filename>/usr/lib/libg{io,lib,module,object,thread}-2.0.la</filename>,
+        with the appropriate linker library flag (-l),
+        <command>-lg{io,lib,module,object,thread}</command>. 600+ files must
+        be modified on a complete gnome desktop.
+<!--        Issue the following commands as the
+        <systemitem class="username">root</systemitem> user: -->
+      </para>
+
+<!-- Sorry, I broke my system berore I was able to fully test these commands
+     Feel free to test and uncomment if sane (I believe they are, but will
+     not introduce to end-users until it is tested thoroughly). - DJ
+
+<screen>if test -f /usr/lib/libglib-2.0.la; then
+    mkdir /usr/lib/la-file-backup &amp;&amp;
+    for lafile in /usr/lib/libg{io,lib,module,object,thread}-2.0.la; do
+        mv "${lafile}" /usr/lib/la-file-backup/$(basename "${lafile}").bak
+    done &amp;&amp;
+    for file in `find /usr/lib -name "*.la"`; do
+        grep -q '/usr/lib/libg\(io\|module\|lib\|object\|thread\)-2.0.la' \
+             "${file}" &amp;&amp;
+        sed -e 's@/usr/lib/libg\(io\|module\|lib\|object\|thread\)-2.0.la@-lg\1@g' \
+            -i.bak "${file}" &amp;&amp;
+        mv -v "${file}.bak" /usr/lib/la-file-backup
+    done
+fi</screen>-->
+    </warning>
+
     <para>
       Install <application>GLib</application> by running the following
       commands:
     </para>
 
-<screen><userinput>cp ../gengiotypefuncs.py gio/tests &amp;&amp;
-
-sed -i 's/54.0/54.2/' meson.build &amp;&amp;
+<screen><userinput>patch -Np1 -i ../glib-&glib2-version;-meson_fixes-1.patch &amp;&amp;
 
 mkdir build-glib &amp;&amp;
 cd    build-glib &amp;&amp;
