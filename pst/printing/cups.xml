@@ -6,9 +6,9 @@
 
   <!ENTITY cups-download-http "https://github.com/apple/cups/releases/download/v&cups-version;/cups-&cups-version;-source.tar.gz">
   <!ENTITY cups-download-ftp  " ">
-  <!ENTITY cups-md5sum        "d26e5a0a574a69fe1d01079b2931fc49">
-  <!ENTITY cups-size          "9.5 MB">
-  <!ENTITY cups-buildsize     "54 MB">
+  <!ENTITY cups-md5sum        "e91c26d8d97b5a1630a962f530f02192">
+  <!ENTITY cups-size          "9.8 MB">
+  <!ENTITY cups-buildsize     "57 MB">
   <!ENTITY cups-time          "0.4 SBU">
 ]>
 
@@ -82,8 +82,9 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="colord"/>,
-      <xref linkend="dbus"/>, and
-      <xref linkend="libusb"/>
+      <xref linkend="dbus"/>, 
+      <xref linkend="libusb"/>, and
+      <xref linkend="xdg-utils"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -93,10 +94,8 @@
       <xref linkend="linux-pam"/>,
       <xref linkend="mitkrb"/>,
       <xref linkend="openjdk"/>,
-      <xref linkend="php"/>,
-      <xref linkend="python2"/>, and
-      <xref linkend="xdg-utils"/>
-
+      <xref linkend="php"/>, and
+      <xref linkend="python2"/>
     </para>
 
     <bridgehead renderas="sect4">Required (Postinstall)</bridgehead>
@@ -202,28 +201,6 @@
       choice.
     </para>
 
-<!-- Remove for cups-2.2.5 -->
-    <para>
-      Fix a regression in CUPS-2.2.4:
-    </para>
-
-<screen><userinput>sed -i '2062,2069d' cups/dest.c</userinput></screen>
-
-<!--  This does not appear to be needed any more, but leaving it in as 
-      a comment for right now.  - bdubbs 2017-04-07
-
-    <para>
-      Unless you have installed <xref linkend="mitkrb"/>, fix a configuration
-      file:
-    </para>
-
-<screen><userinput>sed -i '/kerberized/,$ d' conf/cupsd.conf.in</userinput></screen>
--->
-
-    <!-- docdir is also document root for cups administration interface, so
-    let's just put it in /usr/share/cups/doc-&cups-version; and create symlink
-    in /usr/share/doc/cups-&cups-version;-->
-
     <para>
       Build <application>Cups</application> by running the following commands:
     </para>
@@ -231,7 +208,6 @@
 
 <screen revision="sysv"><userinput>sed -i 's:444:644:' Makedefs.in                                     &amp;&amp;
 sed -i '/MAN.EXT/s:.gz::' configure config-scripts/cups-manpages.m4 &amp;&amp;
-sed -i '/LIBGCRYPTCONFIG/d' config-scripts/cups-ssl.m4              &amp;&amp;
 
 aclocal  -I config-scripts &amp;&amp;
 autoconf -I config-scripts &amp;&amp;
@@ -246,7 +222,6 @@ make</userinput></screen>
 
 <screen revision="systemd"><userinput>sed -i 's:555:755:g;s:444:644:g' Makedefs.in                         &amp;&amp;
 sed -i '/MAN.EXT/s:.gz::g' configure config-scripts/cups-manpages.m4 &amp;&amp;
-sed -i '/LIBGCRYPTCONFIG/d' config-scripts/cups-ssl.m4               &amp;&amp;
 
 aclocal  -I config-scripts &amp;&amp;
 autoconf -I config-scripts &amp;&amp;
@@ -290,21 +265,6 @@ ln -svnf ../cups/doc-&cups-version; /usr/share/doc/cups-&cups-version;</userinpu
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!-- See comment about this above
-    <para>
-      <command>sed -i '/kerberized/,$ d' conf/cupsd.conf.in</command>: when this
-      version of <application>cups</application> is compiled without kerberos
-      support, it nevertheless adds a policy entry at the end of
-      <filename>/etc/cups/cupsd.conf</filename>. But the daemon will error out
-      because it does not understand that entry, so remove it.
-    </para>
--->
-<!-- Remove for cups-2.2.5 -->
-    <para>
-      <command>sed ... cups/dest.c</command>: Fix a regression in cups-2.2.4,
-      which prevents finding printers when no default printer is defined.
-    </para>
-
     <para>
       <command>sed ... Makedefs.in</command>: Fix files and directories
       permissions.
@@ -329,15 +289,10 @@ ln -svnf ../cups/doc-&cups-version; /usr/share/doc/cups-&cups-version;</userinpu
       almost doubles build time and slightly decreases build disk space.
       Installed disk space is not appreciably modified.
     </para>
-<!--
-    <para>
-      <command>sed ... test/ippserver.c</command>: This sed fixes a bug,
-      which shows up when <application>avahi</application> is not present.
-    </para>-->
 
     <para revision="sysv">
       <parameter>--disable-systemd</parameter>: Systemd is not supported by
-      BLFS.
+      this version of BLFS.
     </para>
 
     <para>
