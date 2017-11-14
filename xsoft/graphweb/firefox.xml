@@ -6,10 +6,10 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "4b6ab0f71a6163f962f83c31d8f8cb73">
-  <!ENTITY firefox-size          "244 MB">
-  <!ENTITY firefox-buildsize     "6.3 GB (139 MB installed) without tests">
-  <!ENTITY firefox-time          "18 SBU (with parallelism=4) without tests">
+  <!ENTITY firefox-md5sum        "da93272486c69105dad663aafe29568c">
+  <!ENTITY firefox-size          "240 MB">
+  <!ENTITY firefox-buildsize     "7.2 GB (148 MB installed) without tests">
+  <!ENTITY firefox-time          "typically 18-22 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -70,6 +70,16 @@
       </listitem>
     </itemizedlist>
 
+    <note>
+      <para>
+        The build times for this version of firefox (using stylo, the new CSS
+        rendering code) seem to vary widely between different machines. On one
+        old Intel i3 the build took 33 SBU. The reason for this is not understood.
+        A build with stylo disabled is typically 1 or 2 SBU quicker and needs
+        0.8GB less disk space.
+      </para>
+    </note>
+
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -123,22 +133,12 @@ tar: Exiting with failure status due to previous errors
       <xref linkend="zip"/>
     </para>
 
-    <note>
-      <para>
-        The firefox developers wish to enable Stylo (replacement code to handle
-        Cascading Style Sheets) by default. At the moment that code cannot build
-        with system versions of nspr and pixman (it fails to find their headers)
-        so the BLFS editors have chosen to disable it. If you choose to enable
-        it, you <emphasis>must</emphasis> add <package>clang</package> from
-        <xref linkend="llvm"/> to the Required dependencies.
-      </para>
-    </note>
-
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
-      <xref linkend="libvpx"/>, and
+      <xref linkend="libvpx"/>,
+      <package>clang</package> from <xref linkend="llvm"/> (for stylo), and
       <xref linkend="sqlite"/>
     </para>
 
@@ -201,7 +201,7 @@ tar: Exiting with failure status due to previous errors
       by creating a <filename>mozconfig</filename> file containing the desired
       configuration options. A default <filename>mozconfig</filename> is
       created below. To see the entire list of available configuration options
-      (and an abbreviated description of each one), issue <command>./configure
+      (and an abbreviated description of some of them), issue <command>./configure
       --help</command>. You may also wish to review the entire file and
       uncomment any other desired options.  Create the file by issuing the
       following command:
@@ -209,8 +209,9 @@ tar: Exiting with failure status due to previous errors
 
 <screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 <literal># If you have a multicore machine, all cores will be used by default.
-# If desired, you can reduce the number of cores used, e.g. to 1, by
-# uncommenting the next line and setting a valid number of CPU cores.
+# You can change the number of non-rust jobs by setting a valid number
+# of cores in this option, but when rust crates are being compiled
+# jobs will be scheduled for all the online CPU cores.
 #mk_add_options MOZ_MAKE_FLAGS="-j1"
 
 # If you have installed dbus-glib, comment out this line:
@@ -242,11 +243,9 @@ ac_add_options --disable-necko-wifi
 ac_add_options --disable-gconf
 
 # Stylo is the new CSS code, including the rust 'style'
-# package. It is enabled by default, but cannot find the
-# headers for system nspr, pixman. If you enable stylo you
-# must comment out system-nspr system-pixman and
-# system-cairo, and you must also have installed clang.
-ac_add_options --disable-stylo
+# package. It is enabled by default but requires clang.
+# Uncomment this if you do not wish to use stylo.
+#ac_add_options --disable-stylo
 
 # Comment out following options if you have not installed
 # recommended dependencies:
@@ -281,8 +280,6 @@ ac_add_options --disable-tests
 ac_add_options --enable-optimize="-O2"
 
 ac_add_options --enable-official-branding
-ac_add_options --enable-safe-browsing
-ac_add_options --enable-url-classifier
 
 # From firefox-40, using system cairo caused firefox to crash
 # frequently when it was doing background rendering in a tab.
@@ -344,7 +341,12 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
       <envar>SHELL=/bin/sh</envar>.
     </para></note>
 
-<screen><userinput>make -f client.mk</userinput></screen>
+<!-- the BINDGEN_CFLAGS are to work around
+ https://bugzilla.mozilla.org/show_bug.cgi?id=1341234
+ which is reported to be fixed in ff58 -->
+<screen><userinput>export BINDGEN_CFLAGS=$(pkg-config --cflags nspr pixman-1) &amp;&amp;
+make -f client.mk                                          &amp;&amp;
+unset BINDGEN_CFLAGS</userinput></screen>
 
     <para>
       The <filename>mozconfig</filename> above disables the tests because
@@ -380,6 +382,12 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>export BINDGEN_CFLAGS=$(pkg-config --cflags nspr pixman-1)</command>:
+      This works around a bug in the style rust package to allow it to find the
+      system headers for <package>nspr</package> and <package>pixman</package>.
+    </para>
 
     <para>
       <command>make -f client.mk ...</command>: Mozilla products are packaged to
