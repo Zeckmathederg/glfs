@@ -6,12 +6,16 @@
 
   <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
   <!ENTITY chromium-download-ftp  " ">
-  <!ENTITY chromium-md5sum        "bf0629c03b3e3b957a9ee99c10b28210">
-  <!ENTITY chromium-size          "531 MB">
-  <!ENTITY chromium-buildsize     "6.1 GB">
-  <!ENTITY chromium-time          "94 SBU (with 4 threads)">
+  <!ENTITY chromium-md5sum        "7c00d61cd737a2d81f2b8ca9efb44d6a">
+  <!ENTITY chromium-size          "493 MB">
+  <!ENTITY chromium-buildsize     "5.2 GB">
+  <!ENTITY chromium-time          "110 SBU (with parallelism=4)">
   <!-- Ninja defaults to parallel build unless supplying -j1, SBU measured on
-  dual core, hyperthreaded CPU (4 threads).                               -->
+  dual core, hyperthreaded CPU (4 threads).
+  
+  I measured with -j4. - Bruce
+  
+  -->
 ]>
 
 <sect1 id="chromium" xreflabel="Chromium-&chromium-version;">
@@ -61,22 +65,21 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
 
-    <bridgehead renderas="sect4">Required patch to fix build issues with
-    <application>gcc-7.1.0</application>:</bridgehead>
+    <bridgehead renderas="sect4">Required patches:</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          <ulink url="&patch-root;/chromium-&chromium-version;-gcc7-1.patch"/>
+          <ulink url="&patch-root;/chromium-&chromium-version;-crc32-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect4">Required patch to fix build issues with
-    <application>GlibC-2.26</application>:</bridgehead>
-    <itemizedlist spacing="compact">
       <listitem>
         <para>
           <ulink url="&patch-root;/chromium-&chromium-version;-glibc-2.26-1.patch"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="&patch-root;/chromium-&chromium-version;-gn_bootstrap-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -90,7 +93,7 @@
         </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: 3282688ec79c41add2ad4390885dc203</para>
+        <para>Download MD5 sum: e71ac1b16686a801771893dd865ad4ef</para>
       </listitem>
       <listitem>
         <para>Download size: 63 MB</para>
@@ -132,11 +135,13 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="cacerts"/> (runtime),
       <xref linkend="ffmpeg"/>,
       <xref linkend="flac"/>,
       <xref linkend="git"/>,
 <!--      <xref linkend="icu"/>, -->
 <!--      <xref linkend="libevent"/>, -->
+      <xref linkend="liberation-fonts"/>
       <xref linkend="libexif"/>,
       <xref linkend="libjpeg"/>,
       <xref linkend="libpng"/>,
@@ -152,11 +157,12 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="GConf"/>,
-      <xref linkend="icu"/> (currently broken),
+      <xref linkend="icu"/>,
       <xref linkend="gnome-keyring"/>,
       <xref linkend="libevent"/> (currently broken),
       <xref linkend="libvpx"/> (currently broken),
       <xref linkend="libxml2"/> (currently broken),
+      <xref linkend="upower"/> (runtime),
       <ulink url="https://devel.freebsoft.org/speechd">speech-dispatcher</ulink>
       (for the screen reader), and
       <ulink url="https://google.github.io/snappy">snappy</ulink>
@@ -170,14 +176,11 @@
   <sect2 role="installation">
     <title>Installation of Chromium</title>
 
-   <para>Apply a patch to fix errors with building with
-   <application>GCC-7.1.0</application>:</para>
+    <para>Apply a patches to fix an issue when building against GlibC-2.26 and other build issues:</para>
 
-<screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-gcc7-1.patch</userinput></screen>
-
-    <para>Apply a patch to fix an issue when building against GlibC-2.26:</para>
-
-<screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-glibc-2.26-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-crc32-1.patch      &amp;&amp;
+patch -Np1 -i ../chromium-&chromium-version;-glibc-2.26-1.patch &amp;&amp;
+patch -Np1 -i ../chromium-&chromium-version;-gn_bootstrap-1.patch</userinput></screen>
 
     <para>Enable the use of the
     <ulink url="http://www.widevine.com/">WideVine</ulink> plugin, needed for
@@ -185,19 +188,20 @@
     available product name ("Pinkie Pie" in this case) with the following
     command:</para>
 
-<screen><userinput>sed 's/WIDEVINE_CDM_AVAILABLE/&amp;\n\n#define WIDEVINE_CDM_VERSION_STRING "Pinkie Pie"/' \
+<screen><userinput>line='#define WIDEVINE_CDM_VERSION_STRING "Pinkie Pie"' 
+sed "/WIDEVINE_CDM_AVAILABLE/a$line" \
     -i third_party/widevine/cdm/stub/widevine_cdm_version.h</userinput></screen>
 
-    <para>Fix to minor build errors in gn:</para>
+    <para>Fix a problem identified upstream:</para>
 
-<screen><userinput>sed -e "/histogram_samples.cc/a\      'base/metrics/histogram_snapshot_manager.cc'," \
-    -e "/heap_profiler_event_writer.cc/s/event_/heap_dump_/" \
-    -i tools/gn/bootstrap/bootstrap.py</userinput></screen>
+<screen><userinput>sed -e '/frame_buttons.h/a#include "nav_button_layout_manager.h"' \
+    -e "/class NavButtonLayoutManager/d" \
+    -i chrome/browser/ui/libgtkui/gtk_ui.h</userinput></screen>
 
-    <para>Fix a build issue with current ATK:</para>
+    <para>Optionally silence 2862 invalid warnings:</para>
 
-<screen><userinput>sed '/atk_state_set_add_state/s@atk_state_set,@state_set,@' \
-    -i content/browser/accessibility/browser_accessibility_auralinux.cc</userinput></screen>
+<screen><userinput>sed '/static_assert/s:^://:' \
+    -i third_party/WebKit/Source/platform/wtf/text/TextCodec.h</userinput></screen>
 
     <para>Remove third-party build files that interfere with system versions:</para>
 
@@ -205,12 +209,12 @@
       <para>
         Chromium uses many external projects, the selections below are not set
         in stone, however they have been tested thoroughly. With Chromium
-        &chromium-version;, system versions of icu, libevent, libvpx, libxml2,
+        &chromium-version;, system versions of libevent, libvpx, libxml2,
         and zlib are known to break the build at this time.
-        <!-- icu: Not at 59 internally -->
+        <!-- icu: Now at 59 internally - seems to work now -->
         <!-- libevent: needs internal headers -->
         <!-- libvpx: breaks build in gfx -->
-        <!-- libxml2: breaks build with ui -->
+        <!-- libxml2: breaks build with ui - seems to work now -->
         <!-- zlib requires libminizip -->
       </para>
     </note>
@@ -218,7 +222,7 @@
 <!-- Again, thanks to Arch, this is much better than listing all the needed
 shipped libs required to use the remove_bundled_files.py script -->
 <screen><userinput>for LIB in ffmpeg flac harfbuzz-ng<!-- icu libevent--> libjpeg \
-           libjpeg_turbo libpng libwebp<!-- libxml libvpx--> libxslt yasm; do
+           libjpeg_turbo libpng libwebp <!-- libxml libvpx-->libxslt yasm; do
     find -type f -path "*third_party/$LIB/*"     \
         \! -path "*third_party/$LIB/chromium/*"  \
         \! -path "*third_party/$LIB/google/*"    \
@@ -228,9 +232,9 @@ shipped libs required to use the remove_bundled_files.py script -->
         -delete
 done &amp;&amp;
 
-python build/linux/unbundle/replace_gn_files.py \
-    --system-libraries ffmpeg flac harfbuzz-ng<!-- icu libevent--> libjpeg \
-                       libpng libwebp<!-- libxml libvpx--> libxslt yasm &amp;&amp;
+python build/linux/unbundle/replace_gn_files.py                   \
+    --system-libraries ffmpeg flac harfbuzz-ng libjpeg icu libxml<!-- libevent--> \
+                       libpng libwebp libxslt yasm freetype <!-- libxml libvpx-->      &amp;&amp;
 python third_party/libaddressinput/chromium/tools/update-strings.py</userinput></screen>
 
     <para><application>Chromium</application> uses an internal tool, <ulink
