@@ -6,9 +6,9 @@
 
   <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
   <!ENTITY chromium-download-ftp  " ">
-  <!ENTITY chromium-md5sum        "7c00d61cd737a2d81f2b8ca9efb44d6a">
+  <!ENTITY chromium-md5sum        "98cf7b6eca255e2422f96094eccc1887">
   <!ENTITY chromium-size          "493 MB">
-  <!ENTITY chromium-buildsize     "5.2 GB">
+  <!ENTITY chromium-buildsize     "5.7 GB">
   <!ENTITY chromium-time          "110 SBU (with parallelism=4)">
   <!-- Ninja defaults to parallel build unless supplying -j1, SBU measured on
   dual core, hyperthreaded CPU (4 threads).
@@ -157,11 +157,11 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="GConf"/>,
-      <xref linkend="icu"/>,
+      <xref linkend="icu"/> (currently broken),
       <xref linkend="gnome-keyring"/>,
-      <xref linkend="libevent"/> (currently broken),
+      <xref linkend="libevent"/>,
       <xref linkend="libvpx"/> (currently broken),
-      <xref linkend="libxml2"/> (currently broken),
+      <xref linkend="libxml2"/>,
       <xref linkend="upower"/> (runtime),
       <ulink url="https://devel.freebsoft.org/speechd">speech-dispatcher</ulink>
       (for the screen reader), and
@@ -209,10 +209,11 @@ sed "/WIDEVINE_CDM_AVAILABLE/a$line" \
       <para>
         Chromium uses many external projects, the selections below are not set
         in stone, however they have been tested thoroughly. With Chromium
-        &chromium-version;, system versions of libevent, libvpx, libxml2,
+        &chromium-version;, system versions of libvpx, libxml2,
         and zlib are known to break the build at this time.
         <!-- icu: Now at 59 internally - seems to work now -->
-        <!-- libevent: needs internal headers -->
+        <!-- icu: Now at 60 - is broken -->
+        <!-- libevent: needs internal headers - seems to work now -->
         <!-- libvpx: breaks build in gfx -->
         <!-- libxml2: breaks build with ui - seems to work now -->
         <!-- zlib requires libminizip -->
@@ -227,14 +228,13 @@ shipped libs required to use the remove_bundled_files.py script -->
         \! -path "*third_party/$LIB/chromium/*"  \
         \! -path "*third_party/$LIB/google/*"    \
         \! -path "*base/third_party/icu/*"       \
-        \! -path "*base/third_party/libevent/*"  \
         \! -regex '.*\.\(gn\|gni\|isolate\|py\)' \
         -delete
 done &amp;&amp;
 
 python build/linux/unbundle/replace_gn_files.py                   \
-    --system-libraries ffmpeg flac harfbuzz-ng libjpeg icu libxml<!-- libevent--> \
-                       libpng libwebp libxslt yasm freetype <!-- libxml libvpx-->      &amp;&amp;
+    --system-libraries ffmpeg flac harfbuzz-ng libjpeg libxml libevent \
+                       libpng libwebp libxslt opus yasm freetype <!-- libxml libvpx-->      &amp;&amp;
 python third_party/libaddressinput/chromium/tools/update-strings.py</userinput></screen>
 
     <para><application>Chromium</application> uses an internal tool, <ulink
@@ -316,17 +316,23 @@ ninja -C out/Release chrome chrome_sandbox chromedriver widevinecdmadapter</user
 
 <screen role="root"><userinput>install -vDm755  out/Release/chrome \
                  /usr/lib/chromium/chromium                   &amp;&amp;
+
 install -vDm4755 out/Release/chrome_sandbox \
                  /usr/lib/chromium/chrome-sandbox             &amp;&amp;
+
 install -vDm755  out/Release/chromedriver \
                  /usr/lib/chromium/chromedriver               &amp;&amp;
-ln -svf /usr/lib/chromium/chromium /usr/bin                   &amp;&amp;
-ln -svf /usr/lib/chromium/chromedriver /usr/bin/              &amp;&amp;
 
-install -vm644  out/Release/icudtl.dat /usr/lib/chromium/     &amp;&amp;
+ln -svf /usr/lib/chromium/chromium     /usr/bin               &amp;&amp;
+ln -svf /usr/lib/chromium/chromedriver /usr/bin               &amp;&amp;
+
 install -vDm644 out/Release/gen/content/content_resources.pak \
                 /usr/lib/chromium/                            &amp;&amp;
-install -vm644  out/Release/{*.pak,*.bin} \
+<!-- This is needed if using internal icu -->
+install -vDm644 out/Release/icudtl.dat \
+                /usr/lib/chromium/icudtl.dat                  &amp;&amp;
+
+install -vDm644  out/Release/{*.pak,*.bin} \
                 /usr/lib/chromium/                            &amp;&amp;
 
 cp -av out/Release/locales /usr/lib/chromium/                 &amp;&amp;
