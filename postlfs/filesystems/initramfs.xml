@@ -93,6 +93,7 @@ printf "Creating $INITRAMFS_FILE... "
 
 binfiles="sh cat cp dd killall ls mkdir mknod mount "
 binfiles="$binfiles umount sed sleep ln rm uname"
+binfiles="$binfiles readlink basename"
 
 # Systemd installs udevadm in /bin. Other udev implementations have it in /sbin
 if [ -x /bin/udevadm ] ; then binfiles="$binfiles udevadm"; fi
@@ -113,10 +114,11 @@ INITIN=init.in
 WDIR=$(mktemp -d /tmp/initrd-work.XXXXXXXXXX)
 
 # Create base directory structure
-mkdir -p $WDIR/{bin,dev,lib/firmware,run,sbin,sys,proc}
+mkdir -p $WDIR/{bin,dev,lib/firmware,run,sbin,sys,proc,usr}
 mkdir -p $WDIR/etc/{modprobe.d,udev/rules.d}
 touch $WDIR/etc/modprobe.d/modprobe.conf
 ln -s lib $WDIR/lib64
+ln -s ../bin $WDIR/usr/bin
 
 # Create necessary device nodes
 mknod -m 640 $WDIR/dev/console c 5 1
@@ -153,8 +155,9 @@ fi
 
 # Install basic binaries
 for f in $binfiles ; do
-  ldd /bin/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
-  copy $f bin
+  if [ -e /bin/$f ]; then d="/bin"; else d="/usr/bin"; fi
+  ldd $d/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
+  copy $d/$f bin
 done
 
 # Add lvm if present
