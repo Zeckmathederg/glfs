@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY gnome-screenshot-download-http
-           "&gnome-download-http;/gnome-screenshot/&gnome-minor-22;/gnome-screenshot-&gnome-screenshot-version;.tar.xz">
+           "&gnome-download-http;/gnome-screenshot/&gnome-minor-26;/gnome-screenshot-&gnome-screenshot-version;.tar.xz">
   <!ENTITY gnome-screenshot-download-ftp
-           "&gnome-download-ftp;/gnome-screenshot/&gnome-minor-22;/gnome-screenshot-&gnome-screenshot-version;.tar.xz">
-  <!ENTITY gnome-screenshot-md5sum        "d68636fae1e7a5798cb7394b2a202542">
-  <!ENTITY gnome-screenshot-size          "256 KB">
-  <!ENTITY gnome-screenshot-buildsize     "7.3 MB">
+           "&gnome-download-ftp;/gnome-screenshot/&gnome-minor-26;/gnome-screenshot-&gnome-screenshot-version;.tar.xz">
+  <!ENTITY gnome-screenshot-md5sum        "8c99c20f009800cc41c6208583d99a1a">
+  <!ENTITY gnome-screenshot-size          "228 KB">
+  <!ENTITY gnome-screenshot-buildsize     "5.9 MB">
   <!ENTITY gnome-screenshot-time          "less than 0.1 SBU">
 ]>
 
@@ -94,8 +94,20 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd build    &amp;&amp;
+
+meson --prefix=/usr .. &amp;&amp;
+
+sed '/^build all/s@src/org.gnome.Screenshot.metainfo.xml@@' \
+    -i build.ninja                          &amp;&amp;
+cp ../src/org.gnome.Screenshot.metainfo.xml.in \
+      src/org.gnome.Screenshot.metainfo.xml &amp;&amp;
+
+ninja</userinput></screen>
+
+<!-- The sed and cp above are to work around a problem with current itstool
+     remove once resolved... -->
 
     <para>
       This package does not come with a test suite.
@@ -105,11 +117,21 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <note><para>In order to best run <application>GNOME Screenshot</application>
     from the command line, the --interactive option needs to be specified.
     </para></note>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Eplanations</title>
+
+    <para>
+      <command>sed...cp...</command>: These commands work around an issue with
+      current <application>itstool</application>.
+    </para>
 
   </sect2>
 
