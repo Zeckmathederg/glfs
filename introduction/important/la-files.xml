@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="la-files" xreflabel="Libtool archive (.la) files">
+  <?dbhtml filename="la-files.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>About Libtool Archive (.la) files</title>
+
+  <!-- section g : 'Others' in longindex.html -->
+  <indexterm zone="la-files">
+    <primary sortas="g-la-files">Library archive (.la) files</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Files with a .la extention</title>
+
+    <para>
+
+      In LFS we installed a package, libtool, that is used by many packages to
+      build on a variety of Unix platforms.  This includes platforms such as
+      AIX, Solaris, IRIX, HP-UX, and Cygwin as well as Linux.  The origins of
+      this tool are quite dated.  It was intended to manage libraries on
+      systems with less advanced capabilities than a modern Linux system.
+    
+    </para>
+
+    <para>
+
+      On a Linux system, libtool specific files are generally unneeded.
+      Normally libraries are specified in the build process during the link
+      phase.  Since a linux system uses the <ulink
+      url="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">
+      Executable and Linkable Format (ELF)</ulink> for executables and
+      libraries, information needed to complete the task is embedded in the
+      files.  At run time the program loader can query the appropriate files
+      and properly load and execute the program.
+
+    </para>
+    
+    <para>
+
+       The problem is that libtool usually creates one or more text files for
+       package libraries called libtool archives.  These small files have a
+       ".la" extention and contain information that is similar to that embedded
+       in the libraries.  When building a package that uses libtool, the
+       process automatically looks for these files.  If a package is updated
+       and no longer uses the .la file, then the build process can break. 
+    
+    </para>
+
+    <para>
+
+       The solution is to remove the .la files.  However there is a catch.
+       Some packages, such as <xref linkend='imagemagick'/>, use a libtool
+       function, lt_dlopen, to load libraries as needed during execution and
+       resolve their dependencies at run time.  In this case, the .la files
+       should remain. 
+    
+    </para>
+
+    <para>
+
+        The script below, removes all unneeded .la files and saves them in a
+        directory, /var/local/la-files by default, not in the normal library
+        path.  It also searches all pkg-config files (.pc) for embedded 
+        references to .la files and fixes them to be conventional library 
+        references needed when an application or library is built.  It 
+        can be run as needed to clean up the directories that may be causing
+        problems.
+
+    </para>
+    
+<screen role="root"><userinput>cat &gt; /usr/sbin/remove-la-files.sh &lt;&lt; "EOF"
+<literal># Begin /etc/bashrc
+# Written for Beyond Linux From Scratch
+# by Bruce Dubbs &lt;bdubbs@&lfs-domainname;&gt;
+
+# Make sure we are running with root privs
+if test "${EUID}" -ne 0; then
+    echo "Error: $(basename ${0}) must be run as the root user! Exiting..."
+    exit 1
+fi
+
+# Make sure PKG_CONFIG_PATH is set if discarded by sudo
+source /etc/profile
+
+OLD_LA_DIR=/var/local/la-files
+
+mkdir -p $OLD_LA_DIR
+
+# Only search directories in /opt, but not symlinks to directories
+OPTDIRS=$(find /opt/* -maxdepth 0 -type d)
+
+# Move any found .la files to a directory out of the way
+find /usr/lib $OPTDIRS -name "*.la" ! -path "/usr/lib/ImageMagick*" \
+  -exec mv -fv {} $OLD_LA_DIR \;
+###############
+
+# Fix any .pc files tha may have .la references
+
+STD_PC_PATH='/usr/lib/pkgconfig 
+             /usr/share/pkgconfig 
+             /usr/local/lib/pkgconfig 
+             /usr/local/share/pkgconfig'
+
+# For each directory tha can have .pc files
+for d in $(echo $PKG_CONFIG_PATH | tr : ' ') $STD_PC_PATH; do
+
+  # For each pc file
+  for pc in $d/*.pc ; do
+    if [ $pc == "$d/*.pc" ]; then continue; fi
+
+    # Check each word in a line with a .la reference
+    for word in $(grep '\.la' $pc); do
+      if $(echo $word | grep -q '.la$' ); then
+        mkdir -p $d/la-backup
+        cp -fv  $pc $d/la-backup
+
+        basename=$(basename $word )
+        libref=$(echo $basename|sed -e 's/^lib/-l/' -e 's/\.la$//')
+           
+        # Fix the .pc file
+        sed -i "s:$word:$libref:" $pc
+      fi
+    done
+  done
+done
+
+EOF
+
+chmod +x /usr/sbin/remove-la-files.sh</literal></userinput></screen>
+
+    <para condition="html" role="usernotes">
+       User Notes: <ulink url="&blfs-wiki;/la-files"/>i
+    </para>
+
+  </sect2>
+
+</sect1>
