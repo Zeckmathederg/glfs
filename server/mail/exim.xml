@@ -12,12 +12,10 @@
   <!ENTITY exim-download-ftp    "ftp://ftp.exim.org/pub/exim/exim4/exim-&exim-version;.tar.xz">
   <!-- if above don't work, please use one of the official mirrors at
        http://www.exim.org/mirmon/ftp_mirrors.html -->
-  <!ENTITY exim-md5sum          "b569ec80c495dffc54545895e680ed61">
+  <!ENTITY exim-md5sum          "02aad0b2692968ba7ea96d6e4253b898">
   <!ENTITY exim-size            "1.6 MB">
   <!ENTITY exim-buildsize       "14 MB">
   <!ENTITY exim-time            "0.2 SBU">
-
-
 
   <!ENTITY exim-daemon-version  "&exim-version;-3">
 ]>
@@ -74,14 +72,6 @@
         shipped with the sources) can be downloaded by following the links
         shown at <ulink url="http://exim.org/docs.html"/>.</para>
       </listitem>
-      <listitem>
-        <para>
-          Recommended patch (prevents triggering CVE-2017-1000369 by using
-          exim commands): <ulink
-            url="&patch-root;/exim-&exim-version;-avoid_mem_clash-1.patch"/>
-        </para>
-      </listitem>
-
     </itemizedlist>
 
     <bridgehead renderas="sect3">Exim Dependencies</bridgehead>
@@ -134,13 +124,13 @@ useradd -d /dev/null -c "Exim Daemon" -g exim -s /bin/false -u 31 exim</userinpu
     <para>Install <application>Exim</application> with the following
     commands:</para>
 
-<screen><userinput>patch -p1 -i ../exim-&exim-version;-avoid_mem_clash-1.patch &amp;&amp;
-sed -e 's,^BIN_DIR.*$,BIN_DIRECTORY=/usr/sbin,'    \
+<screen><userinput>sed -e 's,^BIN_DIR.*$,BIN_DIRECTORY=/usr/sbin,'    \
     -e 's,^CONF.*$,CONFIGURE_FILE=/etc/exim.conf,' \
     -e 's,^EXIM_USER.*$,EXIM_USER=exim,'           \
     -e '/SUPPORT_TLS/s,^#,,'                       \
     -e '/USE_OPENSSL/s,^#,,'                       \
     -e 's,^EXIM_MONITOR,#EXIM_MONITOR,' src/EDITME > Local/Makefile &amp;&amp;
+
 printf "USE_GDBM = yes\nDBMLIB = -lgdbm\n" >> Local/Makefile &amp;&amp;
 make</userinput></screen>
 
@@ -150,11 +140,13 @@ make</userinput></screen>
 
 <!-- dev note: make INSTALL_ARG=-no_chown DESTDIR=<DESTDIR> install -->
 
-<screen role="root"><userinput>make install                                      &amp;&amp;
-install -v -m644 doc/exim.8 /usr/share/man/man8   &amp;&amp;
-install -v -d -m755 /usr/share/doc/exim-&exim-version;    &amp;&amp;
+<screen role="root"><userinput>make install                                    &amp;&amp;
+install -v -m644 doc/exim.8 /usr/share/man/man8 &amp;&amp;
+
+install -v -d -m755    /usr/share/doc/exim-&exim-version; &amp;&amp;
 install -v -m644 doc/* /usr/share/doc/exim-&exim-version; &amp;&amp;
-ln -sfv exim /usr/sbin/sendmail                   &amp;&amp;
+
+ln -sfv exim /usr/sbin/sendmail                 &amp;&amp;
 install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
 
   </sect2>
