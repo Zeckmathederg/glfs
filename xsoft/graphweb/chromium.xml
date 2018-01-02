@@ -6,10 +6,10 @@
 
   <!ENTITY chromium-download-http "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-&chromium-version;.tar.xz">
   <!ENTITY chromium-download-ftp  " ">
-  <!ENTITY chromium-md5sum        "98cf7b6eca255e2422f96094eccc1887">
-  <!ENTITY chromium-size          "493 MB">
-  <!ENTITY chromium-buildsize     "5.7 GB">
-  <!ENTITY chromium-time          "110 SBU (with parallelism=4)">
+  <!ENTITY chromium-md5sum        "71a8f5f1591e5b924e10c1cc4041dc08">
+  <!ENTITY chromium-size          "510 MB">
+  <!ENTITY chromium-buildsize     "5.8 GB">
+  <!ENTITY chromium-time          "114 SBU (with parallelism=4)">
   <!-- Ninja defaults to parallel build unless supplying -j1, SBU measured on
   dual core, hyperthreaded CPU (4 threads).
   
@@ -65,7 +65,7 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
 
-    <bridgehead renderas="sect4">Required patches:</bridgehead>
+<!--    <bridgehead renderas="sect4">Required patches:</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
@@ -82,7 +82,7 @@
           <ulink url="&patch-root;/chromium-&chromium-version;-gn_bootstrap-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist> -->
 
     <bridgehead renderas="sect4">Optional Chrome binaries to extract the
     <application>WideVine</application> plug-in (Netflix) support:</bridgehead>
@@ -93,10 +93,10 @@
         </para>
       </listitem>
       <listitem>
-        <para>Download MD5 sum: a6847c8b88f725df2514365ae3c248cc</para>
+        <para>Download MD5 sum: cc36f3a115e3e213a2bedb8b8fbe08ba</para>
       </listitem>
       <listitem>
-        <para>Download size: 63 MB</para>
+        <para>Download size: 46.8 MB</para>
       </listitem>
     </itemizedlist>
     <itemizedlist spacing="compact">
@@ -109,7 +109,7 @@
         <para>Download MD5 sum: 895e877b9bfe5da05a061369c2078626</para>
       </listitem>
       <listitem>
-        <para>Download size: 45 MB</para>
+        <para>Download size: 45.3 MB</para>
       </listitem>
     </itemizedlist>
 
@@ -175,13 +175,13 @@
 
   <sect2 role="installation">
     <title>Installation of Chromium</title>
-
+<!--
     <para>Apply a patches to fix an issue when building against GlibC-2.26 and other build issues:</para>
 
 <screen><userinput>patch -Np1 -i ../chromium-&chromium-version;-crc32-1.patch      &amp;&amp;
 patch -Np1 -i ../chromium-&chromium-version;-glibc-2.26-1.patch &amp;&amp;
 patch -Np1 -i ../chromium-&chromium-version;-gn_bootstrap-1.patch</userinput></screen>
-
+-->
     <para>Enable the use of the
     <ulink url="http://www.widevine.com/">WideVine</ulink> plugin, needed for
     Netflix support (see the WideVine section below). Define an
@@ -194,9 +194,7 @@ sed "/WIDEVINE_CDM_AVAILABLE/a$line" \
 
     <para>Fix a problem identified upstream:</para>
 
-<screen><userinput>sed -e '/frame_buttons.h/a#include "nav_button_layout_manager.h"' \
-    -e "/class NavButtonLayoutManager/d" \
-    -i chrome/browser/ui/libgtkui/gtk_ui.h</userinput></screen>
+<screen><userinput>sed '/port\.h"/a#include &lt;math.h&gt;' -i.bak third_party/webrtc/p2p/base/port.cc</userinput></screen>
 
     <para>Optionally silence 2862 invalid warnings:</para>
 
@@ -222,19 +220,21 @@ sed "/WIDEVINE_CDM_AVAILABLE/a$line" \
 
 <!-- Again, thanks to Arch, this is much better than listing all the needed
 shipped libs required to use the remove_bundled_files.py script -->
-<screen><userinput>for LIB in ffmpeg flac harfbuzz-ng<!-- icu libevent--> libjpeg \
+<screen><userinput>for LIB in ffmpeg flac freetype harfbuzz-ng<!-- icu libevent--> libjpeg \
            libjpeg_turbo libpng libwebp <!-- libxml libvpx-->libxslt yasm; do
-    find -type f -path "*third_party/$LIB/*"     \
-        \! -path "*third_party/$LIB/chromium/*"  \
-        \! -path "*third_party/$LIB/google/*"    \
-        \! -path "*base/third_party/icu/*"       \
-        \! -regex '.*\.\(gn\|gni\|isolate\|py\)' \
+    find -type f -path "*third_party/$LIB/*"      \
+        \! -path "*third_party/$LIB/chromium/*"   \
+        \! -path "*third_party/$LIB/google/*"     \
+        \! -path "*base/third_party/icu/*"        \
+        \! -path './third_party/yasm/run_yasm.py' \
+        \! -regex '.*\.\(gn\|gni\|isolate\|py\)'  \
+        \! -path './third_party/freetype/src/src/psnames/pstables.h' \
         -delete
 done &amp;&amp;
 
 python build/linux/unbundle/replace_gn_files.py                   \
-    --system-libraries ffmpeg flac harfbuzz-ng libjpeg libxml libevent \
-                       libpng libwebp libxslt opus yasm freetype <!-- libxml libvpx-->      &amp;&amp;
+    --system-libraries ffmpeg flac <!-- harfbuzz-ng --> libjpeg libxml libevent \
+                       libpng libwebp libxslt opus yasm <!-- freetype libxml libvpx-->      &amp;&amp;
 python third_party/libaddressinput/chromium/tools/update-strings.py</userinput></screen>
 
     <para><application>Chromium</application> uses an internal tool, <ulink
@@ -285,7 +285,9 @@ python third_party/libaddressinput/chromium/tools/update-strings.py</userinput><
 'use_gtk3=true'
 'use_kerberos=true'
 'use_pulseaudio=true'
-'use_sysroot=false')</userinput></screen>
+'use_sysroot=false'
+'use_system_freetype=true'
+'use_system_harfbuzz=true')</userinput></screen>
 
     <para>Build <application>gn</application> and use it to prepare the
     <application>Ninja</application> build files:</para>
@@ -336,10 +338,7 @@ install -vDm644  out/Release/{*.pak,*.bin} \
                 /usr/lib/chromium/                            &amp;&amp;
 
 cp -av out/Release/locales /usr/lib/chromium/                 &amp;&amp;
-chown -Rv root:root /usr/lib/chromium/locales                 &amp;&amp;
-
-install -vDm644 out/Release/chrome.1 \
-                /usr/share/man/man1/chromium.1</userinput></screen>
+chown -Rv root:root /usr/lib/chromium/locales</userinput></screen>
 
     <para>While still the <systemitem class="username">root</systemitem> user,
     install icons and the .desktop file:</para>
