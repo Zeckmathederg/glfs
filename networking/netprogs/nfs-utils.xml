@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY nfs-utils-download-http "&sourceforge-dl;/nfs/nfs-utils-&nfs-utils-version;.tar.bz2">
+  <!ENTITY nfs-utils-download-http "&sourceforge-dl;/nfs/nfs-utils-&nfs-utils-version;.tar.xz">
   <!ENTITY nfs-utils-download-ftp  " ">
-  <!ENTITY nfs-utils-md5sum        "6e7e0dc10664ac40bd84df1a881bad85">
-  <!ENTITY nfs-utils-size          "836 KB">
-  <!ENTITY nfs-utils-buildsize     "17 MB">
+  <!ENTITY nfs-utils-md5sum        "fda23f37a703d15e5697dd9a8084b9c9">
+  <!ENTITY nfs-utils-size          "623 KB">
+  <!ENTITY nfs-utils-buildsize     "18 MB">
   <!ENTITY nfs-utils-time          "0.2 SBU">
 ]>
 
@@ -124,6 +124,12 @@
         if that option is enabled in the <emphasis>client's</emphasis> kernel,
         for example in a distro trying to mount from a BLFS v3 server.
       </para>
+      <para>
+        Even if neither end of the connection supports nfs v4, adding
+        <literal>nfsver=3</literal> is still beneficial because it prevents an
+        error message "NFS: bad mount option value specified: minorversion=1"
+        being logged on every mount.
+      </para>
     </note>
 
     <indexterm zone="nfs-utils nfs-utils-kernel">
@@ -173,20 +179,26 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
             --disable-gss &amp;&amp;
 make</userinput></screen>
 
+    <!-- Test breakage: see
+    http://lists.linuxfromscratch.org/pipermail/blfs-book/2017-December/071861.html -->
+    <para>This package does not come with a working test suite."</para>
+
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
 <!-- dev note: make statduser=$(whoami) DESTDIR=<DESTDIR> install -->
 
-<screen role='root'><userinput>make install                   &amp;&amp;
-chmod u+w,go+r /sbin/mount.nfs &amp;&amp;
+<screen role='root'><userinput>make install                      &amp;&amp;
+mv -v /sbin/start-statd /usr/sbin &amp;&amp;
+chmod u+w,go+r /sbin/mount.nfs    &amp;&amp;
 chown nobody.nogroup /var/lib/nfs</userinput></screen>
 
+    <!-- commented, in case the tests get fixed
     <para>The tests for this package require that the package be installed and
     configured as specified below.  In addition, the the daemon from <xref
     linkend="rpcbind"/> needs to be running and the tests need to be run as the
     <systemitem class="username">root</systemitem> user.</para>
 
-    <para>To test the results, issue, as root: <command>make check</command>.</para>
+    <para>To test the results, issue, as root: <command>make check</command>.</para>-->
 
   </sect2>
 
@@ -315,7 +327,8 @@ EOF</userinput></screen>
 
       <para>The options which can be used are specified in <command>man 5 nfs</command>.
       If both the client and server are running recent versions of linux, most of the
-      options will be negotiated. You can specify either <literal>rw</literal> or
+      options will be negotiated (but see the Note above on nfsver=3). You can specify
+      either <literal>rw</literal> or
       <literal>ro</literal>, <literal>_netdev</literal> if the filesystem is to be
       automatically mounted at boot, or <literal>noauto</literal> (and perhaps
       <literal>user</literal>) for other filesystems.</para>
