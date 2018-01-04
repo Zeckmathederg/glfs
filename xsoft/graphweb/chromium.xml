@@ -334,16 +334,26 @@ install -vDm644 out/Release/gen/content/content_resources.pak \
 install -vDm644 out/Release/icudtl.dat \
                 /usr/lib/chromium/icudtl.dat                  &amp;&amp;
 
-install -vDm644  out/Release/{*.pak,*.bin} \
+install -vDm644 out/Release/{*.pak,*.bin} \
                 /usr/lib/chromium/                            &amp;&amp;
 
+sed -i \
+    -e "s/@@MENUNAME@@/Chromium/g" \
+    -e "s/@@PACKAGE@@/chromium/g" \
+    -e "s/@@USR_BIN_SYMLINK_NAME@@/chromium/g" \
+    chrome/installer/linux/common/desktop.template \
+    chrome/app/resources/manpage.1.in                         &amp;&amp;
+
+install -vDm644 chrome/installer/linux/common/desktop.template \
+                /usr/share/applications/chromium.desktop      &amp;&amp;
+
+install -vDm644 chrome/app/resources/manpage.1.in \
+                /usr/share/man/man1/chromium.1                &amp;&amp;
+
 cp -av out/Release/locales /usr/lib/chromium/                 &amp;&amp;
-chown -Rv root:root /usr/lib/chromium/locales</userinput></screen>
+chown -Rv root:root /usr/lib/chromium/locales                 &amp;&amp;
 
-    <para>While still the <systemitem class="username">root</systemitem> user,
-    install icons and the .desktop file:</para>
-
-<screen role="root"><userinput>for size in 16 32; do
+for size in 16 32; do
     install -vDm644 \
         "chrome/app/theme/default_100_percent/chromium/product_logo_$size.png" \
         "/usr/share/icons/hicolor/${size}x${size}/apps/chromium.png"
@@ -352,21 +362,7 @@ done &amp;&amp;
 for size in 22 24 48 64 128 256; do
     install -vDm644 "chrome/app/theme/chromium/product_logo_$size.png" \
         "/usr/share/icons/hicolor/${size}x${size}/apps/chromium.png"
-done &amp;&amp;
-
-cat &gt; /usr/share/applications/chromium.desktop &lt;&lt; "EOF"
-[Desktop Entry]
-Encoding=UTF-8
-Name=Chromium Web Browser
-Comment=Access the Internet
-GenericName=Web Browser
-Exec=chromium %u
-Terminal=false
-Type=Application
-Icon=chromium
-Categories=GTK;Network;WebBrowser;
-MimeType=application/xhtml+xml;text/xml;application/xhtml+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
-EOF</userinput></screen>
+done</userinput></screen>
 
     <note>
       <para>If upgrading from a previous build of chromium using gtk+-2.x, you
