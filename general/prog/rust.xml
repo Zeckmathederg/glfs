@@ -6,10 +6,10 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "75e779670ac79edf023497a9c37eb35d">
-  <!ENTITY rust-size          "48 MB">
-  <!ENTITY rust-buildsize     "4.2 GB (362 MB installed), (add 0.6GB for tests) plus 273MB for ~/.cargo files">
-  <!ENTITY rust-time          "33 SBU (add 14 SBU for tests, both with 4 processors)">
+  <!ENTITY rust-md5sum        "7272ddba14f512e6d2612ef60460bed8">
+  <!ENTITY rust-size          "53 MB">
+  <!ENTITY rust-buildsize     "4.1 GB (437 MB installed), (add 1.2GB for tests) including 226MB of ~/.cargo files for both the builder and root (from the install)">
+  <!ENTITY rust-time          "48 SBU (add 12 SBU for tests, both with 4 processors)">	
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -53,6 +53,24 @@
       guarantees of a stable ABI.
     </para>
 
+    <note>
+      <para>
+        Repeated builds of this package on the same machine show a wide range
+        of build times. Some of this might be due to variations in downloading
+        the required cargo files if they are not already present, but this does
+        not seem to adequately explain the variations. Also, both the builder
+        and the user running the install will need to download the cargo crates
+        if they are not already present in <filename>~/.cargo</filename>.
+      </para>
+      <para>
+        If you use a DESTDIR method to install, you will only need to download
+        the crates once, for the build, saving about one-third of the build and
+        install time (but using extra space for the install). Similarly if you
+        were to build as root, or if your user is allowed to run <command>sudo
+        ./x.py install</command> - but those methods are dangerous.
+      </para>
+    </note>
+
     &lfs81_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -95,6 +113,8 @@
     <para role="required">
       <xref linkend="curl"/>,
       <xref linkend="cmake"/>,
+<!-- if changing this to use python3, also add python2 as a required
+ dependency for firefox, because at the moment it picks that up from here -->
       <xref linkend="python2"/>
     </para>
 
@@ -126,7 +146,7 @@
     </para>
 
 <screen><userinput>cat &lt;&lt;EOF &gt; config.toml
-# see src/bootstrap/config.toml.example for more possible options
+# see config.toml.example for more possible options
 [llvm]
 targets = "X86"
 
@@ -136,8 +156,11 @@ extended = true
 
 [install]
 prefix = "/usr"
-docdir = "share/doc/rustc-1.19.0"
+docdir = "share/doc/rustc-&rust-version;"
+
+[rust]
 channel = "stable"
+rpath = false
 EOF</userinput></screen>
 
     <para>
@@ -155,7 +178,8 @@ EOF</userinput></screen>
       compile-fail/issue-37131.rs and run-make/target-without-atomics both try to
       compile for the thumbv6m-none-eabi target, but the BLFS build does not cater for
       that, and all 105 tests in debuginfo-gdb will fail if
-      <application>gdb</application> has not been installed.
+      <application>gdb</application> has not been installed. Several other tests in
+      run-make can also fail.
     </para>
 
     <para>
@@ -166,7 +190,7 @@ EOF</userinput></screen>
 <screen><command>grep 'running .* tests' ../rustc-testlog | awk '{ sum += $2 } END { print sum }'</command></screen>
 
     <para>
-      That should report 14029 tests. Similarly, the total tests which failed can
+      That should report 14854 tests. Similarly, the total tests which failed can
       be found by running:
     </para>
 
@@ -204,6 +228,14 @@ EOF</userinput></screen>
     </para>
 
     <para>
+      <command>rpath = false</command>: by default, <command>rust</command> can
+      be run from where it was built, without being installed. That adds DT_RPATH
+      entries to all of the ELF files, which produces very messy output from
+      <command>ldd</command>, showing the libraries in the place they were built,
+      even if they have been deleted from there after the install.
+    </para>
+
+    <para>
       <command>--verbose</command>: this switch can sometimes provide more
       information about a test which fails.
     </para>
@@ -211,6 +243,17 @@ EOF</userinput></screen>
     <para>
       <command>--no-fail-fast</command>: this switch ensures that the testsuite
       will not stop at the first error.
+    </para>
+
+    <para>
+      <option>PYTHON=/usr/bin/python3 ... tee buildlog</option>: Because rust
+      can use <application>Python3</application> which was installed in LFS,
+      this command tells it to use that instead of the deprecated
+      <application>Python2</application>. For the moment this should be regarded
+      as experimental and problems may be encountered. Because
+      <application>rust</application> will use all CPUs, if an error happened the
+      message may have scrolled out of the terminal's buffer. Logging makes it
+      possible to find out what was reported.
     </para>
 
   </sect2>
@@ -225,7 +268,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          cargo, rust-gdb, rust-lldb, rustc, rustdoc.
+          cargo, rls, rust-gdb, rust-lldb, rustc, rustdoc.
         </seg>
         <seg>
           Many lib*&lt;16-byte-hash&gt;.so libraries.
@@ -252,6 +295,20 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="rust cargo">
             <primary sortas="b-cargo">cargo</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rls">
+        <term><command>rls</command></term>
+        <listitem>
+          <para>
+            is the Rust Language Server. This can run in the background to
+            provide IDEs, editors, and other tools with information about Rust
+            programs.
+          </para>
+          <indexterm zone="rust rls">
+            <primary sortas="b-rls">rls</primary>
           </indexterm>
         </listitem>
       </varlistentry>

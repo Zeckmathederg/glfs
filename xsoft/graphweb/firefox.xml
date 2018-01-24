@@ -6,9 +6,9 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "18586d62f24671fa15f4a5dd7b19c09c">
-  <!ENTITY firefox-size          "239 MB">
-  <!ENTITY firefox-buildsize     "7.2 GB (148 MB installed) without tests">
+  <!ENTITY firefox-md5sum        "0d5b70d2cf074ed6716b13c3e8d43a18">
+  <!ENTITY firefox-size          "236 MB">
+  <!ENTITY firefox-buildsize     "7.4 GB (152 MB installed) without tests">
   <!ENTITY firefox-time          "20 SBU (with parallelism=4) without tests">
 ]>
 
@@ -74,9 +74,15 @@
       <para>
         The build times for this version of firefox (using stylo, the new CSS
         rendering code) seem to vary widely between different machines. On one
-        old Intel i3 the build took 33 SBU. The reason for this is not understood.
-        A build with stylo disabled is typically 1 or 2 SBU quicker and needs
-        0.8GB less disk space.
+        old Intel i3 the build took considerably longer. The reason for this is
+        not understood. A build with stylo disabled is typically 1 or 2 SBU
+        quicker and needs 0.8GB less disk space.
+      </para>
+
+      <para>
+        Although upstream prefer to use <application>PulseAudio</application>,
+        for the moment <application>Alsa</application> can still be used. Both
+        may need runtime configuration to get sound working.
       </para>
     </note>
 
@@ -122,11 +128,13 @@ tar: Exiting with failure status due to previous errors
       <xref linkend="autoconf213"/>,
       both <xref linkend="gtk3"/> and
       <xref linkend="gtk2"/>, 
+      <xref linkend="libnotify"/>,
       <xref linkend="nss"/>,
       <xref linkend="pulseaudio"/>
       (or
       <xref linkend="alsa-lib"/> if you edit the mozconfig; 
-        now deprecated by mozilla), 
+        now deprecated by mozilla), in either case please read the
+        Configuration Information,
       <xref linkend="rust"/>,
       <xref linkend="unzip"/>,
       <xref linkend="yasm"/>, and
@@ -344,9 +352,9 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
 <!-- the BINDGEN_CFLAGS are to work around
  https://bugzilla.mozilla.org/show_bug.cgi?id=1341234
  which is reported to be fixed in ff58 -->
-<screen><userinput>export BINDGEN_CFLAGS=$(pkg-config --cflags nspr pixman-1) &amp;&amp;
-make -f client.mk                                          &amp;&amp;
-unset BINDGEN_CFLAGS</userinput></screen>
+<screen><userinput>
+./mach build
+</userinput></screen>
 
     <para>
       The <filename>mozconfig</filename> above disables the tests because
@@ -363,11 +371,10 @@ unset BINDGEN_CFLAGS</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make -f client.mk install INSTALL_SDK= &amp;&amp;
-chown -R 0:0 /usr/lib/firefox-&firefox-version;   &amp;&amp;
+<screen role="root"><userinput>./mach install                                                  &amp;&amp;
 
-mkdir -pv    /usr/lib/mozilla/plugins  &amp;&amp;
-ln    -sfv   ../../mozilla/plugins /usr/lib/firefox-&firefox-version;/browser</userinput></screen>
+mkdir -pv  /usr/lib/mozilla/plugins                             &amp;&amp;
+ln    -sfv ../../mozilla/plugins /usr/lib/firefox-&firefox-version;/browser</userinput></screen>
 <!--
     <para>
       Set environment variables back to their values:
@@ -384,17 +391,15 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>export BINDGEN_CFLAGS=$(pkg-config --cflags nspr pixman-1)</command>:
-      This works around a bug in the style rust package to allow it to find the
-      system headers for <package>nspr</package> and <package>pixman</package>.
+      <command>./mach build</command>: <application>Firefox</application>
+      now uses this <application>python2</application> script to run the
+      build and install.
     </para>
 
     <para>
-      <command>make -f client.mk ...</command>: Mozilla products are packaged to
-      allow the use of a configuration file which can be used to pass the
-      configuration settings to the <command>configure</command> command.
-      <command>make</command> uses the <filename>client.mk</filename> file to
-      get initial configuration and setup parameters.
+      <option>./mach build --verbose</option>: Use this alternative if you
+      need details of which files are being compiled, together with any C or
+      C++ flags being used.
     </para>
 
     <para>
@@ -448,6 +453,67 @@ EOF
 ln -sfv /usr/lib/firefox-&firefox-version;/browser/icons/mozicon128.png \
         /usr/share/pixmaps/firefox.png</userinput></screen>
 
+    <sect3><title>Configuration Information</title>
+
+      <para>
+        The application settings for firefox are accessible by keying
+        <command>about:config</command> in the address bar.
+      </para>
+
+      <para>
+        With this version of <application>firefox</application>, getting
+        working sound can be a problem.  Although upstream prefers pulseaudio,
+        on balance using <application>Alsa</application> may be easier.
+      </para>
+
+      <para>
+        If you enabled <application>Alsa</application> for sound, you may need
+        to alter one variable to get working sound. If you run
+        <command>firefox</command> from a term and try to play something with
+        sound you might encounter error messages like:
+      </para>
+
+      <para>
+         <literal>Sandbox: seccomp sandbox violation: pid 3941, tid 4030,
+         syscall 16, args 48 2147767296 139909894784796 0 0 0.</literal>
+      </para>
+
+      <para>
+        That was on x86_64, on i686 the syscall number is 54. To allow this
+        syscall, in <command>about:config</command> change
+        <command>security.sandbox.content.syscall_whitelist</command> to 16
+        (or 54 if using i686).
+      </para>
+
+      <para>
+        If you use <command>pulseaudio</command> in a Desktop Environment, it
+        might already be started by that DE.  But if it is not, although
+        firefox-57 managed to start it, firefox-58 does not.  If you run
+        <command>firefox</command> from a term, trying to play sound will
+        encounter error messages warning <literal>Can't get cubeb
+        context!</literal>
+      </para>
+
+    <para>
+      The fix for this is to close firefox, start pulseaudio to check it
+      does start (if not, read the information on Configuring in <xref
+      linkend="pulseaudio"/>) and restart firefox to check it is working.
+      If it now works, add the following to your <filename>~/.xinitrc</filename>:
+<phrase revision="sysv">
+<literal>pulseaudio --verbose --log-target=syslog&amp;</literal></phrase>
+<phrase revision="systemd">
+<literal>pulseaudio --verbose --log-target=journald&amp;</literal></phrase>
+        (unfortunately, on some systems this does not work).
+      </para>
+
+      <para>
+        You may wish to use multiple profiles within firefox. To do that, invoke
+        firefox as <command>firefox --ProfileManager</command>. You can also
+        check which profile is currently in use from
+        <command>about:profiles</command>.
+      </para>
+
+    </sect3>
   </sect2>
 
   <sect2 role="content">
