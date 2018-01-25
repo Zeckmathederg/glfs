@@ -6,10 +6,10 @@
 
   <!ENTITY curl-download-http "https://curl.haxx.se/download/curl-&curl-version;.tar.xz">
   <!ENTITY curl-download-ftp  " ">
-  <!ENTITY curl-md5sum        "93157c8f6593691bc00ae238a4c53863">
+  <!ENTITY curl-md5sum        "fcf429f28adddf9295ed0c42e79cb097">
   <!ENTITY curl-size          "2.2 MB">
-  <!ENTITY curl-buildsize     "36 MB (add 11 MB for tests)">
-  <!ENTITY curl-time          "0.3 SBU (add 13+ SBU for tests)">
+  <!ENTITY curl-buildsize     "43 MB (add 11 MB for tests without valgrind)">
+  <!ENTITY curl-time          "0.4 SBU (add 11+ SBU for tests)">
 ]>
 
 <sect1 id="curl" xreflabel="cURL-&curl-version;">
@@ -111,10 +111,13 @@
       <ulink url="http://spnego.sourceforge.net/"> SPNEGO</ulink>
     </para>
 
-    <bridgehead renderas="sect4">Optional for Running the Test Suite</bridgehead>
+    <bridgehead renderas="sect4">Optional if Running the Test Suite</bridgehead>
     <para role="optional">
+      <!-- stunnel is still listed in the docs as required, but 7.58.0
+       tests completed happily without it, although the test for unit1323
+       reported that the tool set in the test case does not exist - ken -->
       <xref linkend="stunnel"/> (for the HTTPS and FTPS tests) and
-      <xref linkend="valgrind"/>
+      <xref linkend="valgrind"/> (this will slow the tests down)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -159,33 +162,42 @@ make</userinput></screen>
 -->
     <note>
       <para>
-      To run the tests for this package, valgrind requires a version of the
-      /lib/ld-2.23.so (or later) library with debugging symbols present.
+      If running the tests for this package with valgrind, it will require a
+      version of /lib/ld-2.[MINORVERSION].so library
+      with debugging symbols present.
       </para>
 
-      <para>Current versions of LFS do not strip /lib/ld-2.23.so but
+      <para>Current versions of LFS do not strip /lib/ld-[MINORVERSION].so but
       previous versions of LFS stripped these debugging symbols at the end of
       Chapter 6. To get this library on older systems, glibc must be rebuilt 
-      with the current
+      with the currently running
       glibc version using the same compiler that was used to build LFS. The
-      ld-2.23.so can then be renamed to ld-2.23.so.dbg and copied to /lib. Then
-      a symlink needs to be changed: 
+      ld-[MINORVERSION].so can then be renamed to ld-2.[MINORVERSION].so.dbg
+      and copied to /lib. Then a symlink needs to be changed: 
       </para>
 
-      <screen role="nodump"><userinput>ln -sfv ld-2.23.so.dbg /lib/ld-linux-x86-64.so.2</userinput></screen>
+      <screen role="nodump"><userinput>ln -sfv ld-2.[MINORVERSION].so.dbg /lib/ld-linux-x86-64.so.2</userinput></screen>
 
       <para>
       Adjust the above instruction as needed for a 32-bit system
-      or for a different version of glibc.
+      and to match your installed version of glibc.
       </para>
     </note>
 
     <para>
+      To run the test suite, issue: <command>make test</command>. <!--
+         if stunnel and valgrind are not installed, and also most options
+         (I had rtmpdump), the tests complete without problems.
+Warning: smb server unexpectedly alive
+Warning: dict server unexpectedly alive
+TESTDONE: 938 tests out of 938 reported OK: 100%
+TESTDONE: 1175 tests were considered during 355 seconds.
+         and no. I don't have smb - so commenting the rest of this:
       To run the test suite, issue: <command>make test</command>. Many tests 
       may fail that depend on optional dependencies that may not be installed
       or upstream servers that may not be available, especially for tests 
       numbered 700 and above.
-      Test time may be significantly increase due to hanging tests that fail.
+      Test time may be significantly increase due to hanging tests that fail. -->
     </para>
 
     <para>
