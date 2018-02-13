@@ -87,6 +87,16 @@
   <sect2 role="installation">
     <title>Installation of PostgreSQL</title>
 
+    <para>
+      For enhanced security, it is better to have a dedicated group and user
+      for running the PostgreSQL server. First, issue as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>groupadd -g 41 postgres &amp;&amp;
+useradd -c "PostgreSQL Server" -g postgres -d /srv/pgsql/data \
+        -u 41 postgres</userinput></screen>
+
     <para>Install <application>PostgreSQL</application> with the
     following commands: </para>
 
@@ -108,9 +118,9 @@ make</userinput></screen>
     temporary server and this is prevented as the root user. For the same reason,
     you need to stop all PostgreSQL servers if any are running. If a previous
     version of PostgreSQL is installed, it may be necessary to use
-    <emphasis>--disable-rpath</emphasis> with <emphasis>configure</emphasis> to
-    avoid failures, but <command>installing the binaries created using this
-    switch is not recommended</command>. To test the results, issue:
+    <command>--disable-rpath</command> with <command>configure</command> to
+    avoid failures, but <emphasis>installing the binaries created using this
+    switch is not recommended</emphasis>. To test the results, issue:
     <command>make check</command>.</para>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
@@ -142,42 +152,12 @@ make install-docs</userinput></screen>
 
 <screen role="root"><userinput>install -v -dm700 /srv/pgsql/data &amp;&amp;
 install -v -dm755 /run/postgresql &amp;&amp;
-
-groupadd -g 41 postgres &amp;&amp;
-useradd -c "PostgreSQL Server" -g postgres -d /srv/pgsql/data \
-        -u 41 postgres &amp;&amp;
-
 chown -Rv postgres:postgres /srv/pgsql /run/postgresql</userinput></screen>
 
     <para>Now, initialize the database as the <systemitem
     class="username">root</systemitem> user:</para>
 
 <screen role="root"><userinput>su - postgres -c '/usr/bin/initdb -D /srv/pgsql/data'</userinput></screen>
-
-    <para>Again as the <systemitem class="username">root</systemitem> user,
-    start the database server with the following command:</para>
-
-<screen role="root"><userinput>su - postgres -c '/usr/bin/postgres -D /srv/pgsql/data > \
-                  /srv/pgsql/data/logfile 2&gt;&amp;1 &amp;'</userinput></screen>
-
-    <para>Still as user <systemitem class="username">root</systemitem>, create
-    a database and verify the installation:</para>
-
-<screen role="root"><userinput>su - postgres -c '/usr/bin/createdb test' &amp;&amp;
-echo "create table t1 ( name varchar(20), state_province varchar(20) );" \
-    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
-echo "insert into t1 values ('Billy', 'NewYork');" \
-    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
-echo "insert into t1 values ('Evanidus', 'Quebec');" \
-    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
-echo "insert into t1 values ('Jesse', 'Ontario');" \
-    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
-echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></screen>
-
-    <para>To shut down the server, as <systemitem
-    class="username">root</systemitem>:</para>
-
-<screen role="root"><userinput>su - postgres -c "/usr/bin/pg_ctl stop -D /srv/pgsql/data"</userinput></screen>
 
   </sect2>
 
@@ -210,15 +190,6 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
     language. Add PYTHON=/usr/bin/python3 for Python3 support.</para>
 
     <para><option>--with-tcl</option>: builds the PL/Tcl server-side language.</para>
-
-    <para><command>groupadd ...</command>; <command>useradd ...</command>:
-    These commands add an unprivileged user and group to run the database
-    server.</para>
-
-    <para><command>createdb test; create table t1; insert into t1 values...;
-    select * from t1</command>: Create a database, add a table to it, insert
-    some rows into the table and select them to verify that the installation
-    is working properly.</para>
 
   </sect2>
 
@@ -272,6 +243,51 @@ echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></
       </indexterm>
 
 <screen role="root"><userinput>make install-postgresql</userinput></screen>
+
+    </sect3>
+
+    <sect3>
+      <title>Starting the PostgreSQL Server and Creating a Sample Database</title>
+
+      <para>
+        The database server can be manually started with the following command
+        (as the <systemitem class="username">root</systemitem> user):
+      </para>
+
+<screen role="root"><userinput>su - postgres -c '/usr/bin/postgres -D /srv/pgsql/data > \
+                  /srv/pgsql/data/logfile 2&gt;&amp;1 &amp;'</userinput></screen>
+      <note>
+        <para>
+          If you are scripting this part, you should wait for the server to
+          start before going on, by adding for example
+          <command>sleep 2</command> after the above command.
+        </para>
+      </note>
+
+      <para>
+        The instructions below show how to create a database, add a table to
+        it, insert some rows into the table and select them, to verify that the
+        installation is working properly. Still as user <systemitem
+        class="username">root</systemitem>, issue:
+      </para>
+
+<screen role="root"><userinput>su - postgres -c '/usr/bin/createdb test' &amp;&amp;
+echo "create table t1 ( name varchar(20), state_province varchar(20) );" \
+    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
+echo "insert into t1 values ('Billy', 'NewYork');" \
+    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
+echo "insert into t1 values ('Evanidus', 'Quebec');" \
+    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
+echo "insert into t1 values ('Jesse', 'Ontario');" \
+    | (su - postgres -c '/usr/bin/psql test ') &amp;&amp;
+echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')</userinput></screen>
+
+      <para>
+        When you are done with testing, you can shut down the server, by issuing
+        as <systemitem class="username">root</systemitem>:
+      </para>
+
+<screen role="root"><userinput>su - postgres -c "/usr/bin/pg_ctl stop -D /srv/pgsql/data"</userinput></screen>
 
     </sect3>
 
