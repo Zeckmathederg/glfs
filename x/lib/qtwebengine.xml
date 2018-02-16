@@ -7,18 +7,10 @@
   <!ENTITY qtwebengine-major "5.10">
   <!ENTITY qtwebengine-download-http "https://download.qt.io/archive/qt/&qtwebengine-major;/&qtwebengine-version;/submodules/qtwebengine-everywhere-src-&qtwebengine-version;.tar.xz">
   <!ENTITY qtwebengine-download-ftp  " ">
-  <!ENTITY qtwebengine-md5sum        "0ea0b32e97911cf80d32b31cf10a6d8b">
-  <!ENTITY qtwebengine-size          "208 MB">
-  <!ENTITY qtwebengine-buildsize     "3.3 GB (144 MB installed)">
-  <!ENTITY qtwebengine-time          "95 SBU (using 4 cores)">
-
-  <!--   Both qmake and ninja will use all available cores, in fact ninja runs n+2
-     jobs at a time.  Most of our readers do not have more than 4 cores.
-     To reduce the number of available cores for measuring the build time:
-     # echo 0 > /sys/devices/system/cpu/cpu4/online
-     and repeat for each subsequent cpu.  Never do this for cpu0.
-     You can cat /sys/devices/system/cpu/{online,offline} to check.
-     To reinstate the cores after measuring, echo 1 to the same files. -->
+  <!ENTITY qtwebengine-md5sum        "77374c184f2ff5005d1c61a32ea38491">
+  <!ENTITY qtwebengine-size          "201 MB">
+  <!ENTITY qtwebengine-buildsize     "3.2 GB (137 MB installed)">
+  <!ENTITY qtwebengine-time          "43 SBU (using 4 cores)">
 ]>
 
 <sect1 id="qtwebengine" xreflabel="qtwebengine-&qtwebengine-version;">
@@ -48,10 +40,11 @@
     </para>
 
     &lfs81_checked;
-  
-    <note><para>Both qmake and ninja will use all available cores when
-    building.  There is no conveninet way to control the number of cores 
-    used during the build.</para></note>
+
+    <note><para>By default, ninja will use all online CPUs +2 (if at least
+    4 exist), even if they are not available to the current task because the
+    build terminal has been restricted with 'taskset'.  To work around this,
+    see the Command Explanations below.</para></note>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -177,8 +170,21 @@ make</userinput></screen>
     <para>
       <command>qmake</command>: This will build the included copy of
       <application>ninja</application> if it is not already installed
-      and use it to configure the build.  That and the subsequent 
-      <command>make</command> command will use all available CPU cores.
+      and use it to configure the build.
+    </para>
+
+    <para>
+      <option>NINJAJOBS=4 make</option>: If you patched system ninja in LFS to
+      recognize the NINJAJOBS environment variable, this command will run system
+      ninja with the specified number of jobs (i.e. 4). Among the reasons why
+      you might want to do this are: building on a subset of CPUs, either to
+      measure the build time for that number of processors or to run other
+      CPU-intensive tasks on other cores, or to improve the build speed on a
+      less-well endowed 4-core machine. On a machine with a powerful CPU and
+      plenty of RAM, running N+2 jobs (the ninja default for 4+ cores) for the
+      large working sets of the C++ compiles in this package is typically only
+      marginally slower than running 4 jobs at a time.  But for a machine with
+      less memory it might be much slower.
     </para>
 
   </sect2>
