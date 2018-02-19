@@ -6,10 +6,10 @@
 
   <!ENTITY seamonkey-download-http "&mozilla-http;/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.xz">
   <!ENTITY seamonkey-download-ftp " ">
-  <!ENTITY seamonkey-md5sum        "c0ea3b8705975a12d9c4af966db1649f">
+  <!ENTITY seamonkey-md5sum        "6390fa5e220aedfdfb4bd5005352280c">
   <!ENTITY seamonkey-size          "219 MB">
-  <!ENTITY seamonkey-buildsize     "4.6 GB (262 MB installed with devel env)">
-  <!ENTITY seamonkey-time          "17 SBU (using parallelism=4)">
+  <!ENTITY seamonkey-buildsize     "4.6 GB (260 MB installed with devel env)">
+  <!ENTITY seamonkey-time          "19 SBU (using parallelism=4)">
 ]>
 
 <sect1 id="seamonkey" xreflabel="SeaMonkey-&seamonkey-version;">
@@ -102,7 +102,6 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="alsa-lib"/>,
       <xref linkend="autoconf213"/>,
       both <xref linkend="gtk2"/> and <xref linkend="gtk3"/>,
       <xref linkend="unzip"/>, 
@@ -116,7 +115,8 @@
       <xref linkend="libevent"/>,
       <xref linkend="libvpx"/>,
       <xref linkend="nspr"/>, 
-      <xref linkend="nss"/>, and
+      <xref linkend="nss"/>,
+      <xref linkend="pulseaudio"/>, and
       <xref linkend="sqlite"/>
     </para>
 <!--
@@ -151,13 +151,13 @@
 -->
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="alsa-lib"/>,
       <xref linkend="curl"/>,
       <xref linkend="dbus-glib"/>,
       <xref linkend="doxygen"/>,
       <xref linkend="GConf"/>,
       <xref linkend="gst10-plugins-base"/> (and other plugins, only for tests),
       <xref linkend="openjdk"/>,
-      <xref linkend="pulseaudio"/>,
       <xref linkend="startup-notification"/>,
       <xref linkend="valgrind"/>,
       <xref linkend="wget"/>,
@@ -203,8 +203,10 @@ ac_add_options --disable-necko-wifi
 #ac_add_options --enable-system-hunspell
 #ac_add_options --enable-startup-notification
 
-# Comment out the following option if you have PulseAudio installed
-ac_add_options --disable-pulseaudio
+# Uncomment the following option if you have not installed PulseAudio
+#ac_add_options --disable-pulseaudio
+# and uncomment this if you installed alsa-lib instead of PulseAudio
+#ac_add_options --enable-alsa
 
 # Comment out following option if you have gconf installed
 ac_add_options --disable-gconf
@@ -238,9 +240,11 @@ ac_add_options --enable-official-branding
 ac_add_options --enable-safe-browsing
 ac_add_options --enable-url-classifier
 
-# Use internal cairo due to reports of unstable execution with
-# system cairo
-#ac_add_options --enable-system-cairo
+# From firefox-40 (and the corresponding version of seamonkey),
+# using system cairo caused seamonkey to crash
+# frequently when it was doing background rendering in a tab.
+# This appears to again work in seamonkey-2.49.2
+ac_add_options --enable-system-cairo
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -263,6 +267,7 @@ EOF</userinput></screen>
       commands:
     </para>
 
+<!-- Seems to still be needed for 2.49.2 -->
 <screen><userinput>CFLAGS_HOLD=$CFLAGS           &amp;&amp;
 CXXFLAGS_HOLD=$CXXFLAGS       &amp;&amp;
 EXTRA_FLAGS=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
