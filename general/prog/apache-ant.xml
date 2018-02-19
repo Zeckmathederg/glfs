@@ -6,9 +6,9 @@
 
   <!ENTITY apache-ant-download-http "https://archive.apache.org/dist/ant/source/apache-ant-&apache-ant-version;-src.tar.xz">
   <!ENTITY apache-ant-download-ftp  " ">
-  <!ENTITY apache-ant-md5sum        "ebecbe7488c624b06bc6a264a3a7c4ec">
-  <!ENTITY apache-ant-size          "3.4 MB">
-  <!ENTITY apache-ant-buildsize     "121 MB">
+  <!ENTITY apache-ant-md5sum        "57235f3dccfc4b18a260862905ce6c04">
+  <!ENTITY apache-ant-size          "3.6 MB">
+  <!ENTITY apache-ant-buildsize     "262 MB">
   <!ENTITY apache-ant-time          "0.3 SBU (with a JVM using 4 cores)">
 ]>
 
@@ -68,13 +68,25 @@
       <listitem>
         <para>
           Required file: <ulink
-             url="http://repo1.maven.org/maven2/junit/junit/&junit-version;/junit-&junit-version;.jar"/>
+             url="https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/javax/media/jai-core/1.1.3/jai-core-1.1.3.jar"/>
         </para>
       </listitem>
       <listitem>
         <para>
           Required file: <ulink
-             url="http://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/&hamcrest-version;/hamcrest-core-&hamcrest-version;.jar"/>
+             url="https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/com/sun/media/jai-codec/1.1.3/jai-codec-1.1.3.jar"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Required file: <ulink
+             url="http://central.maven.org/maven2/org/tukaani/xz/1.0/xz-1.0.jar"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Required file: <ulink
+             url="http://www.netrexx.org/files/NetRexx-3.06-GA.zip"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -100,58 +112,55 @@
   <sect2 role="installation">
     <title>Installation of Apache Ant</title>
 
-    <note>
-      <para>You may need additional libraries to satisfy the build
-      requirements of various packages installed using
-      <application>Apache Ant</application>. Review the table at
-      <ulink url="http://ant.apache.org/manual/install.html#librarydependencies"/>
-      for any prerequisite libraries you may need. Place any needed libraries
-      in <filename>lib/optional</filename>.</para>
-    </note>
+    <note><para>Several dependent packages have moved since the packaging of
+    <application>Ant</application> requiring download of the above extra files.
+    Copy those files into the source tree with the following
+    commands:</para></note>
 
-<!--    <para>If it is not possible to install the recommended
-    <application>JUnit</application> package, install
-    <application>Apache Ant</application> by removing the reference to the test
-    instructions (note that the tests will not be performed):</para>
+<screen><userinput>cp -v ../jai-core-1.1.3.jar  \
+      ../jai-codec-1.1.3.jar \
+      ../xz-1.0.jar  lib     &amp;&amp;
+unzip -p ../NetRexx-3.06-GA.zip lib/NetRexxC.jar > lib/NetRexxC.jar</userinput></screen>
 
-<screen><userinput>sed -i 's/jars,test-jar/jars/' build.xml</userinput></screen>
--->
-    <para>Unpack and copy the <application>junit</application> and
-    <application>hamcrest</application> jar files to the
-    local directory tree.</para>
+    <para>Build a limited bootstrap version of <application>Apache
+    Ant</application> using the following command:</para>
 
-<screen><userinput>cp -v ../junit-&junit-version;.jar \
-      ../hamcrest-core-&hamcrest-version;.jar lib/optional</userinput></screen>
+<screen><userinput>./bootstrap.sh</userinput></screen>
 
-    <para>Install <application>Apache Ant</application> by running the following
-    commands:</para>
+    <para>Download the rest of the runtime dependencies using the
+    <filename>fetch.xml</filename> ant build script:</para>
 
-    <para>The unit regression tests are performed during the build step below
-    unless <application>JUnit</application> is not installed. Now, as the
-    <systemitem class="username">root</systemitem> user:</para>
+<screen><userinput>bootstrap/bin/ant -f fetch.xml -Ddest=system || true &amp;&amp;
+cp -v lib/*.jar lib/optional/</userinput></screen>
 
-<screen role="root"><userinput>./build.sh -Ddist.dir=/opt/ant-&apache-ant-version; dist &amp;&amp;
-ln -v -sfn ant-&apache-ant-version; /opt/ant</userinput></screen>
+    <para>Build <application>Apache Ant</application> by running the following
+    command:</para>
 
-    <note><para>Make sure the JAVA_HOME environment variable is set for the
-    <systemitem class="username">root</systemitem> user.</para></note>
+<screen><userinput>./build.sh -Ddist.dir=$PWD/ant-&apache-ant-version; dist</userinput></screen>
+
+    <para>Install, as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="root"><userinput>cp -rv ant-&apache-ant-version; /opt/            &amp;&amp;
+chown -R root:root /opt/ant-&apache-ant-version; &amp;&amp;
+ln -sfv ant-&apache-ant-version; /opt/ant</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <para><command>cp -v ... lib/optional</command>:
-    This command copies the JUnit and hamcrest jar files into the directory
-    where Apache Ant will look for them.</para>
+    <para><command>bootstrap/bin/ant -f fetch.xml -Ddest=system ||
+    true</command>: These commands download the rest of the missing dependencies
+    into the source tree (in the <filename>lib/</filename> directory).</para>
 
-    <para><command>./build.sh -Ddist.dir=/opt/ant-&apache-ant-version;
-    dist</command>: This command does everything. It builds, tests, then
+    <para><command>cp -v ... lib/optional</command>: This command copies the
+    previously downloaded jar files to the expected place in the source
+    tree so that <command>ant</command> picks them up at buld time.</para>
+
+    <para><command>./build.sh -Ddist.dir=$PWD/ant-&apache-ant-version;
+    dist</command>: This command builds, tests, then
     installs the package into
-    <filename class='directory'>/opt/ant-&apache-ant-version;</filename>.</para>
-
-    <para><command>ln -v -sfn ant-&apache-ant-version; /opt/ant</command>: This
-    command is optional, and creates a convenience symlink.</para>
+    <filename class='directory'>a temporary directory.</filename>.</para>
 
   </sect2>
 

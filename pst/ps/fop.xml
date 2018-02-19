@@ -89,31 +89,7 @@
           </simplelist>
         </para>
       </listitem>
-
-      <listitem>
-        <para>Java Advanced Imaging (JAI) API components (architecture dependent):
-          <simplelist>
-            <member><ulink url="&jai-download;"/></member>
-            <member>&jai-md5sum;</member>
-            <member>&jai-size;</member>
-          </simplelist>
-          <literallayout>or</literallayout> <!-- Force some space -->
-          <simplelist>
-            <member><ulink url="&jai64-download;"/></member>
-            <member>&jai64-md5sum;</member>
-            <member>&jai64-size;</member>
-          </simplelist>
-        </para>
-      </listitem>
     </itemizedlist>
-<!--    <itemizedlist spacing="compact">
-      <title>Required patch</title>
-      <listitem>
-        <para>
-          <ulink url="&patch-root;/fop-&fop-version;-listNPE-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>-->
 
     <bridgehead renderas="sect3">fop Dependencies</bridgehead>
 
@@ -166,33 +142,10 @@ rm -rf offo-hyphenation</userinput></screen>
     </sect3>
 
     <sect3>
-      <title>Installing Java Advanced Imaging (JAI) API components</title>
-
-      <para>
-        Install the JAI API components. As the <systemitem
-        class="username">root</systemitem> user:
-      </para>
-
-<screen role="root"><userinput>case `uname -m` in
-  i?86)
-    tar -xf ../jai-&jai-version;-lib-linux-i586.tar.gz
-    cp -v jai-&jai-version;/lib/{jai*,mlibwrapper_jai.jar} $JAVA_HOME/jre/lib/ext/
-    cp -v jai-&jai-version;/lib/libmlib_jai.so             $JAVA_HOME/jre/lib/i386/
-    ;;
-
-  x86_64)
-    tar -xf ../jai-&jai-version;-lib-linux-amd64.tar.gz
-    cp -v jai-&jai-version;/lib/{jai*,mlibwrapper_jai.jar} $JAVA_HOME/jre/lib/ext/
-    cp -v jai-&jai-version;/lib/libmlib_jai.so             $JAVA_HOME/jre/lib/amd64/
-    ;;
-esac</userinput></screen>
-    </sect3>
-
-    <sect3>
       <title>Installing fop Components</title>
 
       <para>
-        The <command>javadoc</command> command coming with OpenJDK 8 has
+        The <command>javadoc</command> command coming with OpenJDK 9 has
         become much stricter than before regarding the conformance of the
         Javadoc comments in source code to HTML. The FOP documentation does
         not meet those standard, so the conformance checks have to be
@@ -201,7 +154,9 @@ esac</userinput></screen>
 
 <screen><userinput>sed -i '\@&lt;/javad@i\
 &lt;arg value="-Xdoclint:none"/&gt;\
-&lt;arg value="--allow-script-in-comments"/&gt;' fop/build.xml</userinput></screen>
+&lt;arg value="--allow-script-in-comments"/&gt;\
+&lt;arg value="--ignore-source-errors"/&gt;' \
+    fop/build.xml</userinput></screen>
 
       <para>
         The stack size set in <filename>build.xml</filename> for building the
@@ -217,11 +172,7 @@ esac</userinput></screen>
 
 <screen><userinput>cd fop                    &amp;&amp;
 export LC_ALL=en_US.UTF-8 &amp;&amp;
-
-ant compile               &amp;&amp;
-ant jar-main              &amp;&amp;
-ant jar-hyphenation       &amp;&amp;
-ant javadocs              &amp;&amp;
+ant all javadocs          &amp;&amp;
 mv build/javadocs .</userinput></screen>
 
       <para>
@@ -356,10 +307,17 @@ EOF</userinput></screen>
 
       <para>
         To include the <command>fop</command> script in your path,
-        update your personal or system-wide profile with the following:
+        update the system-wide profile with the following command as the
+        <systemitem class="username">root</systemitem> user:
       </para>
 
-<screen><literal>PATH=$PATH:/opt/fop</literal></screen>
+<screen><literal>cat &gt; /etc/profile.d/fop.sh &lt;&lt; "EOF"
+# Begin /etc/profile.d/fop.sh
+
+pathappend /opt/fop
+
+# End /etc/profile.d/fop.sh
+EOF</literal></screen>
 
       <note>
         <para>
