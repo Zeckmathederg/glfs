@@ -142,10 +142,10 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="at-spi2-core"/>, 
+      <xref linkend="exo"/>,
       <xref linkend="gtk-doc"/>, 
-      <xref linkend="itstool"/>, 
+      <xref linkend="itstool"/>,
       <xref linkend="qt5"/>,
-      <ulink url="https://launchpad.net/intltool">intltool</ulink>,
       <ulink url="https://launchpad.net/ido">libido</ulink>, and
       <ulink url="https://launchpad.net/libindicator">libindicator</ulink>
 
@@ -177,7 +177,8 @@ useradd  -c "Lightdm Daemon" \
       commands:
     </para>
 
-<screen><userinput>./configure                          \
+<screen><userinput>ITSTOOL=/bin/true                    \
+./configure                          \
        --prefix=/usr                 \
        --libexecdir=/usr/lib/lightdm \
        --localstatedir=/var          \
@@ -211,8 +212,11 @@ install -v -dm770 -o lightdm -g lightdm /var/log/lightdm</userinput></screen>
 <screen><userinput>tar -xf ../lightdm-gtk-greeter-2.0.3.tar.gz &amp;&amp;
 cd lightdm-gtk-greeter-&lightdm-gtk-greeter-version; &amp;&amp;
 
-export CFLAGS="$CFLAGS -Wno-declaration-after-statement" &amp;&amp;
+OUR_CFLAGS="-Wno-declaration-after-statement \
+            -Wno-error=deprecated-declarations" &amp;&amp;
 
+CFLAGS="$CFLAGS $OUR_CFLAGS"     \
+HAVE_EXO_CSOURCE=yes             \
 ./configure                      \
    --prefix=/usr                 \
    --libexecdir=/usr/lib/lightdm \
@@ -234,17 +238,31 @@ make</userinput></screen>
 <screen><userinput>make install</userinput></screen>
 
   </sect2>
-<!--
+
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is used to
-      apply additional compiler optimizations.
+      <parameter>ITSTOOL=/bin/true</parameter>: although
+      <xref linkend="itstool"/> is not needed in a normal build,
+      <command>configure</command> throws an error if it is not found on the
+      system. This parameter prevents the error.
+    </para>
+
+    <para>
+      <parameter>CFLAGS=...</parameter>: those two switches prevent some
+      warnings to be treated as errors.
+    </para>
+
+    <para>
+      <parameter>HAVE_EXO_CSOURCE=yes</parameter>: although
+      <command>exo-csource</command> is not needed in a normal build,
+      <command>configure</command> throws an error if it is not found on the
+      system. This parameter prevents the error.
     </para>
 
   </sect2>
--->
+
   <sect2 role="configuration">
     <title>Configuring lightdm</title>
 
