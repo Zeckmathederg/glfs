@@ -32,7 +32,7 @@
     <para><application>w3m</application> is primarily a pager but it can
     also be used as a text-mode WWW browser.</para>
 
-    &lfs81_checked;
+    &lfs82_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -74,7 +74,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="gpm"/>,
-      <xref linkend="openssl10"/>,
+<!--      <xref linkend="openssl10"/>,-->
       <xref linkend="imlib2"/>,
       <xref linkend="gtk2"/>,
       <ulink url="http://ftp.gnome.org/pub/gnome/sources/imlib/1.9/">Imlib</ulink>
@@ -98,12 +98,14 @@
     <para>Install <application>w3m</application> by running the following
     commands:</para>
 
-<screen><userinput>patch -Np1 -i ../w3m-&w3m-version;-bdwgc72-1.patch &amp;&amp;
-sed -i 's/file_handle/file_foo/' istream.{c,h} &amp;&amp;
+<screen><userinput>
+patch -Np1 -i ../w3m-&w3m-version;-bdwgc72-1.patch      &amp;&amp;
+sed -i 's/file_handle/file_foo/' istream.{c,h}  &amp;&amp;
 sed -i 's#gdk-pixbuf-xlib-2.0#&amp; x11#' configure &amp;&amp;
+sed -i '/USE_EGD/s/define/undef/' config.h.in   &amp;&amp;
 
-PKG_CONFIG_PATH="/usr/lib/openssl-1.0/pkgconfig:$PKG_CONFIG_PATH" \
-    ./configure --prefix=/usr --sysconfdir=/etc  &amp;&amp;
+
+./configure --prefix=/usr --sysconfdir=/etc  &amp;&amp;
 make</userinput></screen>
 
     <para>This package does not come with a test suite.</para>
@@ -135,6 +137,11 @@ install -v -m644    doc/{HISTORY,READ*,keymap.*,menu.*,*.html} \
     configure</command>: This sed fixes compiling <application>w3m</application>
     using <xref linkend="gtk2"/> as its image library. It has no impact if
     <xref linkend="gtk2"/> is not installed.</para>
+
+    <para>
+      <command>sed -i '/USE_EGD/s/define/undef/' config.h.in</command>: Allows
+      building against <application>openssl-1.1</application>.
+    </para>
 
     <para><parameter>--sysconfdir=/etc</parameter>: This option puts the
     configuration files in /etc.</para>
