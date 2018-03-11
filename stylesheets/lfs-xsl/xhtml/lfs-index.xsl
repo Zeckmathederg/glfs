@@ -261,6 +261,7 @@ $Date$
           </xsl:attribute>
           <xsl:apply-templates select="$target[1]" mode="index-title-content"/>
         </a>
+        <br/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
