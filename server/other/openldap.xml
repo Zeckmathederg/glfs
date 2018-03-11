@@ -321,12 +321,42 @@ cp      -vfr      doc/{drafts,rfc,guide} \
     <sect3 id="openldap-config">
       <title>Config Files</title>
 
-      <para>
-        <filename>/etc/openldap/*</filename>
-      </para>
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>
+            For LDAP client: <filename>/etc/openldap/ldap.conf</filename> and
+            <filename>~/.ldaprc</filename>
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            For LDAP server, two configuration mechanisms are used:
+            a legacy <filename>/etc/openldap/slapd.conf</filename>
+            configuration file and the recommended
+            <emphasis>slapd-config</emphasis> system, using an LDIF database
+            stored in
+            <filename class="directory">/etc/openldap/slapd.d</filename>.
+          </para>
+        </listitem>
+      </itemizedlist>
 
       <indexterm zone="openldap openldap-config">
-        <primary sortas="e-etc-openldap">/etc/openldap/*</primary>
+        <primary
+          sortas="e-etc-openldap-ldap.conf">/etc/openldap/ldap.conf</primary>
+      </indexterm>
+
+      <indexterm zone="openldap openldap-config">
+        <primary sortas="e-AA.ldaprc">~/.ldaprc</primary>
+      </indexterm>
+
+      <indexterm zone="openldap openldap-config">
+        <primary
+          sortas="e-etc-openldap-slapd.conf">/etc/openldap/slapd.conf</primary>
+      </indexterm>
+
+      <indexterm zone="openldap openldap-config">
+        <primary
+          sortas="e-etc-openldap-slapd.d">/etc/openldap/slapd.d/*</primary>
       </indexterm>
 
     </sect3>
@@ -337,11 +367,25 @@ cp      -vfr      doc/{drafts,rfc,guide} \
       <para>
         Configuring the <command>slapd</command> servers can be complex.
         Securing the LDAP directory, especially if you are storing non-public
-        data such as password databases, can also be a challenging task. You'll
-        need to modify the <filename>/etc/openldap/slapd.conf</filename> and
-        <filename>/etc/openldap/ldap.conf</filename> files to set up
-        <application>OpenLDAP</application> for your particular needs.
+        data such as password databases, can also be a challenging task. In
+        order to set up <application>OpenLDAP</application>, you'll need to
+        modify either the <filename>/etc/openldap/slapd.conf</filename> 
+        file (old method), or the <filename>/etc/openldap/slapd.ldif</filename>
+        file and then use <command>ldapadd</command> to create de LDAP
+        configuration database in
+        <filename class="directory">/etc/openldap/slapd.d</filename>
+        (recommended by the OpenLDAP documentation).
       </para>
+
+      <para>
+        The shipped configuration files suppose the loadable modules are
+        installed with their <filename class="extension">.la</filename>
+        files, which may not be true if you remove those files as instructed
+        in <xref linkend="libtool"/>. If this is the case, issue, as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>sed 's/\.la$//' -i /etc/openldap/slapd.{conf,ldif}{,.default}</userinput></screen>
 
       <note>
         <para>
@@ -351,39 +395,32 @@ cp      -vfr      doc/{drafts,rfc,guide} \
           use them on a production server.
         </para>
       </note>
-      <indexterm zone="openldap openldap-config">
-        <primary
-        sortas="e-etc-openldap-slapd.conf">/etc/openldap/slapd.conf</primary>
-      </indexterm>
-
-      <indexterm zone="openldap openldap-config">
-        <primary
-        sortas="e-etc-openldap-ldap.conf">/etc/openldap/ldap.conf</primary>
-      </indexterm>
 
       <para>
         Resources to assist you with topics such as choosing a directory
-        configuration, backend and database definitions, access control settings,
-        running as a user other than <systemitem class="username">root</systemitem>
+        configuration, backend and database definitions, access control
+        settings, running as a user other than
+        <systemitem class="username">root</systemitem>
         and setting a <command>chroot</command> environment include:
       </para>
 
       <itemizedlist spacing="compact">
         <listitem>
           <para>
-            The <command>slapd</command> man page.
+            The <emphasis role="strong">slapd(8)</emphasis> man page.
           </para>
         </listitem>
         <listitem>
           <para>
-            The <filename>slapd.conf</filename> man page.
+            The <emphasis role="strong">slapd.conf(5)</emphasis> and
+            <emphasis role="strong">slapd-config(5)</emphasis> man pages.
           </para>
         </listitem>
         <listitem>
           <para>
             The <ulink url="http://www.openldap.org/doc/admin24/"> OpenLDAP 2.4
             Administrator's Guide</ulink> (also installed locally in
-            <filename class='directory'>
+            <filename class="directory">
             /usr/share/doc/openldap-&openldap-version;/guide/admin</filename>).
           </para>
         </listitem>
