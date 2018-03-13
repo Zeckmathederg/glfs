@@ -4,14 +4,20 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
+<!--
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
+-->
+   <!ENTITY firefox-hgversion "c61f5f5ead48c78a80c80db5c489bdc7cfaf8175">
+  <!-- use tinyurl to get a much shorter link for the wget example -->
+  <!ENTITY firefox-tiny "https://tinyurl.com/firefox-59-0-tar-bz2">
+  <!ENTITY firefox-download-http "&mozilla-hg;&firefox-hgversion;.tar.bz2">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "a64c6cd4785ba1ae094faae16105dbf2">
-  <!ENTITY firefox-size          "237 MB">
+  <!ENTITY firefox-md5sum        "2dfc59e6adccea41b5fb87c2d9456d4e">
+  <!ENTITY firefox-size          "291 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But when building 58.0 on rustc-1.22.1 the extra files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "7.4 GB (152 MB installed) without tests">
-  <!ENTITY firefox-time          "20 SBU (with parallelism=4) without tests">
+  <!ENTITY firefox-buildsize     "7.5 GB (157 MB installed) without tests">
+  <!ENTITY firefox-time          "21 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -74,17 +80,17 @@
 
     <note>
       <para>
-        The build times for this version of firefox (using stylo, the new CSS
-        rendering code) seem to vary widely between different machines. On one
-        old Intel i3 the build took considerably longer. The reason for this is
-        not understood. A build with stylo disabled is typically 1 or 2 SBU
-        quicker and needs 0.8GB less disk space.
-      </para>
-
-      <para>
-        Although upstream prefer to use <application>PulseAudio</application>,
-        for the moment <application>Alsa</application> can still be used. Both
-        may need runtime configuration to get sound working.
+        Upstream now only provide tarballs named with 40-character mercurial
+        commit hashes.
+        <!--
+        This will untar to <emphasis>mozilla-release-&firefox-hgversion;/</emphasis>,
+        but it will build firefox-&firefox-version; - you may prefer to rename the
+        -->
+        You may prefer to rename the
+        downloaded tarball, either to firefox-&firefox-version;.tar.bz2 or to
+        mozilla-release-&firefox-hgversion;.tar.bz2, or to use wget, e.g.
+<screen><userinput>wget -c &firefox-tiny; \
+     -O mozilla-release-&firefox-hgversion;.tar.bz2</userinput></screen>
       </para>
     </note>
 
@@ -101,9 +107,8 @@
 
     <note>
       <para>
-        The tarball <emphasis>firefox-&firefox-version;.source.tar.xz</emphasis>
-        will untar to <emphasis>firefox-&firefox-version;</emphasis> directory.
-        It will also reset the permissions of the current directory to 0755 if you
+        Extracting the tarball
+        will reset the permissions of the current directory to 0755 if you
         have permission to do that. If you do this in a directory where
         the sticky bit is set, such
         as <filename class="directory">/tmp</filename> it will end with error
@@ -120,6 +125,21 @@ tar: Exiting with failure status due to previous errors
         <emphasis>NOT</emphasis> mean there is a real problem.
         Do not untar as the <systemitem class="username">root</systemitem> user
         in a directory where the sticky bit is set - that will unset it.
+      </para>
+
+      <para>
+        The build times for this version of firefox (using stylo, the new CSS
+        rendering code) seem to vary widely between different machines. On one
+        old Intel i3 with only 4GB of RAM the build took
+        <emphasis>considerably</emphasis> longer. The reason for this is
+        not understood. A build with stylo disabled is typically 1 or 2 SBU
+        quicker and needs 0.8GB less disk space.
+      </para>
+
+      <para>
+        Although upstream prefer to use <application>PulseAudio</application>,
+        for the moment <application>Alsa</application> can still be used. Both
+        may need runtime configuration to get sound working.
       </para>
     </note>
 
@@ -159,23 +179,7 @@ tar: Exiting with failure status due to previous errors
         be out of date or contain security holes.
       </para>
     </note>
-<!--
-    <note>
-      <para>
-        With <application>Firefox-31.0</application> and later versions, you
-        must have installed <application>Openssl</application> before
-        <application>Python 2</application> or the build system will quickly
-        fail with output including "ImportError: cannot import name
-        HTTPSHandler". If you are in any doubt about this (e.g. upgrading from
-        an older version of Firefox), check if
-        <filename>/usr/lib/python&python2-majorver;/lib-dynload/_ssl.so</filename>
-        exists.  If it does not, reinstall <xref linkend="python2"/> (after
-        installing <xref linkend="openssl"/>).  The latest version of any
-        <emphasis>currently maintained</emphasis> version of Openssl should be
-        satisfactory if already installed.
-      </para>
-    </note>
--->
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="curl"/>,
@@ -221,7 +225,7 @@ tar: Exiting with failure status due to previous errors
 <literal># If you have a multicore machine, all cores will be used by default.
 # You can change the number of non-rust jobs by setting a valid number
 # of cores in this option, but when rust crates are being compiled
-# jobs will be scheduled for all the online CPU cores.
+# jobs will be scheduled for all the available CPU cores.
 #mk_add_options MOZ_MAKE_FLAGS="-j1"
 
 # If you have installed dbus-glib, comment out this line:
@@ -291,10 +295,8 @@ ac_add_options --enable-optimize="-O2"
 
 ac_add_options --enable-official-branding
 
-# From firefox-40, using system cairo caused firefox to crash
-# frequently when it was doing background rendering in a tab.
-# This appears to again work in firefox-56
-ac_add_options --enable-system-cairo
+# In firefox-59.0 system cairo breaks the build, so comment it.
+#ac_add_options --enable-system-cairo
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -376,7 +378,7 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
 <screen role="root"><userinput>./mach install                                                  &amp;&amp;
 
 mkdir -pv  /usr/lib/mozilla/plugins                             &amp;&amp;
-ln    -sfv ../../mozilla/plugins /usr/lib/firefox-&firefox-version;/browser</userinput></screen>
+ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
 <!--
     <para>
       Set environment variables back to their values:
@@ -405,13 +407,13 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
     </para>
 
     <para>
-      <command>mkdir -p /usr/lib/mozilla/plugins</command>: This checks
-      that <filename class="directory">/usr/lib/mozilla/plugins</filename>
+      <command>mkdir -pv /usr/lib/mozilla/plugins</command>: This ensures
+      that <filename class="directory">/usr/lib/mozilla/plugins/</filename>
       exists.
     </para>
 
     <para>
-      <command>ln -sv ... /usr/lib/firefox-&firefox-version;/browser</command>:
+      <command>ln -sv ... /usr/lib/firefox/browser</command>:
       This command creates a symbolic link to <filename
       class="directory">/usr/lib/mozilla/plugins</filename>. It's not really
       needed, as <application>Firefox</application> checks <filename
@@ -532,7 +534,7 @@ ln -sfv /usr/lib/firefox-&firefox-version;/browser/icons/mozicon128.png \
         </seg>
         <seg>
           Numerous libraries, browser components, plugins, extensions, and
-          helper modules installed in /usr/lib/firefox-&firefox-version;
+          helper modules installed in /usr/lib/firefox
         </seg>
         <seg>
 	  /usr/lib/firefox-&firefox-version; and /usr/lib/mozilla
