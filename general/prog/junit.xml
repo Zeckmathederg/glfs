@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY junit-download-http "https://launchpad.net/debian/+archive/primary/+files/junit4_&junit-version;.orig.tar.gz">
+  <!ENTITY junit-download-http "https://github.com/junit-team/junit&junit-major;/archive/r&junit-version;/junit-&junit-version;.tar.gz">
   <!ENTITY junit-download-ftp  " ">
-  <!ENTITY junit-md5sum        "b4d163832583dcec8bedb5427c795cc4">
-  <!ENTITY junit-size          "1.7 MB">
-  <!ENTITY junit-buildsize     "34 MB">
-  <!ENTITY junit-time          "0.1 SBU">
+  <!ENTITY junit-md5sum        "22578a9b35cbb71d556a2e625c576c81">
+  <!ENTITY junit-size          "433 KB">
+  <!ENTITY junit-buildsize     "27 MB">
+  <!ENTITY junit-time          "0.2 SBU (with dicumentation, using 4 cores; add maven <quote>crates</quote> download time)">
 ]>
 
 <sect1 id="junit" xreflabel="JUnit-&junit-version;">
@@ -60,7 +60,7 @@
         <para>Estimated build time: &junit-time;</para>
       </listitem>
     </itemizedlist>
-
+<!-- maven downloads this for us:
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -76,12 +76,12 @@
         </para>
       </listitem>
     </itemizedlist>
-
+-->
     <bridgehead renderas="sect3">JUnit Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="apache-ant"/> and
+      <xref linkend="maven"/> and
       <xref linkend="unzip"/>
     </para>
 
@@ -92,49 +92,46 @@
 
   <sect2 role="installation">
     <title>Installation of JUnit</title>
-
     <para>
-      The <command>javadoc</command> command coming with OpenJDK 8 has become
-      much stricter than before regarding the conformance of the Javadoc
-      comments in source code to HTML. The <application>Junit</application>
-      documentation does not meet that standard, so the conformance checks
-      have to be disabled. This can be done with the following command:
+      First remove a test, which fails with <application>Java 9</application>.
     </para>
 
-<screen><userinput>sed -i '\@/docs/@a&lt;arg value="-Xdoclint:none"/&gt;' build.xml</userinput></screen>
+<screen><userinput>sed -e '/MethodsSorted/i    @Ignore' \
+    -i src/test/java/org/junit/runners/model/TestClassTest.java</userinput></screen>
 
     <para>
-      With <application>Java 9</application>, the minimum accepted code version
-      is 1.6. However, the build system passes <option>-source 1.5</option>,
-      while the junit code can perfectly be compiled for a Java 8 JVM. Change
-      that by issuing the following command:
+      Install <application>Junit</application> by running the following
+      commands:
     </para>
 
-<screen><userinput>sed -i 's/1\.5/1.8/' build.xml</userinput></screen>
+<screen><userinput>mvn -DjdkVersion=1.6 install</userinput></screen>
 
     <para>
-      Now place the required hamcrest jar files where needed and build the
-      package:
+      The tests are run as part of the command above.
     </para>
-
-<screen><userinput>cp -v ../hamcrest-core-&hamcrest-version;{,-sources}.jar lib/ &amp;&amp;
-ant populate-dist</userinput></screen>
 
     <para>
-      Test the package by issuing <command>ant dist</command>. One test fails
-      for unknown reason.
+      If you wish to generate the documentation, issue:
     </para>
+
+<screen><userinput>mvn site</userinput></screen>
 
     <para>
       Install the files in the final location as the
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>install -v -m755 -d /usr/share/{doc,java}/junit-&junit-version; &amp;&amp;
-chown -R root:root .                                 &amp;&amp;
+<screen role="root"><userinput>install -v -m755 -d             /usr/share/java/junit-&junit-version; &amp;&amp;
+cp -v target/junit-&junit-version;.jar     /usr/share/java/junit-&junit-version; &amp;&amp;
+cp -v lib/hamcrest-core-1.3.jar /usr/share/java/junit-&junit-version;</userinput></screen>
 
-cp -v -R junit*/javadoc/*             /usr/share/doc/junit-&junit-version;  &amp;&amp;
-cp -v junit*/junit*.jar               /usr/share/java/junit-&junit-version;</userinput></screen>
+    <para>
+      if the documentation was built, install it as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+<screen role="root"><userinput>install -v -m755 -d    /usr/share/doc/junit-&junit-version; &amp;&amp;
+cp -v -R target/site/* /usr/share/doc/junit-&junit-version;</userinput></screen>
+
 
     <para>
       If you have followed the instructions in <xref linkend="ojdk-conf"/>,
@@ -166,12 +163,23 @@ cp -v junit*/junit*.jar               /usr/share/java/junit-&junit-version;</use
       <?dbhtml list-presentation="table"?>
 
       <varlistentry id="junit.jar">
-        <term><filename class='libraryfile'>junit jar files</filename></term>
+        <term><filename class='libraryfile'>junit-&junit-version;.jar</filename></term>
         <listitem>
           <para>contains java classes to support the xUnit framework testing
           architecture.</para>
           <indexterm zone="junit junit.jar">
             <primary sortas="c-junit.jar">junit-&junit-version;.jar</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hamcrest-core">
+        <term><filename class='libraryfile'>hamcrest-core-1.3.jar</filename></term>
+        <listitem>
+          <para>contains java classes to support matchers used in xUnit
+          tests.</para>
+          <indexterm zone="junit hamcrest-core">
+            <primary sortas="c-hamcrest-core">hamcrest-core-1.3.jar</primary>
           </indexterm>
         </listitem>
       </varlistentry>
