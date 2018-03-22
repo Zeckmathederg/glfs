@@ -8,8 +8,8 @@
   <!ENTITY glib2-download-ftp  "&gnome-download-ftp;/glib/2.56/glib-&glib2-version;.tar.xz">
   <!ENTITY glib2-md5sum        "f2b59392f2fb514bbe7791dda0c36da5">
   <!ENTITY glib2-size          "7.7 MB">
-  <!ENTITY glib2-buildsize     "149 MB (add 1 MB for tests)">
-  <!ENTITY glib2-time          "0.3 SBU (add 0.4 SBU for tests; both using  parallelism=4)">
+  <!ENTITY glib2-buildsize     "193 MB (add 78 MB for tests)">
+  <!ENTITY glib2-time          "1.3 SBU (add 4.7 SBU for tests)">
 ]>
 
 <sect1 id="glib2" xreflabel="GLib-&glib2-version;">
@@ -100,11 +100,9 @@
       <xref linkend="dbus"/> (required for some tests),
 <!--      <xref linkend="elfutils"/> and -->
         <xref linkend="DocBook"/>,
-        <xref linkend="docbook-xsl"/>, and
+        <xref linkend="docbook-xsl"/>,
+        <xref linkend="gtk-doc"/>, and
         <xref linkend="libxslt"/> (to build manual pages)
-
-      <!-- <xref linkend="gtk-doc"/> cound not find a reference to this 
-      in the meson build -->
     </para>
 
     <bridgehead renderas="sect4">Additional Runtime Dependencies</bridgehead>
@@ -130,7 +128,7 @@
   <sect2 role="installation">
     <title>Installation of GLib</title>
 
-    <para>If desired, appy the optional patch. In many cases, applications that
+    <para>If desired, apply the optional patch. In many cases, applications that
     use this library, either  directly or indirectly via other libraries such
     as <xref linkend="gtk3"/>, output numerous warnings when run from the
     command line.  This patch enables the use of an environment variable,
@@ -152,7 +150,7 @@
 
 <screen><userinput>patch -Np1 -i ../glib-&glib2-version;-skip_warnings-1.patch</userinput></screen>
 
-    <warning>
+<!--    <warning>
       <para>
         If upgrading from a previous version of GLib that was built using
         autotools, and the <application>libtool</application> archives were
@@ -162,44 +160,31 @@
         with the appropriate linker library flag (-l),
         <command>-lg{io,lib,module,object,thread}</command>. 600+ files must
         be modified on a complete gnome desktop.
-<!--        Issue the following commands as the
-        <systemitem class="username">root</systemitem> user: -->
+TODO: If reinstating meson, reference the instructions to remove .la files
       </para>
-
-<!-- Sorry, I broke my system berore I was able to fully test these commands
-     Feel free to test and uncomment if sane (I believe they are, but will
-     not introduce to end-users until it is tested thoroughly). - DJ
-
-<screen>if test -f /usr/lib/libglib-2.0.la; then
-    mkdir /usr/lib/la-file-backup &amp;&amp;
-    for lafile in /usr/lib/libg{io,lib,module,object,thread}-2.0.la; do
-        mv "${lafile}" /usr/lib/la-file-backup/$(basename "${lafile}").bak
-    done &amp;&amp;
-    for file in `find /usr/lib -name "*.la"`; do
-        grep -q '/usr/lib/libg\(io\|module\|lib\|object\|thread\)-2.0.la' \
-             "${file}" &amp;&amp;
-        sed -e 's@/usr/lib/libg\(io\|module\|lib\|object\|thread\)-2.0.la@-lg\1@g' \
-            -i.bak "${file}" &amp;&amp;
-        mv -v "${file}.bak" /usr/lib/la-file-backup
-    done
-fi</screen>-->
     </warning>
-
+-->
     <para>
       Install <application>GLib</application> by running the following
       commands:
     </para>
 
+<!-- To be used when meson is deemed usable by upstream
 <screen><userinput>mkdir build-glib &amp;&amp;
 cd    build-glib &amp;&amp;
 
-meson --prefix=/usr      \
+meson - -prefix=/usr      \
       -Dwith-pcre=system \
       -Dwith-docs=no     \
       -Dselinux=false    \
       ..                 &amp;&amp;
 ninja</userinput></screen>
+-->
 
+<screen><userinput>./configure --prefix=/usr      \
+            --with-pcre=system \
+            --with-python=/usr/bin/python3 &amp;&amp;
+make</userinput></screen>
     <para>
       The <application>GLib</application> test suite requires
       <application>desktop-file-utils</application> for some tests. However,
@@ -219,13 +204,13 @@ ninja</userinput></screen>
       constraint linkend:" when installing the man pages.  These are harmless.
     </para></note>
 
-<screen role="root"><userinput>ninja install &amp;&amp;
-
+<screen role="root"><userinput>make install</userinput></screen>
+<!-- used when built with meson/ninja
 chmod -v 755 /usr/bin/{gdbus-codegen,glib-gettextize} &amp;&amp;
 
 mkdir -p /usr/share/doc/glib-&glib2-version; &amp;&amp;
 cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-version;</userinput></screen>
-
+-->
     <para>
       You should now install <xref linkend="desktop-file-utils"/> and proceed to
       run the test suite.
@@ -233,7 +218,7 @@ cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-versi
 
     <para>
       To test the results, after having installed the package, issue:
-      <command>ninja test</command>.  When run in a graphical environment, 
+      <command>make -k check</command>.  When run in a graphical environment, 
       one test, appinfo, fails if <xref linkend='gnome-terminal'/> is not 
       installed.
     </para>
@@ -244,22 +229,19 @@ cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-versi
     <title>Command Explanations</title>
 
     <para>
-      <command>sed ... meson.build</command>: Fix the version of
-      the package to be consistent with other version numbers embedded
-      in the code.
-    </para>
-
-    <para>
-      <parameter>-Dwith-pcre=system</parameter>: This switch causes the
+      <parameter>--with-pcre=system</parameter>: This switch causes the
       build to use a system-provided version of the
       <application>PCRE</application> library instead of an internal
       version.
     </para>
 
     <para>
-      <parameter>-Dwith-docs=no</parameter>: This switch prevents
-      rebuilding the package documentation.
+      <parameter>--with-python=/usr/bin/python3</parameter>: Allows
+      using Python3 instead of Python2, even if Python2 is installed.
     </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/gtk-doc-rebuild.xml"/>
 
   </sect2>
 
@@ -292,8 +274,9 @@ cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-versi
           /usr/include/gio-unix-2.0,
           /usr/include/glib-2.0,
           /usr/lib/gio, 
-          /usr/lib/glib-2.0, and 
-          /usr/share/glib-2.0
+          /usr/lib/glib-2.0,
+          /usr/share/glib-2.0, and 
+          /usr/share/gtk-doc/html/{gio,glib,gobject}
         </seg>
       </seglistitem>
     </segmentedlist>
