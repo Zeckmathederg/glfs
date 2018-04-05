@@ -151,7 +151,15 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
       --help</command> to see all available command line options.</para>
     </note>
 
-<screen role="root"><userinput>/usr/sbin/make-ca -g</userinput></screen>
+<screen role="root"><userinput>
+sed -e 's%= /etc/ssl;%= "/etc/ssl";%' \
+    -e 's%= /usr;%= "/usr";%'         \
+    -i /usr/bin/c_rehash              &amp;&amp;
+/usr/sbin/make-ca -g</userinput></screen>
+
+    <para>The <command>sed</command> command works around missing quotes in
+    <command>c_rehash</command> from openssl-1.1.0h and can be safely rerun
+    (the " inserted the first time will prevent matches on subsequent runs).</para>
 
     <para>You should periodically update the store with the above command
     either manually, or via a <phrase revision="sysv">cron job.</phrase>
