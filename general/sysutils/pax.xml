@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY pax-download-http "&sourceforge-dl;/heirloom/heirloom-&pax-version;.tar.bz2">
+  <!ENTITY pax-download-http "http://pub.allbsd.org/MirOS/dist/mir/cpio/paxmirabilis-&pax-version;.cpio.gz">
   <!ENTITY pax-download-ftp  " ">
-  <!ENTITY pax-md5sum        "d846be4b268b1d55b6ffcef847f09979">
-  <!ENTITY pax-size          "977 KB">
-  <!ENTITY pax-buildsize     "9.2 MB">
+  <!ENTITY pax-md5sum        "51172547aa7447244ba1db5768cdcdfd">
+  <!ENTITY pax-size          "152 KB">
+  <!ENTITY pax-buildsize     "920 KB">
   <!ENTITY pax-time          "less than 0.1 SBU">
 ]>
 
@@ -85,6 +85,12 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Pax Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="cpio"/></para>
+
     <para condition="html" role="usernotes">
       User Notes: <ulink url="&blfs-wiki;/pax"/>
     </para>
@@ -96,47 +102,30 @@
     <para>
       This package has somewhat unusual installation instructions, because
       <application>pax</application> is part of a larger set of utilities
-      included in the same tarball. Issue the following commands:
+      included in the same tarball. Issue the following commands to
+      unpack and build the application:
     </para>
 
-<screen><userinput>sed -i build/mk.config                   \
-    -e '/LIBZ/s@ -Wl[^ ]*@@g'            \
-    -e '/LIBBZ2/{s@^#@@;s@ -Wl[^ ]*@@g}' \
-    -e '/BZLIB/s@0@1@'                   &amp;&amp;
+<screen><userinput>gzip -dck paxmirabilis-20161104.cpio.gz | cpio -mid &amp;&amp;
+cd pax &amp;&amp;
 
-make makefiles                           &amp;&amp;
-make -C libcommon                        &amp;&amp;
-make -C libuxre                          &amp;&amp;
-make -C cpio</userinput></screen>
+sed -i '/stat.h/a #include &lt;sys/sysmacros.h&gt;' cpio.c gen_subs.c tar.c &amp;&amp;
+
+cc -O2 -DLONG_OFF_T -o pax -DPAX_SAFE_PATH=\"/bin\" *.c</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>install -v -m755 cpio/pax_su3 /usr/bin/pax &amp;&amp;
-install -v -m644 cpio/pax.1 /usr/share/man/man1</userinput></screen>
+<screen role="root"><userinput>install -v pax /bin &amp;&amp;
+install -v pax.1 /usr/share/man/man1</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <command>sed ...</command>: This changes the configuration file
-      <filename>build/mk.config</filename> so that the system zlib and
-      libbz2 are used and linked as shared libraries.
-    </para>
-
-    <para>
-      <command>make makefiles</command>: This command builds all the
-      makefiles.
-    </para>
-
-    <para>
-      <command>make -C lib...</command>: First builds the necessary libraries.
-    </para>
-
-    <para>
-      <command>make -C cpio</command>: Then builds the archive utilities.
+      <command>sed ...</command>: This eliminates some irritating warnings.
     </para>
 
   </sect2>
