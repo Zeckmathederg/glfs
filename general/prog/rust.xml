@@ -6,10 +6,10 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "7272ddba14f512e6d2612ef60460bed8">
-  <!ENTITY rust-size          "53 MB">
-  <!ENTITY rust-buildsize     "4.1 GB (437 MB installed), (add 1.2GB for tests) including 226MB of ~/.cargo files for both the builder and root (from the install)">
-  <!ENTITY rust-time          "48 SBU (add 12 SBU for tests, both with 4 processors)">	
+  <!ENTITY rust-md5sum        "d8d4d30c8d0b905f978bee3fdd618db5">
+  <!ENTITY rust-size          "95 MB">
+  <!ENTITY rust-buildsize     "5.1 GB (440 MB installed) including 379MB of ~/.cargo files for the user building this and 440MB of files in the DESTDIR (add 1.2GB if running the tests)">
+  <!ENTITY rust-time          "33 SBU (add 17 SBU for tests, both with 4 processors)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -36,8 +36,8 @@
 
     <para>
       As with many  other programming languages, rustc (the rust compiler)
-      needs a binary from which to bootstrap. It will download a stage0 binary,
-      and several cargo files (these are actually .tar.gz source archives) at
+      needs a binary from which to bootstrap. It will download a stage0 binary
+      and many cargo crates (these are actually .tar.gz source archives) at
       the start of the build, so you cannot compile it without an internet
       connection.
     </para>
@@ -58,16 +58,15 @@
         Repeated builds of this package on the same machine show a wide range
         of build times. Some of this might be due to variations in downloading
         the required cargo files if they are not already present, but this does
-        not seem to adequately explain the variations. Also, both the builder
-        and the user running the install will need to download the cargo crates
-        if they are not already present in <filename>~/.cargo</filename>.
+        not seem to adequately explain the variations.
       </para>
       <para>
-        If you use a DESTDIR method to install, you will only need to download
-        the crates once, for the build, saving about one-third of the build and
-        install time (but using extra space for the install). Similarly if you
-        were to build as root, or if your user is allowed to run <command>sudo
-        ./x.py install</command> - but those methods are dangerous.
+        Unusually, a DESTDIR method is being used to install this package. This
+        is because running the install as root not only downloads all of the
+        cargo files again (to <filename>/root/.cargo</filename>), it then spends
+        a very long time recompiling. Using a DESTDIR method saves 30 SBU on the
+        4-core machine where this was tested, at the cost of an extra 60MB of
+        disk space for the extra files.
       </para>
     </note>
 
@@ -113,9 +112,17 @@
     <para role="required">
       <xref linkend="curl"/>,
       <xref linkend="cmake"/>,
-<!-- if changing this to use python3, also add python2 as a required
- dependency for firefox, because at the moment it picks that up from here -->
+<!-- Although this appears to build with python3, there are sometimes strange
+ script errors in the compilation (i.e. it exits after the build, without
+ any obvious errors and with a good status. Also ,it ships with a configure
+ script which invokes python2.7 to create config.toml, and some of the files
+ in the package use python2.7. -->
       <xref linkend="python2"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <package>clang</package> from <xref linkend="llvm"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -150,6 +157,9 @@
 [llvm]
 targets = "X86"
 
+# When using system llvm prefer shared libraries
+link-shared = true
+
 [build]
 # install cargo as well as rust
 extended = true
@@ -161,6 +171,20 @@ docdir = "share/doc/rustc-&rust-version;"
 [rust]
 channel = "stable"
 rpath = false
+
+# get reasonably clean output from the test harness
+quiet-tests = true
+
+# BLFS does not install the FileCheck executable from llvm,
+# so disable codegen tests
+codegen-tests = false
+
+[target.x86_64-unknown-linux-gnu]
+# delete this *section* if you are not using system llvm.
+# NB the output of llvm-config (i.e. help options) may be
+# dumped to the screen when config.toml is parsed.
+llvm-config = "/usr/bin/llvm-config"
+
 EOF</userinput></screen>
 
     <para>
@@ -171,18 +195,41 @@ EOF</userinput></screen>
 <screen><userinput>./x.py build</userinput></screen>
 
     <para>
+      The build will report it failed to compile <filename>miri</filename>
+      because of multiple potential crates for `log`, but that should be followed
+      by a message that the build completed successfully.
+    </para>
+
+    <caution>
+      <para>
+        On AMD Ryzen processors (family 17h), the non-optimized version of libstd
+        which is compiled at the start of the tests contains two opcodes which are
+        not implemented on this CPU family. These will be logged in the
+        <phrase revision="sysv">system log</phrase>
+        <phrase revision="systemd">systemd journal</phrase>
+        and will be followed a few minutes later by segmentation faults. Despite
+        that, the tests continue to run, apparently normally. But the system may
+        reboot before the tests have completed. The normal optimized libraries
+        run without this problem.
+      </para>
+      <para>
+        A mitigation is to install gdb
+        <!-- systemd apparently handles this with systemd-coredump -->
+        <phrase revision="sysv">and to run the tests with 'ulimit -C disabled'</phrase>
+        but this does not always prevent the system rebooting.
+      </para>
+    </caution>
+
+    <para>
       To run the tests issue
       <command>./x.py test --verbose --no-fail-fast &gt;../rustc-testlog</command>:
       as with the build, that will use all available CPUs.  This runs many suites
-      of tests (in an apparently random order), three may fail:
-      compile-fail/issue-37131.rs and run-make/target-without-atomics both try to
-      compile for the thumbv6m-none-eabi target, but the BLFS build does not cater for
-      that, and all 105 tests in debuginfo-gdb will fail if
-      <application>gdb</application> has not been installed. Several other tests in
-      run-make can also fail. With <application>glibc-2.27</application> the stack
-      guard page has been moved to just beyond the stack, instead of within it. That
-      causes three run-pass tests (out-of-stack.rs, stack-probes-lto.rs,
-      stack-probes.rs) to fail.
+      of tests (in an apparently random order), at least one will fail:
+      compile-fail/issue-37131.rs tries to
+      compile for the thumbv6m-none-eabi target but the BLFS build does not cater for
+      that, and many tests in debuginfo-gdb will fail if
+      <application>gdb</application> has not been installed. A few other tests might
+      fail.
     </para>
 
     <para>
@@ -193,7 +240,7 @@ EOF</userinput></screen>
 <screen><command>grep 'running .* tests' ../rustc-testlog | awk '{ sum += $2 } END { print sum }'</command></screen>
 
     <para>
-      That should report 14854 tests. Similarly, the total tests which failed can
+      That should report 13224 tests. Similarly, the total tests which failed can
       be found by running:
     </para>
 
@@ -206,10 +253,20 @@ EOF</userinput></screen>
     </para>
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
+      Still as your normal user, do a DESTDIR install:
     </para>
 
-<screen role="root"><userinput>./x.py install</userinput></screen>
+<screen><userinput>mkdir -v /sources/RUST               &amp;&amp;
+DESTDIR=/sources/RUST ./x.py install</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user
+      install the files from the DESTDIR:
+    </para>
+
+<screen role="root"><userinput>chown -R root:root /sources/RUST &amp;&amp;
+cp -a /sources/RUST/* /</userinput></screen>
+
   </sect2>
 
   <sect2 role="commands">
@@ -217,7 +274,9 @@ EOF</userinput></screen>
 
     <para>
       <command>targets = "X86"</command>: this avoids building all the available
-      linux cross-compilers (Aarch64, MIPS, PowerPC, SystemZ, etc).
+      linux cross-compilers (Aarch64, MIPS, PowerPC, SystemZ, etc). Unfortunately,
+      rust insists on installing source files for these below
+      <filename class="directory">/usr/lib/rustlib/src</filename>.
     </para>
 
     <para>
@@ -239,6 +298,16 @@ EOF</userinput></screen>
     </para>
 
     <para>
+      <command>[target.x86_64-unknown-linux-gnu]</command>: the syntax of
+      <filename>config.toml</filename> requires an <literal>llvm-config</literal>
+      entry for each target for which system-llvm is to be used. Change the target
+      to <literal>[target.i686-unknown-linux-gnu]</literal> if you are building
+      on 32-bit x86. This whole section may be omitted if you wish to build
+      against the shipped llvm, or do not have clang, but the resulting build will
+      be larger and take a little longer.
+    </para>
+
+    <para>
       <command>--verbose</command>: this switch can sometimes provide more
       information about a test which fails.
     </para>
@@ -249,14 +318,20 @@ EOF</userinput></screen>
     </para>
 
     <para>
-      <option>PYTHON=/usr/bin/python3 ... tee buildlog</option>: Because rust
-      can use <application>Python3</application> which was installed in LFS,
-      this command tells it to use that instead of the deprecated
-      <application>Python2</application>. For the moment this should be regarded
-      as experimental and problems may be encountered. Because
-      <application>rust</application> will use all CPUs, if an error happened the
-      message may have scrolled out of the terminal's buffer. Logging makes it
-      possible to find out what was reported.
+      <command>mkdir -v /sources/RUST</command>: this is not strictly necessary,
+      but it confirms that your regular user can write there, and that there is
+      not an existing directory of this name left over from a previous install.
+      By convention, BLFS builds in <filename class="directory">/sources</filename>
+      but you can change this to another location where you can write (and
+      similarly change the commands used by
+      <systemitem class="username">root</systemitem>). Note that DESTDIR installs
+      need an absolute path, passing e.g. ../RUST will not work.
+    </para>
+
+    <para>
+      <command>chown -R root:root /sources/RUST</command>: the DESTDIR install
+      was run by a regular user, who owns the files. For security, change their
+      owner before doing a simple copy to install them.
     </para>
 
   </sect2>
@@ -271,7 +346,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          cargo, rls, rust-gdb, rust-lldb, rustc, rustdoc.
+          cargo-fmt, cargo, rls, rust-gdb, rust-lldb, rustc, rustdoc, rustfmt.
         </seg>
         <seg>
           Many lib*&lt;16-byte-hash&gt;.so libraries.
@@ -289,6 +364,19 @@ EOF</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="cargo-fmt">
+        <term><command>cargo-fmt</command></term>
+        <listitem>
+          <para>
+            formats all bin and lib files of the current crate using
+            rustfmt.
+          </para>
+          <indexterm zone="rust cargo-fmt">
+            <primary sortas="b-cargo-fmt">cargo-fmt</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="cargo">
         <term><command>cargo</command></term>
@@ -320,7 +408,9 @@ EOF</userinput></screen>
         <term><command>rust-gdb</command></term>
         <listitem>
           <para>
-            is a Python wrapper script for gdb.
+            is a wrapper script for gdb, pulling in Python
+            pretty-printing modules installed in <filename
+            class="directory">/usr/lib/rustlib/etc</filename>.
           </para>
           <indexterm zone="rust rust-gdb">
             <primary sortas="b-rust-gdb">rust-gdb</primary>
@@ -332,7 +422,8 @@ EOF</userinput></screen>
         <term><command>rust-lldb</command></term>
         <listitem>
           <para>
-            is a Python wrapper script for LLDB (the LLVM debugger).
+            is a wrapper script for LLDB (the LLVM debugger)
+            pulling in the Python pretty-printing modules.
           </para>
           <indexterm zone="rust rust-lldb">
             <primary sortas="b-rust-lldb">rust=lldb</primary>
@@ -360,6 +451,18 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="rust rustdoc">
             <primary sortas="b-rustdoc">rustdoc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rustfmt">
+        <term><command>rustfmt</command></term>
+        <listitem>
+          <para>
+            formats rust code.
+          </para>
+          <indexterm zone="rust rustfmt">
+            <primary sortas="b-rustfmt">rustfmt</primary>
           </indexterm>
         </listitem>
       </varlistentry>
