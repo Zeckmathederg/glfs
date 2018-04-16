@@ -61,10 +61,10 @@
         not seem to adequately explain the variations.
       </para>
       <para>
-        Unusually, a DESTDIR method is being used to install this package. This
-        is because running the install as root not only downloads all of the
+        Unusually, a DESTDIR-style method is being used to install this package.
+        This is because running the install as root not only downloads all of the
         cargo files again (to <filename>/root/.cargo</filename>), it then spends
-        a very long time recompiling. Using a DESTDIR method saves 30 SBU on the
+        a very long time recompiling. Using this method saves 30 SBU on the
         4-core machine where this was tested, at the cost of an extra 60MB of
         disk space for the extra files.
       </para>
@@ -123,6 +123,7 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <package>clang</package> from <xref linkend="llvm"/>
+      (built with -DLLVM_LINK_LLVM_DYLIB=ON)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -192,7 +193,8 @@ EOF</userinput></screen>
       commands:
     </para>
 
-<screen><userinput>./x.py build</userinput></screen>
+<screen><userinput>export RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi" &amp;&amp;
+./x.py build</userinput></screen>
 
     <para>
       The build will report it failed to compile <filename>miri</filename>
@@ -256,16 +258,15 @@ EOF</userinput></screen>
       Still as your normal user, do a DESTDIR install:
     </para>
 
-<screen><userinput>mkdir -v /sources/RUST               &amp;&amp;
-DESTDIR=/sources/RUST ./x.py install</userinput></screen>
+<screen><userinput>DESTDIR=${PWD}/install ./x.py install</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user
       install the files from the DESTDIR:
     </para>
 
-<screen role="root"><userinput>chown -R root:root /sources/RUST &amp;&amp;
-cp -a /sources/RUST/* /</userinput></screen>
+<screen role="root"><userinput>chown -R root:root install &amp;&amp;
+cp -a install/* /</userinput></screen>
 
   </sect2>
 
@@ -308,6 +309,13 @@ cp -a /sources/RUST/* /</userinput></screen>
     </para>
 
     <para>
+      <command>export RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi"</command>:
+      This adds a link to libffi to any RUSTFLAGS you may already be passing
+      to the build. On some systems, linking fails to include libffi unless
+      this is used. The reason why this is needed is not clear.
+    </para>
+
+    <para>
       <command>--verbose</command>: this switch can sometimes provide more
       information about a test which fails.
     </para>
@@ -318,18 +326,14 @@ cp -a /sources/RUST/* /</userinput></screen>
     </para>
 
     <para>
-      <command>mkdir -v /sources/RUST</command>: this is not strictly necessary,
-      but it confirms that your regular user can write there, and that there is
-      not an existing directory of this name left over from a previous install.
-      By convention, BLFS builds in <filename class="directory">/sources</filename>
-      but you can change this to another location where you can write (and
-      similarly change the commands used by
-      <systemitem class="username">root</systemitem>). Note that DESTDIR installs
-      need an absolute path, passing e.g. ../RUST will not work.
+      <command>DESTDIR=${PWD}/install ./x.py install</command>: This effects a
+      DESTDIR-style install in the source tree,creating an <filename
+      class="directory">install</filename> directory. Note that DESTDIR installs
+      need an absolute path, passing 'install' will not work.
     </para>
 
     <para>
-      <command>chown -R root:root /sources/RUST</command>: the DESTDIR install
+      <command>chown -R root:root install</command>: the DESTDIR install
       was run by a regular user, who owns the files. For security, change their
       owner before doing a simple copy to install them.
     </para>
