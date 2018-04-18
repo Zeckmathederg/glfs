@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY polkit-download-http
-           "&sources-anduin-http;/polkit/polkit-&polkit-version;.tar.xz">
+           "https://www.freedesktop.org/software/polkit/releases/polkit-&polkit-version;.tar.gz">
   <!ENTITY polkit-download-ftp  " ">
-  <!ENTITY polkit-md5sum        "11ec10c04899651e40ef66766932254d">
-  <!ENTITY polkit-size          "616 KB">
-  <!ENTITY polkit-buildsize     "19 MB">
-  <!ENTITY polkit-time          "0.2 SBU">
+  <!ENTITY polkit-md5sum        "93ff41874e7df8c62ed9e41893817f04">
+  <!ENTITY polkit-size          "1.5 MB">
+  <!ENTITY polkit-buildsize     "20 MB (with tests)">
+  <!ENTITY polkit-time          "0.4 SBU (Using parallelism=4; with tests)">
 ]>
 
 <sect1 id="polkit" xreflabel="Polkit-&polkit-version;">
@@ -37,10 +37,6 @@
     </para>
 
     &lfs82_checked;
-
-    <note><para>Due to lack of releases, a tarball has been generated for use by
-    BLFS, which includes a git checkout at ref 2919920, and a pending patch to
-    use js38. The patch is included in the tarball for review.</para></note>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -80,8 +76,8 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="glib2"/>, and
-      <xref linkend="js38"/>
+      <xref linkend="glib2"/> and
+      <xref linkend="js52"/>
     </para>
 
     <bridgehead renderas="sect4" revision="systemd">Recommended</bridgehead>
@@ -163,6 +159,11 @@ useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
 <screen><userinput>sed -i "s:/sys/fs/cgroup/systemd/:/sys:g" configure</userinput></screen>
     </note>
 
+    <para>Fix an issue identified upstream after the package release:</para>
+
+<screen><userinput>sed -e '/JS_ReportWarningUTF8/s/,/, "%s",/'  \
+        -i  src/polkitbackend/polkitbackendjsauthority.cpp</userinput></screen>
+
     <para>
       Install <application>Polkit</application> by running the following
       commands:
@@ -185,9 +186,7 @@ make</userinput></screen>
     <para>
       To test the results, issue: <command>make check</command>.
       Note that system <application>D-Bus</application> daemon
-      must be running for the testsuite to complete. There is
-      also a warning about <application>ConsoleKit</application>
-      database not present, but that one can be safely ignored.
+      must be running for the testsuite to complete. 
     </para>
 
     <para>
@@ -211,8 +210,9 @@ make</userinput></screen>
     <para revision="sysv">
       <parameter>--with-authfw=shadow</parameter>: This parameter configures the
       package to use the <application>Shadow</application> rather than the
-      <application>Linux-PAM</application> Authentication framework. Remove it
-      if you would like to use <application>Linux-PAM</application>.
+      <application>Linux-PAM</application> Authentication framework. Change
+      the argument to 'pam' if you would like to use 
+      <application>Linux-PAM</application>.
     </para>
 
     <para revision="systemd">
