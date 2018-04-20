@@ -6,9 +6,9 @@
 
   <!ENTITY colord-download-http "https://www.freedesktop.org/software/colord/releases/colord-&colord-version;.tar.xz">
   <!ENTITY colord-download-ftp  " ">
-  <!ENTITY colord-md5sum        "eb6bcc5b826e1ad9bfa75c94534826a4">
+  <!ENTITY colord-md5sum        "f032ecac927e9078c41fff97800441e8">
   <!ENTITY colord-size          "1.8 MB">
-  <!ENTITY colord-buildsize     "24 MB (with tests)">
+  <!ENTITY colord-buildsize     "22 MB (with tests)">
   <!ENTITY colord-time          "0.2 SBU (with tests)">
 ]>
 
@@ -122,6 +122,11 @@
 useradd -c "Color Daemon Owner" -d /var/lib/colord -u 71 \
         -g colord -s /bin/false colord</userinput></screen>
 
+    <para>First, clean up about 100 warnings:</para>
+
+<screen><userinput>mv po/fur.po po/ur.po &amp;&amp;
+sed -i 's/fur/ur/' po/LINGUAS</userinput></screen>
+
     <para>
       Install <application>Colord</application> by running the following
       commands:
@@ -130,32 +135,33 @@ useradd -c "Color Daemon Owner" -d /var/lib/colord -u 71 \
 <screen revision="sysv"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson --prefix=/usr                   \
-      --sysconfdir=/etc               \
-      --localstatedir=/var            \
-      -Dwith-daemon-user=colord       \
-      -Denable-vala=true              \
-      -Denable-systemd=false          \
-      -Denable-libcolordcompat=true   \
-      -Denable-argyllcms-sensor=false \
-      -Denable-bash-completion=false  \
-      -Denable-docs=false             \
-      -Denable-man=false ..           &amp;&amp;
+meson --prefix=/usr            \
+      --sysconfdir=/etc        \
+      --localstatedir=/var     \
+      -Ddaemon_user=colord     \
+      -Dvapi=true              \
+      -Dsystemd=false          \
+      -Dlibcolordcompat=true   \
+      -Dargyllcms_sensor=false \
+      -Dbash_completion=false  \
+      -Ddocs=false             \
+      -Dman=false ..           &amp;&amp;
 ninja</userinput></screen>
 
 <screen revision="systemd"><userinput>mkdir build &amp;&amp;
 cd build &amp;&amp;
-meson --prefix=/usr                   \
-      --sysconfdir=/etc               \
-      --localstatedir=/var            \
-      -Dwith-daemon-user=colord       \
-      -Denable-vala=true              \
-      -Denable-systemd=true           \
-      -Denable-libcolordcompat=true   \
-      -Denable-argyllcms-sensor=false \
-      -Denable-bash-completion=false  \
-      -Denable-docs=false             \
-      -Denable-man=false ..           &amp;&amp;
+
+meson --prefix=/usr            \
+      --sysconfdir=/etc        \
+      --localstatedir=/var     \
+      -Ddaemon_user=colord     \
+      -Dvapi=true              \
+      -Dsystemd=true           \
+      -Dlibcolordcompat=true   \
+      -Dargyllcms_sensor=false \
+      -Dbash_completion=false  \
+      -Ddocs=false             \
+      -Dman=false ..           &amp;&amp;
 ninja</userinput></screen>
 
     <para>
@@ -177,53 +183,53 @@ ninja</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>-Dwith-daemon-user=colord</parameter>: This switch is used
+      <parameter>-Ddaemon_user=colord</parameter>: This switch is used
       so the colord daemon will run as an unprivileged user instead of the
       <systemitem class="username">root</systemitem> user.
     </para>
 
     <para>
-      <parameter>-Denable-vala=true</parameter>: This switch enables building
+      <parameter>-Dvapi=true</parameter>: This switch enables building
       the <application>Vala</application> bindings. Remove if you don't have
       <xref linkend="vala"/> installed.
     </para>
 
     <para revision="sysv">
-      <parameter>-Denable-systemd=false</parameter>: This switch disables
+      <parameter>-Dsystemd=false</parameter>: This switch disables
       support for <application>systemd</application> login in Colord
       applications. 
     </para>
 
     <para revision="systemd">
-      <parameter>-Denable-systemd=true</parameter>: This switch enables
+      <parameter>-Dsystemd=true</parameter>: This switch enables
       installation of the <application>systemd</application> service.
     </para>
 
     <para>
-      <parameter>-Denable-libcolordcompat=true</parameter>: This switch enables
+      <parameter>-Dlibcolordcompat=true</parameter>: This switch enables
       building a compatibility library for older packages that use
       <application>Colord</application>.
     </para>
 
     <para>
-      <parameter>-Denable-argyllcms-sensor=false</parameter>: This switch
+      <parameter>-Dargyllcms_sensor=false</parameter>: This switch
       disables the ArgLLCMS sensor driver. Omit if you have
       <ulink url="http://www.argyllcms.com/">ArgyllCMS</ulink> installed
       and wish to use it.
     </para>
 
     <para>
-      <parameter>-Denable-bash-completion=false</parameter>: This switch
+      <parameter>-Dbash_completion=false</parameter>: This switch
       disables Bash Completion support for Colord applications.
     </para>
 
     <para>
-      <parameter>-Denable-docs=false</parameter>: This switch disables building
+      <parameter>-Ddocs=false</parameter>: This switch disables building
       of documentation. Omit if you have <xref linkend="gtk-doc"/> avaialable.
     </para>
 
     <para>
-      <parameter>-Denable-man=false</parameter>: This switch disables building
+      <parameter>-Dman=false</parameter>: This switch disables building
       of man pages. Omit if you have <xref linkend="docbook-utils"/>
       avaialable.
     </para>
