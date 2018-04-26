@@ -5,14 +5,14 @@
   %general-entities;
 
   <!ENTITY ojdk-tarball              "jdk-&openjdk-version;+&openjdk-build;.tar.bz2">
-  <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk-updates/jdk9u">
+  <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk-updates/jdk10u">
   <!ENTITY ojdk-download             "&ojdk-repo;/archive/&ojdk-tarball;">
 
   <!ENTITY anduin-download           "&sources-anduin-http;/OpenJDK/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "174205155c001cf0cc5d3250d86cfb69">
-  <!ENTITY ojdk-size                 "812 KB">
-
+  <!ENTITY ojdk-md5sum               "9cc63586cf761644d95b044954a4920f">
+  <!ENTITY ojdk-size                 "84 MB">
+<!-- There is only one source now
   <!ENTITY corba-md5sum              "dbc62e27a93686a9aea12e9c97c2f765">
   <!ENTITY hotspot-md5sum            "25853ba33123397b2e755249f102ae73">
   <!ENTITY jaxp-md5sum               "f5ab5e468565e1ab3a181d2efb45b51f">
@@ -21,14 +21,14 @@
   <!ENTITY langtools-md5sum          "22b65322d04c8ffafd77230dbe5f178f">
   <!ENTITY nashorn-md5sum            "729d03b0cede2f697ad77170a9d89095">
   <!ENTITY total-download-size       "83 MB">
-
-  <!ENTITY jtreg-version             "4.2-b12-293">
+-->
+  <!ENTITY jtreg-version             "4.2-b12-366">
   <!ENTITY jtreg-download            "&anduin-download;/jtreg-&jtreg-version;.tar.gz">
-  <!ENTITY jtreg-md5sum              "806213d907d737ab49034344cd3df2cf">
-  <!ENTITY jtreg-size                "7.3 MB">
+  <!ENTITY jtreg-md5sum              "106c049e00ab9e6e48150b370ecf1a88">
+  <!ENTITY jtreg-size                "6.8 MB">
 
-  <!ENTITY ojdk-bdsize           "4.6 GB (additional 676 MB for tests)">
-  <!ENTITY ojdk-time                "3.8 SBU with 4 jobs (additonal 12.1 SBU for tests with 4 jobs)">
+  <!ENTITY ojdk-bdsize           "5.4 GB (additional 758 MB for tests)">
+  <!ENTITY ojdk-time                "5.7 SBU with 4 jobs (additonal 22 SBU for tests with 4 jobs)">
 ]>
 
 <sect1 id="openjdk" xreflabel="OpenJDK-&openjdk-version;">
@@ -136,6 +136,7 @@
           Download Size: &ojdk-size;
         </para>
       </listitem>
+<!--
       <listitem>
         <para>
           In addition to the root package, the instructions below first
@@ -143,6 +144,7 @@
           &total-download-size;.
         </para>
       </listitem>
+-->
       <listitem>
         <para>Estimated disk space required: &ojdk-bdsize;</para>
       </listitem>
@@ -201,8 +203,10 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="mercurial"/> and
-      an X Window manager such as <xref linkend="twm"/> (for the tests)
+      <xref linkend="graphviz"/>,
+      <xref linkend="mercurial"/>,
+      an X Window manager such as <xref linkend="twm"/> (for the tests), and
+      <ulink url="https://pandoc.org/">pandoc</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -213,6 +217,7 @@
   <sect2 role="installation">
     <title>Installation of OpenJDK</title>
 
+<!--
     <para>
       Unlike other packages in BLFS, the <application>OpenJDK</application>
       source packages are distributed in multiple tarballs. You need to first
@@ -241,11 +246,11 @@ md5sum -c subprojects.md5 &amp;&amp;
 
 for subproject in corba hotspot jaxp jaxws jdk langtools nashorn; do
   mkdir -pv ${subproject} &amp;&amp;
-  tar -xf ${subproject}.tar.bz2 --strip-components=1 -C ${subproject}
+  tar -xf ${subproject}.tar.bz2 -\-strip-components=1 -C ${subproject}
 done</userinput></screen>
-
+-->
     <para>
-      If you have downloaded the optional test harness, unpack it too:
+      If you have downloaded the optional test harness, unpack it now:
     </para>
 
 <screen><userinput>tar -xf ../jtreg-&jtreg-version;.tar.gz</userinput></screen>
@@ -282,7 +287,7 @@ bash configure --enable-unlimited-crypto    \
                --with-libjpeg=system        \
                --with-libpng=system         \
                --with-zlib=system           \
-               --with-version-build="11"    \
+               --with-version-build="&openjdk-build;"    \
                --with-version-pre=""        \
                --with-version-opt=""        \
                --with-cacerts-file=/etc/ssl/java/cacerts.jks &amp;&amp;
@@ -296,11 +301,10 @@ make images</userinput></screen>
     </note>
 
     <para>
-      To test the results, issue: <command>make run-test-tier1</command>. Seven
-      tests are expected to fail, and 11 to error when building only the server
-      target. You can limit the number of concurrent tests by setting
+      To test the results, issue: <command>make run-test-tier1</command>.
+      You can limit the number of concurrent tests by setting
       <envar>JTREG="JOBS=&lt;X&gt;"</envar> where &lt;X&gt; is the number of
-      jobs.
+      jobs. There is one failure.
     </para>
 
     <para>Install the package with the following commands as the
@@ -312,7 +316,7 @@ chown -R root:root /opt/jdk-&openjdk-version;+&openjdk-build;          &amp;&amp
 find /opt/jdk-&openjdk-version;+&openjdk-build; -name \*.diz -delete   &amp;&amp;
 for s in 16 24 32 48; do
   install -Dm 644 jdk/src/java.desktop/unix/classes/sun/awt/X11/java-icon${s}.png \
-                  /usr/share/icons/hicolor/${s}x${s}/apps/java9.png
+                  /usr/share/icons/hicolor/${s}x${s}/apps/java.png
 done
 </userinput></screen>
 
@@ -346,38 +350,38 @@ done
 
 cat &gt; /usr/share/applications/openjdk-9-java.desktop &lt;&lt; "EOF" &amp;&amp;
 <literal>[Desktop Entry]
-Name=OpenJDK Java 9 Runtime
-Comment=OpenJDK Java 9 Runtime
+Name=OpenJDK Java &openjdk-version; Runtime
+Comment=OpenJDK Java &openjdk-version; Runtime
 Exec=/opt/jdk/bin/java -jar
 Terminal=false
 Type=Application
-Icon=java9
+Icon=java
 MimeType=application/x-java-archive;application/java-archive;application/x-jar;
 NoDisplay=true</literal>
 EOF
 
 cat &gt; /usr/share/applications/openjdk-9-policytool.desktop &lt;&lt; "EOF" &amp;&amp;
 <literal>[Desktop Entry]
-Name=OpenJDK Java 9 Policy Tool
-Name[pt_BR]=OpenJDK Java 9 - Ferramenta de Pol&#237;tica
-Comment=OpenJDK Java 9 Policy Tool
-Comment[pt_BR]=OpenJDK Java 9 - Ferramenta de Pol&#237;tica
+Name=OpenJDK Java &openjdk-version; Policy Tool
+Name[pt_BR]=OpenJDK Java &openjdk-version; - Ferramenta de Pol&#237;tica
+Comment=OpenJDK Java &openjdk-version; Policy Tool
+Comment[pt_BR]=OpenJDK Java &openjdk-version; - Ferramenta de Pol&#237;tica
 Exec=/opt/jdk/bin/policytool
 Terminal=false
 Type=Application
-Icon=java9
+Icon=java
 Categories=Settings;</literal>
 EOF
 
 cat &gt; /usr/share/applications/openjdk-9-jconsole.desktop &lt;&lt; "EOF"
 <literal>[Desktop Entry]
-Name=OpenJDK Java 9 Console
-Comment=OpenJDK Java 9 Console
+Name=OpenJDK Java &openjdk-version; Console
+Comment=OpenJDK Java &openjdk-version; Console
 Keywords=java;console;monotoring
 Exec=/opt/jdk/bin/jconsole
 Terminal=false
 Type=Application
-Icon=java9
+Icon=java
 Categories=Application;System;</literal>
 EOF</userinput></screen>
 
@@ -526,16 +530,15 @@ bin/keytool -list -cacerts</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>appletviewer, extcheck, idlj, jar,
-        jarsigner, java, javac, javadoc, javah, javap, java-rmi.cgi,
-        jcmd, jconsole, jdb, jdeps, jhat, jinfo, jjs, jmap, jps,
-        jrunscript, jsadebugd, jstack, jstat, jstatd, keytool,
-        native2ascii, orbd, pack200, policytool, rmic, rmid, rmiregistry,
+        <seg>appletviewer, idlj, jaotc, jar,
+        jarsigner, java, javac, javadoc, javap, jcmd, jconsole, jdb,
+        jdeprscan, jdeps, jhsdb, jimage, jinfo, jjs, jlink, jmap, jmod, jps,
+        jrunscript, jshell, jstack, jstat, jstatd, keytool,
+        orbd, pack200, rmic, rmid, rmiregistry,
         schemagen, serialver, servertool, tnameserv, unpack200,
         wsgen, wsimport, and xjc</seg>
-        <seg>/opt/OpenJDK-&openjdk-version;/lib/*, and
-        /opt/OpenJDK-&openjdk-version;/jre/lib/*</seg>
-        <seg>/opt/OpenJDK-&openjdk-version;</seg>
+        <seg>/opt/jdk-&openjdk-version;/lib/*</seg>
+        <seg>/opt/jdk-&openjdk-version;</seg>
       </seglistitem>
     </segmentedlist>
 
@@ -553,7 +556,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="extcheck">
         <term><command>extcheck</command></term>
         <listitem>
@@ -565,13 +568,23 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="idlj">
         <term><command>idlj</command></term>
         <listitem>
           <para>generates Java bindings from a given IDL file.</para>
           <indexterm zone="openjdk idlj">
             <primary sortas="b-idlj">idlj</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="jaotc">
+        <term><command>jaotc</command></term>
+        <listitem>
+          <para>is an <quote>ahead-of-time</quote> java class compiler.</para>
+          <indexterm zone="openjdk jaotc">
+            <primary sortas="b-jaotc">jaotc</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -634,6 +647,7 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+<!--
       <varlistentry id="javah">
         <term><command>javah</command></term>
         <listitem>
@@ -644,7 +658,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="javap">
         <term><command>javap</command></term>
         <listitem>
@@ -654,7 +668,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="java-rmi.cgi">
         <term><command>java-rmi.cgi</command></term>
         <listitem>
@@ -664,7 +678,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="jcmd">
         <term><command>jcmd</command></term>
         <listitem>
@@ -697,6 +711,17 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="jdeprscan">
+        <term><command>jdeprscan</command></term>
+        <listitem>
+          <para>scans class or jar files for uses of deprecated API
+          elements.</para>
+          <indexterm zone="openjdk jdeprscan">
+            <primary sortas="b-jdeprscan">jdeprscan</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="jdeps">
         <term><command>jdeps</command></term>
         <listitem>
@@ -708,6 +733,17 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="jhsdb">
+        <term><command>jhsdb</command></term>
+        <listitem>
+          <para>is a tool to analyze the content of a core dump from a
+          crashed Java Virtual Machine (JVM).</para>
+          <indexterm zone="openjdk jhsdb">
+            <primary sortas="b-jhsdb">jhsdb</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+<!--
       <varlistentry id="jhat">
         <term><command>jhat</command></term>
         <listitem>
@@ -715,6 +751,17 @@ bin/keytool -list -cacerts</userinput></screen>
           in a web browser.</para>
           <indexterm zone="openjdk jhat">
             <primary sortas="b-jhat">jhat</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+-->
+      <varlistentry id="jimage">
+        <term><command>jimage</command></term>
+        <listitem>
+          <para>is used to list, extract, verify, or get information about
+          modules in <emphasis>jimage</emphasis> format.</para>
+          <indexterm zone="openjdk jimage">
+            <primary sortas="b-jimage">jimage</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -742,6 +789,17 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="jlink">
+        <term><command>jlink</command></term>
+        <listitem>
+          <para>is used to assemble and optimize a set of modules and their
+          dependencies into a custom runtime image.</para>
+          <indexterm zone="openjdk jlink">
+            <primary sortas="b-jlink">jlink</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="jmap">
         <term><command>jmap</command></term>
         <listitem>
@@ -752,6 +810,18 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
+
+      <varlistentry id="jmod">
+        <term><command>jmod</command></term>
+        <listitem>
+          <para>creates JMOD files and lists the content of existing JMOD
+          files.</para>
+          <indexterm zone="openjdk jmod">
+            <primary sortas="b-jmod">jmod</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
 
       <varlistentry id="jps">
         <term><command>jps</command></term>
@@ -773,6 +843,17 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="jshell">
+        <term><command>jshell</command></term>
+        <listitem>
+          <para>is an interactive tool for learning the Java programming
+          language and prototyping Java code.</para>
+          <indexterm zone="openjdk jshell">
+            <primary sortas="b-jshell">jshell</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+<!--
       <varlistentry id="jsadebugd">
         <term><command>jsadebugd</command></term>
         <listitem>
@@ -783,7 +864,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="jstack">
         <term><command>jstack</command></term>
         <listitem>
@@ -825,7 +906,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="native2ascii">
         <term><command>native2ascii</command></term>
         <listitem>
@@ -836,7 +917,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="orbd">
         <term><command>orbd</command></term>
         <listitem>
@@ -858,7 +939,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="policytool">
         <term><command>policytool</command></term>
         <listitem>
@@ -868,7 +949,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="rmic">
         <term><command>rmic</command></term>
         <listitem>
