@@ -8,8 +8,8 @@
   <!ENTITY transcode-download-ftp  "&gentoo-ftp-repo;/transcode-&transcode-version;.tar.bz2">
   <!ENTITY transcode-md5sum        "9bb25a796a8591fb764de46ee87ce505">
   <!ENTITY transcode-size          "2.1 MB">
-  <!ENTITY transcode-buildsize     "75 MB">
-  <!ENTITY transcode-time          "1.0 SBU">
+  <!ENTITY transcode-buildsize     "66 MB">
+  <!ENTITY transcode-time          "0.6 SBU">
 ]>
 
 <sect1 id="transcode" xreflabel="Transcode-&transcode-version;">
@@ -30,14 +30,28 @@
     <title>Introduction to Transcode</title>
 
     <para>
-      <application>Transcode</application> is a fast, versatile and
-      command-line based audio/video everything to everything converter.
+      <application>Transcode</application> was a fast, versatile and
+      command-line based audio/video everything to everything converter
+      primarily focussed on producing AVI video files with MP3 audio,
+      but also including a program to read all the video and audio streams
+      from a DVD.
+      <!-- 403 Forbidden
       For a rundown of the features and capabilities, along with usage
       examples, visit the Transcode Wiki at
-      <ulink url="http://www.transcoding.org/"/>.
+      <ulink url="http://www.transcoding.org/"/>.-->
     </para>
 
-    &lfs82_checked;
+    <para>
+      Although outdated and no longer maintained, it can still be used to
+      extract items from a DVD using only the required and recommended
+      dependencies, or to recode to AVI files.
+    </para>
+
+    <!--&lfs82_checked;--> <!-- Come on guys, it doesn't work properly -->
+    <para>
+      Subjects to the comments below, this package is known to build and
+      minimally work using an LFS-8.2 platform.
+    </para>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -78,7 +92,7 @@
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/transcode-&transcode-version;-ffmpeg3-1.patch"/>
+          <ulink url="&patch-root;/transcode-&transcode-version;-ffmpeg4-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -87,7 +101,7 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="ffmpeg"/>
+      <xref linkend="ffmpeg"/> (configured with --enable-avresample)
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -103,7 +117,7 @@
     <para role="optional">
       <xref linkend="faac"/>,
       <xref linkend="freetype2"/>,
-      <xref linkend="imagemagick"/>,
+      <xref linkend="imagemagick6"/>,
       <xref linkend="liba52"/>,
       <xref linkend="libdv"/>,
       <xref linkend="libjpeg"/>,
@@ -119,6 +133,11 @@
       <xref linkend="xvid"/>
       <ulink url="http://sourceforge.net/projects/mjpeg/">MJPEG Tools</ulink>, and
       <ulink url="http://www.netlib.org/pvm3/">PVM3</ulink>,
+    </para>
+
+    <bridgehead renderas="sect4">Optional (at runtime)</bridgehead>
+    <para role="optional">
+      <ulink url="https://sourceforge.net/projects/lsdvd/files/">lsdvd</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -149,14 +168,6 @@
     </note>
 
     <para>
-      If building with --enable-freetype2 configure switch, use the following
-      <command>sed</command> to fix building against
-      <application>FreeType-2.5.1</application> or newer versions:
-    </para>
-
-<screen><userinput>sed -i "s:#include &lt;freetype/ftglyph.h&gt;:#include FT_GLYPH_H:" filter/subtitler/load_font.c</userinput></screen>
-
-    <para>
       Install <application>Transcode</application> by running the following
       commands:
     </para>
@@ -164,7 +175,7 @@
 <screen><userinput>sed -i 's|doc/transcode|&amp;-$(PACKAGE_VERSION)|' \
        $(find . -name Makefile.in -exec grep -l 'docsdir =' {} \;) &amp;&amp;
 
-patch -Np1 -i ../transcode-&transcode-version;-ffmpeg3-1.patch                   &amp;&amp;
+patch -Np1 -i ../transcode-&transcode-version;-ffmpeg4-1.patch                   &amp;&amp;
 ./configure --prefix=/usr \
             --enable-alsa \
             --enable-libmpeg2 &amp;&amp;
@@ -187,11 +198,6 @@ make</userinput></screen>
 
     <para>
       <command>sed -i ...</command>: Fixes install location for documentation.
-    </para>
-
-    <para>
-      <command>sed ... import/probe_ffmpeg.c</command>: This sed fixes
-      compilation with <application>ffmpeg-2.4</application> or newer versions.
     </para>
 
     <para>
@@ -302,7 +308,9 @@ make</userinput></screen>
           <para>
             concatenates input files using the input plugins of
             <application>Transcode</application>.  This is useful
-            for extracting VOB (Video OBject) files.
+            for extracting VOB (Video OBject) files, either for
+            a whole DVD or for selected Titles or Chapters, which
+            can then be played or recoded.
           </para>
           <indexterm zone="transcode tccat">
             <primary sortas="b-tccat">tccat</primary>
