@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mutt-download-http " ">
+  <!ENTITY mutt-download-http "http://ftp.mutt.org/pub/mutt/mutt-&mutt-version;.tar.gz">
   <!ENTITY mutt-download-ftp  "ftp://ftp.mutt.org/pub/mutt/mutt-&mutt-version;.tar.gz">
-  <!ENTITY mutt-md5sum        "9694baaa9cbfb033334efb5f4d830ad4">
+  <!ENTITY mutt-md5sum        "cc676ca91b8fd53513e6e9cb2cea97fc">
   <!ENTITY mutt-size          "4.1 MB">
-  <!ENTITY mutt-buildsize     "40 MB (plus a further 5MB for the PDF manual)">
+  <!ENTITY mutt-buildsize     "41 MB (plus a further 5MB for the PDF manual)">
   <!ENTITY mutt-time          "0.3 SBU (plus a further 0.2 SBU to build the PDF manual)">
 ]>
 
@@ -100,7 +100,8 @@
     <para role="optional">
       <xref linkend="docbook-dsssl"/>,
       <xref linkend="openjade"/>, and
-      <xref linkend="texlive"/> (or <xref linkend="tl-installer"/>)
+      <xref linkend="texlive"/> (or <xref linkend="tl-installer"/> with
+      <command>pdfjadetex</command> installed)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -129,6 +130,11 @@
     will create an empty text file, so we will save the shipped file.
     </para>
 
+    <para>If you intend to create the PDF version of the manual, apply the
+    following sed:</para>
+
+<screen><userinput>sed -i 's/\(pdfjadetex manual.tex;\)/\1 \1 \1/' doc/Makefile.in</userinput></screen>
+
     <para>Install <application>Mutt</application> by running the following
     commands:</para>
 
@@ -153,8 +159,7 @@ make &amp;&amp;</userinput></screen>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
 
-    <screen role='root'><userinput>
-make install &amp;&amp;
+    <screen role='root'><userinput>make install &amp;&amp;
 test -s doc/manual.txt ||
   install -v -m644 doc/manual.txt.shipped \
   /usr/share/doc/mutt-&mutt-version;/manual.txt</userinput></screen>
@@ -184,6 +189,12 @@ chmod -v 2755 /usr/bin/mutt_dotlock</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para><parameter>sed -i 's/\(pdfjadetex manual.tex;\)/\1 \1 \1/'
+    doc/Makefile.in</parameter>: TeX engines sometimes need to be run
+    multiple times to fix up references. In this case the engine
+    has to run three times to fix page references in the Table of Contents
+    and the List of Tables.</para>
+
     <para><parameter>--enable-external-dotlock</parameter>: In some circumstances
     the mutt-dotlock program is not created. This switch ensures it is always
     created.</para>
@@ -207,6 +218,9 @@ chmod -v 2755 /usr/bin/mutt_dotlock</userinput></screen>
 
     <para><option>--enable-smtp</option>: This switch enables
     SMTP relay support.</para>
+
+    <para><option>--with-idn2</option>: Use this parameter if both libidn and
+    libidn2 have been installed, and you wish to use libidn2 here.</para>
 
     <para><option>--with-sasl</option>: This parameter adds
     authentication support from <xref linkend="cyrus-sasl"/> in POP3/IMAP/SMTP
