@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY falkon-download-http "https://download.kde.org/stable/falkon/&falkon-version;/falkon-&falkon-version;.tar.xz">
+  <!ENTITY falkon-download-ftp  " ">
+  <!ENTITY falkon-md5sum        "c6fb6433ac0f228667e2f763c02317c5">
+  <!ENTITY falkon-size          "2.2 MB">
+  <!ENTITY falkon-buildsize     "147 MB">
+  <!ENTITY falkon-time          "3.4 SBU">
+]>
+
+<sect1 id="falkon" xreflabel="falkon-&falkon-version;">
+  <?dbhtml filename="falkon.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Falkon-&falkon-version;</title>
+
+  <indexterm zone="falkon">
+    <primary sortas="a-falkon">falkon</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to falkon</title>
+
+    <para>
+      <application>Falkon</application> is a KDE web browser using the QtWebEngine
+      rendering engine. It was previously known as <application>QupZilla</application>.
+      It aims to be a lightweight web browser available through all major platforms.
+    </para>
+
+    <para>
+      Although <application>falkon</application> is now part of KDE, it can be
+      installed without KDE (with the loss of <application>kwallet</application>
+      functionality, and of translations of the (not-installed) example
+      <command>hellopython.py</command> script).
+    </para>
+
+    &lfs82_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&falkon-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&falkon-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &falkon-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &falkon-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &falkon-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &falkon-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">falkon Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="extra-cmake-modules"/>,
+      <xref linkend="qtwebengine"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="gnome-keyring"/>,
+      <xref linkend="kf5-frameworks"/>
+      (for ki18n if installing the translations of <command>hellopython.py</command>,
+      or for kwallet and its dependencies), and
+      <ulink
+      url="http://download.qt.io/official_releases/QtForPython/pyside2/">PySide2</ulink>
+      for experimental <application>Python</application> plugins (compiling this from
+      source is very slow).
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/falkon"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of falkon</title>
+
+    <para>
+      To set the prefix to match KDE (if that has been installed), or
+      else to install in <filename class="directory">/usr</filename>
+      run:
+    </para>
+
+<screen><userinput>test -n "${KF5_PREFIX}" &amp;&amp; export FALKON_PREFIX=${KF5_PREFIX} ||
+  export FALKON_PREFIX=/usr</userinput></screen>
+
+    <para>
+      Install <application>falkon</application> by running the following
+      commands:
+    </para>
+
+    <para>
+      Unless you have installed both PySide2 and ki18n, remove the translations
+      for the sample <command>hellopython.py</command> script:
+    </para>
+
+<screen><userinput>rm -rf po/</userinput></screen>
+
+    <para>
+      In case you wish to run the tests, fix one of them so that it will
+      work correctly with both Qt-5.10 and Qt-5.11:
+    </para>
+
+<screen><userinput>sed -i 's/"5.11.", 5) == 0 ? 1 : 2/"5.10.", 5) &gt;= 0 ? 2 : 1/' \
+  autotests/webviewtest.cpp</userinput></screen>
+
+    <para>
+      Now build the program:
+    </para>
+
+<screen><userinput>./configure --prefix=$FALKON_PREFIX --disable-static &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make test</command>. All
+      tests should pass. If any fail, the full results will be in
+      <filename>Testing/Temporary/LastTest.log</filename>.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+    <para>
+      If you have installed <application>Pyside2</application> you will want to
+      examine the <command>hellopython.py</command> which is in the <filename
+      class="directory">scripts/</filename> directory, and perhaps copy it to
+      your home directory.
+    </para>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>sed -i 's/"5.11.", 5) == 0 ? 1 : 2/"5.10.", 5) &gt;= 0 ? 2 : 1/' ...</command>:
+      This test previously looked for QtWebengine-5.10 which had changed its
+      result compared to earlier versions. In the move to Qt-5.11 the version
+      was bumped but the results were swapped. Change it to examine if the version
+      is <emphasis>at least 5.10</emphasis>, and to swap the expected results back.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Directory</segtitle>
+
+      <seglistitem>
+        <seg>
+          falkon
+        </seg>
+        <seg>
+          libFalkonPrivate.so.3
+        </seg>
+        <seg>
+          ${FALKON_PREFIX}/lib/plugins, ${FALKON_PREFIX}/share/falkon.
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="falkon-prog">
+        <term><command>falkon</command></term>
+        <listitem>
+          <para>
+            is a web browser which uses qtwebengine.
+          </para>
+          <indexterm zone="falkon falkon-prog">
+            <primary sortas="b-falkon">falkon</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libFalkonPrivate.so.3">
+        <term><filename class="libraryfile">libFalkonPrivate.so.3</filename></term>
+        <listitem>
+          <para>
+            contains functions used by falkon.
+          </para>
+          <indexterm zone="falkon libFalkonPrivate.so.3">
+            <primary sortas="c-libFalkonPrivate.so.3">libFalkonPrivate.so.3</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
