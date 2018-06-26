@@ -6,12 +6,12 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "b00d75651f328abff5eb6782d9373b73">
-  <!ENTITY firefox-size          "260 MB">
+  <!ENTITY firefox-md5sum        "a5a0e633a348d338f1baaa838f5f24bf">
+  <!ENTITY firefox-size          "255 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
-    But the extra files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "9.2 GB (147 MB installed) without tests">
-  <!ENTITY firefox-time          "29 SBU (with parallelism=4) without tests">
+    But the extra cached cargo files, if any, seem to be minimal -->
+  <!ENTITY firefox-buildsize     "9.2 GB (132 MB installed) without tests">
+  <!ENTITY firefox-time          "35 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -75,9 +75,6 @@
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
-        <para>Required patch if ffmpeg &gt;=3.5 has been installed: <ulink url="&patch-root;/firefox-&firefox-version;-ffmpeg4.0-1.patch"/></para>
-      </listitem>
-      <listitem>
         <para>
           Optional patch to allow system versions of <xref linkend="graphite2"/>
           and <xref linkend="harfbuzz"/>:
@@ -127,13 +124,14 @@ tar: Exiting with failure status due to previous errors
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="autoconf213"/>,
+      <application>Clang</application> (from <xref linkend="llvm"/>),
       both <xref linkend="gtk3"/> and
-      <xref linkend="gtk2"/>, 
+      <xref linkend="gtk2"/>,
       <xref linkend="libnotify"/>,
       <xref linkend="nss"/>,
       <xref linkend="pulseaudio"/>
       (or
-      <xref linkend="alsa-lib"/> if you edit the mozconfig; 
+      <xref linkend="alsa-lib"/> if you edit the mozconfig;
         now deprecated by mozilla), in either case please read the
         Configuration Information,
       <xref linkend="rust"/>,
@@ -146,8 +144,7 @@ tar: Exiting with failure status due to previous errors
     <para role="recommended">
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
-      <xref linkend="libvpx"/>,
-      <package>clang</package> from <xref linkend="llvm"/> (for stylo), and
+      <xref linkend="libvpx"/>, and
       <xref linkend="sqlite"/>
     </para>
 
@@ -235,10 +232,7 @@ ac_add_options --disable-necko-wifi
 # If you have installed GConf, comment out this line
 ac_add_options --disable-gconf
 
-# Stylo is the new CSS code, including the rust 'style'
-# package. It is enabled by default but requires clang.
-# Uncomment this if you do not wish to use stylo.
-#ac_add_options --disable-stylo
+# From firefox-61, stylo can no-longer be disabled
 
 # Comment out following options if you have not installed
 # recommended dependencies:
@@ -269,13 +263,13 @@ ac_add_options --disable-updater
 # increase the build time, for no obvious benefit.
 ac_add_options --disable-tests
 
-# Optimization for size is broken with gcc7
+# Optimization for size is broken with gcc7 and later
 ac_add_options --enable-optimize="-O2"
 
 ac_add_options --enable-official-branding
 
-# In firefox-59.0 system cairo breaks the build, so comment it.
-#ac_add_options --enable-system-cairo
+# From firefox-61 system cairo is not supported
+
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -331,9 +325,6 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
       sure you have <envar>$SHELL</envar> environment variable set or prepend
       <envar>SHELL=/bin/sh</envar>.
     </para></note>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;-ffmpeg4.0-1.patch &amp;&amp;
-./mach build</userinput></screen>
 
     <para>
       The <filename>mozconfig</filename> above disables the tests because
