@@ -6,10 +6,10 @@
 
   <!ENTITY dbus-download-http "https://dbus.freedesktop.org/releases/dbus/dbus-&dbus-version;.tar.gz">
   <!ENTITY dbus-download-ftp  " ">
-  <!ENTITY dbus-md5sum        "2764bf150e5aa8005b7bc0d6c388756a">
+  <!ENTITY dbus-md5sum        "c3e12b4206e2a7da39d7cc42567790ef">
   <!ENTITY dbus-size          "2.0 MB">
-  <!ENTITY dbus-buildsize     "16 MB (add 25 MB for the tests)">
-  <!ENTITY dbus-time          "0.2 SBU (add 2.0 SBU for the tests)">
+  <!ENTITY dbus-buildsize     "21 MB (add 8 MB for the tests)">
+  <!ENTITY dbus-time          "0.2 SBU (add 0.8 SBU for the tests)">
 ]>
 
 <sect1 id="dbus" xreflabel="dbus-&dbus-version;">
@@ -106,7 +106,7 @@
       For the tests:
       <xref linkend="dbus-glib"/>,
       <xref linkend="dbus-python"/>,
-      <xref linkend="pygobject2"/> (built with gobject-introspection support),
+      <xref linkend="pygobject3"/>,
       and <xref linkend="valgrind"/>;
 
       for documentation:
@@ -142,7 +142,8 @@ useradd -c "D-Bus Message Daemon User" -d /var/run/dbus \
       <command>configure</command> command shown below):
     </para>
 
-<screen revision="sysv"><userinput>./configure --prefix=/usr                        \
+<screen revision="sysv"><userinput>
+./configure --prefix=/usr                        \
             --sysconfdir=/etc                    \
             --localstatedir=/var                 \
             --disable-doxygen-docs               \
@@ -237,13 +238,14 @@ systemctl start multi-user.target</userinput></screen>
     <para>
       The dbus tests cannot be run until after <xref linkend="dbus-glib"/> has
       been installed.  They must be run as an unprivileged user from a local
-      session with bus address. If you want to run only
-      the unit tests, replace, below, <parameter>--enable-tests</parameter> by
-      <parameter>--enable-embedded-tests</parameter>, otherwise, <xref
-      linkend="dbus-python"/> has to be installed, before.  The tests require
-      passing additional parameters to <command>configure</command> and
-      exposing additional functionality in the binaries. These interfaces are
-      not intended to be used in a production build of
+      session with bus address. To run the standard tests issue
+      <command>make check</command>.
+    </para>
+
+    <para>
+      If you want to run the unit regression tests, configure requires
+      additional parameters which expose additional functionality in the
+      binaries that are not intended to be used in a production build of
       <application>D-Bus</application>.  If you would like to run the tests,
       issue the following commands (for the tests, you don't need to build the
       docs):
@@ -258,24 +260,10 @@ make                               &amp;&amp;
 make check</userinput></screen>
 
     <para>
-      The <quote>estimated disk space required</quote> reported above is
-      obtained in a build using the switches disabling documents generation.
-      This and the use of the <command>make distclean</command> command implies
-      that the build directory size is smaller than the one for a full build
-      with documents generated. 
-    </para>
-<!--
-    <para>
-      If <command>run-test.sh</command> fails, it can be disabled with the
-      following sed, before running the commands for the tests:
-    </para>
-
-<screen><userinput>sed -i -e 's:run-test.sh:$(NULL):g' test/name-test/Makefile.in</userinput></screen>-->
-
-    <para>
-      There has been a report that the tests may fail if running inside a
-      Midnight Commander shell.  You may get out-of-memory error messages when
-      running the tests.  These are normal and can be safely ignored.
+      The test <command>test-bus.sh</command> is known to fail. There has also
+      been reports that the tests may fail if running inside a Midnight
+      Commander shell. You may get out-of-memory error messages when running
+      the tests. These are normal and can be safely ignored.
     </para>
 
   </sect2>
@@ -335,14 +323,12 @@ make check</userinput></screen>
 
     <para>
       <parameter>--enable-tests</parameter>: Build extra parts of the code to
-      support all tests. Configure will end with a NOTE warning about increased
-      size of libraries and decreased security.
+      support all tests. Do not use on a production build.
     </para>
 
     <para>
       <option>--enable-embedded-tests</option>: Build extra parts of the
-      code to support only unit tests. Configure will end with a NOTE warning
-      about increased size of libraries and decreased security.
+      code to support only unit tests. Do not use on a production build.
     </para>
 
     <para>
