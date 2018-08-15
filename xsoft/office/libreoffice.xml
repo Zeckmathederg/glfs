@@ -7,26 +7,27 @@
   <!ENTITY libreoffice-dl "http://download.documentfoundation.org/libreoffice/src/&libreoffice-version;">
 
   <!ENTITY libreoffice-core-download-http "&libreoffice-dl;/libreoffice-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-core-md5sum        "dbd43dd3edffd7d287aa4507d4d8e176">
-  <!ENTITY libreoffice-core-size          "194 MB">
+  <!ENTITY libreoffice-core-md5sum        "df908c245f1dca4b822345b82af2ea64">
+  <!ENTITY libreoffice-core-size          "198 MB">
 
   <!ENTITY libreoffice-dict-download-http "&libreoffice-dl;/libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-dict-md5sum        "5728262270a88191938762b9021aafcd">
-  <!ENTITY libreoffice-dict-size          "40 MB">
+  <!ENTITY libreoffice-dict-md5sum        "d04eb21110e9e58ecdb6b361aff8feaf">
+  <!ENTITY libreoffice-dict-size          "41 MB">
 
   <!ENTITY libreoffice-help-download-http "&libreoffice-dl;/libreoffice-help-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-help-md5sum        "9b63e89901110c3dc8eb993b1b4f1976">
-  <!ENTITY libreoffice-help-size          "2.9 MB">
+  <!ENTITY libreoffice-help-md5sum        "6958c0501d60c75fc1eb65f3e0182ef">
+  <!ENTITY libreoffice-help-size          "16 MB">
 
   <!ENTITY libreoffice-translations-download-http "&libreoffice-dl;/libreoffice-translations-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-translations-md5sum        "97add88b7745c78d91213c597564523d">
-  <!ENTITY libreoffice-translations-size          "133 MB">
+  <!ENTITY libreoffice-translations-md5sum        "7f8bd2d2102cfb434d8d22df7c907ab5">
+  <!ENTITY libreoffice-translations-size          "135 MB">
 
 
   <!-- full size still accurate for 6.0.1, reconfiguring and rebuilding
    the built source after initial DESTDIR install doesn't take a vast time -->
-  <!ENTITY libreoffice-buildsize          "8.4 GB (767 MB installed). Installing the whole set of languages has been reported to require up to 26 GB (2.9 GB installed)">
-  <!ENTITY libreoffice-time               "48 SBU with parallelism=4 + download time">
+  <!ENTITY libreoffice-buildsize          "8.8 GB (805 MB installed). Installing the whole set of languages was previously reported to require up to 26 GB (2.9 GB installed)">
+  <!-- in this case I allowed 2 SBU for downloads, my total was 66 SBU with fast downloads -->
+  <!ENTITY libreoffice-time               "64 SBU with parallelism=4 + download time">
 
 ]>
 
@@ -140,17 +141,8 @@
         </para>
       </listitem>
 
-      <listitem>
-        <para>Required patch to fix building with system <xref linkend="poppler"/>:
-         <ulink url="&patch-root;/libreoffice-&libreoffice-dlversion;-poppler64-1.patch"/></para>
-      </listitem>
 
-      <listitem>
-        <para>Required patch to fix building with system <xref linkend="python3"/>:
-         <ulink url="&patch-root;/libreoffice-&libreoffice-dlversion;-python37-1.patch"/></para>
-      </listitem>
-
-<!--
+<!-- keep one commented patch, it's sure to again need one or more in a few months
       <listitem>
         <para>
           Required patch to fix building with system <xref linkend="icu"/>:
@@ -356,10 +348,6 @@ ln -sv ../../../libreoffice-help-&libreoffice-dlversion;.tar.xz         external
 
 sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
 
-patch -Np1 -i ../libreoffice-&libreoffice-dlversion;-poppler64-1.patch &amp;&amp;
-
-patch -Np1 -i ../libreoffice-&libreoffice-dlversion;-python37-1.patch &amp;&amp;
-
 ./autogen.sh --prefix=$LO_PREFIX         \
              --sysconfdir=/etc           \
              --with-vendor=BLFS          \
@@ -532,11 +520,10 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <parameter>--without-junit</parameter>: This switch disables the HSQLDB
-      tests (the HSQLDB driver is written in Java). If you want to run the
-      tests, be sure to install <filename>junit.jar</filename> and <filename>
-      hamcrest.jar</filename> in <filename class="directory">/usr/share/java
-      </filename>.
+      <parameter>--without-junit</parameter>: This switch disables the tests
+      for the deprecatedHSQLDB driver which is written in Java. If you wish
+      to build this driver replace this switch with the set of switches
+      described below under '--with-java'.
     </para>
 
     <para>
@@ -550,13 +537,6 @@ fi</userinput></screen>
       office development kit. Remove if you want to develop a
       <application>LibreOffice</application> based application.
     </para>
-
-<!-- Seems to build with gcc-7 and libreoffice-5.3.4
-    <para>
-      <parameter>- -disable-firebird-sdbc</parameter>: The bundled version
-      of Firebird does not build properly with GCC-6.
-    </para>
--->
 
     <para>
       <parameter>--enable-release-build=yes</parameter>: This switch enables a
@@ -641,11 +621,15 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <option>--without-java</option>: This switch disables
+      <option>--with-java</option>: This switch enables
       <application>Java</application> support in
-      <application>LibreOffice</application>. Java is needed for the HSQLDB
-      driver, which allows reading databases created by other programs into
-      libreoffice <application>base</application>.
+      <application>LibreOffice</application>. Java is needed for the
+      deprecated HSQLDB driver, which allows reading databases created by
+      other programs or in earlier versions of libreoffice
+      <application>base</application>. You may also need to add
+      <option>--with-junit=/opt/ant/lib/junit-&junit-version;.jar</option>
+      <option>--with-jdk-home=/opt/jdk</option> and
+      <option>--with-hamcrest=/opt/ant/lib/hamcrest-core-&hamcrest-version;.jar</option>
     </para>
 
     <para>
