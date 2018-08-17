@@ -4,13 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY db-download-http
-    "https://fossies.org/linux/misc/db-&db-version;.tar.xz">
+  <!ENTITY db-download-http "&sources-anduin-http;/bdb/db-&db-version;.tar.gz">
   <!ENTITY db-download-ftp  " ">
-  <!ENTITY db-md5sum        "735e91e30db8efcd0b833c3926278f6e">
-  <!ENTITY db-size          "28 MB">
-  <!ENTITY db-buildsize     "219 MB">
-  <!ENTITY db-time          "0.7 SBU">
+  <!ENTITY db-md5sum        "b99454564d5b4479750567031d66fe24">
+  <!ENTITY db-size          "34 MB">
+  <!ENTITY db-buildsize     "265 MB">
+  <!ENTITY db-time          "0.6 SBU">
 ]>
 
 <sect1 id="db" xreflabel="Berkeley DB-&db-version;">
@@ -76,8 +75,8 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="tcl"/> and
-      <xref linkend="openssl10"/>
-      
+      <xref linkend="sharutils"/> (for the <command>uudecode</command> command)
+
       <!--,
       <xref linkend="openjdk"/> or <xref linkend="java"/>, and
 - -          This is currently broken, removed for now.                - -
@@ -91,7 +90,7 @@
   </sect2>
 
   <!-- <sect2 role="testing">
-    <title>Testing Berkeley DB</title>
+    <title>Testing Berkeley DB before the real install</title>
 
     <para>
       If you can't wait 12 hours or so you may want to skip ahead to
@@ -154,6 +153,15 @@ cd ..</userinput></screen>
     <title>Installation of Berkeley DB</title>
 
     <para>
+      First apply a fix so that this will compile with current versions of
+      <command>g++</command>:
+    </para>
+
+<screen><userinput>sed -i 's/\(__atomic_compare_exchange\)/\1_db/' src/dbinc/atomic.h</userinput></screen>
+
+  <!-- move parts of hte testing to here, possibly as sect3 -->
+
+    <para>
       Install <application>Berkeley DB</application> by running the following
       commands:
     </para>
@@ -163,8 +171,7 @@ cd ..</userinput></screen>
                   --enable-compat185 \
                   --enable-dbm       \
                   --disable-static   \
-                  --enable-cxx       \
-                  --with-repmgr-ssl=no &amp;&amp;
+                  --enable-cxx       &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -202,12 +209,6 @@ chown -v -R root:root                        \
     </para>
 
     <para>
-      <parameter>--with-repmgr-ssl=no</parameter>: Disable ssl support for the
-      replication manager. Removing this option requires <xref linkend="openssl10"/>
-      and modifying the soruce code (not tested).
-    </para>
-
-    <para>
       <parameter>--enable-dbm</parameter>: Enables legacy interface support
       needed by some older packages.
     </para>
@@ -234,8 +235,14 @@ chown -v -R root:root                        \
       <option>--enable-java</option>: Enables <application>Java</application>
       support in DB and creates the
       <filename class="libraryfile">libdb_java</filename> libraries.
-<!-- Remove at next version -->
-      Support is currently broken with Java-9.x.
+<!--
+checking if java works... yes
+checking for javac... /opt/jdk/bin/javac
+checking absolute path of javac... /opt/jdk/bin/javac
+checking java version... 10.0.1
+configure: error: Java version 1.3 or higher required, got 10.0.1
+-->
+      Support is currently broken with Java-&openjdk-build;.x.
     </para>
   </sect2>
 
@@ -266,8 +273,8 @@ chown -v -R root:root                        \
         </seg>
         <seg>
           libdb.so,
-          libdb_cxx.so,
-          libdb_java.so, and
+          libdb_cxx.so, and
+<!--      libdb_java.so, and -->
           libdb_tcl.so
         </seg>
         <seg>/usr/share/doc/db-&db-version;</seg>
