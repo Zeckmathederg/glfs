@@ -7,18 +7,18 @@
   <!ENTITY llvm-majmin "6.0"> <!-- used in an explanation -->
   <!ENTITY llvm-download-http "http://llvm.org/releases/&llvm-version;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "788a11a35fa62eb008019b37187d09d2">
-  <!ENTITY llvm-size          "24 MB">
-  <!ENTITY llvm-buildsize     "2.4 GB (with Clang, add 10.8 GB for tests)">
-  <!ENTITY llvm-time          "24 SBU (with Clang and parallelism=4, add 16 SBU for tests)">
+  <!ENTITY llvm-md5sum        "c88c98709300ce2c285391f387fecce0">
+  <!ENTITY llvm-size          "24.1 MB">
+  <!ENTITY llvm-buildsize     "2.8 GB (with Clang, add 10.8 GB for tests)">
+  <!ENTITY llvm-time          "29 SBU (with Clang and parallelism=4, add 10 SBU for tests)">
 
   <!ENTITY clang-download-http "http://llvm.org/releases/&llvm-version;/cfe-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "121b3896cb0c7765d690acc5d9495d24">
-  <!ENTITY clang-size          "12 MB">
+  <!ENTITY clang-md5sum        "4e419bd4e3b55aa06d872320f754bd85">
+  <!ENTITY clang-size          "11.3 MB">
 
   <!ENTITY rt-version                "&llvm-version;">
   <!ENTITY compiler-rt-download-http "http://llvm.org/releases/&rt-version;/compiler-rt-&rt-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "ba6368e894b5528e527d86a69d8533c6">
+  <!ENTITY compiler-rt-md5sum        "99bf8bcb68ba96dda74f6aee6c55f639">
   <!ENTITY compiler-rt-size          "1.6 MB">
 ]>
 
@@ -200,25 +200,12 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr           \
       -DLLVM_BUILD_LLVM_DYLIB=ON            \
       -DLLVM_LINK_LLVM_DYLIB=ON             \
       -DLLVM_TARGETS_TO_BUILD="host;AMDGPU" \
-      -Wno-dev ..                           &amp;&amp;
-make</userinput></screen>
+      -DLLVM_BUILD_TESTS=ON                 \
+      -Wno-dev -G Ninja ..                           &amp;&amp;
+ninja</userinput></screen>
 
     <para>
-      If you have installed <application>Sphinx</application> and wish
-      to generate the html documentation and manual pages, issue the
-      following commands:
-    </para>
-<screen><userinput>cmake -DLLVM_ENABLE_SPHINX=ON         \
-      -DSPHINX_WARNINGS_AS_ERRORS=OFF \
-      -Wno-dev ..                     &amp;&amp;
-make docs-llvm-html  docs-llvm-man</userinput></screen>
-    <para>
-      If you have downloaded the optional packages, the clang documentation
-      can be built too:
-    </para>
-<screen><userinput>make docs-clang-html docs-clang-man</userinput></screen>
-    <para>
-      To test the results, issue: <command>make check-all</command>. Tests are
+      To test the results, issue: <command>ninja check-all</command>. Tests are
       built with a single thread, but run using the maximum number of 
       processors/threads available.
       Note that the several Sanitizer tests (9 of 26479) are known to fail.
@@ -229,12 +216,28 @@ make docs-llvm-html  docs-llvm-man</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
-      If you have built  the documentation, install it by running the
-      following command as the <systemitem class="username">root</systemitem>
-      user:
+      If you have installed <application>Sphinx</application> and wish
+      to generate the html documentation and manual pages, double check 
+      that you are still in the <filename class="directory">build</filename>
+      directory and issue the following commands:
+    </para>
+<screen><userinput>rm -rf ./*
+cmake -DLLVM_ENABLE_SPHINX=ON         \
+      -DSPHINX_WARNINGS_AS_ERRORS=OFF \
+      -Wno-dev ..                     &amp;&amp;
+make docs-llvm-html  docs-llvm-man</userinput></screen>
+    <para>
+      If you have downloaded the optional packages, the clang documentation
+      can be built too:
+    </para>
+<screen><userinput>make docs-clang-html docs-clang-man</userinput></screen>
+
+    <para>
+      Install the llvm documentation by running the following command as the 
+      <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>install -v -m644 docs/man/* /usr/share/man/man1             &amp;&amp;
