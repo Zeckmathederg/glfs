@@ -6,19 +6,19 @@
 
   <!ENTITY fop-download-http "https://archive.apache.org/dist/xmlgraphics/fop/source/fop-&fop-version;-src.tar.gz">
   <!ENTITY fop-download-ftp  " ">
-  <!ENTITY fop-md5sum        "6d2388bd8851b4883d3258c0afc96895">
-  <!ENTITY fop-size          "24 MB">
-  <!ENTITY fop-buildsize     "493 MB (add 39 MB for tests)">
-  <!ENTITY fop-time          "0.7 SBU (add 0.7 SBU for tests)">
+  <!ENTITY fop-md5sum        "fc95040a8db4a7f22c6f26e18fd6d033">
+  <!ENTITY fop-size          "26 MB">
+  <!ENTITY fop-buildsize     "497 MB ">
+  <!ENTITY fop-time          "1.1 SBU">
 
-  <!ENTITY jai-version       "1_1_3">
-  <!ENTITY jai-download      "http://download.java.net/media/jai/builds/release/&jai-version;/jai-&jai-version;-lib-linux-i586.tar.gz">
-  <!ENTITY jai-md5sum        "a2cbc155ef3899bcde9c74a8035764b3">
-  <!ENTITY jai-size          "3.4 MB">
+  <!ENTITY pdfbox-version    "2.0.11">
+  <!ENTITY pdfbox-download   "http://mirror.reverse.net/pub/apache/pdfbox/&pdfbox-version;/pdfbox-&pdfbox-version;.jar">
+  <!ENTITY pdfbox-md5sum     "93fbcf37217d0caab35f79476f2ffd1d">
+  <!ENTITY pdfbox-size       "2.4 MB">
 
-  <!ENTITY jai64-download    "http://download.java.net/media/jai/builds/release/&jai-version;/jai-&jai-version;-lib-linux-amd64.tar.gz">
-  <!ENTITY jai64-md5sum      "4a906db35612f668aeef2c0606d7075b">
-  <!ENTITY jai64-size        "3.4 MB">
+  <!ENTITY fontbox-download  "http://mirror.reverse.net/pub/apache/pdfbox/&pdfbox-version;/fontbox-&pdfbox-version;.jar">
+  <!ENTITY fontbox-md5sum    "4e139453c2bda1e4ce1ff1e90acae04b">
+  <!ENTITY fontbox-size      "1.5 MB">
 
   <!ENTITY offo-download     "&sourceforge-dl;/offo/2.2/offo-hyphenation.zip">
   <!ENTITY offo-md5sum       "bf9c09bf05108ef9661b8f08d91c2336">
@@ -52,7 +52,7 @@
       primary output target is PDF.
     </para>
 
-    &lfs82_checked;
+    &lfs83_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -78,8 +78,29 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
-      <title>Recommended packages</title>
+      <title>Required Additonal Downloads:</title>
+      <listitem>
+        <para>PDFBox:
+          <simplelist>
+            <member><ulink url="&pdfbox-download;"/></member>
+            <member>&pdfbox-md5sum;</member>
+            <member>&pdfbox-size;</member>
+          </simplelist>
+        </para>
+      </listitem>
+      <listitem>
+        <para>PDFBox Fonts:
+          <simplelist>
+            <member><ulink url="&fontbox-download;"/></member>
+            <member>&fontbox-md5sum;</member>
+            <member>&fontbox-size;</member>
+          </simplelist>
+        </para>
+      </listitem>
+    </itemizedlist>
 
+    <itemizedlist spacing="compact">
+      <title>Recommended packages</title>
       <listitem>
         <para>Objects for Formatting Objects (OFFO) hyphenation patterns:
           <simplelist>
@@ -145,10 +166,10 @@ rm -rf offo-hyphenation</userinput></screen>
       <title>Installing fop Components</title>
 
       <para>
-        The <command>javadoc</command> command coming with OpenJDK 9 has
-        become much stricter than before regarding the conformance of the
-        Javadoc comments in source code to HTML. The FOP documentation does
-        not meet those standard, so the conformance checks have to be
+        The <command>javadoc</command> command that ships with OpenJDK 10 has
+        become much more strict than previous versions regarding conformance of
+        the Javadoc comments in source code to HTML. The FOP documentation does
+        not meet those standards, so the conformance checks have to be
         disabled. This can be done with the following command:
       </para>
 
@@ -160,14 +181,23 @@ rm -rf offo-hyphenation</userinput></screen>
 
       <para>
         The stack size set in <filename>build.xml</filename> for building the
-        hyphenation patterns is not enough. Change it by running:
+        hyphenation patterns is not large enough. Change it by running:
       </para>
 
 <screen><userinput>sed -e '/hyph\.stack/s/512k/1M/' \
     -i fop/build.xml</userinput></screen>
+
       <para>
-        Then, compile <application>fop</application> by running the
-        following commands:
+        The <filename>build.xml</filename> file calls for an old version of
+        <application>PDFBox</application> components that are no longer
+        available. Copy the updated PDFBox components into the source tree:
+      </para>
+
+<screen><userinput>cp ../{pdf,font}box-&pdfbox-version;.jar fop/lib</userinput></screen>
+
+      <para>
+        Compile <application>fop</application> by running the following
+        commands:
       </para>
 
 <screen><userinput>cd fop                    &amp;&amp;
@@ -176,30 +206,18 @@ ant all javadocs          &amp;&amp;
 mv build/javadocs .</userinput></screen>
 
       <para>
-        To test the application, first modify <filename>build.xml</filename>
-        so that tests do not stop when an error is encountered:
+        The <application>junit</application> test suite was run as part of the
+        above commands.
       </para>
  
-<screen><userinput>sed -e '/haltonfailure/s/yes/off/' \
-    -i build.xml</userinput></screen>
-
       <para>
-        Then, run <command>ant junit</command>. The hyphenation tests will
-        fail if OFFO hyphenation has not been compiled. To see a list of other
-        test targets, use <command>ant -p</command>. You must run the tests
-        from an X-window using a GL-aware <application>Xorg</application>
-        server or some of the <application>JUnit</application> tests will hang.
-      </para>
-
-      <para>
-        Now, as the <systemitem class="username">root</systemitem> user:
+        Now, install <application>Fop</application> as the
+        <systemitem class="username">root</systemitem> user:
       </para>
 
 <screen role="root"><userinput>install -v -d -m755 -o root -g root          /opt/fop-&fop-version; &amp;&amp;
-cp -v  ../{KEYS,LICENSE,NOTICE,README}       /opt/fop-&fop-version; &amp;&amp;
 cp -vR build conf examples fop* javadocs lib /opt/fop-&fop-version; &amp;&amp;
 chmod a+x /opt/fop-&fop-version;/fop                                &amp;&amp;
-
 ln -v -sfn fop-&fop-version; /opt/fop</userinput></screen>
 
     </sect3>
@@ -225,7 +243,10 @@ ln -v -sfn fop-&fop-version; /opt/fop</userinput></screen>
       <filename>build.xml</filename> and builds the target: <option>compile
       </option> compiles the java sources, <option>jar-main</option> generates
       jar archives, <option>jar-hyphenation</option> generates the hyphenation
-      patterns for FOP, and <option>javadocs</option> builds the documentation.
+      patterns for FOP, <option>junit</option> runs the
+      <application>junit</application> tests, and <option>javadocs</option>
+      builds the documentation. The <option>all</option> target runs all of the
+      above.
     </para>
 
     <para>
