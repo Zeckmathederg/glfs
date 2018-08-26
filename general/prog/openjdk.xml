@@ -10,25 +10,16 @@
 
   <!ENTITY anduin-download           "&sources-anduin-http;/OpenJDK/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "9cc63586cf761644d95b044954a4920f">
+  <!ENTITY ojdk-md5sum               "d216524203251f1378e660e6fda0b2ec">
   <!ENTITY ojdk-size                 "84 MB">
-<!-- There is only one source now
-  <!ENTITY corba-md5sum              "dbc62e27a93686a9aea12e9c97c2f765">
-  <!ENTITY hotspot-md5sum            "25853ba33123397b2e755249f102ae73">
-  <!ENTITY jaxp-md5sum               "f5ab5e468565e1ab3a181d2efb45b51f">
-  <!ENTITY jaxws-md5sum              "520ff49cb470fbcec2f46cbb3fdb377d">
-  <!ENTITY jdk-md5sum                "be9f261b19451ab1300c5842188e3fe2">
-  <!ENTITY langtools-md5sum          "22b65322d04c8ffafd77230dbe5f178f">
-  <!ENTITY nashorn-md5sum            "729d03b0cede2f697ad77170a9d89095">
-  <!ENTITY total-download-size       "83 MB">
--->
-  <!ENTITY jtreg-version             "4.2-b12-366">
+
+  <!ENTITY jtreg-version             "4.2-b13-433">
   <!ENTITY jtreg-download            "&anduin-download;/jtreg-&jtreg-version;.tar.gz">
-  <!ENTITY jtreg-md5sum              "106c049e00ab9e6e48150b370ecf1a88">
+  <!ENTITY jtreg-md5sum              "a2f25470e005cb7135f61f3bd9c4962e">
   <!ENTITY jtreg-size                "6.8 MB">
 
-  <!ENTITY ojdk-bdsize           "5.4 GB (additional 758 MB for tests)">
-  <!ENTITY ojdk-time                "5.7 SBU with 4 jobs (additonal 22 SBU for tests with 4 jobs)">
+  <!ENTITY ojdk-bdsize               "5.8 GB (an additional 346 MB for tests)">
+  <!ENTITY ojdk-time                 "3.9 SBU with 4 jobs (an additonal 4.7 SBU for tests with 4 jobs)">
 ]>
 
 <sect1 id="openjdk" xreflabel="OpenJDK-&openjdk-version;">
@@ -56,7 +47,7 @@
       runtime environment to run <application>Java</application> programs.
     </para>
 
-    &lfs82_checked;
+    &lfs83_checked;
 
     <note>
       <para>
@@ -136,15 +127,6 @@
           Download Size: &ojdk-size;
         </para>
       </listitem>
-<!--
-      <listitem>
-        <para>
-          In addition to the root package, the instructions below first
-          download seven subproject tarballs, whose total size is
-          &total-download-size;.
-        </para>
-      </listitem>
--->
       <listitem>
         <para>Estimated disk space required: &ojdk-bdsize;</para>
       </listitem>
@@ -217,38 +199,6 @@
   <sect2 role="installation">
     <title>Installation of OpenJDK</title>
 
-<!--
-    <para>
-      Unlike other packages in BLFS, the <application>OpenJDK</application>
-      source packages are distributed in multiple tarballs. You need to first
-      extract the source root from <filename>&ojdk-tarball;</filename>, change
-      into the extracted directory, then proceed with the following
-      instructions:
-    </para>
-
-<screen><userinput>cat &gt; subprojects.md5 &lt;&lt; EOF &amp;&amp;
-&corba-md5sum;  corba.tar.bz2
-&hotspot-md5sum;  hotspot.tar.bz2
-&jaxp-md5sum;  jaxp.tar.bz2
-&jaxws-md5sum;  jaxws.tar.bz2
-&jdk-md5sum;  jdk.tar.bz2
-&langtools-md5sum;  langtools.tar.bz2
-&nashorn-md5sum;  nashorn.tar.bz2
-EOF
-
-for subproject in corba hotspot jaxp jaxws jdk langtools nashorn; do
-
-  wget -c &ojdk-repo;/${subproject}/archive/&ojdk-tarball; \
-       -O ${subproject}.tar.bz2
-done &amp;&amp;
-
-md5sum -c subprojects.md5 &amp;&amp;
-
-for subproject in corba hotspot jaxp jaxws jdk langtools nashorn; do
-  mkdir -pv ${subproject} &amp;&amp;
-  tar -xf ${subproject}.tar.bz2 -\-strip-components=1 -C ${subproject}
-done</userinput></screen>
--->
     <para>
       If you have downloaded the optional test harness, unpack it now:
     </para>
@@ -293,19 +243,24 @@ bash configure --enable-unlimited-crypto    \
                --with-cacerts-file=/etc/ssl/java/cacerts.jks &amp;&amp;
 make images</userinput></screen>
 
-    <note>
-      <para>
-        By default, the build system will use (NUMCPU - 1) jobs. To
-        override, set <envar>JOBS=&lt;X&gt;</envar> on make invocation.
-      </para>
-    </note>
-
     <para>
-      To test the results, issue: <command>make run-test-tier1</command>.
-      You can limit the number of concurrent tests by setting
-      <envar>JTREG="JOBS=&lt;X&gt;"</envar> where &lt;X&gt; is the number of
-      jobs. There is one failure.
+      To test the results, you will need to execute the jtreg program.
+      You can set the number of concurrent tests by adding the
+      <parameter>-conc:<replaceable>&lt;X&gt;</replaceable></parameter>
+      value in the below command (tests will run sequentially otherwise):
     </para>
+
+<screen><userinput>export JT_JAVA=$(echo $PWD/build/*/jdk) &amp;&amp;
+jtreg/bin/jtreg -jdk:$JT_JAVA -automatic -ignore:quiet -v1 \
+    test/jdk:tier1 test/langtools:tier1</userinput></screen>
+
+    <para>For more control over the test suite, review the documentation
+    available in <filename>jtreg/doc/jtreg/usage.txt</filename>. To review the
+    results, see the files
+    <filename>JTreport/test_{jdk,langtools}/text/stats.txt</filename> and
+    <filename>JTreport/test_{jdk,langtools}/text/summary.txt</filename>.
+    You should expect to see 21 failures and 2 errors in the jdk
+    test suite, and 7 failures in langtools.</para>
 
     <para>Install the package with the following commands as the
     <systemitem class="username">root</systemitem> user:</para>
@@ -313,11 +268,11 @@ make images</userinput></screen>
 <screen role="root"><userinput>install -vdm755 /opt/jdk-&openjdk-version;+&openjdk-build;             &amp;&amp;
 cp -Rv build/*/images/jdk/* /opt/jdk-&openjdk-version;+&openjdk-build; &amp;&amp;
 chown -R root:root /opt/jdk-&openjdk-version;+&openjdk-build;          &amp;&amp;
-find /opt/jdk-&openjdk-version;+&openjdk-build; -name \*.diz -delete   &amp;&amp;
 for s in 16 24 32 48; do
-  install -Dm 644 jdk/src/java.desktop/unix/classes/sun/awt/X11/java-icon${s}.png \
+  install -vDm644 src/java.desktop/unix/classes/sun/awt/X11/java-icon${s}.png \
                   /usr/share/icons/hicolor/${s}x${s}/apps/java.png
-done
+done &amp;&amp;
+unset JT_JAVA
 </userinput></screen>
 
     <note>
@@ -359,20 +314,6 @@ Icon=java
 MimeType=application/x-java-archive;application/java-archive;application/x-jar;
 NoDisplay=true</literal>
 EOF
-<!-- No policytool in java 10...
-cat &gt; /usr/share/applications/openjdk-policytool.desktop &lt;&lt; "EOF" &amp;&amp;
-<literal>[Desktop Entry]
-Name=OpenJDK Java &openjdk-version; Policy Tool
-Name[pt_BR]=OpenJDK Java &openjdk-version; - Ferramenta de Pol&#237;tica
-Comment=OpenJDK Java &openjdk-version; Policy Tool
-Comment[pt_BR]=OpenJDK Java &openjdk-version; - Ferramenta de Pol&#237;tica
-Exec=/opt/jdk/bin/policytool
-Terminal=false
-Type=Application
-Icon=java
-Categories=Settings;</literal>
-EOF
--->
 cat &gt; /usr/share/applications/openjdk-jconsole.desktop &lt;&lt; "EOF"
 <literal>[Desktop Entry]
 Name=OpenJDK Java &openjdk-version; Console
@@ -384,14 +325,7 @@ Type=Application
 Icon=java
 Categories=Application;System;</literal>
 EOF</userinput></screen>
-<!-- Name[pt_BR] not do=isplayed anymore
-    <para>
-      The choice of pt_BR is just an example. You can add any translation
-      by adding lines corresponding to your locale, e.g. for fr_FR,
-      <quote>Name[fr_FR]=</quote> and <quote>Comment[fr_FR]=</quote> with the
-      appropriate text as values.
-    </para>
--->
+
   </sect2>
 
   <sect2 role="commands">
@@ -421,6 +355,13 @@ EOF</userinput></screen>
       <parameter>--with-stdc++lib=dynamic</parameter>: This switch forces the
       build system to link to <filename>libstdc++.so</filename> (dynamic)
       instead of <filename>libstdc++.a</filename> (static).
+    </para>
+
+    <para>
+      <parameter>--with-jobs=<replaceable>&lt;X&gt;</replaceable></parameter>:
+      The <parameter>-j</parameter> passed to make does not work with make as
+      invoked here. By default, the build system will use the number of
+      CPUs - 1.
     </para>
 
     <para>
