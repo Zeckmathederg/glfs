@@ -7,7 +7,7 @@
   <!ENTITY dovecot-download-http
   "https://www.dovecot.org/releases/&dovecot-major;.&dovecot-minor;/dovecot-&dovecot-version;.tar.gz">
   <!ENTITY dovecot-download-ftp  " ">
-  <!ENTITY dovecot-md5sum        "e4566e50c9f1e5ee7d3c5c734a83ccf7">
+  <!ENTITY dovecot-md5sum        "77a7fa95b38bd6686e6191b2b3f2b87b">
   <!ENTITY dovecot-size          "6.5 MB">
   <!ENTITY dovecot-buildsize     "158 MB (add 6.8 MB for tests)">
   <!ENTITY dovecot-time          "1.4 SBU (add 0.2 SBU for tests)">
@@ -38,7 +38,7 @@
       easily extensible with plugins.
     </para>
 
-    &lfs82_checked;
+    &lfs83_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -121,12 +121,20 @@ useradd -c "Dovecot login user" -d /dev/null -u 43 \
         -g dovenull -s /bin/false dovenull</userinput></screen>
 
     <para>
+      First, fix an issue causing a segfault in the test suite by 
+      applying a sed:
+    </para>
+
+<screen><userinput>sed -e "s;#include &lt;unistd.h&gt;;&amp;\n#include &lt;crypt.h&gt;;" \
+    -i src/auth/mycrypt.c</userinput></screen>
+
+    <para>
       Install <application>Dovecot</application> by running the following
       commands:
     </para>
 
-<screen revision="sysv"><userinput>CFLAGS+="-I/usr/include/tirpc" \
-LDFLAGS+="-ltirpc" \
+<screen revision="sysv"><userinput>CFLAGS+=" -I/usr/include/tirpc" \
+LDFLAGS+=" -ltirpc" \
 ./configure --prefix=/usr                          \
             --sysconfdir=/etc                      \
             --localstatedir=/var                   \
@@ -134,8 +142,8 @@ LDFLAGS+="-ltirpc" \
             --disable-static &amp;&amp;
 make</userinput></screen>
 
-<screen revision="systemd"><userinput>CFLAGS+="-I/usr/include/tirpc" \
-LDFLAGS+="-ltirpc" \
+<screen revision="systemd"><userinput>CFLAGS+=" -I/usr/include/tirpc" \
+LDFLAGS+=" -ltirpc" \
 ./configure --prefix=/usr                          \
             --sysconfdir=/etc                      \
             --localstatedir=/var                   \
