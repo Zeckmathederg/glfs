@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY glib2-download-http "&gnome-download-http;/glib/2.56/glib-&glib2-version;.tar.xz">
-  <!ENTITY glib2-download-ftp  "&gnome-download-ftp;/glib/2.56/glib-&glib2-version;.tar.xz">
-  <!ENTITY glib2-md5sum        "988af38524804ea1ae6bc9a2bad181ff">
-  <!ENTITY glib2-size          "7.7 MB">
-  <!ENTITY glib2-buildsize     "146 MB (add 77 MB for tests)">
-  <!ENTITY glib2-time          "0.4 SBU (using paralleism=4; add 4.5 SBU for tests)">
+  <!ENTITY glib2-download-http "&gnome-download-http;/glib/2.58/glib-&glib2-version;.tar.xz">
+  <!ENTITY glib2-download-ftp  "&gnome-download-ftp;/glib/2.58/glib-&glib2-version;.tar.xz">
+  <!ENTITY glib2-md5sum        "9b5d21c802f55bf37171c4fbfe7d32d1">
+  <!ENTITY glib2-size          "4.7 MB">
+  <!ENTITY glib2-buildsize     "154 MB (add 4 MB for tests)">
+  <!ENTITY glib2-time          "0.5 SBU (add 0.5 SBU for tests; both using paralleism=4)">
 ]>
 
 <sect1 id="glib2" xreflabel="GLib-&glib2-version;">
@@ -74,12 +74,6 @@
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
-      <!--<listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/glib-&glib2-version;-meson_fixes-1.patch"/>
-        </para>
-      </listitem>-->
       <listitem>
         <para>
           Optional patch:
@@ -92,6 +86,7 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="libxslt"/> and
       <xref linkend="pcre"/> (built with Unicode properties)
     </para>
 
@@ -103,8 +98,7 @@
       <xref linkend="DocBook"/>,
       <xref linkend="docbook-xsl"/>,
       <xref linkend="gtk-doc"/>, and
-      <xref linkend="libxslt"/>
-        (all four to build manual pages)
+        (to build api documentation)
     </para>
 
     <bridgehead renderas="sect4">Additional Runtime Dependencies</bridgehead>
@@ -172,22 +166,19 @@ TODO: If reinstating meson, reference the instructions to remove .la files
       commands:
     </para>
 
-<!-- To be used when meson is deemed usable by upstream
 <screen><userinput>mkdir build-glib &amp;&amp;
 cd    build-glib &amp;&amp;
 
-meson - -prefix=/usr      \
-      -Dwith-pcre=system \
-      -Dwith-docs=no     \
-      -Dselinux=false    \
-      ..                 &amp;&amp;
+meson --prefix=/usr   \
+      -Dman=yes       \
+      -Dselinux=false \
+      ..              &amp;&amp;
 ninja</userinput></screen>
--->
-
-<screen><userinput>./configure --prefix=/usr      \
-            --with-pcre=system \
-            --with-python=/usr/bin/python3 &amp;&amp;
-make</userinput></screen>
+<!--
+<screen><userinput>./configure - -prefix=/usr      \
+            - -with-pcre=system \
+            - -with-python=/usr/bin/python3 &amp;&amp;
+make</userinput></screen>-->
     <para>
       The <application>GLib</application> test suite requires
       <application>desktop-file-utils</application> for some tests. However,
@@ -207,13 +198,11 @@ make</userinput></screen>
       constraint linkend:" when installing the man pages.  These are harmless.
     </para></note>
 
-<screen role="root"><userinput>make install</userinput></screen>
-<!-- used when built with meson/ninja
-chmod -v 755 /usr/bin/{gdbus-codegen,glib-gettextize} &amp;&amp;
-
-mkdir -p /usr/share/doc/glib-&glib2-version; &amp;&amp;
+<!-- <screen role="root"><userinput>make install</userinput></screen> -->
+<!-- used when built with meson/ninja -->
+<screen role="root"><userinput>mkdir -p /usr/share/doc/glib-&glib2-version; &amp;&amp;
 cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-version;</userinput></screen>
--->
+
     <para>
       You should now install <xref linkend="desktop-file-utils"/> and proceed to
       run the test suite.
@@ -221,9 +210,15 @@ cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-versi
 
     <para>
       To test the results, after having installed the package, issue:
-      <command>make -k check</command>.  When run in a graphical environment, 
-      one test, appinfo, fails if <xref linkend='gnome-terminal'/> is not 
-      installed.
+      <command>ninja test</command>.  
+      One test, gdatetime, is known to fail.
+      <!-- Needs /etc/localtime to be a symbolic link. In addition
+      the link must be to some place like /usr/share/zoneinfo/...
+
+      This can be overcome if the line below in glib/tests/gdatetime.c
+      is removed or commented out.
+      g_assert_true (*g_time_zone_get_identifier (tz) != '/');
+      -->
     </para>
 
   </sect2>
@@ -232,19 +227,19 @@ cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-versi
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--with-pcre=system</parameter>: This switch causes the
-      build to use a system-provided version of the
-      <application>PCRE</application> library instead of an internal
-      version.
+      <parameter>-Dman=true</parameter>: This switch causes the
+      build to create and install the package man pages.
     </para>
 
     <para>
-      <parameter>--with-python=/usr/bin/python3</parameter>: Allows
-      using Python3 instead of Python2, even if Python2 is installed.
+      <parameter>-Dselinux=false</parameter>: This switch disables
+      support fo rselinux wich is not supported in BLFS.
     </para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
+    <para>
+      <parameter>-Ddoc=true</parameter>: This switch causes the
+      build to create and install the API documentation.
+    </para>
 
   </sect2>
 
@@ -276,7 +271,6 @@ cp -r ../docs/reference/{NEWS,gio,glib,gobject} /usr/share/doc/glib-&glib2-versi
         <seg>
           /usr/include/gio-unix-2.0,
           /usr/include/glib-2.0,
-          /usr/lib/gio, 
           /usr/lib/glib-2.0,
           /usr/share/glib-2.0, and 
           /usr/share/gtk-doc/html/{gio,glib,gobject}
