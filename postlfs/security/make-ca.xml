@@ -7,11 +7,11 @@
   <!ENTITY certhost              "https://hg.mozilla.org/">
   <!ENTITY certpath              "/lib/ckfw/builtins/certdata.txt">
   <!ENTITY make-ca-buildsize     "6.6 MB (with all runtime deps)">
-  <!ENTITY make-ca-time          "0.3 SBU (with all runtime deps)">
+  <!ENTITY make-ca-time          "0.1 SBU (with all runtime deps)">
 
   <!ENTITY make-ca-download      "https://github.com/djlucas/make-ca/archive/v&make-ca-version;/make-ca-&make-ca-version;.tar.gz">
   <!ENTITY make-ca-size          "36 KB">
-  <!ENTITY make-ca-md5sum        "1f0176c4fa89274971b2826a97f303f7">
+  <!ENTITY make-ca-md5sum        "0eeaf712eedeae4fa55d8bfa37f4ca32">
 ]>
 
 <sect1 id="make-ca" xreflabel="make-ca-&make-ca-version;">
@@ -74,16 +74,17 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">make-ca Dependencies</bridgehead>
-<!--
-    <bridgehead renderas="sect4">Required</bridgehead>
-    <para role="required"><xref linkend="openssl"/></para>
--->
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended"><xref linkend="p11-kit"/> (required at runtime to
+    generate certificate stores from trust anchors)</para>
+
    <bridgehead renderas="sect4">Optional (runtime)</bridgehead>
     <para role="optional">
       <xref role="runtime" linkend="java"/> or
-      <xref role="runtime" linkend="openjdk"/>,
-      <xref role="runtime" linkend="nss"/>, and
-      <xref role="runtime" linkend="p11-kit"/>
+      <xref role="runtime" linkend="openjdk"/> (to generate a java PKCS#12
+      store), and <xref role="runtime" linkend="nss"/> (to generate a shared
+      NSSDB)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -95,10 +96,13 @@
 
     <para>The <application>make-ca</application> script will download and
     process the certificates included in the <filename>certdata.txt</filename>
-    file for use in multiple certificate stores (if the associated applications
-    are present on the system). Additionally, any local certificates stored in
-    <filename>/etc/ssl/local</filename> will be imported to the certificate
-    stores. Certificates in this directory should be stored as PEM encoded
+    file for use as trust anchors for the <xref linkend="p11-kit"/> trust
+    module. Additionally, it will generate system certificate stores used by
+    BLFS applications (if the recommended and optional applications are present
+    on the system). Any local certificates stored in
+    <filename>/etc/ssl/local</filename> will be imported to both the trust
+    anchors and the generated certificate stores (overriding Mozilla's trust).
+    Certificates in this directory should be stored as PEM encoded
     <application>OpenSSL</application> trusted certificates.</para>
 
     <para>To create an <application>OpenSSL</application> trusted certificate
@@ -140,13 +144,14 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
 
 <screen role="root"><userinput>make install</userinput></screen>
 
-   <para>As the <systemitem class="username">root</systemitem> user, download
-   and update the certificate stores with the following command:</para>
+   <para>As the <systemitem class="username">root</systemitem> user, after
+   installing <xref linkend="p11-kit"/>, download the certificate source and
+   prepare for system use with the following command:</para>
 
     <note>
       <para>If running the script a second time with the same version of
       <filename>certdata.txt</filename>, for instance, to add additional stores
-      as the requisite software is installed, add the <parameter>-f</parameter>
+      as the requisite software is installed, add the <parameter>-r</parameter>
       switch to the command line. If packaging, run <command>make-ca
       --help</command> to see all available command line options.</para>
     </note>
@@ -223,7 +228,7 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
         <listitem>
           <para>is a shell script that adapts a current version of
           <filename>certdata.txt</filename>, and prepares it for use
-          as the system certificate store.</para>
+          as the system trust store.</para>
           <indexterm zone="make-ca make-ca">
             <primary sortas="b-make-ca">make-ca</primary>
           </indexterm>
