@@ -6,10 +6,10 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "d8d4d30c8d0b905f978bee3fdd618db5">
-  <!ENTITY rust-size          "95 MB">
-  <!ENTITY rust-buildsize     "5.1 GB (440 MB installed) including 379MB of ~/.cargo files for the user building this and 440MB of files in the DESTDIR (add 1.2GB if running the tests)">
-  <!ENTITY rust-time          "33 SBU (add 17 SBU for tests, both with 4 processors)">
+  <!ENTITY rust-md5sum        "42bcdc69536ab7a04bfead2ddade1edd">
+  <!ENTITY rust-size          "102 MB">
+  <!ENTITY rust-buildsize     "6.5 GB (679 MB installed) including 270MB of ~/.cargo files for the user building this (add 1.4GB if running the tests)">
+  <!ENTITY rust-time          "27 SBU (add 13 SBU for tests, both with 4 processors)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -55,6 +55,14 @@
 
     <note>
       <para>
+        Rustc defaults to building for ALL supported architectures, using a
+        shipped copy of LLVM. In BLFS the build is only for the X86 architecture.
+        Rustc still claims to require Python2, but that is only really necessary
+        when building some other architectures with the shipped LLVM. If you
+        intend to develop rust crates, this build may not be good enough for your
+        purposes.
+      </para>
+      <para>
         Repeated builds of this package on the same machine show a wide range
         of build times. Some of this might be due to variations in downloading
         the required cargo files if they are not already present, but this does
@@ -64,9 +72,8 @@
         Unusually, a DESTDIR-style method is being used to install this package.
         This is because running the install as root not only downloads all of the
         cargo files again (to <filename>/root/.cargo</filename>), it then spends
-        a very long time recompiling. Using this method saves 30 SBU on the
-        4-core machine where this was tested, at the cost of an extra 60MB of
-        disk space for the extra files.
+        a very long time recompiling. Using this method saves a lot of time, at
+        the cost of extra disk space.
       </para>
     </note>
 
@@ -112,13 +119,8 @@
     <para role="required">
       <xref linkend="curl"/>,
       <xref linkend="cmake"/>,
-      <xref linkend="libssh2"/>,
-<!-- Although this appears to build with python3, there are sometimes strange
- script errors in the compilation (i.e. it exits after the build, without
- any obvious errors and with a good status. Also ,it ships with a configure
- script which invokes python2.7 to create config.toml, and some of the files
- in the package use python2.7. -->
-      <xref linkend="python2"/>
+      <xref linkend="libssh2"/>
+<!--  <xref linkend="python2"/> -->
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -129,7 +131,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="gdb"/> (used by debuginfo-gdb in the testsuite)
+      <xref linkend="gdb"/> (recommended if running the testsuite)
     </para>
 
     <para condition="html" role="usernotes">
@@ -174,9 +176,6 @@ docdir = "share/doc/rustc-&rust-version;"
 channel = "stable"
 rpath = false
 
-# get reasonably clean output from the test harness
-quiet-tests = true
-
 # BLFS does not install the FileCheck executable from llvm,
 # so disable codegen tests
 codegen-tests = false
@@ -195,7 +194,7 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>export RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi" &amp;&amp;
-./x.py build</userinput></screen>
+python3 ./x.py build</userinput></screen>
 
     <para>
       The build will report it failed to compile <filename>miri</filename>
@@ -225,14 +224,16 @@ EOF</userinput></screen>
 
     <para>
       To run the tests issue
-      <command>./x.py test --verbose --no-fail-fast &gt;../rustc-testlog</command>:
+      <command>python3 ./x.py test --verbose --no-fail-fast | tee rustc-testlog</command>:
       as with the build, that will use all available CPUs.  This runs many suites
-      of tests (in an apparently random order), at least one will fail:
-      compile-fail/issue-37131.rs tries to
-      compile for the thumbv6m-none-eabi target but the BLFS build does not cater for
-      that, and many tests in debuginfo-gdb will fail if
-      <application>gdb</application> has not been installed. A few other tests might
-      fail.
+      of tests (in an apparently random order), several will fail in BLFS:
+      compile-fail/issue-37131.rs require a thumbv6m-none-eabi compiler but the
+      BLFS build does not cater for
+      that, ui/issue-49851/compiler-builtins-error.rs and ui/issue-50993.rs (both
+      run twice) require a thumbv7em-none-eabihf compiler, and seven tests in
+      debuginfo-gdb will fail because gdb-8.1 changed the output format.  If
+      <application>gdb</application> has not been installed, most of the gdb tests
+      will fail.
     </para>
 
     <para>
@@ -240,14 +241,14 @@ EOF</userinput></screen>
       number of tests which were considered by running:
     </para>
 
-<screen><command>grep 'running .* tests' ../rustc-testlog | awk '{ sum += $2 } END { print sum }'</command></screen>
+<screen><command>grep 'running .* tests' rustc-testlog | awk '{ sum += $2 } END { print sum }'</command></screen>
 
     <para>
-      That should report 13224 tests. Similarly, the total tests which failed can
+      That should report 17101 tests. Similarly, the total tests which failed can
       be found by running:
     </para>
 
-<screen><command>grep '^test result:' ../rustc-testlog | awk  '{ sum += $6 } END { print sum }'</command></screen>
+<screen><command>grep '^test result:' rustc-testlog | awk  '{ sum += $6 } END { print sum }'</command></screen>
 
     <para>
       And similarly for the tests which passed use $4, for those which were ignored
@@ -260,7 +261,7 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>export LIBSSH2_SYS_USE_PKG_CONFIG=1 &amp;&amp;
-DESTDIR=${PWD}/install ./x.py install &amp;&amp;
+DESTDIR=${PWD}/install python3 ./x.py install &amp;&amp;
 unset LIBSSH2_SYS_USE_PKG_CONFIG</userinput></screen>
 
     <para>
@@ -308,7 +309,7 @@ cp -a install/* /</userinput></screen>
       to <literal>[target.i686-unknown-linux-gnu]</literal> if you are building
       on 32-bit x86. This whole section may be omitted if you wish to build
       against the shipped llvm, or do not have clang, but the resulting build will
-      be larger and take a little longer.
+      be larger and take longer.
     </para>
 
     <para>
@@ -360,7 +361,7 @@ cp -a install/* /</userinput></screen>
 
       <seglistitem>
         <seg>
-          cargo-fmt, cargo, rls, rust-gdb, rust-lldb, rustc, rustdoc, rustfmt.
+          cargo-clippy, cargo-fmt, cargo, clippy-driver, rls, rust-gdb, rust-lldb, rustc, rustdoc, rustfmt.
         </seg>
         <seg>
           Many lib*&lt;16-byte-hash&gt;.so libraries.
@@ -378,6 +379,18 @@ cp -a install/* /</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="cargo-clippy">
+        <term><command>cargo-clippy</command></term>
+        <listitem>
+          <para>
+            provides lint checks for a cargo package.
+          </para>
+          <indexterm zone="rust cargo-clippy">
+            <primary sortas="b-cargo-clippy">cargo-clippy</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="cargo-fmt">
         <term><command>cargo-fmt</command></term>
@@ -400,6 +413,18 @@ cp -a install/* /</userinput></screen>
           </para>
           <indexterm zone="rust cargo">
             <primary sortas="b-cargo">cargo</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="clippy-driver">
+        <term><command>clippy-driver</command></term>
+        <listitem>
+          <para>
+            provides lint checks for Rust.
+          </para>
+          <indexterm zone="rust clippy-driver">
+            <primary sortas="b-clippy-driver">clippy-driver</primary>
           </indexterm>
         </listitem>
       </varlistentry>
