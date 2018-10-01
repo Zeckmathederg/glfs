@@ -4,22 +4,22 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY llvm-majmin "6.0"> <!-- used in an explanation -->
+  <!ENTITY llvm-majmin "7.0"> <!-- used in an explanation -->
   <!ENTITY llvm-download-http "http://llvm.org/releases/&llvm-version;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "c88c98709300ce2c285391f387fecce0">
-  <!ENTITY llvm-size          "24.1 MB">
-  <!ENTITY llvm-buildsize     "2.8 GB (with Clang, add 10.8 GB for tests)">
-  <!ENTITY llvm-time          "29 SBU (with Clang and parallelism=4, add 10 SBU for tests)">
+  <!ENTITY llvm-md5sum        "e0140354db83cdeb8668531b431398f0">
+  <!ENTITY llvm-size          "28 MB">
+  <!ENTITY llvm-buildsize     "2.8 GB (with Clang, 670MB installed, add 16 GB for tests)">
+  <!ENTITY llvm-time          "26 SBU (with Clang and parallelism=4, add 8 SBU for tests)">
 
   <!ENTITY clang-download-http "http://llvm.org/releases/&llvm-version;/cfe-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "4e419bd4e3b55aa06d872320f754bd85">
-  <!ENTITY clang-size          "11.3 MB">
+  <!ENTITY clang-md5sum        "2ac5d8d78be681e31611c5e546e11174">
+  <!ENTITY clang-size          "12 MB">
 
   <!ENTITY rt-version                "&llvm-version;">
   <!ENTITY compiler-rt-download-http "http://llvm.org/releases/&rt-version;/compiler-rt-&rt-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "99bf8bcb68ba96dda74f6aee6c55f639">
-  <!ENTITY compiler-rt-size          "1.6 MB">
+  <!ENTITY compiler-rt-md5sum        "3b759c47076298363f4443395e0e51c1">
+  <!ENTITY compiler-rt-size          "1.8 MB">
 ]>
 
 <sect1 id="llvm" xreflabel="LLVM-&llvm-version;">
@@ -201,15 +201,24 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr           \
       -DLLVM_LINK_LLVM_DYLIB=ON             \
       -DLLVM_TARGETS_TO_BUILD="host;AMDGPU" \
       -DLLVM_BUILD_TESTS=ON                 \
-      -Wno-dev -G Ninja ..                           &amp;&amp;
+      -Wno-dev -G Ninja ..                  &amp;&amp;
 ninja</userinput></screen>
 
     <para>
+      <!-- EDITORS - if you have more than 4 cores, take some offline to measure
+      the elapsed time for the tests.  Also, libstdc++.a and perhaps libstdc++fs.a
+      are used by a couple of the link-static tests. -->
       To test the results, issue: <command>ninja check-all</command>. Tests are
-      built with a single thread, but run using the maximum number of 
-      processors/threads available.
-      Note that the several Sanitizer tests (9 of 26479) are known to fail.
-<!--  Still true for v 5.0.0 -->
+      built with all <emphasis>available</emphasis> cores, but run using the number
+      of <emphasis>online</emphasis> processors. (The difference is that available
+      cores can be limited using <command>taskset</command>, but taking them offline
+      requires echoing 0 to <filename
+      class="directory">/sys/devices/system/cpu/cpu&lt;N&gt;/online</filename>
+      by the <systemitem class="username">root</systemitem> user and makes them
+      temporarily unusable by all jobs on the machine.)
+      Note that several Sanitizer tests (7 of more than 32000 tests run) are known
+      to fail.
+
     </para>
 
     <para>
@@ -220,20 +229,18 @@ ninja</userinput></screen>
 
     <para>
       If you have installed <application>Sphinx</application> and wish
-      to generate the html documentation and manual pages, double check 
-      that you are still in the <filename class="directory">build</filename>
-      directory and issue the following commands:
+      to generate the html documentation and manual pages, issue the following
+      commands:
     </para>
-<screen><userinput>rm -rf ./*
-cmake -DLLVM_ENABLE_SPHINX=ON         \
+<screen><userinput>cmake -DLLVM_ENABLE_SPHINX=ON         \
       -DSPHINX_WARNINGS_AS_ERRORS=OFF \
-      -Wno-dev ..                     &amp;&amp;
-make docs-llvm-html  docs-llvm-man</userinput></screen>
+      -Wno-dev -G Ninja ..            &amp;&amp;
+ninja docs-llvm-html  docs-llvm-man</userinput></screen>
     <para>
       If you have downloaded the optional packages, the clang documentation
       can be built too:
     </para>
-<screen><userinput>make docs-clang-html docs-clang-man</userinput></screen>
+<screen><userinput>ninja docs-clang-html docs-clang-man</userinput></screen>
 
     <para>
       Install the llvm documentation by running the following command as the 
@@ -323,24 +330,25 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         <seg>
           bugpoint, c-index-test, clang, clang++ (symlinks to
           clang-&lt;version&gt;), clang-&lt;version&gt;, clang-check, clang-cl,
-          clang-cppi (last two symlinks to clang), clang-format,
-          clang-import-test, clang-offload-bundler, clang-rename,
-          git-clang-format, llc, lli, llvm-ar, llvm-as, llvm-bcanalyzer,
-          llvm-cat, llvm-config, llvm-cov, llvm-c-test, llvm-cvtres,
-          llvm-cxxdump, llvm-cxxfilt, llvm-diff, llvm-dis, llvm-dlltool
-          (symlink to llvm-ar), llvm-dsymutil, llvm-dwarfdump, llvm-dwp,
-          llvm-extract, llvm-lib (symlink to llvm-ar), llvm-link, llvm-lto,
-          llvm-lto2, llvm-mc, llvm-mcmarkup, llvm-modextract, llvm-mt, llvm-nm,
-          llvm-objdump, llvm-opt-report, llvm-pdbutil, llvm-profdata,
-          llvm-ranlib (symlink to llvm-ar), llvm-readelf (symlink to
-          llvm-readobj), llvm-readobj, llvm-rtdyld, llvm-size, llvm-split,
-          llvm-stress, llvm-strings, llvm-symbolizer, llvm-tblgen, llvm-xray,
+          clang-cpp (last two symlinks to clang), clang-format, clang-func-mapping
+          clang-import-test, clang-offload-bundler, clang-refactor, clang-rename,
+          diagtool, dsymutil, git-clang-format, hmap-tool, llc, lli, llvm-ar,
+          llvm-as, llvm-bcanalyzer, llvm-cat, llvm-cfi-verify, llvm-config,
+          llvm-cov, llvm-c-test, llvm-cvtres, llvm-cxxdump, llvm-cxxfilt,
+          llvm-diff, llvm-dis, llvm-dlltool (symlink to llvm-ar), llvm-dwarfdump,
+          llvm-dwp, llvm-exegenesis, llvm-extract, llvm-lib (symlink to llvm-ar),
+          llvm-link, llvm-lto, llvm-lto2, llvm-mc, llvm-mca, llvm-modextract,
+          llvm-mt, llvm-nm, llvm-objcopy, llvm-objdump, llvm-opt-report,
+          llvm-pdbutil, llvm-profdata, llvm-ranlib (symlink to llvm-ar), llvm-rc,
+          llvm-readelf (symlink to llvm-readobj), llvm-readobj, llvm-rtdyld,
+          llvm-size, llvm-split, llvm-stress, llvm-strings, llvm-strip (symlink
+          to llvm-objcopy), llvm-symbolizer, llvm-tblgen, llvm-undname, llvm-xray,
           obj2yaml, opt, sancov, sanstats, scan-build, scan-view,
           verify-uselistorder, and yaml2obj
         </seg>
         <seg>
-          BugpointPasses.so,  LLVMHello.so, libLLVM.so, libLLVM*.a (63
-          libraries), libLTO.so, libclang.so and libclang*.a (25 libraries)
+          BugpointPasses.so,  LLVMHello.so, libLLVM.so, libLLVM*.a (66
+          libraries), libLTO.so, libclang.so and libclang*.a (30 libraries)
         </seg>
         <seg>
           /usr/include/{clang,clang-c,llvm,llvm-c},
@@ -419,6 +427,19 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+      <varlistentry id="clang-func-mapping">
+        <term><command>clang-func-mapping</command></term>
+        <listitem>
+          <para>
+            collects the name and location of all function definitions in the
+            source files.
+          </para>
+          <indexterm zone="llvm clang-func-mapping">
+            <primary sortas="b-clang-func-mapping">clang-func-mapping</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="clang-offload-bundler">
         <term><command>clang-offload-bundler</command></term>
         <listitem>
@@ -428,6 +449,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm clang-offload-bundler">
             <primary sortas="b-clang-offload-bundler">clang-offload-bundler</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="clang-refactor">
+        <term><command>clang-refactor</command></term>
+        <listitem>
+          <para>
+            is a Clang-based refactoring tool for C, C++ and Objective.
+          </para>
+          <indexterm zone="llvm clang-refactor">
+            <primary sortas="b-clang-refactor">clang-refactor</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -444,6 +477,31 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+      <varlistentry id="diagtool">
+        <term><command>diagtool</command></term>
+        <listitem>
+          <para>
+            is a combination of tools for dealing with diagnostics in clang.
+          </para>
+          <indexterm zone="llvm diagtool">
+            <primary sortas="b-diagtool">diagtool</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dsymutil">
+        <term><command>dsymutil</command></term>
+        <listitem>
+          <para>
+            is a tool used to manipulate archived DWARF debug symbol files,
+            compatible with the Darwin command <command>dsymutil</command>.
+          </para>
+          <indexterm zone="llvm dsymutil">
+            <primary sortas="b-dsymutil">dsymutil</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="git-clang-format">
         <term><command>git-clang-format</command></term>
         <listitem>
@@ -453,6 +511,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm git-clang-format">
             <primary sortas="b-git-clang-format">git-clang-format</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="hmaptool">
+        <term><command>hmaptool</command></term>
+        <listitem>
+          <para>
+            is a Python tool to dump and construct header maps.
+          </para>
+          <indexterm zone="llvm hmaptool">
+            <primary sortas="b-hmaptool">hmaptool</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -526,6 +596,20 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm llvm-cat">
             <primary sortas="b-llvm-cat">llvm-cat</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-cfi-verify">
+        <term><command>llvm-cfi-verify</command></term>
+        <listitem>
+          <para>
+            identifies whether Control Flow Integrity protects all indirect
+            control flow instructions in the provided object file, DSO, or
+            binary.
+          </para>
+          <indexterm zone="llvm llvm-cfi-verify">
+            <primary sortas="b-llvm-cfi-verify">llvm-cfi-verify</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -627,19 +711,6 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
-      <varlistentry id="llvm-dsymutil">
-        <term><command>llvm-dsymutil</command></term>
-        <listitem>
-          <para>
-            is a tool used to manipulate archived DWARF debug symbol files,
-            compatible with the Darwin command <command>dsymutil</command>.
-          </para>
-          <indexterm zone="llvm llvm-dsymutil">
-            <primary sortas="b-llvm-dsymutil">llvm-dsymutil</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
       <varlistentry id="llvm-dwarfdump">
         <term><command>llvm-dwarfdump</command></term>
         <listitem>
@@ -660,6 +731,20 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm llvm-dwp">
             <primary sortas="b-llvm-dwp">llvm-dwp</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-exegesis">
+        <term><command>llvm-exegesis</command></term>
+        <listitem>
+          <para>
+            is a benchmarking tool that uses information available in LLVM to
+            measure host machine instruction characteristics like latency or
+            port decomposition.
+          </para>
+          <indexterm zone="llvm llvm-exegesis">
+            <primary sortas="b-llvm-exegesis">llvm-exegesis</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -726,7 +811,20 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
-      <varlistentry id="llvm-mcmarkup">
+      <varlistentry id="llvm-mca">
+        <term><command>llvm-mca</command></term>
+        <listitem>
+          <para>
+            is a is a performance analysis tool to statically measure the
+            performance of machine code.
+          </para>
+          <indexterm zone="llvm llvm-mca">
+            <primary sortas="b-llvm-mca">llvm-mca</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+<!--  <varlistentry id="llvm-mcmarkup">
         <term><command>llvm-mcmarkup</command></term>
         <listitem>
           <para>
@@ -736,7 +834,7 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
             <primary sortas="b-llvm-mcmarkup">llvm-mcmarkup</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry>-->
 
       <varlistentry id="llvm-modextract">
         <term><command>llvm-modextract</command></term>
@@ -772,6 +870,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm llvm-nm">
             <primary sortas="b-llvm-nm">llvm-nm</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-objcopy">
+        <term><command>llvm-objcopy</command></term>
+        <listitem>
+          <para>
+            is LLVM's version of an objcopy tool.
+          </para>
+          <indexterm zone="llvm llvm-objcopy">
+            <primary sortas="b-llvm-objcopy">llvm-objcopy</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -834,6 +944,19 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm llvm-ranlib">
             <primary sortas="b-llvm-ranlib">llvm-ranlib</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-rc">
+        <term><command>llvm-rc</command></term>
+        <listitem>
+          <para>
+            is a platform-independent tool to compile resource scripts
+            into binary resource files.
+          </para>
+          <indexterm zone="llvm llvm-rc">
+            <primary sortas="b-llvm-rc">llvm-rc</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -933,6 +1056,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm llvm-tblgen">
             <primary sortas="b-llvm-tblgen">llvm-tblgen</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-undname">
+        <term><command>llvm-undname</command></term>
+        <listitem>
+          <para>
+            is a tool to demangle names.
+          </para>
+          <indexterm zone="llvm llvm-undname">
+            <primary sortas="b-llvm-undname">llvm-undname</primary>
           </indexterm>
         </listitem>
       </varlistentry>
