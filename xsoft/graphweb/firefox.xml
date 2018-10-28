@@ -10,8 +10,11 @@
   <!ENTITY firefox-size          "254 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "9.9 GB (141 MB installed) without tests">
-  <!ENTITY firefox-time          "30 SBU (with parallelism=4) without tests">
+  <!ENTITY firefox-buildsize     "9.0 GB (153 MB installed) without tests">
+  <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
+   most practical way to get a timing on a machine with more cores.  If in
+   doubt, round up -->
+  <!ENTITY firefox-time          "22 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -153,7 +156,7 @@ tar: Exiting with failure status due to previous errors
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="icu"/>,
+<!--  <xref linkend="icu"/>, with icu <61 or >62, JSContext FTBFS -->
       <xref linkend="libevent"/>,
       <xref linkend="libvpx"/>,
       <xref linkend="nodejs"/>, and
@@ -242,9 +245,9 @@ ac_add_options --disable-necko-wifi
 # If you have installed GConf, comment out this line
 ac_add_options --disable-gconf
 
-# Uncomment this if you have not installed nodejs
-# but note that nodejs will be required in firefox-64 
-#ac_add_options --disable-nodejs 
+# Uncomment this if you have not installed nodejs,
+# but note that nodejs will be required in firefox-64
+#ac_add_options --disable-nodejs
 
 # From firefox-61, the stylo CSS code can no-longer be disabled
 
@@ -255,7 +258,15 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
-ac_add_options --with-system-icu
+
+# Only enable system icu if the version is 61 or 62
+#ac_add_options --with-system-icu
+
+# The gold linker is no-longer the default
+ac_add_options --enable-linker=gold
+
+# You cannot distribute the binary if you do this
+ac_add_options --enable-official-branding
 
 # If you are going to apply the patch for system graphite
 # and system harfbuzz, uncomment these lines:
@@ -279,8 +290,6 @@ ac_add_options --disable-tests
 
 # Optimization for size is broken with gcc7 and later
 ac_add_options --enable-optimize="-O2"
-
-ac_add_options --enable-official-branding
 
 # From firefox-61 system cairo is not supported
 
@@ -344,7 +353,9 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
      Invoke the Python script to compile the package:
     </para>
 
-<screen><userinput>./mach build</userinput></screen>
+<screen><userinput>export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib &amp;&amp;
+./mach build &amp;&amp;
+unset CC CXX AR NM RANLIB</userinput></screen>
 
     <para>
       The <filename>mozconfig</filename> above disables the tests because
@@ -381,6 +392,12 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
+      <command>export CC=clang CXX=clang++ ...</command>: Upstream now use
+      <application>clang</application> and building with any recent version
+      saves a lot of space.
+    </para>
+
+    <para>
       <command>./mach build</command>: <application>Firefox</application>
       now uses this <application>python2</application> script to run the
       build and install.
@@ -390,6 +407,18 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
       <option>./mach build --verbose</option>: Use this alternative if you
       need details of which files are being compiled, together with any C or
       C++ flags being used.
+    </para>
+
+    <para>
+      <option>./mach build -j4</option>: In theory, <command>mach</command>
+      will use the number of online CPU cores - but on some machines the bulk
+      of the build will drag on as if only 1 core is present. Specifying the
+      number of jobs (4 in this example) fixes that.  Unlike traditional
+      recommendations for running <command>make</command>, the exact number
+      of cores is usually fastest - exceptionally, N+1 may be better on a
+      well-specified modern machine. But do NOT use this if building from a
+      term where <command>taskset</command> has been used to restrict the
+      available cores.
     </para>
 
     <para>
