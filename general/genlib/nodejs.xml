@@ -6,10 +6,10 @@
 
   <!ENTITY nodejs-download-http "https://nodejs.org/dist/v&nodejs-version;/node-v&nodejs-version;.tar.xz">
   <!ENTITY nodejs-download-ftp  " ">
-  <!ENTITY nodejs-md5sum        "b38d2f3cbfe05963f151dd7548779aba">
-  <!ENTITY nodejs-size          "18 MB">
-  <!ENTITY nodejs-buildsize     "318 MB">
-  <!ENTITY nodejs-time          "4.0 SBU (using parallelism=4)">
+  <!ENTITY nodejs-md5sum        "8cee04dd5e57cfebd370c9037559651">
+  <!ENTITY nodejs-size          "20 MB">
+  <!ENTITY nodejs-buildsize     "412 MB (without tests)">
+  <!ENTITY nodejs-time          "5.5 SBU (using parallelism=4)">
 ]>
 
 <sect1 id="nodejs" xreflabel="nodejs-&nodejs-version;">
@@ -71,6 +71,15 @@
       </listitem>
     </itemizedlist>
 
+    <note>
+      <para>
+        This tarball was created using a BSD version of
+        <application>tar</application> and extracting it with a linux&trade;
+        version will produce harmless warnings about unknown extended header
+        keywords.
+      </para>
+    </note>
+
     <bridgehead renderas="sect3">Node.js Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -80,14 +89,14 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="c-ares"/> and
-      <xref linkend="icu"/>
+      <xref linkend="c-ares"/>,
+      <xref linkend="icu"/> and
+      <xref linkend="libuv"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <ulink url="https://github.com/nodejs/http-parser">http-parser</ulink>,
-      <ulink url="https://github.com/libuv/libuv">libuv</ulink>, and
       <ulink url="https://www.npmjs.com/">npm</ulink> (an internal copy of
       <command>npm</command> will be installed if not present)
     </para>
@@ -108,12 +117,18 @@
 
 <screen><userinput>./configure --prefix=/usr                  \
             --shared-cares                 \
+            --shared-libuv                 \
             --shared-openssl               \
             --shared-zlib                  \
             --with-intl=system-icu         &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <!-- should get fixed eventually for openssl-1.1.1 in the v10 series,
+     the command is 'make check', as of v10.13.0 it takes at least 14 minutes
+     for the various timeouts to cut in, nad reports several errors.  -->
+    <para>The test suite is currently broken when using
+    <application>openssl-1.1.1</application> and several tests will
+    eventually timeout.</para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -132,15 +147,15 @@ ln -sf node /usr/share/doc/node-&nodejs-version;</userinput></screen>
     <application>icu</application> library) and <option>small-icu</option> (to
     to build a local, minimal <application>icu</application> library).</para>
 
-    <para><parameter>--shared-{cares,openssl,zlib}</parameter>: use the system
-    installed libraries instead of local copies.</para>
+    <para><parameter>--shared-{cares,libuv,openssl,zlib}</parameter>: use the
+    system installed libraries instead of local copies.</para>
 
     <para><option>--without-npm</option>: do not build
     <application>npm</application> (use if you'd like to build a separate
     <application>npm</application> later).</para>
 
-    <para><option>--shared-{http-parser,libuv}</option>: use the system
-    installed libraries instead of local copies.</para>
+    <para><option>--shared-http-parser</option>: use the system
+    installed library instead of a local copy.</para>
 
   </sect2>
 
