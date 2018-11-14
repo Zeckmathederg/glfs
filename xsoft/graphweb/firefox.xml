@@ -6,7 +6,7 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "17f6cea22026840dfa255190a7cec1e2">
+  <!ENTITY firefox-md5sum        "3b5d3bc390d3e5bbef9a9704c2a12a4f">
   <!ENTITY firefox-size          "254 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
@@ -156,7 +156,7 @@ tar: Exiting with failure status due to previous errors
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-<!--  <xref linkend="icu"/>, with icu <61 or >62, JSContext FTBFS -->
+      <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
       <xref linkend="libvpx"/>,
       <xref linkend="nodejs"/>, and
@@ -258,9 +258,7 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
-
-# Only enable system icu if the version is 61 or 62
-#ac_add_options --with-system-icu
+ac_add_options --with-system-icu
 
 # The gold linker is no-longer the default
 ac_add_options --enable-linker=gold
@@ -346,14 +344,18 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
     <note><para>
       If you are compiling <application>Firefox</application> in chroot, make
       sure you have <envar>$SHELL</envar> environment variable set or prepend
-      <envar>SHELL=/bin/sh</envar>.
+      <envar>SHELL=/bin/sh</envar>. Also ensure that <filename>/dev/shm</filename>
+      is mounted.
     </para></note>
 
     <para>
-     Invoke the Python script to compile the package:
+<!--  Invoke the Python script to compile the package: -->
+      Fix a problem with certain versions of ICU, then invoke the Python script
+      to compile the package.
     </para>
 
-<screen><userinput>export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib &amp;&amp;
+<screen><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h &amp;&amp;
+export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib &amp;&amp;
 ./mach build &amp;&amp;
 unset CC CXX AR NM RANLIB</userinput></screen>
 
@@ -390,6 +392,16 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>sed -e 's/checkImpl/checkFFImpl/g' ...</command>: Although the
+      package ships with a modified version of <application>ICU-59</application>
+      and only tests that the system version, if requested, is at least 59,
+      changes in <emphasis>some</emphasis> versions cause builds with the system
+      version to fail with error messages of the form <literal>no void
+      JSContext::checkImpl_NN member function</literal> where NN is the system
+      <application>ICU</application> version. The sed renames the local function.
+    </para>
 
     <para>
       <command>export CC=clang CXX=clang++ ...</command>: Upstream now use
