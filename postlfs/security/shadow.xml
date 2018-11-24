@@ -358,13 +358,13 @@ auth      requisite   pam_nologin.so
 # Additional group memberships - disabled by default
 #auth      optional    pam_group.so
 
-# include the default auth settings
+# include system auth settings
 auth      include     system-auth
 
 # check access for the user
 account   required    pam_access.so
 
-# include the default account settings
+# include system account settings
 account   include     system-account
 
 # Set default environment variables for the user
@@ -382,7 +382,7 @@ session   required    pam_limits.so
 # Check user's mail - Disabled by default
 #session   optional    pam_mail.so      standard quiet
 
-# include the default session and password settings
+# include system session and password settings
 session   include     system-session
 password  include     system-password
 
@@ -410,15 +410,24 @@ EOF</userinput></screen>
 
 # always allow root
 auth      sufficient  pam_rootok.so
+
+# Allow users in the wheel group to execute su without a password
+# disabled by default
+#auth      sufficient  pam_wheel.so trust use_uid
+
+# include system auth settings
 auth      include     system-auth
 
-# include the default account settings
+# limit su to users in the wheel group
+auth      required    pam_wheel.so use_uid
+
+# include system account settings
 account   include     system-account
 
 # Set default environment variables for the service user
 session   required    pam_env.so
 
-# include system session defaults
+# include system session settings
 session   include     system-session
 
 # End /etc/pam.d/su</literal>
@@ -434,7 +443,7 @@ EOF</userinput></screen>
 # always allow root
 auth      sufficient  pam_rootok.so
 
-# include system defaults for auth account and session
+# include system auth, account, and session settings
 auth      include     system-auth
 account   include     system-account
 session   include     system-session
