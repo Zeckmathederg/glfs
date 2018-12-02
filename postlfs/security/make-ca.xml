@@ -9,9 +9,9 @@
   <!ENTITY make-ca-buildsize     "6.6 MB (with all runtime deps)">
   <!ENTITY make-ca-time          "0.1 SBU (with all runtime deps)">
 
-  <!ENTITY make-ca-download      "https://github.com/djlucas/make-ca/archive/v&make-ca-version;/make-ca-&make-ca-version;.tar.gz">
-  <!ENTITY make-ca-size          "36 KB">
-  <!ENTITY make-ca-md5sum        "0eeaf712eedeae4fa55d8bfa37f4ca32">
+  <!ENTITY make-ca-download      "https://github.com/djlucas/make-ca/releases/download/v&make-ca-version;/make-ca-&make-ca-version;.tar.xz">
+  <!ENTITY make-ca-size          "28 KB">
+  <!ENTITY make-ca-md5sum        "b038d38233f970aad60c29dfc0502021">
 ]>
 
 <sect1 id="make-ca" xreflabel="make-ca-&make-ca-version;">
@@ -144,10 +144,7 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
     <application>make-ca</application> script into the correct location.
     As the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install                             &amp;&amp;
-mkdir -pv /etc/pki/tls/certs             &amp;&amp;
-ln -svf /etc/ssl/ca-bundle.crt \
-        /etc/pki/tls/certs/ca-bundle.crt</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
    <para>As the <systemitem class="username">root</systemitem> user, after
    installing <xref linkend="p11-kit"/>, download the certificate source and
@@ -163,48 +160,42 @@ ln -svf /etc/ssl/ca-bundle.crt \
 
 <screen role="root"><userinput>/usr/sbin/make-ca -g</userinput></screen>
 
+    <!-- Remove at 8.5 or 9.0 -->
+    <para>Previous version of BLFS used the path
+    <filename>/etc/ssl/ca-bundle.crt</filename> for the
+    <xref linkend="gnutls"/> certificate store. If software is still installed
+    that references this file, create a compatibilty symlink for the old
+    location as the <systemitem class="username">root</systemitem> user:</para>
+
+<screen role="nodump"><userinput>ln -sfv /etc/pki/tls/certs/ca-bundle.crt \
+        /etc/ssl/ca-bundle.crt</userinput></screen>
+
     <para>You should periodically update the store with the above command
     either manually, or via a <phrase revision="sysv">cron job.</phrase>
     <phrase revision="systemd">systemd timer. A timer is installed at
     <filename>/etc/systemd/system/update-pki.timer</filename> that, if enabled,
     will check for updates weekly.</phrase></para>
 
-    <para>The default <filename>certdata.txt</filename> file provided by make-ca
-    is obtained from the mozilla-release branch, and is modified to provide a
-    Mercurial revision. This will be the correct version for most
-    systems. There are, however, several other variants of the file available
-    for use that might be preferred for one reason or another, including the
-    files shipped with Mozilla products in this book. RedHat and OpenSUSE,
-    for instance, use the version included in <xref linkend="nss"/>. Additional
-    upstream downloads are available at the links below.</para>
+  </sect2>
 
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Mozilla Release (the version provided by BLFS):
-        <ulink url="&certhost;releases/mozilla-release/raw-file/default/security/nss&certpath;"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>NSS (this is the latest available version):
-        <ulink url="&certhost;projects/nss/raw-file/tip&certpath;"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>Mozilla Central:
-        <ulink url="&certhost;mozilla-central/raw-file/default/security/nss&certpath;"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>Mozilla Beta:
-        <ulink url="&certhost;releases/mozilla-beta/raw-file/default/security/nss&certpath;"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>Mozilla Aurora:
-        <ulink url="&certhost;releases/mozilla-aurora/raw-file/default/security/nss&certpath;"/>
-        </para>
-      </listitem>
-    </itemizedlist>
+  <sect2 role="configuration" id="make-ca-config">
+    <title>Configuring make-ca</title>
+
+    <para>Genearally, no configuration is necessary on an LFS system, however,
+    the default <filename>certdata.txt</filename> file provided by make-ca
+    is obtained from the mozilla-release branch, and is modified to provide a
+    Mercurial revision. This will be the correct version for most systems.
+    There are several other variants of the file available for use that might
+    be preferred for one reason or another, including the files shipped with
+    Mozilla products in this book. RedHat and OpenSUSE, for instance, use the
+    version included in <xref linkend="nss"/>. Additional upstream downloads
+    are available at the links included in
+    <filename>/etc/make-ca.conf.dist</filename>. Simply copy the file to
+    <filename>/etc/make-ca.conf</filename> and edit as appropriate.</para>
+
+    <indexterm zone="make-ca make-ca-config">
+      <primary sortas="e-etc-make-ca-conf">/etc/make-ca.conf</primary>
+    </indexterm>
 
   </sect2>
 
@@ -213,12 +204,10 @@ ln -svf /etc/ssl/ca-bundle.crt \
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>make-ca</seg>
-        <seg>None</seg>
         <seg>/etc/ssl/{certs,java,local} and /etc/pki/{nssdb,anchors}</seg>
       </seglistitem>
     </segmentedlist>
