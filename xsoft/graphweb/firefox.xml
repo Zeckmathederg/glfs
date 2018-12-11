@@ -6,15 +6,15 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "03aa81edafce60069428349b4762cc03">
-  <!ENTITY firefox-size          "254 MB">
+  <!ENTITY firefox-md5sum        "4aed9945fa0b8ceec75ff4bab509a78b">
+  <!ENTITY firefox-size          "260 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "9.0 GB (153 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "8.9 GB (141 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
-   most practical way to get a timing on a machine with more cores.  If in
-   doubt, round up -->
-  <!ENTITY firefox-time          "22 SBU (with parallelism=4) without tests">
+   most practical way to get a timing on a machine with more cores, if taking
+   cores offline is not practical. If in doubt, round up -->
+  <!ENTITY firefox-time          "24 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -110,9 +110,9 @@ tar: Exiting with failure status due to previous errors
 
       <para>
         As with other large packages which use C++ (or rust), the SBU times
-        to build this vary more widely than you might expect. Also, almost 6GB
+        to build this vary more widely than you might expect. Also, 6GB
         of real memory is used during the final link and the SBUs can increase
-        significantly if the machine has to swap to do this.
+        significantly if the machine has to swap.
       </para>
 
       <para>
@@ -142,6 +142,7 @@ tar: Exiting with failure status due to previous errors
       both <xref linkend="gtk3"/> and
       <xref linkend="gtk2"/>,
       <xref linkend="libnotify"/>,
+      <xref linkend="nodejs"/>,
       <xref linkend="nss"/>,
       <xref linkend="pulseaudio"/>
       (or
@@ -158,8 +159,7 @@ tar: Exiting with failure status due to previous errors
     <para role="recommended">
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
-      <xref linkend="libvpx"/>,
-      <xref linkend="nodejs"/>, and
+      <xref linkend="libvpx"/>, and
       <xref linkend="sqlite"/>
     </para>
 
@@ -213,10 +213,6 @@ tar: Exiting with failure status due to previous errors
 
 <screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 <literal># If you have a multicore machine, all cores will be used by default.
-# You can change the number of non-rust jobs by setting a valid number
-# of cores in this option, but when rust crates are being compiled
-# jobs will be scheduled for all the available CPU cores.
-#mk_add_options MOZ_MAKE_FLAGS="-j1"
 
 # If you have installed dbus-glib, comment out this line:
 ac_add_options --disable-dbus
@@ -244,10 +240,6 @@ ac_add_options --disable-necko-wifi
 
 # If you have installed GConf, comment out this line
 ac_add_options --disable-gconf
-
-# Uncomment this if you have not installed nodejs,
-# but note that nodejs will be required in firefox-64
-#ac_add_options --disable-nodejs
 
 # From firefox-61, the stylo CSS code can no-longer be disabled
 
@@ -356,8 +348,8 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
 
 <screen><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h &amp;&amp;
 export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib &amp;&amp;
-./mach build &amp;&amp;
-unset CC CXX AR NM RANLIB</userinput></screen>
+export export MOZBUILD_STATE_PATH=${PWD}/mozbuild &amp;&amp;
+./mach build &amp;&amp;</userinput></screen>
 
     <para>
       The <filename>mozconfig</filename> above disables the tests because
@@ -378,15 +370,12 @@ unset CC CXX AR NM RANLIB</userinput></screen>
 
 mkdir -pv  /usr/lib/mozilla/plugins                             &amp;&amp;
 ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
-<!--
+
     <para>
       Set environment variables back to their values:
     </para>
 
-<screen><userinput>export CFLAGS=$CFLAGS_HOLD     &amp;&amp;
-export CXXFLAGS=$CXXFLAGS_HOLD &amp;&amp;
-unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
--->
+<screen><userinput>unset CC CXX AR NM RANLIB MOZBUILD_STATE_PATH</userinput></screen>
 
   </sect2>
 
@@ -410,6 +399,22 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
     </para>
 
     <para>
+      <command>export MOZBUILD_STATE_PATH=${PWD}/mozbuild</command>: The build
+      is now supposed to tell you that it intends to create <filename
+      class="directory">~/.mozbuild</filename>, and offer you an option to
+      press &lt;ENTER&gt; to accept this, or Ctrl-C to cancel and restart the
+      build after specifying the directory. In practice, the message may not
+      appear until after &lt;ENTER&gt; is keyed, i.e. the build stalls.
+    </para>
+
+    <para>
+      That directory is used for a (probably random) telemetry identifier.
+      Creating this in the build directory, and deleting that after the
+      installation, prevents it being used. If you wish to participate in
+      telemetry, export MOZBUILD_STATE_PATH to point to its default directory.
+    </para>
+
+    <para>
       <command>./mach build</command>: <application>Firefox</application>
       now uses this <application>python2</application> script to run the
       build and install.
@@ -422,15 +427,15 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
     </para>
 
     <para>
-      <option>./mach build -j4</option>: In theory, <command>mach</command>
-      will use the number of online CPU cores - but on some machines the bulk
-      of the build will drag on as if only 1 core is present. Specifying the
-      number of jobs (4 in this example) fixes that.  Unlike traditional
-      recommendations for running <command>make</command>, the exact number
-      of cores is usually fastest - exceptionally, N+1 may be better on a
-      well-specified modern machine. But do NOT use this if building from a
-      term where <command>taskset</command> has been used to restrict the
-      available cores.
+      <option>./mach build -jN</option>: The build should, by default, use
+      all the online CPU cores. There are two reasons to specify the number
+      of cores, e.g. -j4 for 4 cores: First, if using all the cores causes
+      the build to swap because you have insufficient memory (e.g. for 4 cores
+      a build without system graphite2 and harfbuzz now uses slightly over 8GB
+      of RAM). In such cases, using fewer cores can be faster. Second, on some
+      machines the middle part of the build can drag on as if only one core is
+      present. In those cases, specifying the number of cores may speed up the
+      build.
     </para>
 
     <para>
