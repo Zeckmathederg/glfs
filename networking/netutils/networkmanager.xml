@@ -8,10 +8,10 @@
            "&gnome-download-http;/NetworkManager/1.12/NetworkManager-&NetworkManager-version;.tar.xz">
   <!ENTITY NetworkManager-download-ftp
            "&gnome-download-ftp;/NetworkManager/1.12/NetworkManager-&NetworkManager-version;.tar.xz">
-  <!ENTITY NetworkManager-md5sum        "94d02b80b120f166927e6ef242b29a9b">
-  <!ENTITY NetworkManager-size          "4.0 MB">
-  <!ENTITY NetworkManager-buildsize     "648 MB (with tests)">
-  <!ENTITY NetworkManager-time          "2.2 SBU (with tests)">
+  <!ENTITY NetworkManager-md5sum        "89efab4ecfa061925e926d11976ee1b8">
+  <!ENTITY NetworkManager-size          "4.2 MB">
+  <!ENTITY NetworkManager-buildsize     "741 MB (with tests)">
+  <!ENTITY NetworkManager-time          "0.5 SBU (with tests)">
 ]>
 
 <sect1 id="NetworkManager" xreflabel="NetworkManager-&NetworkManager-version;">
@@ -88,10 +88,8 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="dbus-glib"/>,
-      <xref linkend="libndp"/>,
-      <xref linkend="libnl"/>, and
-      <xref linkend="nss"/>
+      <xref linkend="dbus-glib"/> and
+      <xref linkend="libndp"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -103,6 +101,7 @@
       <xref linkend="gobject-introspection"/>,
       <xref linkend="iptables"/>,
       <xref linkend="newt"/> (for <command>nmtui</command>),
+      <xref linkend="nss"/>,
       <xref linkend="polkit"/>,
       <xref linkend="pygobject3"/>,
       <phrase revision="systemd"><xref linkend="systemd"/>,</phrase>
@@ -114,6 +113,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="bluez"/>,
+      <xref linkend="gnutls"/> (used if <xref linkend="nss"/> is not found),
       <xref linkend="gtk-doc"/>,
       <xref linkend="jansson"/>,
       <xref linkend="libpsl"/>,
@@ -139,44 +139,59 @@
     examples are desired, fix the configure script:</para>
 
 <screen><userinput>sed -e '/Qt[CDN]/s/Qt/Qt5/g'       \
+    -e 's/-qt4/-qt5'               \
     -e 's/moc_location/host_bins/' \
-    -i configure</userinput></screen>
+    -i examples/C/qt/meson.build</userinput></screen>
+
+    <para>
+      Fix a missing meson.build file for initrd hooks (not used in BLFS):
+    </para>
+
+<screen><userinput>sed '/initrd/d' -i src/meson.build</userinput></screen>
 
     <para>
       Install <application>NetworkManager</application> by running the
       following commands:
     </para>
 
-<screen revision="sysv"><userinput>sed -i 's/1,12,2/1,12.2/' libnm-core/nm-version.h &amp;&amp;
-CXXFLAGS="-O2 -fPIC"                       \
-./configure --prefix=/usr                  \
-            --sysconfdir=/etc              \
-            --localstatedir=/var           \
-            --with-nmtui                   \
-            --with-libnm-glib              \
-            --disable-ppp                  \
-            <!--            - -disable-json-validation      \
-            - -disable-ovs                  \ -->
-            --with-udev-dir=/lib/udev      \
-            --with-systemdsystemunitdir=no \
-            --docdir=/usr/share/doc/network-manager-&NetworkManager-version; &amp;&amp;
-make</userinput></screen>
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
+cd build    &amp;&amp;
 
-<screen revision="systemd"><userinput>sed -i 's/1,12,2/1,12.2/' libnm-core/nm-version.h &amp;&amp;
-CXXFLAGS="-O2 -fPIC"                                        \
-./configure --prefix=/usr                                   \
-            --sysconfdir=/etc                               \
-            --localstatedir=/var                            \
-            --with-nmtui                                    \
-            --with-libnm-glib                               \
-            --disable-ppp                                   \
-<!--            - -disable-json-validation                       \
-                - -disable-ovs                                   \ -->
-            --with-udev-dir=/lib/udev                       \
-            --with-session-tracking=systemd                 \
-            --with-systemdsystemunitdir=/lib/systemd/system \
-            --docdir=/usr/share/doc/network-manager-&NetworkManager-version; &amp;&amp;
-make</userinput></screen>
+CXXFLAGS+="-O2 -fPIC"            \
+meson --prefix /usr              \
+      --sysconfdir /etc          \
+      --localstatedir /var       \
+      -Dnmtui=true               \
+      -Dppp=false                \
+      -Dlibaudit=no              \
+      -Dlibnm_glib=true          \
+      -Dselinux=false            \
+      -Dudev_dir=/lib/udev       \
+      -Dsession_tracking=no      \
+      -Dsystemdsystemunitdir=no  \
+      -Dsystemd_journal=false    \
+      -Dqt=false                 \
+      .. &amp;&amp;
+ninja</userinput></screen>
+
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
+cd build    &amp;&amp;
+
+CXXFLAGS+="-O2 -fPIC"            \
+meson --prefix /usr              \
+      --sysconfdir /etc          \
+      --localstatedir /var       \
+      -Dnmtui=true               \
+      -Dppp=false                \
+      -Dlibaudit=no              \
+      -Dlibnm_glib=true          \
+      -Dselinux=false            \
+      -Dqt=false                 \
+      -Dudev_dir=/lib/udev       \
+      -Dsession_tracking=systemd \
+      -Dsystemdsystemunitdir=/lib/systemd/system \
+      .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       An already active graphical session with bus address is necessary to run
@@ -187,7 +202,8 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install &amp;&amp;
+mv -v /usr/share/doc/NetworkManager{,-&NetworkManager-version;}</userinput></screen>
 
   </sect2>
 
@@ -200,63 +216,45 @@ make</userinput></screen>
     </para>
 
     <para>
-      <parameter>--with-nmtui</parameter>: This parameter enables building
+      <parameter>-Dnmtui=true</parameter>: This parameter enables building
       <command>nmtui</command>.
     </para>
 
-    <para revision="systemd">
-      <parameter>--with-session-tracking=systemd</parameter>: This switch
-      is used to set <command>systemd-logind</command> as the default
-      program for session tracking.
-    </para>
-
     <para revision="sysv">
-      <parameter>--with-systemdsystemunitdir=no</parameter>: systemd is not
+      <parameter>-Dsession_tracking=no</parameter>,
+      <parameter>-Dsystemdsystemunitdir=no</parameter>, and
+      <parameter>-Dsystemd_journal=false</parameter>: systemd is not
       used for sysv init systems.
     </para>
 
     <para revision="systemd">
-      <parameter>--with-systemdsystemunitdir=/lib/systemd/system</parameter>:
+      <parameter>-Dsession_tracking=systemd</parameter>: This switch
+      is used to set <command>systemd-logind</command> as the default
+      program for session tracking.
+    </para>
+
+    <para revision="systemd">
+      <parameter>-Dsystemdsystemunitdir=/lib/systemd/system</parameter>:
       This switch is used to set the correct installation directory for
       systemd units.
     </para>
 
     <para>
-      <parameter>--disable-ppp</parameter>: This parameter disables
+      <parameter>-Dppp=false</parameter>: This parameter disables
       <application>PPP</application> support in
       <application>NetworkManager</application>.
     </para>
 
     <para>
-      <parameter>--disable-json-validation</parameter>: This parameter allows
-      building without <xref linkend="jansson"/>, which is needed
-      for <quote>team</quote> configuration validation (team is one way
-      of bonding network interfaces for increased throughput). Use it if
-      you do not have Jansson installed.
+      <parameter>-Dlibaudit=no</parameter> and
+      <parameter>-Dselinux=false</parameter>: libaudit and SELinux are not used
+      in BLFS.
     </para>
 
     <para>
-      <parameter>--disable-ovs</parameter>: This paramenter disables
-      <application>Open Virtual Switch</application> support because it
-      requires <xref linkend="jansson"/>. Use it if you don't have
-      Jansson installed.
-    </para>
-
-    <para>
-      <option>--enable-gtk-doc</option>: Use this switch if you have installed
-      <xref linkend="gtk-doc"/> and wish to build the API manuals.
-    </para>
-
-    <para>
-      <option>--without-iptables</option>: Use this switch if you don't have
-      <application>Iptables</application> installed.
-    </para>
-
-    <para>
-      <option>--disable-introspection</option>: Use this switch if <xref
-      linkend="gobject-introspection"/> is installed and you want to build
-      without introspection support. This also removes the need for <xref
-      linkend="pygobject3"/>.
+      <parameter>-Dqt=false</parameter>: disables the
+      <application>QT</application> examples. Omit if you have
+      <application>QT</application> available and wish to install the examples.
     </para>
 
   </sect2>
