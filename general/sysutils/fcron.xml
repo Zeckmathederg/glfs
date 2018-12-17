@@ -230,6 +230,86 @@ make</userinput></screen>
         <primary sortas="e-etc-pam.conf">/etc/pam.conf</primary>
       </indexterm>
 
+      <bridgehead renderas="sect4">Periodic Jobs</bridgehead>
+
+      <para>
+        If you would like to setup a periodic hierarchy for the root user,
+        first issue the following commands (as the
+        <systemitem class="username">root</systemitem> user to create the
+        <filename>/usr/bin/run-parts</filename> script:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /usr/bin/run-parts &lt;&lt; "EOF" &amp;&amp;
+#!/bin/sh
+# run-parts:  Runs all the scripts found in a directory.
+# from Slackware, by Patrick J. Volkerding with ideas borrowed
+# from the Red Hat and Debian versions of this utility.
+
+# keep going when something fails
+set +e
+
+if [ $# -lt 1 ]; then
+  echo "Usage: run-parts &lt;directory&gt;"
+  exit 1
+fi
+
+if [ ! -d $1 ]; then
+  echo "Not a directory: $1"
+  echo "Usage: run-parts &lt;directory&gt;"
+  exit 1
+fi
+
+# There are several types of files that we would like to
+# ignore automatically, as they are likely to be backups
+# of other scripts:
+IGNORE_SUFFIXES="~ ^ , .bak .new .rpmsave .rpmorig .rpmnew .swp"
+
+# Main loop:
+for SCRIPT in $1/* ; do
+  # If this is not a regular file, skip it:
+  if [ ! -f $SCRIPT ]; then
+    continue
+  fi
+  # Determine if this file should be skipped by suffix:
+  SKIP=false
+  for SUFFIX in $IGNORE_SUFFIXES ; do
+    if [ ! "$(basename $SCRIPT $SUFFIX)" = "$(basename $SCRIPT)" ]; then
+      SKIP=true
+      break
+    fi
+  done
+  if [ "$SKIP" = "true" ]; then
+    continue
+  fi
+  # If we've made it this far, then run the script if it's executable:
+  if [ -x $SCRIPT ]; then
+    $SCRIPT || echo "$SCRIPT failed."
+  fi
+done
+
+exit 0
+EOF
+chmod -v 755 /usr/bin/run-parts</userinput></screen>
+
+      <para>
+        Next, create the directory layout for the periodic jobs (again as the
+        <systemitem class="username">root</systemitem> user):
+      </para>
+
+<screen role="root"><userinput>install -vdm754 /etc/cron.{hourly,daily,weekly,monthly}</userinput></screen>
+
+      <para>
+        Finally, add the <command>run-parts</command> to the system fcrontab
+        (while still the <systemitem class="username">root</systemitem> user):
+      </para>
+
+<screen role="root"><userinput>cat &gt; /var/spool/fcron/systab.orig &lt;&lt; "EOF"
+&amp;bootrun 01 * * * * root run-parts /etc/cron.hourly
+&amp;bootrun 02 4 * * * root run-parts /etc/cron.daily
+&amp;bootrun 22 4 * * 0 root run-parts /etc/cron.weekly
+&amp;bootrun 42 4 1 * * root run-parts /etc/cron.monthly
+EOF</userinput></screen>
+
     </sect3>
 
     <sect3  id="fcron-init">
@@ -250,6 +330,13 @@ make</userinput></screen>
 <screen role="root" revision="sysv"><userinput>make install-fcron</userinput></screen>
 
 <screen role="root" revision="systemd"><userinput>systemctl enable fcron</userinput></screen>
+
+      <para>Finally, again as the <systemitem class="username">root</systemitem>
+      user, start fcron and generate the
+      <filename>/var/spool/fcron/systab</filename> file:</para>
+
+<screen role="root"><userinput>/etc/rc.d/init.d/fcron start &amp;&amp;
+fcrontab -z -u systab</userinput></screen>
 
     </sect3>
 
