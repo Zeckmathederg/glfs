@@ -113,6 +113,42 @@ make</userinput></screen>
 
   </sect2>
 
+  <sect2 role="configuration">
+    <title>Configuring Libpwquality</title>
+
+    <para>
+      <application>Libpwquality</application> is intended to be a
+      functional replacement for the <filename>pam_cracklib.so</filename>
+      module with additional options. To replace the
+      <filename>pam_cracklib.so</filename> module with the
+      <filename>pam_pwquality.so</filename> module, execute the following
+      commands as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>mv /etc/pam.d/system-password{,.orig} &amp;&amp;
+cat &gt; /etc/pam.d/system-password &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-password
+
+# check new passwords for strength (man pam_pwquality)
+password  required    pam_pwquality.so   authtok_type=UNIX retry=1 difok=1 \
+                                         minlen=8 dcredit=0 ucredit=0 \
+                                         lcredit=0 ocredit=0 minclass=1 \
+                                         maxrepeat=0 maxsequence=0 \
+                                         maxclassrepeat=0 geoscheck=0 \
+                                         dictcheck=1 usercheck=1 \
+                                         enforcing=1 badwords="" \
+                                         dictpath=/lib/cracklib/pw_dict
+# use sha512 hash for encryption, use shadow, and use the
+# authentication token (chosen password) set by pam_pwquality
+# above (or any previous modules)
+password  required    pam_unix.so        sha512 shadow use_authtok
+
+# End /etc/pam.d/system-password</literal>
+EOF
+</userinput></screen>
+
+  </sect2>
+    
   <sect2 role="content">
     <title>Contents</title>
 
