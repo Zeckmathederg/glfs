@@ -4,13 +4,13 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY qtwebengine-major "5.11">
+  <!ENTITY qtwebengine-major "5.12">
   <!ENTITY qtwebengine-download-http "https://download.qt.io/archive/qt/&qtwebengine-major;/&qtwebengine-version;/submodules/qtwebengine-everywhere-src-&qtwebengine-version;.tar.xz">
   <!ENTITY qtwebengine-download-ftp  " ">
-  <!ENTITY qtwebengine-md5sum        "c3c086fd2bc0b25fce9737b3a1fe63fb">
-  <!ENTITY qtwebengine-size          "223 MB">
-  <!ENTITY qtwebengine-buildsize     "3.6 GB (139 MB installed)">
-  <!ENTITY qtwebengine-time          "56 SBU (using 4 cores)">
+  <!ENTITY qtwebengine-md5sum        "53d74f6ed0c188ee106381d9cba99e94">
+  <!ENTITY qtwebengine-size          "241 MB">
+  <!ENTITY qtwebengine-buildsize     "3.3 GB (134 MB installed)">
+  <!ENTITY qtwebengine-time          "36 SBU (using 4 cores)">
 ]>
 
 <sect1 id="qtwebengine" xreflabel="qtwebengine-&qtwebengine-version;">
@@ -32,7 +32,7 @@
 
     <para>
       <application>QtWebEngine</application> integrates
-      <application>chromium</application>&quot;s web capabilities into Qt. It
+      <application>chromium</application>'s web capabilities into Qt. It
       ships with its own copy of ninja which it uses for the build if it cannot
       find a system copy, and various copies of libraries from ffmpeg, icu,
       libvpx, and zlib (including libminizip) which have been forked by the
@@ -41,10 +41,25 @@
 
     &lfs83_checked;
 
-    <note><para>By default, ninja will use all online CPUs +2 (if at least
-    4 exist), even if they are not available to the current task because the
-    build terminal has been restricted with 'taskset'.  To work around this,
-    see the Command Explanations below.</para></note>
+    <note>
+      <para>
+        By default, ninja will use all online CPUs +2 (if at least 4 exist),
+        even if they are not available to the current task because the build
+        terminal has been restricted with 'taskset'.  To work around this, see
+        the Command Explanations below.
+      </para>
+
+      <para>
+        Unusually, the shipped GN build system (used to create the Ninja files)
+        requires a static <filename class="libraryfile">libstdc++.a</filename>
+        although the installed libraries correctly use the shared version. If
+        that static library is not present, the build will fail quite quickly.
+        Please note that if you try to build webengine as part of <xref
+        linkend="qt5"/> and the static library is not available, that build will
+        either complete without installing webengine, or else fail during the
+        install (both variants have been observed).
+      </para>
+    </note>
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -86,7 +101,7 @@
       <!-- the qmake output tends to be misleading. 'khr' is from Mesa -->
     <para role="required">
       <xref linkend="nss"/>,
-      <xref linkend="pulseaudio"/>, and
+      <xref linkend="python2"/>, and
       <xref linkend='qt5'/>
     </para>
 
@@ -100,8 +115,12 @@
     </note>
 
     <para role="recommended">
+      either <xref linkend="alsa-lib"/> or
+      <xref linkend="pulseaudio"/> (or both),
+      <xref linkend="ffmpeg"/>,
+      <xref linkend="icu"/>,
       <xref linkend="libwebp"/>,
-      <xref linkend="libxslt"/>, and 
+      <xref linkend="libxslt"/>, and
       <xref linkend="opus"/>
     </para>
 
@@ -126,10 +145,28 @@
       commands:
     </para>
 
+    <para>
+      First, ensure that the local headers are available when not building as
+      part of the complete <xref linkend="qt5"/>:
+    </para>
+
+<screen><userinput>find -type f -name "*.pr[io]" |
+  xargs sed -i -e 's|INCLUDEPATH += |&amp;$$QTWEBENGINE_ROOT/include |'</userinput></screen>
+
+    <para>
+      If an older version of the package's main library has been installed,
+      when the package is built separately it will link to that in preference
+      to its own not-yet-installed version, and fail because of missing symbols.
+      Prevent that by, as the <systemitem class="username">root</systemitem>
+      user, moving the symlink out of the way.:
+    </para>
+
+<screen role="root"><userinput>mv -v ${QT5DIR}/lib/libQtWebEngineCore.so{,.old}</userinput></screen>
+
 <screen><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-qmake ..    &amp;&amp;
+qmake -- -system-ffmpeg -webengine-icu .. &amp;&amp;
 make</userinput></screen>
 <!--
     <para>
@@ -174,6 +211,16 @@ make</userinput></screen>
     </para>
 
     <para>
+      <command>-- -system-ffmpeg -webengine-icu ..</command>: If any options are
+      passed to qmake ithey must come after '--' and before the '..' which points
+      to the main directory. The options here cause it to use system ffmpeg and
+      system icu.  If built as part of full Qt5, the system icu is automatically
+      used (only) by Qt5Core if it is available, but unless this option is used
+      webengine will always use its shipped copy of icu, adding time and space
+      to the build.
+    </para>
+
+    <para>
       <option>NINJAJOBS=4 make</option>: If you patched system ninja in LFS to
       recognize the NINJAJOBS environment variable, this command will run system
       ninja with the specified number of jobs (i.e. 4). Among the reasons why
@@ -188,6 +235,30 @@ make</userinput></screen>
     </para>
 
   </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring QtWebEngine</title>
+
+    <sect3 id="qtwebengine-config">
+      <title>Configuration Information</title>
+
+      <para>
+        If you are upgrading from an older minor version of this
+        application, for some webpages to load you may need to
+        clear the <emphasis>browser</emphasis> caches, e.g. for
+        <application>falkon</application> they will be found in
+        <filename class="directory">~/.cache/falkon/</filename>.
+        You will need to do this if the browser starts to render
+        the page and then changes to a blank tab with a message
+        that something went wrong, and a button to Retry. Even
+        after removing the old caches, you may need to retry a
+        few times for each affected tab.
+      </para>
+
+    </sect3>
+
+  </sect2>
+
 
   <sect2 role="content">
     <title>Contents</title>
