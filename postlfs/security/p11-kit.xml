@@ -97,10 +97,41 @@
 
 <screen><userinput>sed '20,$ d' -i trust/trust-extract-compat.in &amp;&amp;
 cat &gt;&gt; trust/trust-extract-compat.in &lt;&lt; "EOF"
-echo "Please create an OpenSSL Trusted Certificate with appropriate"
-echo "trust arguments in /etc/ssl/local/ and run '/usr/sbin/make-ca -f'"
-echo "as the root user."
-exit 1
+<literal># LFS uses make-ca to manage certificates
+if [ -f /etc/make-ca.conf ]; then
+    . /etc/make-ca.conf
+else
+    #Use defaults if make-ca.conf does not exist
+    ANCHORDIR="/etc/pki/anchors"
+    ANCHORLIST="/etc/pki/anchors.txt"
+    LOCALDIR="/etc/ssl/local"
+    CERTLIST=""
+fi
+
+# Create a list of certificates not present at previous run
+for ca in `/bin/ls -1 --color=none "${ANCHORDIR}"` ; do
+    /bin/grep "${ca}" "${ANCHORLIST}" 2>&amp;1>/dev/null || CERTLIST="${CERTLIST} ${ca}"
+done
+
+# Dump to a temporary directory
+TEMPDIR=`mktemp -d`
+/usr/bin/trust extract --filter=certificates --format=openssl-directory --overwrite \
+    "${TEMPDIR}"
+
+# Copy new certificates to LOCALDIR
+for certificate in `echo "${CERTLIST}"` ; do
+    LABEL=`/bin/grep -m 1 "label:" "${ANCHORDIR}/${certificate}"`
+    LABELNEW=`echo "${LABEL}" | /bin/sed -e 's@^label: @@' -e 's@"@@g' -e 's@ @_@g'`
+    cp -v "${TEMPDIR}/${LABELNEW}.pem" "${LOCALDIR}"
+    unset LABEL LABELNEW
+done
+
+# Clean up
+rm -rf "${TEMPDIR}"
+unset ANCHORDIR ANCHORLIST LOCALDIR CERTLIST TEMPDIR
+
+# Generate a new trust store
+/usr/sbin/make-ca -f</literal>
 EOF</userinput></screen>
 
     <para>
@@ -122,7 +153,9 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+ln -s /usr/libexec/p11-kit/trust-extract-compat \
+      /usr/bin/update-ca-certificates</userinput></screen>
 
   </sect2>
 
@@ -224,6 +257,19 @@ fi</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="update-ca-certificates">
+        <term><command>update-ca-certificates</command></term>
+        <listitem>
+          <para>
+            is a command line tool to both extract local certificates from an
+            upadated anchor store, and regenerate all anchors and certificate
+            stores on the system.
+          </para>
+          <indexterm zone="p11-kit update-ca-certificates">
+            <primary sortas="b-trust">update-ca-certificates</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
 
       <varlistentry id="libp11-kit">
         <term><filename class="libraryfile">libp11-kit.so</filename></term>
