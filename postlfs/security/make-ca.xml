@@ -11,7 +11,7 @@
 
   <!ENTITY make-ca-download      "https://github.com/djlucas/make-ca/releases/download/v&make-ca-version;/make-ca-&make-ca-version;.tar.xz">
   <!ENTITY make-ca-size          "28 KB">
-  <!ENTITY make-ca-md5sum        "417a8ebfb3d6ac4821c1e508a0a3981f">
+  <!ENTITY make-ca-md5sum        "5b68cf77b02d5681f8419b8acfd139c0">
 ]>
 
 <sect1 id="make-ca" xreflabel="make-ca-&make-ca-version;">
@@ -173,8 +173,23 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
     <para>You should periodically update the store with the above command
     either manually, or via a <phrase revision="sysv">cron job.</phrase>
     <phrase revision="systemd">systemd timer. A timer is installed at
-    <filename>/etc/systemd/system/update-pki.timer</filename> that, if enabled,
-    will check for updates weekly.</phrase></para>
+    <filename>/usr/lib/systemd/system/update-pki.timer</filename> that, if
+    enabled, will check for updates weekly. </phrase><phrase revision="sysv">If
+    you've installed <xref linkend="fcron"/> and completed the section on
+    periodic jobs, execute</phrase><phrase revision="systemd">Execute</phrase>
+    the following commands, as the
+    <systemitem class="username">root</systemitem> user, to
+    <phrase revision="sysv">create a weekly cron job:</phrase>
+    <phrase revision="systemd">enable the systemd timer:</phrase>
+    </para>
+
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/cron.weekly/update-pki.sh &lt;&lt; "EOF" &amp;&amp;
+<literal>#!/bin/bash
+/usr/sbin/make-ca -g</literal>
+EOF
+chmod 754 /etc/cron.weekly/update-pki.sh</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable update-pki.timer</userinput></screen>
 
   </sect2>
 
