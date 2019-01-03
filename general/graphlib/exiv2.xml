@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY exiv2-download-http "http://www.exiv2.org/builds/exiv2-&exiv2-version;-trunk.tar.gz">
+  <!ENTITY exiv2-download-http "http://www.exiv2.org/builds/exiv2-&exiv2-version;-Source.tar.gz">
   <!ENTITY exiv2-download-ftp  " ">
-  <!ENTITY exiv2-md5sum        "5399e3b570d7f9205f0e76d47582da4c">
-  <!ENTITY exiv2-size          "5.4 MB">
-  <!ENTITY exiv2-buildsize     "39 MB">
-  <!ENTITY exiv2-time          "1.2 SBU">
+  <!ENTITY exiv2-md5sum        "57d58c9cef127c5fa24bf0e1fbbd1f8c">
+  <!ENTITY exiv2-size          "26 MB">
+  <!ENTITY exiv2-buildsize     "86 MB">
+  <!ENTITY exiv2-time          "0.3 SBU (Using parallelism=4)">
 ]>
 
 <sect1 id="exiv2" xreflabel="Exiv2-&exiv2-version;">
@@ -97,17 +97,25 @@
   <sect2 role="installation">
     <title>Installation of Exiv2</title>
 
+    <para>First, disable building a sample program that fails:</para>
+
+<screen><userinput>sed -i '/conntest/s/^/#/' samples/CMakeLists.txt</userinput></screen>
+
     <para>
       Install <application>Exiv2</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr     \
-            --enable-video    \
-            --enable-webready \
-            --without-ssh     \
-            --disable-static  &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
+cmake -DCMAKE_INSTALL_PREFIX=/usr  \
+      -DCMAKE_BUILD_TYPE=Release   \
+      -DEXIV2_ENABLE_VIDEO=yes     \
+      -DEXIV2_ENABLE_WEBREADY=yes  \
+      -DEXIV2_ENABLE_CURL=yes      \
+      -DEXIV2_BUILD_SAMPLES=no     \
+      -G "Unix Makefiles" .. &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -118,8 +126,7 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-chmod -v 755 /usr/lib/libexiv2.so</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
   </sect2>
 
@@ -127,29 +134,25 @@ chmod -v 755 /usr/lib/libexiv2.so</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--enable-video</parameter>:
+      <parameter>-DEXIV2_ENABLE_VIDEO=yes</parameter>:
       This switch enables managing video metadata.
     </para>
 
     <para>
-      <parameter>--enable-webready</parameter>:
+      <parameter>-DEXIV2_ENABLE_WEBREADY=yes</parameter>:
       This switch enables managing web image metadata.
     </para>
 
     <para>
-      <parameter>--without-ssh</parameter>:
-      This switch is necessary when webready is enabled and <ulink
-      url="http://www.libssh.org/">libssh</ulink> is not installed. Libssh is
-      required for ssh.
+      <parameter>-DEXIV2_BUILD_SAMPLES=no</parameter>:
+      This switch is necessary to suppress building and installing
+      sample programs.  If the samle programs are built, 34 additional
+      programs are installed in /usr/bin.
     </para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
     <para>
-      <option>--without-curl</option>:
-      This switch is necessary when webready is enabled and <xref
-      linkend="curl"/> is not installed. Libcurl is required for http.
+      <parameter>-DEXIV2_ENABLE_CURL=yes</parameter>:
+      This switch is necessary to enable network/http capabilities.
     </para>
 
   </sect2>
@@ -160,17 +163,19 @@ chmod -v 755 /usr/lib/libexiv2.so</userinput></screen>
     <segmentedlist>
       <segtitle>Installed Program</segtitle>
       <segtitle>Installed Library</segtitle>
-      <segtitle>Installed Directory</segtitle>
+      <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
         <seg>
           exiv2
         </seg>
         <seg>
-          libexiv2.so
+          libexiv2.so and
+          libxmp.a
         </seg>
         <seg>
-          /usr/include/exiv2
+          /usr/include/exiv2 and 
+          /usr/share/exiv2
         </seg>
       </seglistitem>
     </segmentedlist>
