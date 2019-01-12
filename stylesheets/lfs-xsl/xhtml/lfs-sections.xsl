@@ -131,6 +131,30 @@ $Date$
     </div>
   </xsl:template>
 
+    <!-- sect3: treat as sect2 (for Python and Perl modules
+           When there is a role attibute, use it as the class value.
+           Removed unused code. -->
+    <!-- The original template is in {docbook-xsl}/xhtml/sections.xsl -->
+  <xsl:template match="sect3">
+    <div>
+      <xsl:choose>
+        <xsl:when test="@role">
+          <xsl:attribute name="class">
+            <xsl:value-of select="@role"/>
+          </xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="class">
+            <xsl:value-of select="name(.)"/>
+          </xsl:attribute>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:call-template name="language.attribute"/>
+      <xsl:call-template name="sect3.titlepage"/>
+      <xsl:apply-templates/>
+    </div>
+  </xsl:template>
+
     <!-- sect1info mode svn-keys:
            Self-made template to process SVN keywords found in sect1info. -->
   <xsl:template match="sect1info" mode="svn-keys">
