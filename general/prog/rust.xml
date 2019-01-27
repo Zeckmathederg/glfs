@@ -63,9 +63,9 @@
       updating this package, very few crates will need to be updated by the
       packages in this book which use it (and they will be downloaded as
       required). But if you retain an older version as a fallback option and
-      then use it (that would require <emphasis>not</emphasis> building in
+      then use it (when <emphasis>not</emphasis> building in
       <filename class="directory">/usr</filename>), it is likely that it will
-      then have to re download some crates. For a full download (i.e. starting
+      then have to re-download some crates. For a full download (i.e. starting
       with an empty or missing <filename class="directory">~/.cargo</filename>)
       downloading the external cargo files for this version only takes a minute
       or so on a fast network.
@@ -78,6 +78,14 @@
         only one of each will be usable. A binary distribution would use its
         package manager to delete all the old <application>rust</application>
         installation before updating. You may wish to do the same to save space.
+      </para>
+
+      <para>
+        One alternative when working with multiple versions or just updating
+        to a new version is to place the files in the 
+        <filename class="directory">/opt</filename> directory.  The instructions
+        below provide optional commands to support better control of
+        new package versions or reinstallation of the current version.
       </para>
     </note>
 
@@ -96,9 +104,8 @@
       <para>
         Rustc defaults to building for ALL supported architectures, using a
         shipped copy of LLVM. In BLFS the build is only for the X86 architecture.
-        If you
-        intend to develop rust crates, this build may not be good enough for your
-        purposes.
+        If you intend to develop rust crates, this build may not be good 
+        enough for your purposes.
       </para>
       <para>
         Unlike with previous versions, the build times of this version when
@@ -180,7 +187,28 @@
     <title>Installation of Rust</title>
 
     <para>
-      First create a suitable <filename>config.toml</filename> file which will
+      If you are going to install into the
+      <filename class="directory">/opt</filename> directory, remove
+      conflicting entries and recreate the required entries. 
+      As the <systemitem class="username">root</systemitem> 
+      user:
+    </para>
+
+<screen role="root"><userinput>rm -rf /opt/rustc /opt/rustc-&rust-version; &amp;&amp;
+mkdir /opt/rustc-&rust-version;             &amp;&amp;
+ln -sv rustc-&rust-version; /opt/rustc</userinput></screen>
+
+    <note>
+      <para>
+        If multiple versions of <application>Rust</application> are installed
+        in <filename class="directory">/opt</filename>, changing to another
+        version only requires changing the <filename> /opt/rustc</filename>
+        symbolic link and then running <command>ldconfig</command>.
+      </para>
+    </note>
+
+    <para>
+      Create a suitable <filename>config.toml</filename> file which will
       configure the build. Unlike with previous releases, where even quite old
       system versions of <application>LLVM</application>worked well, this
       version ships with a development version and using the current <xref
@@ -208,7 +236,10 @@ docs = false
 extended = true
 
 [install]
-prefix = "/usr"
+# Adjust the prefix for the desired destination
+#prefix = "/usr"
+prefix = "/opt/rustc-&rust-version;"
+
 # docdir is used even if the full awesome docs are not installed
 docdir = "share/doc/rustc-&rust-version;"
 
@@ -388,6 +419,61 @@ cp -a install/* /</userinput></screen>
     </para>
 
   </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring Rust</title>
+
+    <sect3 id="rustc-config">
+      <title>Configuration Information</title>
+
+      <para>
+        If you installed <application>rustc</application> in
+        <filename class="directory">/opt</filename>, you need to update the
+        following configuration files so that <application>rustc</application> is
+        correctly found by other packages and system processes.
+      </para>
+
+      <para>
+        As the <systemitem class="username">root</systemitem> user, update
+        the <filename>/etc/ld.so.conf</filename> file and the dynamic linker's
+        run-time cache file:
+      </para>
+
+<screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; EOF
+<literal># Begin rustc addition
+
+/opt/rustc/lib
+
+# End rustc addition</literal>
+EOF
+
+ldconfig</userinput></screen>
+
+      <indexterm zone="rustc rustc-config">
+        <primary sortas="e-etc-ld.so.conf">/etc/ld.so.conf</primary>
+      </indexterm>
+
+      <para>
+        As the <systemitem class="username">root</systemitem> user, create
+        the <filename>/etc/profile.d/rustc.sh</filename> file:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/profile.d/rustc.sh &lt;&lt; "EOF"
+<literal># Begin /etc/profile.d/rustc.sh
+
+pathprepend /opt/rustc/bin           PATH
+
+# End /etc/profile.d/rustc.sh</literal>
+EOF</userinput></screen>
+
+      <para>Immediately after installation, update the current PATH 
+      for your current shell as a normal user:</para>
+
+<screen><userinput>source /etc/profile.d/rustc.sh</userinput></screen>
+
+    </sect3>
+  </sect2>
+
 
   <sect2 role="content">
     <title>Contents</title>
