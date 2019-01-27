@@ -109,7 +109,10 @@
     <note>
       <para>
         Rustc defaults to building for ALL supported architectures, using a
-        shipped copy of LLVM. In BLFS the build is only for the X86 architecture.
+        shipped copy of LLVM. In BLFS the build is only for the X86
+        architecture. Rustc still claims to require Python 2, but that is only
+        really necessary when building some other architectures with the
+        shipped LLVM.
         If you intend to develop rust crates, this build may not be good
         enough for your purposes.
       </para>
@@ -167,9 +170,8 @@
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="curl"/>,
-      <xref linkend="cmake"/>,
-      <xref linkend="libssh2"/>, and
-      <xref linkend="python2"/>
+      <xref linkend="cmake"/>, and
+      <xref linkend="libssh2"/>
     </para>
 
 <!-- comment out while using shipped LLVM
@@ -181,7 +183,10 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="gdb"/> (used by the testsuite if it is present)
+      <xref linkend="gdb"/> (used by the testsuite if it is present) and
+      <xref linkend="python2"/> (if gdb is present, it must have been built
+      with Python 2 support to prevent some tests failing. Furthermore, another
+      test fails if Python 2 is not present)
     </para>
 
     <para condition="html" role="usernotes">
@@ -268,7 +273,7 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>export RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi" &amp;&amp;
-./x.py build --exclude src/tools/miri</userinput></screen>
+python3 ./x.py build --exclude src/tools/miri</userinput></screen>
 
     <note>
       <para>
@@ -284,20 +289,22 @@ EOF</userinput></screen>
     </note>
 
     <para>
-      To run the tests issue
-      <command>./x.py test --verbose --no-fail-fast | tee rustc-testlog</command>:
-      as with the build, that will use all available CPUs.
+      To run the tests issue <command>python3 ./x.py test --verbose
+      --no-fail-fast | tee rustc-testlog</command>: as with the build, that
+      will use all available CPUs.
     </para>
 
     <para>
       The instructions above do not build ARM compilers, so the testsuite
       <emphasis>will</emphasis> fail and the tests will be reported to end in
       error, with a backtrace of the last failing test. On a good run, 3 tests
-      which need Thumb (ARM) compilers will fail, all  in <filename
+      which need Thumb (ARM) compilers will fail, all in <filename
       class="directory">ui/issues</filename> for issues 37131, 49851 and 50993.
-      Occasionally a fourth test, 'run-make-fulldeps/sysroot-crates-are-unstable'
+      Occasionally a fourth test,
+      <filename>run-make-fulldeps/sysroot-crates-are-unstable</filename>
       fails. If gdb has been installed, in some circumstances three tests in
-      debuginfo-both also fail. As with all large testsuites, other tests might
+      <filename class="directory">debuginfo</filename> also fail. As with all
+      large testsuites, other tests might
       fail on some machines - if the number of failures is in the single digits,
       check the log for 'FAILED' and review lines above that. Any mention of
       SIGSEGV or signal 11 in a failing test is a cause for concern.
@@ -328,7 +335,7 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>export LIBSSH2_SYS_USE_PKG_CONFIG=1 &amp;&amp;
-DESTDIR=${PWD}/install ./x.py install &amp;&amp;
+DESTDIR=${PWD}/install python3 ./x.py install &amp;&amp;
 unset LIBSSH2_SYS_USE_PKG_CONFIG</userinput></screen>
 
     <para>
@@ -419,8 +426,8 @@ cp -a install/* /</userinput></screen>
     </para>
 
     <para>
-      <command>DESTDIR=${PWD}/install ./x.py install</command>: This effects a
-      DESTDIR-style install in the source tree,creating an <filename
+      <command>DESTDIR=${PWD}/install python3 ./x.py install</command>: This
+      effects a DESTDIR-style install in the source tree,creating an <filename
       class="directory">install</filename> directory. Note that DESTDIR installs
       need an absolute path, passing 'install' will not work.
     </para>
