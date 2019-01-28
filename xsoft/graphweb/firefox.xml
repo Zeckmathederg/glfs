@@ -6,15 +6,15 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "68332fbd4ffcb748cd72772e50157dfa">
-  <!ENTITY firefox-size          "261 MB">
+  <!ENTITY firefox-md5sum        "b5f952cbb1b1edbae43f6a469059099b">
+  <!ENTITY firefox-size          "266 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "8.9 GB (141 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "9.4 GB (147 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "24 SBU (with parallelism=4) without tests">
+  <!ENTITY firefox-time          "31 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -159,7 +159,8 @@ tar: Exiting with failure status due to previous errors
     <para role="recommended">
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
-      <xref linkend="libvpx"/>, and
+      <xref linkend="libvpx"/>,
+      <xref linkend="libwebp"/>, and
       <xref linkend="sqlite"/>
     </para>
 
@@ -342,8 +343,10 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
 
     <para>
 <!--  Invoke the Python script to compile the package: -->
-      Fix a problem with certain versions of ICU, then invoke the Python script
-      to compile the package.
+      To use the system version of ICU, run a sed to avoid a conflict between
+      upstream ICU's use of <literal>CheckImpl()</literal> in their public headers
+      and firefox's internal use of a different <literal>CheckImpl()</literal>.
+      Then invoke the Python2 script to compile the package.
     </para>
 
 <screen><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h &amp;&amp;
@@ -524,8 +527,9 @@ ln -sfv /usr/lib/firefox/browser/chrome/icons/default/default128.png \
       <para>
         If you use <command>pulseaudio</command> in a Desktop Environment, it
         might already be started by that DE.  But if it is not, although
-        firefox-57 managed to start it, firefox-58 does not.  If you run
-        <command>firefox</command> from a term, trying to play sound will
+        firefox-57 managed to start it, firefox-58 did not.  If you run
+        <command>firefox</command> from a term and this problem is present,
+        trying to play sound will
         encounter error messages warning <literal>Can't get cubeb
         context!</literal>
       </para>
