@@ -130,6 +130,7 @@
       <xref linkend="mariadb"/> or <ulink url="http://www.mysql.com/">MySQL</ulink>,
       <xref linkend="pciutils"/> (required for QtWebEngine),
       <xref linkend="postgresql"/>,
+      <xref linkend="python2"/> (required for QtWebEngine),
       <xref linkend="pulseaudio"/>,
       <xref linkend="unixodbc"/>, and
       <ulink url="http://www.firebirdsql.org/">Firebird</ulink>
@@ -199,15 +200,7 @@ ln -sfnv qt-&qt5-version; /opt/qt5</userinput></screen>
         them or use internal versions bundled in the source tarball.
       </para>
     </caution>
-<!--
-    <para>
-      If your system is using glibc-2.28, apply the patch to exclude certain
-      system headers and to avoid redefining two functions which are now in
-      glibc :
-    </para>
 
-<screen><userinput>patch -Np1 -i ../qt-&qt5-version;-glibc228-1.patch</userinput></screen>
--->
     <note>
       <para>
         The build time and space required for the full
@@ -238,33 +231,22 @@ ln -sfnv qt-&qt5-version; /opt/qt5</userinput></screen>
             -examplesdir    /usr/share/doc/qt5/examples</userinput></screen>
     </note>
 
-<!--  Not needed with mariadb-10.2.8, but a symlink for mysql_version.h
-      on the mariadb page, is needed.
-
-    <para>
-      If you have <xref linkend="mariadb"/> installed, fix a build issue with
-      with <application>MySQL</application> compatibility:
-    </para>
-
-<screen><userinput>sed '/qsqlresult_p.h&gt;/a#include &lt;mysql/mysql_version.h&gt;' \
-    -i qtbase/src/plugins/sqldrivers/mysql/qsql_mysql.cpp</userinput></screen>
--->
-
     <para>
       Install <application>Qt5</application> by running the following commands:
     </para>
 
-<screen><userinput>./configure -prefix $QT5PREFIX                          \
-            -sysconfdir /etc/xdg                        \
-            -confirm-license                            \
-            -opensource                                 \
-            -dbus-linked                                \
-            -openssl-linked                             \
-            -system-harfbuzz                            \
-            -system-sqlite                              \
-            -nomake examples                            \
-            -no-rpath                                   \
-            -skip qtwebengine                           &amp;&amp;
+<screen><userinput>find . -name "*.pr[io]" | xargs sed -i 's/python/&amp;3/' &amp;&amp;
+./configure -prefix $QT5PREFIX                        \
+            -sysconfdir /etc/xdg                      \
+            -confirm-license                          \
+            -opensource                               \
+            -dbus-linked                              \
+            -openssl-linked                           \
+            -system-harfbuzz                          \
+            -system-sqlite                            \
+            -nomake examples                          \
+            -no-rpath                                 \
+            -skip qtwebengine                         &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -381,6 +363,14 @@ done</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>find ... | xargs sed ...</command>: Allows using
+      <application>Python 3</application> instead of <application>Python
+      2</application>. This command destroys the build for QtWebEngine, so do
+      not use it if you remove the <parameter>-skip qtwebengine</parameter>
+      switch.
+    </para>
 
     <para>
       <parameter>-confirm-license</parameter>: Accept license
