@@ -6,10 +6,10 @@
 
   <!ENTITY wireshark-download-http "https://www.wireshark.org/download/src/all-versions/wireshark-&wireshark-version;.tar.xz">
   <!ENTITY wireshark-download-ftp  " ">
-  <!ENTITY wireshark-md5sum        "6d0545309cace70e51f5555a3a966fbc">
-  <!ENTITY wireshark-size          "27 MB">
-  <!ENTITY wireshark-buildsize     "2.0 GB (with default GUI front-end, and all optional dependencies available in the BLFS book)">
-  <!ENTITY wireshark-time          "3.8 SBU (with parallelism=4, default GUI front-end, and all optional dependencies available in the BLFS book)">
+  <!ENTITY wireshark-md5sum        "258d62ac7434d126dc497303c8f7961b">
+  <!ENTITY wireshark-size          "30 MB">
+  <!ENTITY wireshark-buildsize     "553 GB (with all optional dependencies available in the BLFS book)">
+  <!ENTITY wireshark-time          "2.3 SBU (with parallelism=4 and all optional dependencies available in the BLFS book)">
 ]>
 
 <sect1 id="wireshark" xreflabel="Wireshark-&wireshark-version;">
@@ -71,16 +71,6 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Optional patch:
-          <ulink url=
-              "&patch-root;/wireshark-&wireshark-version;-lua_5_3-1.patch"/>
-          (allows building the LUA bindings if <xref linkend="lua"/> is
-          installed and LUA is not disabled by passing <option>--without-lua
-          </option> to <command>configure</command>)
-        </para>
-      </listitem>
-      <listitem>
-        <para>
           Additional Documentation:
           <ulink url="https://www.wireshark.org/download/docs/"/>
           (contains links to several different docs in a variety of formats)
@@ -92,43 +82,38 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="glib2"/> and
-      <xref linkend="libgcrypt"/>
+      <xref linkend="glib2"/>, 
+      <xref linkend="libgcrypt"/>, and
+      <xref linkend="qt5"/> 
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="libpcap"/> (required to capture data), and
-      <xref linkend="qt5"/> (for the <application>Qt5</application> GUI)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="c-ares"/>,
+      <xref linkend="doxygen"/>,
+      <xref linkend="git"/>,
       <xref linkend="gnutls"/>,
-      <xref linkend="gtk3"/> or <xref linkend="gtk2"/> (for the legacy GTK GUI),
       <xref linkend="libnl"/>,
-      <xref linkend="lua"/>,
+      <xref linkend="libxslt-lib"/>,
+      <xref linkend="libxml2"/>,
+      <xref linkend="lua52"/>,
       <xref linkend="mitkrb"/>,
       <xref linkend="nghttp2"/>,
       <xref linkend="sbc"/>,
+      <ulink url="https://asciidoctor.org/">Asciidoctor</ulink>,
+      <ulink url="https://www.linphone.org/technical-corner/bcg729">BCG729</ulink>,
       <ulink url="http://www.ibr.cs.tu-bs.de/projects/libsmi/">libsmi</ulink>,
       <ulink url="http://lz4.github.io/lz4/">lz4</ulink>,
-      <ulink url="https://dev.maxmind.com/geoip/legacy/downloadable/">GeoIP</ulink>,
       <ulink url="https://www.libssh.org/">libssh</ulink>,
-      <ulink url="http://www.portaudio.com/">PortAudio</ulink>
-      (for GTK+ RTP player),
+      <ulink url="https://github.com/maxmind/libmaxminddb">MaxMindDB</ulink>,
       <ulink url="http://google.github.io/snappy/">Snappy</ulink>, and
       <ulink url="https://www.soft-switch.org/">Spandsp</ulink>
     </para>
-
-    <note>
-      <para>
-        The Qt GUI front-end is built by default, if <xref linkend="qt5"/> is
-        found. If you want to build the GTK+ GUI front-end, some configure
-        switches have to be set (see <quote>Command Explanations</quote>).
-      </para>
-    </note>
 
     <para condition="html" role="usernotes">
       User Notes: <ulink url="&blfs-wiki;/wireshark"/>
@@ -178,10 +163,15 @@
       the following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../wireshark-&wireshark-version;-lua_5_3-1.patch  &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
-./configure --prefix=/usr --sysconfdir=/etc &amp;&amp;
-make</userinput></screen>
+cmake -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release  \
+      -DCMAKE_INSTALL_DOCDIR=/usr/share/doc/PROGRAM=wireshark-&wireshark-version; \
+      -G Ninja \
+      .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -191,10 +181,10 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>ninja install &amp;&amp;
 
 install -v -m755 -d /usr/share/doc/wireshark-&wireshark-version; &amp;&amp;
-install -v -m644    README.linux doc/README.* doc/*.{pod,txt} \
+install -v -m644    README.linux doc/README.* doc/{*.pod,randpkt.txt} \
                     /usr/share/doc/wireshark-&wireshark-version; &amp;&amp;
 
 pushd /usr/share/doc/wireshark-&wireshark-version; &amp;&amp;
@@ -237,29 +227,17 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
     </para>
 
   </sect2>
-
+<!--
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <option>--with-gtk=[yes/no/2/3]</option>: For the Gtk+ GUI. Default is no.
-      If both Gtk+2 and 3 are installed, and <quote>yes</quote> is selected,
-      default is 3. Obviously, <xref linkend="gtk2"/> or <xref linkend="gtk3"/>
-      must have been built for this to work.
-    </para>
-
-    <para>
-      <option>--with-qt=[yes/no/4/5]</option>: For the Qt GUI. Default is yes,
-      if <xref linkend="qt5"/> is found on the system.
-    </para>
-
-    <para>
-      <option>--disable-wireshark</option>: Use this switch if you
+      <option>- -disable-wireshark</option>: Use this switch if you
       have <application>Qt</application> installed but do not want to build
       any of the GUIs.
     </para>
-
   </sect2>
+-->
 
   <sect2 role="configuration">
     <title>Configuring Wireshark</title>
@@ -314,16 +292,16 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
 
       <seglistitem>
         <seg>
-          capinfos, captype, dftest, dumpcap, editcap, idl2wrs,
+          capinfos, captype, dumpcap, editcap, idl2wrs,
           mergecap, randpkt, rawshark, reordercap, sharkd,
-          text2pcap, tshark, wireshark, and wireshark-gtk (optional)
+          text2pcap, tshark, and wireshark
         </seg>
         <seg>
-          libwireshark.so, libwiretap.so, libwscodecs.so (optional),
+          libwireshark.so, libwiretap.so, libwscodecs.so,
           libwsutil.so, and numerous modules under /usr/lib/wireshark/plugins
         </seg>
         <seg>
-          /usr/{lib,share}/wireshark and
+          /usr/{include,lib,share}/wireshark and
           /usr/share/doc/wireshark-&wireshark-version;
          </seg>
       </seglistitem>
@@ -352,16 +330,6 @@ chmod -v 6550 /usr/bin/{tshark,dumpcap}</userinput></screen>
           <para>prints the file types of capture files.</para>
           <indexterm zone="wireshark captype">
             <primary sortas="b-captype">captype</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="dftest">
-        <term><command>dftest</command></term>
-        <listitem>
-          <para>is a display-filter-compiler test program.</para>
-          <indexterm zone="wireshark dftest">
-            <primary sortas="b-dftest">dftest</primary>
           </indexterm>
         </listitem>
       </varlistentry>
