@@ -5,13 +5,13 @@
   %general-entities;
 
   <!ENTITY gobject-introspection-download-http
-    "&gnome-download-http;/gobject-introspection/1.58/gobject-introspection-&gobject-introspection-version;.tar.xz">
+    "&gnome-download-http;/gobject-introspection/1.60/gobject-introspection-&gobject-introspection-version;.tar.xz">
   <!ENTITY gobject-introspection-download-ftp
-    "&gnome-download-ftp;/gobject-introspection/1.58/gobject-introspection-&gobject-introspection-version;.tar.xz">
-  <!ENTITY gobject-introspection-md5sum        "182432c1f33886be8f4da073218b597d">
-  <!ENTITY gobject-introspection-size          "1.3 MB">
-  <!ENTITY gobject-introspection-buildsize     "38 MB (add 7 MB for tests)">
-  <!ENTITY gobject-introspection-time          "0.3 SBU (add 0.3 SBU for tests)">
+    "&gnome-download-ftp;/gobject-introspection/1.60/gobject-introspection-&gobject-introspection-version;.tar.xz">
+  <!ENTITY gobject-introspection-md5sum        "5f75baadfc9baffaeca203c280b9d592">
+  <!ENTITY gobject-introspection-size          "1.2 MB">
+  <!ENTITY gobject-introspection-buildsize     "42 MB (with tests)">
+  <!ENTITY gobject-introspection-time          "0.2 SBU (Using parallelism=4; with tests)">
 ]>
 
 <sect1 id="gobject-introspection" xreflabel="gobject-introspection-&gobject-introspection-version;">
@@ -78,24 +78,17 @@
       <xref linkend="glib2"/>
     </para>
 
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended">
-      <xref linkend="which"/>
-<!-- If - -with-python is used, configure runs "which $PYTHON", where PYTHON
-     is set to the argument of the switch. Somewhat silly because the presence
-     of which is not tested... -->
-    </para>
-
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="cairo"/> (required for the tests),
-      <xref linkend="gjs"/> (to satisfy one of the tests),
+      <xref linkend="gjs"/> (to satisfy one test),
       <xref linkend="gtk-doc"/>,
-      <xref linkend="Mako"/>,
-      <xref linkend="python2"/>, and
-      <ulink url="https://pypi.org/project/Markdown/">Markdown</ulink>
+      <xref linkend="Mako"/>, and
+      <ulink url="https://pypi.org/project/Markdown/">Markdown</ulink> (to satisfy one test)
       <!-- There was talk of this being required in the release notes. Can someone
-      who doesn't have this installed verify? -->
+      who doesn't have this installed verify? 
+      It is only needed for one test.  bdubbs March 3, 2019
+      -->
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -111,13 +104,15 @@
       the following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr    \
-            --disable-static \
-            --with-python=/usr/bin/python3 &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd    buils &amp;&amp;
+
+meson --prefix=/usr .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>.
+      To test the results, issue: <command>ninja test -k0</command>.
+      One test fails if the optional Markdown module is not installed.
       <!--One test, Regress-1.0.gir, is known to fail with glibc-2.28.-->
       <!-- This worked fine in 2.27, but is broken again in 2.28. -->
       <!-- This works again with glibc 2.28 and gi 1.58.0 -->
@@ -127,21 +122,20 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
+    <para><parameter>-Dgtk_doc=true</parameter>: Build and install 
+    the documentation.</para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
+    <para><parameter>-Dcairo=true</parameter>: Use cairo for tests.</para>
 
-    <para><parameter>--with-python=/usr/bin/python3</parameter>: ensure the
-    Python-3.x interpreter is used instead of Python-2.x if installed.</para>
+    <para><parameter>-Ddoctool=true</parameter>: Install g-ir-doc-tool 
+    and run related tests.</para>
 
   </sect2>
 
@@ -161,7 +155,7 @@ make</userinput></screen>
         </seg>
         <seg>
           libgirepository-1.0.so and
-          /usr/lib/gobject-introspection/giscanner/_giscanner.so
+          _giscanner.cpython-37m-x86_64-linux-gnu.so
         </seg>
         <seg>
           /usr/include/gobject-introspection-1.0,
