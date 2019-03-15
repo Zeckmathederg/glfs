@@ -6,10 +6,10 @@
 
   <!ENTITY mesa-download-http "https://mesa.freedesktop.org/archive/mesa-&mesa-version;.tar.xz">
   <!ENTITY mesa-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/mesa-&mesa-version;.tar.xz">
-  <!ENTITY mesa-md5sum        "6f2a5e01dd5cb91d05a9534f5a80c35d">
+  <!ENTITY mesa-md5sum        "d0d76cd8b00bc1308e37985d4a45d3c5">
   <!ENTITY mesa-size          "11 MB">
-  <!ENTITY mesa-buildsize     "361 MB (with demos and docs, add 89 MB for tests)">
-  <!ENTITY mesa-time          "2.1 SBU (with parallelism=4, demos, and docs; add 1.0 SBU for tests)">
+  <!ENTITY mesa-buildsize     "1.6 GB (with demos and docs)">
+  <!ENTITY mesa-time          "2.3 SBU (with parallelism=4, demos, and docs)">
 ]>
 
 <sect1 id="mesa" xreflabel="Mesa-&mesa-version;">
@@ -124,7 +124,6 @@
     <para role="optional">
       <xref linkend="libgcrypt"/>,
       <xref linkend="nettle"/>,
-      <xref linkend="python2"/> (not used if Python3 is present),
       <ulink url="ftp://ftp.freedesktop.org/pub/mesa/demos/">mesa-demos</ulink>
       (provides more than 300 extra demos to test
       <application>Mesa</application>; this includes the same programs added by
@@ -162,50 +161,63 @@
    <!-- Note that freedreno, vc4, and virgl all need special support from
         libdrm - renodr -->
 
-   <para>Now, select the drivers you wish to install.  The available drivers
-   are i915, nouveau, r300, r600, radeonsi, freedreno, pl111, svga, swrast,
-   swr, tegra, v3d, vc4, virgl, etnaviv, and imx.  If the Gallium drivers are
-   not specified, the default is 'r300,r600,svga,swrast'. Modify the command
+   <para>Now, select the drivers you wish to install.  The gallium available
+   drivers are pl111, radeonsi, r300, r600, nouveau, and freedreno.  The DRI
+   drivers available are i915, i965, r100, r200, nouveau, and swrast.  The
+   platforms available are x11, wayland, drm, surfaceless, haiku, and android.
+   
+   Modify the commands
    below for any desired drivers.  The listed drivers below will cover most
    modern video cards.  For help in selecting drivers see <ulink
    url='http://www.mesa3d.org/systems.html'/>.</para>
 
-<screen><userinput>GLL_DRV="i915,nouveau,radeonsi,svga,swrast"</userinput></screen>
+<screen><userinput>GALLIUM_DRV="i915,nouveau,radeonsi,svga,swrast"
+DRI_DRIVERS="i915,i965,nouveau"
+PLATFORMS="x11,wayland,drm"</userinput></screen>
 
     <para>
       Install <application>Mesa</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS=-lLLVM \
-            --prefix=$XORG_PREFIX              \
-            --sysconfdir=/etc                  \
-            --enable-osmesa                    \
-            --enable-xa                        \
-            --enable-glx-tls                   \
-            --with-platforms="drm,x11,wayland" \
-            --with-gallium-drivers=$GLL_DRV    &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
-unset GLL_DRV &amp;&amp;
+meson --prefix=$XORG_PREFIX          \
+      --sysconfdir=/etc              \
+      -Dvalgrind=false               \
+      -Dglx=dri                      \
+      -Dosmesa=gallium               \
+      -Dgallium-nine=true            \
+      -Ddri-drivers=$DRI_DRIVERS     \
+      -Dgallium-drivers=$GALLIUM_DRV \
+      -Dplatforms=$PLATFORMS         \
+      ..                             &amp;&amp;
 
-make</userinput></screen>
+unset GALLIUM_DRV DRI_DRIVERS PLATFORMS &amp;&amp;
+
+ninja</userinput></screen>
 
     <para>
       If you have applied the xdemos patch, build the demo programs by
       running the following command:
     </para>
 
-<screen><userinput>make -C xdemos DEMOS_PREFIX=$XORG_PREFIX</userinput></screen>
-
+<screen><userinput>make -C ../xdemos DEMOS_PREFIX=$XORG_PREFIX</userinput></screen>
+<!--
     <para>
       To test the results, issue: <command>make -k check</command>. 
+    </para>
+-->
+    <para>
+      This package does not come with a test suite.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
       If you have built the demo programs, install them by running the
@@ -213,7 +225,7 @@ make</userinput></screen>
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make -C xdemos DEMOS_PREFIX=$XORG_PREFIX install</userinput></screen>
+<screen role="root"><userinput>make -C ../xdemos DEMOS_PREFIX=$XORG_PREFIX install</userinput></screen>
 
     <para>
       If desired, install the optional documentation by running
@@ -222,13 +234,13 @@ make</userinput></screen>
     </para>
 
 <screen role="root"><userinput>install -v -dm755 /usr/share/doc/mesa-&mesa-version; &amp;&amp;
-cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
+cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
+<!--
     <para>
       <parameter>CFLAGS="-O2" CXXFLAGS="-O2"</parameter>: By default,
       <application>Autoconf</application> sets CFLAGS and CXXFLAGS to
@@ -242,6 +254,7 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
       specifies the LLVM libraries that are not automatically included
       for some of the package components.
     </para>
+-->
 <!--
     <para>
       <parameter>- -enable-texture-float</parameter>: This switch enables
@@ -251,41 +264,43 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
     Removed in 18.2.0
 -->
-
+<!--
     <para>
-      <parameter>--enable-osmesa</parameter>: This switch enables building
+      <parameter>-Dosmesa=gallium</parameter>: This switch enables building
       the <filename class="libraryfile">libOSMesa</filename> library.
     </para>
 
     <para>
-      <parameter>--enable-xa</parameter>: This switch enables building the
+      <parameter>- -enable-xa</parameter>: This switch enables building the
       XA X Acceleration API (Required for VMware 3D Driver).
     </para>
 
     <para>
-      <parameter>--enable-gbm</parameter>: This switch enables building the
+      <parameter>- -enable-gbm</parameter>: This switch enables building the
       <application>Mesa</application> Graphics Buffer Manager library.
     </para>
 
     <para>
-      <parameter>--enable-glx-tls</parameter>: This switch enables TLS (Thread Local
+      <parameter>- -enable-glx-tls</parameter>: This switch enables TLS (Thread Local
       Storage) support in GLX.
     </para>
-
+-->
     <para>
-      <parameter>--with-platforms="..."</parameter>: This parameter
+      <parameter>-Dplatforms="..."</parameter>: This parameter
       controls which platforms EGL will be built for. Available
-      platforms are drm, x11 and wayland.
+      platforms are drm, x11, surfaceless, haiku, android,  and wayland.
     </para>
 
     <para>
-      <parameter>--with-gallium-drivers="..."</parameter>: This parameter
-      controls which Gallium3D drivers should be built. 
+      <parameter>=-Dgallium-drivers="..."</parameter>: This parameter
+      controls which Gallium3D drivers should be built. Available drivers 
+      are pl111, radeonsi, r300, r600, nouveau, and freedreno.
     </para>
 
-    <para revision="sysv">
-      <option>--enable-sysfs</option>: Use this switch to enable simple PCI
-      identification method, required for building DRI on systems without udev.
+    <para>
+      <parameter>=-Ddri-drivers="..."</parameter>: This parameter
+      controls which platforms should be supported. Available platforms
+      are i915, i965, r100, r200, nouveau, and swrast.
     </para>
 
   </sect2>
@@ -303,27 +318,32 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           glxgears and glxinfo
         </seg>
         <seg>
+          d3dadapter9.so,
+          i915_dri.so,
+          i965_dri.so,
+          kms_swrast_dri.so,
+          nouveau_dri.so,
+          nouveau_vieux_dri.so,
+          radeonsi_dri.so,
+          radeonsi_drv_video.so,
+          swrast_dri.so,
+          vmwgfx_dri.so
           libEGL.so,
-          libgbm.so,
-          libglapi.so,
+          libGL.so,
           libGLESv1_CM.so,
           libGLESv2.so,
-          libGL.so,
           libOSMesa.so,
-<!-- Those libraries are associated with the "swr" gallium driver,
-     which has been removed at r17757. Keeping as a comment in case we
-     reintroduce that driver. AVX libs are restored in version 18.0.1 -->
-<!--          libswrAVX.so,
-          libswrAVX2.so, -->
-          libwayland-egl.so (if built with <application>Wayland</application>)
-          <!-- Does not appear to be present even with Wayland installed in 18.2.2.
-          Further verification on a GNOME and Plasma system required. -->
-          libxatracker.so,
           libXvMCnouveau.so,
-          and libXvMCr600.so
+          libgbm.so,
+          libglapi.so,
+          libvulkan_intel.so,
+          libvulkan_radeon.so,
+          libxatracker.so,
+          libvdpau_nouveau.so, and
+          libvdpau_radeonsi.so
         </seg>
         <seg>
-          $XORG_PREFIX/{include/{EGL,GL,GLES,GLES2,GLES3,KHR},lib/{dri,vdpau}}
+          $XORG_PREFIX/{include/{EGL,GL,GLES,GLES2,GLES3,KHR,vulkan},lib/{d3d,dri,vdpau}}
           and
           /usr/share/doc/mesa-&mesa-version; (optional)
         </seg>
@@ -435,17 +455,6 @@ cp -rfv docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="libxatracker">
-        <term><filename class="libraryfile">libxatracker.so</filename></term>
-        <listitem>
-          <para>
-            is the Xorg Gallium3D acceleration library.
-          </para>
-          <indexterm zone="mesa libxatracker">
-            <primary sortas="c-libxatracker">libxatracker.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
     </variablelist>
 
   </sect2>
