@@ -459,24 +459,24 @@ chmod 755 blfs-yes-test2</userinput></screen>
     <para>
       There are now three different build systems in common use for
       converting C or C++ source code into compiled programs or
-      libraries, and their details (particularly, finding out about available
+      libraries and their details (particularly, finding out about available
       options and their default values) differ. It may be easiest to understand
-      the issues caused by some choices (typically, slow execution, or
-      unexpected use of, or omission of, optimizatons) by starting with the item
-      which drew attention to this, the CFLAGS and CXXFLAGS.
+      the issues caused by some choices (typically slow execution or
+      unexpected use of, or omission of, optimizatons) by starting with 
+      the CFLAGS and CXXFLAGS environment variables.
     </para>
 
     <para>
       Most LFS and BLFS builders are probably aware of the basics of CFLAGS
       and CXXFLAGS for altering how a program is compiled. Typically, some
-      form of optimization is used for a released program (-O2 or -O3),
-      sometimes with the creation of debug symbols (-g) when using -O2.
+      form of optimization is used by upstream developers (-O2 or -O3),
+      sometimes with the creation of debug symbols (-g), as defaults.
     </para>
 
     <para>
       If there are contradictory flags (e.g. multiple different -O values),
       the <emphasis>last</emphasis> value will be used. Sometimes this means
-      that flags specifiedi in environment variables will be picked up before
+      that flags specified in environment variables will be picked up before
       values hardcoded in the Makefile, and therefore ignored.  For example,
       where a user specifies '-O2' and that is followed by '-O3' the build will
       use '-O3'.
@@ -494,7 +494,7 @@ chmod 755 blfs-yes-test2</userinput></screen>
       extremely long times, even on high-class video cards.
     </para>
 
-    <bridgehead renderas="sect3">Autotools with Make</bridgehead>
+    <bridgehead renderas="sect3" id="autotools-info">Autotools with Make</bridgehead>
 
       <para>
        This combination is often described as 'CMMI' (configure, make, make
@@ -503,9 +503,9 @@ chmod 755 blfs-yes-test2</userinput></screen>
       </para>
 
       <para>
-        Sometimes, running <command>./configure --help</command> will produce
+        Sometimes running <command>./configure --help</command> will produce
         useful options about switches which might be used.  At other times,
-        after looking at the output from a run of configure you may need to look
+        after looking at the output from configure you may need to look
         at the details of the script to find out what it was actually searching
         for.
       </para>
@@ -515,7 +515,7 @@ chmod 755 blfs-yes-test2</userinput></screen>
        environment, but CMMI packages vary about how these will be mixed with
        any flags which would otherwise be used (<emphasis>variously</emphasis>:
        ignored, used to replace the programmer's suggestion, used before the
-       programmer's suggestion, used after the programmer's suggestion).
+       programmer's suggestion, or used after the programmer's suggestion).
       </para>
 
       <para>
@@ -527,7 +527,7 @@ chmod 755 blfs-yes-test2</userinput></screen>
        'V=1' to the make invocation may help.
      </para>
 
-    <bridgehead renderas="sect3">CMake</bridgehead>
+    <bridgehead renderas="sect3" id="cmake-info">CMake</bridgehead>
 
       <para>
         CMake works in a very different way, and it has two backends which can
@@ -547,7 +547,7 @@ chmod 755 blfs-yes-test2</userinput></screen>
         Perhaps the most-important thing about CMake is that it has a variety
         of CMAKE_BUILD_TYPE values, and these affect the flags. The default
         is that this is not set and no flags are generated. Any CFLAGS or
-        CXXFLAGS in the environment will be used. If  the programmer has coded
+        CXXFLAGS in the environment will be used. If the programmer has coded
         any debug assertions, those will be enabled unless -DNDEBUG is used.
         The following CMAKE_BUILD_TYPE values will generate the flags shown,
         and these will come <emphasis>after</emphasis> any flags in the
@@ -574,26 +574,28 @@ chmod 755 blfs-yes-test2</userinput></screen>
         which are being run, use 'make VERBOSE=1' or 'ninja -v'.
       </para>
 
-    <bridgehead renderas="sect3">Meson</bridgehead>
+    <bridgehead renderas="sect3" id="meson-info">Meson</bridgehead>
 
       <para>
         Meson has some similarities to CMake, but many differences. To get
-        details of the definesthat you may wish to change is slightly involved
-        using meson-0.49.2:
+        details of the defines that you may wish to change ypu need to do:
       </para>
 
-<screen><userinput>meson ..
+<screen><userinput>mkdir build
+cd    build
+meson ..
 meson configure | less</userinput></screen>
 
       <para>
-        After identifying what to set, meson then needs to be reconfigured:
+        After identifying what to set, meson then needs to be reconfigured.
+        For example:
       </para>
 
-<screen><userinput>meson --prefix=/usr -Dsome_option=true -Dother_option=false --reconfigure</userinput></screen>
+<screen><userinput>meson --prefix=/usr -Dbuildtype=&lt;type&gt; -Dother_option=false --reconfigure</userinput></screen>
 
       <para>
         Alternatively, you could remove the build directory where you did this,
-        recreate it, and then run meson with the desired switches.
+        recreate it, and then run meson with the desired options.
       </para>
 
       <para>
@@ -621,7 +623,7 @@ meson configure | less</userinput></screen>
       </itemizedlist>
 
       <para>
-        Although the release buildtype is described as enabling -DNDEBUG, and all
+        Although the 'release' buildtype is described as enabling -DNDEBUG, and all
         CMake Release builds pass that, it has so far only been observed (in
         verbose builds) for <xref linkend="mesa"/>. That suggests that it might
         only be used when there are debug assertions present.
@@ -634,7 +636,7 @@ meson configure | less</userinput></screen>
 
       <para>
         To see the details of the commands which are being run in a package using
-        meson, again use 'ninja -v'.
+        meson, use 'ninja -v'.
       </para>
 
   </sect2>
