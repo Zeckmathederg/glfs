@@ -6,10 +6,10 @@
 
   <!ENTITY mesa-download-http "https://mesa.freedesktop.org/archive/mesa-&mesa-version;.tar.xz">
   <!ENTITY mesa-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/mesa-&mesa-version;.tar.xz">
-  <!ENTITY mesa-md5sum        "d0d76cd8b00bc1308e37985d4a45d3c5">
-  <!ENTITY mesa-size          "11 MB">
-  <!ENTITY mesa-buildsize     "1.6 GB (with demos and docs)">
-  <!ENTITY mesa-time          "2.3 SBU (with parallelism=4, demos, and docs)">
+  <!ENTITY mesa-md5sum        "19636bb3da35c21f43040d31e575d5ce">
+  <!ENTITY mesa-size          "12 MB">
+  <!ENTITY mesa-buildsize     "473 MB (with demos and docs), add 141 MB if tests are enabled ">
+  <!ENTITY mesa-time          "2.4 SBU (with parallelism=4, demos, and docs), add 0.4 SBU if tests are enabled">
 ]>
 
 <sect1 id="mesa" xreflabel="Mesa-&mesa-version;">
@@ -83,7 +83,7 @@
         <para>
           Recommended patch:
           <ulink
-            url="&patch-root;/mesa-&mesa-version;-add_xdemos-2.patch"/>
+            url="&patch-root;/mesa-&mesa-version;-add_xdemos-1.patch"/>
           (installs 2 demo programs for testing Mesa - not needed if you
           install the <ulink url="ftp://ftp.freedesktop.org/pub/mesa/demos/">
           mesa-demos</ulink> package)
@@ -102,22 +102,20 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      
-      <phrase revision="systemd"><xref linkend="libva"/> (to build drivers for 
-      supported hardware, note that there is a circular dependency. You must
+
+      <xref linkend="libva"/> (to provide VA-API support for some gallium
+      drivers, note that there is a circular dependency. You must
       build <application>libva</application> first without EGL and GLX support,
-      install this package, and rebuild <application>libva</application>.),</phrase>
-      
+      install this package, and rebuild <application>libva</application>.),
       <xref linkend="libvdpau"/> (to build VDPAU drivers),
-      
-      <xref linkend="llvm"/> (required for Gallium3D, r300, and radeonsi
-      drivers and for the llvmpipe software rasterizer. See <ulink role="nodep"
+      <xref linkend="llvm"/> (required for Gallium3D, nouveau, r300, and radeonsi
+      drivers and for swrast, the software rasterizer which is sometimes referred
+      to as llvmpipe. See <ulink role="nodep"
       url="http://www.mesa3d.org/systems.html"/> for more information), and
       <xref linkend="wayland-protocols"/> (required for 
         <xref role="nodep" linkend='plasma5-build'/>,
         <!-- <xref role="nodep" linkend='lxqt'/>, -->
-        GNOME, and 
-        recommended for  <xref role="nodep" linkend='gtk3'/>)
+        GNOME, and recommended for  <xref role="nodep" linkend='gtk3'/>)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -139,9 +137,10 @@
     <note>
       <para>
         The instructions below assume that
-        <application>LLVM</application> with the r600/amdgpu and host 
-        backends are installed. You will need to modify the instructions if you
-        choose not to install it.  For an explanation of Gallium3D see
+        <application>LLVM</application> with the r600/amdgpu and host backends
+        and run-time type information (RTTI - needed for nouveau) are installed.
+        You will need to modify the instructions if you
+        choose not to install all of these. For an explanation of Gallium3D see
         <ulink url="https://en.wikipedia.org/wiki/Gallium3D"/>.
       </para>
     </note>
@@ -163,27 +162,58 @@
 <screen><userinput>patch -Np1 -i ../mesa-&mesa-version;-add_xdemos-2.patch</userinput></screen>
 
    <!-- Note that freedreno, vc4, and virgl all need special support from
-        libdrm - renodr -->
+        libdrm - renodr
+        For me, libdrm does not mention virgl, but mesa accepts it. AFAICS
+        freedreno is for qualcom hardware, libdrm will build for it on suitable
+        systems. VC4 is for the Broadcom VC4 used in the raspberry pi - ken -->
 
-   <para>Now, select the drivers you wish to install.  
-   The gallium available drivers are 
-     kmsro, radeonsi, r300, r600, nouveau, freedreno,
-     swrast, v3d, vc4, etnaviv, tegra, i915, svga, virgl, and
-     swr.
+    <note>
+      <para>
+        The measurements above, and the Contents below, are for a full build.
+        Many people will not wish to install drivers they cannot use, so the
+        following paragraphs explain how to limit the drivers, and give an
+        example which can be be reduced or amended as necessary.
+      </para>
+    </note>
 
-   The DRI drivers available are 
-     i915, i965, r100, r200, nouveau, and swrast.  
-   The platforms available are 
-     x11, wayland, drm, surfaceless, haiku, and android.
-   
-   Modify the commands
-   below for any desired drivers.  The listed drivers below will cover most
-   modern video cards.  For help in selecting drivers see <ulink
-   url='http://www.mesa3d.org/systems.html'/>.</para>
+    <para>
+      Now, select the drivers you wish to install. For the X86 architecture, the
+      available gallium drivers are auto, <emphasis>or alternatively a choice
+      from</emphasis> i915, nouveau, r300, r600, radeonsi, svga, swrast, and
+      virgl. The latter is recommended if you intend to run the system under
+      <xref linkend="qemu"/>. If you wish to build all available gallium drivers,
+      use 'auto'.
+    </para>
 
-<screen><userinput>GALLIUM_DRV="nouveau,radeonsi,svga,swrast"
-DRI_DRIVERS="i915,i965,nouveau"
-PLATFORMS="x11,wayland,drm"</userinput></screen>
+    <para>
+      The (non-gallium) DRI drivers available in X86 are auto, <emphasis>or
+      alternatively a choice from</emphasis> i915, i965, nouveau, r100, r200,
+      and swrast. Use 'auto' to build all available DRI drivers, or use an
+      empty string (DRI_DRIVERS="") if you wish to only build gallium drivers.
+    </para>
+
+    <para>
+      The platforms ("window systems") available for X86 linux are x11, wayland,
+      drm, and surfaceless. By not specifying anything, the meson build-system
+      will build for all these platforms if you have the dependencies, identical
+      to if you had specified '-Dplatforms=auto'.
+    </para>
+
+    <para>
+      Modify the commands below for your desired drivers.  The drivers listed
+      below will cover most modern video cards and virtual machines.  For help in
+      selecting drivers see <ulink url='http://www.mesa3d.org/systems.html'/>.
+    </para>
+
+    <note>
+      <para>
+        Although the nouveau drivers can be built for both gallium and dri, the
+        i915 driver can only be built for one or the other.
+      </para>
+    </note>
+
+<screen><userinput>GALLIUM_DRV="i915,nouveau,r600,radeonsi,svga,swrast,virgl"
+DRI_DRIVERS="i965,nouveau"</userinput></screen>
 
     <para>
       Install <application>Mesa</application> by running the following
@@ -194,17 +224,16 @@ PLATFORMS="x11,wayland,drm"</userinput></screen>
 cd    build &amp;&amp;
 
 meson --prefix=$XORG_PREFIX          \
-      --sysconfdir=/etc              \
-      -Dvalgrind=false               \
-      -Dglx=dri                      \
-      -Dosmesa=gallium               \
-      -Dgallium-nine=true            \
+      -Dbuildtype=release            \
       -Ddri-drivers=$DRI_DRIVERS     \
       -Dgallium-drivers=$GALLIUM_DRV \
-      -Dplatforms=$PLATFORMS         \
+      -Dgallium-nine=true            \
+      -Dglx=dri                      \
+      -Dosmesa=gallium               \
+      -Dvalgrind=false               \
       ..                             &amp;&amp;
 
-unset GALLIUM_DRV DRI_DRIVERS PLATFORMS &amp;&amp;
+unset GALLIUM_DRV DRI_DRIVERS &amp;&amp;
 
 ninja</userinput></screen>
 
@@ -214,13 +243,10 @@ ninja</userinput></screen>
     </para>
 
 <screen><userinput>make -C ../xdemos DEMOS_PREFIX=$XORG_PREFIX LIBRARY_PATH=$PWD/src/glx</userinput></screen>
-<!--
+
     <para>
-      To test the results, issue: <command>make -k check</command>. 
-    </para>
--->
-    <para>
-      This package does not come with a test suite.
+      If you built the tests (see 'Command Explanations'), to run them issue:
+      <command>ninja test</command>.
     </para>
 
     <para>
@@ -250,36 +276,47 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-<!--
+
     <para>
-      <parameter>CFLAGS="-O2" CXXFLAGS="-O2"</parameter>: By default,
-      <application>Autoconf</application> sets CFLAGS and CXXFLAGS to
-      "-g -O2". That results in binaries and libraries being built with
-      debugging symbols which make them bigger. Override the default
-      flags to omit the -g compiler flag so the final libraries are smaller.
+      <parameter>-Dbuildtype=release</parameter>: This switch ensures a
+      fully-optimized build, and disables debug assertions which will
+      severely slow down the libraries in certain use-cases.
     </para>
 
     <para>
-      <parameter>LDFLAGS=-lLLVM</parameter>: This environment variable
-      specifies the LLVM libraries that are not automatically included
-      for some of the package components.
+      <parameter>-Ddri-drivers="..."</parameter>: This parameter
+      controls which (non-gallium) dri drivers should be built.
     </para>
--->
-<!--
+
     <para>
-      <parameter>- -enable-texture-float</parameter>: This switch enables
-      floating-point textures and render buffers. Please consult
-      <filename>docs/patents.txt</filename> to see if there are
-      any legal issues if you use this feature.
+      <parameter>-Dgallium-drivers="..."</parameter>: This parameter
+      controls which Gallium3D drivers should be built.
     </para>
-    Removed in 18.2.0
--->
-<!--
+
+    <para>
+      <parameter>-Dgallium-nine=true</parameter>: This switch provides
+      support for (MS Windows) games designed for DX9. It requires swrast.
+    </para>
+
     <para>
       <parameter>-Dosmesa=gallium</parameter>: This switch enables building
-      the <filename class="libraryfile">libOSMesa</filename> library.
+      the <filename class="libraryfile">libOSMesa</filename> library and
+      provides Gallium3D support in it.
+    </para>
+<!--
+    <para>
+      <parameter>-Dplatforms="..."</parameter>: This parameter
+      controls which platforms EGL will be built for. Available
+      linux X86 platforms are drm, x11, wayland, and surfaceless.
+    </para>
+-->
+    <para>
+      <parameter>-Dvalgrind=false</parameter>: This parameter disables
+      the usage of Valgrind during the build process. Remove this parameter
+      if you have Valgrind installed, and wish to check for memory leaks.
     </para>
 
+<!--
     <para>
       <parameter>- -enable-xa</parameter>: This switch enables building the
       XA X Acceleration API (Required for VMware 3D Driver).
@@ -289,6 +326,7 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
       <parameter>- -enable-gbm</parameter>: This switch enables building the
       <application>Mesa</application> Graphics Buffer Manager library.
     </para>
+    These two seem to be automatic in 19.0 - ken
 
     <para>
       <parameter>- -enable-glx-tls</parameter>: This switch enables TLS (Thread Local
@@ -296,27 +334,8 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
 -->
     <para>
-      <parameter>-Dplatforms="..."</parameter>: This parameter
-      controls which platforms EGL will be built for. Available
-      platforms are drm, x11, surfaceless, haiku, android,  and wayland.
-    </para>
-
-    <para>
-      <parameter>-Dgallium-drivers="..."</parameter>: This parameter
-      controls which Gallium3D drivers should be built. Available drivers 
-      are pl111, radeonsi, r300, r600, nouveau, and freedreno.
-    </para>
-
-    <para>
-      <parameter>-Ddri-drivers="..."</parameter>: This parameter
-      controls which platforms should be supported. Available platforms
-      are i915, i965, r100, r200, nouveau, and swrast.
-    </para>
-
-    <para>
-      <parameter>-Dvalgrind=false</parameter>: This parameter disables
-      the usage of Valgrind during the build process. Remove this parameter
-      if you have Valgrind installed, and wish to check for memory leaks.
+      <option>-Dbuild-tests=true</option>: This option will cause the test code
+      to be enabled.
     </para>
 
   </sect2>
@@ -334,16 +353,23 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           glxgears and glxinfo
         </seg>
         <seg>
-          <!-- Begin DRI drivers -->
-          d3dadapter9.so, <!-- For Windows? This is DirectX's Direct3D -->
+          <!-- Begin DRI drivers : this is the full set from auto -->
+          d3dadapter9.so, <!-- For Windows games. This is DirectX's Direct3D -->
           i915_dri.so,
           i965_dri.so,
           kms_swrast_dri.so,
           nouveau_dri.so,
+          nouveau_drv_video.so,
           nouveau_vieux_dri.so,
+          r200_dri.so,
+          r300_dri.so,
+          r600_dri.so,
+          r600_drv_video.so,
+          radeon_dri.so,
           radeonsi_dri.so,
           radeonsi_drv_video.so,
           swrast_dri.so,
+          virtio_gpu_dri.so,
           vmwgfx_dri.so
           <!-- End DRI Drivers -->
           libEGL.so,
@@ -352,6 +378,7 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           libGLESv2.so,
           libOSMesa.so,
           libXvMCnouveau.so,
+          libXvMCr600.so,
           libgbm.so,
           libglapi.so,
           <!-- Begin Vulkan drivers -->
@@ -360,12 +387,17 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           <!-- End Vulkan drivers -->
           libxatracker.so,
           <!-- Begin VDPAU drivers -->
-          libvdpau_nouveau.so, and
+          libvdpau_nouveau.so,
+          libvdpau_r300.so,
+          libvdpau_r600.so, and
           libvdpau_radeonsi.so
           <!-- End VDPAU drivers -->
         </seg>
         <seg>
           $XORG_PREFIX/{include/{EGL,GL,GLES,GLES2,GLES3,KHR,vulkan},lib/{d3d,dri,vdpau}}
+          $XORG_PREFIX/share/drirc.d (contains workarounds for various applications,
+          particularly browsers and games)
+          $XORG_PREFIX/share/vulkan/icd.d,
           and
           /usr/share/doc/mesa-&mesa-version; (optional)
         </seg>
