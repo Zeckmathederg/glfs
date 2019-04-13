@@ -11,7 +11,7 @@
 
   <!ENTITY make-ca-download      "https://github.com/djlucas/make-ca/releases/download/v&make-ca-version;/make-ca-&make-ca-version;.tar.xz">
   <!ENTITY make-ca-size          "28 KB">
-  <!ENTITY make-ca-md5sum        "5b68cf77b02d5681f8419b8acfd139c0">
+  <!ENTITY make-ca-md5sum        "995896ca8b4ee1f92a4a8fa46585d59d">
 ]>
 
 <sect1 id="make-ca" xreflabel="make-ca-&make-ca-version;">
@@ -103,13 +103,18 @@
     on the system). Any local certificates stored in
     <filename>/etc/ssl/local</filename> will be imported to both the trust
     anchors and the generated certificate stores (overriding Mozilla's
-    trust).</para>
+    trust). Additionally, any modified trust values will be copied from the
+    trust anchors to <filename>/etc/ssl/local</filename> prior to any updates,
+    preserving custom trust values that differ from Mozilla when using the
+    <command>trust</command> utility from <application>p11-kit</application>
+    to operate on the trust store.</para>
 
     <para>To install the various certificate stores, first install the
     <application>make-ca</application> script into the correct location.
     As the <systemitem class="username">root</systemitem> user:</para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;
+install -vdm755 /etc/ssl/local</userinput></screen>
 
    <para>As the <systemitem class="username">root</systemitem> user, after
    installing <xref linkend="p11-kit"/>, download the certificate source and
@@ -135,7 +140,7 @@
 <screen role="nodump"><userinput>ln -sfv /etc/pki/tls/certs/ca-bundle.crt \
         /etc/ssl/ca-bundle.crt</userinput></screen>
 
-    <para>You should periodically update the store with the above command
+    <para>You should periodically update the store with the above command,
     either manually, or via a <phrase revision="sysv">cron job.</phrase>
     <phrase revision="systemd">systemd timer. A timer is installed at
     <filename>/usr/lib/systemd/system/update-pki.timer</filename> that, if
@@ -214,15 +219,15 @@ chmod 754 /etc/cron.weekly/update-pki.sh</userinput></screen>
     <systemitem class="username">root</systemitem> user after
     <xref linkend="wget"/> is installed):</para>
 
-<screen role="nodump"><userinput>install -vdm755 /etc/ssl/local &amp;&amp;
-wget http://www.cacert.org/certs/root.crt &amp;&amp;
+<screen role="nodump"><userinput>wget http://www.cacert.org/certs/root.crt &amp;&amp;
 wget http://www.cacert.org/certs/class3.crt &amp;&amp;
 openssl x509 -in root.crt -text -fingerprint -setalias "CAcert Class 1 root" \
         -addtrust serverAuth -addtrust emailProtection -addtrust codeSigning \
         > /etc/ssl/local/CAcert_Class_1_root.pem &amp;&amp;
 openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
         -addtrust serverAuth -addtrust emailProtection -addtrust codeSigning \
-        > /etc/ssl/local/CAcert_Class_3_root.pem</userinput></screen>
+        > /etc/ssl/local/CAcert_Class_3_root.pem &amp;&amp;
+/usr/sbin/make-ca -r -f</userinput></screen>
 
     <bridgehead renderas="sect3">Overriding Mozilla Trust</bridgehead>
 
@@ -234,8 +239,7 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
     arguments. For example, if you'd like to distrust the "Makebelieve_CA_Root"
     file, run the following commands:</para>
 
-<screen role="nodump"><userinput>install -vdm755 /etc/ssl/local &amp;&amp;
-openssl x509 -in /etc/ssl/certs/Makebelieve_CA_Root.pem \
+<screen role="nodump"><userinput>openssl x509 -in /etc/ssl/certs/Makebelieve_CA_Root.pem \
              -text \
              -fingerprint 
              -setalias "Disabled Makebelieve CA Root" \
