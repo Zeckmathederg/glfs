@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY folks-download-http "&gnome-download-http;/folks/0.11/folks-&folks-version;.tar.xz">
-  <!ENTITY folks-download-ftp  "&gnome-download-ftp;/folks/0.11/folks-&folks-version;.tar.xz">
-  <!ENTITY folks-md5sum        "08a0e9759d577c6ece43e2db4e0d039e">
-  <!ENTITY folks-size          "1.9 MB">
-  <!ENTITY folks-buildsize     "93 MB (add 51 MB for tests)">
-  <!ENTITY folks-time          "1.0 SBU (add 2.4 SBU for tests)">
+  <!ENTITY folks-download-http "&gnome-download-http;/folks/0.12/folks-&folks-version;.tar.xz">
+  <!ENTITY folks-download-ftp  "&gnome-download-ftp;/folks/0.12/folks-&folks-version;.tar.xz">
+  <!ENTITY folks-md5sum        "58bcf65a7b744ecbbb53f44dc8919204">
+  <!ENTITY folks-size          "512 KB">
+  <!ENTITY folks-buildsize     "69 MB (with tests)">
+  <!ENTITY folks-time          "1.3 SBU (with tests)">
 ]>
 
 <sect1 id="folks" xreflabel="Folks-&folks-version;" revision="systemd">
@@ -91,7 +91,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="tracker"/> (Broken due to API change),
+      <xref linkend="tracker"/> (Broken due to API changes in tracker),
       <ulink url="&gnome-download-http;/libsocialweb/">libsocialweb</ulink>, and
       <ulink url="https://packages.debian.org/jessie/zeitgeist">Zeitgeist</ulink>
     </para>
@@ -109,19 +109,26 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --disable-fatal-warnings &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd build &amp;&amp;
+
+meson --prefix=/usr --sysconfdir=/etc .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
-      To test the results, issue <command>make -k check</command> from a local
+      To test the results, issue <command>ninja test</command> from a local
       X session started with <command>dbus-launch</command>.
+      <!-- In the future, we need to run the tests with Tracker's backend
+      enabled before we suggest enabling that backend. I tried this with 0.12.1
+      and had 103 test failures in Tracker's section of the test suite.
+      This is unacceptable and is why we have it disabled by default. -->
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
   </sect2>
 
@@ -129,20 +136,15 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--disable-fatal-warnings</parameter>: This switch
-      allows the package to build with latest versions of the
-      dependencies.
-    </para>
-
-    <para>
-      <option>--enable-tracker-backend</option>: This switch enables
+      <option>-Dtracker_backend=true</option>: This switch enables
       building the <application>Tracker</application> backend.
-      Use it if you have <application>Tracker</application> installed. Note
-      that this functionality is currently not working properly.
+      Use it if you have <application>Tracker</application> installed. This
+      functionality is current broken, however, due to an upstream API change
+      in Tracker that hasn't been accounted for in this package.
     </para>
 
     <para>
-      <option>--enable-docs</option>: This switch enables
+      <option>-Ddocs=true</option>: This switch enables
       documentation generation.
     </para>
 
@@ -249,7 +251,7 @@ make</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="libfolks-tracker">
         <term><filename class="libraryfile">libfolks-tracker.so</filename></term>
         <listitem>
@@ -261,6 +263,7 @@ make</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
+-->
 
     </variablelist>
 
