@@ -263,23 +263,37 @@ EOF</userinput></screen>
     </para></note>
 
     <para>
+      <application>GCC-9</application> generates some false positives with
+      <command>--Werror=fromat</command>, which prevent building
+      <application>SeaMonkey</application>. Remove this flag with the
+      following command:
+    </para>
+
+<screen><userinput>grep -rl -- '-Werror=format' |
+    xargs sed -i 's/error=format/no-&amp;/'</userinput></screen>
+
+    <para>
       Compile <application>SeaMonkey</application> by running the following
       commands:
     </para>
 
-<!-- Seems to still be needed for 2.49.2 -->
+<!-- Seems to still be needed for 2.49.2
+     but not in 2.49.4
 <screen><userinput>CFLAGS_HOLD=$CFLAGS           &amp;&amp;
 CXXFLAGS_HOLD=$CXXFLAGS       &amp;&amp;
 EXTRA_FLAGS=" -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2" &amp;&amp;
 export CFLAGS+=$EXTRA_FLAGS   &amp;&amp;
 export CXXFLAGS+=$EXTRA_FLAGS &amp;&amp;
 unset EXTRA_FLAGS             &amp;&amp;
+-->
+<screen><userinput>CC=gcc CXX=g++ make -f client.mk</userinput></screen>
 
-CC=gcc CXX=g++ make -f client.mk</userinput></screen>
-
-    <note><para>The CC and CXX variables above are only needed if 
-    <xref linkend="llvm"/> is installed.  If using clang is desired,
-    do not use the CFLAGS or CXXFLAGS above.</para></note>
+    <note>
+      <para>
+        The CC and CXX variables above are only needed if 
+        <xref linkend="llvm"/> is installed and you do not want to use clang.
+      </para>
+    </note>
 
     <para>
       This package does not come with a test suite.
@@ -295,7 +309,7 @@ CC=gcc CXX=g++ make -f client.mk</userinput></screen>
 chown -R 0:0 /usr/lib/seamonkey-&seamonkey-version;    &amp;&amp;
 
 cp -v $(find -name seamonkey.1 | head -n1) /usr/share/man/man1</userinput></screen>
-
+<!-- Not needed: see above
     <para>
       Set the compilation flags back to their original values:
     </para>
@@ -303,7 +317,7 @@ cp -v $(find -name seamonkey.1 | head -n1) /usr/share/man/man1</userinput></scre
 <screen><userinput>export CFLAGS=$CFLAGS_HOLD     &amp;&amp;
 export CXXFLAGS=$CXXFLAGS_HOLD &amp;&amp;
 unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
-
+-->
     <bridgehead renderas="sect3" id="devel-seamonkey" xreflabel="SeaMonkey">
       All the Development Libraries and Headers
     </bridgehead>
