@@ -6,15 +6,15 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "a3d00fb4e950558135f08a5155745d4e">
-  <!ENTITY firefox-size          "269 MB">
+  <!ENTITY firefox-md5sum        "41a5d504deaed12ebf0e25bb1420f08">
+  <!ENTITY firefox-size          "270 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "11.8 GB (156 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "3.8 GB (154 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "25 SBU (with parallelism=4) without tests">
+  <!ENTITY firefox-time          "28 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -138,7 +138,6 @@ tar: Exiting with failure status due to previous errors
     <para role="required">
       <xref linkend="autoconf213"/>,
       <xref linkend="cbindgen"/>,
-      <application>Clang</application> (from <xref linkend="llvm"/>),
       both <xref linkend="gtk3"/> and
       <xref linkend="gtk2"/>,
       <xref linkend="libnotify"/>,
@@ -161,7 +160,8 @@ tar: Exiting with failure status due to previous errors
       <xref linkend="libevent"/>,
 <!-- fails to build in 65.0 (headers changed)
       <xref linkend="libvpx"/>, -->
-      <xref linkend="libwebp"/>, and
+      <xref linkend="libwebp"/>,
+      <xref linkend="nasm"/>, and
       <xref linkend="sqlite"/>
     </para>
 
@@ -256,15 +256,12 @@ ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-icu
 
-# The gold linker is no-longer the default
-ac_add_options --enable-linker=gold
+# Do not specify the gold linker which is not the default. It will take
+# longer and use more disk space when debug symbols are disabled.
 
-# The shipped libdavid (av1 decoder) is not built by default,
-# at least on linux, but if nasm is not present libxul tries to
-# link to one of libdavid's objects and fails.  It is thought
-# libdavid will be enabled in firefox-67, at which point nasm
-# might be required.
-ac_add_options --disable-av1
+# libdavid (av1 decoder) requires nasm. Uncomment this if nasm
+# has not been installed.
+#ac_add_options --disable-av1
 
 # You cannot distribute the binary if you do this
 ac_add_options --enable-official-branding
@@ -279,6 +276,10 @@ ac_add_options --enable-official-branding
 #ac_add_options --disable-strip
 #ac_add_options --disable-install-strip
 
+# Disabling debug symbols makes the build much smaller and a little
+# faster. Comment this if you need to run a debugger.
+ac_add_options --disable-debug-symbols
+
 # The BLFS editors recommend not changing anything below this line:
 ac_add_options --prefix=/usr
 ac_add_options --enable-application=browser
@@ -289,8 +290,7 @@ ac_add_options --disable-updater
 # increase the build time, for no obvious benefit.
 ac_add_options --disable-tests
 
-# With clang, unlike gcc-7 and later, the default level
-# of optimization produces a working build.
+# The default level of optimization again produces a working build with gcc.
 ac_add_options --enable-optimize
 
 # From firefox-61 system cairo is not supported
@@ -361,15 +361,18 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
     </para></note>
 
     <para>
-<!--  Invoke the Python script to compile the package: -->
-      To use the system version of ICU, run a sed to avoid a conflict between
+      If you are still using ICU-63, run a sed to avoid a conflict between
       upstream ICU's use of <literal>CheckImpl()</literal> in their public headers
       and firefox's internal use of a different <literal>CheckImpl()</literal>.
-      Then invoke the Python2 script to compile the package.
     </para>
 
-<screen><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h &amp;&amp;
-export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib &amp;&amp;
+<screen role="nodump"><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h</userinput></screen>
+
+    <para>
+      Invoke the Python2 script to compile the package.
+    </para>
+
+<screen><userinput>export CC=gcc CXX=g++ &amp;&amp;
 export MOZBUILD_STATE_PATH=${PWD}/mozbuild &amp;&amp;
 ./mach build</userinput></screen>
 
@@ -397,7 +400,7 @@ ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
       Set environment variables back to their values:
     </para>
 
-<screen><userinput>unset CC CXX AR NM RANLIB MOZBUILD_STATE_PATH</userinput></screen>
+<screen><userinput>unset CC CXX MOZBUILD_STATE_PATH</userinput></screen>
 
   </sect2>
 
@@ -406,18 +409,17 @@ ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
 
     <para>
       <command>sed -e 's/checkImpl/checkFFImpl/g' ...</command>: Although the
-      package ships with a modified version of <application>ICU-59</application>
-      and only tests that the system version, if requested, is at least 59,
-      changes in <emphasis>some</emphasis> versions cause builds with the system
-      version to fail with error messages of the form <literal>no void
-      JSContext::checkImpl_NN member function</literal> where NN is the system
-      <application>ICU</application> version. The sed renames the local function.
+      package ships with a modified version of <application>ICU-63</application>
+      and only tests that the system version, if used, is at least 63, changes
+      from upstream 63 cause builds with the system version to fail with an error
+      message <literal>no void JSContext::checkImpl_63 member function</literal>.
+      The sed renames the local function. Upstream ICU-64 works around this.
     </para>
 
     <para>
-      <command>export CC=clang CXX=clang++ ...</command>: Upstream now use
-      <application>clang</application> and building with any recent version
-      saves a lot of space.
+      <command>export CC=gcc CXX=g++ ...</command>: Upstream now prefer
+      <application>clang</application>, but gcc is a more secure compiler and
+      now produces reasonably-sized builds.
     </para>
 
     <para>
@@ -453,7 +455,7 @@ ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
       all the online CPU cores. There are two reasons to specify the number
       of cores, e.g. -j4 for 4 cores: First, if using all the cores causes
       the build to swap because you have insufficient memory (e.g. for 4 cores
-      a build without system graphite2 and harfbuzz now uses slightly over 8GB
+      a build without system graphite2 and harfbuzz now uses towards 8GB
       of RAM). In such cases, using fewer cores can be faster. Second, on some
       machines the middle part of the build can drag on as if only one core is
       present. In those cases, specifying the number of cores may speed up the
@@ -473,6 +475,12 @@ ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
       needed, as <application>Firefox</application> checks <filename
       class="directory">/usr/lib/mozilla/plugins</filename> by default, but the
       symbolic link is made to keep all the plugins installed in one folder.
+    </para>
+
+    <para>
+      <option>export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib</option>:
+      Use this as an alternative to building with gcc and g++ if you wish to use
+      the clang toolchain. Remember to unset these variables after the build.
     </para>
 
   </sect2>
