@@ -87,6 +87,31 @@ install -v -m644 pam_cap/capability.conf /etc/security</userinput></screen>
 
   </sect2>
 
+  <sect2 role="configuration">
+    <title>Configuring Libcap</title>
+
+    <para>In order to allow <application>Linux-PAM</application> to grant
+    privileges based on POSIX capabilites, you need to add the libcap module
+    to the begining of the <filename>/etc/pam.d/system-auth</filename> file.
+    Make the required edits with the following commands:</para>
+
+<screen role="root"><userinput>mv -v /etc/pam.d/system-auth{,.bak} &amp;&amp;
+cat &gt; /etc/pam.d/system-auth &lt;&lt; "EOF" &amp;&amp;
+# Begin /etc/pam.d/system-auth
+
+auth      optional    pam_cap.so
+EOF
+tail -n +3 /etc/pam.d/system-auth.bak &lt;&lt; /etc/pam.d/system-auth</userinput></screen>
+
+    <para>Additonally, you'll need to modify the
+    <filename>/etc/security/capability.conf</filename> file to grant necessary
+    privileges to users, and utilize the <application>setcap</application>
+    utiltiy to set capabilities on specific utilities as needed. See
+    <command>man 8 setcap</command> and <command>man 3 cap_from_text</command>
+    for additional information.</para>
+ 
+  </sect2>
+
   <sect2 role="content">
     <title>Contents</title>
 
