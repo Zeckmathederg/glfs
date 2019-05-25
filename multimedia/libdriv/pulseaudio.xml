@@ -138,10 +138,22 @@
       commands:
     </para>
 
-<!--<screen><userinput>patch -Np1 -i ../pulseaudio-&pulseaudio-version;-glibc_2.27_fix-1.patch &amp;&amp;
+    <para>
+      First, adapt Pulseaudio to upstream ALSA API changes:
+    </para>
+    <!-- This is due to it becoming FATAL to include ALSA headers from
+         /usr/include instead of /usr/include/alsa. Only one of these
+         files uses pkg-config to get it's headers, and as a result,
+         the hardcoded paths need to be updated. In this case, I developed
+         three seds and a call to ./bootstrap.sh to fix this. Other packages
+         may be affected by this upstream ALSA change as well. -->
 
-AUTOPOINT='intltoolize \-\-automake \-\-copy' autoreconf -fiv &amp;&amp;-->
-<screen><userinput>./configure --prefix=/usr        \
+<screen><userinput>sed -i "s:asoundlib.h:alsa/asoundlib.h:" src/modules/alsa/*.{c,h} &amp;&amp;
+sed -i "s:use-case.h:alsa/use-case.h:" configure.ac &amp;&amp;
+sed -i "s:use-case.h:alsa/use-case.h:" src/modules/alsa/alsa-ucm.h</userinput></screen>
+
+<screen><userinput>NOCONFIGURE=1 ./bootstrap.sh     &amp;&amp;
+./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --localstatedir=/var \
             --disable-bluez4     \
