@@ -6,15 +6,15 @@
 
   <!ENTITY texlive-download-http " ">
   <!ENTITY texlive-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-source.tar.xz">
-  <!ENTITY texlive-md5sum        "41d1e8874d266935c656fe51b440a413">
-  <!ENTITY texlive-size          "48 MB">
+  <!ENTITY texlive-md5sum        "be4b20aa60861bc510bcbc5b228bcb51">
+  <!ENTITY texlive-size          "52 MB">
 
-  <!ENTITY texlive-buildsize      "6.5 GB including the additional download (+179 MB for the tests), 5.3 GB installed">
-  <!ENTITY texlive-time           "9.8 SBU including the additional download (+0.3 SBU for the tests)">
+  <!ENTITY texlive-buildsize      "7.2 GB including the additional download and the tests, 6.0 GB installed">
+  <!ENTITY texlive-time           "5.6 SBU including the additional download and the tests, building with parallelism=4">
 
   <!ENTITY texlive-texmf-download-http " ">
   <!ENTITY texlive-texmf-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texmf-version;-texmf.tar.xz">
-  <!ENTITY texlive-texmf-md5sum        "05330b3b5445ef60b08a0ed660c55c92">
+  <!ENTITY texlive-texmf-md5sum        "">
   <!ENTITY texlive-texmf-size          "2.5 GB">
 
 ]>
@@ -103,7 +103,7 @@
       </listitem>
       <listitem>
         <para>Required patch: <ulink
-        url="&patch-root;/texlive-&texlive-version;-source-upstream_fixes-3.patch"/></para>
+        url="&patch-root;/texlive-&texlive-version;-source-upstream_fixes-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -112,8 +112,9 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="gs"/> <emphasis>including
-      <filename>libgs.so</filename></emphasis> (for dvisvgm, which is used by e.g.
-      <xref role="nodep" linkend="asymptote"/>),
+      <filename>libgs.so</filename></emphasis>, <!--(for dvisvgm, which is used by e.g.
+      <xref role="nodep" linkend="asymptote"/>), : still referenced for dynamic loading,
+      even without dvisvgm - e.fg. by dvipsk -->
       <xref linkend="x-window-system"/>
     </para>
 
@@ -177,6 +178,12 @@ EOF</userinput></screen>
         block of instructions, nor the <literal>\-\-with-system-poppler</literal>
         or <literal>\-\-with-system-xpdf</literal> options when configuring.
       </para>-->
+
+      <para>
+        In the 2019 release, <application>dvisvgm</application> cannot be built
+        if shared system libraries are used. This means that <xref linkend="asymptote"/>
+        will not be able to create svg files.
+      </para>
     </note>
 
     <para>
@@ -201,6 +208,8 @@ cd texlive-build    &amp;&amp;
 <!-- 
     \-\-with-system-poppler                                       \
     \-\-with-system-xpdf                                          \
+    potrace was only used by dvisvgm
+    \-\-with-system-potrace                                       \
  -->
 ../configure                                                    \
     --prefix=/opt/texlive/&texlive-year;                                  \
@@ -212,6 +221,7 @@ cd texlive-build    &amp;&amp;
     --mandir=/opt/texlive/&texlive-year;/texmf-dist/doc/man               \
     --disable-native-texlive-build                              \
     --disable-static --enable-shared                            \
+    --disable-dvisvgm                                           \
     --with-system-cairo                                         \
     --with-system-fontconfig                                    \
     --with-system-freetype2                                     \
@@ -224,7 +234,6 @@ cd texlive-build    &amp;&amp;
     --with-system-libpng                                        \
     --with-system-mpfr                                          \
     --with-system-pixman                                        \
-    --with-system-potrace                                       \
     --with-system-zlib                                          \
     --with-banner-add=" - BLFS" &amp;&amp;
 
@@ -283,11 +292,9 @@ mtxrun --generate</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>patch -Np1 -i ../texlive-&texlive-version;-source-upstream_fixes-3.patch</command>:
+      <command>patch -Np1 -i ../texlive-&texlive-version;-source-upstream_fixes-31.patch</command>:
       various problems have come to light since the shipped source was frozen to
-      be committed to DVDs. In particular, a segmentation fault in dvipdfm-x from
-      XeTeX <!--and changes in newer versions of <application>poppler</application>-->,
-      also an important vulnerability fix.
+      be committed to DVDs.
     </para>
 
 <!--
@@ -316,6 +323,12 @@ mtxrun --generate</userinput></screen>
 <!--
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/tex-xpdf.xml"/>-->
+
+    <para>
+      <command>--disable-dvisvgm</command>: As noted above, the shipped version
+      of dvisvgm, which has modified configuration files, cannot be built with
+      shared system libraries.
+    </para>
 
     <para>
       <option>--without-x</option>: use this if you do not have Xorg installed.
