@@ -6,10 +6,10 @@
 
   <!ENTITY samba-download-http "https://www.samba.org/ftp/samba/stable/samba-&samba-version;.tar.gz">
   <!ENTITY samba-download-ftp  " ">
-  <!ENTITY samba-md5sum        "e20678bebd7cf625dc2c9f53101366fe">
+  <!ENTITY samba-md5sum        "ef745b96eba9ca56334f2b5526427acd">
   <!ENTITY samba-size          "17 MB">
-  <!ENTITY samba-buildsize     "615 MB (add 562 MB for quicktest)">
-  <!ENTITY samba-time          "7.0 SBU (add 5.6 SBU for quicktest)">
+  <!ENTITY samba-buildsize     "616 MB (add 625 MB for quicktest)">
+  <!ENTITY samba-time          "7.0 SBU (add 16 SBU for quicktest)">
 ]>
 
 <sect1 id="samba" xreflabel="Samba-&samba-version;">
@@ -84,6 +84,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="avahi"/>,
+      <xref linkend="bind"/>,
       <xref linkend="cups"/>,
       <xref linkend="cyrus-sasl"/>,
       <xref linkend="gdb"/>,
@@ -106,11 +107,12 @@
       <xref linkend="xfsprogs"/>,
       <ulink url="https://cmocka.org/">cmocka</ulink>,
       <ulink url="https://ctdb.samba.org/">ctdb</ulink> (included),
+      <ulink url="https://cwrap.org/">cwrap</ulink>,
+      <ulink url="&pypi;/dnspython/">dnspython</ulink>,
+      <ulink url="https://packages.debian.org/stretch/fam/">FAM</ulink>,
       <ulink url="https://people.gnome.org/~veillard/gamin/">Gamin</ulink>,
       <ulink url="https://github.com/gluster/glusterfs/">GlusterFS</ulink>,
       <ulink url="http://www.h5l.org/">Heimdal</ulink> (included),
-    <!--  <ulink url="http://www.digip.org/jansson/">Jansson</ulink>, -->
-    <!--      <ulink url="http://ftp.de.debian.org/debian/pool/main/liba/libaio/">libaio</ulink>, -->
       <ulink url="http://www.nongnu.org/libunwind/">libunwind</ulink>,
       <ulink url="https://ldb.samba.org/">ldb</ulink> (included),
       <ulink url="&pypi;/m2crypto">M2Crypto</ulink> (required for ADS),
@@ -164,7 +166,7 @@
 
 <screen revision="sysv"><userinput>CFLAGS="-I/usr/include/tirpc"          \
 LDFLAGS="-ltirpc"                      \
-  ./configure                          \
+./configure                            \
     --prefix=/usr                      \
     --sysconfdir=/etc                  \
     --localstatedir=/var               \
@@ -178,7 +180,7 @@ make</userinput></screen>
 
 <screen revision="systemd"><userinput>CFLAGS="-I/usr/include/tirpc"          \
 LDFLAGS="-ltirpc"                      \
-  ./configure                          \
+./configure                            \
     --prefix=/usr                      \
     --sysconfdir=/etc                  \
     --localstatedir=/var               \
@@ -197,12 +199,20 @@ make</userinput></screen>
     of any failures can be found in
     <filename class="directory">./st/summary</filename>.</para>
 
+    <!-- If doing a security update or a new minor version (point releases do not apply
+    here), run 'make testenv' before running 'make test' and 'make subunit-test'. This
+    will setup the test environment and make the tests run faster, as well as point
+    out any glaring issues that might affect the new Samba installation. With 4.10.4,
+    I got 236 failures, 73 errors, and 2 unexpected successes. These were all known
+    upstream, and you can find them in the knownfail list in their git repo.
+    This is per Upstream's recommendation over IRC.-->
+
     <note>
       <para>Additionally, developer test suites are available. If you've
       installed the optional python modules above, you can run these tests with
       <command>make test</command>. It is not recommended for the average
-      builder at nearly 100 SBU and over a gigabyte of disk space, and you
-      should expect ~80 errors and ~30 failures from the 3000+ tests.</para>
+      builder at nearly 240 SBU and over a gigabyte of disk space, and you
+      should expect ~73 errors and ~30 failures from the 3000+ tests.</para>
     </note>
 
     <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
@@ -714,8 +724,7 @@ systemctl start smbd.socket</userinput></screen>
       <varlistentry id="ldbrename">
         <term><command>ldbrename</command></term>
         <listitem>
-          <para>allows you to edit LDB databases using your preferred
-          editor.</para>
+          <para>allows you to rename LDB databases.</para>
           <indexterm zone="samba ldbrename">
             <primary sortas="b-ldbrename">ldbrename</primary>
           </indexterm>
