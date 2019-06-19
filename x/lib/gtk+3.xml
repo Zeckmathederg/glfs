@@ -6,10 +6,10 @@
 
   <!ENTITY gtk3-download-http "&gnome-download-http;/gtk+/&gnome-minor-24;/gtk+-&gtk3-version;.tar.xz">
   <!ENTITY gtk3-download-ftp  "&gnome-download-ftp;/gtk+/&gnome-minor-24;/gtk+-&gtk3-version;.tar.xz">
-  <!ENTITY gtk3-md5sum        "eeedde01856238114dcf4df3ebc942a5">
-  <!ENTITY gtk3-size          "21 MB">
-  <!ENTITY gtk3-buildsize     "471 MB (including tests)">
-  <!ENTITY gtk3-time          "1.8 SBU (using parallelism=4, add 0.3 SBU for tests)">
+  <!ENTITY gtk3-md5sum        "7b20f3aa3b36214150ea7a12d6bc384b">
+  <!ENTITY gtk3-size          "20 MB">
+  <!ENTITY gtk3-buildsize     "556 MB (including tests)">
+  <!ENTITY gtk3-time          "1.3 SBU (using parallelism=4, add 0.1 SBU for tests)">
 ]>
 
 <sect1 id="gtk3" xreflabel="GTK+-&gtk3-version;">
@@ -91,6 +91,7 @@
       <xref linkend="hicolor-icon-theme"/> (needed for tests),
       <xref linkend="iso-codes"/>,
       <xref linkend="libxkbcommon"/>,
+      <xref linkend="sassc"/>,
       <xref linkend="wayland"/>, and
       <xref linkend="wayland-protocols"/>
     </para>
@@ -128,30 +129,29 @@
 
   <sect2 role="installation">
     <title>Installation of GTK+ 3</title>
-<!--
-    <note>
-      <para>
-        <application>GTK+ 3</application> will overwrite
-        <command>gtk-update-icon-cache</command> from <xref linkend="gtk2"/> if
-        it is installed.  There is nothing wrong about that assuming that both
-        programs provide same functionality.  If you wish to keep one from
-        <application>GTK+ 2</application> you can add
-        <option>- -enable-gtk2-dependency</option> to the
-        <command>configure</command> command.
-      </para>
-    </note>
--->
+
+    <!-- This is due to the meson transition -->
+    <caution>
+      <para>If you are upgrading from a version of GTK+3 prior to 3.24.9,
+      you must run the <filename>remove-la-files.sh</filename> script from
+      <xref linkend="la-files"/> after installing GTK+.</para>
+    </caution>
+
     <para>
       Install <application>GTK+ 3</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr             \
-            --sysconfdir=/etc         \
-            --enable-broadway-backend \
-            --enable-x11-backend      \
-            --enable-wayland-backend &amp;&amp;
-make</userinput></screen>
+<!-- The build directory already exists since this package allows both Autotools
+     and Meson to be used 
+     This may have to be changed in a few versions, or when GTK4 comes out.-->
+<screen><userinput>cd build &amp;&amp;
+meson --prefix=/usr     \
+      -Dcolord=yes      \
+      -Dgtk_doc=false   \
+      -Dman=true        \
+      -Dbroadway_backend=true .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       Some tests fail if
@@ -164,18 +164,19 @@ make</userinput></screen>
 
     <para>
       To test the results you need a graphical session, then issue
-      <command>make -k check</command>. There are several tests that 
+      <command>ninja test</command>. <!--There are several tests that 
       have subtests that are known to fail: scrolledwindow, treeview,
       accessibility-dump, test-css-nodes, and gtk-reftest.
       Additionally many tests will fail if the current 
-      gtk theme (such as current XFCE themes) has deprecated elements.
+      gtk theme (such as current XFCE themes) has deprecated elements.-->
+      9 tests are known to fail in the a11y suite and gtk/object suite.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+    <screen role="root"><userinput>ninja install</userinput></screen>
 
     <note>
       <para>
@@ -196,19 +197,20 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--enable-broadway-backend</parameter>: This switch enables the
+      <parameter>-Dbroadway_backend=true</parameter>: This switch enables the
       HTML5 GTK backend.
     </para>
-
+    <!--
     <para>
-      <parameter>--enable-x11-backend</parameter>: This switch enables the X11 
+      <parameter>- -enable-x11-backend</parameter>: This switch enables the X11 
       GDK backend.
     </para>
-
+    -->
+    <!--
     <para>
-      <parameter>--enable-wayland-backend</parameter>: This switch
+      <parameter>- -enable-wayland-backend</parameter>: This switch
       enables the Wayland GDK backend. Replace with
-      <option>--disable-wayland-backend</option> if you do not have
+      <option>- -disable-wayland-backend</option> if you do not have
       <xref linkend="wayland"/> and <xref linkend="wayland-protocols"/>
       or you do not wish to build <application>GNOME</application> with Wayland
       support.  Other changes may be needed to allow the build to complete
@@ -217,9 +219,26 @@ make</userinput></screen>
       wayland.  If this is desired, remove /usr/lib//usr/lib/libgtk-3* before
       installation.
     </para>
-
+    -->
+    <!--
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/gtk-doc-rebuild.xml"/>
+    -->
+    <para>
+      <parameter>-Dcolord=yes</parameter>: This switch allows color support
+      in the GTK+ printing backend.
+    </para>
+
+    <para>
+      <parameter>-Dman=true</parameter>: This switch allows generating
+      manual pages.
+    </para>
+
+    <para>
+      <parameter>-Dgtk_doc=false</parameter>: This switch disables building
+      documentation. Replace with -Dgtk_doc=true if you have
+      <xref linkend="gtk-doc"/> installed and wish to generate documentation.
+    </para>
 
   </sect2>
 
