@@ -91,9 +91,12 @@
       <xref linkend="systemd"/>
     </para>
 
+
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="xorg7-lib"/> (for <command>dbus-launch</command> program)
+      <phrase revision="sysv"><xref linkend="elogind"/> (first build
+      without, and then again after elogind is installed)</phrase>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -141,9 +144,12 @@ useradd -c "D-Bus Message Daemon User" -d /var/run/dbus \
 <screen revision="sysv"><userinput>./configure --prefix=/usr                        \
             --sysconfdir=/etc                    \
             --localstatedir=/var                 \
+            --enable-user-session                \
             --disable-doxygen-docs               \
             --disable-xml-docs                   \
             --disable-static                     \
+            --with-systemduserunitdir=no         \
+            --with-systemdsystemunitdir=no       \
             --docdir=/usr/share/doc/dbus-&dbus-version; \
             --with-console-auth-dir=/run/console \
             --with-system-pid-file=/run/dbus/pid \
@@ -188,7 +194,7 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
-    <para revision="systemd">
+    <para>
       The shared library needs to be moved to
       <filename class="directory">/lib</filename>, and as a result the
       <filename class="extension">.so</filename> file in
@@ -197,7 +203,7 @@ make</userinput></screen>
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen revision="systemd" role="root"><userinput>mv -v /usr/lib/libdbus-1.so.* /lib &amp;&amp;
+<screen role="root"><userinput>mv -v /usr/lib/libdbus-1.so.* /lib &amp;&amp;
 ln -sfv ../../lib/$(readlink /usr/lib/libdbus-1.so) /usr/lib/libdbus-1.so</userinput></screen>
 
     <para>
@@ -220,6 +226,13 @@ chmod -v      4750       /usr/libexec/dbus-daemon-launch-helper</userinput></scr
     </para>
 
 <screen role="root" revision="sysv"><userinput>dbus-uuidgen --ensure</userinput></screen>
+
+    <para revision="sysv">
+      If using <xref linkend="elogind"/>, create a symlink to the
+      <filename>/var/lib/dbus/machine-id</filename> file:
+    </para>
+
+<screen role="root" revision="sysv"><userinput>ln -sv /var/lib/dbus/machine-id /etc</userinput></screen>
 
     <para revision="systemd">
       If not in chroot, at this point, you should reload the systemd daemon,
@@ -285,21 +298,17 @@ make check</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
-    <para revision="sysv">
-      <parameter>--disable-systemd</parameter>: This switch disables systemd
-      support in <application>D-Bus</application>.
-    </para>
-
-    <para revision="sysv">
-      <parameter>--without-systemdsystemunitdir</parameter>: This switch
-      prevents installation of systemd unit files.
-    </para>
-
-    <para revision="systemd">
+    <para>
       <parameter>--enable-user-session</parameter>: This parameter enables
-      per-user DBus sessions with <application>systemd</application>.
+      per-user DBus sessions with
+      <phrase revision="sysv"><application>elogind</application>.</phrase>
+      <phrase revision="systemd"><application>systemd</application>.</phrase>
     </para>
 
+    <para revision="sysv">
+      <parameter>--with-systemd{user,system}unitdir=</parameter>: These
+      switches disable installation of systemd units on elogind based systems.
+    </para>
     <para>
       <parameter>--with-console-auth-dir=/run/console/</parameter>: This
       parameter specifies the location of the

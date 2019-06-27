@@ -13,7 +13,7 @@
   <!ENTITY accountsservice-time          "0.1 SBU">
 ]>
 
-<sect1 id="accountsservice" xreflabel="AccountsService-&accountsservice-version;" revision="systemd">
+<sect1 id="accountsservice" xreflabel="AccountsService-&accountsservice-version;">
   <?dbhtml filename="accountsservice.html"?>
 
   <sect1info>
@@ -85,7 +85,8 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="gobject-introspection"/> and
-      <xref linkend="systemd"/>
+      <phrase revision="sysv"><xref linkend="elogind"/></phrase>
+      <phrase revision="systemd"><xref linkend="systemd"/></phrase>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -108,12 +109,22 @@
       commands:
     </para>
 
-<screen><userinput>mkdir build &amp;&amp;
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
 cd build &amp;&amp;
 
-meson --prefix=/usr            \
-            -Dadmin_group=adm  \
-            -Dsystemd=true     \
+meson --prefix=/usr                   \
+            -Dadmin_group=adm         \
+            -Delogind=true            \
+            -Dsystemdsystemunitdir=no \
+            .. &amp;&amp;
+ninja</userinput></screen>
+
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
+cd build &amp;&amp;
+
+meson --prefix=/usr           \
+            -Dadmin_group=adm \
+            -Dsystemd=true    \
             .. &amp;&amp;
 ninja</userinput></screen>
 
@@ -166,12 +177,22 @@ ninja</userinput></screen>
 EOF</userinput></screen>
 
     <sect3 id="accountsservice-init">
-      <title>Systemd Units</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Units</phrase></title>
 
-      <para>
+      <para revision="sysv">
         To start the <command>accounts-daemon</command> daemon at boot,
-        enable the previously installed systemd unit by
-        running the following command as the
+        install the
+        <filename>/etc/rc.d/init.d/accounts-daemon</filename> init script from
+        the <xref linkend="bootscripts"/> package
+        by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+      <para revision="systemd">
+        To start the <command>accounts-daemon</command> daemon at boot,
+	enable the previously installed systemd unit
+        by running the following command as the
         <systemitem class="username">root</systemitem> user:
       </para>
 
@@ -179,7 +200,9 @@ EOF</userinput></screen>
         <primary sortas="f-accounts-daemon">accounts-daemon</primary>
       </indexterm>
 
-<screen role="root"><userinput>systemctl enable accounts-daemon</userinput></screen>
+<screen role="root" revision="sysv"><userinput>make install-accounts-daemon</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable accounts-daemon</userinput></screen>
 
     </sect3>
 
