@@ -6,15 +6,15 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "366f049777e00d0d6f15d25895485efb">
-  <!ENTITY rust-size          "152 MB">
+  <!ENTITY rust-md5sum        "f43af67a139ce21ff5f530bbd2f486aa">
+  <!ENTITY rust-size          "145 MB">
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
        to measure it. -->
 
-  <!ENTITY rust-buildsize     "6.2 GB (475 MB installed) including 295MB of ~/.cargo files for the user building this. Add 1.5GB if installing the documentation (an extra 314MB is installed), and 2.0GB if running the tests">
-  <!ENTITY rust-time          "34 SBU (add 3 SBU if installing the documentation and 15 SBU for tests, both with 4 processors)">
+  <!ENTITY rust-buildsize     "5.6 GB (423 MB installed) including 407MB of ~/.cargo files for the user building this. Add 1.8 GB if running the tests">
+  <!ENTITY rust-time          "24 SBU (add 15 SBU for tests, both with 4 processors)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -117,8 +117,9 @@
         enough for your purposes.
       </para>
       <para>
-        Unlike with previous versions, the build times of this version when
-       repeated on the same machine seem reasonably consistent.
+        The build times of this version when repeated on the same machine are
+        often reasonably consistent, but as with all compilations using
+        <command>rustc</command> there can be some very slow outliers.
       </para>
       <para>
         Unusually, a DESTDIR-style method is being used to install this package.
@@ -174,17 +175,17 @@
       <xref linkend="libssh2"/>
     </para>
 
-<!-- comment out while using shipped LLVM
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <package>clang</package> from <xref linkend="llvm"/>
-      (built with -DLLVM_LINK_LLVM_DYLIB=ON)
-    </para>-->
+      (built with -DLLVM_LINK_LLVM_DYLIB=ON so that rust can link to
+      systel LLVM instead of building its shipped version)
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="gdb"/> (used by the testsuite if it is present) and
-      <xref linkend="python2"/> (one test fails if Python 2 is not present)
+      <xref linkend="python2"/> (used by the testsuite)
     </para>
 
     <para condition="html" role="usernotes">
@@ -200,7 +201,7 @@
       <filename class="directory">/opt</filename> directory, remove the symlink
       and create a new directory (i.e. with a different name if trying a
       modified build).
-      As the <systemitem class="username">root</systemitem> 
+      As the <systemitem class="username">root</systemitem>
       user:
     </para>
 
@@ -218,39 +219,29 @@ ln -svfin rustc-&rust-version; /opt/rustc</userinput></screen>
 
     <para>
       Create a suitable <filename>config.toml</filename> file which will
-      configure the build. Unlike with previous releases, where even quite old
-      system versions of <application>LLVM</application>worked well, this
-      version ships with a development version and using the current <xref
-      linkend="llvm"/> release is known to result in breakage in some
-      circumstances.
+      configure the build.
     </para>
 
 <screen><userinput>cat &lt;&lt; EOF &gt; config.toml
 <literal># see config.toml.example for more possible options
+# See the 8.4 book for an example using shipped LLVM
 [llvm]
-
-# use ninja
-ninja = true
-
+# by default, rust will build for a myriad of architectures
 targets = "X86"
-# When compiling LLVM, the experimental targets (WebAssembly
-# and RISCV) are built by default - omit them
-experimental-targets = ""
+
+# When using system llvm prefer shared libraries
+link-shared = true
 
 [build]
-# omit HTML docs to save time and space (comment this to build them)
+# omit docs to save time and space (default is to build them)
 docs = false
 
 # install cargo as well as rust
 extended = true
 
 [install]
-# Adjust the prefix for the desired destination
-#prefix = "/usr"
-prefix = "/opt/rustc-&rust-version;"
-
-# docdir is used even if the full awesome docs are not installed
-docdir = "share/doc/rustc-&rust-version;"
+prefix = "/opt/rustc-1.35.0-sysllvm"
+docdir = "share/doc/rustc-1.35.0"
 
 [rust]
 channel = "stable"
@@ -260,13 +251,15 @@ rpath = false
 # so disable codegen tests
 codegen-tests = false
 
-# get a trace if there is an Internal Compiler Exception
-backtrace-on-ice = true
+[target.x86_64-unknown-linux-gnu]
+# NB the output of llvm-config (i.e. help options) may be
+# dumped to the screen when config.toml is parsed.
+llvm-config = "/usr/bin/llvm-config"
 </literal>
 EOF</userinput></screen>
 
     <para>
-      Now install <application>Rust</application> by running the following
+      Now compile <application>Rust</application> by running the following
       commands:
     </para>
 
@@ -280,9 +273,7 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
         <phrase revision="systemd">systemd journal</phrase>
         for traps on invalid opcodes, and for segmentation faults.
         In themselves these are nothing to worry about, just a way for the
-        test to be terminated. But if the output from the testsuite reports tests
-        which FAIL with segmentation faults (signal 11) then there may be a
-        problem.
+        test to be terminated.
       </para>
     </note>
 
@@ -298,17 +289,19 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
       error, with a backtrace of the last failing test. On a good run, 3 tests
       which need Thumb (ARM) compilers will fail, all in <filename
       class="directory">ui/issues</filename> for issues 37131, 49851 and 50993.
-      If <xref linkend="python2"/> is not installed, a fourth test,
+      A fourth test,
       <filename>run-make-fulldeps/sysroot-crates-are-unstable</filename>
-      fails. If gdb has been installed, in some circumstances three tests in
-      <filename class="directory">debuginfo</filename> also fail. As with all
+      fails, presumably because we are using only stable features.
+      If gdb has been installed, in some circumstances tests in
+      <filename class="directory">debuginfo</filename> may fail. As with all
       large testsuites, other tests might
       fail on some machines - if the number of failures is in the single digits,
-      check the log for 'FAILED' and review lines above that. Any mention of
+      check the log for 'FAILED' and review lines above that, particularly the
+      'stderr:' lines. Any mention of
       SIGSEGV or signal 11 in a failing test is a cause for concern.
     </para>
 
-    <para>
+    <para>+
       Therefore, you should determine the number of tests, failures, etc. The
       total number of tests which were considered is found by running:
     </para>
@@ -316,7 +309,7 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
 <screen><command>grep 'running .* tests' rustc-testlog | awk '{ sum += $2 } END { print sum }'</command></screen>
 
     <para>
-      That should report 15795 tests. Similarly, the total tests which failed can
+      That should report 16499 tests. Similarly, the total tests which failed can
       be found by running:
     </para>
 
@@ -403,7 +396,11 @@ cp -a install/* /</userinput></screen>
       <command>--exclude src/tools/miri</command>: For a long time, the miri
       crate (an interpreter for the Midlevel Intermediate Representation)
       has failed to build on releases. It is optional, but the failure
-      messages can persuade people that the whole build failed.
+      messages can persuade people that the whole build failed.  However,
+      although it is not built in the main compile, with rustc-1.35.0 it
+      now gets compiled during the install, but it  is broken in this version.
+      <!-- might be unbroken in 1.36.0, if so remove broken from description
+       of miri below. https://github.com/rust-lang/rust/issues/61830 -->
     </para>
 
     <para>
@@ -503,7 +500,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          cargo-clippy, cargo-fmt, cargo, clippy-driver, rls, rust-gdb, rust-lldb, rustc, rustdoc, rustfmt.
+          cargo-clippy, cargo-fmt, cargo-miri, cargo, clippy-driver, miri, rls, rust-gdb, rust-lldb, rustc, rustdoc, rustfmt.
         </seg>
         <seg>
           Many lib*&lt;16-byte-hash&gt;.so libraries.
@@ -547,6 +544,20 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="cargo-miri">
+        <term><command>cargo-miri</command></term>
+        <listitem>
+          <para>
+            <!-- FIXME reword to 'is used by' if Miri installed
+             AND works enough to report its \-\-help -->
+            is for use by Miri to interpret bin crates and tests
+          </para>
+          <indexterm zone="rust cargo-miri">
+            <primary sortas="b-cargo-miri">cargo-miri</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="cargo">
         <term><command>cargo</command></term>
         <listitem>
@@ -567,6 +578,19 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="rust clippy-driver">
             <primary sortas="b-clippy-driver">clippy-driver</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="miri">
+        <term><command>miri</command></term>
+        <listitem>
+          <para>
+            is an interpreter for Rust's mid-level intermediate representation
+            (MIR). It is broken in this version.
+          </para>
+          <indexterm zone="rust miri">
+            <primary sortas="b-miri">miri</primary>
           </indexterm>
         </listitem>
       </varlistentry>
