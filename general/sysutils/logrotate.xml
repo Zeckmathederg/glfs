@@ -77,8 +77,8 @@
       <xref linkend="popt"/>
     </para>
 
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended">
+    <bridgehead renderas="sect4" revision="sysv">Recommended</bridgehead>
+    <para role="recommended" revision="sysv">
       <xref role="runtime" linkend="fcron"/> (runtime)
     </para>
 
@@ -222,12 +222,48 @@ chmod -v 0644 /etc/logrotate.d/example.log</userinput></screen>
   non-existing errors appear, when some intermediate files are expected,
   because they are not actually created.</para>
 
-  <para>To set up <xref linkend='fcron'/> to run
-  <command>logrotate ...</command> at 3AM daily, root's crontab should be
-  edited to add:</para>
+    <para>
+      To run the <command>logrotate</command> daily,
+      <phrase revision="sysv">if you've installed
+      <xref linkend="fcron"/> and completed the section on periodic jobs,
+      execute</phrase><phrase revision="systemd">execute</phrase> the following
+      commands, as the  <systemitem class="username">root</systemitem> user,
+      to create a <phrase revision="sysv">daily cron job:</phrase>
+      <phrase revision="systemd">systemd timer to run daily at 3:00 A.M.
+     (local time):</phrase>
+    </para>
 
-<screen><literal>0 3 * * *   /usr/sbin/logrotate /etc/logrotate.conf</literal></screen>
+<screen role="root" revision="sysv"><userinput>cat &gt; /etc/cron.daily/logrotate.sh &lt;&lt; "EOF" &amp;&amp;
+<literal>#!/bin/bash
+/usr/sbin/logrotate /etc/logrotate.conf</literal>
+EOF
+chmod 754 /etc/cron.daily/logrotate.sh</userinput></screen>
 
+<screen role="root" revision="systemd"><userinput>cat &gt; /lib/systemd/system/logrotate.service &lt;&lt; "EOF" &amp;&amp;
+<literal>[Unit]
+Description=Runs the logrotate command
+Documentation=logrotate(8)
+DefaultDependencies=no
+After=local-fs.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/logrotate /etc/logrotate.conf</literal>
+EOF
+cat &gt; /lib/systemd/system/logroate.timer &lt;&lt; "EOF" &amp;&amp;
+<literal>[Unit]
+Description=Runs the logrotate command daily at 3:00 AM
+
+[Timer]
+OnCalendar=*-*-* 3:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target</literal>
+EOF
+systemctl enable logrotate.timer</userinput></screen>
 
   </sect2>
 
