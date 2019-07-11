@@ -6,9 +6,9 @@
 
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
   <!ENTITY thunderbird-download-ftp  " ">
-  <!ENTITY thunderbird-md5sum        "36e4e26ad89c0cf5cdcc18c72daac1dc">
-  <!ENTITY thunderbird-size          "271 MB">
-  <!ENTITY thunderbird-buildsize     "8.1 GB (146 MB installed)">
+  <!ENTITY thunderbird-md5sum        "a8735a56f578c2690442ee26f60c488a">
+  <!ENTITY thunderbird-size          "273 MB">
+  <!ENTITY thunderbird-buildsize     "6.6 GB (146 MB installed)">
   <!ENTITY thunderbird-time          "26 SBU (with -j4, estimated 84 SBU with -j1)">
   <!-- Verified the time at -j1 on another system for posterity's sake. -->
 ]>
@@ -69,13 +69,6 @@
         <para>
           Estimated build time: &thunderbird-time;
         </para>
-      </listitem>
-    </itemizedlist>
-
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>Required patch: <ulink url="&patch-root;/thunderbird-&thunderbird-version;-rust_fix-1.patch"/></para>
       </listitem>
     </itemizedlist>
 
@@ -236,8 +229,15 @@ EOF</userinput></screen>
       prepend <envar>SHELL=/bin/sh</envar> to the build command below.
     </para></note>
 
-<screen><userinput>patch -Np1 -i ../thunderbird-&thunderbird-version;-rust_fix-1.patch &amp;&amp;
-./mach build</userinput></screen>
+    <para>
+      First, disable failure for undocumeted rust macros:
+    </para>
+
+<screen><userinput>sed -i -e '/#!\[deny(missing_docs)\]/d' servo/components/style/lib.rs</userinput></screen>
+<screen><userinput>sed -i -e 's/#!\[deny(unsafe_code, missing_docs)\]/#!\[deny(unsafe_code)\]/g' servo/components/style_traits/lib.rs</userinput></screen>
+
+
+
 
     <para>
       This package does not come with a test suite.
@@ -279,12 +279,6 @@ in case an editor figures out how to install the development environment.
       settings work around code which gcc6 would otherwise regard as
       out-of-specification and allow it to produce a working program.
     </para>-->
-
-    <para>
-      <command>patch -Np1 -i ../thunderbird-&thunderbird-version;-rust_fix-1.patch</command>:
-      Rustc-1.33.0 breaks the build of this version of Thunderbird by requiring
-      that a macro must have documentation. The patch adds this.
-    </para>
 
     <para>
       <command>./mach build</command>: <application>Thunderbird</application>
