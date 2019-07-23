@@ -6,8 +6,8 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "02cc438f5063d8e6a09644062aa825ba">
-  <!ENTITY firefox-size          "302 MB">
+  <!ENTITY firefox-md5sum        "46fa1fd9f23e4a61cf477395ee332c45">
+  <!ENTITY firefox-size          "297 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
   <!ENTITY firefox-buildsize     "4.1 GB (162 MB installed) without tests">
@@ -366,10 +366,13 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
 <screen role="nodump"><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h</userinput></screen>
 
     <para>
-      Invoke the Python2 script to compile the package.
+      Apply a sed to work around a change in the linux headers, and then
+      invoke the Python2 script to compile the package.
     </para>
 
-<screen><userinput>export CC=gcc CXX=g++ &amp;&amp;
+<screen><userinput>sed -i 's/SIOCGSTAMP/0x8906/' media/webrtc/trunk/webrtc/rtc_base/physicalsocketserver.cc &amp;&amp;
+
+export CC=gcc CXX=g++ &amp;&amp;
 export MOZBUILD_STATE_PATH=${PWD}/mozbuild &amp;&amp;
 ./mach build</userinput></screen>
 
@@ -403,6 +406,9 @@ ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/SIOCGSTAMP.xml"/>
 
     <para>
       <command>sed -e 's/checkImpl/checkFFImpl/g' ...</command>: Although the
