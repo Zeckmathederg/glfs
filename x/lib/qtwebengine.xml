@@ -95,17 +95,16 @@
       </listitem>
     </itemizedlist>
 
-<!-- The patch is not needed anymore for 5.12.1
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch (if building on i686):
-          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-i686_alignof_fix-1.patch"/>
+          Required patch:
+          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-background_rendering_fix-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
--->
+
     <bridgehead renderas="sect3">qtwebengine Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -161,6 +160,13 @@
   xargs sed -i -e 's|INCLUDEPATH += |&amp;$$QTWEBENGINE_ROOT/include |'</userinput></screen>
 
     <para>
+      Next, apply a patch that fixes background rendering issues in Falkon,
+      and crashes on multimedia-heavy sites.
+    </para>
+
+<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-background_rendering_fix-1.patch</userinput></screen>
+    
+    <para>
       If an older version of the package's main library has been installed,
       when the package is built separately it will link to that in preference
       to its own not-yet-installed version, and fail because of missing symbols.
@@ -172,22 +178,14 @@
   mv -v ${QT5DIR}/lib/libQtWebEngineCore.so{,.old}
 fi</userinput></screen>
 
-<!-- Not needed for 5.12.1
-    <para>
-      If you are building on a 32-bit i686 system, GCC changed the alignof
-      operator to optimize the ABI. Unfortunately, this makes the alignof()
-      operator return an incorrect number (4 instead of 8). Apply a patch to
-      fix this:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../qtwebengine-&qtwebengine-version;-i686_alignof_fix-1.patch</userinput></screen>
--->
     <para>
       Install <application>qtwebengine</application> by running the following
       commands:
     </para>
 
-<screen><userinput>mkdir build &amp;&amp;
+<screen><userinput>sed -i 's/SIOCGSTAMP/0x8906/' \
+src/3rdparty/chromium/third_party/webrtc/rtc_base/physical_socket_server.cc &amp;&amp;
+mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
 qmake .. -- -system-ffmpeg -webengine-icu &amp;&amp;
@@ -245,6 +243,9 @@ make</userinput></screen>
       webengine will always use its shipped copy of icu, adding time and space
       to the build.
     </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" 
+       href="../../xincludes/SIOCGSTAMP.xml"/>
 
     <para>
       <option>NINJAJOBS=4 make</option>: If you patched system ninja in LFS to
