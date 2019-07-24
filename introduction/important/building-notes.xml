@@ -462,8 +462,9 @@ chmod 755 blfs-yes-test2</userinput></screen>
       libraries and their details (particularly, finding out about available
       options and their default values) differ. It may be easiest to understand
       the issues caused by some choices (typically slow execution or
-      unexpected use of, or omission of, optimizatons) by starting with 
-      the CFLAGS and CXXFLAGS environment variables.
+      unexpected use of, or omission of, optimizatons) by starting with
+      the CFLAGS and CXXFLAGS environment variables.  There are also some
+      programs which use rust.
     </para>
 
     <para>
@@ -618,7 +619,8 @@ chmod 755 blfs-yes-test2</userinput></screen>
            specified, it leaves assertions enabled.</para>
         </listitem>
         <listitem>
-           <para>release : '-O3 -DNDEBUG'</para>
+           <para>release : '-O3 -DNDEBUG' (but occasionally a package will force
+           -O2 here)</para>
         </listitem>
       </itemizedlist>
 
@@ -637,6 +639,130 @@ chmod 755 blfs-yes-test2</userinput></screen>
       <para>
         To see the details of the commands which are being run in a package using
         meson, use 'ninja -v'.
+      </para>
+
+    <bridgehead renderas="sect3" id="rust-info">Rustc and Cargo</bridgehead>
+
+      <para>
+        Most released rustc programs are provided as crates (source tarballs)
+        which will query a server to check current versions of dependencies
+        and then download them as necessary.  These packages are built using
+        <command>cargo --release</command>. In theory, you can manipulate the
+        RUSTFLAGS to change the optimize-level (default is 3, like -O3, e.g.
+        <literal>-Copt-level=3</literal>) or to force it to build for the
+        machine it is being compiled on, using
+        <literal>-Ctarget-cpu=native</literal> but in practice this seems to
+        make no significant difference.
+      </para>
+
+      <para>
+        If you find an interesting rustc program which is only provided as
+        unpackaged source, you should at least specify
+        <literal>RUSTFLAGS=-Copt-level=2</literal> otherwise it will do an
+        unoptimized compile with debug info and run <emphasis>much</emphasis>
+        slower.
+      </para>
+
+  </sect2>
+
+  <sect2 id="optimizations">
+    <title>Optimizing the build</title>
+
+      <para>
+        Many people will prefer to optimize compiles as they see fit, by providing
+        CFLAGS or CXXFLAGS. For an introduction to the options available with gcc
+        and g++ see <ulink
+        url="https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html"/> and <ulink
+        url="https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html"/>
+        and <command>info gcc</command>.
+
+      </para>
+
+      <para>
+        Some packages default to '-O2 -g', others to '-O3 -g', and if CFLAGS or
+        CXXFLAGS are supplied they might be added to the package's defaults,
+        replace the package's defaults, or even be ignored.  There are details
+        on some desktop packages which were mostly current in April 2019 at
+        <ulink url="http://www.linuxfromscratch.org/~ken/tuning/"/> - in
+        particular, README.txt, tuning-1-packages-and-notes.txt, and
+        tuning-notes-2B.txt. The particular thing to remember is that if you
+        want to try some of the more interesting flags yo may need to force
+        verbose builds to confirm what is being used.
+      </para>
+
+      <para>
+        Clearly, if you are optimizing your own program you can spend time to
+        profile it and perhaps recode some of it if it is too slow. But for
+        building a whole system that approach is impractical. In general,
+        -O3 usually produces faster programs than -O2.  Specifying
+        -march=native is also beneficial, but means that you cannot move the
+        binaries to an incompatible machine - this can also apply to newer
+        machines, not just to older machines. For example programs compiled for
+        'amdfam10' run on old Phenoms, Kaveris, and Ryzens : but programs
+        compiled for a Kaveri will not run on a Ryzen because certain op-codes
+        are not present.  Similarly, if you build for a Haswell not everything
+        will run on a SandyBridge.
+      </para>
+
+      <para>
+        There are also various other options which some people claim are
+        beneficial. At worst, you get to recompile and test, and then
+        discover that in your usage the options do not provide a benefit.
+      </para>
+
+      <para>
+        If building Perl or Python modules, or Qt packages which use qmake,
+        in general the CFLAGS and CXXFLAGS used are those which were used by
+        those 'parent' packages.
+      </para>
+
+  </sect2>
+
+  <sect2 id="hardening">
+    <title>Options for hardening the build</title>
+
+      <para>
+        Even on desktop systems, there are still a lot of exploitable
+        vulnerabilities. For many of these, the attack comes via javascript
+        in a browser. Often, a seris of vulnerabilities are used to gain
+        access to data (or sometimes to pwn, i.e. own, the machine and
+        install rootkits).  Most commercial distros will apply various
+        hardening measures.
+      </para>
+
+      <para>
+        For hardening options which are reasonably cheap, there is some
+        discussion in the 'tuning' link above (occasionally, one or more
+        of these options might be inappropriate for a package). These
+        options are -D_FORTIFY_SOURCE=2, -fstack-protector=strong, and
+        (for C++) -D_GLIBCXX_ASSERTIONS. On modern machines these should
+        only have a little impact on how fast things run, and often they
+        will not be noticeable.
+      </para>
+
+      <para>
+        In the past, there was Hardened LFS where gcc (a much older version)
+        was forced to use hardening (with options to turn some of it off on a
+        per-package basis. What is being covered here is different - first you
+        have to make sure that the package is indeed using your added flags and
+        not over-riding them.
+      </para>
+
+      <para>
+        The main distros use much more, such as RELRO (Relocation Read Only)
+        and perhaps -fstack-clash-protection. You may also encounter the
+        so-called 'userspace retpoline' (-mindirect-branch=thunk etc.) which
+        is the equivalent of the spectre mitigations applied to the linux
+        kernel in late 2018). The kernel mitigations casue a lot of complaints
+        about lost performance, if you have a production server you might wish
+        to consider testing that, along with the other available options, to
+        see if performance is still sufficient.
+      </para>
+
+      <para>
+        Whilst gcc has many hardening options, clang/LLVM's strengths lie
+        elsewhere. Some options which gcc provides are said to be less effective
+        in clang/LLVM, others are not available.
       </para>
 
   </sect2>
