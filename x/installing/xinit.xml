@@ -81,25 +81,6 @@
   <sect2 role="installation">
     <title>Installation of xinit</title>
 
-    <para revision='sysv'>First, modify <command>startx</command>, hence the X
-    session starts on the first unused virtual terminal, which normally is
-    vt7:</para>
-    <!--Apparently, this should not be done for systemd systems-->
-
-<screen revision='sysv'><userinput>sed -e '/$serverargs $vtarg/ s/serverargs/: #&amp;/' \
-    -i startx.cpp</userinput></screen>
-
-    <note revision='sysv'>
-      <para>
-        If you have already installed this package without the sed above, there
-        is no need to reinstall. Just modify the installed
-        <command>startx</command>, issuing, as the <systemitem
-        class="username">root</systemitem> user:
-        <command>sed -i '/$serverargs $vtarg/ s/serverargs/: #&amp;/'
-        $XORG_PREFIX/bin/startx</command>
-      </para>
-    </note>
-
     <para>Install <application>xinit</application> by running the
     following commands:</para>
 
@@ -113,6 +94,34 @@ make</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 ldconfig</userinput></screen>
+
+    <note revision='sysv'>
+
+      <para>If starting Xorg from the command line, the default instructions
+      above starts Xorg on the current virtual terminal.  It may be convenient
+      to see Xorg and associated application messages on the current virtual
+      terminal, normally tty1, and start the graphical environment on the first
+      available unused virtual terminal, normally tty7.  To do this, set the suid bit
+      on the Xorg application as the  <systemitem
+      class="username">root</systemitem> user:</para>
+     
+<screen><userinput>chmod u+s $XORG_PREFIX/libexec/Xorg</userinput></screen>
+
+      <para>At this point you can start Xorg on virtual terminal 7 with 
+      <command>startx &lt;client arguments&gt; -- vt7</command>.  Now
+      you can toggle between tty1 and tty7 with the Ctrl-Alt-F1 and 
+      Ctrl-Alt-F7 key combinations.</para>
+      
+      <para>To automatically start Xorg on the first available virtual terminal,
+      modify the <command>startx</command> script as the  <systemitem
+      class="username">root</systemitem> user with:</para>
+      
+<screen><userinput>sed -e '/$serverargs $vtarg/ s/serverargs/: #&amp;/' $XORG_PREFIX/bin/startx</userinput></screen>
+
+      <para>After this change, the virtual terminal does not need to be 
+      specified on the startx command line.</para>
+
+    </note>
 
   </sect2>
 
