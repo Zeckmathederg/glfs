@@ -65,17 +65,17 @@
         <para>Estimated build time: &systemd-time;</para>
       </listitem>
     </itemizedlist>
-    <!--
+
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
          Required patch:
-         <ulink url="&patch-root;/systemd-&systemd-version;-security_fixes-2.patch"/>
+         <ulink url="&patch-root;/systemd-&systemd-version;-networkd_and_rdrand_fixes-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
-    -->
+
     <bridgehead renderas="sect3">systemd Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -127,11 +127,19 @@
 
   <sect2 role="installation">
     <title>Installation of systemd</title>
-    <!--
-    <para>Apply a critical security patch for journald:</para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../systemd-&systemd-version;-security_fixes-2.patch</userinput></screen>
-    -->
+    <para>Apply a patch to allow systemd-networkd to function under 5.2+
+    kernels, and to fix problems with RDRAND on Ryzen CPUs:</para>
+
+<screen><userinput remap="pre">patch -Np1 -i ../systemd-&systemd-version;-networkd_and_rdrand_fixes-1.patch</userinput></screen>
+
+    <para>Fix an incompatibility with the latest version of 
+    <application>libseccomp</application>:</para>
+
+<screen><userinput remap="pre">sed -i '1506 s/&lt;/&gt;/' \
+       '1507 s/&lt;/&gt;/' \
+       '1508 s/&lt;/&gt;/' src/shared/seccomp-util.c</userinput></screen>
+
     <para>Remove an unneeded group,
     <systemitem class="groupname">render</systemitem>, from the default udev
     rules:</para>
@@ -162,9 +170,13 @@ meson --prefix=/usr         \
       -Dsysusers=false      \
       -Drpmmacrosdir=no     \
       -Db_lto=false         \
+      -Dgnutls=false        \
       ..                    &amp;&amp;
 
 ninja</userinput></screen>
+
+<!-- GnuTLS support is disabled due to a bug with 3.6.9. systemd already 
+     supports OpenSSL. -->
 
     <note>
       <para>
