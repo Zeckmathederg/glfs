@@ -7,31 +7,31 @@
   <!ENTITY libreoffice-dl "http://download.documentfoundation.org/libreoffice/src/&libreoffice-version;">
 
   <!ENTITY libreoffice-core-download-http "&libreoffice-dl;/libreoffice-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-core-md5sum        "8239de1ab99236bd97623f8ceedfe926">
-  <!ENTITY libreoffice-core-size          "205 MB">
+  <!ENTITY libreoffice-core-md5sum        "d24bd7e5116743196c67e7df4b18458f">
+  <!ENTITY libreoffice-core-size          "215 MB">
 
   <!ENTITY libreoffice-dict-download-http "&libreoffice-dl;/libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-dict-md5sum        "29b6ed9c014f920f0be311d296e2ac27">
-  <!ENTITY libreoffice-dict-size          "43 MB">
+  <!ENTITY libreoffice-dict-md5sum        "81df66dd522a2c56a4f11b24247fb114">
+  <!ENTITY libreoffice-dict-size          "44 MB">
 
   <!ENTITY libreoffice-help-download-http "&libreoffice-dl;/libreoffice-help-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-help-md5sum        "2baa1653f425be4d4d7b36541d8e30cd">
+  <!ENTITY libreoffice-help-md5sum        "483f654eaa94f17c462494029d42334a">
   <!ENTITY libreoffice-help-size          "13 MB">
 
   <!ENTITY libreoffice-translations-download-http "&libreoffice-dl;/libreoffice-translations-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-translations-md5sum        "fabd0015403771c06ace8c8ca024b9fd">
-  <!ENTITY libreoffice-translations-size          "136 MB">
+  <!ENTITY libreoffice-translations-md5sum        "21459291d488ecd7e4e8fb0fdcc55aca">
+  <!ENTITY libreoffice-translations-size          "140 MB">
 
   <!-- full size still accurate for 6.0.2, reconfiguring and rebuilding
    the built source after initial DESTDIR install doesn't take a vast time -->
 
-  <!ENTITY libreoffice-buildsize  "6.1 GB (749 MB installed). Installing the whole set of languages was previously reported to require up to 26 GB (2.9 GB installed)">
+  <!ENTITY libreoffice-buildsize  "8.7 GB (821 MB installed). Installing the whole set of languages was previously reported to require up to 26 GB (2.9 GB installed)">
 
   <!-- for 6.1.2.1 I allowed 2 SBU for downloads, my total was 
        64.76 SBU with fast downloads 
        for 6.1.4.2 I just used the total time - bdubbs
   -->
-  <!ENTITY libreoffice-time "63 SBU with parallelism=4 including typical download time">
+  <!ENTITY libreoffice-time "60 SBU with parallelism=4 including typical download time">
 
 ]>
 
@@ -360,6 +360,9 @@ ln -sv ../../../libreoffice-help-&libreoffice-dlversion;.tar.xz         external
 sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
 
 <!-- Removed in 6.2             - -with-alloc=system         \-->
+<!-- In 6.3  -disable-gtk -enable-gtk3 added (sic, I accidentally built like
+     that) which allows removal of  - -with-system-cairo but did NOT cause
+     system epoxy to be automatically used, as configure claimed -->
 ./autogen.sh --prefix=$LO_PREFIX         \
              --sysconfdir=/etc           \
              --with-vendor=BLFS          \
@@ -369,14 +372,16 @@ sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
              --without-junit             \
              --without-system-dicts      \
              --disable-dconf             \
+             -disable-gtk -enable-gtk3   \
              --disable-odk               \
              --enable-release-build=yes  \
              --enable-python=system      \
+             --with-jdk-home=/opt/jdk    \
              --with-system-apr           \
              --with-system-boost         \
-             --with-system-cairo         \
              --with-system-clucene       \
              --with-system-curl          \
+             --with-system-epoxy         \
              --with-system-expat         \
              --with-system-glm           \
              --with-system-gpgmepp       \
@@ -512,6 +517,13 @@ fi</userinput></screen>
     </para>
 
     <para>
+      <parameter>--with-jdk-home=/opt/jdk</parameter>: This parameter will silence
+      a warning that the configure script attempted to find JAVA_HOME
+      automatically (even though that is passed in the environment). Omit this if
+      you disabled java.
+    </para>
+
+    <para>
       <parameter>--with-myspell-dicts</parameter>: This switch adds myspell
       dictionaries to the <application>LibreOffice</application> installation
       set.
@@ -534,6 +546,12 @@ fi</userinput></screen>
       <parameter>--disable-dconf</parameter>: This switch disables compiling
       <application>LibreOffice</application> with the
       <application>GNOME DConf</application> configuration system support.
+    </para>
+
+    <para>
+      <parameter>-disable-gtk -enable-gtk3</parameter>: This pair of switches
+      tell the configure script to use <application>gtk3</application> instead
+      of <application>gtk2</application>.
     </para>
 
     <para>
