@@ -123,6 +123,34 @@ useradd -c "GDM Daemon Owner" -d /var/lib/gdm -u 21 \
         -g gdm -s /bin/false gdm &amp;&amp;
 passwd -ql gdm</userinput></screen>
 
+    <note revision="sysv">
+      <para>
+        The <application>gdm</application> login screen is managed by
+        <application>gnome-shell</application>, which relies on the
+        <command>systemd-localed</command> daemon to get the system
+        settings. Since this daemon is not present on this system, a
+        <command>sed</command> is applied in the <xref
+        linkend="gnome-shell"/> instructions to change this behavior,
+        but then <application>gdm</application> uses the system settings,
+        which default to a US <quote>qwerty</quote> keyboard layout. This may
+        be an inconvience to enter a password when the machine keyboard
+        has a different layout. One possibility is to use the screen-keyboard
+        from the accessibility menu. Another possibility is to change the
+        defaults at compile time, by creating the following file:
+      </para>
+
+<screen><userinput>cat &gt; data/dconf/defaults/01-keyboard &lt;&lt; EOF
+<literal>[org/gnome/desktop/input-sources]
+sources=[('xkb','<replaceable>layout</replaceable>')]</literal>
+EOF</userinput></screen>
+
+      <para>
+        where <replaceable>layout</replaceable> should be replaced with
+        the acronym for your keyboard layout (one of the filenames in
+        <filename class="directory">/usr/share/X11/xkb/symbols</filename>).
+      </para>
+    </note>
+
     <para>
       Install <application>GDM</application> by running the following
       commands:
