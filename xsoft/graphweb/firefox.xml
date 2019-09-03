@@ -6,15 +6,15 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;/source/firefox-&firefox-version;.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "efb501a4e8100991d90c589cb6837798">
-  <!ENTITY firefox-size          "297 MB">
+  <!ENTITY firefox-md5sum        "22e8ec79442d04cfc63c5822b321cd9c">
+  <!ENTITY firefox-size          "309 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "4.1 GB (162 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "4.2 GB (165 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "25 SBU (with parallelism=4) without tests">
+  <!ENTITY firefox-time          "32 SBU (with parallelism=4) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -138,6 +138,10 @@ tar: Exiting with failure status due to previous errors
     <para role="required">
       <xref linkend="autoconf213"/>,
       <xref linkend="cbindgen"/>,
+      <!-- with ff-69.0 the configure system was happy to continue to disable
+        dbus-glib, but linking libxul.so failed because rust code uses it, so
+        make it required and remove from mozconfig : ken -->
+      <xref linkend="dbus-glib"/>,
       both <xref linkend="gtk3"/> and
       <xref linkend="gtk2"/>,
       <xref linkend="libnotify"/>,
@@ -176,7 +180,6 @@ tar: Exiting with failure status due to previous errors
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="curl"/>,
-      <xref linkend="dbus-glib"/>,
       <xref linkend="doxygen"/>,
       <xref role="runtime" linkend="ffmpeg"/> (runtime, to play mov, mp3 or mp4 files),
       <!--      <phrase revision="sysv"><ulink url="http://sourceforge.net/projects/liboauth/files/">liboauth</ulink></phrase> -->
@@ -214,12 +217,8 @@ tar: Exiting with failure status due to previous errors
 <screen><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
 <literal># If you have a multicore machine, all cores will be used by default.
 
-# If you have installed dbus-glib, comment out this line:
-ac_add_options --disable-dbus
-
-# If you have installed dbus-glib, and you have installed (or will install)
-# wireless-tools, and you wish to use geolocation web services, comment out
-# this line
+# If you have installed (or will install) wireless-tools, and you wish
+# to use geolocation web services, comment out this line
 ac_add_options --disable-necko-wifi
 
 # API Keys for geolocation APIs - necko-wifi (above) is required for MLS
@@ -357,14 +356,6 @@ echo "d2284a20-0505-4927-a809-7ffaf4d91e55" > mozilla-key</userinput></screen>
       <envar>SHELL=/bin/sh</envar>. Also ensure that <filename>/dev/shm</filename>
       is mounted.
     </para></note>
-
-    <para>
-      If you are still using ICU-63, run a sed to avoid a conflict between
-      upstream ICU's use of <literal>CheckImpl()</literal> in their public headers
-      and firefox's internal use of a different <literal>CheckImpl()</literal>.
-    </para>
-
-<screen role="nodump"><userinput>sed -e 's/checkImpl/checkFFImpl/g' -i js/src/vm/JSContext*.h</userinput></screen>
 
     <para>
       If you are building on i686, apply a fix to prevent Internal Compiler
