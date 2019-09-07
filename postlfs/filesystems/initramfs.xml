@@ -222,6 +222,9 @@ fi
 if [ -d /lib/systemd ]; then
   cp -a /lib/systemd $WDIR/lib
 fi
+if [ -d /lib/elogind ]; then
+  cp -a /lib/elogind $WDIR/lib
+fi
 
 # Install the kernel modules if requested
 if [ -n "$KERNEL_VERSION" ]; then
@@ -305,6 +308,19 @@ do_mount_root()
    fi
 }
 
+do_try_resume()
+{
+   case "$resume" in
+      UUID=* ) eval $resume; resume="/dev/disk/by-uuid/$UUID"  ;;
+      LABEL=*) eval $resume; resume="/dev/disk/by-label/$LABEL" ;;
+   esac
+
+   if $noresume || ! [ -b "$resume" ]; then return; fi
+
+   ls -lH "$resume" | ( read x x x x maj min x
+       echo -n ${maj%,}:$min &gt; /sys/power/resume )
+}
+
 init=/sbin/init
 root=
 rootdelay=
@@ -312,6 +328,8 @@ rootfstype=auto
 ro="ro"
 rootflags=
 device=
+resume=
+noresume=false
 
 mount -n -t devtmpfs devtmpfs /dev
 mount -n -t proc     proc     /proc
@@ -327,6 +345,8 @@ for param in $cmdline ; do
     rootdelay=* ) rootdelay=${param#rootdelay=}   ;;
     rootfstype=*) rootfstype=${param#rootfstype=} ;;
     rootflags=* ) rootflags=${param#rootflags=}   ;;
+    resume=*    ) resume=${param#resume=}         ;;
+    noresume    ) noresume=true                   ;;
     ro          ) ro="ro"                         ;;
     rw          ) ro="rw"                         ;;
   esac
@@ -352,6 +372,7 @@ if [ -f /etc/mdadm.conf ] ; then mdadm -As                       ; fi
 if [ -x /sbin/vgchange  ] ; then /sbin/vgchange -a y &gt; /dev/null ; fi
 if [ -n "$rootdelay"    ] ; then sleep "$rootdelay"              ; fi
 
+do_try_resume # This function will not return if resuming from disk
 do_mount_root
 
 killall -w ${UDEVD##*/}
