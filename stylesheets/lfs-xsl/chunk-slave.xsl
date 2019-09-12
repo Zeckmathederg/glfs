@@ -43,7 +43,7 @@ $Date$
   <xsl:param name="css.decoration" select="0"/>
 
     <!-- No XML declaration -->
-  <xsl:param name="chunker.output.omit-xml-declaration" select="'yes'"/>
+<!--  <xsl:param name="chunker.output.omit-xml-declaration" select="'yes'"/>-->
 
     <!-- Control generation of ToCs and LoTs -->
   <xsl:param name="generate.toc">
