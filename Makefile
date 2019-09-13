@@ -76,8 +76,7 @@ $(BASEDIR)/index.html: $(RENDERTMP)/$(BLFSHTML)
    fi;
 	$(Q)cp images/*.png $(BASEDIR)/images
 
-	$(Q)cd $(BASEDIR)/; sed -e "s@../stylesheets@stylesheets@g" \
-                           -e "s@../images@images@g"           \
+	$(Q)cd $(BASEDIR)/; sed -e "s@../images@images@g"           \
                            -i *.html
 
 	@echo "Running Tidy and obfuscate.sh on chunked XHTML..."

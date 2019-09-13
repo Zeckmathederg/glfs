@@ -13,7 +13,7 @@ $Date$
         Sets global params and include customized elements templates. -->
 
     <!-- Upstream XHTML presentation templates -->
-  <xsl:import href="docbook-xsl-snapshot/xhtml/docbook.xsl"/>
+  <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl"/>
 
     <!-- Use ISO-8859-1 for output instead of default UTF-8 -->
   <xsl:param name="chunker.output.encoding" select="'ISO-8859-1'"/>
@@ -27,13 +27,13 @@ $Date$
   <xsl:include href="xhtml/lfs-toc.xsl"/>
   <xsl:include href="xhtml/lfs-xref.xsl"/>
 
-    <!-- The CSS Stylesheets. We set here relative path from sub-dirs HTML files.
-    The path from top-level HTML files (index.html, partX.html, etc) MUST be
-    fixed via a sed in the Makefile-->
-    <!-- Master CSS Stylesheet -->
-  <xsl:param name="html.stylesheet" select="'../stylesheets/lfs.css'"/>
-    <!-- Print CSS Stylesheet -->
-    <!-- The original template is in {docbook-xsl}/xhtml/docbook.xsl -->
+  <!-- The CSS Stylesheets. The path is relative to the top level html
+       directory. The templates compute automatically the position of
+       the CSS relative to the current file. So no need to fix the paths
+       in the Makefile. -->
+  <xsl:param name="html.stylesheet" select="'stylesheets/lfs.css'"/>
+    <!-- Print CSS Stylesheet
+    The original template is in {docbook-xsl}/xhtml/docbook.xsl -->
   <xsl:template name='user.head.content'>
      <link rel="stylesheet" href="../stylesheets/lfs-print.css" type="text/css" media="print"/>
   </xsl:template>

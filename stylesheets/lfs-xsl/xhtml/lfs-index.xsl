@@ -35,17 +35,18 @@ $Date$
     <xsl:text>longindex.html</xsl:text>
   </xsl:template>
 
-    <!-- The Index title in the longindex.html page:
-           Removed a lot of code not useful for us.
-           Forced h1 title size. -->
-    <!-- The original template is in {docbook-xsl}/xhtml/titlepage.templates.xsl -->
+  <!-- The Index title in the longindex.html page:
+         Removed a lot of code not useful for us.
+         Forced h1 title size.
+       The original template is in {docbook-xsl}/xhtml/titlepage.templates.xsl
+  Use the original template now (as in LFS)
   <xsl:template name="index.titlepage">
     <h1 class="index">
       <xsl:call-template name="gentext">
         <xsl:with-param name="key" select="$index-title"/>
       </xsl:call-template>
     </h1>
-  </xsl:template>
+  </xsl:template>-->
 
     <!--Divisions:
           Translate alphabetical divisions titles to by-type titles.
@@ -131,26 +132,12 @@ $Date$
         </h2>
       </xsl:if>
       <ul>
-        <xsl:apply-templates select="key('letter', $key)[&scope;] [count(.|key('primary', &primary;)[&scope;][1])=1]"
-                              mode="index-primary">
-          <xsl:with-param name="scope" select="$scope"/>
-          <xsl:sort select="translate(&primary;, &lowercase;, &uppercase;)"/>
-        </xsl:apply-templates>
+      <xsl:apply-templates select="key('letter', $key)[count(ancestor::node()|$scope) = count(ancestor::node())][count(.|key('primary', normalize-space(concat(primary/@sortas, &quot; &quot;, primary)))[count(ancestor::node()|$scope) = count(ancestor::node())][1])=1]" mode="index-primary">
+        <xsl:with-param name="scope" select="$scope"/>
+        <xsl:sort select="translate(&primary;, &lowercase;, &uppercase;)"/>
+      </xsl:apply-templates>
       </ul>
     </xsl:if>
-  </xsl:template>
-
-    <!-- Dropping $term.separator and $number.separator from here.
-         We add our customized ones in the output flow.
-         As all our indexterm have @zone attributes, removed a lot of
-         unused code. -->
-    <!-- The original template is in {docbook-xsl}/xhtml/autoidx.xsl -->
-  <xsl:template match="indexterm" mode="reference">
-    <xsl:param name="scope" select="."/>
-    <xsl:call-template name="reference">
-      <xsl:with-param name="zones" select="normalize-space(@zone)"/>
-      <xsl:with-param name="scope" select="$scope"/>
-    </xsl:call-template>
   </xsl:template>
 
     <!-- Primary items:
@@ -161,8 +148,8 @@ $Date$
     <!-- The original template is in {docbook-xsl}/xhtml/autoidx.xsl -->
   <xsl:template match="indexterm" mode="index-primary">
     <xsl:param name="scope" select="."/>
-    <xsl:variable name="key" select="&primary;"/>
-    <xsl:variable name="refs" select="key('primary', $key)[&scope;]"/>
+    <xsl:variable name="key" select="normalize-space(concat(primary/@sortas, &quot; &quot;, primary))"/>
+    <xsl:variable name="refs" select="key('primary', $key)[count(ancestor::node()|$scope) = count(ancestor::node())]"/>
     <li>
       <strong class="item">
         <xsl:value-of select="primary"/>
@@ -177,8 +164,7 @@ $Date$
       </span>
       <xsl:if test="$refs/secondary">
         <ul>
-          <xsl:apply-templates select="$refs[secondary and count(.|key('secondary', concat($key, &sep;, &secondary;))[&scope;][1]) = 1]"
-                               mode="index-secondary">
+          <xsl:apply-templates select="$refs[secondary and count(.|key('secondary', concat($key, &quot; &quot;, normalize-space(concat(secondary/@sortas, &quot; &quot;, secondary))))[count(ancestor::node()|$scope) = count(ancestor::node()) ][1]) = 1]" mode="index-secondary">
             <xsl:with-param name="scope" select="$scope"/>
             <xsl:sort select="translate(&secondary;, &lowercase;, &uppercase;)"/>
           </xsl:apply-templates>
@@ -195,8 +181,8 @@ $Date$
     <!-- The original template is in {docbook-xsl}/xhtml/autoidx.xsl -->
   <xsl:template match="indexterm" mode="index-secondary">
     <xsl:param name="scope" select="."/>
-    <xsl:variable name="key" select="concat(&primary;, &sep;, &secondary;)"/>
-    <xsl:variable name="refs" select="key('secondary', $key)[&scope;]"/>
+    <xsl:variable name="key" select="concat(normalize-space(concat(primary/@sortas, &quot; &quot;, primary)), &quot; &quot;, normalize-space(concat(secondary/@sortas, &quot; &quot;, secondary)))"/>
+    <xsl:variable name="refs" select="key('secondary', $key)[count(ancestor::node()|$scope) = count(ancestor::node())]"/>
     <li>
       <strong class="secitem">
         <xsl:value-of select="secondary"/>
@@ -212,14 +198,27 @@ $Date$
     </li>
   </xsl:template>
 
-    <!-- The target links:
-           Changed links separator.
-           On the second @zone link, we use a fixed string for the text
-           with gentext support.
-           Assume that there is no more than 2 @zone in a indexterm.
-           Use href.target.uri named template to resolve the links. It is faster
-           than the default href.target named template. -->
-    <!-- The original template is in {docbook-xsl}/xhtml/autoidx.xsl -->
+  <!-- Drop $term.separator and $number.separator from here as customized ones
+       are added in the output flow.
+       As all the indexterms in the book have @zone attributes, removed a lot of
+       unused code.
+       The original template is in {docbook-xsl}/xhtml/autoidx.xsl -->
+  <xsl:template match="indexterm" mode="reference">
+    <xsl:param name="scope" select="."/>
+    <xsl:call-template name="reference">
+      <xsl:with-param name="zones" select="normalize-space(@zone)"/>
+      <xsl:with-param name="scope" select="$scope"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <!-- The target links:
+       Changed link separator
+       On the second @zone link, we use a fixed string for the text with gentext
+       support.
+       Assume that there are no more than 2 @zone in a indexterm.
+       Use href.target.uri named template to resolve the links. It is faster
+       than the default href.target named template.
+       The original template is in {docbook-xsl}/xhtml/autoidx.xsl -->
   <xsl:template name="reference">
     <xsl:param name="scope" select="."/>
     <xsl:param name="zones"/>
