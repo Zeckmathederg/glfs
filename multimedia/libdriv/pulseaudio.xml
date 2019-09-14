@@ -7,10 +7,10 @@
   <!ENTITY pulseaudio-download-http
            "https://www.freedesktop.org/software/pulseaudio/releases/pulseaudio-&pulseaudio-version;.tar.xz">
   <!ENTITY pulseaudio-download-ftp  " ">
-  <!ENTITY pulseaudio-md5sum        "c42f1f1465e8df9859d023dc184734bf">
-  <!ENTITY pulseaudio-size          "1.6 MB">
-  <!ENTITY pulseaudio-buildsize     "112 MB (add 2 MB for tests)">
-  <!ENTITY pulseaudio-time          "1.2 SBU (add 0.7 SBU for tests)">
+  <!ENTITY pulseaudio-md5sum        "e41d606f90254ed45c90520faf83d95c">
+  <!ENTITY pulseaudio-size          "1.8 MB">
+  <!ENTITY pulseaudio-buildsize     "93 MB (add 2 MB for tests)">
+  <!ENTITY pulseaudio-time          "0.5 SBU (Using parallelism=4; add 0.6 SBU for tests)">
 ]>
 
 <sect1 id="pulseaudio" xreflabel="PulseAudio-&pulseaudio-version;">
@@ -126,23 +126,23 @@
       Install <application>PulseAudio</application> by running the following
       commands:
     </para>
-
+<!--
     <para>
       First, adapt Pulseaudio to upstream ALSA API changes:
     </para>
+-->
     <!-- This is due to it becoming FATAL to include ALSA headers from
          /usr/include instead of /usr/include/alsa. Only one of these
          files uses pkg-config to get it's headers, and as a result,
          the hardcoded paths need to be updated. In this case, I developed
          three seds and a call to ./bootstrap.sh to fix this. Other packages
          may be affected by this upstream ALSA change as well. -->
-
-<screen><userinput>sed -i "s:asoundlib.h:alsa/asoundlib.h:" src/modules/alsa/*.{c,h} &amp;&amp;
+<!--
+<screen><userinput>Esed -i "s:asoundlib.h:alsa/asoundlib.h:" src/modules/alsa/*.{c,h} &amp;&amp;
 sed -i "s:use-case.h:alsa/use-case.h:" configure.ac &amp;&amp;
 sed -i "s:use-case.h:alsa/use-case.h:" src/modules/alsa/alsa-ucm.h</userinput></screen>
-
-<screen revision="sysv"><userinput>NOCONFIGURE=1 ./bootstrap.sh     &amp;&amp;
-./configure --prefix=/usr                \
+-->
+<screen revision="sysv"><userinput>./configure --prefix=/usr                \
             --sysconfdir=/etc            \
             --localstatedir=/var         \
             --disable-bluez4             \
@@ -151,8 +151,7 @@ sed -i "s:use-case.h:alsa/use-case.h:" src/modules/alsa/alsa-ucm.h</userinput></
             --with-systemduserunitdir=no &amp;&amp;
 make</userinput></screen>
 
-<screen revision="systemd"><userinput>NOCONFIGURE=1 ./bootstrap.sh     &amp;&amp;
-./configure --prefix=/usr        \
+<screen revision="systemd"><userinput>./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --localstatedir=/var \
             --disable-bluez4     \
@@ -162,7 +161,9 @@ make</userinput></screen>
 
     <para>
       To test the results, issue: <command>make check</command>.
-      The volume-test may fail for unknown reasons.
+      <!-- The volume-test may fail for unknown reasons. 
+           Works OK for pa-13.0 -->  
+
       <!-- apparently, the max deviation is higher than expected, i.e. assertion
            failed, result of 280 > 253 : but it seems to work -->
     </para>
@@ -255,7 +256,7 @@ make</userinput></screen>
     </sect3>
 
     <sect3><title>Configuration Information</title>
-
+<!--
       <para>
         The default configuration files allow setting up a working installation.
         However, a reference to Console-Kit needs to be removed.
@@ -265,8 +266,10 @@ make</userinput></screen>
 
 <screen role="root"><userinput>sed -i '/load-module module-console-kit/s/^/#/' /etc/pulse/default.pa</userinput></screen>
 
+       In 13.0 this is protected via .ifexists module-console-kit.so
+-->
       <para>
-        You may also have to configure the audio system. You can start
+        You may have to configure the audio system. You can start
         <application>pulseaudio</application> in command line mode using
         <command>pulseaudio -C</command> and then list various
         information and change settings. See
@@ -314,7 +317,7 @@ make</userinput></screen>
         <seg>
           esdcompat, pacat, pacmd, pactl, padsp, pamon (symlink to pacat),
           paplay (symlink to pacat), parec (symlink to pacat),
-          parecord (symlink to pacat), pasuspender,
+          parecord (symlink to pacat), qpaeq, pasuspender,
           pax11publish, pulseaudio, and
           <!-- it looks like the equalizer needs FFTW: qpaeq, -->
           start-pulseaudio-x11
@@ -496,20 +499,21 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
-<!-- only installed if FFTW is present
+<!-- only installed if FFTW is present -->
       <varlistentry id="qpaeq">
         <term><command>qpaeq</command></term>
         <listitem>
           <para>
             is an equalizer interface for
-            <application>PulseAudio</application> equalizer sinks.
+            <application>PulseAudio</application> equalizer sinks 
+            (Requires <xref linkend="fftw"/> at build time).
           </para>
           <indexterm zone="pulseaudio qpaeq">
             <primary sortas="b-qpaeq">qpaeq</primary>
           </indexterm>
         </listitem>
       </varlistentry>
--->
+
 <!-- Not found in PA 7.0
       <varlistentry id="start-pulseaudio-kde">
         <term><command>start-pulseaudio-kde</command></term>
