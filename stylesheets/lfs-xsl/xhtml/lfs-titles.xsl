@@ -132,7 +132,9 @@ $Date$
   </xsl:template>
 
     <!-- sect3.titlepage:
-           Uses h3 and removed a lot of unneeded code. -->
+           Uses h3 and removed a lot of unneeded code.
+           Use generic titlepage.mode template in case there are child
+            elements (xref)-->
     <!-- The original template is in {docbook-xsl}/xhtml/titlepage.templates.xsl -->
   <xsl:template name="sect3.titlepage">
     <h3 class="{name(.)}">
@@ -143,7 +145,7 @@ $Date$
         <xsl:apply-templates select="." mode="label.markup"/>
         <xsl:text>. </xsl:text>
       </xsl:if>
-      <xsl:value-of select="title"/>
+      <xsl:apply-templates select="./title" mode="titlepage.mode"/>
     </h3>
   </xsl:template>
 
