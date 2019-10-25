@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY nftables-download-http "https://netfilter.org/projects/nftables/files/nftables-&nftables-version;.tar.bz2">
+  <!ENTITY nftables-download-ftp  " ">
+  <!ENTITY nftables-md5sum        "dfe130724d7c998eb26b56447e932899">
+  <!ENTITY nftables-size          "764 KB">
+  <!ENTITY nftables-buildsize     "31 MB">
+  <!ENTITY nftables-time          "0.2 SBU">
+]>
+
+<sect1 id="nftables" xreflabel="nftables-&nftables-version;">
+  <?dbhtml filename="nftables.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy: $</othername>
+    <date>$Date: $</date>
+  </sect1info>
+
+  <title>nftables-&nftables-version;</title>
+
+  <indexterm zone="nftables">
+    <primary sortas="a-nftables">nftables</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to nftables</title>
+
+    <para>
+      The <application>nftables</application> package, intended to be the
+      successor to <xref linkend="iptables"/>,  provides a low-level netlink
+      programming interface (API), and userspace uitlities for the in-kernel
+      nf_tables subsystem.
+    </para>
+
+    &lfs90_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing='compact'>
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&nftables-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&nftables-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &nftables-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &nftables-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &nftables-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &nftables-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">nftables Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="libnftnl"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="iptables"/>,
+      <xref linkend="jansson"/>, and
+      <xref linkend="docbook-utils"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional (runtime)</bridgehead>
+
+    <para role="optional">
+      <ulink url="https://netfilter.org/projects/conntrack-tools/index.html">
+      contrack-tools</ulink>
+      <ulink url="https://netfilter.org/projects/nfacct/index.html">
+      nfacct</ulink>
+      <ulink url="https://netfilter.org/projects/ulogd/index.html">
+      ulogd</ulink>
+    </para>
+
+    <para condition="html" role="usernotes">User Notes:
+      <ulink url="&blfs-wiki;/nftables"/>
+    </para>
+  </sect2>
+
+    <sect2 role="kernel">
+      <title>Kernel Configuration</title>
+
+    <para>
+      Enable the following options in the kernel configuration and recompile the
+      kernel if necessary (add any additional nf_tables features as needed):
+    </para>
+
+<screen><literal>[*] Networking support [CONFIG_NET] ---&gt;
+    Networking options ---&gt;
+    [*] Network packet filtering framework (Netfilter) [CONFIG_NETFILTER] ---&gt;
+        Core Netfilter Configuration ---&gt;
+          &lt;*&gt; * protocol support [CONFIG_NF_CONNTRACK_*]
+          &lt;*&gt; Netfilter nf_tables support [CONFIG_NF_TABLES]
+          [*]   Netfilter nf_tables * support [CONFIG_NF_TABLES_*]</literal></screen>
+
+    <para>
+      Include any connection tracking protocols that will be used, and
+      any protocols that you wish to use for match suppport under the
+      "Core Netfilter Configuration" section. Additionally, include any
+      "Netfilter nf_tables * module" that will be used under the
+      "Netfilter nf_tables support" section.
+    </para>
+
+
+    </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of nftables</title>
+
+    <para>
+      Install <application>nftables</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr     \
+            --sbindir=/sbin   \
+            --sysconfdir=/etc \
+            --with-python-bin=/usr/bin/python3 &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      This package does not come with a test suite.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install                   &amp;&amp;
+mv /usr/lib/nftables.so.* /lib &amp;&amp;
+ln -sfv ../../lib/$(readlink /usr/lib/nftables.so) /usr/lib/nftables.so</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
+
+    <para>
+      <parameter>--with-python-bin=/usr/bin/python3</parameter>: force use of
+      <application>Python3</application>.
+    </para>
+
+    <para>
+      <option>--enable-man-doc</option>: build man pages if
+      <xref linkend="docbook-utils"/> is installed.
+    </para>
+
+    <para>
+      <parameter>--with-json</parameter>: build with support for JSON output if
+      <xref linkend="jansson"/> is available.
+    </para>
+
+    <para>
+      <parameter>--with-xtables</parameter>: build with
+      <xref linkend="iptables"/> libxtables support.
+    </para>
+
+    <para>
+      <command>mv -v /usr/lib/nftables.so.* ...</command>: Move shared
+      libraries into /lib so they are available before /usr is mounted.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring nftables</title>
+
+    <note>
+      <para>
+        If you intend to use <xref linkend="firewalld"/> to configure your
+        firewall rules, you should not use the example configuration provided
+        here, nor should you enable the
+        <phrase revision="sysv">bootscript</phrase>
+        <phrase revision="systemd">systemd unit</phrase>.
+      </para>
+    </note>
+
+    <sect3 id="fw-masqRouter-nft"
+     xreflabel="Creating a Masquerading Router With nftables">
+      <title>Masquerading Router</title>
+
+      <para>
+        A network Firewall has two interfaces, one connected to an
+        intranet, in this example <emphasis role="strong">LAN1</emphasis>,
+        and one connected to the Internet, here <emphasis
+        role="strong">WAN1</emphasis>. You will need to adjust these value to
+        match your particular system. To provide the maximum security
+        for the firewall itself, make sure that there are no unnecessary
+        servers running on it such as <application>X11</application> et al.
+        As a general principle, the firewall itself should not access
+        any untrusted service (think of a remote server giving answers that
+        makes a daemon on your system crash, or even worse, that implements
+        a worm via a buffer-overflow).
+      </para>
+
+    <note>
+      <para>
+        In the follwoing example configuration, <emphasis
+        role="strong">LAN1</emphasis> is used for the internal LAN interface,
+        and <emphasis role="strong">WAN1</emphasis> is used for the external
+        interace connected to the internet. You will need to replace these
+        values with appropriate interface names for your system.
+      </para>
+    </note>
+
+
+<screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/nftables/nftables.conf &lt;&lt; "EOF"
+<literal>#!/sbin/nft -f
+
+# You're using the example configuration for a setup of a firewall
+# from Beyond Linux From Scratch.
+#
+# This example is far from being complete, it is only meant
+# to be a reference.
+#
+# Firewall security is a complex issue, that exceeds the scope
+# of the configuration rules below.
+#
+# You can find additional information
+# about firewalls in Chapter 4 of the BLFS book.
+# http://www.&lfs-domainname;/blfs
+
+# Drop all existing rules
+flush ruleset
+
+# Filter for both ip4 and ip6 (inet)
+table inet filter {
+
+        # filter incomming packets
+        chain input {
+
+                # Drop everything that doesn't match policy
+                type filter hook input priority 0; policy drop;
+
+                # accept packets for established connections
+                ct state { established, related } accept
+
+                # Drop packets that have a connection state of invalid
+                ct state invalid drop
+
+                # Allow connections to the loopback adapter
+                iifname "lo" accept
+
+                # Allow connections to the LAN1 interface
+                iifname "LAN1" accept
+
+                # Accept icmp requests
+                ip protocol icmp accept
+
+                # Allow ssh connections on LAN1
+                iifname "LAN1" tcp dport ssh accept
+
+                # Drop everything else
+                drop
+        }
+
+        # Allow forwarding for external connections to WAN1
+        chain forward {
+
+                # Drop if it doesn't match policy
+                type filter hook forward priority 0; policy drop;
+
+                # Accept connections on WAN1
+                oifname "WAN1" accept
+
+                # Allow forwarding to another host via this interface
+                # Uncomment the following line to allow connections
+                # ip daddr 192.168.0.2 ct status dnat accept
+
+                # Allow established and related connections
+                iifname "WAN1" ct state { established, related } accept
+        }
+
+        # Filter output traffic
+        chain output {
+
+                # Allow everything outbound
+                type filter hook output priority 0; policy accept;
+        }
+}
+
+# Allow NAT for ip protocol (both ip4 and ip6)
+table ip nat {
+
+        chain prerouting {
+
+                # Accept on inbound interace for policy match
+                type nat hook prerouting priority 0; policy accept;
+
+                # Accept http and https on 192.168.0.2
+                # Uncomment the following line to allow http and https
+                #iifname "WAN1" tcp dport { http, https } dnat to 192.168.0.2
+        }
+
+        chain postrouting {
+
+                # accept outbound
+                type nat hook postrouting priority 0; policy accept;
+
+                # Masquerade on WAN1 outbound
+                oifname "WAN1" masquerade
+        }
+}</literal>
+EOF</userinput></screen>
+
+      <para>
+        With this configuration your intranet should be reasonably secure
+        against external attacks. No one should be able to setup a new
+        connection to any internal service not configured above.
+      </para>
+
+      <para>
+        There are several other examples in the
+        <filename class="directory">/etc/nftables</filename> directory.
+      </para>
+
+    </sect3>
+
+    <sect3  id="nftables-init">
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
+
+      <para revision="sysv">
+        To set up the nftables firewall at boot, install the
+        <filename>/etc/rc.d/init.d/nftables</filename> init script included
+        in the <xref linkend="bootscripts"/> package.
+      </para>
+
+      <para revision="systemd">
+        To set up the nftables firewall at boot, install the
+        <filename>nftables.service</filename> unit included in the
+        <xref linkend="systemd-units"/> package.
+      </para>
+
+      <indexterm zone="nftables nftables-init">
+        <primary sortas="f-nftables">nftables</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-nftables</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          nft
+        </seg>
+        <seg>
+          libnftables.{a,so}
+        </seg>
+        <seg>
+          /etc/nftables
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="nft">
+        <term><filename>nft</filename></term>
+        <listitem>
+          <para>
+            command line interface for the nf_tables subsystem.
+          </para>
+          <indexterm zone="nftables nft">
+            <primary sortas="a-nft">nft</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnftables">
+        <term><filename class="libraryfile">libnftables.{a,so}</filename></term>
+        <listitem>
+          <para>
+            provides functions for manipulating the nf_tables subsystem.
+          </para>
+          <indexterm zone="nftables libnftables">
+            <primary sortas="c-libnftables">libnftables.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>

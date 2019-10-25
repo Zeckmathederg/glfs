@@ -12,7 +12,7 @@
   <!ENTITY iptables-time          "0.2 SBU">
 ]>
 
-<sect1 id="iptables" xreflabel="Iptables-&iptables-version;">
+<sect1 id="iptables" xreflabel="iptables-&iptables-version;">
   <?dbhtml filename="iptables.html"?>
 
   <sect1info>
@@ -20,20 +20,18 @@
     <date>$Date$</date>
   </sect1info>
 
-  <title>Iptables-&iptables-version;</title>
+  <title>iptables-&iptables-version;</title>
 
   <indexterm zone="iptables">
-    <primary sortas="a-Iptables">Iptables</primary>
+    <primary sortas="a-iptables">iptables</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to Iptables</title>
+    <title>Introduction to iptables</title>
 
     <para>
-      The next part of this chapter deals with firewalls. The principal
-      firewall tool for Linux is <application>Iptables</application>. You will
-      need to install <application>Iptables</application> if you intend on using
-      any form of a firewall.
+      <application>iptables</application> is a userspace command line program
+      used to configure Linux 2.4 and later kernel packet filtering ruleset.
     </para>
 
     &lfs90_checked;
@@ -72,11 +70,11 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Iptables Dependencies</bridgehead>
+    <bridgehead renderas="sect3">iptables Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <ulink url="http://www.netfilter.org/projects/nftables/index.html">nftables</ulink>
+      <xref linkend="nftables"/>
     </para>
 
 
@@ -89,24 +87,30 @@
     <title>Kernel Configuration</title>
 
     <para>
-      A firewall in Linux is accomplished through a portion of the
-      kernel called netfilter. The interface to netfilter is
-      <application>Iptables</application>. To use it, the appropriate
-      kernel configuration parameters are found in:
+      A firewall in Linux is accomplished through the netfilter interface. To
+      use <application>iptables</application> to configure netfilter, the
+      following kernel configuration parameters are required:
     </para>
 
 <screen><literal>[*] Networking support  ---&gt;                                    [CONFIG_NET]
       Networking Options  ---&gt;
-        [*] Network packet filtering framework (Netfilter) ---&gt; [CONFIG_NETFILTER]</literal></screen>
+        [*] Network packet filtering framework (Netfilter) ---&gt; [CONFIG_NETFILTER]
+          Core Netfilter Configuration ---&gt;</literal></screen>
+
+    <para>
+      Include any connection tracking protocols that will be used, as well as
+      any protocols that you wish to use for match suppport under the
+      "Core Netfilter Configuration" section.
+    </para>
 
     <indexterm zone="iptables iptables-kernel">
-      <primary sortas="d-iptables">Iptables</primary>
+      <primary sortas="d-iptables">iptables</primary>
     </indexterm>
 
   </sect2>
 
     <sect2 role="installation">
-      <title>Installation of Iptables</title>
+      <title>Installation of iptables</title>
 
     <note>
       <para>
@@ -118,20 +122,13 @@
         how to change the <parameter>KERNEL_DIR=</parameter> parameter to point
         at the <application>Linux</application> source code. Note that if you
         upgrade the kernel version, you may also need to recompile
-        <application>Iptables</application> and that the BLFS team has not tested
-        using the raw kernel headers.
-      </para>
-
-      <para>
-        For some non-x86 architectures, the raw kernel headers may be
-        required. In that case, modify the <parameter>KERNEL_DIR=</parameter>
-        parameter to point at the <application>Linux</application> source
-        code.
+        <application>iptables</application> and that the BLFS team has not
+        tested using the raw kernel headers.
       </para>
     </note>
 
     <para>
-      Install <application>Iptables</application> by running the following
+      Install <application>iptables</application> by running the following
       commands:
     </para>
 
@@ -142,9 +139,13 @@
             --with-xtlibdir=/lib/xtables &amp;&amp;
 make</userinput></screen>
 
-    <para>This package does not come with a test suite.</para>
+    <para>
+      This package does not come with a test suite.
+    </para>
 
-    <para>Now, as the <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
 ln -sfv ../../sbin/xtables-legacy-multi /usr/bin/iptables-xml &amp;&amp;
@@ -162,7 +163,8 @@ done</userinput></screen>
 
     <para>
       <parameter>--disable-nftables</parameter>: This switch disables building
-      nftables compat. Omit this switch if you have installed nftables.
+      nftables compat. Omit this switch if you have installed
+      <xref linkend="nftables"/>.
     </para>
 
     <para>
@@ -173,7 +175,7 @@ done</userinput></screen>
 
     <para>
       <parameter>--with-xtlibdir=/lib/xtables</parameter>: Ensure all
-      <application>Iptables</application> modules are installed in the
+      <application>iptables</application> modules are installed in the
       <filename class="directory">/lib/xtables</filename> directory.
     </para>
 
@@ -190,12 +192,630 @@ done</userinput></screen>
   </sect2>
 
   <sect2 role="configuration">
-    <title>Configuring Iptables</title>
+    <title>Configuring iptables</title>
 
-    <para>
-      Introductory instructions for configuring your firewall are
-      presented in the next section: <xref linkend="fw-firewall"/>
-    </para>
+    <note>
+      <para>
+        If you intend to use <xref linkend="firewalld"/> to configure your
+        firewall rules, you should not use the example configurations provided
+        here, nor should you enable the
+        <phrase revision="sysv">bootscript</phrase>
+        <phrase revision="systemd">systemd unit</phrase>.
+      </para>
+    </note>
+
+    <note>
+      <para>
+        In the follwoing example configurations, <emphasis
+        role="strong">LAN1</emphasis> is used for the internal LAN interface,
+        and <emphasis role="strong">WAN1</emphasis> is used for the external
+        interace connected to the internet. You will need to replace these
+        values with appropriate interface names for your system.
+      </para>
+    </note>
+
+    <sect3 id="fw-persFw-ipt"
+    xreflabel="Creating a Personal Firewall With iptables">
+      <title>Personal Firewall</title>
+
+      <para>
+        A Personal Firewall is designed to let you access all the
+        services offered on the Internet, but keep your box secure and
+        your data private.
+      </para>
+
+      <para>
+        Below is a slightly modified version of Rusty Russell's
+        recommendation from the <ulink
+        url="http://www.netfilter.org/documentation/HOWTO/packet-filtering-HOWTO.html">
+        Linux 2.4 Packet Filtering HOWTO</ulink>. It is still applicable
+        to the Linux 3.x kernels.
+      </para>
+
+<screen role="root" revision="sysv"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
+<literal>#!/bin/sh
+
+# Begin rc.iptables
+
+# Insert connection-tracking modules
+# (not needed if built into the kernel)
+modprobe nf_conntrack
+modprobe xt_LOG
+
+# Enable broadcast echo Protection
+echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Disable Source Routed Packets
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/accept_source_route
+
+# Enable TCP SYN Cookie Protection
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# Disable ICMP Redirect Acceptance
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/accept_redirects
+
+# Do not send Redirect Messages
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/send_redirects
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/send_redirects
+
+# Drop Spoofed Packets coming in on an interface, where responses
+# would result in the reply going out a different interface.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/rp_filter
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/rp_filter
+
+# Log packets with impossible addresses.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/log_martians
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/log_martians
+
+# be verbose on dynamic ip-addresses  (not needed in case of static IP)
+echo 2 &gt; /proc/sys/net/ipv4/ip_dynaddr
+
+# disable Explicit Congestion Notification
+# too many routers are still ignorant
+echo 0 &gt; /proc/sys/net/ipv4/tcp_ecn
+
+# Set a known state
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# These lines are here in case rules are already in place and the
+# script is ever rerun on the fly. We want to remove all rules and
+# pre-existing user defined chains before we implement new rules.
+iptables -F
+iptables -X
+iptables -Z
+
+iptables -t nat -F
+
+# Allow local-only connections
+iptables -A INPUT  -i lo -j ACCEPT
+
+# Free output on any interface to any ip for any service
+# (equal to -P ACCEPT)
+iptables -A OUTPUT -j ACCEPT
+
+# Permit answers on already established connections
+# and permit new connections related to established ones
+# (e.g. port mode ftp)
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Log everything else. What's Windows' latest exploitable vulnerability?
+iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
+
+# End $rc_base/rc.iptables</literal>
+EOF
+chmod 700 /etc/rc.d/rc.iptables</userinput></screen>
+
+<screen role="root" revision="systemd"><?dbfo keep-together="auto"?><userinput>install -v -dm755 /etc/systemd/scripts
+
+cat &gt; /etc/systemd/scripts/iptables &lt;&lt; "EOF"
+<literal>#!/bin/sh
+
+# Begin /etc/systemd/scripts/iptables
+
+# Insert connection-tracking modules
+# (not needed if built into the kernel)
+modprobe nf_conntrack
+modprobe xt_LOG
+
+# Enable broadcast echo Protection
+echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Disable Source Routed Packets
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/accept_source_route
+
+# Enable TCP SYN Cookie Protection
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# Disable ICMP Redirect Acceptance
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/accept_redirects
+
+# Do not send Redirect Messages
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/send_redirects
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/send_redirects
+
+# Drop Spoofed Packets coming in on an interface, where responses
+# would result in the reply going out a different interface.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/rp_filter
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/rp_filter
+
+# Log packets with impossible addresses.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/log_martians
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/log_martians
+
+# be verbose on dynamic ip-addresses  (not needed in case of static IP)
+echo 2 &gt; /proc/sys/net/ipv4/ip_dynaddr
+
+# disable Explicit Congestion Notification
+# too many routers are still ignorant
+echo 0 &gt; /proc/sys/net/ipv4/tcp_ecn
+
+# Set a known state
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# These lines are here in case rules are already in place and the
+# script is ever rerun on the fly. We want to remove all rules and
+# pre-existing user defined chains before we implement new rules.
+iptables -F
+iptables -X
+iptables -Z
+
+iptables -t nat -F
+
+# Allow local-only connections
+iptables -A INPUT  -i lo -j ACCEPT
+
+# Free output on any interface to any ip for any service
+# (equal to -P ACCEPT)
+iptables -A OUTPUT -j ACCEPT
+
+# Permit answers on already established connections
+# and permit new connections related to established ones
+# (e.g. port mode ftp)
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Log everything else. What's Windows' latest exploitable vulnerability?
+iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
+
+# End /etc/systemd/scripts/iptables</literal>
+EOF
+chmod 700 /etc/systemd/scripts/iptables</userinput></screen>
+
+      <para>
+        This script is quite simple, it drops all traffic coming
+        into your computer that wasn't initiated from your computer, but
+        as long as you are simply surfing the Internet you are unlikely
+        to exceed its limits.
+      </para>
+
+      <para>
+        If you frequently encounter certain delays at accessing
+        FTP servers, take a look at <xref linkend="fw-BB-4-ipt"/>.
+      </para>
+
+      <para>
+        Even if you have daemons or services running on your system,
+        these will be inaccessible everywhere but from your computer itself.
+        If you want to allow access to services on your machine, such as
+        <command>ssh</command> or <command>ping</command>, take a look at
+        <xref linkend="fw-busybox-ipt"/>.
+      </para>
+
+    </sect3>
+
+    <sect3 id="fw-masqRouter-ipt"
+     xreflabel="Creating a Masquerading Router With iptables">
+      <title>Masquerading Router</title>
+
+      <para>
+        A network Firewall has two interfaces, one connected to an
+        intranet, in this example <emphasis role="strong">LAN1</emphasis>,
+        and one connected to the Internet, here <emphasis
+        role="strong">WAN1</emphasis>. To provide the maximum security
+        for the firewall itself, make sure that there are no unnecessary
+        servers running on it such as <application>X11</application> et al.
+        As a general principle, the firewall itself should not access
+        any untrusted service (think of a remote server giving answers that
+        makes a daemon on your system crash, or even worse, that implements
+        a worm via a buffer-overflow).
+      </para>
+
+<screen role="root" revision="sysv"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/rc.d/rc.iptables &lt;&lt; "EOF"
+<literal>#!/bin/sh
+
+# Begin rc.iptables
+
+echo
+echo "You're using the example configuration for a setup of a firewall"
+echo "from Beyond Linux From Scratch."
+echo "This example is far from being complete, it is only meant"
+echo "to be a reference."
+echo "Firewall security is a complex issue, that exceeds the scope"
+echo "of the configuration rules below."
+echo "You can find additional information"
+echo "about firewalls in Chapter 4 of the BLFS book."
+echo "http://www.&lfs-domainname;/blfs"
+echo
+
+# Insert iptables modules (not needed if built into the kernel).
+
+modprobe nf_conntrack
+modprobe nf_conntrack_ftp
+modprobe xt_conntrack
+modprobe xt_LOG
+modprobe xt_state
+
+# Enable broadcast echo Protection
+echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Disable Source Routed Packets
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+
+# Enable TCP SYN Cookie Protection
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# Disable ICMP Redirect Acceptance
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_redirects
+
+# Don't send Redirect Messages
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/send_redirects
+
+# Drop Spoofed Packets coming in on an interface where responses
+# would result in the reply going out a different interface.
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/rp_filter
+
+# Log packets with impossible addresses.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/log_martians
+
+# Be verbose on dynamic ip-addresses  (not needed in case of static IP)
+echo 2 &gt; /proc/sys/net/ipv4/ip_dynaddr
+
+# Disable Explicit Congestion Notification
+# Too many routers are still ignorant
+echo 0 &gt; /proc/sys/net/ipv4/tcp_ecn
+
+# Set a known state
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# These lines are here in case rules are already in place and the
+# script is ever rerun on the fly. We want to remove all rules and
+# pre-existing user defined chains before we implement new rules.
+iptables -F
+iptables -X
+iptables -Z
+
+iptables -t nat -F
+
+# Allow local connections
+iptables -A INPUT  -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow forwarding if the initiated on the intranet
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD ! -i WAN1 -m conntrack --ctstate NEW       -j ACCEPT
+
+# Do masquerading
+# (not needed if intranet is not using private ip-addresses)
+iptables -t nat -A POSTROUTING -o WAN1 -j MASQUERADE
+
+# Log everything for debugging
+# (last of all rules, but before policy rules)
+iptables -A INPUT   -j LOG --log-prefix "FIREWALL:INPUT "
+iptables -A FORWARD -j LOG --log-prefix "FIREWALL:FORWARD "
+iptables -A OUTPUT  -j LOG --log-prefix "FIREWALL:OUTPUT "
+
+# Enable IP Forwarding
+echo 1 &gt; /proc/sys/net/ipv4/ip_forward</literal>
+EOF
+chmod 700 /etc/rc.d/rc.iptables</userinput></screen>
+
+<screen role="root" revision="systemd"><?dbfo keep-together="auto"?><userinput>install -v -dm755 /etc/systemd/scripts
+
+cat &gt; /etc/systemd/scripts/iptables &lt;&lt; "EOF"
+<literal>#!/bin/sh
+
+# Begin /etc/systemd/scripts/iptables
+
+echo
+echo "You're using the example configuration for a setup of a firewall"
+echo "from Beyond Linux From Scratch."
+echo "This example is far from being complete, it is only meant"
+echo "to be a reference."
+echo "Firewall security is a complex issue, that exceeds the scope"
+echo "of the configuration rules below."
+
+echo "You can find additional information"
+echo "about firewalls in Chapter 4 of the BLFS book."
+echo "http://www.&lfs-domainname;/blfs"
+echo
+
+# Insert iptables modules (not needed if built into the kernel).
+
+modprobe nf_conntrack
+modprobe nf_conntrack_ftp
+modprobe xt_conntrack
+modprobe xt_LOG
+modprobe xt_state
+
+# Enable broadcast echo Protection
+echo 1 &gt; /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Disable Source Routed Packets
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_source_route
+
+# Enable TCP SYN Cookie Protection
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# Disable ICMP Redirect Acceptance
+echo 0 &gt; /proc/sys/net/ipv4/conf/all/accept_redirects
+
+# Don't send Redirect Messages
+echo 0 &gt; /proc/sys/net/ipv4/conf/default/send_redirects
+
+# Drop Spoofed Packets coming in on an interface where responses
+# would result in the reply going out a different interface.
+echo 1 &gt; /proc/sys/net/ipv4/conf/default/rp_filter
+
+# Log packets with impossible addresses.
+echo 1 &gt; /proc/sys/net/ipv4/conf/all/log_martians
+
+# Be verbose on dynamic ip-addresses  (not needed in case of static IP)
+echo 2 &gt; /proc/sys/net/ipv4/ip_dynaddr
+
+# Disable Explicit Congestion Notification
+# Too many routers are still ignorant
+echo 0 &gt; /proc/sys/net/ipv4/tcp_ecn
+
+# Set a known state
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# These lines are here in case rules are already in place and the
+# script is ever rerun on the fly. We want to remove all rules and
+# pre-existing user defined chains before we implement new rules.
+iptables -F
+iptables -X
+iptables -Z
+
+iptables -t nat -F
+
+# Allow local connections
+iptables -A INPUT  -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow forwarding if the initiated on the intranet
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD ! -i WAN1 -m conntrack --ctstate NEW       -j ACCEPT
+
+# Do masquerading
+# (not needed if intranet is not using private ip-addresses)
+iptables -t nat -A POSTROUTING -o WAN1 -j MASQUERADE
+
+# Log everything for debugging
+# (last of all rules, but before policy rules)
+iptables -A INPUT   -j LOG --log-prefix "FIREWALL:INPUT "
+iptables -A FORWARD -j LOG --log-prefix "FIREWALL:FORWARD "
+iptables -A OUTPUT  -j LOG --log-prefix "FIREWALL:OUTPUT "
+
+# Enable IP Forwarding
+echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+
+# The following sections allow inbound packets for specific examples
+# Uncomment the example lines and adjust as necessary
+
+# Allow ping on the external interface
+#iptables -A INPUT  -p icmp -m icmp --icmp-type echo-request -j ACCEPT
+#iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT
+
+# Reject ident packets with TCP reset to avoid delays with FTP or IRC
+#iptables -A INPUT  -p tcp --dport 113 -j REJECT --reject-with tcp-reset
+
+# Allow HTTP and HTTPS to 192.168.0.2
+#iptables -A PREROUTING -t nat -i WAN1 -p tcp --dport 80 -j DNAT --to 192.168.0.2
+#iptables -A PREROUTING -t nat -i WAN1 -p tcp --dport 443 -j DNAT --to 192.168.0.2
+#iptables -A FORWARD -p tcp -d 192.168.0.2 --dport 80 -j ACCEPT
+#iptables -A FORWARD -p tcp -d 192.168.0.2 --dport 443 -j ACCEPT
+
+# End /etc/systemd/scripts/iptables</literal>
+EOF
+chmod 700 /etc/systemd/scripts/iptables</userinput></screen>
+
+      <para>
+        With this script your intranet should be reasonably secure
+        against external attacks. No one should be able to setup a new
+        connection to any internal service and, if it's masqueraded,
+        makes your intranet invisible to the Internet. Furthermore, your
+        firewall should be relatively safe because there are no services
+        running that a cracker could attack.
+      </para>
+
+    </sect3>
+ 
+    <sect3 id="fw-busybox-ipt" xreflabel="Creating a BusyBox With iptables">
+      <title>BusyBox</title>
+
+      <para>
+        This scenario isn't too different from the <xref
+        linkend="fw-masqRouter-ipt"/>, but additionally offers some
+        services to your intranet. Examples of this can be when
+        you want to administer your firewall from another host on
+        your intranet or use it as a proxy or a name server.
+      </para>
+
+      <note>
+        <para>
+          Outlining specifically how to protect a server that
+          offers services on the Internet goes far beyond the scope of
+          this document. See the references in <xref linkend="fw-extra-info"/>
+          for more information.
+        </para>
+      </note>
+
+      <para>
+        Be cautious. Every service you have enabled makes your
+        setup more complex and your firewall less secure. You are
+        exposed to the risks of misconfigured services or running
+        a service with an exploitable bug. A firewall should generally
+        not run any extra services.  See the introduction to the
+        <xref linkend="fw-masqRouter-ipt"/> for some more details.
+      </para>
+
+      <para>
+        If you want to add services such as internal Samba or
+        name servers that do not need to access the Internet themselves,
+        the additional statements are quite simple and should still be
+        acceptable from a security standpoint. Just add the following lines
+        into the script <emphasis>before</emphasis> the logging rules.
+      </para>
+
+<screen><literal>iptables -A INPUT  -i ! WAN1  -j ACCEPT
+iptables -A OUTPUT -o ! WAN1  -j ACCEPT</literal></screen>
+
+      <para>
+        If daemons, such as squid, have to access the Internet
+        themselves, you could open OUTPUT generally and restrict
+        INPUT.
+      </para>
+
+<screen><literal>iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -j ACCEPT</literal></screen>
+
+      <para>
+        However, it is generally not advisable to leave OUTPUT
+        unrestricted. You lose any control over trojans who would like
+        to "call home", and a bit of redundancy in case you've
+        (mis-)configured a service so that it broadcasts its existence
+        to the world.
+      </para>
+
+      <para>
+        To accomplish this, you should restrict INPUT and OUTPUT
+        on all ports except those that it's absolutely necessary to have
+        open. Which ports you have to open depends on your needs: mostly
+        you will find them by looking for failed accesses in your log
+        files.
+      </para>
+
+      <itemizedlist spacing="compact" role='iptables'>
+        <title>Have a Look at the Following Examples:</title>
+        <listitem>
+          <para>
+            Squid is caching the web:
+          </para>
+
+<screen><literal>iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT  -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED \
+  -j ACCEPT</literal></screen>
+
+        </listitem>
+        <listitem>
+          <para>
+            Your caching name server (e.g., named) does its lookups via UDP:
+          </para>
+
+<screen><literal>iptables -A OUTPUT -p udp --dport 53 -j ACCEPT</literal></screen>
+
+        </listitem>
+        <listitem>
+          <para>
+            You want to be able to ping your computer to ensure it's still
+            alive:
+          </para>
+
+<screen><literal>iptables -A INPUT  -p icmp -m icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT</literal></screen>
+
+        </listitem>
+        <listitem>
+          <para id='fw-BB-4-ipt' xreflabel="BusyBox with iptable example number 4">
+            If you are frequently accessing FTP servers or enjoy chatting, you
+            might notice delays because some implementations of these daemons
+            query an identd daemon on your system to obtain usernames. Although
+            there's really little harm in this, having an identd running is not
+            recommended because many security experts feel the service gives
+            out too much additional information.
+          </para>
+
+          <para>
+            To avoid these delays you could reject the requests with a
+            'tcp-reset' response:
+          </para>
+
+<screen><literal>iptables -A INPUT  -p tcp --dport 113 -j REJECT --reject-with tcp-reset</literal></screen>
+
+        </listitem>
+        <listitem>
+          <para>
+            To log and drop invalid packets (packets
+            that came in after netfilter's timeout or some types of
+            network scans) insert these rules at the top of the chain:
+          </para>
+
+<screen><literal>iptables -I INPUT 0 -p tcp -m conntrack --ctstate INVALID \
+  -j LOG --log-prefix "FIREWALL:INVALID "
+iptables -I INPUT 1 -p tcp -m conntrack --ctstate INVALID -j DROP</literal></screen>
+
+        </listitem>
+        <listitem>
+          <para>
+            Anything coming from the outside should not have a
+            private address, this is a common attack called IP-spoofing:
+          </para>
+
+<screen><literal>iptables -A INPUT -i WAN1 -s 10.0.0.0/8     -j DROP
+iptables -A INPUT -i WAN1 -s 172.16.0.0/12  -j DROP
+iptables -A INPUT -i WAN1 -s 192.168.0.0/16 -j DROP</literal></screen>
+
+          <para>
+            There are other addresses that you may also want to drop:
+            0.0.0.0/8, 127.0.0.0/8, 224.0.0.0/3 (multicast and
+            experimental), 169.254.0.0/16 (Link Local Networks), and
+            192.0.2.0/24 (IANA defined test network).
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            If your firewall is a DHCP client, you need to allow those packets:
+          </para>
+
+<screen><literal>iptables -A INPUT  -i WAN1 -p udp -s 0.0.0.0 --sport 67 \
+   -d 255.255.255.255 --dport 68 -j ACCEPT</literal></screen>
+
+        </listitem>
+        <listitem>
+          <para>
+            To simplify debugging and be fair to anyone who'd like
+            to access a service you have disabled, purposely or by mistake,
+            you could REJECT those packets that are dropped.
+          </para>
+
+          <para>
+            Obviously this must be done directly after logging as the very
+            last lines before the packets are dropped by policy:
+          </para>
+
+<screen><literal>iptables -A INPUT -j REJECT</literal></screen>
+
+        </listitem>
+      </itemizedlist>
+
+      <para>
+        These are only examples to show you some of the capabilities
+        of the firewall code in Linux. Have a look at the man page of iptables.
+        There you will find much more information. The port numbers needed for
+        this can be found in <filename>/etc/services</filename>, in case you
+        didn't find them by trial and error in your log file.
+      </para>
+
+    </sect3>
 
     <sect3  id="iptables-init">
       <title><phrase revision="sysv">Boot Script</phrase>
