@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gegl-download-http "https://download.gimp.org/pub/gegl/0.4/gegl-&gegl-version;.tar.bz2">
+  <!ENTITY gegl-download-http "https://download.gimp.org/pub/gegl/0.4/gegl-&gegl-version;.tar.xz">
   <!ENTITY gegl-download-ftp  " ">
-  <!ENTITY gegl-md5sum        "cb17ac529a882f25f54c0115c63d4027">
-  <!ENTITY gegl-size          "7.0 MB">
-  <!ENTITY gegl-buildsize     "144 MB (add 21 MB for tests)">
-  <!ENTITY gegl-time          "1.0 SBU (Using parallelism=4; add 0.5 SBU for tests)">
+  <!ENTITY gegl-md5sum        "567f9e6c0a0a1a4145a1a1b254ca9ac5">
+  <!ENTITY gegl-size          "4.6 MB">
+  <!ENTITY gegl-buildsize     "115 MB (with docs; add 7 MB for tests)">
+  <!ENTITY gegl-time          "0.5 SBU (Using parallelism=4; with docs; add 0.3 SBU for tests)">
 ]>
 
 <sect1 id="gegl" xreflabel="gegl-&gegl-version;">
@@ -74,42 +74,44 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="babl"/>,
-      <xref linkend="json-glib"/>, and
-      <xref linkend="libjpeg"/>
+      <xref linkend="babl"/> and
+      <xref linkend="json-glib"/>
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="gobject-introspection"/>,
+      <xref linkend="pygments"/>, and 
+      <xref linkend="pygobject3"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="asciidoc"/>,
       <xref linkend="cairo"/>,
-      <xref linkend="enscript"/>,
       <xref linkend="exiv2"/>,
-      <xref linkend="ffmpeg"/>,
       <xref linkend="gdk-pixbuf"/>,
+      <xref linkend="gexiv2"/>,
       <xref linkend="graphviz"/>,
+      <xref linkend="jasper"/>,
+      <xref linkend="lcms2"/>,
+      <xref linkend="libjpeg"/>
       <xref linkend="libpng"/>,
       <xref linkend="librsvg"/>,
+      <xref linkend="libtiff"/>,
       <xref linkend="libwebp"/>,
-<!-- configure help output is confusing, but what is tested is luajit, which is
-     a different project from lua we have in the book
-      <xref linkend="lua"/>, -->
       <xref linkend="pango"/>,
-      <xref linkend="python2"/>,
       <xref linkend="ruby"/>,
-      <xref linkend="sdl"/>,
-      <xref linkend="gobject-introspection"/>,
+      <xref linkend="sdl2"/>,
+      <xref linkend="v4l-utils"/>,
       <xref linkend="vala"/>,
-      <xref linkend="gexiv2"/>,
       <ulink url="https://lensfun.github.io/">lensfun</ulink>,
       <ulink url="https://libopenraw.pages.freedesktop.org/">libopenraw</ulink>,
       <ulink url="http://libspiro.sourceforge.net/">libspiro</ulink>,
       <ulink url="http://faculty.cse.tamu.edu/davis/suitesparse.html">libumfpack</ulink>,
       <ulink url="http://luajit.org/luajit.html">LuaJIT</ulink>,
-      <ulink url="https://github.com/hodefoting/mrg/releases">MRG</ulink>,
-      <ulink url="https://www.khronos.org/opencl/">OpenCL</ulink> (for tests),
-      <ulink url="https://www.openexr.com">OpenEXR</ulink>, and
-      <ulink url="&w3m-url;">W3m</ulink>
+      <ulink url="https://github.com/hodefoting/mrg/releases">MRG</ulink>, and
+      <ulink url="https://www.openexr.com">OpenEXR</ulink>
     </para>
 
     <para condition="html" role="usernotes">
@@ -124,57 +126,31 @@
       Install <application>gegl</application> by running the following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson --prefix=/usr .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>.
-      Many tests are skipped.
-     <!-- in 0.4.2 no failures, but the video tests have several
-       Failed to parse extradata messages.  The warnings are about
-      missing reference, assuming SUCCESS
-      and lots of Missing fast-path babl conversion detected
-      also GEGL-WARNING for runtime check failed and for
-      operation desired unknown paramspec type for seed 
-
-      In 0.4.10 all tests pass but there several messages about
-      deprecated parameter passing.-->
+      To test the results, issue: <command>ninja test</command>.
+      Two tests, gegl-format and gegl-node are known to fail.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-install -v -m644 docs/*.{css,html} /usr/share/gtk-doc/html/gegl &amp;&amp;
-install -v -m644 docs/images/*.{png,ico,svg} /usr/share/gtk-doc/html/gegl/images</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
     <para>
-      <command>install -v -m644/docs/*/{css,html} ...</command>:
-      This and the subsequent commands install all the provided documentation
-      instead of only the stylesheet <filename>gegl.css</filename> and three
-      png files.
+      <parameter>-Ddocs=true</parameter>: Build and
+      install documentation.
     </para>
-
-    <para>
-      <parameter>--without-vala</parameter>: Do not create a
-      <application>vala</application> API - use this if
-      <command>vapigen</command> breaks the build.
-    </para>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../../xincludes/gtk-doc-rebuild.xml"/>
-
-    <!-- commented in case a later version reinstates this problem
-    <para>
-      <envar>LC_ALL=en_US</envar>: In some locales with <xref linkend='ruby'/>
-      installed, one build component fails and prevents completion of the
-      procedure.  Using this variable avoids the problem.
-    </para> -->
 
   </sect2>
 
@@ -187,10 +163,17 @@ install -v -m644 docs/images/*.{png,ico,svg} /usr/share/gtk-doc/html/gegl/images
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>gcut, gegl, gegl-imgcmp</seg>
-        <seg>libgegl-0.4.so, libgegl-npd-0.4.so, libgegl-sc-0.4.so and libraries in
-        /usr/lib/gegl-0.4</seg>
-        <seg>/usr/include/gegl-0.4</seg>
+        <seg>gegl and
+             gegl-imgcmp
+        </seg>
+        <seg>libgegl-0.4.so, 
+             libgegl-npd-0.4.so, 
+             libgegl-sc-0.4.so, and 
+             modules in /usr/lib/gegl-0.4
+        </seg>
+        <seg>/usr/lib/gegl-0.4 and
+             /usr/include/gegl-0.4
+        </seg>
       </seglistitem>
     </segmentedlist>
 
@@ -198,18 +181,6 @@ install -v -m644 docs/images/*.{png,ico,svg} /usr/share/gtk-doc/html/gegl/images
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="gcut">
-        <term><command>gcut</command></term>
-        <listitem>
-          <para>
-            is a video editing engine for GEGL.
-          </para>
-          <indexterm zone="gegl gcut">
-            <primary sortas="b-gcut">gcut</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="gegl-prog">
         <term><command>gegl</command></term>
