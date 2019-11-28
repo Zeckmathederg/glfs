@@ -5,20 +5,21 @@
   %general-entities;
 
   <!ENTITY AbiWord-minor-version "3.0">
+  <!ENTITY AbiWord-docs-version "3.0.2">
 
   <!ENTITY AbiWord-download-http
            "http://www.abisource.com/downloads/abiword/&AbiWord-version;/source/abiword-&AbiWord-version;.tar.gz">
   <!ENTITY AbiWord-download-ftp  " ">
-  <!ENTITY AbiWord-md5sum        "cda6dd58c747c133b421cc7eb18f5796">
+  <!ENTITY AbiWord-md5sum        "04e31887049a8c72297881bc153b77c4">
   <!ENTITY AbiWord-size          "11 MB">
 
   <!ENTITY AbiWordDocs-download-http
-           "http://www.abisource.com/downloads/abiword/&AbiWord-version;/source/abiword-docs-&AbiWord-version;.tar.gz">
+           "http://www.abisource.com/downloads/abiword/&AbiWord-docs-version;/source/abiword-docs-&AbiWord-docs-version;.tar.gz">
   <!ENTITY AbiWordDocs-md5sum        "c92c0e1e2081db20757231a53d80c338">
   <!ENTITY AbiWordDocs-size          "1.5 MB">
 
-  <!ENTITY AbiWord-buildsize     "626 MB, additional 12 MB for docs (73 MB installed - additional 3.1 MB for docs)">
-  <!ENTITY AbiWord-time          "6.5 SBU - additional 0.5 SBU for docs">
+  <!ENTITY AbiWord-buildsize     "605 MB, with docs (76 MB installed)">
+  <!ENTITY AbiWord-time          "2.4 SBU (Using parallelism=4, with docs)">
 ]>
 
 <sect1 id="abiword" xreflabel="AbiWord-&AbiWord-version;">
@@ -106,18 +107,6 @@
           AbiWord Docs size: &AbiWordDocs-size;
         </para>
       </listitem>
-      <listitem>
-        <para>
-          Required patch (fixes GTK+-3.22.x rendering):
-          <ulink url="&patch-root;/abiword-&AbiWord-version;-gtk3_22_render_fix-1.patch"/>
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Recommended patch (fixes flickering and caret problems):
-          <ulink url="&patch-root;/abiword-&AbiWord-version;-fix_flicker-1.patch"/>
-        </para>
-      </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">AbiWord Dependencies</bridgehead>
@@ -182,19 +171,12 @@
       commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../abiword-&AbiWord-version;-gtk3_22_render_fix-1.patch &amp;&amp;
-
-patch -Np1 -i ../abiword-&AbiWord-version;-fix_flicker-1.patch &amp;&amp;
-   
-sed -e "s/free_suggestions/free_string_list/" \
+<screen><userinput>sed -e "s/free_suggestions/free_string_list/" \
     -e "s/_to_personal//"                     \
     -e "s/in_session/added/"                  \
     -i src/af/xap/xp/enchant_checker.cpp      &amp;&amp;
 
-sed -e "/icaltime_from_timet/{s/timet/&amp;_with_zone/;s/0/0, 0/}" \
-    -i src/text/ptbl/xp/pd_DocumentRDF.cpp &amp;&amp;
-
-./configure --prefix=/usr --without-evolution-data-server &amp;&amp;
+./configure --prefix=/usr &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -218,6 +200,9 @@ make</userinput></screen>
       If you wish to install the local help files, untar and build them first:
     </para>
 
+    <note><para>The current version of the docs expands to abiword-docs-3.0.1
+    and not the expected abiword-docs-3.0.2.</para></note>
+
 <!-- I had to hardcode the docs version here, as it doesn't decompress to
      abiword-docs-3.0.2. -->
 <screen><userinput>tar -xf ../abiword-docs-&AbiWord-version;.tar.gz &amp;&amp;
@@ -237,19 +222,18 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed ...</command>: These commands correct the source for
-      changes in dependencies <xref linkend="enchant"/> and 
-      <xref linkend="libical"/>.
+      <command>sed ...</command>: This command corrects the source for
+      changes in the dependency <xref linkend="enchant"/>.
     </para>
-
+<!--
     <para>
-      <parameter>--without-evolution-data-server</parameter>: This switch
+      <parameter>- -without-evolution-data-server</parameter>: This switch
       disables <application>AbiWord</application>
       <application>Evolution Data Server</application> support which is known
       to fail when using recent versions of
       <application>Evolution Data Server</application>.
     </para>
-
+-->
     <para>
       <option>--enable-plugins="collab openxml goffice grammar"</option>: Build
       some or all plugins. The openxml plugin enables
