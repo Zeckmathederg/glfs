@@ -6,10 +6,10 @@
 
   <!ENTITY firewalld-download-http "https://github.com/firewalld/firewalld/releases/download/v&firewalld-version;/firewalld-&firewalld-version;.tar.gz">
   <!ENTITY firewalld-download-ftp  " ">
-  <!ENTITY firewalld-md5sum        "2549c2006def07a19b4c77ec960e5aab">
+  <!ENTITY firewalld-md5sum        "f3cabced64e543cb1e99f0dfa4b963e0">
   <!ENTITY firewalld-size          "1.6 MB">
-  <!ENTITY firewalld-buildsize     "26 MB">
-  <!ENTITY firewalld-time          "0.2 SBU">
+  <!ENTITY firewalld-buildsize     "25 MB (additionall 2 MB for tests)">
+  <!ENTITY firewalld-time          "0.2 SBU (additional 6.2 SBU for tests)">
 ]>
 
 <sect1 id="firewalld" xreflabel="firewalld-&firewalld-version;">
@@ -75,38 +75,29 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/firewalld-&firewalld-version;-builtin-1.patch"/>
-       </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">firewalld Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="nftables"/> or <xref linkend="iptables" role="nodump"/>,
+      <xref linkend="nftables"/>,
       and <xref linkend="python-slip"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="DocBook"/> and <xref linkend="libxslt"/> (for building
-      the manual pages), and
-      <ulink url="https://netfilter.org/projects/ipset/index.html">ipset</ulink>
-      for ipset support (only when used with iptables)
+      <xref linkend="DocBook"/>,
+      <xref linkend="iptables"/>, and
+      <xref linkend="libxslt"/> (for building the manual pages)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="qt5" role="runtime"/> (runtime only, required for 
-      <application>fireall-applet</application>) and
       <xref linkend="gtk3" role="runtime"/> (runtime only, required for
-      <application>fireall-config</application>)
+      <application>fireall-config</application>),
+      <xref linkend="qt5" role="runtime"/> (runtime only, required for 
+      <application>fireall-applet</application>), and
+      <ulink url="https://netfilter.org/projects/ipset/index.html">ipset</ulink>
+      for ipset support (only when used with iptables)
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -116,12 +107,6 @@
 
   <sect2 role="installation">
     <title>Installation of firewalld</title>
-
-    <para>
-      Fix an issue with use of built-in kernel modules:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../firewalld-&firewalld-version;-builtin-1.patch</userinput></screen>
 
     <para>
       Install <application>firewalld</application> by
@@ -140,9 +125,20 @@ make</userinput></screen>
 make</userinput></screen>
 
     <para>
-      To run the testsuite, isssue the command <command>make test</command>.
+      The testsuite for <application>firewalld</application> is very dependent
+      on the running kernel and system configuration. It requires
+      <application>ipset</application> as well as both backends, and all
+      supported kernel options available.
     </para>
 
+    <para>
+      If the above conditions are met, run the testsuite as the
+      <systemitem class="username">root</systemitem> user with the command
+      <command>make -C src check</command>. Any test failures are likely the
+      result of an incomplete configuration. Failed tests will give a detailed
+      failure status at
+      <filename>src/test/testsuite.dir/&lt;###&gt;/testsuite.log</filename>.
+    </para>
 
     <para revision="sysv">
       Prevent installation of the distributed firewalld init script with the
@@ -170,6 +166,12 @@ make</userinput></screen>
     <para revision="sysv">
       <parameter>--without-systemd</parameter>: This command prevents
       installation of <application>systemd</application> services.
+    </para>
+
+    <para>
+      <option>--without-{ip{,6},eb}tables{,-restore}</option>: These switches
+      disable <application>iptables</application> support and are required if
+      you wish to build without iptables support.
     </para>
 
   </sect2>
