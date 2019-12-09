@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+<!ENTITY blocaled-download-http "https://github.com/pierre-labastie/blocaled/releases/download/v&blocaled-version;/blocaled-&blocaled-version;.tar.xz">
+  <!ENTITY blocaled-download-ftp  " ">
+  <!ENTITY blocaled-md5sum        "2b47923594d9f7564b51651e2433b9e1">
+  <!ENTITY blocaled-size          "256 KB">
+  <!ENTITY blocaled-buildsize     "3.8 MB">
+  <!ENTITY blocaled-time          "less than 0.1 SBU">
+]>
+
+<sect1 id="blocaled" revision="sysv" xreflabel="blocaled-&blocaled-version;">
+  <?dbhtml filename="blocaled.html"?>
+
+  <sect1info>
+    <!-- this part gets updated when you commit, IFF you set the properties:
+      first, svn add path/to/thisfile.xml and then
+      svn propset svn:mime-type text/plain path/to/thisfile.xml and
+      svn propset svn:keywords "Date LastChangedBy" path/to/thisfile.xml -->
+    <othername>$LastChangedBy: renodr $</othername>
+    <date>$Date: 2019-10-31 17:50:26 +0100 (jeu. 31 oct. 2019) $</date>
+  </sect1info>
+
+  <title>blocaled-&blocaled-version;</title>
+
+  <indexterm zone="blocaled">
+    <primary sortas="a-blocaled">blocaled</primary>
+  </indexterm>
+
+  <!--Required section-->
+  <sect2 role="package">
+    <title>Introduction to blocaled</title>
+
+    <para>
+      <application>blocaled</application> is an implementation of the
+      <emphasis>org.freedesktop.locale1</emphasis> D&ndash;Bus protocol,
+      which normally comes with <application>systemd</application>. It is
+      needed by the <application>GNOME</application> desktop.
+    </para>
+
+    &lfs90_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&blocaled-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&blocaled-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &blocaled-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &blocaled-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &blocaled-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &blocaled-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">blocaled Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="polkit"/> and
+      <xref linkend="libdaemon"/>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/blocaled"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of blocaled</title>
+
+    <para>
+      Install <application>blocaled</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr --sysconfdir=/etc &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make check</command>.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring blocaled</title>
+
+    <sect3 id="blocaled-config">
+      <title>Config Files</title>
+      <para>
+        <filename>/etc/blocaled.conf</filename>
+      </para>
+
+      <indexterm zone="blocaled blocaled-config">
+        <primary
+        sortas="e-etc-blocaled.conf">/etc/blocaled.conf</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3><title>Configuration Information</title>
+
+      <para>
+        <filename>/etc/blocaled.conf</filename> contains the location of
+        the settings files used by <application>blocaled</application>. The
+        defaults are suitable for BLFS. Information about the entries is
+        available as comments in the file.
+      </para>
+
+      <para>
+        The <emphasis>org.freedesktop.locale1</emphasis> protocol is
+        unable to export locale variables. Locale settings are stored
+        by default in <filename>/etc/locale.conf</filename>. We need to
+        retrieve them in the bash profile. As the <systemitem class="username">
+        root</systemitem> user, issue:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/profile.d/i18n.sh &lt;&lt; "EOF"
+<literal># Begin /etc/profile.d/i18n.sh
+
+if [ -r /etc/locale.conf ]; then source /etc/locale.conf; fi
+
+if [ -n "$LANG" ];              then export LANG; fi
+if [ -n "$LC_TYPE" ];           then export LC_TYPE; fi
+if [ -n "$LC_NUMERIC" ];        then export LC_NUMERIC; fi
+if [ -n "$LC_TIME" ];           then export LC_TIME; fi
+if [ -n "$LC_COLLATE" ];        then export LC_COLLATE; fi
+if [ -n "$LC_MONETARY" ];       then export LC_MONETARY; fi
+if [ -n "$LC_MESSAGES" ];       then export LC_MESSAGES; fi
+if [ -n "$LC_PAPER" ];          then export LC_PAPER; fi
+if [ -n "$LC_NAME" ];           then export LC_NAME; fi
+if [ -n "$LC_ADDRESS" ];        then export LC_ADDRESS; fi
+if [ -n "$LC_TELEPHONE" ];      then export LC_TELEPHONE; fi
+if [ -n "$LC_MEASUREMENT" ];    then export LC_MEASUREMENT; fi
+if [ -n "$LC_IDENTIFICATION" ]; then export LC_IDENTIFICATION; fi
+
+# End /etc/profile.d/i18n.sh</literal>
+EOF</userinput></screen>
+
+      <para>
+        Then the <filename>/etc/locale</filename> file should be generated,
+        as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/locale.conf &lt;&lt; EOF
+<literal># Begin /etc/locale.conf
+
+LANG=$LANG
+
+# End /etc/locale.conf</literal>
+EOF</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Program</segtitle>
+      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Directory</segtitle>
+
+      <seglistitem>
+        <seg>
+          blocaled (in <filename class="directory">/usr/libexec</filename>)
+        </seg>
+        <seg>
+          None
+        </seg>
+        <seg>
+          /usr/share/blocaled
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="blocaled-prog">
+        <term><command>blocaled</command></term>
+        <listitem>
+          <para>
+            is the daemon implementing the
+            <emphasis>org.freedesktop.locale1</emphasis> D&ndash;Bus protocol
+          </para>
+          <indexterm zone="blocaled blocaled-prog">
+            <primary sortas="b-blocaled">blocaled</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
