@@ -37,11 +37,11 @@ $Date$
       <xsl:when test="contains(listitem[1]/para,'(HTTP)')
                       and contains(listitem[2]/para,'(FTP)')">
         <xsl:choose>
-          <xsl:when test="string-length(listitem[1]/para/ulink/@url) &gt; '10'">
-            <xsl:apply-templates select="listitem[1]/para/ulink"/>
+          <xsl:when test="string-length(listitem[2]/para/ulink/@url) &gt; '10'">
+            <xsl:apply-templates select="listitem[2]/para/ulink"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:apply-templates select="listitem[2]/para/ulink"/>
+            <xsl:apply-templates select="listitem[1]/para/ulink"/>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
