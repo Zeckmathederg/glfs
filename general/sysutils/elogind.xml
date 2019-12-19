@@ -6,10 +6,10 @@
 
   <!ENTITY elogind-download-http "https://github.com/elogind/elogind/archive/v&elogind-version;/elogind-&elogind-version;.tar.gz">
   <!ENTITY elogind-download-ftp  " ">
-  <!ENTITY elogind-md5sum        "dbfebba271609fb5ea63073e2999466e">
+  <!ENTITY elogind-md5sum        "fb5ba9da1115d68d2b6cdbcd10167b7d">
   <!ENTITY elogind-size          "1.3 MB">
-  <!ENTITY elogind-buildsize     "47 MB">
-  <!ENTITY elogind-time          "0.2 SBU">
+  <!ENTITY elogind-buildsize     "56 MB">
+  <!ENTITY elogind-time          "0.4 SBU (NINJAJOBS=1)">
 ]>
 
 <sect1 id="elogind" revision="sysv" xreflabel="elogind-&elogind-version;">
@@ -140,6 +140,14 @@ File systems ---&gt;
     <title>Installation of elogind</title>
 
     <para>
+      First fix an issue with reading a session file:
+    </para>
+
+<screen><userinput>sed -e '/dirent-util/a #include "env-file.h"'                            \
+    -e '/sessions/{n;n;s/=.*$/= parse_env_file (NULL, p, "UID", \&amp;s);/}' \
+    -i src/basic/cgroup-util.c</userinput></screen>
+
+    <para>
       Install <application>elogind</application> by running the following
       commands:
     </para>
@@ -163,7 +171,7 @@ ninja</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>ninja install                                         &amp;&amp;
+<screen role="root"><userinput>ninja install                                           &amp;&amp;
 ln -sfv  libelogind.pc /usr/lib/pkgconfig/libsystemd.pc &amp;&amp;
 ln -sfvn elogind /usr/include/systemd</userinput></screen>
 
@@ -250,6 +258,7 @@ EOF</userinput></screen>
            libelogind.so
         </seg>
         <seg>
+          /lib/elogind,
           /etc/elogind,
           /usr/include/elogind, and
           /usr/share/doc/elogind-&elogind-version;
