@@ -319,7 +319,20 @@ ln -sfv /usr/share/dbus-1   $KF5_PREFIX/share</userinput></screen>
 
     tar -xf $file
     pushd $packagedir
-   
+<!-- the following statement may be not needed in 5.66+ -->
+      case $name in
+        kitemviews*) sed -i '/&lt;QList&gt;/a #include &lt;QPersistentModelIndex&gt;' \
+          src/kwidgetitemdelegatepool_p.h ;;
+        kplotting*) sed -i '/&lt;QHash&gt;/a #include &lt;QHelpEvent&gt;' \
+          src/kplotwidget.cpp ;;
+        knotifica*) sed -i '/&lt;QUrl&gt;/a #include &lt;QVariant&gt;' \
+          src/knotification.h ;;
+        kcompleti*) sed -i '/&lt;QClipboard&gt;/a #include &lt;QKeyEvent&gt;' \
+          src/klineedit.cpp ;;
+        kwayland*) sed -i '/&lt;wayland-xdg-output-server-proto/a #include &lt;QHash&gt;' \
+          src/server/xdgoutput_interface.cpp ;;
+      esac  
+
       mkdir build
       cd    build
 
@@ -356,6 +369,11 @@ ln -sfvn kf5-&kf5-version; /opt/kf5</userinput></screen>
     <sect2 role="commands">
     <title>Command Explanations</title>
 
+<!-- the following statement may be not needed in 5.66+ -->
+    <para>
+      <command>case ...</command>: Those modifications are required to build
+      with <xref linkend="qt5"/>.
+    </para>
     <para>
       <parameter>-DCMAKE_PREFIX_PATH=$QT5DIR</parameter>: This switch is used
       to allow cmake to find the proper Qt libraries.
