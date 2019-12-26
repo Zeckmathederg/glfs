@@ -136,13 +136,13 @@
      microcode.  This must be done by navigating to <ulink
      url='https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/releases/'/>
      and downloading the latest file there.  As of this writing the most recent
-     version of the microcode is microcode-20191112.
+     version of the microcode is microcode-20191115.
      Extract this file in the normal way, the microcode is in the <filename>intel-ucode</filename>
      directory, containing various blobs with names in the form XX-YY-ZZ.
      There are also various other files, and a releasenote.</para>
 
      <para>In the past, intel did not provide any details of which blobs had
-     changed versions, but now the releasenote details this.</para>
+     changed versions, but now the release note details this.</para>
 
      <para>The recent firmware for older processors is provided to deal with
      vulnerabilities which have now been made public, and for some of these such
@@ -153,8 +153,9 @@
      url='https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/index.html'/>.
      </para>
 
-     <para>To be able to use this latest microcode on all the affected processors
-     the kernel version needs to be versions 5.3.11, 4.19.84 or later.</para>
+     <para>To be able to use this latest microcode to provide mitigation on all
+     the affected processors, the kernel version needs to be at least 5.3.11 (or
+     4.19.84 if you are using the 4.19 long term support series).</para>
 
      <para>Now you need to determine your processor's identity to see if there
      is any microcode for it. Determine the decimal values of the cpu family,
@@ -194,16 +195,20 @@ Processor type and features  ---&gt;
 
 <screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
 
-      <para>This example (the machine had just been updated to a new kernel and was
-      already using early loading for firmware from a few months before) shows it
-      has now been updated from revision 0xcc to 0xd4.</para>
+      <para>This reformatted example was created by temporarily booting without
+      microcode, to show the current Firmware Bug message, then the late load
+      shows it being updated to revision 0xd6.</para>
 
-<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xcc, date = 2019-04-01
-[    0.000000] Linux version 5.3.11 (ken@milliways) (gcc version 9.2.0 (GCC)) #1 SMP PREEMPT Wed Nov 13 01:43:09 GMT 2019
-[    0.569085] microcode: sig=0x506e3, pf=0x2, revision=0xcc
-[    0.569136] microcode: Microcode Update Driver: v2.2.
-[  257.975226] microcode: updated to revision 0xd4, date = 2019-08-14
-[  257.976347] microcode: Reload completed, microcode revision: 0xd4</literal></screen>
+<screen><literal>[    0.000000] Linux version 5.4.2 (lfs@leshp) (gcc version 9.2.0 (GCC))
+               #1 SMP PREEMPT Wed Dec 18 11:52:13 GMT 2019
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.4.2-sda11 root=/dev/sda11 ro
+[    0.020218] [Firmware Bug]: TSC_DEADLINE disabled due to Errata; please update microcode
+               to version: 0xb2 (or later)
+[    0.153861] MDS: Vulnerable: Clear CPU buffers attempted, no microcode
+[    0.550009] microcode: sig=0x506e3, pf=0x2, revision=0x74
+[    0.550036] microcode: Microcode Update Driver: v2.2.
+[  277.673064] microcode: updated to revision 0xd6, date = 2019-10-03
+[  277.674231] x86/CPU: CPU features have changed after loading microcode, but might not take effect</literal></screen>
 
     <para>If the microcode was not updated, there is no new microcode for
     this system's processor. If it did get updated, you can now proceed to <xref
@@ -320,10 +325,12 @@ cd initrd</userinput></screen>
       <para>The places and times where early loading happens are very different
       in AMD and Intel machines. First, an Intel example with early loading:</para>
 
-<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xd4, date = 2019-08-14
-[    0.000000] Linux version 5.3.11 (ken@milliways) (gcc version 9.2.0 (GCC)) #1 SMP PREEMPT Wed Nov 13 01:43:09 GMT 2019
-[    0.552160] microcode: sig=0x506e3, pf=0x2, revision=0xd4
-[    0.552184] microcode: Microcode Update Driver: v2.2.</literal></screen>
+<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xd6, date = 2019-10-03
+[    0.000000] Linux version 5.4.6 (ken@leshp) (gcc version 9.2.0 (GCC))i
+               #4 SMP PREEMPT Sat Dec 21 21:41:03 GMT 2019
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.4.6-sda11 root=/dev/sda11 ro resume=/dev/sda10
+[    0.579936] microcode: sig=0x506e3, pf=0x2, revision=0xd6
+[    0.579961] microcode: Microcode Update Driver: v2.2.</literal></screen>
 
       <para>A historic AMD example:</para>
 
