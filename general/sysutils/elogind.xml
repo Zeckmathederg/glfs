@@ -6,9 +6,9 @@
 
   <!ENTITY elogind-download-http "https://github.com/elogind/elogind/archive/v&elogind-version;/elogind-&elogind-version;.tar.gz">
   <!ENTITY elogind-download-ftp  " ">
-  <!ENTITY elogind-md5sum        "fb5ba9da1115d68d2b6cdbcd10167b7d">
+  <!ENTITY elogind-md5sum        "f7cbea34cae55d66bed5355048eaa14a">
   <!ENTITY elogind-size          "1.3 MB">
-  <!ENTITY elogind-buildsize     "56 MB">
+  <!ENTITY elogind-buildsize     "58 MB (add 1 MB for tests)">
   <!ENTITY elogind-time          "0.4 SBU (NINJAJOBS=1)">
 ]>
 
@@ -131,6 +131,16 @@ File systems ---&gt;
             Pseudo filesystems ---&gt;
                 [*]    Tmpfs POSIX Access Control Lists  [CONFIG_TMPFS_POSIX_ACL]</literal></screen>
 
+    <para>
+      In addition, some tests need the userspace cryptographic kernel API, which
+      is enabled with:
+    </para>
+
+<screen><literal>
+-*- Cryptographic API ---&gt;                               [CONFIG_CRYPTO]
+   &lt;M/*&gt; Userspace cryptographic algorithm configuration [CONFIG_CRYPTO_USER]
+   &lt;M/*&gt; User-space interface for hash algorithms        [CONFIG_CRYPTO_USER_API_HASH]</literal></screen>
+
     <indexterm zone="elogind elogind-kernel">
       <primary sortas="d-elogind">elogind</primary>
     </indexterm>
@@ -140,12 +150,10 @@ File systems ---&gt;
     <title>Installation of elogind</title>
 
     <para>
-      First fix an issue with reading a session file:
+      Fix one of the tests:
     </para>
 
-<screen><userinput>sed -e '/dirent-util/a #include "env-file.h"'                            \
-    -e '/sessions/{n;n;s/=.*$/= parse_env_file (NULL, p, "UID", \&amp;s);/}' \
-    -i src/basic/cgroup-util.c</userinput></screen>
+<screen><userinput>sed 's/os-release/lsb-release/' -i src/test/test-copy.c</userinput></screen>
 
     <para>
       Install <application>elogind</application> by running the following
@@ -160,11 +168,14 @@ meson --prefix=/usr                        \
       --localstatedir=/var                 \
       -Dcgroup-controller=elogind          \
       -Ddbuspolicydir=/etc/dbus-1/system.d \
+      -Dman=auto                           \
       ..  &amp;&amp;
 ninja</userinput></screen>
 
     <para>
-      This package does not come with a test suite.
+      To test the results, issue: <command>ninja test</command>. A few tests
+      are skipped if not run with <systemitem class="username">root</systemitem>
+      privileges.
     </para>
 
     <para>
@@ -190,6 +201,13 @@ ln -sfvn elogind /usr/include/systemd</userinput></screen>
       <parameter>-Ddbuspolicydir=/etc/dbus-1/system.d</parameter>: This switch
       sets the location of the <application>D-Bus</application> policy
       directory.
+    </para>
+
+    <para>
+      <parameter>-Dman=auto</parameter>: The default value of this switch is
+      <emphasis>false</emphasis>. Setting it to <emphasis>auto</emphasis>
+      allows building and installing the man pages if the recommended
+      dependencies are installed.
     </para>
 
     <para>
