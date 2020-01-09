@@ -68,7 +68,7 @@ copy()
     file=$(type -p $1)
   fi
 
-  if [ -n $file ] ; then
+  if [ -n "$file" ] ; then
     cp $file $WDIR/$2
   else
     echo "Missing required file: $1 for directory $2"
@@ -208,8 +208,12 @@ fi
 
 # Install libraries
 sort $unsorted | uniq | while read library ; do
-  if [ "$library" == "linux-vdso.so.1" ] ||
-     [ "$library" == "linux-gate.so.1" ]; then
+# linux-vdso and linux-gate are pseudo libraries and do not correspond to a file
+# libsystemd-shared is in /lib/systemd, so it is not found by copy, and
+# it is copied below anyway
+  if [[ "$library" == linux-vdso.so.1 ]] ||
+     [[ "$library" == linux-gate.so.1 ]] ||
+     [[ "$library" == libsystemd-shared* ]]; then
     continue
   fi
 
@@ -243,7 +247,31 @@ fi
 
 ( cd $WDIR ; find . | cpio -o -H newc --quiet | gzip -9 ) &gt; $INITRAMFS_FILE
 
-# Remove the temporary directory and file
+# Prepare early loading of microcode if available
+if ls /lib/firmware/intel-ucode/* &gt;/dev/null 2&gt;&amp;1 ||
+   ls /lib/firmware/amd-ucode/*   &gt;/dev/null 2&gt;&amp;1; then
+
+# first empty WDIR to reuse it
+  rm -r $WDIR/*
+
+  DSTDIR=$WDIR/kernel/x86/microcode
+  mkdir -p $DSTDIR
+
+  if [ -d /lib/firmware/amd-ucode ]; then
+    cat /lib/firmware/amd-ucode/microcode_amd*.bin &gt; $DSTDIR/AuthenticAMD.bin
+  fi
+
+  if [ -d /lib/firmware/intel-ucode ]; then
+    cat /lib/firmware/intel-ucode/* &gt; $DSTDIR/GenuineIntel.bin
+  fi
+
+  ( cd $WDIR; find . | cpio -o -H newc --quiet ) &gt; microcode.img
+  cat microcode.img $INITRAMFS_FILE &gt; tmpfile
+  mv tmpfile $INITRAMFS_FILE
+  rm microcode.img
+fi
+
+# Remove the temporary directories and files
 rm -rf $WDIR $unsorted
 printf "done.\n"
 </literal>
@@ -398,7 +426,6 @@ EOF</userinput></screen>
       <xref role="runtime" linkend="lvm2"/> and/or
       <xref role="runtime" linkend="mdadm"/> must be installed before
       generating the initramfs, if the system partition uses them.
-
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -419,6 +446,12 @@ EOF</userinput></screen>
     <emphasis>initrd.img-$KERNEL_VERSION</emphasis> and is only appropriate for
     the specific kernel specified. The output file will be placed in the
     current directory.</para>
+
+    <para>If early loading of microcode is needed (see <xref
+    linkend="cpu-microcode"/>), you can install the appropriate blob or
+    container in <filename class="directory">/lib/firmware</filename>.
+    It will be automatically added to the initrd when running
+    <command>mkinitramfs</command>.</para>
 
     <para>After generating the initrd, copy it to the <filename
     class='directory'>/boot</filename> directory.</para>
