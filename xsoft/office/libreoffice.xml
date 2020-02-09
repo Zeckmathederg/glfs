@@ -22,16 +22,27 @@
   <!ENTITY libreoffice-translations-md5sum        "9aaecb32945a04ebc8a89835536105f9">
   <!ENTITY libreoffice-translations-size          "164 MB">
 
-  <!-- full size still accurate for 6.0.2, reconfiguring and rebuilding
-   the built source after initial DESTDIR install doesn't take a vast time -->
+  <!-- full size remeasured for 6.4.0.3 -->
 
-  <!ENTITY libreoffice-buildsize  "6.5 GB (782 MB installed). Installing the whole set of languages was previously reported to require up to 26 GB (2.9 GB installed)">
+  <!ENTITY libreoffice-buildsize  "9.0 GB including the additional files if downloaded during the build (820 MB installed). Installing the whole set of languages for 6.4.0.3 required up to 25 GB (3.2 GB installed)">
+
+ <!-- Editors: many updates to poppler will break LO using system poppler until
+      somebody is able to provide a patch or sed.  In these cases, please mark
+      the dependency as currently broken and move the \-\-with-system-poppler
+      line to a comment. Also please switch poppler between recommended and
+      optional according to whether or not we use the system version.  The
+      installed size will be increased by 2 MB if using the shipped poppler, but
+      the variation in build times will be lost in the noise. - ken -->
 
   <!-- for 6.1.2.1 I allowed 2 SBU for downloads, my total was 
        64.76 SBU with fast downloads 
        for 6.1.4.2 I just used the total time - bdubbs
+
+       For 6.4.0.3 downloading everything including dictionaries,
+       help, translations took less than 2 minutes (1.1 SBU) with
+       a good domestic internet connection.  Total time was 60 SBU - ken
   -->
-  <!ENTITY libreoffice-time "59 SBU with parallelism=4 including typical download time">
+  <!ENTITY libreoffice-time "54 SBU with parallelism=4 including typical download time">
 
 ]>
 
@@ -90,6 +101,15 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+
+    <note>
+      <para>
+        Around 80 smallish tarballs and zip files will be downloaded during the
+        build. If you have not downloaded one or more of the following, they too
+        will also be downloaded during the build.
+      </para>
+    </note>
+
     <itemizedlist spacing="compact">
       <listitem>
         <para>
@@ -193,10 +213,10 @@ For libreoffice 6.2.0.4, almost blfs 8.4: no patch needed, only a sed below
       <xref linkend="gpgme"/>,
       <xref linkend="graphite2"/>,
       <xref linkend="gst10-plugins-base"/>,
-      <xref linkend="gtk3"/> and
-      <xref linkend="gtk2"/> (see <quote>Command Explanations</quote>),
+      <xref linkend="gtk3"/>,
+ <!-- <xref linkend="gtk2"/>  -->
       <xref linkend="harfbuzz"/>,
- <!-- <xref linkend="icu"/>,-->
+      <xref linkend="icu"/>
       <xref linkend="libatomic_ops"/>,
       <xref linkend="lcms2"/>,
       <xref linkend="librsvg"/>,
@@ -207,6 +227,7 @@ For libreoffice 6.2.0.4, almost blfs 8.4: no patch needed, only a sed below
       <xref linkend="neon"/>,
       <xref linkend="nss"/>,
       <xref linkend="openldap"/> (if connecting to an LDAP server),
+      <xref linkend="poppler"/>,
       <xref linkend="postgresql"/>,
       <xref linkend="redland"/>,
       <xref linkend="serf"/>, and
@@ -231,7 +252,6 @@ For libreoffice 6.2.0.4, almost blfs 8.4: no patch needed, only a sed below
       <xref linkend="mariadb"/> or <ulink url="http://www.mysql.com/">MySQL</ulink>,
       <xref linkend="mitkrb"/>,
       <xref linkend="nasm"/>,
-      <xref linkend="poppler"/> (currently broken), 
       <xref linkend="sane"/>,
       <xref linkend="telepathy-glib"/>,
       <xref linkend="valgrind"/>,
@@ -310,19 +330,15 @@ cd libreoffice-&libreoffice-dlversion;</userinput></screen>
 -->
 
     <para>
-      Create symlinks to tarballs from the source directory so they won't
-      get downloaded again:
+      If you have downloaded the dictionaries, help and translations tarballs,
+      create symlinks to them from the source directory so they won't get
+      downloaded again:
     </para>
 
 <screen><userinput>install -dm755 external/tarballs &amp;&amp;
 ln -sv ../../../libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz external/tarballs/ &amp;&amp;
-ln -sv ../../../libreoffice-help-&libreoffice-dlversion;.tar.xz         external/tarballs/</userinput></screen>
-
-    <para>
-      If you have downloaded the translations tarball, create a symlink:
-    </para>
-
-<screen><userinput>ln -sv ../../../libreoffice-translations-&libreoffice-dlversion;.tar.xz external/tarballs/</userinput></screen>
+ln -sv ../../../libreoffice-help-&libreoffice-dlversion;.tar.xz         external/tarballs/ &amp;&amp;
+ln -sv ../../../libreoffice-translations-&libreoffice-dlversion;.tar.xz external/tarballs/</userinput></screen>
 
     <note>
       <para>
@@ -363,19 +379,15 @@ sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
 
 sed -e '/JAVA_SOURCE_VER/s/6/7/' \
     -e '/JAVA_TARGET_VER/s/6/7/' \
-    -i configure.ac
+    -i configure.ac &amp;&amp;
 
-<!-- Removed in 6.2             - -with-alloc=system
-     In 6.3  -disable-gtk -enable-gtk3 added (sic, I accidentally built like
-     that) which allows removal of  - -with-system-cairo but did NOT cause
-     system epoxy to be automatically used, as configure claimed -->
-<!--
-     libfreehand-0.1.2 is downloaded (from freedesktop.org) but moving to
-     ICU-65.1 has highlighted a missing semicolon in one of the files,
-     causing libreoffice to fail to build : command moved to an option with
-     explanation until a newer version of libfreehand is pulled in.
-             \-\-with-system-icu           \
--->
+sed -e 's/globalParams = new GlobalParams()/globalParams.reset(new GlobalParams())/' \
+    -i sdext/source/pdfimport/xpdfwrapper/wrapper_gpl.cxx
+
+sed -e 's/printPath( GfxPath/printPath(const GfxPath/' \
+    -e 's/  GfxSubpath/ const GfxSubpath/' \
+    -i sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.*
+
 ./autogen.sh --prefix=$LO_PREFIX         \
              --sysconfdir=/etc           \
              --with-vendor=BLFS          \
@@ -400,6 +412,7 @@ sed -e '/JAVA_SOURCE_VER/s/6/7/' \
              --with-system-gpgmepp       \
              --with-system-graphite      \
              --with-system-harfbuzz      \
+             --with-system-icu           \
              --with-system-jpeg          \
              --with-system-lcms2         \
              --with-system-libatomic_ops \
@@ -410,12 +423,12 @@ sed -e '/JAVA_SOURCE_VER/s/6/7/' \
              --with-system-odbc          \
              --with-system-openldap      \
              --with-system-openssl       \
+             --with-system-poppler       \
              --with-system-postgresql    \
              --with-system-redland       \
              --with-system-serf          \
              --with-system-zlib</userinput></screen>
 
-<!--             - -with-system-poppler       \ -->
     <para>
       The instructions below will only build the package without running
       any unit tests. If you prefer to run the unit tests, replace
@@ -500,8 +513,10 @@ fi</userinput></screen>
 
     <para>
       <command>sed -e ...</command>: The first sed prevents compression of the
-      manual pages, the second one prevents the install from failing, and the
-      the third allows to build with OpenJDK-12.
+      manual pages, the second one prevents the install from failing, the third
+      allows to build with OpenJDK-12, and the third and fourth allow
+      poppler-0.85.0 to be used.
+      <!-- FIXME update hardcoded poppler version in text when necessary -->
     </para>
 
     <para>
@@ -562,12 +577,6 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <parameter>-disable-gtk -enable-gtk3</parameter>: This pair of switches
-      tell the configure script to use <application>GTK+-3</application> instead
-      of <application>GTK+-2</application>.
-    </para>
-
-    <para>
       <parameter>--without-junit</parameter>: This switch disables the tests
       for the deprecated HSQLDB driver which is written in Java. If you wish
       to build this driver replace this switch with the set of switches
@@ -597,7 +606,7 @@ fi</userinput></screen>
     <para>
       <parameter>--enable-python=system</parameter>: This switch tells
       <application>LibreOffice</application> to use installed
-      <application>Python 3</application> to build the translations instead of
+      <application>Python 3</application> instead of
       the bundled one.
     </para>
 
@@ -653,13 +662,14 @@ fi</userinput></screen>
       installed <xref linkend="gst10-plugins-base"/>.
     </para>
 
+<!-- only gtk3 is referenced in the configure script for 6.4.0.3
     <para>
-      <option>--disable-gtk3</option>: Use this switch if you have not installed
+      <option>\-\-disable-gtk3</option>: Use this switch if you have not installed
       <application>GTK+-3</application>, or if you have installed it but wish
       to use <application>GTK+-2</application> (the menu icons differ).
- <!-- Note that a <application>GTK+-3</application> build still
-      requires <application>GTK+-2</application> to build the gtk-plugin.-->
-    </para>
+ <!\-\- Note that a <application>GTK+-3</application> build still
+      requires <application>GTK+-2</application> to build the gtk-plugin.\-\->
+    </para>-->
 
     <para>
       <option>--disable-postgresql-sdbc</option>: This switch disables compiling
@@ -667,6 +677,12 @@ fi</userinput></screen>
       <application>PostgreSQL</application> database. Use it if you have not
       installed <application>PostgreSQL</application> and you do not want
       <application>LibreOffice</application> to compile its bundled copy.
+    </para>
+
+    <para>
+      <option>--enable-gtk3-kde5</option>: This switch allows the Visual Class
+      Library, which is responsible for widgets, to be built with KF5 file
+      dialogs if GTK+-3, Qt5 and Plasma are all available.
     </para>
 
     <para>
