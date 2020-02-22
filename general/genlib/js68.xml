@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY js68-download-http "http://ftp.gnome.org/pub/gnome/teams/releng/tarballs-needing-help/mozjs/mozjs-&JS68-version;.tar.bz2">
+  <!ENTITY js68-download-ftp  "ftp://ftp.gnome.org/pub/gnome/teams/releng/tarballs-needing-help/mozjs/mozjs-&JS68-version;.tar.bz2">
+  <!ENTITY js68-md5sum        "cb1ab1983f72d45c737069747c088aa5">
+  <!ENTITY js68-size          "69 MB">
+  <!ENTITY js68-buildsize     "932 MB"> <!-- Installed size is 62 MB -->
+  <!ENTITY js68-time          "6.6 SBU">
+]>
+
+<sect1 id="js68" xreflabel="js68-&JS68-version;">
+  <?dbhtml filename="js68.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>JS-&JS68-version;</title>
+
+  <indexterm zone="js68">
+    <primary sortas="a-js68">js68</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to JS</title>
+
+    <para>
+      <application>JS</application> is Mozilla's JavaScript engine
+      written in C.
+    </para>
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&js68-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&js68-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &js68-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &js68-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &js68-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &js68-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/js68-&JS68-version;-python_3-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">JS68 Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="autoconf213"/>,
+      <xref linkend="icu"/>,
+      <xref linkend="which"/>,
+      <!--<xref linkend="yasm"/>,--> and
+      <xref linkend="zip"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="llvm"/> (with <application>Clang</application>) and
+      <xref linkend="doxygen"/>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/js68"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of JS</title>
+
+    <caution>
+      <para>If you are upgrading JS68 from a previously installed old version,
+      save all work and exit your GNOME Session if you have one running.
+      Replacing the JS68 binary will cause the GNOME Shell to crash and return
+      you to your display manager or TTY. After installing the new version,
+      reinstall <xref linkend="gjs"/>. Polkit is unaffected.</para>
+    </caution>
+
+    <para>
+      First, apply a patch so we can run the shipped build scripts with
+      Python 3, instead of the EOL'ed Python 2:
+    </para>
+
+<screen><userinput remap="pre">patch -Np1 -i ../js68-&JS68-version;-python_3-1.patch</userinput></screen>
+
+    <para>
+      Install <application>JS</application> by running the following
+      commands:
+    </para>
+
+    &shell-env;
+
+<screen><userinput>sed '21,+4d' -i js/moz.configure &amp;&amp;
+
+mkdir mozjs-build &amp;&amp;
+cd    mozjs-build &amp;&amp;
+
+CC=gcc CXX=g++ LLVM_OBJDUMP=/bin/false       \
+../js/src/configure --prefix=/usr            \
+                    --with-intl-api          \
+                    --with-system-zlib       \
+                    --with-system-icu        \
+                    --disable-jemalloc       \
+                    --disable-debug-symbols  \
+                    --enable-readline        \
+                    --enable-unaligned-private-values&amp;&amp;
+make</userinput></screen>
+
+    <para>
+      This package does not come with a working test suite.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>sed '21,+4d' js/moz.configure</command>: The building system
+      searches for <command>rustc</command> and <command>cargo</command> but
+      doesn't actually use them.  Remove the reference to them so we can
+      build JS68 without <xref role="nodep" linkend="rust"/> installed.
+    </para>
+
+    <para>
+      <envar>CC=gcc CXX=g++</envar>: Upstream now prefers
+      <application>clang</application>, override it like other Mozilla
+      packages in BLFS book.
+    </para>
+
+    <para>
+      <envar>LLVM_OBJDUMP=/bin/false</envar>: The building system searches
+      for <command>llvm-objdump</command> but doesn't actually use it.
+      Override it so we can build JS68 without
+      <xref role="nodep" linkend="llvm"/> installed.
+    </para>
+
+    <para>
+      <parameter>--with-*</parameter>: These parameters allow the build system
+      to use system versions of the above libriares. These are required for
+      stability.
+    </para>
+
+    <para>
+      <parameter>--enable-readline</parameter>: This switch enables Readline
+      support in the JS shell.
+    </para>
+    
+    <para>
+      <parameter>--disable-jemalloc</parameter>: This switch disables the
+      internal memory allocator used in JS68. jemalloc causes a conflict with glibc.
+    </para>
+
+    <para>
+      <parameter>--disable-debug-symbols</parameter>: Don't generate debug
+      symbols since they are very large and most users won't need it. Remove
+      it if you want to debug JS68.
+    </para>
+
+    <para>
+      <parameter>--enable-unaligned-private-values</parameter>: This switch
+      allows the code using JS68 not to align all pointers in the same way
+      JS68 does.  <xref linkend="gjs"/> requires JS68 to be built with this
+      switch.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          js68 and js68-config
+        </seg>
+        <seg>
+          libmozjs-68.so and libjs_static.ajs <!-- The AJS file doesn't
+          conflict with the one from js52 like originally thought -->
+        </seg>
+        <seg>
+          /usr/include/mozjs-68
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="js6-js68">
+        <term><command>js68</command></term>
+        <listitem>
+          <para>
+            provides a command line interface to the
+            <application>JavaScript</application> engine.
+          </para>
+          <indexterm zone="js68 js68">
+            <primary sortas="b-js68">js68</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="js68-config">
+        <term><command>js68-config</command></term>
+        <listitem>
+          <para>
+            is used to find the JS compiler and linker flags.
+          </para>
+          <indexterm zone="js68 js68-config">
+            <primary sortas="b-js68-config">js68-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libmozjs-68">
+        <term><filename class="libraryfile">libmozjs-68.so</filename></term>
+        <listitem>
+          <para>
+            contains the Mozilla JavaScript API functions.
+          </para>
+          <indexterm zone="js68 libmozjs-68">
+            <primary sortas="c-libmozjs68">libmozjs-68.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
