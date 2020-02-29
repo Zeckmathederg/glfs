@@ -6,10 +6,10 @@
 
   <!ENTITY seamonkey-download-http "&mozilla-http;/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.xz">
   <!ENTITY seamonkey-download-ftp " ">
-  <!ENTITY seamonkey-md5sum        "91f60a7aca6f8bc053ffddc7259ae4ec">
-  <!ENTITY seamonkey-size          "221 MB">
-  <!ENTITY seamonkey-buildsize     "5.6 GB (117 MB installed)">
-  <!ENTITY seamonkey-time          "18 SBU (using parallelism=4)">
+  <!ENTITY seamonkey-md5sum        "869232efee67a15922fe4c1493449b3f">
+  <!ENTITY seamonkey-size          "756 MB">
+  <!ENTITY seamonkey-buildsize     "6.9 GB (154 MB installed)">
+  <!ENTITY seamonkey-time          "19 SBU (using parallelism=4)">
 ]>
 
 <sect1 id="seamonkey" xreflabel="SeaMonkey-&seamonkey-version;">
@@ -104,6 +104,7 @@
     <para role="required">
       <xref linkend="autoconf213"/>,
       both <xref linkend="gtk2"/> and <xref linkend="gtk3"/>,
+      <xref linkend="rust"/>,
       <xref linkend="unzip"/>, 
       <xref linkend="yasm"/>, and 
       <xref linkend="zip"/>
@@ -113,7 +114,7 @@
     <para role="recommended">
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
-      <xref linkend="libvpx"/>,
+      <!--<xref linkend="libvpx"/>, Causes build failures similar to Firefox -->
       <xref linkend="nspr"/>, 
       <xref linkend="nss"/>,
       <xref linkend="pulseaudio"/>, and
@@ -215,7 +216,6 @@ ac_add_options --disable-gconf
 # recommended dependencies:
 ac_add_options --enable-system-sqlite
 ac_add_options --with-system-libevent
-ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-icu
@@ -235,10 +235,10 @@ ac_add_options --enable-optimize="-O2"
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
 
-ac_add_options --enable-gio
+# not recognized since 2.53.1 - ac_add_options --enable-gio
 ac_add_options --enable-official-branding
-ac_add_options --enable-safe-browsing
-ac_add_options --enable-url-classifier
+# not recognized since 2.53.1 - ac_add_options --enable-safe-browsing
+# not recognized since 2.53.1 - ac_add_options --enable-url-classifier
 
 # From firefox-40 (and the corresponding version of seamonkey),
 # using system cairo caused seamonkey to crash
@@ -262,6 +262,7 @@ EOF</userinput></screen>
       <envar>SHELL=/bin/sh</envar> to the first make command below.
     </para></note>
 
+    <!--
     <para>
       <application>GCC-9</application> generates some false positives with
       <command>-Werror=format</command>, which prevent building
@@ -269,7 +270,8 @@ EOF</userinput></screen>
       following command:
     </para>
 
-<screen><userinput>grep -rl -- '-Werror=format' | xargs sed -i 's/error=format/no-&amp;/'</userinput></screen>
+<screen><userinput>grep -rl - - '-Werror=format' | xargs sed -i 's/error=format/no-&amp;/'</userinput></screen>
+    Does not seem to be needed anymore with 2.53.1 -renodr -->
 
     <para>
       Remove a function definition, which is incompatible with the one in
@@ -277,12 +279,19 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>sed -i -e '/pid_t gettid/,+3 s@^@//@' mozilla/tools/profiler/core/platform.h</userinput></screen>
-
+    <!-- Doesn't seem to be needed anymore with 2.53.1
     <para>
       Remove a search for an unneeded library:
     </para>
 
 <screen><userinput>sed -i '/USE_LIBS/,+2 s/^/#/' mozilla/security/manager/ssl/moz.build</userinput></screen>
+    -->
+
+    <para>
+      Remove some unneeded files not removed during the release process:
+    </para>
+
+<screen><userinput>rm -rf .git mozilla/.git</userinput></screen>
 
     <para>
       Compile <application>SeaMonkey</application> by running the following
@@ -321,6 +330,7 @@ cp -v $(find -name seamonkey.1 | head -n1) /usr/share/man/man1</userinput></scre
 export CXXFLAGS=$CXXFLAGS_HOLD &amp;&amp;
 unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
 -->
+<!--
     <bridgehead renderas="sect3" id="devel-seamonkey" xreflabel="SeaMonkey">
       All the Development Libraries and Headers
     </bridgehead>
@@ -339,7 +349,7 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
         the system architecture, but the directory name starts with 'obj'.
       </para>
     </note>
-
+       Does not seem to be valid with 2.53.1-->
   </sect2>
 
   <sect2 role="commands">
@@ -443,10 +453,10 @@ ln -sfv /usr/lib/seamonkey-&seamonkey-version;/chrome/icons/default/seamonkey.pn
           class="directory">/usr/lib/seamonkey-&seamonkey-version;</filename>
         </seg>
         <seg>
-          /usr/include/seamonkey-&seamonkey-version; (optional),
-          /usr/lib/seamonkey-&seamonkey-version;,
-          /usr/lib/seamonkey-devel-&seamonkey-version; (optional), and
-          /usr/share/idl/seamonkey-&seamonkey-version; (optional)
+      <!--/usr/include/seamonkey-&seamonkey-version; (optional),-->
+          /usr/lib/seamonkey-&seamonkey-version;
+      <!--/usr/lib/seamonkey-devel-&seamonkey-version; (optional), and
+          /usr/share/idl/seamonkey-&seamonkey-version; (optional)-->
         </seg>
       </seglistitem>
     </segmentedlist>
