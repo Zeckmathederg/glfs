@@ -74,14 +74,15 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
- <!--     <xref linkend="nftables"/>, -->
+<!--      <xref linkend="nftables"/>, -->
       <xref linkend="libpcap"/> (required for nfsypproxy support),
       <ulink url="https://github.com/tadamdam/bpf-utils">bpf-utils</ulink>
       (required for Berkely Packet Filter support),
       <ulink url="https://netfilter.org/projects/libnfnetlink/">libnfnetlink</ulink>
-      (required for connlabel support), and 
-      <ulink url="https://netfilter.org/projects/libnetfilter_conntrack/">libnetfilter_conntrack"</ulink>
+      (required for connlabel support),
+      <ulink url="https://netfilter.org/projects/libnetfilter_conntrack/">libnetfilter_conntrack"</ulink>, and 
       (required for connlabel support)
+      <ulink url="https://netfilter.org/projects/nftables/">nftables</ulink>
     </para>
 
 
@@ -113,8 +114,8 @@
     <para>
       Include any connection tracking protocols that will be used, as well as
       any protocols that you wish to use for match support under the
-      "Core Netfilter Configuration" section. <!--The above options are enough
-      for running <xref linkend="fw-persFw-ipt"/> below.-->
+      "Core Netfilter Configuration" section. The above options are enough
+      for running <xref linkend="fw-persFw-ipt"/> below.
     </para>
 
     <indexterm zone="iptables iptables-kernel">
@@ -209,10 +210,10 @@ done</userinput></screen>
     </para>
 
   </sect2>
-<!--
+
   <sect2 role="configuration">
     <title>Configuring iptables</title>
-
+<!--
     <note>
       <para>
         If you intend to use <xref linkend="firewalld"/> to configure your
@@ -222,7 +223,7 @@ done</userinput></screen>
         <phrase revision="systemd">systemd unit.</phrase>
       </para>
     </note>
-
+-->
     <note>
       <para>
         In the following example configurations, <emphasis
@@ -318,11 +319,10 @@ iptables -A OUTPUT -j ACCEPT
 # Permit answers on already established connections
 # and permit new connections related to established ones
 # (e.g. port mode ftp)
-
-iptables -A INPUT -m conntrack - -ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Log everything else. What's Windows' latest exploitable vulnerability?
-iptables -A INPUT -j LOG - -log-prefix "FIREWALL:INPUT "
+iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
 
 # End $rc_base/rc.iptables</literal>
 EOF
@@ -397,10 +397,10 @@ iptables -A OUTPUT -j ACCEPT
 # Permit answers on already established connections
 # and permit new connections related to established ones
 # (e.g. port mode ftp)
-iptables -A INPUT -m conntrack - -ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Log everything else. What's Windows' latest exploitable vulnerability?
-iptables -A INPUT -j LOG - -log-prefix "FIREWALL:INPUT "
+iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
 
 # End /etc/systemd/scripts/iptables</literal>
 EOF
@@ -518,8 +518,8 @@ iptables -A INPUT  -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 # Allow forwarding if the initiated on the intranet
-iptables -A FORWARD -m conntrack - -ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A FORWARD ! -i WAN1 -m conntrack - -ctstate NEW       -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD ! -i WAN1 -m conntrack --ctstate NEW       -j ACCEPT
 
 # Do masquerading
 # (not needed if intranet is not using private ip-addresses)
@@ -527,9 +527,9 @@ iptables -t nat -A POSTROUTING -o WAN1 -j MASQUERADE
 
 # Log everything for debugging
 # (last of all rules, but before policy rules)
-iptables -A INPUT   -j LOG - -log-prefix "FIREWALL:INPUT "
-iptables -A FORWARD -j LOG - -log-prefix "FIREWALL:FORWARD "
-iptables -A OUTPUT  -j LOG - -log-prefix "FIREWALL:OUTPUT "
+iptables -A INPUT   -j LOG --log-prefix "FIREWALL:INPUT "
+iptables -A FORWARD -j LOG --log-prefix "FIREWALL:FORWARD "
+iptables -A OUTPUT  -j LOG --log-prefix "FIREWALL:OUTPUT "
 
 # Enable IP Forwarding
 echo 1 &gt; /proc/sys/net/ipv4/ip_forward</literal>
@@ -612,8 +612,8 @@ iptables -A INPUT  -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 # Allow forwarding if the initiated on the intranet
-iptables -A FORWARD -m conntrack - -ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A FORWARD ! -i WAN1 -m conntrack - -ctstate NEW       -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD ! -i WAN1 -m conntrack --ctstate NEW       -j ACCEPT
 
 # Do masquerading
 # (not needed if intranet is not using private ip-addresses)
@@ -621,9 +621,9 @@ iptables -t nat -A POSTROUTING -o WAN1 -j MASQUERADE
 
 # Log everything for debugging
 # (last of all rules, but before policy rules)
-iptables -A INPUT   -j LOG - -log-prefix "FIREWALL:INPUT "
-iptables -A FORWARD -j LOG - -log-prefix "FIREWALL:FORWARD "
-iptables -A OUTPUT  -j LOG - -log-prefix "FIREWALL:OUTPUT "
+iptables -A INPUT   -j LOG --log-prefix "FIREWALL:INPUT "
+iptables -A FORWARD -j LOG --log-prefix "FIREWALL:FORWARD "
+iptables -A OUTPUT  -j LOG --log-prefix "FIREWALL:OUTPUT "
 
 # Enable IP Forwarding
 echo 1 &gt; /proc/sys/net/ipv4/ip_forward
@@ -632,17 +632,17 @@ echo 1 &gt; /proc/sys/net/ipv4/ip_forward
 # Uncomment the example lines and adjust as necessary
 
 # Allow ping on the external interface
-#iptables -A INPUT  -p icmp -m icmp - -icmp-type echo-request -j ACCEPT
-#iptables -A OUTPUT -p icmp -m icmp - -icmp-type echo-reply   -j ACCEPT
+#iptables -A INPUT  -p icmp -m icmp --icmp-type echo-request -j ACCEPT
+#iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT
 
 # Reject ident packets with TCP reset to avoid delays with FTP or IRC
-#iptables -A INPUT  -p tcp - -dport 113 -j REJECT - -reject-with tcp-reset
+#iptables -A INPUT  -p tcp --dport 113 -j REJECT --reject-with tcp-reset
 
 # Allow HTTP and HTTPS to 192.168.0.2
-#iptables -A PREROUTING -t nat -i WAN1 -p tcp - -dport 80 -j DNAT - -to 192.168.0.2
-#iptables -A PREROUTING -t nat -i WAN1 -p tcp - -dport 443 -j DNAT - -to 192.168.0.2
-#iptables -A FORWARD -p tcp -d 192.168.0.2 - -dport 80 -j ACCEPT
-#iptables -A FORWARD -p tcp -d 192.168.0.2 - -dport 443 -j ACCEPT
+#iptables -A PREROUTING -t nat -i WAN1 -p tcp --dport 80 -j DNAT --to 192.168.0.2
+#iptables -A PREROUTING -t nat -i WAN1 -p tcp --dport 443 -j DNAT --to 192.168.0.2
+#iptables -A FORWARD -p tcp -d 192.168.0.2 --dport 80 -j ACCEPT
+#iptables -A FORWARD -p tcp -d 192.168.0.2 --dport 443 -j ACCEPT
 
 # End /etc/systemd/scripts/iptables</literal>
 EOF
@@ -705,7 +705,7 @@ iptables -A OUTPUT -o ! WAN1  -j ACCEPT</literal></screen>
         INPUT.
       </para>
 
-<screen><literal>iptables -A INPUT -m conntrack - -ctstate ESTABLISHED,RELATED -j ACCEPT
+<screen><literal>iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -j ACCEPT</literal></screen>
 
       <para>
@@ -731,8 +731,8 @@ iptables -A OUTPUT -j ACCEPT</literal></screen>
             Squid is caching the web:
           </para>
 
-<screen><literal>iptables -A OUTPUT -p tcp - -dport 80 -j ACCEPT
-iptables -A INPUT  -p tcp - -sport 80 -m conntrack - -ctstate ESTABLISHED \
+<screen><literal>iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT  -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED \
   -j ACCEPT</literal></screen>
 
         </listitem>
@@ -741,7 +741,7 @@ iptables -A INPUT  -p tcp - -sport 80 -m conntrack - -ctstate ESTABLISHED \
             Your caching name server (e.g., named) does its lookups via UDP:
           </para>
 
-<screen><literal>iptables -A OUTPUT -p udp - -dport 53 -j ACCEPT</literal></screen>
+<screen><literal>iptables -A OUTPUT -p udp --dport 53 -j ACCEPT</literal></screen>
 
         </listitem>
         <listitem>
@@ -750,8 +750,8 @@ iptables -A INPUT  -p tcp - -sport 80 -m conntrack - -ctstate ESTABLISHED \
             alive:
           </para>
 
-<screen><literal>iptables -A INPUT  -p icmp -m icmp - -icmp-type echo-request -j ACCEPT
-iptables -A OUTPUT -p icmp -m icmp - -icmp-type echo-reply   -j ACCEPT</literal></screen>
+<screen><literal>iptables -A INPUT  -p icmp -m icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -p icmp -m icmp --icmp-type echo-reply   -j ACCEPT</literal></screen>
 
         </listitem>
         <listitem>
@@ -769,7 +769,7 @@ iptables -A OUTPUT -p icmp -m icmp - -icmp-type echo-reply   -j ACCEPT</literal>
             'tcp-reset' response:
           </para>
 
-<screen><literal>iptables -A INPUT  -p tcp - -dport 113 -j REJECT - -reject-with tcp-reset</literal></screen>
+<screen><literal>iptables -A INPUT  -p tcp --dport 113 -j REJECT --reject-with tcp-reset</literal></screen>
 
         </listitem>
         <listitem>
@@ -779,9 +779,9 @@ iptables -A OUTPUT -p icmp -m icmp - -icmp-type echo-reply   -j ACCEPT</literal>
             network scans) insert these rules at the top of the chain:
           </para>
 
-<screen><literal>iptables -I INPUT 0 -p tcp -m conntrack - -ctstate INVALID \
-  -j LOG - -log-prefix "FIREWALL:INVALID "
-iptables -I INPUT 1 -p tcp -m conntrack - -ctstate INVALID -j DROP</literal></screen>
+<screen><literal>iptables -I INPUT 0 -p tcp -m conntrack --ctstate INVALID \
+  -j LOG --log-prefix "FIREWALL:INVALID "
+iptables -I INPUT 1 -p tcp -m conntrack --ctstate INVALID -j DROP</literal></screen>
 
         </listitem>
         <listitem>
@@ -806,8 +806,8 @@ iptables -A INPUT -i WAN1 -s 192.168.0.0/16 -j DROP</literal></screen>
             If your firewall is a DHCP client, you need to allow those packets:
           </para>
 
-<screen><literal>iptables -A INPUT  -i WAN1 -p udp -s 0.0.0.0 - -sport 67 \
-   -d 255.255.255.255 - -dport 68 -j ACCEPT</literal></screen>
+<screen><literal>iptables -A INPUT  -i WAN1 -p udp -s 0.0.0.0 --sport 67 \
+   -d 255.255.255.255 --dport 68 -j ACCEPT</literal></screen>
 
         </listitem>
         <listitem>
@@ -862,7 +862,7 @@ iptables -A INPUT -i WAN1 -s 192.168.0.0/16 -j DROP</literal></screen>
     </sect3>
 
   </sect2>
--->
+
   <sect2 role="content">
     <title>Contents</title>
 
