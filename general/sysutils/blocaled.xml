@@ -175,6 +175,29 @@ LANG=$LANG
 # End /etc/locale.conf</literal>
 EOF</userinput></screen>
 
+      <para>
+        If you plan to run an X (or Wayland) Window system, you may want to
+        set up your X keyboard. The best way to do it is to retrieve the
+        settings from <filename>/etc/sysconfig/console</filename>, and feed
+        them to the <application>blocaled</application> daemon. As the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>source /etc/sysconfig/console &amp;&amp;
+KEYMAP=${KEYMAP:-us}          &amp;&amp;
+
+gdbus call --system                                             \
+           --dest org.freedesktop.locale1                       \
+           --object-path /org/freedesktop/locale1               \
+           --method org.freedesktop.locale1.SetVConsoleKeyboard \
+           "$KEYMAP" "$KEYMAP_CORRECTIONS" true true</userinput></screen>
+
+      <para>
+        This should create or modify the Xorg configuration file (default is
+        <filename>/etc/X11/xorg.xonf.d/30-keyboard.conf</filename>) to match
+        the keyboard settings set in <envar>KEYMAP</envar>.
+      </para>
+
     </sect3>
 
   </sect2>
