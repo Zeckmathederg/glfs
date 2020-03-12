@@ -18,53 +18,69 @@
   <sect2 role="package">
     <title>Running a Subversion Server</title>
 
-    <para>This section will describe how to set up, administer and secure
-    a <application>Subversion</application> server.</para>
+    <para>
+      This section will describe how to set up, administer and secure
+      a <application>Subversion</application> server.
+    </para>
 
     <bridgehead renderas="sect3">Subversion Server Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
-    <para><xref linkend="subversion"/> and
-    <xref linkend="openssh"/></para>
+    <para role="required">
+      <xref linkend="subversion"/> and
+      <xref linkend="openssh"/>
+    </para>
 
   </sect2>
 
   <sect2 role="configuration">
     <title>Setting up a Subversion Server.</title>
 
-    <para>The following instructions will install a
-    <application>Subversion</application> server, which will be set up
-    to use <application>OpenSSH</application> as the secure remote access
-    method, with <command>svnserve</command> available for anonymous
-    access.</para>
+    <para>
+      The following instructions will install a
+      <application>Subversion</application> server, which will be set up
+      to use <application>OpenSSH</application> as the secure remote access
+      method, with <command>svnserve</command> available for anonymous
+      access.
+    </para>
 
-    <para>Configuration of the <application>Subversion</application> server
-    consists of the following steps:</para>
+    <para>
+      Configuration of the <application>Subversion</application> server
+      consists of the following steps:
+    </para>
 
     <sect3>
       <title>1. Setup Users, Groups, and Permissions</title>
 
-      <para>You'll need to be user
-      <systemitem class='username'>root</systemitem> for the initial portion of
-      configuration. Create the <systemitem class="username">svn</systemitem>
-      user and group with the following commands:</para>
+      <para>
+        You'll need to be user
+        <systemitem class='username'>root</systemitem> for the initial portion
+        of configuration. Create the <systemitem
+        class="username">svn</systemitem> user and group with the following
+        commands:
+      </para>
 
 <screen role="root"><userinput>groupadd -g 56 svn &amp;&amp;
 useradd -c "SVN Owner" -d /home/svn -m -g svn -s /bin/false -u 56 svn</userinput></screen>
 
-      <para>If you plan to have multiple repositories, you should have a
-      group dedicated to each repository for ease of administration. Create
-      the <systemitem class="groupname">svntest</systemitem> group for the test
-      repository and add the <systemitem class="username">svn</systemitem>
-      user to that group with the following commands:</para>
+      <para>
+        If you plan to have multiple repositories, you should have a
+        group dedicated to each repository for ease of administration. Create
+        the <systemitem class="groupname">svntest</systemitem> group for the
+        test repository and add the <systemitem
+        class="username">svn</systemitem> user to that group with the
+        following commands:
+      </para>
 
 <screen role="root"><userinput>groupadd -g 57 svntest &amp;&amp;
 usermod -G svntest -a svn</userinput></screen>
 
-      <para>Additionally you should set <command>umask 002</command> while
-      working with a repository so that all new files will be writable by
-      owner and group. This is made mandatory by creating a wrapper script for
-      <command>svn</command> and <command>svnserve</command>:</para>
+      <para>
+        Additionally you should set <command>umask 002</command> while
+        working with a repository so that all new files will be writable by
+        owner and group. This is made mandatory by creating a wrapper script
+        for <command>svn</command> and <command>svnserve</command>:
+      </para>
 
 <screen role="root"><userinput>mv /usr/bin/svn /usr/bin/svn.orig &amp;&amp;
 mv /usr/bin/svnserve /usr/bin/svnserve.orig &amp;&amp;
@@ -81,9 +97,11 @@ EOF
 chmod 0755 /usr/bin/svn{,serve}</userinput></screen>
 
       <note>
-        <para>If you use <application>Apache</application> for working with
-        the repository over HTTP, even for anonymous access, you should wrap
-        <command>/usr/sbin/httpd</command> in a similar script.</para>
+        <para>
+          If you use <application>Apache</application> for working with
+          the repository over HTTP, even for anonymous access, you should wrap
+          <command>/usr/sbin/httpd</command> in a similar script.
+        </para>
       </note>
 
     </sect3>
@@ -109,12 +127,14 @@ chmod 0755 /usr/bin/svn{,serve}</userinput></screen>
 install -v -m 0755 -o svn -g svn -d /srv/svn/repositories &amp;&amp;
 svnadmin create /srv/svn/repositories/svntest</userinput></screen>
 
-      <para>Now that the repository is created, it should be populated with
-      something useful. You'll need to have a predefined directory
-      layout set up exactly as you want your repository to look. For
-      example, here is a sample BLFS layout setup with a root of
-      <filename>svntest/</filename>. You'll need to setup a directory
-      tree similar to the following:</para>
+      <para>
+        Now that the repository is created, it should be populated with
+        something useful. You'll need to have a predefined directory
+        layout set up exactly as you want your repository to look. For
+        example, here is a sample BLFS layout setup with a root of
+        <filename>svntest/</filename>. You'll need to setup a directory
+        tree similar to the following:
+      </para>
 
 <screen><literal>svntest/            # The name of the repository
    trunk/           # Contains the existing source tree
@@ -126,51 +146,64 @@ svnadmin create /srv/svn/repositories/svntest</userinput></screen>
    branches/        # Needed for additional branches
    tags/            # Needed for tagging release points</literal></screen>
 
-      <para>Once you've created your directory layout as shown above, you
-      are ready to do the initial import:</para>
+      <para>
+        Once you've created your directory layout as shown above, you
+        are ready to do the initial import:
+      </para>
 
 <screen role="root"><userinput>svn import -m "Initial import." \
     <replaceable>&lt;/path/to/source/tree&gt;</replaceable>      \
     file:///srv/svn/repositories/svntest</userinput></screen>
 
-      <para>Now change owner and group information on the
-      repository, and add an unprivileged user to the
-      <systemitem class="groupname">svn</systemitem> and
-      <systemitem class="groupname">svntest</systemitem> groups:</para>
+      <para>
+        Now change owner and group information on the
+        repository, and add an unprivileged user to the
+        <systemitem class="groupname">svn</systemitem> and
+        <systemitem class="groupname">svntest</systemitem> groups:
+      </para>
 
 <screen role="root"><userinput>chown -R svn:svntest /srv/svn/repositories/svntest    &amp;&amp;
 chmod -R g+w         /srv/svn/repositories/svntest    &amp;&amp;
 chmod g+s            /srv/svn/repositories/svntest/db &amp;&amp;
 usermod -G svn,svntest -a <replaceable>&lt;username&gt;</replaceable></userinput></screen>
 
-      <para><systemitem class="groupname">svntest</systemitem> is the group
-      assigned to the svntest repository. As mentioned earlier, this eases
-      administration of multiple repositories when using
-      <application>OpenSSH</application> for authentication. Going forward,
-      you'll need to add your unprivileged user, and any additional users that
-      you wish to have write access to the repository, to the
-      <systemitem class="groupname">svn</systemitem> and
-      <systemitem class="groupname">svntest</systemitem> groups.</para>
+      <para>
+        <systemitem class="groupname">svntest</systemitem> is the group
+        assigned to the svntest repository. As mentioned earlier, this eases
+        administration of multiple repositories when using
+        <application>OpenSSH</application> for authentication. Going forward,
+        you'll need to add your unprivileged user, and any additional users
+        that you wish to have write access to the repository, to the
+        <systemitem class="groupname">svn</systemitem> and <systemitem
+        class="groupname">svntest</systemitem> groups.
+      </para>
 
-      <para>In addition, you'll notice that the new repository's
-      <filename>db</filename> directory is set-groupID. If the reasoning is
-      not immediately obvious, when using any external authentication method
-      (such as <command>ssh</command>), the sticky bit is set so that all
-      new files will be owned by the user, but group of
-      <systemitem class="groupname">svntest</systemitem>. Anyone in the
-      <systemitem class="groupname">svntest</systemitem> group can create
-      files, but still give the entire group write access to those
-      files. This avoids locking out other users from the repository.</para>
+      <para>
+        In addition, you'll notice that the new repository's
+        <filename>db</filename> directory is set-groupID. If the reasoning is
+        not immediately obvious, when using any external authentication method
+        (such as <command>ssh</command>), the sticky bit is set so that all
+        new files will be owned by the user, but group of
+        <systemitem class="groupname">svntest</systemitem>. Anyone in the
+        <systemitem class="groupname">svntest</systemitem> group can create
+        files, but still give the entire group write access to those
+        files. This avoids locking out other users from the repository.
+      </para>
 
-      <para>Now, return to an unprivileged user account, and take a
-      look at the new repository using <command>svnlook</command>:</para>
+      <para>
+        Now, return to an unprivileged user account, and take a
+        look at the new repository using <command>svnlook</command>:
+      </para>
 
 <screen><userinput>svnlook tree /srv/svn/repositories/svntest/</userinput></screen>
 
       <note>
-        <para>You may need to log out and back in again to refresh your group
-        memberships. '<command>su <replaceable>&lt;username&gt;</replaceable></command>'
-        should work as well.</para>
+        <para>
+          You may need to log out and back in again to refresh your group
+          memberships. <command>su
+          <replaceable>&lt;username&gt;</replaceable></command>
+          should work as well.
+        </para>
       </note>
 
     </sect3>
@@ -178,16 +211,20 @@ usermod -G svn,svntest -a <replaceable>&lt;username&gt;</replaceable></userinput
     <sect3>
       <title>3. Configure the Server</title>
 
-      <para>As mentioned previously, these instructions will configure the
-      server to use only <command>ssh</command> for write access to the
-      repository and to provide anonymous access using
-      <command>svnserve</command>. There are several other ways to provide
-      access to the repository. These additional configurations are best
-      explained at <ulink url="http://svnbook.red-bean.com/"/>.</para>
+      <para>
+        As mentioned previously, these instructions will configure the
+        server to use only <command>ssh</command> for write access to the
+        repository and to provide anonymous access using
+        <command>svnserve</command>. There are several other ways to provide
+        access to the repository. These additional configurations are best
+        explained at <ulink url="http://svnbook.red-bean.com/"/>.
+      </para>
 
-      <para>Access configuration needs to be done for each repository.
-      Create the <filename>svnserve.conf</filename> file for the svntest
-      repository using the following commands:</para>
+      <para>
+        Access configuration needs to be done for each repository.
+        Create the <filename>svnserve.conf</filename> file for the svntest
+        repository using the following commands:
+      </para>
 
 <screen role="root"><userinput>cp /srv/svn/repositories/svntest/conf/svnserve.conf \
    /srv/svn/repositories/svntest/conf/svnserve.conf.default &amp;&amp;
@@ -198,22 +235,28 @@ anon-access = read
 auth-access = write</literal>
 EOF</userinput></screen>
 
-      <para>There is not a lot to the configuration file at all. You'll
-      notice that only the general section is required. Take a look at the
-      <filename>svnserve.conf.default</filename> file for information on using
-      <command>svnserve</command>'s built-in authentication method.</para>
+      <para>
+        There is not a lot to the configuration file at all. You'll notice
+        that only the general section is required. Take a look at the
+        <filename>svnserve.conf.default</filename> file for information on
+        using <command>svnserve</command>'s built-in authentication method.
+      </para>
 
     </sect3>
 
     <sect3 id="svnserver-init">
       <title>4. Starting the Server</title>
 
-      <para revision="sysv">To start the server at boot time, install the svn
-      bootscript included in the <xref linkend="bootscripts"/> package.</para>
+      <para revision="sysv">
+        To start the server at boot time, install the svn
+        bootscript included in the <xref linkend="bootscripts"/> package:
+      </para>
 
-      <para revision="systemd">To start the server at boot time, install the
-      <filename>svnserve.service</filename> unit from the 
-      <xref linkend="systemd-units"/> package.</para>
+      <para revision="systemd">
+        To start the server at boot time, install the
+        <filename>svnserve.service</filename> unit from the 
+        <xref linkend="systemd-units"/> package:
+      </para>
 
       <indexterm zone="svnserver svnserver-init" revision="sysv">
         <primary sortas="f-svn">svn</primary>
@@ -227,17 +270,21 @@ EOF</userinput></screen>
 
 <screen role="root" revision="systemd"><userinput>make install-svnserve</userinput></screen>
 
-      <para revision="systemd">Additionally, the instructions above require
-      that svn server uses <command>umask 002</command> so that all new files
-      will be writable by owner and group. This can be achieved by creating
-      a systemd unit override file by running the following command:</para>
+      <para revision="systemd">
+        Additionally, the instructions above require
+        that svn server uses <command>umask 002</command> so that all new files
+        will be writable by owner and group. This can be achieved by creating
+        a systemd unit override file by running the following command:
+      </para>
 
 <screen role="root" revision="systemd"><userinput>mkdir -p /etc/systemd/system/svnserve.service.d 
 echo "UMask=0002" > /etc/systemd/system/svnserve.service.d/99-user.conf</userinput></screen>
 
-      <para revision="systemd">Options which are passed to
-      <command>svnserve</command> daemon can be changed in
-      <filename>/etc/default/svnserve</filename>.</para>
+      <para revision="systemd">
+        Options which are passed to
+        <command>svnserve</command> daemon can be changed in
+        <filename>/etc/default/svnserve</filename>.
+      </para>
 
     </sect3>
 
