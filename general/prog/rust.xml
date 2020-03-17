@@ -6,15 +6,15 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "e67432b37150f13e186ebfb67e5192fb">
-  <!ENTITY rust-size          "147 MB">
+  <!ENTITY rust-md5sum        "b348233fdbbf7858763bab7cb9c314ae">
+  <!ENTITY rust-size          "146 MB">
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
        to measure it. -->
 
-  <!ENTITY rust-buildsize     "5.3GB (375 MB installed) including 429MB of ~/.cargo files for the user building this. Add 1.7 GB if running the tests">
-  <!ENTITY rust-time          "24 SBU (add 13 SBU for tests, both with 4 processors)">
+  <!ENTITY rust-buildsize     "7.7 GB (607 MB installed) including 398 MB of ~/.cargo files for the user building this. Add 2.1 GB if running the tests">
+  <!ENTITY rust-time          "24 SBU (add 12 SBU for tests, both on a 4-core machine)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -41,10 +41,11 @@
 
     <para>
       This package is updated on a six-weekly release cycle. Because it is
-      such a large and slow package to build, and is at the moment only required
-      by a few packages in this book, the BLFS editors take the view that it
-      should only be updated when that is necessary (either to fix problems,
-      or to allow a new version of <application>firefox</application> to build).
+      such a large and slow package to build, is at the moment only required
+      by a few packages in this book, and particularly because newer versions
+      tend to break older mozilla packages, the BLFS editors take the view that
+      it should only be updated when that is necessary (either to fix problems,
+      or to allow a new version of a package to build).
     </para>
 
     <para>
@@ -81,8 +82,8 @@
         editors recommend placing the files in the <filename
         class="directory">/opt</filename> directory.  In particular, if you
         have reason to rebuild with a modified configuration (e.g. using the
-        shipped LLVM after building with shared LLVM, but perhaps also the
-        reverse situation) it it possible for the install to leave a broken
+        shipped LLVM after building with shared LLVM, or for the
+        reverse situation) it is possible for the install to leave a broken
         <command>cargo</command> program. In such a situation, either remove
         the existing installation first, or use a different prefix such as
         /opt/rustc-&rust-version;-build2.
@@ -166,7 +167,7 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+<!--<bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
@@ -174,7 +175,7 @@
           <ulink url="&patch-root;/rustc-&rust-version;-llvm9_fixes-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist>-->
 
     <bridgehead renderas="sect3">Rust Dependencies</bridgehead>
 
@@ -275,14 +276,14 @@ llvm-config = "/usr/bin/llvm-config"
 </literal>
 EOF</userinput></screen>
 
-    <para>
+<!--<para>
      Adapt rustc to allow it to build and function with the changes in LLVM-9:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../rustc-&rust-version;-llvm9_fixes-1.patch</userinput></screen>
+<screen><userinput remap="pre">patch -Np1 -i ../rustc-&rust-version;-llvm9_fixes-1.patch</userinput></screen>-->
 
     <para>
-      Now compile <application>Rust</application> by running the following
+      Compile <application>Rust</application> by running the following
       commands:
     </para>
 
@@ -315,7 +316,9 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
       A fourth test,
       <filename>run-make-fulldeps/sysroot-crates-are-unstable</filename>
       fails, presumably because we are using only stable features.
-      <!-- appears to be fixed now
+      <!-- https://github.com/rust-lang/rust/issues/63520 -->
+      A fifth test, run-make-fulldeps/linker-output-non-utf8, is broken.
+      <!-- gdb appears to be fixed now
       If gdb has been installed, in some circumstances tests in
       <filename class="directory">debuginfo</filename> may fail.--> As with all
       large testsuites, other tests might
@@ -323,7 +326,6 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
       check the log for 'FAILED' and review lines above that, particularly the
       'stderr:' lines. Any mention of
       SIGSEGV or signal 11 in a failing test is a cause for concern.
-      A fifth test, run-make-fulldeps/linker-output-non-utf8, is known to fail.
     </para>
 
     <para>
@@ -334,7 +336,7 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
 <screen remap="test"><userinput>grep 'running .* tests' rustc-testlog | awk '{ sum += $2 } END { print sum }'</userinput></screen>
 
     <para>
-      That should report 16499 tests. Similarly, the total tests which failed can
+      That should report 17349 tests. Similarly, the total tests which failed can
       be found by running:
     </para>
 
@@ -527,7 +529,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          cargo-clippy, cargo-fmt, cargo-miri, cargo, clippy-driver, miri, rls, rust-gdb, rust-lldb, rustc, rustdoc, rustfmt.
+          cargo-clippy, cargo-fmt, cargo-miri, cargo, clippy-driver, miri, rls, rust-gdb, rust-gdbgui, rust-lldb, rustc, rustdoc, rustfmt.
         </seg>
         <seg>
           Many lib*&lt;16-byte-hash&gt;.so libraries.
@@ -646,6 +648,19 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="rust rust-gdb">
             <primary sortas="b-rust-gdb">rust-gdb</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rust-gdbgui">
+        <term><command>rust-gdbgui</command></term>
+        <listitem>
+          <para>
+            is a wrapper script for a graphical front end to gdb that runs in a
+            browser.
+          </para>
+          <indexterm zone="rust rust-gdbgui">
+            <primary sortas="b-rust-gdbgui">rust-gdbgui</primary>
           </indexterm>
         </listitem>
       </varlistentry>

@@ -9,7 +9,7 @@
   <!ENTITY seamonkey-md5sum        "0cb5b34ea2194ec1a7e48ba21049cf35">
   <!ENTITY seamonkey-size          "277 MB">
   <!ENTITY seamonkey-buildsize     "6.9 GB (154 MB installed)">
-  <!ENTITY seamonkey-time          "19 SBU (using parallelism=4)">
+  <!ENTITY seamonkey-time          "19 SBU (on a 4-core machine)">
 ]>
 
 <sect1 id="seamonkey" xreflabel="SeaMonkey-&seamonkey-version;">
@@ -219,7 +219,6 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-icu
-
 <!-- seems OK with icu-60, seamonkey-2.49
 # Use the internal version of icu due to execution problems-->
 
@@ -279,6 +278,13 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>sed -i -e '/pid_t gettid/,+3 s@^@//@' mozilla/tools/profiler/core/platform.h</userinput></screen>
+
+    <para>
+      No adapt the code for a change introduced in rustc-1.39.0:
+    </para>
+
+<screen><userinput>sed -i '/deny(warnings)/d' mozilla/xpcom/rust/nsstring/src/lib.rs</userinput></screen>
+
     <!-- Doesn't seem to be needed anymore with 2.53.1
     <para>
       Remove a search for an unneeded library:
@@ -361,6 +367,12 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
       out-of-specification and allow it to produce a working program.
     </para>
 -->
+    <para>
+      <command>sed -i '/deny(warnings)/d' ...</command> : rust-1.39 deprecated
+      the "try!" call in favour of "?" which causes warnings, nsstring was
+      treating warnings as errors.
+    </para>
+
     <para>
       <command>make -f client.mk</command>: Mozilla products are packaged to
       allow the use of a configuration file which can be used to pass the
