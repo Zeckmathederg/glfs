@@ -104,6 +104,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="btrfs-progs"/> <!-- homed may support it, see the C.E.-->
       <xref linkend="curl"/>,
       <xref linkend="cryptsetup"/>,
       <xref linkend="git"/>,
@@ -199,9 +200,12 @@ meson --prefix=/usr         \
       -Dsysusers=false      \
       -Drpmmacrosdir=no     \
       -Db_lto=false         \
+      -Dhomed=false         \
+      -Duserdb=false        \
       ..                    &amp;&amp;
 
 ninja</userinput></screen>
+<!-- Regarding homed and userdb, see the note below in Command Explanations-->
 
     <note>
       <para>
@@ -245,6 +249,59 @@ ninja</userinput></screen>
 
 <screen role="root"><userinput>rm -fv /etc/sysctl.d/50-pid-max.conf</userinput></screen>
   -->
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>-Duserdb=false</parameter>: Removes a daemon that does not
+      offer any use under a BLFS configuration. If you wish to enable the
+      <application>userdbd</application> daemon, replace "false" with "true"
+      in the above meson command.
+    </para>
+
+    <para>
+      <parameter>-Dhomed=false</parameter>: Remove a daemon that does not offer
+      any use under a traditional BLFS configuration, especially using accounts
+      created with useradd. To enable systemd-homed, first ensure that you have
+      <xref linkend="cryptsetup"/> and <xref linkend="libpwquality"/>, and then
+      change "false" to "true" in the above meson command.
+    </para>
+
+    <!-- EDITORS NOTE: Explanation on removing userdbd and homed:
+    In BLFS, we do not fully support disk encryption. We offer instructions for
+    building 'cryptsetup' as a dependency, but we do not offer instructions for
+    actually configuring it. In addition, we generally do not include
+    functionality that could potentially conflict with other packages, or that
+    is not of any use to us (in an enterprise configuration using Thin Clients
+    or laptops with LUKS encryption, it could make sense though, but that isn't
+    the configuration that we natively support).
+
+    A few of the complications of systemd-homed include:
+      - SSH Logins
+      - Disk Space Assignments
+      - UID Assignments (chown() on login)
+      (See https://cfp.all-systems-go.io/media/homed-asg2019.pdf)
+
+    In an article I read when systemd-homed was originally unveiled, I remember
+    reading about systemd-homed causing problems with OpenSSH Private Key Auth
+    because the user would have to login at the console in order to unlock
+    their home directory, thus allowing the private key to be unlocked and
+    processed by OpenSSH. Since BLFS does not fully support encrypted disks,
+    and because systemd-homed is incompatible with our usage of useradd /
+    traditional UNIX users and groups, I advise that we take the following
+    approach to avoid any confusion:
+
+    - Leave the added Short Descriptions for homectl and userdbctl
+    - Add the above command explanations and restore the previous behavior
+
+    Should we decide to enable homed by default anytime in the future, 
+    let's move cryptsetup to recommended or required.
+
+    I would be open to discussing this after the next systemd version when
+    systemd-homed has matured a bit more. -renodr -->
+
   </sect2>
 
   <sect2 role="configuration">
@@ -330,7 +387,7 @@ systemctl start multi-user.target</userinput></screen>
         <seg>
           <!-- maybe userdbd/userdbctl can go in LFS, try at next time -->
           homectl (if <xref linkend="cryptsetup"/> is installed)
-          and userdbctl
+          and userdbctl (optionally)
         </seg>
         <seg>
           pam_systemd.so
