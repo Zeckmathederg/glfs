@@ -7,24 +7,24 @@
   <!ENTITY libreoffice-dl "http://download.documentfoundation.org/libreoffice/src/&libreoffice-version;">
 
   <!ENTITY libreoffice-core-download-http "&libreoffice-dl;/libreoffice-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-core-md5sum        "93ffa098e65dde29516ffe7212092f29">
-  <!ENTITY libreoffice-core-size          "222 MB">
+  <!ENTITY libreoffice-core-md5sum        "1e7df8ecc616b778293a90b874d560b1">
+  <!ENTITY libreoffice-core-size          "224 MB">
 
   <!ENTITY libreoffice-dict-download-http "&libreoffice-dl;/libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-dict-md5sum        "5c021d899e8987f796d93e6d69cd5a1f">
+  <!ENTITY libreoffice-dict-md5sum        "c7cae01a5a3eea98c51a912b87106f99">
   <!ENTITY libreoffice-dict-size          "46 MB">
 
   <!ENTITY libreoffice-help-download-http "&libreoffice-dl;/libreoffice-help-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-help-md5sum        "c7cf3fdfd70e097fcc49c58887053cea">
+  <!ENTITY libreoffice-help-md5sum        "24108abfa209da008b1e24d11bea6684">
   <!ENTITY libreoffice-help-size          "85 MB">
 
   <!ENTITY libreoffice-translations-download-http "&libreoffice-dl;/libreoffice-translations-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-translations-md5sum        "9aaecb32945a04ebc8a89835536105f9">
-  <!ENTITY libreoffice-translations-size          "164 MB">
+  <!ENTITY libreoffice-translations-md5sum        "580c22ac9b84e76cdfdb02287a9728be">
+  <!ENTITY libreoffice-translations-size          "165 MB">
 
   <!-- full size remeasured for 6.4.0.3 -->
 
-  <!ENTITY libreoffice-buildsize  "9.0 GB including the additional files if downloaded during the build (820 MB installed). Installing the whole set of languages for 6.4.0.3 required up to 25 GB (3.2 GB installed)">
+  <!ENTITY libreoffice-buildsize  "9.0 GB including the additional files if downloaded during the build (826 MB installed). Installing the whole set of languages for 6.4.0.3 required up to 25 GB (3.2 GB installed)">
 
  <!-- Editors: many updates to poppler will break LO using system poppler until
       somebody is able to provide a patch or sed.  In these cases, please mark
@@ -207,6 +207,7 @@ For libreoffice 6.2.0.4, almost blfs 8.4: no patch needed, only a sed below
       <xref linkend="cups"/>,
       <xref linkend="curl"/>,
       <xref linkend="dbus-glib"/>,
+      <xref linkend="libepoxy"/>,
       <xref linkend="libjpeg"/>,
       <xref linkend="glm"/>,
       <xref linkend="glu"/>,
@@ -278,7 +279,7 @@ For libreoffice 6.2.0.4, almost blfs 8.4: no patch needed, only a sed below
       <ulink url="http://www.sourceforge.net/projects/libebook/">libebook</ulink>,
       <ulink url="https://wiki.documentfoundation.org/Libexttextcat">libexttextcat</ulink>,
       <ulink url="https://wiki.documentfoundation.org/DLP/Libraries/libfreehand">libfreehand</ulink>,
-      <ulink url="http://tagoh.bitbucket.org/liblangtag/">liblangtag</ulink>,
+      <ulink url="http://tagoh.github.io/liblangtag/">liblangtag</ulink>,
       <ulink url="https://wiki.documentfoundation.org/DLP/Libraries/libmspub">libmspub</ulink>,
       <ulink url="http://sourceforge.net/projects/libmwaw/">libmwaw</ulink>,
       <ulink url="http://sourceforge.net/projects/libwpd/files/libodfgen/">libodfgen</ulink>,
@@ -378,16 +379,8 @@ ln -sv ../../../libreoffice-translations-&libreoffice-dlversion;.tar.xz external
 
 sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
 
-sed -e '/JAVA_SOURCE_VER/s/6/7/' \
-    -e '/JAVA_TARGET_VER/s/6/7/' \
-    -i configure.ac &amp;&amp;
-
-sed -e 's/globalParams = new GlobalParams()/globalParams.reset(new GlobalParams())/' \
-    -i sdext/source/pdfimport/xpdfwrapper/wrapper_gpl.cxx &amp;&amp;
-
-sed -e 's/printPath( GfxPath/printPath(const GfxPath/' \
-    -e 's/  GfxSubpath/ const GfxSubpath/' \
-    -i sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.* &amp;&amp;
+sed -e 's@getURI()->c_str()@getURI().c_str()@' \
+    -i sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx &amp;&amp;
 
 ./autogen.sh --prefix=$LO_PREFIX         \
              --sysconfdir=/etc           \
@@ -501,9 +494,9 @@ fi</userinput></screen>
       the modules with <command>libreoffice
       --<replaceable>&lt;module&gt;</replaceable></command> command,
       respectively, where <replaceable>&lt;module&gt;</replaceable> is one of
-      base, calc, draw, impress, math or writer. Modules cannot be started using
-      their shell starting script names (see "Installed Programs", below), if
-      LO_PREFIX is other than <filename class='directory'>/usr</filename>,
+      base, calc, draw, impress, math, web, or writer. Modules cannot be started 
+      using their shell starting script names (see "Installed Programs", below), 
+      if LO_PREFIX is other than <filename class='directory'>/usr</filename>,
       unless <filename class='directory'>$LO_PREFIX/bin</filename> directory is
       appended to the PATH.
     </para>
@@ -515,9 +508,8 @@ fi</userinput></screen>
 
     <para>
       <command>sed -e ...</command>: The first sed prevents compression of the
-      manual pages, the second one prevents the install from failing, the third
-      allows to build with OpenJDK-12, and the third and fourth allow
-      poppler-0.85.0 to be used.
+      manual pages, the second one prevents the install from failing, and the
+      third one allows the build to use poppler-0.86.1 and later.
       <!-- FIXME update hardcoded poppler version in text when necessary -->
     </para>
 
@@ -722,7 +714,7 @@ fi</userinput></screen>
 
     <para>
       <!-- Brings in - -enable-qt5 as well. -->
-      <option>--enable-kde5</option>: Builds with KDE/Plasma integration. If
+      <option>--enable-kf5</option>: Builds with KDE/Plasma integration. If
       <xref linkend="qt5"/> and/or <xref linkend="kf5-frameworks"/> are not
       installed in <filename class="directory">/usr</filename>, the include
       and library directories must be specified in <envar>QT5INC</envar>,
@@ -736,8 +728,9 @@ fi</userinput></screen>
       Server must be installed for this feature to function.
     </para>
 
+    <!--
     <para>
-      <option>--with-system-icu</option>: This command would use the system
+      <option>- -with-system-icu</option>: This command would use the system
       version of <xref linkend="icu"/> which is normally considered to be a good
       thing to do. However, one of the very minor packages pulled in by
       <application>LibreOffice</application>, libfreehand-0.1.2, does not compile
@@ -746,6 +739,7 @@ fi</userinput></screen>
       patched or newer version of
       <ulink url="https://wiki.documentfoundation.org/DLP/Libraries/libfreehand">libfreehand</ulink>.
     </para>
+    -->
 
   </sect2>
 
@@ -769,7 +763,8 @@ fi</userinput></screen>
           $LO_PREFIX/lib/libreoffice/program
         </seg>
         <seg>
-          $LO_PREFIX/lib/libreoffice
+          $LO_PREFIX/lib/libreoffice and
+          /usr/share/application-registry
         </seg>
       </seglistitem>
     </segmentedlist>
