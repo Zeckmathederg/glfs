@@ -15,43 +15,56 @@
 
   <title>About initramfs</title>
 
-  <para>The only purpose of an initramfs is to mount the root filesystem.  The
-  initramfs is a complete set of directories that you would find on a normal
-  root filesystem.  It is bundled into a single cpio archive and compressed
-  with one of several compression algorithms.</para>
+  <para>
+    The only purpose of an initramfs is to mount the root filesystem.  The
+    initramfs is a complete set of directories that you would find on a normal
+    root filesystem.  It is bundled into a single cpio archive and compressed
+    with one of several compression algorithms.
+  </para>
 
-  <para>At boot time, the boot loader loads the kernel and the initramfs image
-  into memory and starts the kernel.  The kernel checks for the presence of the
-  initramfs and, if found, mounts it as / and runs /init. The init program is
-  typically a shell script.  Note that the boot process takes longer, possibly
-  significantly longer, if an initramfs is used.</para>
+  <para>
+    At boot time, the boot loader loads the kernel and the initramfs image
+    into memory and starts the kernel.  The kernel checks for the presence
+    of the initramfs and, if found, mounts it as / and runs /init. The init
+    program is typically a shell script.  Note that the boot process takes
+    longer, possibly significantly longer, if an initramfs is used.
+  </para>
 
-  <para>For most distributions, kernel modules are the biggest reason to have an
-  initramfs.  In a general distribution, there are many unknowns such as file
-  system types and disk layouts.  In a way, this is the opposite of LFS where
-  the system capabilities and layout are known and a custom kernel is normally
-  built.  In this situation, an initramfs is rarely needed.</para>
+  <para>
+    For most distributions, kernel modules are the biggest reason to have
+    an initramfs.  In a general distribution, there are many unknowns such
+    as file system types and disk layouts.  In a way, this is the opposite
+    of LFS where the system capabilities and layout are known and a custom
+    kernel is normally built.  In this situation, an initramfs is rarely
+    needed.
+  </para>
 
-  <para>There are only four primary reasons to have an initramfs in the LFS
-  environment: loading the rootfs from a network, loading it from an LVM
-  logical volume, having an encrypted rootfs where a password is required, or
-  for the convenience of specifying the rootfs as a LABEL or UUID.  Anything
-  else usually means that the kernel was not configured properly.</para>
+  <para>
+    There are only four primary reasons to have an initramfs in the LFS
+    environment: loading the rootfs from a network, loading it from an LVM
+    logical volume, having an encrypted rootfs where a password is required, or
+    for the convenience of specifying the rootfs as a LABEL or UUID.  Anything
+    else usually means that the kernel was not configured properly.
+  </para>
 
   <sect2 id="initramfs-build">
     <title>Building an initramfs</title>
 
-    <para>If you do decide to build an initramfs, the following scripts
-    will provide a basis to do it.  The scripts will allow specifying a
-    rootfs via partition UUID or partition LABEL or a rootfs on an
-    LVM logical volume.  They do not support an encrypted root file system
-    or mounting the rootfs over a network card.  For a more complete
-    capability see <ulink url="http://www.linuxfromscratch.org/hints/read.html">
-    the LFS Hints</ulink> or <ulink url="http://fedoraproject.org/wiki/Dracut">
-    dracut</ulink>.</para>
+    <para>
+      If you do decide to build an initramfs, the following scripts will
+      provide a basis to do it.  The scripts will allow specifying a rootfs
+      via partition UUID or partition LABEL or a rootfs on an LVM logical
+      volume.  They do not support an encrypted root file system or mounting
+      the rootfs over a network card.  For a more complete capability see
+      <ulink url="http://www.linuxfromscratch.org/hints/read.html"> the LFS
+      Hints</ulink> or <ulink
+      url="http://fedoraproject.org/wiki/Dracut">dracut</ulink>.
+    </para>
 
-    <para>To install these scripts, run the following commands as the
-    <systemitem class="username">root</systemitem> user:</para>
+    <para>
+      To install these scripts, run the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
 
     <screen role="root"><userinput>cat &gt; /sbin/mkinitramfs &lt;&lt; "EOF"
 <literal>#!/bin/bash
@@ -433,31 +446,41 @@ EOF</userinput></screen>
     </para>
 
 
-    <para>To build an initramfs, run the following as the  <systemitem
-    class="username">root</systemitem> user:</para>
+    <para>
+      To build an initramfs, run the following as the  <systemitem
+      class="username">root</systemitem> user:
+    </para>
 
     <screen role="nodump"><userinput>mkinitramfs [KERNEL VERSION]</userinput></screen>
 
-    <para>The optional argument is the directory where the appropriate kernel
-    modules are located. This must be a subdirectory of <filename
-    class='directory'> /lib/modules</filename>.  If no modules are specified,
-    then the initramfs is named <emphasis>initrd.img-no-kmods</emphasis>.  If a
-    kernel version is specified, the initrd is named
-    <emphasis>initrd.img-$KERNEL_VERSION</emphasis> and is only appropriate for
-    the specific kernel specified. The output file will be placed in the
-    current directory.</para>
+    <para>
+      The optional argument is the directory where the appropriate kernel
+      modules are located. This must be a subdirectory of <filename
+      class='directory'> /lib/modules</filename>.  If no modules are specified,
+      then the initramfs is named <emphasis>initrd.img-no-kmods</emphasis>.
+      If a kernel version is specified, the initrd is named
+      <emphasis>initrd.img-$KERNEL_VERSION</emphasis> and is only appropriate
+      for the specific kernel specified. The output file will be placed in the
+      current directory.
+    </para>
 
-    <para>If early loading of microcode is needed (see <xref
-    linkend="cpu-microcode"/>), you can install the appropriate blob or
-    container in <filename class="directory">/lib/firmware</filename>.
-    It will be automatically added to the initrd when running
-    <command>mkinitramfs</command>.</para>
+    <para>
+      If early loading of microcode is needed (see <xref
+      linkend="cpu-microcode"/>), you can install the appropriate blob or
+      container in <filename class="directory">/lib/firmware</filename>.
+      It will be automatically added to the initrd when running
+      <command>mkinitramfs</command>.
+    </para>
 
-    <para>After generating the initrd, copy it to the <filename
-    class='directory'>/boot</filename> directory.</para>
+    <para>
+      After generating the initrd, copy it to the <filename
+      class='directory'>/boot</filename> directory.
+    </para>
 
-    <para>Now edit <filename>/boot/grub/grub.cfg</filename> and add a new
-    menuentry.  Below are several examples.</para>
+    <para>
+      Now edit <filename>/boot/grub/grub.cfg</filename> and add a new
+      menuentry.  Below are several examples.
+    </para>
 
      <screen role="nodump"><userinput># Generic initramfs and root fs identified by UUID
 menuentry "LFS Dev (LFS-7.0-Feb14) initrd, Linux 3.0.4"
@@ -480,7 +503,9 @@ menuentry "LFS Dev (LFS-7.1-Feb20) initrd label, Linux 3.2.6"
   initrd /initrd.img-3.2.6-lfs71-120220
 }</userinput></screen>
 
-    <para>Finally, reboot the system and select the desired system.</para>
+    <para>
+      Finally, reboot the system and select the desired system.
+    </para>
 
   </sect2>
 
