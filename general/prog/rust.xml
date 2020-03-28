@@ -11,10 +11,11 @@
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
-       to measure it. -->
+       to measure it, or du -sm to look at the size of the build tree before and
+       after the tests. -->
 
-  <!ENTITY rust-buildsize     "7.7 GB (607 MB installed) including 398 MB of ~/.cargo files for the user building this. Add 2.1 GB if running the tests">
-  <!ENTITY rust-time          "24 SBU (add 12 SBU for tests, both on a 4-core machine)">
+  <!ENTITY rust-buildsize     "9.0 GB (747 MB installed) including 344 MB of ~/.cargo files for the user building this. Add 2.3 GB if running the tests">
+  <!ENTITY rust-time          "52 SBU (add 15 SBU for tests, both on a 4-core machine)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -186,12 +187,12 @@
       <xref linkend="libssh2"/>
     </para>
 
-    <bridgehead renderas="sect4">Recommended</bridgehead>
+<!--<bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <package>clang</package> from <xref linkend="llvm"/>
       (built with -DLLVM_LINK_LLVM_DYLIB=ON so that rust can link to
       system LLVM instead of building its shipped version)
-    </para>
+    </para> FIXME reinstate when next using system llvm -->
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
@@ -235,14 +236,11 @@ ln -svfin rustc-&rust-version; /opt/rustc</userinput></screen>
 
 <screen><userinput>cat &lt;&lt; EOF &gt; config.toml
 <literal># see config.toml.example for more possible options
-# See the 8.4 book for an example using shipped LLVM
-# e.g. if not installing clang, or using a version before 8.0.
+# See the 9.1 book for an example using system LLVM
+# e.g. if you are still using llvm-9.0.1
 [llvm]
 # by default, rust will build for a myriad of architectures
 targets = "X86"
-
-# When using system llvm prefer shared libraries
-link-shared = true
 
 [build]
 # omit docs to save time and space (default is to build them)
@@ -262,16 +260,6 @@ rpath = false
 # BLFS does not install the FileCheck executable from llvm,
 # so disable codegen tests
 codegen-tests = false
-
-[target.x86_64-unknown-linux-gnu]
-# NB the output of llvm-config (i.e. help options) may be
-# dumped to the screen when config.toml is parsed.
-llvm-config = "/usr/bin/llvm-config"
-
-[target.i686-unknown-linux-gnu]
-# NB the output of llvm-config (i.e. help options) may be
-# dumped to the screen when config.toml is parsed.
-llvm-config = "/usr/bin/llvm-config"
 
 </literal>
 EOF</userinput></screen>
