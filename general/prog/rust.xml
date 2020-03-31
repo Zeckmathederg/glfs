@@ -6,16 +6,16 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "b348233fdbbf7858763bab7cb9c314ae">
-  <!ENTITY rust-size          "146 MB">
+  <!ENTITY rust-md5sum        "ff5731326898a7010403e1b148375de4">
+  <!ENTITY rust-size          "130 MB">
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
        to measure it, or du -sm to look at the size of the build tree before and
        after the tests. -->
 
-  <!ENTITY rust-buildsize     "9.0 GB (747 MB installed) including 344 MB of ~/.cargo files for the user building this. Add 2.3 GB if running the tests">
-  <!ENTITY rust-time          "52 SBU (add 15 SBU for tests, both on a 4-core machine)">
+  <!ENTITY rust-buildsize     "5.7 GB (250 MB installed) including 344 MB of ~/.cargo files for the user building this. Add 2.5 GB if running the tests">
+  <!ENTITY rust-time          "33 SBU (add 17 SBU for tests, both on a 4-core machine)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -187,12 +187,14 @@
       <xref linkend="libssh2"/>
     </para>
 
-<!--<bridgehead renderas="sect4">Recommended</bridgehead>
+    <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <package>clang</package> from <xref linkend="llvm"/>
       (built with -DLLVM_LINK_LLVM_DYLIB=ON so that rust can link to
       system LLVM instead of building its shipped version)
-    </para> FIXME reinstate when next using system llvm -->
+      If using an older version, see the config.toml file below re
+      using the shipped llvm, because of rust issue 69225.
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
@@ -236,8 +238,8 @@ ln -svfin rustc-&rust-version; /opt/rustc</userinput></screen>
 
 <screen><userinput>cat &lt;&lt; EOF &gt; config.toml
 <literal># see config.toml.example for more possible options
-# See the 9.1 book for an example using system LLVM
-# e.g. if you are still using llvm-9.0.1
+# See the 8.4 book for an example using shipped LLVM
+# e.g. if not installing clang, or using a version before 10.0
 [llvm]
 # by default, rust will build for a myriad of architectures
 targets = "X86"
@@ -304,8 +306,6 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
       A fourth test,
       <filename>run-make-fulldeps/sysroot-crates-are-unstable</filename>
       fails, presumably because we are using only stable features.
-      <!-- https://github.com/rust-lang/rust/issues/63520 -->
-      A fifth test, run-make-fulldeps/linker-output-non-utf8, is broken.
       <!-- gdb appears to be fixed now
       If gdb has been installed, in some circumstances tests in
       <filename class="directory">debuginfo</filename> may fail.--> As with all
@@ -317,23 +317,34 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     </para>
 
     <para>
-      Therefore, you should determine the number of tests, failures, etc. The
-      total number of tests which were considered is found by running:
+      If you get any <emphasis>other</emphasis> failing test which reports an
+      issue number then you should search for that issue.  For example, when
+      rustc &gt;= 1.41.1 is built with a version of sysllvm before 10.0 the test
+      for issue 69225 fails <ulink
+      url="https://github.com/rust-lang/rust/issues/69225"/> and that should be
+      regarded as a critical failurei (they released 1.41.1 because of it).
+      Most other failures will not be critical.
     </para>
 
-<screen remap="test"><userinput>grep 'running .* tests' rustc-testlog | awk '{ sum += $2 } END { print sum }'</userinput></screen>
+    <para>
+      Therefore, you should determine the number of failures. The total number
+      of tests varies depending on which dependencies are present, e.g. more
+      will be run if <command>gdb</command> is available. If you wish, the
+      total number which were considered can be found if you run:
+    </para>
+
+<screen remap="test"><userinput>egrep 'running [[:digit:]]+ test' rustc-testlog | awk '{ sum += $2 } END { print sum }'</userinput></screen>
 
     <para>
-      That should report 17349 tests. Similarly, the total tests which failed can
-      be found by running:
+      More importantly, the total of tests which failed can be found by running:
     </para>
 
 <screen remap="test"><userinput>grep '^test result:' rustc-testlog | awk  '{ sum += $6 } END { print sum }'</userinput></screen>
 
     <para>
-      And similarly for the tests which passed use $4, for those which were ignored
-      (i.e. skipped) use $8 (and $10 for 'measured', $12 for 'filtered out' but both
-      are probably zero). The breakdown does not quite match the overall total.
+      And similarly if you care about how many tests passed use $4, for those
+      which were ignored (i.e. skipped) use $8 (and $10 for 'measured', $12 for
+      'filtered out' but both are probably zero).
     </para>
 
     <para>

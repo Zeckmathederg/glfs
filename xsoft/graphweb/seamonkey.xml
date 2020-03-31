@@ -9,7 +9,7 @@
   <!ENTITY seamonkey-md5sum        "0cb5b34ea2194ec1a7e48ba21049cf35">
   <!ENTITY seamonkey-size          "277 MB">
   <!ENTITY seamonkey-buildsize     "6.9 GB (154 MB installed)">
-  <!ENTITY seamonkey-time          "19 SBU (on a 4-core machine)">
+  <!ENTITY seamonkey-time          "29 SBU (on a 4-core machine)">
 ]>
 
 <sect1 id="seamonkey" xreflabel="SeaMonkey-&seamonkey-version;">
@@ -79,17 +79,17 @@
         </para>
       </listitem>
     </itemizedlist>
-<!--
+
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch if using gcc-6 or later
-          <ulink url="&patch-root;/seamonkey-&seamonkey-version;-gcc6-1.patch"/>
+          Required patch for building with rustc &gt;= 1.41
+          <ulink url="&patch-root;/seamonkey-&seamonkey-version;-rust_fixes-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
--->
+
     <note>
       <para>
         The tarball
@@ -261,6 +261,13 @@ EOF</userinput></screen>
       <envar>SHELL=/bin/sh</envar> to the first make command below.
     </para></note>
 
+    <para>
+      Apply the patch to allow seamonkey to build with the current version of
+      <command>rustc</command>:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../seamonkey-&seamonkey-version;-rust_fixes-1.patch</userinput></screen>
+
     <!--
     <para>
       <application>GCC-9</application> generates some false positives with
@@ -278,12 +285,6 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>sed -i -e '/pid_t gettid/,+3 s@^@//@' mozilla/tools/profiler/core/platform.h</userinput></screen>
-
-    <para>
-      Now adapt the code for a change introduced in rustc-1.39.0:
-    </para>
-
-<screen><userinput>sed -i '/deny(warnings)/d' mozilla/xpcom/rust/nsstring/src/lib.rs</userinput></screen>
 
     <!-- Doesn't seem to be needed anymore with 2.53.1
     <para>
@@ -367,12 +368,6 @@ unset CFLAGS_HOLD CXXFLAGS_HOLD</userinput></screen>
       out-of-specification and allow it to produce a working program.
     </para>
 -->
-    <para>
-      <command>sed -i '/deny(warnings)/d' ...</command> : rust-1.39 deprecated
-      the "try!" call in favour of "?" which causes warnings, nsstring was
-      treating warnings as errors.
-    </para>
-
     <para>
       <command>make -f client.mk</command>: Mozilla products are packaged to
       allow the use of a configuration file which can be used to pass the
