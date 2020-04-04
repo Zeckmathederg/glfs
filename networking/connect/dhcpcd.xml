@@ -6,9 +6,9 @@
 
   <!ENTITY dhcpcd-download-http "https://roy.marples.name/downloads/dhcpcd/dhcpcd-&dhcpcd-version;.tar.xz">
   <!ENTITY dhcpcd-download-ftp  "ftp://roy.marples.name/pub/dhcpcd/dhcpcd-&dhcpcd-version;.tar.xz">
-  <!ENTITY dhcpcd-md5sum        "e1eea03388d12c9ad21ecd7c135fdf8b">
-  <!ENTITY dhcpcd-size          "224 KB">
-  <!ENTITY dhcpcd-buildsize     "2.6 MB (with tests)">
+  <!ENTITY dhcpcd-md5sum        "5360da47d4d51280dae35fe91958b63a">
+  <!ENTITY dhcpcd-size          "240 KB">
+  <!ENTITY dhcpcd-buildsize     "2.8 MB (with tests)">
   <!ENTITY dhcpcd-time          "less than 0.1 SBU (with tests)">
 ]>
 
@@ -92,12 +92,29 @@
     <title>Installation of dhcpcd</title>
 
     <para>
+      recent <application>dhcpcd</application> implements privilege separation.
+      Additional installation steps are necessary to set up
+      the proper environment, which are performed by issuing the following
+      commands as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>install  -v -m700 -d /var/lib/dhcpcd &amp;&amp;
+
+groupadd -g 52 dhcpcd        &amp;&amp;
+useradd  -c 'dhcpcd PrivSep' \
+         -d /var/lib/dhcpcd  \
+         -g dhcpcd           \
+         -s /bin/false     \
+         -u 52 dhcpcd &amp;&amp;
+chown    -v dhcpcd:dhcpcd /var/lib/dhcpcd </userinput></screen>
+
+    <para>
       Install <application>dhcpcd</application> by running the following
       commands:
     </para>
 
 <screen><userinput>./configure --libexecdir=/lib/dhcpcd \
-            --dbdir=/var/lib/dhcpcd  &amp;&amp;
+            --dbdir=/var/lib/dhcpcd  --privsepuser=dhcpcd &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -180,6 +197,18 @@ install -v -m 644 dhcpcd-hooks/50-dhcpcd-compat /lib/dhcpcd/dhcpcd-hooks/</useri
       </indexterm>
 
 <screen role='root'><userinput>make install-service-dhcpcd</userinput></screen>
+
+      <note>
+        <para id="dhcpcd-config6">
+          the network service script <filename>/lib/services/dhcpcd</filename>
+          contained in bootscripts up to blfs-bootscripts-20191204 is
+          not compatible with latest dhcpcd, as the location of the pidfile
+          changed.
+          To work around this, issue the following command:
+
+<screen role='root'><userinput>sed -i "s;/run/dhcpcd-;/run/dhcpcd/;g" /lib/services/dhcpcd</userinput></screen>
+        </para>
+      </note>
 
       <note>
         <para id="dhcpcd-config3">
