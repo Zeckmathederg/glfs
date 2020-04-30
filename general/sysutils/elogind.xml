@@ -204,6 +204,14 @@ ln -sfvn elogind /usr/include/systemd</userinput></screen>
     </para>
 
     <para>
+      <option>-Ddefault-kill-user-processes=false</option>: Configure whether
+      the processes of a user should be killed when the user logs out. The
+      default is <emphasis>true</emphasis>, but this defeats the traditional
+      use of <command>screen</command> or <command>tmux</command>. This can
+      also be changed in the configuration file (see below).
+    </para>
+
+    <para>
       <command>ln -s ...</command>: These commands install symlinks so that
       software packages find systemd compatible library and headers.
     </para>
@@ -213,14 +221,39 @@ ln -sfvn elogind /usr/include/systemd</userinput></screen>
   <sect2 role="configuration">
   <title>Configuring elogind</title>
 
-    <para>
-      Each user will need to register a user session using
-      <application>Linux-PAM</application> at login. The
-      <filename>/etc/pam.d/system-session</filename> file needs to
-      be modified and a new file needs to be created in order for
-      <command>elogind</command> to work correctly. Run the following
-      commands as the <systemitem class="username">root</systemitem> user:
-    </para>
+    <sect3 id="elogind-config">
+      <title>Config File</title>
+      <para>
+        <filename>/etc/elogind/logind.conf</filename>
+      </para>
+
+      <indexterm zone="elogind elogind-config">
+        <primary
+        sortas="e-etc-elogind-logind.conf">/etc/elogind/logind.conf</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3><title>Configuration Information</title>
+
+      <para>
+        The installed file <filename>/etc/elogind/logind.conf</filename>
+        contains all the possible options with their defaults, commented
+        out. You may wish to disable killing user processes when the user logs
+        out, by running, as the <systemitem class="username">root</systemitem>
+        user:
+      </para>
+
+<screen role="root"><userinput>sed -e '/\[Login\]/a KillUserProcesses=no' \
+    -i /etc/elogind/logind.conf</userinput></screen>
+
+      <para>
+        Each user will need to register a user session using
+        <application>Linux-PAM</application> at login. The
+        <filename>/etc/pam.d/system-session</filename> file needs to
+        be modified and a new file needs to be created in order for
+        <command>elogind</command> to work correctly. Run the following
+        commands as the <systemitem class="username">root</systemitem> user:
+      </para>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/pam.d/system-session &lt;&lt; "EOF" &amp;&amp;
 <literal># Begin elogind addition
@@ -249,6 +282,7 @@ password required    pam_deny.so
 # End /etc/pam.d/elogind-user</literal>
 EOF</userinput></screen>
 
+    </sect3>
   </sect2>
 
   <sect2 role="content" revision="sysv">
