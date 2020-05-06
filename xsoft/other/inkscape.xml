@@ -3,12 +3,12 @@
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
-  <!ENTITY inkscape-download-http "https://media.inkscape.org/dl/resources/file/inkscape-&inkscape-version;.tar.bz2">
+  <!ENTITY inkscape-download-http "https://media.inkscape.org/dl/resources/file/inkscape-&inkscape-version;.tar.xz">
   <!ENTITY inkscape-download-ftp  " ">
-  <!ENTITY inkscape-md5sum        "592c0e94cf00ea9e0a8901883d8f06fd">
-  <!ENTITY inkscape-size          "31 MB">
-  <!ENTITY inkscape-buildsize     "538 MB (138 MB installed, add 9 MB for tests)">
-  <!ENTITY inkscape-time          "4.1 SBU (add 0.1 SBU for tests, both with parallelism=4)">
+  <!ENTITY inkscape-md5sum        "e5f1ee6b32ac0a94bdd5d99190e7bb9e">
+  <!ENTITY inkscape-size          "30 MB">
+  <!ENTITY inkscape-buildsize     "722 MB (165 MB installed)">
+  <!ENTITY inkscape-time          "5.7 SBU (with parallelism=4)">
 ]>
 
 <sect1 id="inkscape" xreflabel="Inkscape-&inkscape-version;">
@@ -70,6 +70,8 @@
       </listitem>
     </itemizedlist>
 
+    <!-- With 1.0.0, there is now a dependency on IM7 instead of IM6.
+         It's explicitly searched for in CMakeLists.txt.
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -78,6 +80,7 @@
           url="&patch-root;/inkscape-&inkscape-version;-use_versioned_ImageMagick6-1.patch"/>
         </para>
       </listitem>
+      -->
       <!-- These are not needed right now. Inkscape builds/runs fine with the
            latest poppler as of this update (0.87.0). However, history says
            that almost every poppler version has broke inkscape, and history
@@ -95,20 +98,29 @@
           url="&patch-root;/inkscape-&inkscape-version;-poppler_0_83_0_fixes-1.patch"/>
         </para>
       </listitem>
-      -->
     </itemizedlist>
+    -->
+
+    <!-- I've asked upstream about this and was unable to find an answer. -renodr -->
+    <note>
+      <para>
+        The tarball <emphasis>inkscape-&inkscape-version;.tar.xz</emphasis>
+        will extract to
+        <emphasis>inkscape-&inkscape-version;_2020-05-01_4035a4fb49</emphasis>
+      </para>
+    </note>
 
     <bridgehead renderas="sect3">Inkscape Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="boost"/>,
+      <xref linkend="double-conversion"/>,
       <xref linkend="gc"/>,
+      <xref linkend="gdl"/>,
       <xref linkend="gsl"/>,
-      <xref linkend="gtkmm2"/>
-      (or <xref linkend="gtkmm3"/> and
-      <ulink url="http://ftp.gnome.org/pub/gnome/sources/gdl/">gnome docking library</ulink>
-      for the experimental gtk+-3 build),
+      <xref linkend="gtkmm3"/>,
+      <xref linkend="libsoup"/>,
       <xref linkend="libxslt"/>,
       <xref linkend="poppler"/>,
       <xref linkend="popt"/> and
@@ -117,7 +129,7 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="imagemagick6"/>,
+      <xref linkend="imagemagick"/>,
       <xref linkend="lcms2"/> or
       <xref role="nodep" linkend="lcms"/>,
       <xref linkend="libcanberra"/> (to eliminate plugin warnings),
@@ -139,7 +151,7 @@
       developer: wiki.documentfoundation.org pages don't like trailing / -->
       <!--<ulink url="https://wiki.documentfoundation.org/DLP/Libraries/libcdr">libcdr</ulink>,
       <ulink url="https://wiki.documentfoundation.org/DLP/Libraries/libvisio">libvisio</ulink>,-->
-      <ulink url="https://gtkspell.sourceforge.net">gtkspell</ulink>,
+      <ulink url="http://gtkspell.sourceforge.net">gtkspell</ulink>,
       <ulink url="https://github.com/LibreOffice/libcdr">libcdr</ulink>,
       <ulink url="https://github.com/LibreOffice/libvisio">libvisio</ulink>,
       <ulink url="http://libwpg.sourceforge.net/">libwpg</ulink> (or
@@ -184,12 +196,13 @@
 <screen><userinput remap="pre">patch -Np1 -i ../inkscape-&inkscape-version;-poppler_0_83_0_fixes-1.patch</userinput></screen>
     -->
 
+    <!-- Inkscape now has a hard dependency on IM7.
     <para>
       Ensure that the libraries from <xref linkend="imagemagick6"/> can be used:
     </para>
 
 <screen><userinput>patch -Np1 -i ../inkscape-&inkscape-version;-use_versioned_ImageMagick6-1.patch</userinput></screen>
-
+    -->
 <!--
     <para>
       Apply a patch to prevent out-of-bounds writes in the text and fill-bucket
@@ -200,7 +213,9 @@
 -->
 
 <!-- If there is no test suite, then this is not needed.
-     There is none if the command below is not run. -->
+     There is none if the command below is not run.
+     With 1.0, this support is broken, so let's comment it out for now to
+     prevent confusion.
     <para>
       If you wish to run the testsuite, download the required versions of
       <application>googletest</application> and
@@ -208,6 +223,7 @@
     </para>
 
 <screen remap="test"><userinput>bash download-gtest.sh</userinput></screen>
+    -->
 
     <para>
       Install <application>Inkscape</application> by running the following
@@ -222,20 +238,24 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr \
       ..                          &amp;&amp;
 make</userinput></screen>
 
+<!--
     <para>
-      To test the results, issue: <command>make check</command>.<!-- Ken or
+      To test the results, issue: <command>make check</command>.<!- - Ken or
       other devs, there is no test suite in this package. -renodr
       A small test suite is built if you download the necessary programs
       with the command above (bash download-gtest.sh) -pierre
-      This package does not come with a test suite. -->
+      This package does not come with a test suite. - ->
+
+      At the moment, the test suite does not function with the
+      "bash download-gtest.sh". CMake is unable to find gtest.
     </para>
+-->
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install                      &amp;&amp;
-rm -v /usr/lib/inkscape/lib*_LIB.a</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/update-icons-and-desktop.xml"/>
@@ -248,13 +268,6 @@ rm -v /usr/lib/inkscape/lib*_LIB.a</userinput></screen>
     <para>
       <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is used to
       build the release library without any debug `assert` in the code.
-    </para>
-
-    <para>
-      <command>rm -v /usr/lib/inkscape/lib*_LIB.a</command>: The conversion
-      of the package to use <command>cmake</command> has led to these libraries
-      getting installed, but they are not usable (there are no header files to
-      let a program know what they contain). So remove them.
     </para>
 
     <para>
