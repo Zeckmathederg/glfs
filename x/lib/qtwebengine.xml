@@ -12,10 +12,6 @@
   <!ENTITY qtwebengine-buildsize     "3.6 GB (146 MB installed)">
   <!ENTITY qtwebengine-time          "68 SBU (using 4 cores)">
 ]>
-<!-- Note: there are some para commented out cause of icu-67.1 issue.
-     They are marked with (ICU) and should removed if a new version
-     of qtwebengine builds against ICU-67.1 (or later) again.
--->
 
 <sect1 id="qtwebengine" xreflabel="qtwebengine-&qtwebengine-version;">
   <?dbhtml filename="qtwebengine.html"?>
@@ -98,17 +94,17 @@
         </para>
       </listitem>
     </itemizedlist>
-<!--
+
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-background_rendering_fix-1.patch"/>
+          <ulink url="&patch-root;/qtwebengine-everywhere-src-&qtwebengine-version;-consolidated-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
--->
+
     <bridgehead renderas="sect3">qtwebengine Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -133,7 +129,7 @@
       <xref linkend="pulseaudio"/> (or both),
       <xref linkend="ffmpeg"/>,
       <xref linkend="Jinja2"/> (Python 2 module),
-<!-- (ICU) <xref linkend="icu"/>, -->
+      <xref linkend="icu"/>,
       <xref linkend="libwebp"/>,
       <xref linkend="libxslt"/>, and
       <xref linkend="opus"/>
@@ -163,14 +159,13 @@
 
 <screen><userinput>find -type f -name "*.pr[io]" |
   xargs sed -i -e 's|INCLUDEPATH += |&amp;$$QTWEBENGINE_ROOT/include |'</userinput></screen>
-<!--
+
     <para>
-      Next, apply a patch that fixes background rendering issues in Falkon,
-      and crashes on multimedia-heavy sites.
+      Next, apply a patch that fixes issues when using gcc-10 and enable using
+      system ICU version 67.1 or greater.
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-background_rendering_fix-1.patch</userinput></screen>
--->    
+<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-everywhere-src-&qtwebengine-version;-consolidated-1.patch</userinput></screen>
 
     <para>
       Next, allow the pulseaudio library to be linked at build time, instead
@@ -209,24 +204,12 @@ fi</userinput></screen>
       commands:
     </para>
 
-<!-- (ICU) "Original" instructions
-     * Commented because current versio (5.14.2) of qtwebengine does not well with
-       icu-67.1. It results in a compilation error while using its own icu compiles
-       fine.
-     * Re-Check that when a new version of qtwebengine has been released, there
-       are patches around this topic upstream.
-     * Mind the double dash in the qmake line!
 <screen><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-qmake .. - - -system-ffmpeg -webengine-icu &amp;&amp;
+qmake .. -- -system-ffmpeg -webengine-icu &amp;&amp;
 make</userinput></screen>
--->
-<screen><userinput>mkdir build &amp;&amp;
-cd    build &amp;&amp;
 
-qmake .. -- -system-ffmpeg &amp;&amp;
-make</userinput></screen>
 <!--
     <para>
       if you wish to build the HTML documentation, issue:
@@ -272,24 +255,13 @@ make</userinput></screen>
     </para>
 
     <para>
-      <!-- (ICU)  note: change '- -' back to double-dash when uncommenting again:
-      <command>- - -system-ffmpeg -webengine-icu</command>: If any options are
-      passed to qmake they must come after '- -' which must follow '..' that points
+      <command>-- -system-ffmpeg -webengine-icu</command>: If any options are
+      passed to qmake they must come after '--' which must follow '..' that points
       to the main directory. The options here cause it to use system ffmpeg and
       system icu.  If built as part of full Qt5, the system icu is automatically
       used (only) by Qt5Core if it is available, but unless this option is used
       webengine will always use its shipped copy of icu, adding time and space
-      to the build. -->
-      <command>-- -system-ffmpeg</command>: If any options are
-      passed to qmake they must come after '--' which must follow '..' that points
-      to the main directory. The options here cause it to use system ffmpeg.
-      <note>
-        <para>
-          Version &qtwebengine-version; of qtwebengine fails to compile when
-          ICU-67.1 is installed and option -webengine-icu is used. This will
-          be fixed in next versions of qtwebengine.
-        </para>
-      </note>
+      to the build.
     </para>
 
     <!--
