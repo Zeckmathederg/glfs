@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY ojdk-tarball              "jdk-&openjdk-version;+&openjdk-build;.tar.bz2">
-  <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk-updates/jdk12u">
+  <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk-updates/jdk14u">
   <!ENTITY ojdk-download             "&ojdk-repo;/archive/&ojdk-tarball;">
 
   <!ENTITY anduin-download           "&sources-anduin-http;/OpenJDK/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "29a2ca9d2c9a5c50b52d845f008ffa22">
+  <!ENTITY ojdk-md5sum               "bf287746bb1be5e0d94c27e3d79d800e">
   <!ENTITY ojdk-size                 "80 MB">
 
   <!ENTITY jtreg-version             "4.2-b13-517">
@@ -18,8 +18,8 @@
   <!ENTITY jtreg-md5sum              "ffcef8f1caa5c22f4d006fb82e074de4">
   <!ENTITY jtreg-size                "6.8 MB">
 
-  <!ENTITY ojdk-bdsize               "5.2 GB (an additional 363 MB for tests)">
-  <!ENTITY ojdk-time                 "5.9 SBU with 4 jobs (an additional 79 SBU for tests with 4 jobs)">
+  <!ENTITY ojdk-bdsize               "5.3 GB (an additional 394 MB for tests)">
+  <!ENTITY ojdk-time                 "4.5 SBU with 4 jobs (an additional 51 SBU for tests with 4 jobs)">
 ]>
 
 <sect1 id="openjdk" xreflabel="OpenJDK-&openjdk-version;">
@@ -244,6 +244,7 @@
 
 <screen><userinput>unset JAVA_HOME                             &amp;&amp;
 bash configure --enable-unlimited-crypto    \
+               --with-extra-cflags=-fcommon \
                --disable-warnings-as-errors \
                --with-stdc++lib=dynamic     \
                --with-giflib=system         \
@@ -252,7 +253,7 @@ bash configure --enable-unlimited-crypto    \
                --with-libjpeg=system        \
                --with-libpng=system         \
                --with-zlib=system           \
-               --with-version-build="&openjdk-build;"    \
+               --with-version-build="&openjdk-build;"     \
                --with-version-pre=""        \
                --with-version-opt=""        \
                --with-cacerts-file=/etc/pki/tls/java/cacerts &amp;&amp;
@@ -276,14 +277,17 @@ unset JT_JAVA</userinput></screen>
       the results, see the files
       <filename>JTreport/test_{jdk,langtools}/text/stats.txt</filename> and
       <filename>JTreport/test_{jdk,langtools}/text/summary.txt</filename>.
-      You should expect to see around 40 failures and a couple of errors.
+      You should expect to see around 40 failures and about the same number
+      of errors.
     </para>
     <!-- 11.0.2+9:
          for x86_64: 2 Errors, 28 Failures
          for i686:   13 Errors, 48 Failures
          12.0.2+10:
          for x86_64: 5828 Passed, 52 Errors, no failures
-         for i686: PENDING -->
+         for i686: PENDING
+         14.0.1+7:
+         for x86_64: passed: 5,836; failed: 42; error: 50-->
 
     <para>
       Install the package with the following commands as the
@@ -358,6 +362,12 @@ EOF</userinput></screen>
       <command>bash configure...</command>: the top level
       <filename>configure</filename> is a wrapper around the autotools one.
       It is not executable and must be run through <command>bash</command>.
+    </para>
+
+    <para>
+      <parameter>--with-extra-cflags=-fcommon</parameter>: Allows building
+      with GCC 10.
+      <!-- patchs are available upstream and will be included in java 15 -->
     </para>
 
     <para>
@@ -502,12 +512,10 @@ bin/keytool -list -cacerts</userinput></screen>
       <segtitle>Installed Directory</segtitle>
 
       <seglistitem>
-        <seg>jaotc, jar,
-        jarsigner, java, javac, javadoc, javap, jcmd, jconsole, jdb,
-        jdeprscan, jdeps, jhsdb, jimage, jinfo, jjs, jlink, jmap, jmod, jps,
-        jrunscript, jshell, jstack, jstat, jstatd, keytool,
-        pack200, rmic, rmid, rmiregistry,
-        serialver, and unpack200</seg>
+        <seg>jaotc, jar, jarsigner, java, javac, javadoc, javap, jcmd,
+        jconsole, jdb, jdeprscan, jdeps, jfr, jhsdb, jimage, jinfo, jjs,
+	jlink, jmap, jmod, jpackage, jps, jrunscript, jshell, jstack,
+	jstat, jstatd, keytool, rmic, rmid, rmiregistry, and serialver</seg>
         <seg>/opt/jdk-&openjdk-version;/lib/*</seg>
         <seg>/opt/jdk-&openjdk-version;</seg>
       </seglistitem>
@@ -673,6 +681,18 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="jfr">
+        <term><command>jfr</command></term>
+        <listitem>
+          <para>
+            is a tool for working with <quote>Flight Recorder</quote> files.
+          </para>
+          <indexterm zone="openjdk jfr">
+            <primary sortas="b-jfr">jfr</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="jhsdb">
         <term><command>jhsdb</command></term>
         <listitem>
@@ -764,6 +784,18 @@ bin/keytool -list -cacerts</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="jpackage">
+        <term><command>jpackage</command></term>
+        <listitem>
+          <para>
+            generates java application packages and images.
+          </para>
+          <indexterm zone="openjdk jpackage">
+            <primary sortas="b-jpackage">jpackage</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="jps">
         <term><command>jps</command></term>
         <listitem>
@@ -850,7 +882,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      <!--
       <varlistentry id="pack200">
         <term><command>pack200</command></term>
         <listitem>
@@ -863,7 +895,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      -->
       <varlistentry id="rmic">
         <term><command>rmic</command></term>
         <listitem>
@@ -915,7 +947,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      <!--
       <varlistentry id="unpack200">
         <term><command>unpack200</command></term>
         <listitem>
@@ -929,7 +961,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      -->
     </variablelist>
 
   </sect2>
