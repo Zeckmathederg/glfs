@@ -6,9 +6,9 @@
 
   <!ENTITY fop-download-http "https://archive.apache.org/dist/xmlgraphics/fop/source/fop-&fop-version;-src.tar.gz">
   <!ENTITY fop-download-ftp  " ">
-  <!ENTITY fop-md5sum        "e379d5916bc705b6fd3808a77f5d8478">
+  <!ENTITY fop-md5sum        "5e7e87ef12845d31bce7a1fe8d61f501">
   <!ENTITY fop-size          "26 MB">
-  <!ENTITY fop-buildsize     "252 MB ">
+  <!ENTITY fop-buildsize     "491 MB ">
   <!ENTITY fop-time          "0.4 SBU">
 
   <!ENTITY pdfbox-version    "2.0.19">
@@ -19,6 +19,12 @@
   <!ENTITY fontbox-download  "http://mirror.reverse.net/pub/apache/pdfbox/&pdfbox-version;/fontbox-&pdfbox-version;.jar">
   <!ENTITY fontbox-md5sum    "74b3b8ee7eef40b0aff5ca5aa07d96f7">
   <!ENTITY fontbox-size      "1.5 MB">
+
+  <!ENTITY maven-major        "3">
+  <!ENTITY maven-version      "3.6.3">
+  <!ENTITY maven-download     "http://mirror.reverse.net/pub/apache/maven/maven-&maven-major;/&maven-version;/binaries/apache-maven-&maven-version;-bin.tar.gz">
+  <!ENTITY maven-md5sum       "9792c717f5845d952907d5144b8253c3">
+  <!ENTITY maven-size         "9 MB (additionally, about 100 MB are downloaded to the building user's directory)">
 
   <!ENTITY offo-download     "&sourceforge-dl;/offo/2.2/offo-hyphenation.zip">
   <!ENTITY offo-md5sum       "bf9c09bf05108ef9661b8f08d91c2336">
@@ -111,6 +117,16 @@
           </simplelist>
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Maven build system:
+          <simplelist>
+            <member><ulink url="&maven-download;"/></member>
+            <member>&maven-md5sum;</member>
+            <member>&maven-size;</member>
+          </simplelist>
+        </para>
+      </listitem>
     </itemizedlist>
 
     <itemizedlist spacing="compact">
@@ -138,13 +154,13 @@
     <para role="optional">
 <!-- Included into ant      <xref linkend="junit"/> (to run tests),-->
       <xref linkend="x-window-system"/> (to run tests),
-<!--      <xref linkend="maven"/> (an alternate build system), not funcional
+<!--      <xref linkend="maven"/> (an alternate build system), not functional
       with fop-2.3          -->
       <ulink url="http://jai-tools.blogspot.com/">JAI Image I/O Tools</ulink>, and
       <ulink url="http://jeuclid.sourceforge.net/">JEuclid</ulink>
 <!-- [pierre 2017-04-29] Note to devs: there are a lot of bundled dependencies.
      Some were listed here, but not all. I am not sure it is possible to
-     use system ones. So, I have removed them, an kept only those which
+     use system ones. So, I have removed them, and kept only those which
      are not bundled. -->
     </para>
 
@@ -179,6 +195,18 @@ rm -rf offo-hyphenation</userinput></screen>
     </sect3>
 
     <sect3>
+      <title>Installing a temporary Maven binary</title>
+
+      <para>
+        Starting with fop-2.5, the Maven build system is required. We use
+        the binary provided by apache, that we install in a temporary location:
+      </para>
+
+<screen><userinput>tar -xf ../apache-maven-&maven-version;-bin.tar.gz -C /tmp</userinput></screen>
+
+    </sect3>
+
+    <sect3>
       <title>Installing fop Components</title>
 
       <para>
@@ -205,14 +233,6 @@ rm -rf offo-hyphenation</userinput></screen>
     -i fop/build.xml</userinput></screen>
 
       <para>
-        With <xref linkend="openjdk"/>, the minimum source version is 1.7,
-        while <application>FOP</application> build system has 1.6. Change that:
-      </para>
-
-<screen><userinput>sed -e 's/1\.6/1.7/' \
-    -i fop/build.xml</userinput></screen>
-
-      <para>
         The <filename>build.xml</filename> file calls for an old version of
         <application>PDFBox</application> components that are no longer
         available. Copy the updated PDFBox components into the source tree:
@@ -225,14 +245,17 @@ rm -rf offo-hyphenation</userinput></screen>
         commands:
       </para>
 
-<screen><userinput>cd fop                    &amp;&amp;
-export LC_ALL=en_US.UTF-8 &amp;&amp;
-ant all javadocs          &amp;&amp;
+<screen><userinput>cd fop &amp;&amp;
+
+LC_ALL=en_US.UTF-8                     \
+PATH=$PATH:/tmp/apache-maven-&maven-version;/bin \
+ant all javadocs &amp;&amp;
+
 mv build/javadocs .</userinput></screen>
 
       <para>
-        The <application>junit</application> test suite was run as part of the
-        above commands.
+        This package comes with a testsuite, but the java infrastructure
+        installed in this book does not allow running it.
       </para>
  
       <para>
@@ -244,6 +267,12 @@ mv build/javadocs .</userinput></screen>
 cp -vR build conf examples fop* javadocs lib /opt/fop-&fop-version; &amp;&amp;
 chmod a+x /opt/fop-&fop-version;/fop                                &amp;&amp;
 ln -v -sfn fop-&fop-version; /opt/fop</userinput></screen>
+
+      <para>
+        The last thing to do is to clean what we have done:
+      </para>
+
+<screen><userinput>rm -rf /tmp/apache-maven-&maven-version;</userinput></screen>
 
     </sect3>
 
@@ -410,8 +439,8 @@ EOF</userinput></screen>
         <listitem>
           <para>
             is a wrapper script to the <command>java</command> command
-          which sets up the <application>fop</application>
-          environment and passes the required parameters.
+            which sets up the <application>fop</application>
+            environment and passes the required parameters.
           </para>
           <indexterm zone="fop fop-prog">
             <primary sortas="b-fop">fop</primary>
