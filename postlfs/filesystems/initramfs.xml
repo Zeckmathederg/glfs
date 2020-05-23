@@ -76,9 +76,9 @@ copy()
   local file
 
   if [ "$2" = "lib" ]; then
-    file=$(find /lib /usr/lib -maxdepth 1 -name $1 | head -n 1)
+    file=$(PATH=/lib:/usr/lib type -p $1)
   else
-    file=$(find /bin /usr/bin /sbin /usr/sbin -maxdepth 1 -name $1 | head -n 1)
+    file=$(type -p $1)
   fi
 
   if [ -n "$file" ] ; then
@@ -338,10 +338,11 @@ do_mount_root()
    rootflags="$rootflags$ro"
 
    case "$root" in
-      /dev/* ) device=$root ;;
-      UUID=* ) eval $root; device="/dev/disk/by-uuid/$UUID"  ;;
-      LABEL=*) eval $root; device="/dev/disk/by-label/$LABEL" ;;
-      ""     ) echo "No root device specified." ; problem    ;;
+      /dev/*    ) device=$root ;;
+      UUID=*    ) eval $root; device="/dev/disk/by-uuid/$UUID" ;;
+      PARTUUID=*) eval $root; device="/dev/disk/by-partuuid/$PARTUUID" ;;
+      LABEL=*   ) eval $root; device="/dev/disk/by-label/$LABEL" ;;
+      ""        ) echo "No root device specified." ; problem ;;
    esac
 
    while [ ! -b "$device" ] ; do
