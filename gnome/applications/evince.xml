@@ -8,10 +8,10 @@
      "&gnome-download-http;/evince/&gnome-minor-36;/evince-&evince-version;.tar.xz">
   <!ENTITY evince-download-ftp
      "&gnome-download-ftp;/evince/&gnome-minor-36;/evince-&evince-version;.tar.xz">
-  <!ENTITY evince-md5sum        "0acb95730933fb4b591c73c3fc7fc688">
-  <!ENTITY evince-size          "2.5 MB">
-  <!ENTITY evince-buildsize     "74 MB">
-  <!ENTITY evince-time          "0.7 SBU (Using parallelism=4)">
+  <!ENTITY evince-md5sum        "9762dabdde37a804072bccbfd311d357">
+  <!ENTITY evince-size          "2.8 MB">
+  <!ENTITY evince-buildsize     "84 MB">
+  <!ENTITY evince-time          "0.4 SBU (Using parallelism=4)">
 ]>
 
 <sect1 id="evince" xreflabel="Evince-&evince-version;">
@@ -128,23 +128,17 @@
       commands:
     </para>
 
-<screen revision="sysv"><userinput>CFLAGS="$CFLAGS -I/opt/texlive/&texlive-year;/include    " \
-CXXFLAGS="$CXXFLAGS -I/opt/texlive/&texlive-year;/include" \
-./configure --prefix=/usr                         \
-            --enable-introspection                \
-            --without-gspell                      \
-            --disable-static                      \
-            --with-systemduserunitdir=no         &amp;&amp;
-make</userinput></screen>
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
-<screen revision="systemd"><userinput>CFLAGS="$CFLAGS -I/opt/texlive/&texlive-year;/include"      \
-CXXFLAGS="$CXXFLAGS -I/opt/texlive/&texlive-year;/include"  \
-LDFLAGS="$LDFLAGS -L/opt/texlive/&texlive-year;/lib"        \
-./configure --prefix=/usr                         \
-            --enable-introspection                \
-            --without-gspell                      \
-            --disable-static                     &amp;&amp;
-make</userinput></screen>
+meson --prefix=/usr -Dgtk_doc=false -Dsystemduserunitdir=no .. &amp;&amp;
+ninja</userinput></screen>
+
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson --prefix=/usr -Dgtk_doc=false .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       This package does not have a working testsuite.
@@ -154,7 +148,7 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
                 href="../../xincludes/gsettings-destdir.xml"/>
@@ -171,6 +165,9 @@ make</userinput></screen>
     </para>
     -->
 
+<!-- When moving to Meson, I installed the whole texlive suite from source.
+     I was able to verify that this is no longer required. I'm assuming it was
+     one of evince-3.36.3 or texlive-2020 that fixed this.
     <para>
       <parameter>CFLAGS="$CFLAGS ..." CXXFLAGS="$CXXFLAGS ..." LDFLAGS="$LDFLAGS ..."</parameter>: If
       <application>TeXLive</application> has been installed in
@@ -181,33 +178,41 @@ make</userinput></screen>
       <application>TeXLive</application> has not been installed does not break the
       build.
     </para>
-
+-->
     <para>
-      <parameter>--without-gspell</parameter>: This switch turns off support
-      for the spell checking plugin. Remove this if you have gspell installed.
+      <parameter>-Dgtk_doc=false</parameter>: This switch disables generating
+      the gtk-doc API reference documentation. If you have
+      <xref role="nodep" linkend="gtk-doc"/> installed and wish to generate
+      the API reference documentation, remove this switch.
     </para>
 
     <para>
-      <parameter>--enable-introspection</parameter>: By default, the
-      <application>Gobject Introspection</application> support is
-      turned off, even though that package is an expected component
-      of the <application>GNOME</application> Desktop.
+      <option>-Dgspell=false</option>: This switch turns off support
+      for the spell checking plugin.
     </para>
 
+    <para>
+      <option>-Dintrospection=false</option>: Use this option if you
+      don't have <xref role="nodep" linkend="gobject-introspection"/> 
+      installed and don't wish to have introspection support built into Evince.
+    </para>
+
+<!--
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/gtk-doc-rebuild.xml"/>
+-->
 
     <para>
-      <option>--disable-nautilus</option>: This switch disables building
+      <option>-Dnautilus=false</option>: This switch disables building
       the <application>Nautilus</application> Plugin. Use this switch
       if <application>Nautilus</application> is not installed.
     </para>
 
     <para>
-      <option>--without-keyring</option>: This switch disables the use of
+      <option>-Dkeyring=false</option>: This switch disables the use of
       <application>libsecret</application>. Use this switch
       if <application>libsecret</application> is not installed.
     </para>
