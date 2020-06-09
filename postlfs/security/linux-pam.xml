@@ -6,14 +6,14 @@
 
   <!ENTITY linux-pam-download-http "https://github.com/linux-pam/linux-pam/releases/download/v&linux-pam-version;/Linux-PAM-&linux-pam-version;.tar.xz">
   <!ENTITY linux-pam-download-ftp  " ">
-  <!ENTITY linux-pam-md5sum        "558ff53b0fc0563ca97f79e911822165">
-  <!ENTITY linux-pam-size          "892 MB">
-  <!ENTITY linux-pam-buildsize     "26 MB (with tests)">
+  <!ENTITY linux-pam-md5sum        "39fca0523bccec6af4b63b5322276c84">
+  <!ENTITY linux-pam-size          "968 KB">
+  <!ENTITY linux-pam-buildsize     "37 MB (with tests)">
   <!ENTITY linux-pam-time          "0.3 SBU (with tests)">
 
   <!ENTITY linux-pam-docs-download "https://github.com/linux-pam/linux-pam/releases/download/v&linux-pam-version;/Linux-PAM-&linux-pam-docs-version;-docs.tar.xz">
-  <!ENTITY linux-pam-docs-md5sum   "1885fae049acd1b699a5459d7c4a0130">
-  <!ENTITY linux-pam-docs-size     "449 KB">
+  <!ENTITY linux-pam-docs-md5sum   "3440e619ff29074eb977a2ca6e34525a">
+  <!ENTITY linux-pam-docs-size     "468 KB">
   <!--
   <!ENTITY debian-pam-docs         "http://debian.securedservers.com/kernel/pub/linux/libs/pam">
   -->
@@ -104,8 +104,10 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="db"/>,
-      <xref linkend="cracklib"/>,
-      <xref linkend="libtirpc"/> and
+      <xref linkend="libnsl"/>,
+      <xref linkend="libpwquality"/>,
+      <xref linkend="libtirpc"/>, 
+      <ulink url="https://github.com/linux-audit/audit-userspace">libaudit</ulink>, and
       <ulink url="http://www.prelude-siem.org">Prelude</ulink>
     </para>
 
@@ -148,7 +150,7 @@
       <command>configure</command> script so that it detects lynx if installed:
     </para>
 
-<screen><userinput>sed -e 's/dummy links/dummy lynx/'                                     \
+<screen><userinput>sed -e 's/dummy elinks/dummy lynx/'                                     \
     -e 's/-no-numbering -no-references/-force-html -nonumbers -stdin/' \
     -i configure</userinput></screen>
 
@@ -330,8 +332,33 @@ cat &gt; /etc/pam.d/system-session &lt;&lt; "EOF"
 session   required    pam_unix.so
 
 # End /etc/pam.d/system-session</literal>
-EOF</userinput></screen>
+EOF
+cat &gt; /etc/pam.d/system-password &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/system-password
 
+# use sha512 hash for encryption, use shadow, and try to use any previously
+# defined authentication token (chosen password) set by any prior module
+password  required    pam_unix.so       sha512 shadow try_first_pass
+
+# End /etc/pam.d/system-password</literal>
+EOF
+</userinput></screen>
+
+     <para>
+       If you wish to enable strong password support, install
+       <xref linkend="libpwquality"/>, and follow the
+       instructions in that page to configure the pam_pwquality
+       PAM module with strong password support.
+     </para>
+
+<!-- With the removal of the pam_cracklib module, we're supposed to be using
+     libpwquality. That already includes instructions in it's configuration
+     information page, so we'll use those instead.
+
+     Linux-PAM must be installed prior to libpwquality so that PAM support
+     is built in, and the PAM module is built.
+-->
+<!--
       <para>
         The remaining generic file depends on whether <xref
         linkend="cracklib"/> is installed.  If it is installed, use:
@@ -379,7 +406,7 @@ password  required    pam_unix.so       sha512 shadow try_first_pass
 
 # End /etc/pam.d/system-password</literal>
 EOF</userinput></screen>
-
+-->
       <para>
         Now add a restrictive <filename>/etc/pam.d/other</filename>
         configuration file.  With this file, programs that are PAM aware will
@@ -434,7 +461,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          mkhomedir_helper, pam_tally, pam_tally2,
+          faillock, mkhomedir_helper,
           pam_timestamp_check, unix_chkpwd and
           unix_update
         </seg>
@@ -455,6 +482,18 @@ EOF</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
+      <varlistentry id="faillock">
+        <term><command>faillock</command></term>
+        <listitem>
+          <para>
+            displays and modifies the authentication failure record files.
+          </para>
+          <indexterm zone="linux-pam faillock">
+            <primary sortas="b-faillock">faillock</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="mkhomedir_helper">
         <term><command>mkhomedir_helper</command></term>
         <listitem>
@@ -467,6 +506,7 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
+<!-- Removed with the removal of the pam_tally{,2} module
       <varlistentry id="pam_tally">
         <term><command>pam_tally</command></term>
         <listitem>
@@ -492,6 +532,7 @@ EOF</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
+-->
 
       <varlistentry id="pam_timestamp_check">
         <term><command>pam_timestamp_check</command></term>
