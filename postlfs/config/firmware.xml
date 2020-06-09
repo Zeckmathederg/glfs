@@ -27,11 +27,6 @@
   </para>
 
   <para>
-    Preparing firmware for multiple different machines, as a distro would
-    do, is outside the scope of this book.
-  </para>
-
-  <para>
     Currently, most firmware can be found at a <userinput>git</userinput>
     repository: <ulink url=
       "http://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/tree/"/>.
@@ -128,8 +123,10 @@
     </para>
 
     <para>
-      Intel provide updates of their microcode for SandyBridge and later
-      processors as new vulnerabilities come to light. New versions of AMD
+      Intel provide updates of their microcode for Haswell and later
+      processors as new vulnerabilities come to light, and have in the past
+      provided updates for processors from SandyBridge onwards, although those
+      are no-longer supported for new fixes. New versions of AMD
       firmware are rare and usually only apply to a few models, although
       motherboard manufacturers get extra updates which maybe update microcode
       along with the changes to support newer CPUs and faster memory.
@@ -165,6 +162,15 @@
       identical) look in /proc/cpuinfo.
     </para>
 
+    <para>
+      If you are creating an initrd to update firmware for different machines,
+      as a distro would do, go down to 'Early loading of microcode' and cat all
+      the Intel blobs to GenuineIntel.bin or cat all the AMD blobs to
+      AuthenticAMD.bin. This creates a larger initrd - for all Intel machines in
+      the 20200609 update the size is 3.0 MB compared to typically 24 KB for one
+      machine.
+    </para>
+
     <sect3 id="intel-microcode">
       <title>Intel Microcode for the CPU</title>
 
@@ -173,7 +179,7 @@
         microcode.  This must be done by navigating to <ulink url=
          'https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/releases/'/>
         and downloading the latest file there.  As of this writing the most
-        recent version of the microcode is microcode-20191115.  Extract this
+        recent version of the microcode is microcode-20200609.  Extract this
         file in the normal way, the microcode is in the <filename>intel-ucode
         </filename> directory, containing various blobs with names in the form
         XX-YY-ZZ. There are also various other files, and a releasenote.
@@ -195,9 +201,9 @@
       </para>
 
       <para>
-        To be able to use this latest microcode to provide mitigation on all
-        the affected processors, the kernel version needs to be at least 5.3.11
-        (or 4.19.84 if you are using the 4.19 long term support series).
+        The documentation on the latest SRBDS (Special Register Buffer Data
+        Sampling) vulnerabilities/fixes will be documented in kernels 5.4.46,
+        5.6.18, 5.7.2, 5.8.0 and later.
       </para>
 
       <para>
@@ -244,12 +250,15 @@ Processor type and features  ---&gt;
 
       <para>
         Then use the following command to see if anything was loaded:
+        (N.B. the dates when microcode was created may be months ahead of when
+        it was released.)
       </para>
 
 <screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
 
       <para>
-        This reformatted example was created by temporarily booting without
+        This reformatted example for an old (20191115) verison of the microcode
+        was created by temporarily booting without
         microcode, to show the current Firmware Bug message, then the late load
         shows it being updated to revision 0xd6.
       </para>
@@ -416,15 +425,15 @@ cd initrd</userinput></screen>
 
       <para>
         The places and times where early loading happens are very different
-        in AMD and Intel machines. First, an Intel example with early loading:
+        in AMD and Intel machines. First, an Intel (Haswell) example with early loading:
       </para>
 
-<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xd6, date = 2019-10-03
-[    0.000000] Linux version 5.4.6 (ken@leshp) (gcc version 9.2.0 (GCC))i
-               #4 SMP PREEMPT Sat Dec 21 21:41:03 GMT 2019
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.4.6-sda11 root=/dev/sda11 ro resume=/dev/sda10
-[    0.579936] microcode: sig=0x506e3, pf=0x2, revision=0xd6
-[    0.579961] microcode: Microcode Update Driver: v2.2.</literal></screen>
+<screen><literal>[    0.000000] microcode: microcode updated early to revision 0x28, date = 2019-11-12
+[    0.000000] Linux version 5.6.2 (ken@plexi) (gcc version 9.2.0 (GCC)) #2 SMP PREEMPT Tue Apr 7 21:34:32 BST 2020
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.6.2-sda10 root=/dev/sda10 ro resume=/dev/sdb1
+[    0.371462] microcode: sig=0x306c3, pf=0x2, revision=0x28
+[    0.371491] microcode: Microcode Update Driver: v2.2.</literal></screen>
+
 
       <para>
         A historic AMD example:
