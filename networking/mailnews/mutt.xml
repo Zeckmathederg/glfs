@@ -6,8 +6,8 @@
 
   <!ENTITY mutt-download-http "https://bitbucket.org/mutt/mutt/downloads/mutt-&mutt-version;.tar.gz">
   <!ENTITY mutt-download-ftp  "ftp://ftp.mutt.org/pub/mutt/mutt-&mutt-version;.tar.gz">
-  <!ENTITY mutt-md5sum        "1c109c6211477e6dc3decd63c6f99199">
-  <!ENTITY mutt-size          "5.0 MB">
+  <!ENTITY mutt-md5sum        "121e23c472852323337240d68ca1c41e">
+  <!ENTITY mutt-size          "4.8 MB">
   <!ENTITY mutt-buildsize     "46 MB">
   <!ENTITY mutt-time          "0.3 SBU">
 ]>
@@ -83,6 +83,14 @@
 
     <bridgehead renderas="sect3">Mutt Dependencies</bridgehead>
 
+    <bridgehead renderas="sect4">Recommended (for a text version of the manual)</bridgehead>
+    <para role="recommended">
+      <xref linkend="lynx"/>, or
+      <xref linkend="Links"/> (or
+      <ulink url="&w3m-url;">W3m</ulink>, or
+      <ulink url="&elinks-url;">ELinks</ulink>) - please read the Note.
+    </para>
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="aspell"/>,
@@ -105,15 +113,6 @@
       <ulink url="http://fallabs.com/tokyocabinet/">Tokyo Cabinet</ulink>
     </para>
 
-    <bridgehead renderas="sect4">Optional (To Regenerate HTML
-    Documentation)</bridgehead>
-    <para role="optional">
-      <xref linkend="libxslt"/> and either
-      <xref linkend="lynx"/>,
-      <ulink url="&w3m-url;">W3m</ulink>, or
-      <ulink url="&elinks-url;">ELinks</ulink>
-    </para>
-
 <!--<bridgehead renderas="sect4">Optional (To Generate PDF Manual)</bridgehead>
     <para role="optional">
       <xref linkend="docbook-dsssl"/>,
@@ -129,6 +128,22 @@
 
   <sect2 role="installation">
     <title>Installation of Mutt</title>
+
+    <note>
+      <para>
+        <application>Mutt</application> ships with an HTML version of its
+        manual, but the text version is no longer provided because differences
+        in the formatting from different text browsers compared to the shipped
+        version caused complaints. To get a text file, the following are used
+        in order of preference: <application>lynx</application> with overstriking
+        (backspaces) for emphasis, <application>w3m</application> or
+        <application>elinks</application>: the latter two apparently provide
+        plain text. Plain text is generally preferred unless reading the HTML
+        manual, so the instructions below use <application>lynx</application>
+        if available, or else <application>links</application> to produce plain
+        text.
+      </para>
+    </note>
 
     <para>
       <application>Mutt</application> requires a group named
@@ -147,15 +162,22 @@
 <screen role="root"><userinput>chgrp -v mail /var/mail</userinput></screen>
 
     <para>
-      <application>Mutt</application> will rebuild the html documentation
-      if <application>libxslt</application> is present, then use that to update
-      the text manual - even if none of the specified browsers are present. That
-      will create an empty text file, so we will save the shipped file.
+      Install <application>Mutt</application> by running the following
+      commands:
     </para>
 
     <para>
-      Install <application>Mutt</application> by running the following
-      commands:
+      To ensure that a plain text manual is created when using
+      <application>lynx</application> or to otherwise use
+      <application>links</application> to produce it (instead of
+      <application>elinks</application>), run the following command:
+    </para>
+
+<screen><userinput>sed -i -e 's/ -with_backspaces//' -e 's/elinks/links/' \
+  -e 's/-no-numbering -no-references//' doc/Makefile.in</userinput></screen>
+
+    <para>
+      Now configure and build the application:
     </para>
 
 <screen><userinput>./configure --prefix=/usr                            \
@@ -219,6 +241,23 @@ chmod -v 2755 /usr/bin/mutt_dotlock</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <parameter>sed ... -e 's/ -with_backspaces//' ...</parameter>: This turns
+      off the backspaces used for overstriking when <application>lynx</application>
+      is used, resulting in readable plain text when using <command>view</command>.
+    </para>
+
+    <para>
+      <parameter>sed ... -e 's/elinks/links/' ...</parameter>: This allows
+      <command>links</command> to be run instead of <command>elinks</command>
+      which is not in the book.
+    </para>
+
+    <para>
+      <parameter>sed ... -e 's/-no-numbering -no-references//' ...</parameter>:
+      This removes switches which are not understood by <command>links</command>.
+    </para>
 
     <para>
       <parameter>--enable-external-dotlock</parameter>: In some circumstances
