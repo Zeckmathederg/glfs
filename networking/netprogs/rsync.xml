@@ -6,10 +6,10 @@
 
   <!ENTITY rsync-download-http "https://www.samba.org/ftp/rsync/src/rsync-&rsync-version;.tar.gz">
   <!ENTITY rsync-download-ftp  " ">
-  <!ENTITY rsync-md5sum        "1581a588fde9d89f6bc6201e8129afaf">
-  <!ENTITY rsync-size          "884 KB">
-  <!ENTITY rsync-buildsize     "11 MB (with tests - additional 45 MB for HTML API documentation)">
-  <!ENTITY rsync-time          "0.5 SBU (with tests)">
+  <!ENTITY rsync-md5sum        "768700bc8a555f5fdbc97dac8ebfbdd3">
+  <!ENTITY rsync-size          "1.0 MB">
+  <!ENTITY rsync-buildsize     "12 MB (with tests - additional 46 MB for HTML API documentation)">
+  <!ENTITY rsync-time          "0.7 SBU (with tests)">
 ]>
 
 <sect1 id="rsync" xreflabel="rsync-&rsync-version;">
@@ -73,9 +73,17 @@
 
     <bridgehead renderas="sect3">rsync Dependencies</bridgehead>
 
+    <!-- This does now use OpenSSL and zstd from LFS. -->
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="popt"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="doxygen"/>,
+      <ulink url="https://lz4.github.io/lz4/">lz4</ulink>, and
+      <ulink url="https://cyan4973.github.io/xxHash/">xxhash</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -104,7 +112,10 @@ useradd -c "rsyncd Daemon" -d /home/rsync -g rsyncd \
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --without-included-zlib &amp;&amp;
+<screen><userinput>./configure --prefix=/usr    \
+            --disable-lz4    \
+            --disable-xxhash \
+            --without-included-zlib &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -139,8 +150,20 @@ install -v -m644 dox/html/*  /usr/share/doc/rsync-&rsync-version;/api</userinput
     <title>Command Explanations</title>
 
     <para>
+      <parameter>--disable-lz4</parameter>: This switch disables LZ4 compression
+      support. Note that it uses the superior 'zstd' algorithm when this switch
+      is in use, and zstd is provided in LFS.
+    </para>
+
+    <para>
+      <parameter>--disable-xxhash</parameter>: This switch disables advanced
+      xxhash checksum support. Remove this switch if you have installed
+      <ulink url="https://cyan4973.github.io/xxHash/">xxhash</ulink>.
+    </para>
+
+    <para>
       <parameter>--without-included-zlib</parameter>: This switch enables
-      compilation with system-installed zlib library.
+      compilation with the system-installed zlib library.
     </para>
 
   </sect2>
@@ -195,7 +218,7 @@ EOF</userinput></screen>
       <para>
         You can find additional configuration information and general
         documentation about <command>rsync</command> at
-        <ulink url="http://rsync.samba.org/documentation.html"/>.
+        <ulink url="https://rsync.samba.org/documentation.html"/>.
       </para>
 
     </sect3>
@@ -205,7 +228,7 @@ EOF</userinput></screen>
              <phrase revision="systemd">Systemd Unit</phrase></title>
 
       <para>
-        Note that you only want to start the
+        Note that you only need to start the
         <application>rsync</application> server if you want to provide an
         <application>rsync</application> archive on your local machine.
         You don't need this <phrase revision="sysv">script</phrase>
@@ -269,7 +292,7 @@ systemctl start rsyncd.socket</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>rsync</seg>
+        <seg>rsync and rsync-ssl</seg>
         <seg>None</seg>
         <seg>Optionally, /usr/share/doc/rsync-&rsync-version;</seg>
       </seglistitem>
@@ -293,6 +316,19 @@ systemctl start rsyncd.socket</userinput></screen>
           </para>
           <indexterm zone="rsync rsync-prog">
             <primary sortas="b-rsync">rsync</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rsync-ssl">
+        <term><command>rsync-ssl</command></term>
+        <listitem>
+          <para>
+            is a helper script used when connecting to an rsync daemon that
+            has SSL support built in.
+          </para>
+          <indexterm zone="rsync rsync-ssl">
+            <primary sortas="b-rsync-ssl">rsync-ssl</primary>
           </indexterm>
         </listitem>
       </varlistentry>
