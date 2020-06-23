@@ -68,12 +68,40 @@
     </listitem>
     <listitem>
       <para>
-        Firmware for video controllers. On x86 machines this seems to mostly
-        apply to ATI devices (Radeon and AMDGPU chips) and Nvidia Maxwell
-        and Pascal cards which all require firmware to be able to use KMS
+        Firmware for video controllers. On x86 machines this is required for
+        ATI devices (Radeon and AMDGPU chips) and may be useful for Intel (Skylake
+        and later) and Nvidia (Kepler and later) GPUs.
+      </para>
+
+      <para>
+        ATI Radeon and AMGPU devices all require firmware to be able to use KMS
         (kernel modesetting - the preferred option) as well as for Xorg. For
-        earlier radeon chips (before the R600), the firmware is still in the
-        kernel.
+        old radeon chips (before the R600), the firmware is still in the
+        kernel source.
+      </para>
+
+      <para>
+        Intel integrated GPUs from Skylake onwards can use firmware for GuC
+        (the Graphics microcontroller), and also for the HuC (HEVC/H265
+        microcontroller which offloads to the GPU) and the DMC (Display
+        Microcontroller) to provide additional low-power states. The GuC and
+        HuC have had a chequered history in the kernel and updated firmware
+        may be disabled by default, depending on your kernel version. Further
+        details may be found at <ulink
+        url="https://01.org/linuxgraphics/downloads/firmware/">01.org</ulink>
+        and <ulink
+        url="https://wiki.archlinux.org/index.php/intel_graphics/">Arch
+        linux</ulink>.
+      </para>
+
+      <para>
+        Nvidia GPUs from Kepler onwards require signed firmware, otherwise the
+        nouveau driver is unable to provide hardware acceleration. Nvidia has
+        now released firmware up to Turing (most, maybe all, GTX16xx and RTX20xx
+        GPUs) to linux-firmware, and kernels from linux-5.6 should support it,
+        although Mesa support may require a development version until Mesa-20.2
+        is released. Note that faster clocks than the default are not enabled
+        by the released firmware.
       </para>
     </listitem>
     <listitem>
@@ -177,9 +205,11 @@
       <para>
         The first step is to get the most recent version of the Intel
         microcode.  This must be done by navigating to <ulink url=
-         'https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/releases/'/>
+        'https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/releases/'/>
         and downloading the latest file there.  As of this writing the most
-        recent version of the microcode is microcode-20200609.  Extract this
+        secure version of the microcode, for those machines which can boot it,
+        is microcode-20200609. If you have a Skylake machine, please read the
+        Caution in the 'Early loading of microcode' section below.  Extract this
         file in the normal way, the microcode is in the <filename>intel-ucode
         </filename> directory, containing various blobs with names in the form
         XX-YY-ZZ. There are also various other files, and a releasenote.
@@ -382,20 +412,22 @@ cd initrd</userinput></screen>
 
       <caution>
         <para>
-          On some Skylake machines with hex Model Number '4e' (78 decimal) the upgrade to
-          microcode version '0xdc' is reported to cause the machine to hang in early boot,
-          and the fix is to revert to version 0xd6 which was shipped in the 20191115
-          microcode release.
+          On some Skylake machines with hex Model Number '4e' (78 decimal) the
+          upgrade to microcode version '0xdc' is reported to cause the machine to
+          hang in early boot, and the fix is to revert to version 0xd6 which was
+          first shipped in the 20191115 microcode release.
         </para>
 
         <para>
-          Doing that, while making the machine usable, will mean that the SRBDS
-          mitigations are not present.
+          At least one model '5e' Skylake does boot successfully with version
+          0xdc, but Intel has now shipped a 20200616 release which is intended for
+          distros which need an initrd that will boot on everyone's machine: it
+          reverts both Skylake variants ('4e' and '5e') to the old 0xd6.
         </para>
 
         <para>
-          The Skylake machines with hex Model Number '5e' (94 decimal) use similar
-          firmware versions, but boot correctly with the mitigation applied.
+          For a Skylake which does not boot with 0xdc, reverting to 0xd6 will make
+          the machine usable, but without the SRBDS mitigations.
         </para>
       </caution>
 
