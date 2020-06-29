@@ -133,7 +133,7 @@ mount /dev/lfs-lvm/home /home
 mkdir -p /srv/mysql
 mount /dev/lfs-lvm/mysql /srv/mysql</userinput></screen>
 
-  <para>
+  <para revision="sysv">
     The LFS boot scripts automatically make these file systems available to
     the system in the checkfs script. Edit the <filename>/etc/fstab</filename>
     file as required to automatically mount them.
@@ -141,8 +141,46 @@ mount /dev/lfs-lvm/mysql /srv/mysql</userinput></screen>
 
   <para>
     A LVM logical volume can host a root filesystem, but requires the use
-    of an initramfs (initial RAM file system) and is not discussed here.
+    of an initramfs (initial RAM file system). The initramfs proposed in
+    <xref linkend="initramfs"/> allows to pass the lvm volume in
+    the <parameter>root=</parameter> switch of the kernel command line.
   </para>
+
+  <para revision="systemd">
+    If not using an initramfs, there is a race condition in <application>
+    systemd</application> preventing mounting logical volumes through
+    <filename>/etc/fstab</filename>. You must create a <quote>mount</quote>
+    unit (see systemd.mount(5)) as in the following example, which mounts
+    the <filename class="directory">/home</filename> directory automatically
+    at boot:
+  </para>
+
+<screen role="root" revision="systemd"><userinput>cat &gt; /etc/systemd/system/home.mount &lt;&lt; EOF
+<literal>[Unit]
+Description=Mount the lvm volume /dev/lfs-lvm/home to /home
+
+[Mount]
+What=/dev/lfs-lvm/home
+Where=/home
+Type=ext4
+Options=default
+
+[Install]
+WantedBy=multi-user.target</literal>
+EOF</userinput></screen>
+
+  <note revision="systemd">
+    <para>
+    The name of the unit must be the name of the mount point with the
+    `/' character replaced by `-', omitting the leading one.
+    </para>
+  </note>
+
+  <para revision="systemd">
+    Next the unit must be enabled with:
+  </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable home.mount</userinput></screen>
 
   <para>
     For a more information about LVM, see the <ulink
