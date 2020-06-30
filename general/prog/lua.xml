@@ -6,17 +6,15 @@
 
   <!ENTITY lua-download-http "http://www.lua.org/ftp/lua-&lua-version;.tar.gz">
   <!ENTITY lua-download-ftp  " ">
-  <!ENTITY lua-md5sum        "4f4b4f323fd3514a68e0ab3da8ce3455">
-  <!ENTITY lua-size          "300 KB">
-  <!ENTITY lua-buildsize     "4.5 MB (with Basic tests)">
+  <!ENTITY lua-md5sum        "dbf155764e5d433fc55ae80ea7060b60">
+  <!ENTITY lua-size          "344 KB">
+  <!ENTITY lua-buildsize     "5.5 MB (with Basic tests)">
   <!ENTITY lua-time          "less than 0.1 SBU (with Basic tests)">
 
-<!-- Note for editors - the soname and test suite versions did not change, so I
-     Had to hardcode them. -renodr -->
-  <!ENTITY lua-tests-download-http "http://www.lua.org/tests/lua-5.3.4-tests.tar.gz">
+  <!ENTITY lua-tests-download-http "http://www.lua.org/tests/lua-&lua-version;-tests.tar.gz">
   <!ENTITY lua-tests-download-ftp  " ">
-  <!ENTITY lua-tests-md5sum        "b14fe3748c1cb2d74e3acd1943629ba3">
-  <!ENTITY lua-tests-size          "104 KB">
+  <!ENTITY lua-tests-md5sum        "3d7768b090046506afa974a4ac0c5ba2">
+  <!ENTITY lua-tests-size          "124 KB">
 ]>
 
 <sect1 id="lua" xreflabel="Lua-&lua-version;">
@@ -127,7 +125,7 @@
     </para>
 
 <screen><userinput>cat &gt; lua.pc &lt;&lt; "EOF"
-<literal>V=5.3
+<literal>V=5.4
 R=&lua-version;
 
 prefix=/usr
@@ -155,13 +153,15 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>patch -Np1 -i ../lua-&lua-version;-shared_library-1.patch &amp;&amp;
-sed -i '/#define LUA_ROOT/s:/usr/local/:/usr/:' src/luaconf.h &amp;&amp;
-
-make MYCFLAGS="-DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1" linux</userinput></screen>
+make linux</userinput></screen>
+<!-- make MYCFLAGS="-DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1" linux
+     The MYCFLAGS="" part was brought into the patch since optimization had to
+     be turned off.
+     The LUA_ROOT change also has been merged into the patch.-->
 
     <para>
       To test the results, issue: <command>make test</command>.
-      <quote>This will run the interpreter and print its version.</quote>.
+      <quote>This will run the interpreter and print its version</quote>.
       More comprehensive tests can be performed if you downloaded the "Test
       suite" tarball. Those tests need to be executed after the package is
       installed, thus we defer to the description below.
@@ -174,9 +174,8 @@ make MYCFLAGS="-DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1" linux</userinput></screen>
 <screen role="root"><userinput>make INSTALL_TOP=/usr                \
      INSTALL_DATA="cp -d"            \
      INSTALL_MAN=/usr/share/man/man1 \
-     TO_LIB="liblua.so liblua.so.5.3 liblua.so.5.3.4" \
+     TO_LIB="liblua.so liblua.so.5.4 liblua.so.&lua-version;" \
      install &amp;&amp;
-<!-- As stated above, we have to hardcode 5.3.4. -->
 
 mkdir -pv                      /usr/share/doc/lua-&lua-version; &amp;&amp;
 cp -v doc/*.{html,css,gif,png} /usr/share/doc/lua-&lua-version; &amp;&amp;
@@ -186,14 +185,17 @@ install -v -m644 -D lua.pc /usr/lib/pkgconfig/lua.pc</userinput></screen>
     <para>
       Here we describe only the "Basic tests". Untar the tarball and
       change to the
-      <filename class="directory">lua-5.3.4-tests</filename> directory,
+      <filename class="directory">lua-&lua-version;-tests</filename> directory,
       then issue
       <command>lua -e "_U=true" all.lua</command>. If the tests finish without
       error, you will see a message containing the string "final OK".
     </para>
 
+    <!-- The optimization problem fixed in the patch was identified by running
+         the test suite, and ultimately culminated in a SIGBUS error. -->
   </sect2>
 
+  <!-- Brought into the patch, unneeded
   <sect2 role="commands">
     <title>Command Explanations</title>
 
@@ -209,6 +211,7 @@ install -v -m644 -D lua.pc /usr/lib/pkgconfig/lua.pc</userinput></screen>
     </para>
 
   </sect2>
+  -->
 
   <sect2 role="content">
     <title>Contents</title>
