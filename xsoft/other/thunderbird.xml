@@ -6,10 +6,10 @@
 
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
   <!ENTITY thunderbird-download-ftp  " ">
-  <!ENTITY thunderbird-md5sum        "56a71d11921ac2562ed3c5b2761281e1">
-  <!ENTITY thunderbird-size          "317 MB">
-  <!ENTITY thunderbird-buildsize     "8.7 GB (144 MB installed)">
-  <!ENTITY thunderbird-time          "22 SBU (on a 4-core 8-thread machine)">
+  <!ENTITY thunderbird-md5sum        "b92652deac6adc0be11f5e4f09c62842">
+  <!ENTITY thunderbird-size          "338 MB">
+  <!ENTITY thunderbird-buildsize     "10.8 GB (173 MB installed)">
+  <!ENTITY thunderbird-time          "44 SBU (on a 4-core machine)">
   <!-- Removed the -j1 time because python and rust do not obey it, although
        the C/C++ code appears to obey it -->
 ]>
@@ -84,6 +84,8 @@
       and <xref linkend="gtk2"/>,
       <xref linkend="llvm"/>, <!-- Searched for and used a few times -->
       <xref linkend="nodejs"/>,
+      <xref linkend="python3"/> (rebuilt with the sqlite module),
+      <xref linkend="startup-notification"/>,
     <!-- When thunderbird moves to 78.0 it will want python3 built against
       sqlite3, as firefox already does. Please add here and update the
       'required if building firefox' in (BLFS) python3. -->
@@ -100,9 +102,8 @@
       <xref linkend="libevent"/>,
 <!-- Fails to build with version 1.8.0
       <xref linkend="libvpx"/>,-->
-      <xref linkend="nspr"/>,
-      <xref linkend="nss"/>, and
-      <xref linkend="sqlite"/>
+      <xref linkend="nspr"/>, and
+      <xref linkend="nss"/>
     </para>
 
     <note>
@@ -127,7 +128,6 @@
       <xref linkend="gst10-libav"/> at runtime),-->
       <!-- <xref linkend="openjdk"/>, not in build log -->
       <xref linkend="pulseaudio"/>,
-      <xref linkend="startup-notification"/>,
       <xref linkend="wget"/>, and
       <xref linkend="wireless_tools"/>
     </para>
@@ -163,15 +163,11 @@
 # if you want to use a smaller number of jobs:
 #mk_add_options MOZ_MAKE_FLAGS="-j1"
 
-
 # If you have installed dbus-glib, comment out this line:
 ac_add_options --disable-dbus
 
 # If you have installed wireless-tools comment out this line:
 ac_add_options --disable-necko-wifi
-
-# Uncomment these lines if you have installed optional dependencies:
-#ac_add_options --enable-startup-notification
 
 # Comment out following option if you have PulseAudio installed
 ac_add_options --disable-pulseaudio
@@ -184,7 +180,6 @@ ac_add_options --disable-gconf
 
 # Comment out following options if you have not installed
 # recommended dependencies:
-ac_add_options --enable-system-sqlite
 ac_add_options --with-system-libevent
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
@@ -221,7 +216,6 @@ ac_add_options --enable-official-branding
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
-ac_add_options --with-system-bz2
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-png
 ac_add_options --with-system-zlib</literal>
@@ -332,10 +326,10 @@ in case an editor figures out how to install the development environment.
 
       <para>
         First, open the configuration dialog by opening the <quote>Edit</quote>
-        drop-down menu. Choose <quote>Preferences</quote> and then click on the
-        <quote>Advanced</quote> icon on the top menu bar. Choose the
-        <quote>General</quote> tab and click on the <quote>Config Editor</quote>
-        button. This will display a list of the configuration preferences and
+        drop-down menu. Choose <quote>Preferences</quote> and then scroll down
+        to the bottom of the page. Then, click the <quote>Config Editor</quote>
+        button. Click on the <quote>I accept the risk!</quote> button. 
+        This will display a list of the configuration preferences and
         information related to each one. You can use the <quote>Filter:</quote>
         bar to enter search criteria and narrow down the listed items. Changing
         a preference can be done using two methods. One, if the preference has a
@@ -370,9 +364,9 @@ in case an editor figures out how to install the development environment.
       or <application>KDE</application>, a desktop file
       <filename>thunderbird.desktop</filename> may be created, in order to
       include a <quote><application>Thunderbird</application></quote> entry in
-      the menu. If you didn't enable
+      the menu. <!--If you didn't enable
       <application>startup-notification</application> in your mozconfig, then
-      change the StartupNotify line to false. Run the following commands as the
+      change the StartupNotify line to false.--> Run the following commands as the
       <systemitem class="username">root</systemitem> user:
 
     </para>
@@ -412,8 +406,9 @@ ln -sfv /usr/lib/thunderbird/chrome/icons/default/default256.png \
         </seg>
         <seg>
           libldap60.so, libldif60.so, liblgpllibs.so, libmozgtk.so, 
-          libmozsandbox.so, libmozwayland.so libprldap60.so, and libxul.so,
-          all in /usr/lib/thunderbird directory
+          libmozsandbox.so, libmozsqlite3.so, libmozwayland.so, libmp.so,
+          libprldap60.so, and libxul.so, all in the /usr/lib/thunderbird 
+          directory
         </seg>
         <seg>
           /usr/lib/thunderbird
