@@ -4,15 +4,16 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY at-download-http "http://ftp.debian.org/debian/pool/main/a/at/at_&at-version;.orig.tar.gz">
+  <!ENTITY at-download-http "http://software.calhariz.com/at/at_&at-version;.orig.tar.gz">
   <!ENTITY at-download-ftp  " ">
-  <!ENTITY at-md5sum        "1cec945506b5ddf1d776c92c315fc581">
-  <!ENTITY at-size          "272 KB">
-  <!ENTITY at-buildsize     "1.6 MB">
+  <!ENTITY at-md5sum        "518a1c1782c8434869bb0824f1d84520">
+  <!ENTITY at-md5sum        "">
+  <!ENTITY at-size          "125 KB">
+  <!ENTITY at-buildsize     "1.8 MB including tests">
   <!ENTITY at-time          "less than 0.1 SBU">
 ]>
 
-<sect1 id="at" xreflabel="Fcron-&at-version;">
+<sect1 id="at" xreflabel="At-&at-version;">
   <?dbhtml filename="at.html"?>
 
   <sect1info>
@@ -95,26 +96,11 @@
       Before building <application>at</application>, as the
       <systemitem class="username">root</systemitem> user you should create
       the group and user <systemitem class="username">atd</systemitem> which
-      will run the <command>atd</command> daemon.  Also ensure the working
-      directory for the daemon exists:
+      will run the <command>atd</command> daemon:
     </para>
 
 <screen role="root"><userinput>groupadd -g 17 atd                                                  &amp;&amp;
-useradd -d /dev/null -c "atd daemon" -g atd -s /bin/false -u 17 atd &amp;&amp;
-mkdir -p /var/spool/cron</userinput></screen>
-
-    <para>
-      Fix <filename>Makefile.in</filename> so that the documentation directory
-      is installed in the specified docdir:
-    </para>
-
-<screen><userinput>sed -i '/docdir/s/=.*/= @docdir@/' Makefile.in</userinput></screen>
-
-    <para>
-      Regenerate the build files to be consistent with this package version:
-    </para>
-
-<screen><userinput>autoreconf</userinput></screen>
+useradd -d /dev/null -c "atd daemon" -g atd -s /bin/false -u 17 atd</userinput></screen>
 
     <para>
       Install <application>at</application> with the following
@@ -123,19 +109,23 @@ mkdir -p /var/spool/cron</userinput></screen>
 
     <screen revision="sysv"><userinput>./configure --with-daemon_username=atd        \
             --with-daemon_groupname=atd       \
+            --with-jobdir=/var/spool/atjobs   \
+            --with-atspool=/var/spool/atspool \
             SENDMAIL=/usr/sbin/sendmail       &amp;&amp;
-
 make -j1</userinput></screen>
 
     <screen revision="systemd"><userinput>./configure --with-daemon_username=atd        \
             --with-daemon_groupname=atd       \
             SENDMAIL=/usr/sbin/sendmail       \
+            --with-jobdir=/var/spool/atjobs   \
+            --with-atspool=/var/spool/atspool \
             --with-systemdsystemunitdir=/lib/systemd/system &amp;&amp;
 make -j1</userinput></screen>
 
     <para>
-      This package does not come with a test suite.
+      To test the results, issue: <command>make test</command>.
     </para>
+
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -165,6 +155,35 @@ make -j1</userinput></screen>
       <indexterm zone="at at-config">
         <primary sortas="e-etc-at.deny">/etc/at.deny</primary>
       </indexterm>
+
+    </sect3>
+
+    <sect3>
+      <title>Linux PAM Configuration</title>
+
+      <para>
+        If <application>At</application> has been built with
+        <application>Linux PAM</application> support, you need to create a
+        <application>PAM</application> configuration file, to get it working
+        correctly with BLFS.
+      </para>
+
+      <para>
+        Issue the following commands as the <systemitem
+        class="username">root</systemitem> user to create the configuration
+        file for <application>Linux PAM</application>:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/atd &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/atd
+
+auth required pam_unix.so
+account required pam_unix.so
+password required pam_unix.so
+session required pam_unix.so
+
+# End /etc/pam.d/atd</literal>
+EOF</userinput></screen>
 
     </sect3>
 
@@ -212,7 +231,6 @@ make -j1</userinput></screen>
           None
         </seg>
         <seg>
-          /var/spool/cron/at{jobs,spool} and
           /usr/share/doc/at-&at-version;
         </seg>
       </seglistitem>
