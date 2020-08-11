@@ -6,11 +6,13 @@
 
   <!ENTITY lvm2-download-http "https://sourceware.org/ftp/lvm2/LVM2.&lvm2-version;.tgz">
   <!ENTITY lvm2-download-ftp  "ftp://sourceware.org/pub/lvm2/LVM2.&lvm2-version;.tgz">
-  <!ENTITY lvm2-md5sum        "e49bd19ce684ef018c771c6a99f3ed58">
+  <!ENTITY lvm2-md5sum        "ffce8d4e86c74d8d44098a530410e843">
   <!ENTITY lvm2-size          "2.4 MB">
-  <!ENTITY lvm2-buildsize     "34 MB (add at least 600 MB for tests in the /tmp directory; additionally transient files can grow up to around 500 MB)">
-  <!-- My build size was 124 MB with tests, but I'll leave this here. -renodr -->
-  <!ENTITY lvm2-time          "0.2 SBU (using parallelism=4; add 16 SBU for tests)">
+  <!ENTITY lvm2-buildsize     "34 MB (add 22 MB for tests; transient files can grow up to around 800 MB in the /tmp directory during tests)">
+  <!-- My build size was 124 MB with tests, but I'll leave this here. -renodr
+       The files in /tmp are transcient. I monitor /tmp with a loop during
+       tests. -pierre, August 2020 -->
+  <!ENTITY lvm2-time          "0.2 SBU (using parallelism=4; add 16 to 45 SBU for tests, depending on disk speed)">
 ]>
 
 <sect1 id="lvm2" xreflabel="LVM2-&lvm2-version;">
@@ -170,9 +172,12 @@ make -C libdm install</userinput></screen>
     </para>
 
 <screen role="root"
-        remap="test"><userinput>make check_local</userinput></screen>
+        remap="test"><userinput>make S=shell/thin-flags.sh check_local</userinput></screen>
 
     <para>
+      The <command>S=...</command> option allows to skip tests. The
+      <command>shell/thin-flags.sh</command> test has been reported to freeze
+      the computer.
       Other targets are available and can be listed with
       <command>make -C test help</command>. The test timings are very dependent
       on the speed of the disk(s), and on the number of enabled kernel options.
@@ -294,8 +299,8 @@ make install_systemd_units</userinput></screen>
         <seg>
           libdevmapper.so and liblvm2cmd.so; optional:
           libdevmapper-event.so, libdevmapper-event-lvm2.so,
-          libdevmapper-event-lvm2mirror.so, libdevmapper-event-lvm2snapshot.so,
-          libdevmapper-event-lvm2raid.so, and libdevmapper-event-lvm2thin.so
+          libdevmapper-event-lvm2mirror.so, libdevmapper-event-lvm2raid.so,
+          libdevmapper-event-lvm2snapshot.so, and libdevmapper-event-lvm2thin.so
         </seg>
         <seg>
           /etc/lvm and
