@@ -222,7 +222,7 @@
     </para>
 
     <caution>
-  <!--<para>
+      <para>
         The instructions here for dealing with <application>poppler</application>
         will only work with versions of poppler used in BLFS-9.1 and later, i.e.
         poppler &gt;= 0.83.0. If you wish to upgrade an older system, there
@@ -231,10 +231,10 @@
         class="directory">texk/web2c/pdftexdir</filename>. You should establish
         which version of <application>poppler</application> is installed and use
         the appropriate versions of these files.
-      </para>-->
+      </para>
 
       <para>
-        If you wish to upgrade to current <application>texlive</application>
+        Similarly, if you wish to upgrade to current <application>texlive</application>
         on an older system where extra packages (<application>asymptote</application>.
         <application>biber</application>, <application>dvisvgm</application> or
         <application>xindy</application>) have been installed, you will need to
@@ -257,6 +257,35 @@
 # End texlive &texlive-year; addition</literal>
 EOF</userinput></screen>
 
+    <para>
+      <application>TexLive</application> ships with a very old version of
+      <application>poppler</application>, and some updated files for newer versions.
+      To use the system version, first identify it and then copy the correct
+      versions of the updated files (please read the Caution above):
+    </para>
+
+<!-- on a release, drop this back to current version but update the
+ Caution above and ideally keep this commented, every other (expletive
+ deleted) poppler update tends to break this. -->
+<screen><userinput>SYSPOP= &amp;&amp;
+let MYPOPPLER_MAJOR=$(pkg-config --modversion poppler | cut -d '.' -f1)
+let MYPOPPLER_MINOR=$(pkg-config --modversion poppler | cut -d '.' -f2)
+if [ "$MYPOPPLER_MAJOR" -eq 0 ] &amp;&amp; [ "$MYPOPPLER_MINOR" -lt 85 ]; then
+    # BLFS-9.1 uses 0.85.0, ignore earlier versions in this script.
+    SYSPOP=
+else
+    SYSPOP="--with-system-poppler --with-system-xpdf"
+    if [ "$MYPOPPLER_MAJOR" -eq 0 ] &amp;&amp; [ "$MYPOPPLER_MINOR" -lt 86 ]; then
+        mv -v texk/web2c/pdftexdir/pdftoepdf{-poppler0.83.0,}.cc
+    else # 0.86.0 or later, including 20.08.0.
+        mv -v texk/web2c/pdftexdir/pdftoepdf{-poppler0.86.0,}.cc
+    fi
+    # For pdftosrc BLFS-9.1 uses 0.83.0 and that is the latest variant.
+    mv -v texk/web2c/pdftexdir/pdftosrc{-poppler0.83.0,}.cc
+fi &amp;&amp;
+export SYSPOP &amp;&amp;
+unset MYPOPPLER_{MAJOR,MINOR}</userinput></screen>
+
     <note>
       <para>
         A successful install requires some texlive
@@ -270,12 +299,6 @@ EOF</userinput></screen>
     </para>
 <!-- after the export!
 patch -Np1 -i ../texlive-&texlive-version;-source-upstream_fixes-1.patch &amp;&amp;-->
-
-<!-- System poppler was removed from upstream in
- https://tug.org/svn/texlive?view=revision&revision=55138
- so for remaining lifetime of TL2020 use its shipped version
- because it does not build with current system poppler -->
-
 <screen><userinput>export TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
 
 mkdir texlive-build &amp;&amp;
@@ -304,10 +327,12 @@ cd texlive-build    &amp;&amp;
     --with-system-libpng                                        \
     --with-system-mpfr                                          \
     --with-system-pixman                                        \
+    ${SYSPOP}                                                   \
     --with-system-zlib                                          \
     --with-banner-add=" - BLFS" &amp;&amp;
 
-make</userinput></screen>
+make &amp;&amp;
+unset SYSPOP</userinput></screen>
 
     <para>
       To test the results, issue: <command>make -k check</command>.
