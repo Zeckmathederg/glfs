@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!-- TODO: rename firefox-version to ff78-version,
+             to make our life easier when Firefox goes into next ESR. -->
+  <!ENTITY ff78-version       "&firefox-version;">
+  <!ENTITY js78-download-http "&mozilla-http;/firefox/releases/&ff78-version;esr/source/firefox-&ff78-version;esr.source.tar.xz">
+  <!ENTITY js78-download-ftp  " ">
+  <!-- 78.1.0 -->
+  <!ENTITY js78-md5sum        "4fec654ff75d469da53356644645e785">
+  <!ENTITY js78-size          "317 MB">
+  <!ENTITY js78-buildsize     "2.8 GB (30 MB installed after removing 31MB static lib)">
+  <!ENTITY js78-time          "2.2 SBU (with parallelism = 4)">
+]>
+
+<sect1 id="js78" xreflabel="js78-&ff78-version;">
+  <?dbhtml filename="js78.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy$</othername>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>JS-&ff78-version;</title>
+
+  <indexterm zone="js78">
+    <primary sortas="a-js78">js78</primary>
+  </indexterm>
+
+  <!-- WIP, do NOT add into book for now. -->
+
+  <sect2 role="package">
+    <title>Introduction to JS</title>
+
+    <para>
+      <application>JS</application> is Mozilla's JavaScript engine
+      written in C. JS78 is taken from Firefox.
+    </para>
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&js78-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&js78-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &js78-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &js78-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &js78-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &js78-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/js78-code_coverage-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">JS78 Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="autoconf213"/>,
+      <xref linkend="icu"/>,
+      <xref linkend="llvm"/>,
+      <xref linkend="rust"/>, and
+      <xref linkend="which"/>
+    </para>
+
+    <!-- It seems nasm is only used for aarch64-win64. -->
+    <!--bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="nasm"/>
+    </para-->
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/js78"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of JS</title>
+
+    <caution>
+      <para>
+        If you are upgrading JS78 from a previously installed old version,
+        save all work and exit your GNOME Session if you have one running.
+        Replacing the JS78 binary will cause the GNOME Shell to crash and
+        return you to your display manager or TTY. After installing the new
+        version, if GNOME Shell still doesn't work, reinstall
+        <xref linkend="gjs"/>.
+      </para>
+    </caution>
+
+    <note>
+      <para>
+        Unlike most other packages in BLFS, the instructions below require you
+        to untar <filename>firefox-&ff78-version;esr.tar.xz</filename> and
+        change into the <filename>firefox-&ff78-version;</filename> folder.
+      </para>
+
+      <para>
+        Extracting the tarball
+        will reset the permissions of the current directory to 0755 if you
+        have permission to do that. If you do this in a directory where
+        the sticky bit is set, such
+        as <filename class="directory">/tmp</filename> it will end with error
+        messages:
+      </para>
+
+<literallayout>tar: .: Cannot utime: Operation not permitted
+tar: .: Cannot change mode to rwxr-xr-t: Operation not permitted
+tar: Exiting with failure status due to previous errors
+</literallayout>
+
+      <para>
+        This does finish with non-zero status, but it does
+        <emphasis>NOT</emphasis> mean there is a real problem.
+        Do not untar as the <systemitem class="username">root</systemitem> user
+        in a directory where the sticky bit is set - that will unset it.
+      </para>
+
+    </note>
+
+    <!-- It's likely to be merged in 78.2.0.  -->
+    <para>
+      Apply a patch required by <xref linkend="gjs"/>:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../js78-code_coverage-1.patch</userinput></screen>
+
+    <para>
+      Install <application>JS</application> by running the following
+      commands:
+    </para>
+
+     <note>
+        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+         href="../../xincludes/mozshm.xml"/>
+
+        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+         href="../../xincludes/mozconfigure.xml"/>
+     </note>
+
+
+<screen><userinput>mkdir obj &amp;&amp;
+cd    obj &amp;&amp;
+
+CC=gcc CXX=g++ \
+../js/src/configure --prefix=/usr            \
+                    --with-intl-api          \
+                    --with-system-zlib       \
+                    --with-system-icu        \
+                    --disable-jemalloc       \
+                    --disable-debug-symbols  \
+                    --enable-readline        &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      <!-- All JIT tests pass with 78.1.0 and GNOME patch. -->
+      To run JIT test suite, issue:
+      <command>make -C js/src check-jit-test
+      JITTEST_EXTRA_ARGS="--timeout 300"</command>.
+      The other parts of test suite are not functional on BLFS.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install &amp;&amp;
+rm -v /usr/lib/libjs_static.ajs &amp;&amp;
+sed '/@NSPR_CFLAGS@/d' /usr/bin/js78-config</userinput></screen>
+
+  </sect2>
+
+  <!-- Several gjs-1.65.90 tests fail with js78.  Not sure why.
+       OTOH an "otherwise" GNOME-3.36 environment works fine. -->
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <envar>CC=gcc CXX=g++</envar>: Upstream now prefers
+      <application>clang</application>, override it like other Mozilla
+      packages in BLFS book.
+    </para>
+
+    <para>
+      <parameter>--with-*</parameter>: These parameters allow the build system
+      to use system versions of the above libraries. These are required for
+      stability.
+    </para>
+
+    <para>
+      <parameter>--enable-readline</parameter>: This switch enables Readline
+      support in the JS shell.
+    </para>
+    
+    <para>
+      <parameter>--disable-jemalloc</parameter>: This switch disables the
+      internal memory allocator used in JS78. jemalloc causes a conflict with glibc.
+    </para>
+
+    <para>
+      <parameter>--disable-debug-symbols</parameter>: Don't generate debug
+      symbols since they are very large and most users won't need it. Remove
+      it if you want to debug JS78.
+    </para>
+
+    <para>
+      <command>rm -v /usr/lib/libjs_static.ajs</command>: Remove a large
+      static library which is not used by any BLFS package.
+    </para>
+
+    <para>
+      <!-- recheck on 78.2.0 -->
+      <command>sed '/@NSPR_CFLAGS@/d' /usr/bin/js78-config</command>:
+      Prevent <command>js78-config</command> to print buggy CFLAGS.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          js78 and js78-config
+        </seg>
+        <seg>
+          libmozjs-78.so
+        </seg>
+        <seg>
+          /usr/include/mozjs-78
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="js6-js78">
+        <term><command>js78</command></term>
+        <listitem>
+          <para>
+            provides a command line interface to the
+            <application>JavaScript</application> engine.
+          </para>
+          <indexterm zone="js78 js78">
+            <primary sortas="b-js78">js78</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="js78-config">
+        <term><command>js78-config</command></term>
+        <listitem>
+          <para>
+            is used to find the JS compiler and linker flags.
+          </para>
+          <indexterm zone="js78 js78-config">
+            <primary sortas="b-js78-config">js78-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libmozjs-78">
+        <term><filename class="libraryfile">libmozjs-78.so</filename></term>
+        <listitem>
+          <para>
+            contains the Mozilla JavaScript API functions.
+          </para>
+          <indexterm zone="js78 libmozjs-78">
+            <primary sortas="c-libmozjs78">libmozjs-78.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
