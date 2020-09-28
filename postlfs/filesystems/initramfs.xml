@@ -118,6 +118,10 @@ for f in mdadm mdmon udevd udevadm; do
   if [ -x /sbin/$f ] ; then sbinfiles="$sbinfiles $f"; fi
 done
 
+# Add lvm if present (cannot be done with the others because it
+# also needs dmsetup
+if [ -x /sbin/lvm ] ; then sbinfiles="$sbinfiles lvm dmsetup"; fi
+
 unsorted=$(mktemp /tmp/unsorted.XXXXXXXXXX)
 
 DATADIR=/usr/share/mkinitramfs
@@ -173,16 +177,6 @@ for f in $binfiles ; do
   copy $d/$f bin
 done
 
-# Add lvm if present
-if [ -x /sbin/lvm ] ; then sbinfiles="$sbinfiles lvm dmsetup"; fi
-
-# Add mdadm if present
-if [ -x /sbin/mdadm ] ; then sbinfiles="$sbinfiles mdadm"; fi
-
-# Add udevd if present in /sbin (newer versions of udev have it in
-# /lib/udev)
-if [ -x /sbin/udevd ] ; then sbinfiles="$sbinfiles udevd"; fi
-
 for f in $sbinfiles ; do
   ldd /sbin/$f | sed "s/\t//" | cut -d " " -f1 &gt;&gt; $unsorted
   copy $f sbin
@@ -200,8 +194,6 @@ if [ -n "$KERNEL_VERSION" ] &amp;&amp; [ -x /bin/kmod ] ; then
   ln -s kmod $WDIR/bin/lsmod
   ln -s kmod $WDIR/bin/insmod
 fi
-
-ln -s bash $WDIR/bin/sh
 
 # Add lvm symlinks if appropriate
 # Also copy the lvm.conf file
