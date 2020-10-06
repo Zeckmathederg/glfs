@@ -220,23 +220,30 @@ make</userinput></screen>
     </sect3>
 
    <sect3 id="lxdm-init">
-      <title>Boot Script</title>
+      <title><phrase revision="sysv">Boot Script</phrase>
+             <phrase revision="systemd">Systemd Unit</phrase></title>
+
+      <indexterm zone="lxdm lxdm-init">
+        <primary sortas="f-lxdm">lxdm</primary>
+      </indexterm>
 
       <para revision="sysv">
-        Install the <filename>/etc/rc.d/init.d/lxdm</filename> init script from
-        the <xref linkend="bootscripts"/> package.
+        To start <command>lxdm</command> automatically when the system is
+        switched to runlevel 5, install the
+        <filename>/etc/rc.d/init.d/xdm</filename> script and the
+        <filename>/etc/sysconfig/xdm</filename> configuration file
+        included in the <xref linkend="bootscripts"/> package
+        and adjust <filename>/etc/inittab</filename> by running
+        as the <systemitem class="username">root</systemitem> user:
       </para>
+
+<screen role="root" revision="sysv"><userinput>make install-lxdm</userinput></screen>
 
       <para revision="systemd">
         To start <application>LXDM</application> at boot execute the following
         command as the <systemitem class="username">root</systemitem> user:
       </para>
 
-      <indexterm zone="lxdm lxdm-init">
-        <primary sortas="f-lxdm">lxdm</primary>
-      </indexterm>
-
-<screen role="root" revision="sysv"><userinput>make install-lxdm</userinput></screen>
 <screen role="root" revision="systemd"><userinput>systemctl enable lxdm</userinput></screen>
 
     </sect3>
@@ -275,55 +282,34 @@ make</userinput></screen>
       <title>Starting lxdm</title>
 
       <para>
-        You can manually start <command>lxdm</command>, e.g, if the bootscript
-        has been installed, by running, as <systemitem
+        The <command>lxdm</command> greeter can be started from the command
+        line as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>telinit 5</userinput></screen>
+
+      <para>
+        Alternatively the runlevel can be permanently set to 5, starting the
+        <command>lxdm</command> greeter screen automatically, by modifying
+        <filename>/etc/inittab</filename>. As the  <systemitem
         class="username">root</systemitem> user:
-      </para>
-
-<screen role="root"><userinput>/etc/rc.d/init.d/lxdm start</userinput></screen>
-
-      <para>
-        By convention, X should be executed at runlevel 5, consequently, the
-        same is true for <application>lxdm</application>. However, the LFS default
-        runlevel is 3. Changing to runlevel 5, from the console (as
-        <systemitem class="username">root</systemitem> user) starts the
-        <command>lxdm</command> bootscript and presents the
-        greeter screen:
-      </para>
-
-<screen role="root"><userinput>init 5</userinput></screen>
-
-      <para>
-          In order to permanently set the default to 5, starting the
-          <command>lxdm</command> greeter screen automatically, you can modify
-          <filename>/etc/inittab</filename>. As the  <systemitem
-          class="username">root</systemitem> user:
       </para>
 
 <screen role="root"><userinput>cp -v /etc/inittab{,-orig} &amp;&amp;
 sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
 
-      <para>
-          You should also disable default elogind power management:
-      </para>
- 
-<screen role="root"><userinput>cat &gt;&gt; /etc/elogind/logind.conf &lt;&lt; "EOF"
-<literal>AllowSuspend=no
-AllowHibernation=no</literal>
-EOF</userinput></screen>
-
       <note>
-      <para>
+        <para>
           One important script, executed after login is
           <filename>/etc/lxdm/Xsession</filename> which we have fixed to fit
           BLFS specifications.
-      </para>
+        </para>
       </note>
 
     </sect3>
 
   </sect2>
-  <!--Required section-->
+  
   <sect2 role="content">
     <title>Contents</title>
 
@@ -350,10 +336,6 @@ EOF</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <!-- If the program or library name conflicts (is the same) as the
-      package name, add -prog or -lib to the varlistentry entity id
-      and the 2nd entry of the indexterm zone entity -->
 
       <varlistentry id="lxdm-prog">
         <term><command>lxdm</command></term>

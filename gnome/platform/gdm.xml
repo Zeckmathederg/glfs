@@ -127,35 +127,6 @@ useradd -c "GDM Daemon Owner" -d /var/lib/gdm -u 21 \
         -g gdm -s /bin/false gdm &amp;&amp;
 passwd -ql gdm</userinput></screen>
 
-<!--
-    <note revision="sysv">
-      <para>
-        The <application>gdm</application> login screen is managed by
-        <application>gnome-shell</application>, which relies on the
-        <command>systemd-localed</command> daemon to get the system
-        settings. Since this daemon is not present on this system, a
-        <command>sed</command> is applied in the <xref
-        linkend="gnome-shell"/> instructions to change this behavior,
-        but then <application>gdm</application> uses the system settings,
-        which default to a US <quote>qwerty</quote> keyboard layout. This may
-        be an inconvience to enter a password when the machine keyboard
-        has a different layout. One possibility is to use the screen-keyboard
-        from the accessibility menu. Another possibility is to change the
-        defaults at compile time, by creating the following file:
-      </para>
-
-<screen><userinput>cat &gt; data/dconf/defaults/01-keyboard &lt;&lt; EOF
-<literal>[org/gnome/desktop/input-sources]
-sources=[('xkb','<replaceable>layout</replaceable>')]</literal>
-EOF</userinput></screen>
-
-      <para>
-        where <replaceable>layout</replaceable> should be replaced with
-        the acronym for your keyboard layout (one of the filenames in
-        <filename class="directory">/usr/share/X11/xkb/symbols</filename>).
-      </para>
-    </note>
--->
     <para>
       Install <application>GDM</application> by running the following
       commands:
@@ -269,16 +240,12 @@ install -v -m644 data/gdm.service /lib/systemd/system/gdm.service</userinput></s
       </indexterm>
 
       <para revision="sysv">
-        To start the <command>gdm</command> automatically when the system
-        is booted, install the <filename>/etc/rc.d/init.d/gdm</filename>
-        init script included in the <xref linkend="bootscripts"/> package and
-        set the default runlevel to 5 (graphical login) as the
-        <systemitem class="username">root</systemitem> user:
-      </para>
-
-      <para revision="systemd">
-        To start the <command>gdm</command> daemon at boot, enable
-        the previously installed systemd unit by running the following command
+        To start <command>gdm</command> automatically when the system is
+        switched to runlevel 5, install the
+        <filename>/etc/rc.d/init.d/xdm</filename> script and the
+        <filename>/etc/sysconfig/xdm</filename> configuration file
+        included in the <xref linkend="bootscripts"/> package
+        and adjust <filename>/etc/inittab</filename> by running
         as the <systemitem class="username">root</systemitem> user:
       </para>
 
@@ -293,6 +260,16 @@ install -v -m644 data/gdm.service /lib/systemd/system/gdm.service</userinput></s
 
 <screen role="root" revision="sysv"><userinput>sed /initdefault/s/3/5/ -i /etc/inittab</userinput></screen>
 
+      <para revision="systemd">
+        To start the <command>gdm</command> daemon at boot, enable
+        the previously installed systemd unit by running the following command
+        as the <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root" revision="systemd"><userinput>systemctl enable gdm</userinput></screen>
+
+<!-- [pierre October 2020] I don't understand why this is here: power
+     management works perfectly well
       <para revision="sysv">
           You should also disable default elogind power management:
       </para>
@@ -301,8 +278,7 @@ install -v -m644 data/gdm.service /lib/systemd/system/gdm.service</userinput></s
 <literal>AllowSuspend=no
 AllowHibernation=no</literal>
 EOF</userinput></screen>
-
-<screen role="root" revision="systemd"><userinput>systemctl enable gdm</userinput></screen>
+-->
 
     </sect3>
 
