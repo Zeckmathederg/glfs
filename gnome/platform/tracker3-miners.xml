@@ -4,26 +4,26 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY tracker-miners-download-http "&gnome-download-http;/tracker-miners/2.3/tracker-miners-&tracker-miners-version;.tar.xz">
-  <!ENTITY tracker-miners-download-ftp  "&gnome-download-ftp;/tracker-miners/2.3/tracker-miners-&tracker-miners-version;.tar.xz">
-  <!ENTITY tracker-miners-md5sum        "0bbcab133ed33ccbf65923020f99e1cc">
-  <!ENTITY tracker-miners-size          "3.0 MB">
-  <!ENTITY tracker-miners-buildsize     "28 MB (with tests)">
-  <!ENTITY tracker-miners-time          "1.0 SBU (with tests)">
+  <!ENTITY tracker3-miners-download-http "&gnome-download-http;/tracker-miners/3.0/tracker-miners-&tracker3-miners-version;.tar.xz">
+  <!ENTITY tracker3-miners-download-ftp  "&gnome-download-ftp;/tracker-miners/3.0/tracker-miners-&tracker3-miners-version;.tar.xz">
+  <!ENTITY tracker3-miners-md5sum        "a084d9d982e937b9e445dc600682c5ff">
+  <!ENTITY tracker3-miners-size          "3.8 MB">
+  <!ENTITY tracker3-miners-buildsize     "36 MB (with tests)">
+  <!ENTITY tracker3-miners-time          "1.2 SBU (with tests)">
 ]>
 
-<sect1 id="tracker-miners" xreflabel="tracker-miners-&tracker-miners-version;">
-  <?dbhtml filename="tracker-miners.html"?>
+<sect1 id="tracker3-miners" xreflabel="tracker-miners-&tracker3-miners-version;">
+  <?dbhtml filename="tracker3-miners.html"?>
 
   <sect1info>
     <othername>$LastChangedBy$</othername>
     <date>$Date$</date>
   </sect1info>
 
-  <title>Tracker-miners-&tracker-miners-version;</title>
+  <title>Tracker-miners-&tracker3-miners-version;</title>
 
-  <indexterm zone="tracker-miners">
-    <primary sortas="a-tracker-miners">tracker-miners</primary>
+  <indexterm zone="tracker3-miners">
+    <primary sortas="a-tracker3-miners">tracker3-miners</primary>
   </indexterm>
 
   <sect2 role="package">
@@ -40,32 +40,32 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Download (HTTP): <ulink url="&tracker-miners-download-http;"/>
+          Download (HTTP): <ulink url="&tracker3-miners-download-http;"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Download (FTP): <ulink url="&tracker-miners-download-ftp;"/>
+          Download (FTP): <ulink url="&tracker3-miners-download-ftp;"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Download MD5 sum: &tracker-miners-md5sum;
+          Download MD5 sum: &tracker3-miners-md5sum;
         </para>
       </listitem>
       <listitem>
         <para>
-          Download size: &tracker-miners-size;
+          Download size: &tracker3-miners-size;
         </para>
       </listitem>
       <listitem>
         <para>
-          Estimated disk space required: &tracker-miners-buildsize;
+          Estimated disk space required: &tracker3-miners-buildsize;
         </para>
       </listitem>
       <listitem>
         <para>
-          Estimated build time: &tracker-miners-time;
+          Estimated build time: &tracker3-miners-time;
         </para>
       </listitem>
     </itemizedlist>
@@ -83,7 +83,6 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="ffmpeg"/>,
-      <xref linkend="flac"/>,
       <xref linkend="giflib"/>,
       <xref linkend="icu"/>,
       <xref linkend="libexif"/>,
@@ -115,30 +114,34 @@
     <title>Installation of Tracker-miners</title>
 
     <para>
+      First, as the <systemitem class="username">root</systemitem> user, 
+      remove some files from tracker-2 which will conflict with 
+      tracker-miners-3:
+    </para>
+
+<screen role="root"><userinput remap="pre">rm -v /etc/xdg/autostart/tracker-miner-*</userinput></screen>
+
+    <para>
       Install <application>Tracker-miners</application> by running the following
       commands:
     </para>
 
 
-<screen><userinput>mkdir build &amp;&amp;
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
 meson --prefix=/usr .. &amp;&amp;
 ninja</userinput></screen>
 
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson --prefix=/usr -Dsystemd_user_services=false .. &amp;&amp;
+ninja</userinput></screen>
+
     <para>
       To test the results, as the <systemitem class="username">root</systemitem>
       user, issue: <command>ninja test</command>.
-      <!--
-      Eight tests, test-image-1, 300-miner-basic-ops, 310-fts-basic,
-      310-fts-basic, 311-fts-file-operations, 401-extractor-flac-cuesheet,
-      500-writeback-images, 501-writeback-image-details, and
-      502-writeback-audio are known to fail due to internal test
-      suite problems.
-      -->
-      Two tests, test-image-1 and functional-401-extractor-flac-cuesheet, 
-      are known to fail.
-      <!-- flac cuesheet is due to libcue not being installed. -->
     </para>
 
     <para>
@@ -151,10 +154,17 @@ ninja</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para revision="sysv">
+      <parameter>-Dsystemd_user_services=false</parameter>: This switch prevents
+      the build process from installing systemd units since they are useless
+      on SysV systems.
+    </para>
+
     <para>
       <option>-Dminer_rss=false</option>: Use this option if you have not
       installed the recommended dependency libgrss.
     </para>
+
   </sect2>
 
   <sect2 role="content">
@@ -170,12 +180,12 @@ ninja</userinput></screen>
           None
         </seg>
         <seg>
-          libtracker-extract.so, and
-          several modules under /usr/lib/tracker-miners-2.0.
+          Several modules under /usr/lib/tracker-miners-3.0.
         </seg>
         <seg>
-          /usr/lib/tracker-miners-2.0 and
-          /usr/share/tracker-miners
+          /usr/lib/tracker-miners-3.0,
+          /usr/libexec/tracker3, and
+          /usr/share/tracker3-miners
         </seg>
       </seglistitem>
     </segmentedlist>
