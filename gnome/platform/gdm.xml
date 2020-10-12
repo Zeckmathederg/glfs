@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/&gnome-minor-36;/gdm-&gdm-version;.tar.xz">
-  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/&gnome-minor-36;/gdm-&gdm-version;.tar.xz">
-  <!ENTITY gdm-md5sum        "2fb78422269f5e75067024ce5386521c">
-  <!ENTITY gdm-size          "1.2 MB">
-  <!ENTITY gdm-buildsize     "42 MB">
-  <!ENTITY gdm-time          "0.3 SBU">
+  <!ENTITY gdm-download-http "&gnome-download-http;/gdm/&gnome-minor-38;/gdm-&gdm-version;.tar.xz">
+  <!ENTITY gdm-download-ftp  "&gnome-download-ftp;/gdm/&gnome-minor-38;/gdm-&gdm-version;.tar.xz">
+  <!ENTITY gdm-md5sum        "948dec80099d9d3a2adacc5788964043">
+  <!ENTITY gdm-size          "772 KB">
+  <!ENTITY gdm-buildsize     "34 MB">
+  <!ENTITY gdm-time          "0.1 SBU">
 ]>
 
 <sect1 id="gdm" xreflabel="GDM-&gdm-version;">
@@ -127,6 +127,12 @@ useradd -c "GDM Daemon Owner" -d /var/lib/gdm -u 21 \
         -g gdm -s /bin/false gdm &amp;&amp;
 passwd -ql gdm</userinput></screen>
 
+    <para revision="sysv">
+      First, adapt GDM to build without systemd present:
+    </para>
+
+<screen revision="sysv"><userinput remap="pre">sed -i -r '/(^| )systemd_dep/d' meson.build</userinput></screen>
+
     <para>
       Install <application>GDM</application> by running the following
       commands:
@@ -134,24 +140,31 @@ passwd -ql gdm</userinput></screen>
 
 <screen revision="sysv"><userinput>sed 's@systemd@elogind@' -i data/pam-lfs/gdm-launch-environment.pam &amp;&amp;
 
-./configure --prefix=/usr         \
-            --sysconfdir=/etc     \
-            --localstatedir=/var  \
-            --without-plymouth    \
-            --disable-static      \
-	    --enable-gdm-xsession \
-            --with-systemdsystemunitdir=no \
-            --with-pam-mod-dir=/lib/security &amp;&amp;
-make</userinput></screen>
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
-<screen revision="systemd"><userinput>./configure --prefix=/usr         \
-            --sysconfdir=/etc     \
-            --localstatedir=/var  \
-            --without-plymouth    \
-            --disable-static      \
-            --enable-gdm-xsession \
-            --with-pam-mod-dir=/lib/security &amp;&amp;
-make</userinput></screen>
+meson --prefix=/usr               \
+      --sysconfdir=/etc           \
+      --localstatedir=/var        \
+      -Dplymouth=disabled         \
+      -Dgdm-xsession=true         \
+      -Dpam-mod-dir=/lib/security \
+      -Dsystemd-journal=false     \
+      -Dsystemdsystemunitdir=/tmp \
+      -Dsystemduserunitdir=/tmp   .. &amp;&amp;
+ninja</userinput></screen>
+
+<screen revision="systemd"><userinput>
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson --prefix=/usr               \
+      --sysconfdir=/etc           \
+      --localstatedir=/var        \
+      -Dplymouth=disabled         \
+      -Dgdm-xsession=true         \
+      -Dpam-mod-dir=/lib/security .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       This package does not come with a usable test suite.
@@ -161,32 +174,29 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root" revision="sysv"><userinput>make install</userinput></screen>
+<screen role="root" revision="sysv"><userinput>ninja install &amp;&amp;
+rm -rv /tmp/*.{service,target.d}</userinput></screen>
 
-<screen role="root" revision="systemd"><userinput>make install &amp;&amp;
-install -v -m644 data/gdm.service /lib/systemd/system/gdm.service</userinput></screen>    
+<screen role="root" revision="systemd"><userinput>ninja install</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
     <para>
-      <option>--with-initial-vt=7</option>: Use this switch
+      <option>-Dinitial-vt=7</option>: Use this switch
       to make <application>GDM</application> start on VT7
       instead of the first free VT.
     </para>
 
     <para>
-      <parameter>--without-plymouth</parameter>: GDM now explicitly requires 
+      <parameter>-Dplymouth=disabled</parameter>: GDM now explicitly requires 
       plymouth to be installed. Use this switch to disable this dependency.
     </para>
 
     <para>
-      <option>--with-default-pam-config=lfs</option>: Use this
+      <option>-Ddefault-pam-config=lfs</option>: Use this
       switch if you did not create the
       <filename>/etc/lfs-release</filename> file or distribution
       auto detection will fail and you will be unable to use
@@ -194,7 +204,7 @@ install -v -m644 data/gdm.service /lib/systemd/system/gdm.service</userinput></s
     </para>
 
     <para>
-      <parameter>--enable-gdm-xsession</parameter>: This enables the
+      <parameter>-Dgdm-xsession=true</parameter>: This enables the
       installation of the <application>GDM</application> Xsession file.
     </para>
 

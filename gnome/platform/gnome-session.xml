@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY gnome-session-download-http
-           "&gnome-download-http;/gnome-session/&gnome-minor-36;/gnome-session-&gnome-session-version;.tar.xz">
+           "&gnome-download-http;/gnome-session/&gnome-minor-38;/gnome-session-&gnome-session-version;.tar.xz">
   <!ENTITY gnome-session-download-ftp
-           "&gnome-download-ftp;/gnome-session/&gnome-minor-36;/gnome-session-&gnome-session-version;.tar.xz">
-  <!ENTITY gnome-session-md5sum        "cd23e30c4991ca1f477020c67ea3a540">
-  <!ENTITY gnome-session-size          "468 KB">
-  <!ENTITY gnome-session-buildsize     "16 MB">
+           "&gnome-download-ftp;/gnome-session/&gnome-minor-38;/gnome-session-&gnome-session-version;.tar.xz">
+  <!ENTITY gnome-session-md5sum        "736024b46e2542b9b68adaa43f754f49">
+  <!ENTITY gnome-session-size          "472 KB">
+  <!ENTITY gnome-session-buildsize     "15 MB">
   <!ENTITY gnome-session-time          "0.1 SBU">
 ]>
 
@@ -103,7 +103,7 @@
     <title>Installation of GNOME Session</title>
 
     <para>
-      When running Gnome under <xref linkend="wayland"/>, environment settings
+      When running GNOME under <xref linkend="wayland"/>, environment settings
       are not imported for the user using the system profile. The Wayland
       developers are currently undecided on a standard method to provide system
       environment settings for user sessions. To work around this limitation,
@@ -112,6 +112,12 @@
     </para>
 
 <screen><userinput>sed 's@/bin/sh@/bin/sh -l@' -i gnome-session/gnome-session.in</userinput></screen>
+
+    <para revision="sysv">
+      Adapt meson.build so that gnome-session can build without systemd:
+    </para>
+
+<screen revision="sysv"><userinput remap="pre">sed -i "/  systemd_dep/,+3d;/if enable_systemd/a \    systemd_userunitdir = '/tmp\'" meson.build</userinput></screen>
 
     <para>
       Install <application>GNOME Session</application> by
@@ -149,7 +155,7 @@ ninja</userinput></screen>
       remove systemd units that are useless on SysV systems:
     </para>
 
-<screen role="root" revision="sysv"><userinput>rm -v /usr/lib/systemd/user/gnome-session*</userinput></screen>
+<screen role="root" revision="sysv"><userinput>rm -rv /tmp/{*.d,*.target,*.service}</userinput></screen>
 
   </sect2>
 
