@@ -8,10 +8,10 @@
 can be found there, no need to change directory -->
   <!ENTITY mupdf-download-http "http://www.mupdf.com/downloads/archive/mupdf-&mupdf-version;-source.tar.gz">
   <!ENTITY mupdf-download-ftp  " ">
-  <!ENTITY mupdf-md5sum        "f6ffcd81fcd4c57016eb630bcd617c50">
-  <!ENTITY mupdf-size          "62 MB">
-  <!ENTITY mupdf-buildsize     "301 MB">
-  <!ENTITY mupdf-time          "0.1 SBU (Using parallelism=4)">
+  <!ENTITY mupdf-md5sum        "6f42be1365350f05270f8776517a3872">
+  <!ENTITY mupdf-size          "69 MB">
+  <!ENTITY mupdf-buildsize     "322 MB">
+  <!ENTITY mupdf-time          "0.2 SBU (Using parallelism=4)">
 ]>
 
 <sect1 id="mupdf" xreflabel="mupdf-&mupdf-version;">
@@ -71,16 +71,6 @@ can be found there, no need to change directory -->
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Recommended patch:
-          <ulink url="&patch-root;/mupdf-&mupdf-version;-shared_libs-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">MuPDF Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -90,7 +80,7 @@ can be found there, no need to change directory -->
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="freeglut"/>,
+      <!--<xref linkend="freeglut"/>, -->
       <xref linkend="harfbuzz"/>,
       <!-- This no-longer gets linked in with our system libs patch
       <xref linkend="lcms2"/>, -->
@@ -119,14 +109,38 @@ can be found there, no need to change directory -->
   <sect2 role="installation">
     <title>Installation of MuPDF</title>
 
+    <para>First, fix the Makefile to link properly with the shared library:</para>
+
+<screen><userinput>sed -i '/MU.*_EXE. :/{
+        s/.(MUPDF_LIB)//
+        N
+        s/$/ -lmupdf/
+        }' Makefile</userinput></screen>
+
+
     <para>
       Install <application>MuPDF</application> by running the following
       commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../mupdf-&mupdf-version;-shared_libs-1.patch &amp;&amp;
+<screen><userinput>cat &gt; user.make &lt;&lt; EOF &amp;&amp;
+USE_SYSTEM_FREETYPE := yes
+USE_SYSTEM_HARFBUZZ := yes
+USE_SYSTEM_JBIG2DEC := no
+USE_SYSTEM_JPEGXR := no # not used without HAVE_JPEGXR
+USE_SYSTEM_LCMS2 := no # need lcms2-art fork
+USE_SYSTEM_LIBJPEG := yes
+USE_SYSTEM_MUJS := no # build needs source anyways
+USE_SYSTEM_OPENJPEG := yes
+USE_SYSTEM_ZLIB := yes
+USE_SYSTEM_GLUT := no # need freeglut2-art fork
+USE_SYSTEM_CURL := yes
+USE_SYSTEM_GUMBO := no
+EOF
 
-USE_SYSTEM_LIBS=yes make</userinput></screen>
+export XCFLAGS=-fPIC          &amp;&amp;
+make build=release shared=yes &amp;&amp;
+unset XCFLAGS</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -136,14 +150,13 @@ USE_SYSTEM_LIBS=yes make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>USE_SYSTEM_LIBS=yes                     \
-make prefix=/usr                        \
-     build=release                      \
+<screen role="root"><userinput>make prefix=/usr                        \
+     shared=yes                         \
      docdir=/usr/share/doc/mupdf-&mupdf-version; \
      install                            &amp;&amp;
 
-ln -sfv mupdf-x11 /usr/bin/mupdf        &amp;&amp;
-ldconfig</userinput></screen>
+chmod 755 /usr/lib/libmupdf.so          &amp;&amp;
+ln -sfv mupdf-x11 /usr/bin/mupdf</userinput></screen>
 
   </sect2>
 
@@ -171,14 +184,12 @@ ldconfig</userinput></screen>
           mupdf(symlink), 
           mupdf-gl, 
           mupdf-x11, 
+          mupdf-x11-curl,
           muraster, and
           mutool
         </seg>
         <seg>
-          libmupdf.so, 
-          libmupdfthird.so, 
-          libmupdf-pkcs7.so, and 
-          libmupdf-threads.so
+          libmupdf.so
         </seg>
         <seg>
           /usr/include/mupdf, 
@@ -263,18 +274,6 @@ ldconfig</userinput></screen>
           </para>
           <indexterm zone="mupdf libmupdf">
             <primary sortas="c-libmupdf">libmupdf.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="libmupdfthird">
-        <term><filename class="libraryfile">libmupdfthird.so</filename></term>
-        <listitem>
-          <para>
-            contains the third party libraries compiled for mudpf.
-          </para>
-          <indexterm zone="mupdf libmupdfthird">
-            <primary sortas="c-libmupdfthird">libmupdfthird.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
