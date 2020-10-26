@@ -6,16 +6,16 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.gz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "ff5731326898a7010403e1b148375de4">
-  <!ENTITY rust-size          "130 MB">
+  <!ENTITY rust-md5sum        "a460bed79b92f6a7833ba6e6390ee6ae">
+  <!ENTITY rust-size          "145 MB">
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
        to measure it, or du -sm to look at the size of the build tree before and
        after the tests. -->
 
-  <!ENTITY rust-buildsize     "5.7 GB (250 MB installed) including 344 MB of ~/.cargo files for the user building this. Add 2.5 GB if running the tests">
-  <!ENTITY rust-time          "33 SBU (add 17 SBU for tests, both on a 4-core machine)">
+  <!ENTITY rust-buildsize     "7.6 GB (369 MB installed) including 294 MB of ~/.cargo files for the user building this. Add 3.3 GB if running the tests">
+  <!ENTITY rust-time          "39 SBU (add 31 SBU for tests, both on a 4-core machine)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -99,7 +99,7 @@
 
     <para>
       The current <application>rustbuild</application> build-system will use
-      all available processors, although it does not scale well and often falls
+      all processors, although it does not scale well and often falls
       back to just using one core while waiting for a library to compile.
       However it can be mostly limited to a specified number of processors by
       a combination of adding the switch <literal>--jobs &lt;N&gt;</literal>
@@ -107,6 +107,17 @@
       <command>python3 ./x.py</command> <emphasis>and</emphasis> using an
       environment variable <envar>CARGO_BUILD_JOBS=&lt;N&gt;</envar>. At the
       moment this is not effective when some of the rustc tests are run.
+    </para>
+
+    <para>
+      The current version of rust's num_cpus crate now recognizes that cgroups
+      can be used to restrict which processors it is allowed to use. So if your
+      machine lacks DRAM (typically, less than 2GB DRAM per core) that might be
+      an alternative to taking CPUs offline.
+      <phrase revision="sysv">In sysv systems cgroups requires <ulink
+      url="https://sourceforge.net/projects/libcg/">libcgroup</ulink>.</phrase>
+      <phrase revision="systemd">That can apparently be achievedd by writing
+      custom unit files.</phrase>
     </para>
 
     <para>
@@ -204,8 +215,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="gdb"/> (used by the testsuite if it is present) and
-      <xref linkend="python2"/> (used by the testsuite)
+      <xref linkend="gdb"/> (used by the testsuite if it is present)
     </para>
 
     <para condition="html" role="usernotes">
@@ -292,6 +302,15 @@ EOF</userinput></screen>
 <screen><userinput remap="pre">patch -Np1 -i ../rustc-&rust-version;-llvm9_fixes-1.patch</userinput></screen>-->
 
     <para>
+      Two of the tests reliably fail. To cause them to be ignored run the
+      following sed command:
+     </para>
+
+<screen><userinput>sed -i '1i # ignore-test' \
+ src/test/run-make-fulldeps/sysroot-crates-are-unstable/Makefile \
+ src/test/run-make-fulldeps/long-linker-command-lines/Makefile</userinput></screen>
+
+    <para>
       Compile <application>Rust</application> by running the following
       commands:
     </para>
@@ -317,18 +336,9 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     </para>
 
     <para>
-      The instructions above do not build ARM compilers, so the testsuite
-      <emphasis>will</emphasis> fail and the tests will be reported to end in
-      error, with a backtrace of the last failing test. On a good run, 3 tests
-      which need Thumb (ARM) compilers will fail, all in <filename
-      class="directory">ui/issues</filename> for issues 37131, 49851 and 50993.
-      A fourth test,
-      <filename>run-make-fulldeps/sysroot-crates-are-unstable</filename>
-      fails, presumably because we are using only stable features.
-      <!-- gdb appears to be fixed now
-      If gdb has been installed, in some circumstances tests in
-      <filename class="directory">debuginfo</filename> may fail.--> As with all
-      large testsuites, other tests might
+      Although no tests are now expected to fail, the testsuite reports that
+      1 commands did not execute successfully. As with all large testsuites,
+      some tests might
       fail on some machines - if the number of failures is in the single digits,
       check the log for 'FAILED' and review lines above that, particularly the
       'stderr:' lines. Any mention of
@@ -338,7 +348,7 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     <para>
       If you get any <emphasis>other</emphasis> failing test which reports an
       issue number then you should search for that issue.  For example, when
-      rustc &gt;= 1.41.1 is built with a version of sysllvm before 10.0 the test
+      rustc &gt;= 1.41.1 was built with a version of sysllvm before 10.0 the test
       for issue 69225 fails <ulink
       url="https://github.com/rust-lang/rust/issues/69225"/> and that should be
       regarded as a critical failure (they released 1.41.1 because of it).
@@ -346,16 +356,20 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     </para>
 
     <para>
-      Therefore, you should determine the number of failures. The total number
+      Therefore, you should determine the number of failures.
+    </para>
+
+<!--
+ The total number
       of tests varies depending on which dependencies are present, e.g. more
       will be run if <command>gdb</command> is available. If you wish, the
       total number which were considered can be found if you run:
     </para>
 
-<screen remap="test"><userinput>egrep 'running [[:digit:]]+ test' rustc-testlog | awk '{ sum += $2 } END { print sum }'</userinput></screen>
+<screen remap="test"><userinput>egrep 'running [[:digit:]]+ test' rustc-testlog | awk '{ sum += $2 } END { print sum }'</userinput></screen>-->
 
     <para>
-      More importantly, the total of tests which failed can be found by running:
+      The number of tests which failed can be found by running:
     </para>
 
 <screen remap="test"><userinput>grep '^test result:' rustc-testlog | awk  '{ sum += $6 } END { print sum }'</userinput></screen>

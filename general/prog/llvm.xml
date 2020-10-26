@@ -8,18 +8,18 @@
 
   <!ENTITY llvm-download-http "&llvm-url;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "71c68c526cbbf1674b5aafc5542b336c">
-  <!ENTITY llvm-size          "34 MB">
-  <!ENTITY llvm-buildsize     "2.8 GB (659 MB installed, add 16 GB for tests)">
-  <!ENTITY llvm-time          "30 SBU (with parallelism=4, add 15 SBU for tests)">
+  <!ENTITY llvm-md5sum        "85844102335b2e01b3c64b6734fb56f2">
+  <!ENTITY llvm-size          "38 MB">
+  <!ENTITY llvm-buildsize     "3.1 GB (726 MB installed, add 17 GB for tests)">
+  <!ENTITY llvm-time          "37 SBU (with parallelism=4, add 12 SBU for tests)">
 
   <!ENTITY clang-download-http "&llvm-url;/clang-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "6c8b56f531876fd24e06257a2d8ce422">
-  <!ENTITY clang-size          "14 MB">
+  <!ENTITY clang-md5sum        "d8fbc5b1d27f44922cfbbf199d0bab78">
+  <!ENTITY clang-size          "15 MB">
 
   <!ENTITY compiler-rt-download-http "&llvm-url;/compiler-rt-&llvm-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "970835d14e9c08a68c4b2ff3931bada7">
-  <!ENTITY compiler-rt-size          "2.0 MB">
+  <!ENTITY compiler-rt-md5sum        "182511f9ba2c83b9d3c934501d48bee9">
+  <!ENTITY compiler-rt-size          "2.1 MB">
 ]>
 
 <sect1 id="llvm" xreflabel="LLVM-&llvm-version;">
@@ -162,7 +162,6 @@
       <xref linkend="git"/>,
       <xref linkend="graphviz"/>,
       <xref linkend="libxml2"/>,
-      <xref linkend="python2"/>,
       <xref linkend="rsync"/> (for tests),
       <xref linkend="texlive"/> (or <xref linkend="tl-installer"/>),
       <xref linkend="valgrind"/>,
@@ -200,6 +199,15 @@ mv tools/clang-&llvm-version;.src tools/clang</userinput></screen>
 mv projects/compiler-rt-&llvm-version;.src projects/compiler-rt</userinput></screen>
 
     <para>
+     There are many Python scripts in this package which use
+     <command>/usr/bin/env python</command> to access the system Python
+     which on LFS is <xref linkend="python3"/>. Use the following comand
+     to fix these scripts:
+    </para>
+
+<screen><userinput>grep -rl '#!.*python' | xargs sed -i '1s/python$/python3/'</userinput></screen>
+
+    <para>
       Install <application>LLVM</application> by running the following
       commands:
     </para>
@@ -226,7 +234,8 @@ ninja</userinput></screen>
       commands:
     </para>
 
-<screen remap="doc"><userinput>cmake -DLLVM_ENABLE_SPHINX=ON         \
+<screen remap="doc"><userinput>cmake -DLLVM_BUILD_DOCS=ON            \
+      -DLLVM_ENABLE_SPHINX=ON         \
       -DSPHINX_WARNINGS_AS_ERRORS=OFF \
       -Wno-dev -G Ninja ..            &amp;&amp;
 ninja docs-llvm-html  docs-llvm-man</userinput></screen>
@@ -249,9 +258,8 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
       class="directory">/sys/devices/system/cpu/cpu&lt;N&gt;/online</filename>
       by the <systemitem class="username">root</systemitem> user and makes them
       temporarily unusable by all jobs on the machine.)
-      Note that the Sanitizer based tests (6 of more than 41000 tests run) 
-      are known to fail.
-
+      Note that a few of the compiler-rt Sanitizer based tests (6 of more than 48000
+      tests run) are known to fail.
     </para>
 
     <para>
@@ -359,15 +367,15 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         <seg>
           bugpoint, c-index-test, clang, clang++ (symlinks to
           clang-&lt;version&gt;), clang-&lt;version&gt;, clang-check, clang-cl,
-          clang-cpp (last two symlinks to clang), clang-format, clang-extdef-mapping,
-          clang-import-test, clang-offload-bundler, clang-offload-wrapper, 
+          clang-cpp (last two symlinks to clang), clang-extdef-mapping, clang-format,
+          clang-offload-bundler, clang-offload-wrapper, 
           clang-refactor, clang-rename, clang-scan-deps,
           diagtool, dsymutil, git-clang-format, hmap-tool, llc, lli, 
           llvm-addr2line, llvm-ar, llvm-as, llvm-bcanalyzer, llvm-cat, 
           llvm-cfi-verify, llvm-config, llvm-cov, llvm-c-test, llvm-cvtres, 
           llvm-cxxdump, llvm-cxxfilt, llvm-cxxmap,
           llvm-diff, llvm-dis, llvm-dlltool (symlink to llvm-ar), llvm-dwarfdump,
-          llvm-dwp, llvm-elfabi, llvm-exegenesis, llvm-extract, llvm-ifs,
+          llvm-dwp, llvm-elfabi, llvm-exegenesis, llvm-extract, llvm-gsymutil, llvm-ifs,
           llvm-install-name-tool (symlink to llvm-objcopy), llvm-jitlink,
           llvm-lib (symlink to llvm-ar), llvm-link, llvm-lipo, llvm-lto, 
           llvm-lto2, llvm-mc, llvm-mca, llvm-modextract,
@@ -870,6 +878,20 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </para>
           <indexterm zone="llvm llvm-extract">
             <primary sortas="b-llvm-extract">llvm-extract</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-gsymutil">
+        <term><command>llvm-gsymutil</command></term>
+        <listitem>
+          <para>
+            is used to process GSYM Symbolication Format files which
+            convert memory addresses to function name and source file
+            line. These files are smaller than DWARF or Breakpad files.
+          </para>
+          <indexterm zone="llvm llvm-gsymutil">
+            <primary sortas="b-llvm-gsymutil">llvm-gsymutil</primary>
           </indexterm>
         </listitem>
       </varlistentry>

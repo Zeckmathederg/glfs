@@ -10,11 +10,11 @@
   <!ENTITY firefox-size          "320 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "4.7 GB (184 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "5.0 GB (181 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "29 SBU (on a 4-core machine) without tests">
+  <!ENTITY firefox-time          "30 SBU (on a 4-core machine) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -71,6 +71,16 @@
       <listitem>
         <para>
           Estimated build time: &firefox-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/firefox-&firefox-version;esr-rustc1470-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -345,6 +355,11 @@ echo "613364a7-9418-4c86-bcee-57e32fd70c23" > mozilla-key</userinput></screen>
    i?86) sed -i "562 s/mips64/i386/" gfx/skia/skia/third_party/skcms/src/Transform_inl.h ;;
 esac</userinput></screen>
     -->
+    <para>
+      Apply a patch to allow this to be compiled with <xref linkend="rust"/>:
+    </para>
+
+<screen><userinput remap="pre">patch -p1 -i ../firefox-&firefox-version;esr-rustc1470-1.patch</userinput></screen>
 
     <para>
       Now invoke the Python script to compile the package.
@@ -393,8 +408,10 @@ ln    -sfv ../../mozilla/plugins /usr/lib/firefox/browser/</userinput></screen>
       <application>clang</application> so that they can use one compiler
       everywhere. On the X86 architectures <application>clang</application>
       now appears to support most of the same security-hardening options as
-      <application>GCC</application> but the newer
-      <literal>-fstack-clash-protection</literal> is still not supported.
+      <application>GCC</application>.
+      <!-- supported in llvm-11
+      but the newer
+      <literal>-fstack-clash-protection</literal> is still not supported.-->
       With the current versions and the default flags,
       <application>GCC</application> creates a marginally bigger build but
       takes typically 2 SBU less time on a 4-core machine using the mozconfig
