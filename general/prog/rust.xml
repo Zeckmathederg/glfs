@@ -129,9 +129,7 @@
       <para>
         Rustc defaults to building for ALL supported architectures, using a
         shipped copy of LLVM. In BLFS the build is only for the X86
-        architecture. Rustc still claims to require Python 2, but that is only
-        really necessary when building some other architectures with the
-        shipped LLVM.
+        architecture.
         If you intend to develop rust crates, this build may not be good
         enough for your purposes.
       </para>
@@ -302,15 +300,6 @@ EOF</userinput></screen>
 <screen><userinput remap="pre">patch -Np1 -i ../rustc-&rust-version;-llvm9_fixes-1.patch</userinput></screen>-->
 
     <para>
-      Two of the tests reliably fail. To cause them to be ignored run the
-      following sed command:
-     </para>
-
-<screen><userinput>sed -i '1i # ignore-test' \
- src/test/run-make-fulldeps/sysroot-crates-are-unstable/Makefile \
- src/test/run-make-fulldeps/long-linker-command-lines/Makefile</userinput></screen>
-
-    <para>
       Compile <application>Rust</application> by running the following
       commands:
     </para>
@@ -336,12 +325,17 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     </para>
 
     <para>
-      Although no tests are now expected to fail, on an apparently successful
-      build (gdb not installed) the testsuite reports that
-      1 commands did not execute successfully.
-      <!-- As with all large testsuites,-->
-      Some tests might
-      fail on some machines - if the number of failures is in the single digits,
+      At a minimum, two tests (run-make-fulldeps/long-linker-command-lines
+      and run-make-fulldeps/sysroot-crates-are-unstable) may fail.
+      If a version of <command>gdb</command> which was released after this
+      version of rust is used, such as <xref linkend="gdb"/>, four more failures
+      (debuginfo/extern-c-fn.rs, debuginfo/generator-objects.rs,
+      debuginfo/issue-57822.rs, debuginfo/pretty-huge-vec.rs) can be expected.
+    </para>
+
+    <para>
+      As with all large testsuites, other tests might fail on some machines -
+      if the number of additional failures is in the single digits,
       check the log for 'FAILED' and review lines above that, particularly the
       'stderr:' lines. Any mention of
       SIGSEGV or signal 11 in a failing test is a cause for concern.
@@ -351,7 +345,7 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
       If you get any <emphasis>other</emphasis> failing test which reports an
       issue number then you should search for that issue.  For example, when
       rustc &gt;= 1.41.1 was built with a version of sysllvm before 10.0 the test
-      for issue 69225 fails <ulink
+      for issue 69225 failed <ulink
       url="https://github.com/rust-lang/rust/issues/69225"/> and that should be
       regarded as a critical failure (they released 1.41.1 because of it).
       Most other failures will not be critical.
@@ -459,9 +453,10 @@ cp -a install/* /</userinput></screen>
       has failed to build on releases. It is optional, but the failure
       messages can persuade people that the whole build failed.  However,
       although it is not built in the main compile, with rustc-1.35.0 it
-      now gets compiled during the install, but it  is broken in this version.
+      now got compiled during the install, but it was broken in that version.
       <!-- might be unbroken in 1.36.0, if so remove broken from description
        of miri below. https://github.com/rust-lang/rust/issues/61830 -->
+      Omitting it should save a little time.
     </para>
 
     <para>
