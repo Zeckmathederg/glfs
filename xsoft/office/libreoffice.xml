@@ -7,24 +7,24 @@
   <!ENTITY libreoffice-dl "http://download.documentfoundation.org/libreoffice/src/&libreoffice-version;">
 
   <!ENTITY libreoffice-core-download-http "&libreoffice-dl;/libreoffice-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-core-md5sum        "48e541f6c5579059042ba5f94d88838d">
-  <!ENTITY libreoffice-core-size          "225 MB">
+  <!ENTITY libreoffice-core-md5sum        "7c07d445c7588c7ada6f6074a1bbc4c6">
+  <!ENTITY libreoffice-core-size          "230 MB">
 
   <!ENTITY libreoffice-dict-download-http "&libreoffice-dl;/libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-dict-md5sum        "48d39cebf26cce82356c6e6e5d705d58">
-  <!ENTITY libreoffice-dict-size          "44 MB">
+  <!ENTITY libreoffice-dict-md5sum        "55ab3088c7c97715440cb69ebda28fe8">
+  <!ENTITY libreoffice-dict-size          "46 MB">
 
   <!ENTITY libreoffice-help-download-http "&libreoffice-dl;/libreoffice-help-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-help-md5sum        "0aa6799ff8fbbdbf0de8c050b4f44043">
+  <!ENTITY libreoffice-help-md5sum        "d486db827394ff5bcafebf9b1d563910">
   <!ENTITY libreoffice-help-size          "106 MB">
 
   <!ENTITY libreoffice-translations-download-http "&libreoffice-dl;/libreoffice-translations-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-translations-md5sum        "d267b08913b3b738b90ea8903f2f3e5d">
+  <!ENTITY libreoffice-translations-md5sum        "0512dc56db2697c5c0e843947958ba96">
   <!ENTITY libreoffice-translations-size          "168 MB">
 
   <!-- full size remeasured for 7.0.0.3 -->
 
-  <!ENTITY libreoffice-buildsize  "6.5 GB including the additional files if downloaded during the build (775 MB installed). Installing the whole set of languages requires more than 25 GB (around 3 GB installed)">
+  <!ENTITY libreoffice-buildsize  "9.0 GB including the additional files if downloaded during the build (823 MB installed). Installing the whole set of languages requires more than 25 GB (around 3 GB installed)">
 
  <!-- Editors: many updates to poppler will break LO using system poppler until
       somebody is able to provide a patch or sed.  In these cases, please mark
@@ -44,8 +44,11 @@
 
        60 SBU not including download of translations, help and dictionary
        for 6.4.6.2 - pierre
+
+       56 SBU for 7.0.3.1 not including download of translations, help, and
+       dictionaries. -renodr
   -->
-  <!ENTITY libreoffice-time "46 SBU with parallelism=4 including typical download time">
+  <!ENTITY libreoffice-time "56 SBU with parallelism=4 including typical download time">
 
 ]>
 
@@ -271,7 +274,6 @@
       <ulink url="http://www.firebirdsql.org/">Firebird</ulink>,
       <ulink url="https://github.com/behdad/glyphy">glyphy</ulink>,
       <ulink url="http://ftp.gnome.org/pub/gnome/sources/gnome-vfs/">Gnome VFS</ulink>,
-
       <ulink url="https://github.com/hamcrest/JavaHamcrest/releases">hamcrest</ulink>,
       <ulink url="https://hunspell.github.io/">Hunspell</ulink>,
       <ulink url="http://sourceforge.net/projects/hunspell/files/Hyphen/">Hyphen</ulink>,
@@ -292,7 +294,7 @@
       <ulink url="https://wiki.documentfoundation.org/DLP/Libraries/libvisio">libvisio</ulink>,
       <ulink url="http://libwpd.sourceforge.net/">libwpd</ulink>,
       <ulink url="http://libwpg.sourceforge.net/">libwpg</ulink>,
-      <ulink url="http://libwps.sourceforge.net/">libwps</ulink>,
+      <ulink url="https://sourceforge.net/p/libwps/wiki/Home/">libwps</ulink>,
       <ulink url="http://lpsolve.sourceforge.net/">lp_solve</ulink>,
       <ulink url="https://gitlab.com/mdds/mdds">mdds</ulink>,
       <ulink url="http://sourceforge.net/projects/hunspell/files/MyThes/">MyThes</ulink>,
@@ -377,8 +379,8 @@ ln -sv ../../../libreoffice-translations-&libreoffice-dlversion;.tar.xz external
       the following commands:
     </para>
 
-<!-- when system-icu works:
-             \-\-with-system-icu           \ -->
+<!-- For the ICU seds, the spacing here is intentional. Sed will return syntax
+     errors otherise -->
 
 <screen><userinput>sed -e "/gzip -f/d"   \
     -e "s|.1.gz|.1|g" \
@@ -388,6 +390,16 @@ sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
 
 sed -e 's@getURI()->c_str()@getURI().c_str()@' \
     -i sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx &amp;&amp;
+
+sed -i 29a\
+'\\t\t&amp;&amp;sed -i "s/TRUE/true/g" src/lib/libcdr_utils.cpp \\' \
+external/libcdr/ExternalProject_libcdr.mk &amp;&amp;
+
+sed -i 30a\
+'\\t\t&amp;&amp;sed -i "s/TRUE/true/g" src/lib/EBOOKCharsetConverter.cpp \\' \
+external/libebook/ExternalProject_libebook.mk &amp;&amp;
+
+sed -i 's/TRUE/true/' i18npool/source/calendar/calendar_gregorian.cxx &amp;&amp;
 
 ./autogen.sh --prefix=$LO_PREFIX         \
              --sysconfdir=/etc           \
@@ -412,6 +424,7 @@ sed -e 's@getURI()->c_str()@getURI().c_str()@' \
              --with-system-gpgmepp       \
              --with-system-graphite      \
              --with-system-harfbuzz      \
+             --with-system-icu           \
              --with-system-jpeg          \
              --with-system-lcms2         \
              --with-system-libatomic_ops \
@@ -452,7 +465,7 @@ sed -e 's@getURI()->c_str()@getURI().c_str()@' \
     <para>
        If installed in <filename
        class="directory">/opt/libreoffice-&libreoffice-dlversion;</filename>
-       some additional steps are necessary. Issue the following commands, as
+       some additional steps are necessary. Issue the following commands as the
        <systemitem class="username">root</systemitem> user:
     </para>
 
@@ -500,8 +513,8 @@ fi</userinput></screen>
       base, calc, draw, impress, math, web, or writer. Modules cannot be started 
       using their shell starting script names (see "Installed Programs", below), 
       if LO_PREFIX is other than <filename class='directory'>/usr</filename>,
-      unless <filename class='directory'>$LO_PREFIX/bin</filename> directory is
-      appended to the PATH.
+      unless the <filename class='directory'>$LO_PREFIX/bin</filename> directory
+      is appended to the PATH.
     </para>
 
   </sect2>
@@ -583,9 +596,9 @@ fi</userinput></screen>
     </para>
 
     <para>
-      <parameter>--without-system-dicts</parameter>: This switch disables use
-      of  dictionaries from system paths, so the ones installed by this package
-      are used.
+      <parameter>--without-system-dicts</parameter>: This switch disables the 
+      use of dictionaries from system paths so that the ones installed by this 
+      package are used.
     </para>
 
     <para>
