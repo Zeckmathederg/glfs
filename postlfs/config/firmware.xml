@@ -151,7 +151,7 @@
     </para>
 
     <para>
-      Intel provide updates of their microcode for Haswell and later
+      Intel provide updates of their microcode for Skylake and later
       processors as new vulnerabilities come to light, and have in the past
       provided updates for processors from SandyBridge onwards, although those
       are no-longer supported for new fixes. New versions of AMD
@@ -208,8 +208,8 @@
         'https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/releases/'/>
         and downloading the latest file there.  As of this writing the most
         secure version of the microcode, for those machines which can boot it,
-        is microcode-20200609. If you have a Skylake machine, please read the
-        Caution in the 'Early loading of microcode' section below.  Extract this
+        is microcode-20201112.<!-- If you have a Skylake machine, please read the
+        Caution in the 'Early loading of microcode' section below.-->  Extract this
         file in the normal way, the microcode is in the <filename>intel-ucode
         </filename> directory, containing various blobs with names in the form
         XX-YY-ZZ. There are also various other files, and a releasenote.
@@ -230,11 +230,14 @@
         'https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/index.html'/>.
       </para>
 
+      <!-- commented, I don't think there is a new listed item for 2011-11 vulns
+          (platypus etc : intel-sa-00381 and 0389)
+          and anyway the very latest stable releases have backports : ken
       <para>
         The documentation on the latest SRBDS (Special Register Buffer Data
         Sampling) vulnerabilities/fixes will be documented in kernels 5.4.46,
         5.6.18, 5.7.2, 5.8.0 and later.
-      </para>
+      </para>-->
 
       <para>
         Now you need to determine your processor's identity to see if there
@@ -287,22 +290,20 @@ Processor type and features  ---&gt;
 <screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
 
       <para>
-        This reformatted example for an old (20191115) verison of the microcode
+        This reformatted example for a machine with old microcode in its BIOS
         was created by temporarily booting without
-        microcode, to show the current Firmware Bug message, then the late load
-        shows it being updated to revision 0xd6.
+        microcode, to show the current Firmware Bug messages, then the late load
+        shows it being updated to revision 0xec.
       </para>
 
-<screen><literal>[    0.000000] Linux version 5.4.2 (lfs@leshp) (gcc version 9.2.0 (GCC))
-               #1 SMP PREEMPT Wed Dec 18 11:52:13 GMT 2019
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.4.2-sda11 root=/dev/sda11 ro
-[    0.020218] [Firmware Bug]: TSC_DEADLINE disabled due to Errata; please update microcode
-               to version: 0xb2 (or later)
-[    0.153861] MDS: Vulnerable: Clear CPU buffers attempted, no microcode
-[    0.550009] microcode: sig=0x506e3, pf=0x2, revision=0x74
-[    0.550036] microcode: Microcode Update Driver: v2.2.
-[  277.673064] microcode: updated to revision 0xd6, date = 2019-10-03
-[  277.674231] x86/CPU: CPU features have changed after loading microcode, but might not take effect</literal></screen>
+<screen><literal>[    0.000000] Linux version 5.9.8 (ken@leshp) (gcc (GCC) 10.2.0,
+               GNU ld (GNU Binutils) 2.35)
+               #1 SMP PREEMPT Mon Nov 16 20:42:42 GMT 2020
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.9.8-sda11 root=/dev/sda11 ro
+[    0.028715] [Firmware Bug]: TSC_DEADLINE disabled due to Errata;
+               please update microcode to version: 0xb2 (or later)
+[    0.111874] SRBDS: Vulnerable: No microcode
+[    0.111984] MDS: Vulnerable: Clear CPU buffers attempted, no microcode</literal></screen>
 
       <para>
         If the microcode was not updated, there is no new microcode for this
@@ -312,7 +313,7 @@ Processor type and features  ---&gt;
 
     </sect3>
 
-    <sect3 id="and-microcode">
+    <sect3 id="amd-microcode">
       <title>AMD Microcode for the CPU</title>
 
       <para>
@@ -410,6 +411,8 @@ cd initrd</userinput></screen>
 
 <screen><userinput>cp -v /lib/firmware/intel-ucode/&lt;XX-YY-ZZ&gt; kernel/x86/microcode/GenuineIntel.bin</userinput></screen>
 
+<!-- new version from 20201110 release onwards, assumed to work on all skylakes
+   But complaints about previous version took some days to appear, so keep as a comment for now.
       <caution>
         <para>
           On some Skylake machines with hex Model Number '4e' (78 decimal) the
@@ -429,7 +432,7 @@ cd initrd</userinput></screen>
           For a Skylake which does not boot with 0xdc, reverting to 0xd6 will make
           the machine usable, but without the SRBDS mitigations.
         </para>
-      </caution>
+      </caution>-->
 
       <para>
         Now prepare the initrd:
@@ -476,14 +479,17 @@ cd initrd</userinput></screen>
 
       <para>
         The places and times where early loading happens are very different
-        in AMD and Intel machines. First, an Intel (Haswell) example with early loading:
+        in AMD and Intel machines. First, an Intel (Skylake) example with early loading:
       </para>
 
-<screen><literal>[    0.000000] microcode: microcode updated early to revision 0x28, date = 2019-11-12
-[    0.000000] Linux version 5.6.2 (ken@plexi) (gcc version 9.2.0 (GCC)) #2 SMP PREEMPT Tue Apr 7 21:34:32 BST 2020
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.6.2-sda10 root=/dev/sda10 ro resume=/dev/sdb1
-[    0.371462] microcode: sig=0x306c3, pf=0x2, revision=0x28
-[    0.371491] microcode: Microcode Update Driver: v2.2.</literal></screen>
+<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xe2, date = 2020-07-14
+[    0.000000] Linux version 5.9.8 (ken@leshp) (gcc (GCC) 10.2.0,
+               GNU ld (GNU Binutils) 2.35)
+               #1 SMP PREEMPT Mon Nov 16 20:42:42 GMT 2020
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.9.8-sda11 root=/dev/sda11 ro
+[    0.378287] microcode: sig=0x506e3, pf=0x2, revision=0xe2
+[    0.378315] microcode: Microcode Update Driver: v2.2.
+</literal></screen>
 
 
       <para>
