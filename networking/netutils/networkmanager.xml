@@ -8,10 +8,10 @@
 "&gnome-download-http;/NetworkManager/&NetworkManager-minor;/NetworkManager-&NetworkManager-version;.tar.xz">
   <!ENTITY NetworkManager-download-ftp
 "&gnome-download-ftp;/NetworkManager/&NetworkManager-minor;/NetworkManager-&NetworkManager-version;.tar.xz">
-  <!ENTITY NetworkManager-md5sum        "86d74ff1ee79ddf2688348990870652d">
-  <!ENTITY NetworkManager-size          "4.8 MB">
-  <!ENTITY NetworkManager-buildsize     "995 MB (with tests)">
-  <!ENTITY NetworkManager-time          "1.0 SBU (with tests; both using parallelism=4)">
+  <!ENTITY NetworkManager-md5sum        "3c4a70764ec3418a796b2c3f2a1f83e0">
+  <!ENTITY NetworkManager-size          "5.0 MB">
+  <!ENTITY NetworkManager-buildsize     "900 MB (with tests)">
+  <!ENTITY NetworkManager-time          "0.9 SBU (with tests, using parallelism=4)">
 ]>
 
 <sect1 id="NetworkManager" xreflabel="NetworkManager-&NetworkManager-version;">
@@ -88,7 +88,8 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="dbus-glib"/> and
+      <xref linkend="dbus-glib"/>,
+      <xref linkend="jansson"/>, and
       <xref linkend="libndp"/>
     </para>
 
@@ -100,7 +101,6 @@
       <xref role="nodep" linkend="dhcp"/> (client only),
       <xref linkend="gobject-introspection"/>,
       <xref linkend="iptables"/>,
-      <xref linkend="jansson"/>,
       <xref linkend="newt"/> (for <command>nmtui</command>),
       <xref linkend="nss"/>,
       <xref linkend="polkit"/>,
@@ -200,7 +200,6 @@ cd    build &amp;&amp;
 
 CXXFLAGS+="-O2 -fPIC"            \
 meson --prefix /usr              \
-      -Djson_validation=false    \
       -Dlibaudit=no              \
       -Dlibpsl=false             \
       -Dnmtui=true               \
@@ -221,7 +220,6 @@ cd    build    &amp;&amp;
 
 CXXFLAGS+="-O2 -fPIC"            \
 meson --prefix /usr              \
-      -Djson_validation=false    \
       -Dlibaudit=no              \
       -Dlibpsl=false             \
       -Dnmtui=true               \
@@ -240,7 +238,8 @@ ninja</userinput></screen>
       An already active graphical session
       with a bus address is necessary to run the tests. To test the results,
       as the root user, <!-- needs the "ip" command -->
-      issue: <command>ninja test</command>. Five tests,
+      issue: <command>ninja test</command>. Six tests,
+      <filename>test-l3cfg</filename>,
       <filename>devices/test-acd</filename>,
       <filename>platform/test-tc-linux</filename>,
       <filename>platform/test-route-linux</filename>,
@@ -282,8 +281,8 @@ mv -v /usr/share/doc/NetworkManager{,-&NetworkManager-version;}</userinput></scr
     </para>
 
     <para>
-      <parameter>-Djson_validation=false</parameter>,
-      <parameter>-Dlibpsl=false</parameter>, and
+  <!--<parameter>-Djson_validation=false</parameter>, no longer recognized -->
+      <parameter>-Dlibpsl=false</parameter> and
       <parameter>-Dovs=false</parameter>: These switches disable building with the
       respective libraries. Remove if you have the needed libraries installed.
     </para>
@@ -362,10 +361,10 @@ mv -v /usr/share/doc/NetworkManager{,-&NetworkManager-version;}</userinput></scr
 
       <para>
         For <application>NetworkManager</application> to work, at least
-        a minimal configuration file must be present. Such file is not
+        a minimal configuration file must be present. Such a file is not
         installed with <command>make install</command>. Issue the following
         command as the <systemitem class="username">root</systemitem> user to
-        create minimal <filename>NetworkManager.conf</filename> file:
+        create a minimal <filename>NetworkManager.conf</filename> file:
       </para>
 
 <screen role="root"><userinput>cat &gt;&gt; /etc/NetworkManager/NetworkManager.conf &lt;&lt; "EOF"
@@ -378,7 +377,7 @@ EOF</userinput></screen>
         Instead, system specific changes should be made using configuration
         files in the
         <filename class="directory">/etc/NetworkManager/conf.d</filename>
-        direcotry.
+        directory.
       </para>
 
       <para>
@@ -419,7 +418,7 @@ EOF</userinput></screen>
       </para>
 
       <para>
-        To allow regular users permission to configure network connections,
+        To allow regular users to configure network connections,
         you should add them to the
         <systemitem class="groupname">netdev</systemitem>
         group, and create a <application>polkit</application> rule that grants
@@ -559,7 +558,7 @@ EOF</userinput></screen>
         <term><command>nm-online</command></term>
         <listitem>
           <para>
-            is an utility to find out whether you are online.
+            is an utility to determine whether you are online.
           </para>
           <indexterm zone="NetworkManager nm-online">
             <primary sortas="b-nm-online">nm-online</primary>
@@ -571,7 +570,7 @@ EOF</userinput></screen>
         <term><command>nmtui</command></term>
         <listitem>
           <para>
-            is an interactive ncurses based interface for
+            is an interactive ncurses-based user interface for
             <application>nmcli</application>.
           </para>
           <indexterm zone="NetworkManager nmtui">
@@ -584,7 +583,7 @@ EOF</userinput></screen>
         <term><command>nmtui-connect</command></term>
         <listitem>
           <para>
-            is an interactive ncurses based interface connection to 
+            is an interactive ncurses-based user interface to
             activate/deactivate connections.
           </para>
           <indexterm zone="NetworkManager nmtui-connect">
@@ -597,7 +596,7 @@ EOF</userinput></screen>
         <term><command>nmtui-edit</command></term>
         <listitem>
           <para>
-            is an interactive ncurses based interface connection editor.
+            is an interactive ncurses-based user interface to edit connections.
           </para>
           <indexterm zone="NetworkManager nmtui-edit">
             <primary sortas="b-nmtui-edit">nmtui-edit</primary>
@@ -609,7 +608,7 @@ EOF</userinput></screen>
         <term><command>nmtui-hostname</command></term>
         <listitem>
           <para>
-            is an interactive ncurses based interface hostname editor.
+            is an interactive ncurses-based user interface to edit the hostname.
           </para>
           <indexterm zone="NetworkManager nmtui-hostname">
             <primary sortas="b-nmtui-hostname">nmtui-hostname</primary>

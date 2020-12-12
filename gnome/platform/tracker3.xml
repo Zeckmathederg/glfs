@@ -8,10 +8,10 @@
            "&gnome-download-http;/tracker/3.0/tracker-&tracker3-version;.tar.xz">
   <!ENTITY tracker3-download-ftp
            "&gnome-download-ftp;/tracker/3.0/tracker-&tracker3-version;.tar.xz">
-  <!ENTITY tracker3-md5sum        "173668f5d1a890a494d681457ac7029b">
+  <!ENTITY tracker3-md5sum        "d1cb71cb69aac7a8f98b360aef438d0b">
   <!ENTITY tracker3-size          "1.4 MB">
-  <!ENTITY tracker3-buildsize     "85 MB (with tests)">
-  <!ENTITY tracker3-time          "0.4 SBU (with tests)">
+  <!ENTITY tracker3-buildsize     "79 MB (with tests)">
+  <!ENTITY tracker3-time          "0.3 SBU (with tests)">
 ]>
 
 <sect1 id="tracker3" xreflabel="Tracker-&tracker3-version;">
@@ -72,6 +72,16 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/tracker-&tracker3-version;-upstream_fixes-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
     <bridgehead renderas="sect3">Tracker Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -93,6 +103,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="asciidoc"/>,
       <xref linkend="gtk-doc"/>,
       <ulink url="https://github.com/scop/bash-completion/">bash-completion</ulink>, and
       <ulink url="https://github.com/snowballstem/snowball/">libstemmer</ulink>
@@ -108,6 +119,12 @@
     <title>Installation of Tracker</title>
 
     <para>
+      First, fix an incompatibility between Tracker and SQLite-3.34.0:
+    </para>
+
+<screen><userinput remap="pre">patch -Np1 -i ../tracker-&tracker3-version;-upstream_fixes-1.patch</userinput></screen>
+
+    <para>
       Install <application>Tracker</application> by running the following
       commands:
     </para>
@@ -115,13 +132,13 @@
 <screen revision="systemd"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson --prefix=/usr -Ddocs=false .. &amp;&amp;
+meson --prefix=/usr -Ddocs=false -Dman=false .. &amp;&amp;
 ninja</userinput></screen>
 
 <screen revision="sysv"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson --prefix=/usr -Ddocs=false -Dsystemd_user_services=false .. &amp;&amp;
+meson --prefix=/usr -Ddocs=false -Dman=false -Dsystemd_user_services=false .. &amp;&amp;
 ninja</userinput></screen>
 
     <para>
@@ -148,6 +165,13 @@ ninja</userinput></screen>
       generate and install the API documentation.
     </para>
 
+    <para>
+      <parameter>-Dman=false</parameter>: This switch prevents the build
+      process from generating man pages. Omit this switch if you have
+      <xref linkend="asciidoc" role="nodep"/> installed and wish to generate
+      and install the man pages.
+    </para>
+    
     <para revision="sysv">
       <parameter>-Dsystemd_user_services=false</parameter>: This switch prevents
       the build process from installing systemd user services since they are
@@ -173,7 +197,7 @@ ninja</userinput></screen>
           libtracker-sparql-3.0.so
         </seg>
         <seg>
-          /usr/{include,lib}/tracker-3.0, /usr/share/tracker3, and
+          /usr/{include,lib,libexec}/tracker-3.0, /usr/share/tracker3, and
           /usr/share/gtk-doc/html/{libtracker-sparql,ontology}-3
         </seg>
       </seglistitem>
