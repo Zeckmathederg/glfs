@@ -193,7 +193,7 @@ git push</userinput></screen>
         access.
       </para>
       <para>
-        The compination of access via ssh (for authenticated users) and
+        The combination of access via ssh (for authenticated users) and
         the export of repositories to unauthenticated users via the
         daemon is in most cases enough for a development site.
       </para>
@@ -206,115 +206,34 @@ git push</userinput></screen>
         </para>
       </note>
 
-      <para>
-        As user <systemitem class='username'>root</systemitem> do:
-      </para>
+    </sect3>
+    
+    <sect3 id="gitserver-init">
+      <title>4. Starting the Server</title>
 
-<screen role="root" revision="sysv"><userinput>cat &gt; /etc/rc.d/init.d/git-daemon &lt;&lt;"EOF"
-#!/bin/sh
-########################################################################
-# Begin /etc/rc.d/init.d/git-daemon
-#
-# Description : Start/Stop git as a daemon
-#
-# Authors     :
-#
-# Version     : LFS x.x
-#
-# Notes       :
-#
-########################################################################
-
-### BEGIN INIT INFO
-# Provides:            git-daemon
-# Required-Start:      network
-# Should-Start:
-# Required-Stop:
-# Should-Stop:
-# Default-Start:
-# Default-Stop:
-# Short-Description:   git as daemon
-# Description:
-# X-LFS-Provided-By:
-### END INIT INFO
-
-. /lib/lsb/init-functions
-
-GIT_BIN="/usr/bin/git"
-DFT_REPO_DIR="/srv/git/"
-PID_FILE="/run/git-daemon.pid"
-
-case "${1}" in
-   start)
-      log_info_msg "Starting git-daemon ..."
-      $GIT_BIN daemon \
-               --detach --pid-file=$PID_FILE \
-               --user=git --group=git \
-               --reuseaddr --base-path=$DFT_REPO_DIR $DFT_REPO_DIR
-      evaluate_retval
-      ;;
-
-   stop)
-      log_info_msg "Stopping git-daemon ..."
-      killproc -p $PID_FILE $GIT_BIN
-      evaluate_retval
-      ;;
-
-   restart)
-      ${0} stop
-      sleep 1
-      ${0} start
-      ;;
-
-   *)
-      echo "Usage: ${0} {start|stop|restart}"
-      exit 1
-      ;;
-esac
-
-exit 0
-
-# End /etc/rc.d/init.d/git-daemon
-EOF
-chmod 755 /etc/rc.d/init.d/git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc0.d/K29git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc1.d/K29git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc2.d/K29git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc3.d/S50git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc4.d/S50git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc5.d/S50git-daemon
-ln -v -sf ../init.d/git-daemon /etc/rc.d/rc6.d/K29git-daemon</userinput></screen>
-
-<screen role="root" revision="systemd"><userinput>cat &gt; /etc/systemd/system/git-daemon.service &lt;&lt;EOF
-[Unit]
-Description=Start Git Daemon
-
-[Service]
-ExecStart=/usr/bin/git daemon --reuseaddr --base-path=/srv/git/ /srv/git/
-
-Restart=always
-RestartSec=500ms
-
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=git-daemon
-
-User=git
-Group=git
-
-[Install]
-WantedBy=multi-user.target
-EOF</userinput></screen>
-      <para revision="systemd">
-        Enable and start the daemon be executing
-      </para>
-<screen role="root" revision="systemd"><userinput>systemctl enable git-daemon &amp;&amp;
-systemctl start git-daemon</userinput></screen>
       <para revision="sysv">
-        Start the daemon be executing
+        To start the server at boot time, install the git-daemon
+        bootscript included in the <xref linkend="bootscripts"/> package:
       </para>
-<screen role="root" revision="sysv"><userinput>/etc/rc.d/init.d/git-daemon start</userinput></screen>
-      
+
+      <para revision="systemd">
+        To start the server at boot time, install the
+        <filename>git-daemon.service</filename> unit from the 
+        <xref linkend="systemd-units"/> package:
+      </para>
+
+      <indexterm zone="gitserver gitserver-init" revision="sysv">
+        <primary sortas="f-git">git</primary>
+      </indexterm>
+
+<screen role="root" revision="sysv"><userinput>make install-git-daemon</userinput></screen>
+
+      <indexterm zone="gitserver gitserver-init" revision="systemd">
+        <primary sortas="f-gitserve">gitserve</primary>
+      </indexterm>
+
+<screen role="root" revision="systemd"><userinput>make install-git-daemon</userinput></screen>
+
       <para>
         In order to make <application>git</application> exporting a
         repository, a file named <filename>git-daemon-export-ok</filename>
@@ -325,6 +244,13 @@ systemctl start git-daemon</userinput></screen>
 
 <screen role="root"><userinput>touch /srv/git/project1.git/git-daemon-export-ok</userinput></screen>
 
+      <para>
+        Also review the configuration file 
+        <filename revision="sysv">/etc/sysconfig/git-daemon</filename>
+        <filename revision="systemd">/etc/default/git-daemon</filename>
+        for valid repository paths.
+      </para>
+      
     </sect3>
 
   </sect2>
