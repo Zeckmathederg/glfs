@@ -284,13 +284,76 @@ git push</userinput></screen>
 
 <screen role="root"><userinput>touch /srv/git/project1.git/git-daemon-export-ok</userinput></screen>
 
-      <para>
-        Finally, review the configuration file
-        <filename revision="sysv">/etc/sysconfig/git-daemon</filename>
-        <filename revision="systemd">/etc/default/git-daemon</filename>
-        for valid repository paths and change them as appropriate.
+      <para revision="sysv">
+        The script to start the git daemon uses some default values
+        internally. Most important is the path to the repository
+        directory which is set to <filename class="directory">/srv/git</filename>.
+        In case you have for whatever reason created the repository in a
+        different location, you'll need to tell the boot script where the
+        repository is to be found. This can be achieved by creating a
+        configuration file named <filename>/etc/sysconfig/git-daemon</filename>.
+        This configuration file will be imported if it exists. It can 
+        look like:</para>
+<screen revision="sysv">
+# Begin /etc/sysconfig/git-daemon
+
+# Specify the location of the git repository
+GIT_BASE_DIR="/srv/git/"
+
+# Directories added to whitelist
+DFT_REPO_DIR="$GIT_BASE_DIR"
+
+# Add extra options which will appended to the 'git daemon'
+# command executed in the boot script
+GIT_DAEMON_OPTS=""
+
+# End /etc/sysconfig/git-daemon
+</screen>
+      <para revision="systemd">
+        Along with the <filename>git-daemon.service</filename> unit, a
+        configuration file named <filename>/etc/default/git-daemon</filename>
+        has been installed. Review this configuration file to match your
+        needs.
       </para>
 
+      <para>
+        There are only three options to set in the configuration file:
+        <itemizedlist>
+          <listitem>
+            <para>
+              GIT_BASE_DIR=&lt;dirname&gt;
+            </para>
+            <para>Specify the location of the repository directory
+              on which the git daemon operates on. Relative pathes
+              in access to the daemon will translated to be relative
+              to this directory.
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              DFT_REPO_DIR=&lt;dirname&gt;
+            </para>
+            <para>The directory is added to the white list of allowed
+              directories. This variable can hold multible directory
+              names but is usually set equal to <literal>GIT_BASE_DIR</literal>.
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              GIT_DAEMON_OPTS=&lt;options&gt;
+            </para>
+            <para>In case you have to pass special options to the
+              <command>git daemon</command> command, they have to be
+              specified in this setting. On example might be to adjust
+              the port number the daemon is listening on. In this case,
+              add <literal>--port=XYZ</literal> to this variable.
+              For more information which options can be set, take a look
+              at the output of <command>git daemon --help</command>.
+            </para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      
     </sect3>
 
   </sect2>
