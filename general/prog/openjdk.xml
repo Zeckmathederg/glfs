@@ -4,22 +4,22 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY ojdk-tarball              "jdk-&openjdk-version;+&openjdk-build;.tar.bz2">
-  <!ENTITY ojdk-repo                 "http://hg.openjdk.java.net/jdk-updates/jdk14u">
+  <!ENTITY ojdk-tarball              "jdk-&openjdk-version;-ga.tar.gz">
+  <!ENTITY ojdk-repo                 "https://github.com/openjdk/jdk15u">
   <!ENTITY ojdk-download             "&ojdk-repo;/archive/&ojdk-tarball;">
 
   <!ENTITY anduin-download           "&sources-anduin-http;/OpenJDK/OpenJDK-&openjdk-version;">
 
-  <!ENTITY ojdk-md5sum               "bf287746bb1be5e0d94c27e3d79d800e">
-  <!ENTITY ojdk-size                 "80 MB">
+  <!ENTITY ojdk-md5sum               "e516e5e14ded6f91a89c9b4c83a87005">
+  <!ENTITY ojdk-size                 "97 MB">
 
-  <!ENTITY jtreg-version             "4.2-b13-517">
+  <!ENTITY jtreg-version             "4.2.0-tip">
   <!ENTITY jtreg-download            "&anduin-download;/jtreg-&jtreg-version;.tar.gz">
-  <!ENTITY jtreg-md5sum              "ffcef8f1caa5c22f4d006fb82e074de4">
-  <!ENTITY jtreg-size                "6.8 MB">
+  <!ENTITY jtreg-md5sum              "11818f2ae4be19d2c7ae6501be60ee98">
+  <!ENTITY jtreg-size                "6.9 MB">
 
-  <!ENTITY ojdk-bdsize               "5.3 GB (an additional 394 MB for tests)">
-  <!ENTITY ojdk-time                 "4.5 SBU with 4 jobs (an additional 51 SBU for tests with 4 jobs)">
+  <!ENTITY ojdk-bdsize               "4.5 GB (add 399 MB for tests)">
+  <!ENTITY ojdk-time                 "4.5 SBU with 4 jobs (add 55 SBU for tests with 4 jobs)">
 ]>
 
 <sect1 id="openjdk" xreflabel="OpenJDK-&openjdk-version;">
@@ -152,7 +152,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+<!-- 
     <bridgehead renderas="sect4">Required patch</bridgehead>
 
     <itemizedlist spacing='compact'>
@@ -162,7 +162,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+-->
     <bridgehead renderas="sect3">OpenJDK Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required Dependencies</bridgehead>
@@ -193,9 +193,10 @@
     <para role="optional">
       <xref linkend="git"/>,
       <xref linkend="graphviz"/>,
-      <xref linkend="mercurial"/>,
+      <xref linkend="mercurial"/>, and
+<!-- not needed now, it seems
       an X Window manager such as <xref linkend="twm"/> (for the tests), and
-      <ulink url="https://pandoc.org/">pandoc</ulink>
+-->   <ulink url="https://pandoc.org/">pandoc</ulink>
     </para>
 
     <para condition="html" role="usernotes">User Notes:
@@ -211,7 +212,7 @@
     </para>
 
 <screen><userinput>tar -xf ../jtreg-&jtreg-version;.tar.gz</userinput></screen>
-
+<!--
     <para>
       Apply a patch to allow building with make-4.3:
     </para>
@@ -224,7 +225,7 @@
 
 <screen><userinput>sed -i /sysctl/d \
     src/jdk.incubator.jpackage/unix/native/libapplauncher/PosixPlatform.cpp</userinput></screen>
-
+-->
     <note>
       <para>
         Before proceeding, you should ensure that your environment
@@ -237,9 +238,9 @@
       </para>
 
       <para>
-        The build system does not support the <option>-j</option> switch in
+        The build system does not allow the <option>-j</option> switch in
         <envar>MAKEFLAGS</envar>. See the command explanation for
-        <option>--with-jobs=</option> and <option>--with-test-jobs=</option>
+        <option>--with-jobs=</option>
         for more information on customizing parallelization.
       </para>
     </note>
@@ -251,7 +252,6 @@
 
 <screen><userinput>unset JAVA_HOME                                       &amp;&amp;
 bash configure --enable-unlimited-crypto              \
-               --with-extra-cflags="$CFLAGS -fcommon" \
                --disable-warnings-as-errors           \
                --with-stdc++lib=dynamic               \
                --with-giflib=system                   \
@@ -370,13 +370,12 @@ EOF</userinput></screen>
       <filename>configure</filename> is a wrapper around the autotools one.
       It is not executable and must be run through <command>bash</command>.
     </para>
-
+<!-- Not needed in openjdk-15
     <para>
-      <parameter>--with-extra-cflags=-fcommon</parameter>: Allows building
+      <parameter>- -with-extra-cflags=-fcommon</parameter>: Allows building
       with GCC 10.
-      <!-- patchs are available upstream and will be included in java 15 -->
     </para>
-
+-->
     <para>
       <parameter>--enable-unlimited-crypto</parameter>: Because of limitations
       on the usage of cryptography in some countries, there is the possibility
@@ -446,12 +445,12 @@ EOF</userinput></screen>
       location of the temporary <application>JDK</application>. It is normally
       not needed if <command>java</command> is found in the <envar>PATH</envar>.
     </para>
-
+<!-- Seems to have disappeared
     <para>
       <command>find ... -iname '*.diz' -delete</command>: This command
       removes redundant files.
     </para>
-
+-->
   </sect2>
 
   <sect2 role="configuration"
@@ -520,9 +519,9 @@ bin/keytool -list -cacerts</userinput></screen>
 
       <seglistitem>
         <seg>jaotc, jar, jarsigner, java, javac, javadoc, javap, jcmd,
-        jconsole, jdb, jdeprscan, jdeps, jfr, jhsdb, jimage, jinfo, jjs,
+        jconsole, jdb, jdeprscan, jdeps, jfr, jhsdb, jimage, jinfo,
 	jlink, jmap, jmod, jpackage, jps, jrunscript, jshell, jstack,
-	jstat, jstatd, keytool, rmic, rmid, rmiregistry, and serialver</seg>
+	jstat, jstatd, keytool, rmid, rmiregistry, and serialver</seg>
         <seg>/opt/jdk-&openjdk-version;/lib/*</seg>
         <seg>/opt/jdk-&openjdk-version;</seg>
       </seglistitem>
@@ -738,7 +737,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+<!--
       <varlistentry id="jjs">
         <term><command>jjs</command></term>
         <listitem>
@@ -752,7 +751,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
       <varlistentry id="jlink">
         <term><command>jlink</command></term>
         <listitem>
@@ -902,7 +901,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-      -->
+
       <varlistentry id="rmic">
         <term><command>rmic</command></term>
         <listitem>
@@ -916,7 +915,7 @@ bin/keytool -list -cacerts</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      -->
       <varlistentry id="rmid">
         <term><command>rmid</command></term>
         <listitem>
