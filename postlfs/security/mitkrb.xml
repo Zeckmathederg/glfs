@@ -6,10 +6,10 @@
 
   <!ENTITY mitkrb-download-http "https://kerberos.org/dist/krb5/&mitkrb-major-version;/krb5-&mitkrb-version;.tar.gz">
   <!ENTITY mitkrb-download-ftp  " ">
-  <!ENTITY mitkrb-md5sum        "a64e8018a7572e0b4bd477c745129ffc">
+  <!ENTITY mitkrb-md5sum        "aaf18447a5a014aa3b7e81814923f4c9">
   <!ENTITY mitkrb-size          "8.3 MB">
-  <!ENTITY mitkrb-buildsize     "138 MB (add 24 MB for tests)">
-  <!ENTITY mitkrb-time          "0.8 SBU (add 4.4 SBU for tests)">
+  <!ENTITY mitkrb-buildsize     "139 MB (add 24 MB for tests)">
+  <!ENTITY mitkrb-time          "0.8 SBU (add 3.4 SBU for tests)">
 ]>
 
 <sect1 id="mitkrb" xreflabel="MIT Kerberos V5-&mitkrb-version;">
@@ -79,12 +79,14 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <!-- <xref linkend="dejagnu"/> (for full test coverage), -->
+      <xref linkend="bind-utils"/>,
       <xref linkend="gnupg2"/> (to authenticate the package),
       <xref linkend="keyutils"/>,
       <xref linkend="openldap"/>,<!-- Seems so that mit has its own
       implementation of rpc now.
       <xref linkend="rpcbind"/> (used during the testsuite),-->
       <xref linkend="valgrind"/> (used during the testsuite),
+      <xref linkend="yasm"/>,
       <ulink url="http://thrysoee.dk/editline/">libedit</ulink>,
       <ulink url="https://cmocka.org/">cmocka</ulink>,
       <ulink url="https://pypi.org/project/pyrad/">pyrad</ulink>, and
@@ -114,13 +116,15 @@
     </para>
 
 <screen><userinput>cd src &amp;&amp;
- 
+
 sed -i -e 's@\^u}@^u cols 300}@' tests/dejagnu/config/default.exp     &amp;&amp;
 sed -i -e '/eq 0/{N;s/12 //}'    plugins/kdb/db2/libdb2/test/run.test &amp;&amp;
+sed -i '/t_iprop.py/d'           tests/Makefile.in                    &amp;&amp;
 
 ./configure --prefix=/usr            \
             --sysconfdir=/etc        \
             --localstatedir=/var/lib \
+            --runstatedir=/run       \
             --with-system-et         \
             --with-system-ss         \
             --with-system-verto=no   \
@@ -171,17 +175,25 @@ cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      The first sed increases the width of the virtual terminal used for some
-      tests to prevent some spurious text in the output which is taken as a
-      failure. The second <command>sed</command> removes a test that is known
-      to fail.
+      The first <command>sed</command> increases the width of the virtual 
+      terminal used for some tests to prevent some spurious text in the output
+      which is taken as a failure. The second <command>sed</command> removes a
+      test that is known to fail. The third <command>sed</command> removes a
+      test that is known to hang.
     </para>
 
     <para>
       <parameter>--localstatedir=/var/lib</parameter>: This option is
-      used so that the Kerberos variable run-time data is located in
+      used so that the Kerberos variable runtime data is located in
       <filename class="directory">/var/lib</filename> instead of
       <filename class="directory">/usr/var</filename>.
+    </para>
+
+    <para>
+      <parameter>--runstatedir=/run</parameter>: This option is used so that
+      the Kerberos runtime state information is located in
+      <filename class="directory">/run</filename> instead of the deprecated
+      <filename class="directory">/var/run</filename>.
     </para>
 
     <para>
