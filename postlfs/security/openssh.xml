@@ -152,6 +152,17 @@ useradd  -c 'sshd PrivSep' \
 <screen><userinput remap="pre">sed -e '/INSTALLKEYS_SH/s/)//' -e '260a\  )' -i contrib/ssh-copy-id</userinput></screen>
 
     <para>
+      Next, fix an issue on platforms other than x86_64:
+    </para>
+    <screen><userinput remap="pre">if [ "$(uname -m)" != "x86_64" ]; then
+    l1="#ifdef __NR_pselect6_time64"
+    l2="    SC_ALLOW(__NR_pselect6_time64),"
+    l3="#endif"
+    sed -e "/^#ifdef __NR_read$/ i $l1\n$l2\n$l3" \
+        -i sandbox-seccomp-filter.c
+fi</userinput></screen>
+
+    <para>
       Install <application>OpenSSH</application> by running the following
       commands:
     </para>
