@@ -9,7 +9,7 @@
   <!ENTITY btrfs-progs-md5sum        "0ec41da8462196c17ac08f351db86912">
   <!ENTITY btrfs-progs-size          "2.1 MB">
   <!ENTITY btrfs-progs-buildsize     "92 MB (add 2.7 GB for tests)">
-  <!ENTITY btrfs-progs-time          "0.3 SBU (add 45 SBU for tests)">
+  <!ENTITY btrfs-progs-time          "0.2 SBU (add 45-90 SBU for tests, depending on disk speed)">
 ]>
 
 <sect1 id="btrfs-progs" xreflabel="btrfs-progs-&btrfs-progs-version;">
@@ -85,8 +85,7 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="lvm2"/> (<command>dmsetup</command> is used in tests),
-      <xref linkend="python2"/> (python bindings), and
+      <xref linkend="lvm2"/> (<command>dmsetup</command> is used in tests) and
       <xref linkend="reiserfs"/> (for tests)
     </para>
 
@@ -108,8 +107,9 @@
 
     <note>
       <para>
-        CONFIG_BTRFS_FS_POSIX_ACL and 
-        CONFIG_REISERFS_FS_XATTR are required for some tests.
+        CONFIG_BTRFS_FS_POSIX_ACL,
+        CONFIG_REISERFS_FS_XATTR, and
+        CONFIG_REISERFS_FS_POSIX_ACL are required for some tests.
         Other Btrfs options in the kernel are optional.
       </para>
     </note>
@@ -145,15 +145,14 @@ make</userinput></screen>
         installing <xref linkend="pcre"/>.
       </para>
     </note>
-
+<!-- Keeping this for now, but it seems that calling "make test" is
+     simpler and does the same thing
     <para>
-      Before running tests, build a support program:
-      <!-- and disable several that fail:-->
+      Before running tests, build a support program
+      and disable several that fail:
     </para>
 
-<screen remap="test"><userinput>make fssum &amp;&amp;
-
-sed -i '/found/s/^/: #/' tests/convert-tests.sh &amp;&amp;</userinput></screen>
+<screen remap="test"><userinput>make fssum</userinput></screen>
 
     <para>
       To test the results, issue (as the <systemitem
@@ -161,13 +160,36 @@ sed -i '/found/s/^/: #/' tests/convert-tests.sh &amp;&amp;</userinput></screen>
     </para>
 
 <screen role="root" remap="test"><userinput>pushd tests
-   ./fsck-tests.sh    <!-- 43 tests  6m14s -->
-   ./mkfs-tests.sh    <!-- 20 tests  2m48s -->
-   ./cli-tests.sh     <!-- 12 tests  0m51s -->
-   ./convert-tests.sh <!-- 16 tests 13m36s -->
-   ./misc-tests.sh    <!-- 38 tests  3m18s -->
-   ./fuzz-tests.sh    <!--  8 tests  1m11s -->
+   ./fsck-tests.sh
+   ./mkfs-tests.sh
+   ./cli-tests.sh
+   ./convert-tests.sh
+   ./misc-tests.sh
+   ./fuzz-tests.sh
 popd</userinput></screen>
+-->
+    <para>
+      To test the results, run (as the
+      <systemitem class="username">root</systemitem>):
+    </para>
+
+<screen role="root" remap="test"><userinput>make test</userinput></screen>
+
+    <note>
+      <para>
+        If the above mentioned kernel options are not enabled, some tests
+        fail, and prevent all the remaining tests to run, because the test
+        disk image is not cleanly unmounted.
+      </para>
+    </note>
+
+    <para>
+      Two tests fail for unknown reasons in the
+      <command>test-libbtrfsutil</command> section. Tests take a very long
+      time, and it may be interesting to run only part of them. Running tests
+      only in one directory can be done with
+      <command>make TEST=&lt;DIR&gt; test</command>.
+    </para>
 
     <para>
       Install the package as the <systemitem
@@ -190,12 +212,12 @@ mv -v /bin/{mkfs,fsck}.btrfs /sbin</userinput></screen>
       <option>--disable-documentation</option>: This option
       is needed if the recommended dependencies are not installed.
     </para>
-
+<!-- not anymore in the commands
     <para>
       <command>mv tests/{cli,convert,misc,fuzz}-tests/ ...</command>: Disables
       tests that fail and prevent tests from completing.
     </para>
-
+-->
     <para>
       <command>ln -s ... /usr/lib/libbtrfs.so</command>: Creates a 
       symbolic link in the directory where it is expected.
