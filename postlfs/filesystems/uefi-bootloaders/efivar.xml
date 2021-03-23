@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../../general.ent">
+  %general-entities;
+
+  <!ENTITY efivar-download-http "https://github.com/rhboot/efivar/releases/download/&efivar-version;/efivar-&efivar-version;.tar.bz2">
+  <!ENTITY efivar-download-ftp  " ">
+  <!ENTITY efivar-md5sum        "9f067275c5f7aafdd75bfb364280ac9c">
+  <!ENTITY efivar-size          "108 KB">
+  <!ENTITY efivar-buildsize     "2.75 MB">
+  <!ENTITY efivar-time          "less than 0.1 SBU">
+]>
+
+<sect1 id="efivar" xreflabel="efivar-&efivar-version;">
+  <?dbhtml filename="efivar.html"?>
+
+  <sect1info>
+    <othername>$LastChangedBy: bdubbs $</othername>
+    <date>$Date: 2021-02-21 03:35:58 +0800 (日, 2021-02-21) $</date>
+  </sect1info>
+
+  <title>efivar-&efivar-version;</title>
+
+  <indexterm zone="efivar">
+    <primary sortas="a-efivar">efivar</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to efivar</title>
+
+    <para>
+      The <application>efivar</application> package provides tools and
+      libraries to manipulate EFI variables.
+    </para>
+
+    &lfs101_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&efivar-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&efivar-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &efivar-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &efivar-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &efivar-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &efivar-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/efivar-&efivar-version;-gcc_9-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para condition="html" role="usernotes">User Notes:
+    <ulink url="&blfs-wiki;/efivar"/></para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of efivar</title>
+
+    <para>
+      At first, apply a patch to fix an issue breaking the build with GCC 9
+      or later:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../efivar-37-gcc_9-1.patch</userinput></screen>
+
+    <para>
+      Build <application>efivar</application> with the following
+      commands:
+    </para>
+
+<screen><userinput>make CFLAGS="-O2 -Wno-stringop-truncation"</userinput></screen>
+
+    <para>
+      The test suite of this package is dangerous.  Running it may trigger
+      firmware bugs and make your system unusable without using some special
+      hardware to reprogram the firmware.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install LIBDIR=/usr/lib BINDIR=/bin</userinput></screen>
+
+    <para>
+      Move the shared libraries to <filename class="directory">/lib</filename>,
+      and recreate the symlinks in <filename class="directory">/usr/lib</filename>:
+    </para>
+
+<screen role="root"><userinput>mv /usr/lib/libefi{boot,var}.so.* /lib &amp;&amp;
+ln -sfv ../../lib/$(readlink /usr/lib/libefiboot.so) /usr/lib/libefiboot.so &amp;&amp;
+ln -sfv ../../lib/$(readlink /usr/lib/libefivar.so) /usr/lib/libefivar.so
+</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>CFLAGS="-O2 -Wno-stringop-truncation"</parameter>:
+      This option overrides the compiler flags defaulted by this package,
+      to avoid build failure.
+    </para>
+
+    <para>
+      <parameter>LIBDIR=/usr/lib</parameter>:
+      This option overrides the default library directory of the package
+      (<filename class="directory">/usr/lib64</filename>, which is not used
+      by LFS.)
+    </para>
+
+    <para>
+      <parameter>BINDIR=/bin</parameter>:
+      Make <command>efivar</command> avaliable even if
+      <filename class="directory">/usr</filename> is offline.
+    </para>
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          efivar
+        </seg>
+        <seg>
+          libefiboot.so and libefivar.so
+        </seg>
+        <seg>
+          /usr/include/efivar
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="efivar-prog">
+        <term><command>efivar</command></term>
+        <listitem>
+          <para>
+            is a tool to manipulate UEFI variables
+          </para>
+          <indexterm zone="efivar efivar-prog">
+            <primary sortas="b-efivar">efivar</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libefiboot">
+        <term><filename class="libraryfile">libefiboot.so</filename></term>
+        <listitem>
+          <para>
+            is a library used by <command>efibootmgr</command>
+          </para>
+          <indexterm zone="efivar libefiboot">
+            <primary sortas="c-libefiboot">libefiboot.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libefivar">
+        <term><filename class="libraryfile">libefivar.so</filename></term>
+        <listitem>
+          <para>
+            is a library for the manipulation of EFI variables
+          </para>
+          <indexterm zone="efivar libefiboot">
+            <primary sortas="c-libefiboot">libefiboot.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
