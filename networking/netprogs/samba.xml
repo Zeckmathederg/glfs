@@ -6,7 +6,7 @@
 
   <!ENTITY samba-download-http "https://www.samba.org/ftp/samba/stable/samba-&samba-version;.tar.gz">
   <!ENTITY samba-download-ftp  " ">
-  <!ENTITY samba-md5sum        "b1001900f542116e509b514e7e639875">
+  <!ENTITY samba-md5sum        "2c726e392a7d36743ae0517e48db36eb">
   <!ENTITY samba-size          "18 MB">
   <!ENTITY samba-buildsize     "620 MB (add 380 MB for quicktest)">
   <!ENTITY samba-time          "3.1 SBU (using parallelism=4; add 4.7 SBU for quicktest)">
@@ -95,8 +95,7 @@
       <xref linkend="icu"/>,
       <xref linkend="libxslt"/> (for documentation),
       <xref linkend="linux-pam"/>,
-      <xref linkend="perl-parse-yapp"/>,
-      <xref linkend="pycryptodome"/>, and
+      <xref linkend="perl-parse-yapp"/>, and
       <xref linkend="openldap"/>
     </para>
 
@@ -178,10 +177,12 @@
     <title>Installation of Samba</title>
 
     <para>
-      If you wish to run the test suite, install some python modules first:
+      To support the test suite, set up a Python virtual environment
+      for some Python modules out of the scope of BLFS:
     </para>
 
-<screen role="root"><userinput remap="pre">pip3 install cryptography pyasn1 iso8601</userinput></screen>
+<screen><userinput remap="pre">python3 -m venv pyvenv &amp;&amp;
+./pyvenv/bin/pip3 install cryptography pyasn1 iso8601</userinput></screen>
 
     <para>
       Fix a test that always fails:
@@ -194,7 +195,8 @@
       commands:
     </para>
 
-<screen revision="sysv"><userinput>CPPFLAGS="-I/usr/include/tirpc"        \
+<screen revision="sysv"><userinput>PYTHON=$PWD/pyvenv/bin/python3         \
+CPPFLAGS="-I/usr/include/tirpc"        \
 LDFLAGS="-ltirpc"                      \
 ./configure                            \
     --prefix=/usr                      \
@@ -208,7 +210,8 @@ LDFLAGS="-ltirpc"                      \
     --enable-selftest                  &amp;&amp;
 make</userinput></screen>
 
-<screen revision="systemd"><userinput>CPPFLAGS="-I/usr/include/tirpc"        \
+<screen revision="systemd"><userinput>PYTHON=$PWD/pyvenv/bin/python3         \
+CPPFLAGS="-I/usr/include/tirpc"        \
 LDFLAGS="-ltirpc"                      \
 ./configure                            \
     --prefix=/usr                      \
@@ -246,7 +249,8 @@ make</userinput></screen>
     <note>
       <para>
         Additionally, developer test suites are available. If you've installed
-        the optional python modules above, you can run these tests with
+        the optional python modules above in the Python virtual environment
+        for building this package, you can run these tests with
         <command>make test</command>. It is not recommended for the average
         builder at around 290 SBU and over a gigabyte of disk space, and you
         should expect ~73 errors and ~30 failures from the 3000+ tests.
@@ -254,7 +258,23 @@ make</userinput></screen>
     </note>
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
+      Fix a hard coded path to Python 3 interpreter:
+    </para>
+
+<screen><userinput>sed '1s@^.*$@#!/usr/bin/python3@' \
+    -i ./bin/default/source4/scripting/bin/samba-gpupdate.inst</userinput></screen>
+
+    <para>
+      If upgrading from an old version of samba, as the
+      <systemitem class="username">root</systemitem> user, remove the old
+      Python support files to prevent some issue:
+    </para>
+
+<screen role="root"><userinput>rm -rf /usr/lib/python&python3-majorver;/site-packages/samba</userinput></screen>
+
+    <para>
+      Still as the <systemitem class="username">root</systemitem> user,
+      install the package:
     </para>
 
 <screen role="root"><userinput>make install &amp;&amp;
