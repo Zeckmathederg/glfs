@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# $LastChangedBy$
-# $Date$
-
 # obfuscate.sh
 # obfuscate email addresses in XML/HTML
 # Script written (and slight perl modification) by Archaic <archaic AT linuxfromscratch D0T org>

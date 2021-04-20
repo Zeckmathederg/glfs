@@ -5,11 +5,6 @@
 ]>
 
 <!--
-$LastChangedBy$
-$Date$
--->
-
-<!--
   This stylesheet creates a script to copy the patches referenced
   in the BLFS book from the patches repository to the blfs
   download area.  It is very specific to the installation on

@@ -1,10 +1,5 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
 
-<!--
-$LastChangedBy$
-$Date$
--->
-
 <!-- Create a list of upstream URLs for packages and patches to be used
      with wget. -->
 

@@ -1,8 +1,6 @@
 # Makefile for BLFS Book generation.
 # By Tushar Teredesai <tushar@linuxfromscratch.org>
 # 2004-01-31
-# $LastChangedBy$
-# $Date$
 
 # Adjust these to suit your installation
 RENDERTMP   ?= $(HOME)/tmp
