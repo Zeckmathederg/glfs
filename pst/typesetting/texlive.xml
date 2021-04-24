@@ -5,21 +5,21 @@
 
   <!ENTITY texlive-download-http " ">
   <!ENTITY texlive-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texlive-version;-source.tar.xz">
-  <!ENTITY texlive-md5sum        "a5d992e3cb8554ce92c55adde03958ba">
+  <!ENTITY texlive-md5sum        "19da95538956e26570ef7fb202af258f">
   <!ENTITY texlive-size          "53 MB">
 
-  <!ENTITY texlive-buildsize      "8.5 GB including the additional download and the tests, 6.4 GB installed">
-  <!ENTITY texlive-time           "5.8 SBU including the additional download and the tests, building with parallelism=4">
+  <!ENTITY texlive-buildsize      "8.1 GB including the additional download and the tests, 7.0 GB installed">
+  <!ENTITY texlive-time           "4.2 SBU including the additional download and the tests, building with parallelism=4">
 
   <!ENTITY texlive-texmf-download-http " ">
   <!ENTITY texlive-texmf-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&texmf-version;-texmf.tar.xz">
-  <!ENTITY texlive-texmf-md5sum        "bca40df2ff11269fbcb2d1b4ff0278b1">
-  <!ENTITY texlive-texmf-size          "3.0 GB">
+  <!ENTITY texlive-texmf-md5sum        "2426a62e43f8b07397ef2dd8367e0465">
+  <!ENTITY texlive-texmf-size          "3.3 GB">
 
   <!ENTITY texlive-tlpdb-download-http " ">
   <!ENTITY texlive-tlpdb-download-ftp  "ftp://tug.org/texlive/historic/&texlive-year;/texlive-&tex-tlpdb-version;-tlpdb-full.tar.gz">
-  <!ENTITY texlive-tlpdb-md5sum        "d8cd997c1bba422b30c9bc225e508794">
-  <!ENTITY texlive-tlpdb-size          "2.9 MB">
+  <!ENTITY texlive-tlpdb-md5sum        "af0240961ecd28be5fd30d0e99b341d5">
+  <!ENTITY texlive-tlpdb-size          "3.0 MB">
 
 ]>
 
@@ -168,12 +168,12 @@
         </para>
       </listitem>
 
-<!--  <listitem>
+      <listitem>
         <para>
           Required patch: <ulink url=
-          "&patch-root;/texlive-&texlive-version;-source-upstream_fixes-1.patch"/>
+          "&patch-root;/texlive-&texlive-version;-upstream_fixes-1.patch"/>
         </para>
-      </listitem>-->
+      </listitem>
     </itemizedlist>
 
     <bridgehead renderas="sect3">TeX Live from source Dependencies</bridgehead>
@@ -222,18 +222,7 @@
 
     <caution>
       <para>
-        The instructions here for dealing with <application>poppler</application>
-        will only work with versions of poppler used in BLFS-9.1 and later, i.e.
-        poppler &gt;= 0.83.0. If you wish to upgrade an older system, there
-        are versions of <filename>pdftoepdf{,-poppler*}.cc</filename> and
-        <filename>pdftosrc{,-newpoppler,-poppler*}.cc</filename> in <filename
-        class="directory">texk/web2c/pdftexdir</filename>. You should establish
-        which version of <application>poppler</application> is installed and use
-        the appropriate versions of these files.
-      </para>
-
-      <para>
-        Similarly, if you wish to upgrade to current <application>texlive</application>
+        If you wish to upgrade to current <application>texlive</application>
         on an older system where extra packages (<application>asymptote</application>.
         <application>biber</application>, <application>dvisvgm</application> or
         <application>xindy</application>) have been installed, you will need to
@@ -256,47 +245,6 @@
 # End texlive &texlive-year; addition</literal>
 EOF</userinput></screen>
 
-    <para>
-      <application>TexLive</application> ships with a very old version of
-      <application>poppler</application>, and some updated files for newer versions.
-      To use the system version, first identify it and then copy the correct
-      versions of the updated files (please read the Caution above):
-    </para>
-
-<!-- on a release, drop this back to current version but update the
- Caution above and ideally keep this commented, every other (expletive
- deleted) poppler update tends to break this.  Fortunately, upstream
- has deleted the poppler directory from their source in
- https://tug.org/svn/texlive?view=revision&revision=55138
- so from TL2021 this aggravation should be gone. -->
-<screen><userinput>SYSPOP= &amp;&amp;
-MYPOPPLER_MAJOR=$(pkg-config --modversion poppler | cut -d '.' -f1)
-if [ "$MYPOPPLER_MAJOR" = "0" ]; then
-    # if major was >=20, minor could start with 0 and not fit in octal
-    # causing error from 'let' in bash.
-    let MYPOPPLER_MINOR=$(pkg-config --modversion poppler | cut -d '.' -f2)
-else
-    # force a value > 85
-    let MYPOPPLER_MINOR=99
-fi
-if [ "$MYPOPPLER_MINOR" -lt 85 ]; then
-    # BLFS-9.1 uses 0.85.0, ignore earlier versions in this script.
-    # If updating texlive on an older system, review the available
-    # variants for pdftoepdf and pdftosrc to use system poppler.
-    SYSPOP=
-else
-    SYSPOP="--with-system-poppler --with-system-xpdf"
-    if [ "$MYPOPPLER_MINOR" -lt 86 ]; then
-        mv -v texk/web2c/pdftexdir/pdftoepdf{-poppler0.83.0,}.cc
-    else # 0.86.0 or later, including 20.08.0.
-        mv -v texk/web2c/pdftexdir/pdftoepdf{-poppler0.86.0,}.cc
-    fi
-    # For pdftosrc BLFS-9.1 uses 0.83.0 and that is the latest variant.
-    mv -v texk/web2c/pdftexdir/pdftosrc{-poppler0.83.0,}.cc
-fi &amp;&amp;
-export SYSPOP &amp;&amp;
-unset MYPOPPLER_{MAJOR,MINOR}</userinput></screen>
-
     <note>
       <para>
         A successful install requires some texlive
@@ -308,48 +256,44 @@ unset MYPOPPLER_{MAJOR,MINOR}</userinput></screen>
     <para>
       Now, as a normal user:
     </para>
-<!-- after the export!
-patch -Np1 -i ../texlive-&texlive-version;-source-upstream_fixes-1.patch &amp;&amp;-->
-<screen><userinput>export TEXARCH=$(uname -m | sed -e 's/i.86/i386/' -e 's/$/-linux/') &amp;&amp;
+
+<screen><userinput>export TEXARCH=$(uname -m |
+ sed -e 's/i.86/i386/' -e 's/$/-linux/')                 &amp;&amp;
+patch -Np1 -i ../texlive-&texlive-version;-upstream_fixes-1.patch &amp;&amp;
 
 mkdir texlive-build &amp;&amp;
 cd texlive-build    &amp;&amp;
 
-../configure                                                    \
-    --prefix=/opt/texlive/&texlive-year;                                  \
-    --bindir=/opt/texlive/&texlive-year;/bin/$TEXARCH                     \
-    --datarootdir=/opt/texlive/&texlive-year;                             \
-    --includedir=/opt/texlive/&texlive-year;/include                      \
-    --infodir=/opt/texlive/&texlive-year;/texmf-dist/doc/info             \
-    --libdir=/opt/texlive/&texlive-year;/lib                              \
-    --mandir=/opt/texlive/&texlive-year;/texmf-dist/doc/man               \
-    --disable-native-texlive-build                              \
-    --disable-static --enable-shared                            \
-    --disable-dvisvgm                                           \
-    --with-system-cairo                                         \
-    --with-system-fontconfig                                    \
-    --with-system-freetype2                                     \
-    --with-system-gmp                                           \
-    --with-system-graphite2                                     \
-    --with-system-harfbuzz                                      \
-    --with-system-icu                                           \
-    --with-system-libgs                                         \
-    --with-system-libpaper                                      \
-    --with-system-libpng                                        \
-    --with-system-mpfr                                          \
-    --with-system-pixman                                        \
-    ${SYSPOP}                                                   \
-    --with-system-zlib                                          \
+../configure                                        \
+    --prefix=/opt/texlive/&texlive-year;                      \
+    --bindir=/opt/texlive/&texlive-year;/bin/$TEXARCH         \
+    --datarootdir=/opt/texlive/&texlive-year;                 \
+    --includedir=/opt/texlive/&texlive-year;/include          \
+    --infodir=/opt/texlive/&texlive-year;/texmf-dist/doc/info \
+    --libdir=/opt/texlive/&texlive-year;/lib                  \
+    --mandir=/opt/texlive/&texlive-year;/texmf-dist/doc/man   \
+    --disable-native-texlive-build                  \
+    --disable-static --enable-shared                \
+    --disable-dvisvgm                               \
+    --with-system-cairo                             \
+    --with-system-fontconfig                        \
+    --with-system-freetype2                         \
+    --with-system-gmp                               \
+    --with-system-graphite2                         \
+    --with-system-harfbuzz                          \
+    --with-system-icu                               \
+    --with-system-libgs                             \
+    --with-system-libpaper                          \
+    --with-system-libpng                            \
+    --with-system-mpfr                              \
+    --with-system-pixman                            \
+    --with-system-zlib                              \
     --with-banner-add=" - BLFS" &amp;&amp;
 
-make &amp;&amp;
-unset SYSPOP</userinput></screen>
+make</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make -k check</command>.
-      One of the Kpathsea tests will fail because BLFS uses system
-      libraries.
-   <!--  https://tug.org/pipermail/tex-k/2019-August/003036.html -->
+      To test the results, issue: <command>make check</command>.
     </para>
 
     <para>
@@ -383,6 +327,19 @@ tar -xf ../../texlive-&tex-tlpdb-version;-tlpdb-full.tar.gz -C /opt/texlive/&tex
 <screen role="root"><userinput>tar -xf ../../texlive-&texmf-version;-texmf.tar.xz -C /opt/texlive/&texlive-year; --strip-components=1</userinput></screen>
 
     <para>
+      It has been established by debian that the <command>python</command>
+      scripts in <filename class="directory">latex-make</filename> will work
+      with <command>python3</command>, so update them to invoke that by running
+      the following command as the <systemitem class="username">root</systemitem>
+      user:
+    </para>
+
+<screen role="root"><userinput>for F in /opt/texlive/&texlive-year;/texmf-dist/scripts/latex-make/*.py ; do
+  sed -i 's%/usr/bin/env python%/usr/bin/python3%' $F
+done
+</userinput></screen>
+
+    <para>
       Still as the <systemitem class="username">root</systemitem> user,
       initialise the new system (the commands <command>fmtutil-sys
       --all</command> and <command>mtxrun --generate</command> will produce
@@ -408,11 +365,12 @@ mtxrun --generate</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!--<para>
+    <para>
+      <!-- https://tug.org/pipermail/tlbuild/2021q2/004885.html -->
       <command>patch -Np1 -i ../texlive-&texlive-version;-source-upstream_fixes-1.patch</command>:
-      various problems have come to light since the shipped source was frozen to
-      be committed to DVDs.
-    </para>-->
+      A small update to mpost and LuaTeX caused the binaries to be rebuilt.
+      This ptch applies the same fixes.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
      href="../../xincludes/tex-prefix.xml"/>
