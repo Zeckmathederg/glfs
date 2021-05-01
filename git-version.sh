@@ -31,11 +31,14 @@ esac
 
 full_date="$month $day$suffix, $year"
 
-sha="g$(git describe --always)"
-version="$short_date-$sha"
+sha="$(git describe --abbrev=1)"
+if git describe --all --match trunk > /dev/null 2> /dev/null; then
+	sha=$(echo "$sha" | sed 's/-g[^-]*$//')
+fi
+version="$sha"
 
 if [ "$(git diff HEAD | wc -l)" != "0" ]; then
-	version="$version-MODIFIED"
+	version="$version+"
 fi
 
 echo "<!ENTITY day               \"$day_digit\">"          >  version.ent
@@ -43,6 +46,5 @@ echo "<!ENTITY month             \"$month_digit\">"        >> version.ent
 echo "<!ENTITY year              \"$year\">"               >> version.ent
 echo "<!ENTITY copyrightdate     \"2001-$year\">"          >> version.ent
 echo "<!ENTITY version           \"$version\">"            >> version.ent
-echo "<!ENTITY short-version     \"$sha\">"                >> version.ent
 echo "<!ENTITY releasedate       \"$full_date\">"          >> version.ent
 echo "<!ENTITY pubdate           \"$short_date\">"         >> version.ent
