@@ -18,7 +18,7 @@
 
     <!-- Allow select the dest dir at runtime -->
   <xsl:param name="dest.dir">
-    <xsl:value-of select="concat('/srv/www/', substring-after('&patch-root;', 'http://'))"/>
+    <xsl:value-of select="concat('/srv/www/', substring-after('&patch-root;', 'https://'))"/>
   </xsl:param>
 
   <xsl:template match="/">
