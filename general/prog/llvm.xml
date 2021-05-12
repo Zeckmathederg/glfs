@@ -8,18 +8,18 @@
 
   <!ENTITY llvm-download-http "&llvm-url;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "69bc06661ce8f1872e27b40ff96002b2">
-  <!ENTITY llvm-size          "37 MB">
-  <!ENTITY llvm-buildsize     "3.1 GB (727 MB installed, add 20 GB for tests)">
-  <!ENTITY llvm-time          "30 SBU (with parallelism=4, add 18 SBU for tests)">
+  <!ENTITY llvm-md5sum        "ceab21c9081e122a88d82216a80d0dc0">
+  <!ENTITY llvm-size          "41 MB">
+  <!ENTITY llvm-buildsize     "3.3 GB (772 MB installed, add 11 GB for tests)">
+  <!ENTITY llvm-time          "33 SBU (with parallelism=4, add 38 SBU for tests)">
 
   <!ENTITY clang-download-http "&llvm-url;/clang-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "133c6719e22bfded74fcaf1d3092e979">
+  <!ENTITY clang-md5sum        "877200cc072ece1a52c27677ab26e3ee">
   <!ENTITY clang-size          "15 MB">
 
   <!ENTITY compiler-rt-download-http "&llvm-url;/compiler-rt-&llvm-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "efd3e3de6f05254f5d62353780486d70">
-  <!ENTITY compiler-rt-size          "2.1 MB">
+  <!ENTITY compiler-rt-md5sum        "313e9b1caf33195cbece3ba3174115a1">
+  <!ENTITY compiler-rt-size          "2.2 MB">
 ]>
 
 <sect1 id="llvm" xreflabel="LLVM-&llvm-version;">
@@ -260,7 +260,8 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
       by the <systemitem class="username">root</systemitem> user and makes them
       temporarily unusable by all jobs on the machine.)
       Note that a few of the compiler-rt Sanitizer based tests (6 of more than 48000
-      tests run) are known to fail.
+      tests run) are known to fail. Some of the LLVM-Unit IR tests are known to
+      fail as well.
     </para>
 
     <para>
@@ -297,15 +298,15 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
     <title>Command Explanations</title>
 
     <para>
-      <parameter>-DLLVM_ENABLE_FFI=ON</parameter>: This switch enables
+      <parameter>-DLLVM_ENABLE_FFI=ON</parameter>: This switch allows
       <application>LLVM</application> to use
       <application>libffi</application>.
     </para>
 
     <para>
-      <parameter>-DLLVM_BUILD_LLVM_DYLIB=ON</parameter>: builds libraries as
-      static and links all of them into an unique shared one. This is the
-      recommended way of building a shared library.
+      <parameter>-DLLVM_BUILD_LLVM_DYLIB=ON</parameter>: This switch builds
+      the libraries as static and links all of them into an unique shared one.
+      This is the recommended way of building a shared library.
     </para>
 
     <para>
@@ -319,10 +320,10 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
       <parameter>-DLLVM_TARGETS_TO_BUILD="host;AMDGPU;BPF"</parameter>: This
       switch enables building for the same target as the host, and also for
       the r600 AMD GPU used by the Mesa r600 and radeonsi drivers. The BPF
-      target is required to build <xref linkend="v4l-utils"/>. Default is
-      all. You can use a semicolon separated list. Valid targets are: host,
-      X86, Sparc, PowerPC, ARM, AArch64, Mips, Hexagon, Xcore, MSP430, NVPTX,
-      SystemZ, AMDGPU, BPF, CppBackend, or all.
+      target is required to build <xref linkend="v4l-utils"/>. The Default is
+      all of the targets. You can use a semicolon separated list. Valid targets
+      are: host, X86, Sparc, PowerPC, ARM, AArch64, Mips, Hexagon, Xcore, 
+      M68K, MSP430, NVPTX, SystemZ, AMDGPU, BPF, CppBackend, or all.
     </para>
 
     <para>
@@ -334,15 +335,15 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
     </para>
 
     <para>
-      <parameter>-DLLVM_ENABLE_RTTI=ON</parameter>: Used to build LLVM with 
-      run-time type information. This is required for building 
+      <parameter>-DLLVM_ENABLE_RTTI=ON</parameter>: This switch is used to 
+      build LLVM with run-time type information. This is required for building 
       <xref linkend="mesa"/>.
     </para>
 
     <para>
-      <parameter>-DLLVM_BINUTILS_INCDIR=/usr/include</parameter>: Used to
-      tell the building system the location of binutils headers, installed
-      in LFS.  This allows the building of
+      <parameter>-DLLVM_BINUTILS_INCDIR=/usr/include</parameter>: This switch
+      is used to tell the build system the location of binutils headers, 
+      which were installed in LFS.  This allows the building of
       <filename class="libraryfile">LLVMgold.so</filename>, which is needed
       for building programs with <command>clang</command> and Link Time
       Optimization (LTO).
@@ -381,29 +382,32 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           clang-offload-bundler, clang-offload-wrapper, 
           clang-refactor, clang-rename, clang-scan-deps,
           diagtool, dsymutil, git-clang-format, hmaptool, llc, lli, 
-          llvm-addr2line, llvm-ar, llvm-as, llvm-bcanalyzer, llvm-cat, 
+          llvm-addr2line, llvm-ar, llvm-as, llvm-bcanalyzer,
+          llvm-bitcode-strip (symlink to llvm-objcopy), llvm-cat, 
           llvm-cfi-verify, llvm-config, llvm-cov, llvm-c-test, llvm-cvtres, 
           llvm-cxxdump, llvm-cxxfilt, llvm-cxxmap,
           llvm-diff, llvm-dis, llvm-dlltool (symlink to llvm-ar), llvm-dwarfdump,
           llvm-dwp, llvm-elfabi, llvm-exegenesis, llvm-extract, llvm-gsymutil, llvm-ifs,
           llvm-install-name-tool (symlink to llvm-objcopy), llvm-jitlink,
-          llvm-lib (symlink to llvm-ar), llvm-link, llvm-lipo, llvm-lto, 
-          llvm-lto2, llvm-mc, llvm-mca, llvm-ml, llvm-modextract,
-          llvm-mt, llvm-nm, llvm-objcopy, llvm-objdump, llvm-opt-report,
-          llvm-pdbutil, llvm-profdata, llvm-ranlib (symlink to llvm-ar), llvm-rc,
+          llvm-lib (symlink to llvm-ar), llvm-libtool-darwin, llvm-link, 
+          llvm-lipo, llvm-lto, llvm-lto2, llvm-mc, llvm-mca, llvm-ml, 
+          llvm-modextract, llvm-mt, llvm-nm, llvm-objcopy, llvm-objdump,
+          llvm-opt-report, llvm-pdbutil, llvm-profdata, llvm-profgen, 
+          llvm-ranlib (symlink to llvm-ar), llvm-rc, 
           llvm-readelf (symlink to llvm-readobj), llvm-readobj, llvm-reduce, 
           llvm-rtdyld, llvm-size, llvm-split, llvm-stress, llvm-strings, 
           llvm-strip (symlink to llvm-objcopy), llvm-symbolizer, llvm-tblgen, 
-          llvm-undname, llvm-xray, obj2yaml, opt, sancov, sanstats, scan-build,
-          scan-view, verify-uselistorder, and yaml2obj
+          llvm-undname, llvm-xray, opt, sancov, sanstats, scan-build,
+          scan-view, split-file, and verify-uselistorder
         </seg>
         <seg>
           libLLVM.so, 
-          libLLVM*.a (75 libraries), 
+          libLLVM*.a (84 libraries), 
           libLTO.so, 
           libRemarks.so, 
           libclang.so,
-          libclang*.a (63 libraries),
+          libclang-cpp.so,
+          libclang*.a (37 libraries),
           and LLVMgold.so
         </seg>
         <seg>
@@ -695,6 +699,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-bitcode-strip">
+        <term><command>llvm-bitcode-strip</command></term>
+        <listitem>
+          <para>
+            strips LLVM bitcode from an object
+          </para>
+          <indexterm zone="llvm llvm-bitcode-strip">
+            <primary sortas="b-llvm-bitcode-strip">llvm-bitcode-strip</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-cat">
         <term><command>llvm-cat</command></term>
         <listitem>
@@ -944,6 +960,20 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-libtool-darwin">
+        <term><command>llvm-libtool-darwin</command></term>
+        <listitem>
+          <para>
+            provides basic libtool functionality on Darwin-based systems.
+            This is mostly useful if you are generating binaries for macOS
+            systems
+          </para>
+          <indexterm zone="llvm llvm-libtool-darwin">
+            <primary sortas="b-llvm-libtool-darwin">llvm-libtool-darwin</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-link">
         <term><command>llvm-link</command></term>
         <listitem>
@@ -1141,6 +1171,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-profgen">
+        <term><command>llvm-profgen</command></term>
+        <listitem>
+          <para>
+            generates LLVM SPGO profiling information
+          </para>
+          <indexterm zone="llvm llvm-profgen">
+            <primary sortas="b-llvm-profgen">llvm-profgen</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-ranlib">
         <term><command>llvm-ranlib</command></term>
         <listitem>
@@ -1303,6 +1345,7 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+<!--
       <varlistentry id="obj2yaml">
         <term><command>obj2yaml</command></term>
         <listitem>
@@ -1315,6 +1358,7 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </indexterm>
         </listitem>
       </varlistentry>
+-->
 
       <varlistentry id="opt">
         <term><command>opt</command></term>
@@ -1378,6 +1422,18 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+      <varlistentry id="split-file">
+        <term><command>split-file</command></term>
+        <listitem>
+          <para>
+            splits an input file into multiple parts separated by regex
+          </para>
+          <indexterm zone="llvm split-file">
+            <primary sortas="b-split-file">split-file</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="verify-uselistorder">
         <term><command>verify-uselistorder</command></term>
         <listitem>
@@ -1391,6 +1447,7 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
         </listitem>
       </varlistentry>
 
+<!-- Removed in 12.0.0
       <varlistentry id="yaml2obj">
         <term><command>yaml2obj</command></term>
         <listitem>
@@ -1403,6 +1460,7 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           </indexterm>
         </listitem>
       </varlistentry>
+-->
 <!--
       <varlistentry id="libllvm">
         <term><filename class="libraryfile">libLLVM-&llvm-version;.so</filename></term>
