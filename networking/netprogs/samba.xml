@@ -6,10 +6,10 @@
 
   <!ENTITY samba-download-http "https://www.samba.org/ftp/samba/stable/samba-&samba-version;.tar.gz">
   <!ENTITY samba-download-ftp  " ">
-  <!ENTITY samba-md5sum        "2c726e392a7d36743ae0517e48db36eb">
+  <!ENTITY samba-md5sum        "171629ad42b4b303107e8b0fff942a1f">
   <!ENTITY samba-size          "18 MB">
   <!ENTITY samba-buildsize     "620 MB (add 380 MB for quicktest)">
-  <!ENTITY samba-time          "3.1 SBU (using parallelism=4; add 4.7 SBU for quicktest)">
+  <!ENTITY samba-time          "3.1 SBU (using parallelism=4; add 4.8 SBU for quicktest)">
 ]>
 
 <sect1 id="samba" xreflabel="Samba-&samba-version;">
@@ -92,6 +92,7 @@
       <xref linkend="fuse3"/>,
       <xref linkend="gpgme"/>,
       <xref linkend="icu"/>,
+      <xref linkend="libtasn1"/>,
       <xref linkend="libxslt"/> (for documentation),
       <xref linkend="linux-pam"/>,
       <xref linkend="perl-parse-yapp"/>, and
@@ -197,6 +198,7 @@
 <screen revision="sysv"><userinput>PYTHON=$PWD/pyvenv/bin/python3         \
 CPPFLAGS="-I/usr/include/tirpc"        \
 LDFLAGS="-ltirpc"                      \
+PATH=$PWD/pyvenv/bin:$PATH             \
 ./configure                            \
     --prefix=/usr                      \
     --sysconfdir=/etc                  \
@@ -226,11 +228,11 @@ make</userinput></screen>
     <para>
       To test the results, as the
       <systemitem class="username">root</systemitem> user, issue:
-      <command>make quicktest</command>. The test suite will produce lines that
-      look like failures, but these are innocuous. The last few lines of output
-      should report <emphasis>"ALL OK"</emphasis> for a good test run. A summary
-      of any failures can be found in
-      <filename class="directory">./st/summary</filename>. With Samba-4.12.0,
+      <command>PATH=$PWD/pyvenv/bin:$PATH make quicktest</command>. The test
+      suite will produce lines that look like failures, but these are innocuous.
+      The last few lines of output should report <emphasis>"ALL OK"</emphasis>
+      for a good test run. A summary of any failures can be found in
+      <filename class="directory">./st/summary</filename>. With Samba-4.14.4,
       many tests are known to fail.
     </para>
 
@@ -452,7 +454,8 @@ ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</userinput></screen>
         <para>
           There is no need to run any <application>Samba</application>
           servers in this scenario, thus you don't need to install the provided
-          bootscripts.
+          <phrase revision="sysv">bootscripts.</phrase>
+          <phrase revision="systemd">systemd units.</phrase>
         </para>
 
       </sect4>
@@ -529,7 +532,9 @@ ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</userinput></screen>
         <para>
           Since the <command>smbd</command> and <command>nmbd</command> daemons
           are needed in this case, install the <filename>samba</filename>
-          bootscript. Be sure to run <command>smbpasswd</command> (with the
+          <phrase revision="sysv">bootscript.</phrase>
+          <phrase revision="systemd">systemd unit.</phrase>
+          Be sure to run <command>smbpasswd</command> (with the
           <option>-a</option> option to add users) to enable and set passwords
           for all accounts that need <application>Samba</application> access.
           Using the default <application>Samba</application> passdb backend,
@@ -547,8 +552,9 @@ ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</userinput></screen>
           possible. Such setups are advanced topics and cannot be adequately
           covered in BLFS. Many complete books have been written on these topics
           alone. Note that in some domain membership scenarios, the
-          <command>winbindd</command> daemon and the corresponding bootscript
-          are needed.
+          <command>winbindd</command> daemon and the corresponding
+          <phrase revision="sysv">bootscript</phrase>
+          <phrase revision="systemd">systemd unit</phrase> are needed.
         </para>
 
  <!-- All of these docs are years out of date. These were written for Samba 3,
@@ -1519,7 +1525,7 @@ systemctl start smbd.socket</userinput></screen>
         <term><filename class="libraryfile">libnetapi.so</filename></term>
         <listitem>
           <para>
-            provides the API functions for the administration tools used
+            provides API functions for the administration tools used
             for Samba and remote CIFS servers
           </para>
           <indexterm zone="samba libnetapi">
@@ -1532,7 +1538,7 @@ systemctl start smbd.socket</userinput></screen>
         <term><filename class="libraryfile">libsmbclient.so</filename></term>
         <listitem>
           <para>
-            provides the API functions for the Samba SMB client tools
+            provides API functions for the Samba SMB client tools
           </para>
           <indexterm zone="samba libsmbclient">
             <primary sortas="c-libsmbclient">libsmbclient.so</primary>
