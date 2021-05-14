@@ -40,7 +40,7 @@
       <!-- Ensure correct ownership -->
     <xsl:text>&#x0a;chgrp lfswww *.patch &amp;&amp;&#x0a;</xsl:text>
     <xsl:text>if [ `wc -l copyerrs|sed 's/ *//' |cut -f1 -d' '` -gt 0 ]; then
-  mail -s "Missing BLFS patches" blfs-book@linuxfromscratch.org &lt; copyerrs
+  mail -s "Missing BLFS patches" blfs-book@lists.linuxfromscratch.org &lt; copyerrs
 fi</xsl:text>
     <xsl:text>&#x0a;exit&#x0a;</xsl:text>
   </xsl:template>
