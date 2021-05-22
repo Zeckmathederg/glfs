@@ -91,6 +91,7 @@
     <para role="optional">
       <xref linkend="avahi"/>,
       <xref linkend="libpaper"/>,
+      <xref linkend="llvm"/> (with <command>clang</command>),
       <xref linkend="mitkrb"/>,
       <xref linkend="openjdk"/>,
       <xref linkend="php"/>, and
@@ -201,7 +202,10 @@
     </para>
 
     <para>
-      Remove an invalid warning option:
+      Upstream perfers <command>clang</command> than <command>gcc</command>,
+      but the building system will try to use a compiler warning option
+      unsupported by <command>clang</command>.  If <command>clang</command> is
+      installed, remove this warning option:
     </para>
 
 <screen><userinput>sed -e "s/-Wno-format-truncation//" \
@@ -234,7 +238,6 @@ make</userinput></screen>
 CC=gcc CXX=g++ \
 -->
 <screen revision="systemd"><userinput>./configure --libdir=/usr/lib            \
-            --with-rcdir=/tmp/cupsinit   \
             --with-system-groups=lpadmin \
             --with-docdir=/usr/share/cups/doc-&cups-version; &amp;&amp;
 make</userinput></screen>
@@ -254,8 +257,13 @@ make</userinput></screen>
 <!-- dev note: make BUILDROOT=<DESTDIR> install -->
 
 <screen role="root"><userinput>make install &amp;&amp;
-rm -rf /tmp/cupsinit &amp;&amp;
 ln -svnf ../cups/doc-&cups-version; /usr/share/doc/cups-&cups-version;</userinput></screen>
+
+    <para revision="sysv">
+      Remove the shipped bootscript, which is incompatible with LFS:
+    </para>
+
+<screen role="root" revision="sysv"><userinput>rm -rf /tmp/cupsinit &amp;&amp;</userinput></screen>
 
     <para>
       Create a basic <application>Cups</application> client configuration file
@@ -284,20 +292,19 @@ ln -svnf ../cups/doc-&cups-version; /usr/share/doc/cups-&cups-version;</userinpu
       <command>sed ... tools/ipptool.c</command>: This sed fixes a bug caused
       by glibc-2.30 changing the user-space API for sockets.
     </para>
-
-    <para>
-      <envar>CC=gcc CXX=g++</envar>: This environment variable ensures that gcc is used,
-      if clang is installed. Remove it, if you prefer to use clang. Using clang
-      almost doubles build time and slightly decreases build disk space.
-      Installed disk space is not appreciably modified.
-    </para>
 -->
+    <para>
+      <envar>CC=gcc CXX=g++</envar>: Setting them if you prefer to use
+      <command>gcc</command> instead of <command>clang</command>, which is
+      now preferred by the upstream.
+    </para>
+
     <para revision="sysv">
       <parameter>--disable-systemd</parameter>: Systemd is not supported by
       this version of BLFS.
     </para>
 
-    <para>
+    <para revision="sysv">
       <parameter>--with-rcdir=/tmp/cupsinit</parameter>: This switch tells the
       build process to install the shipped bootscript into <filename
       class="directory">/tmp</filename> instead of <filename
