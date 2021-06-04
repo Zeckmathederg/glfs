@@ -6,9 +6,9 @@
 
   <!ENTITY p11-kit-download-http "https://github.com/p11-glue/p11-kit/releases/download/&p11-kit-version;/p11-kit-&p11-kit-version;.tar.xz">
   <!ENTITY p11-kit-download-ftp  " ">
-  <!ENTITY p11-kit-md5sum        "03f93a4eb62127b5d40e345c624a0665">
-  <!ENTITY p11-kit-size          "812 KB">
-  <!ENTITY p11-kit-buildsize     "47 MB (add 169 MB for tests)">
+  <!ENTITY p11-kit-md5sum        "8ccf11c4a2e2e505b8e516d8549e64a5">
+  <!ENTITY p11-kit-size          "816 KB">
+  <!ENTITY p11-kit-buildsize     "56 MB (with tests)">
   <!ENTITY p11-kit-time          "0.2 SBU (add 0.6 SBU for tests)">
 ]>
 
@@ -112,22 +112,23 @@ EOF</userinput></screen>
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr     \
-            --sysconfdir=/etc \
-            --with-trust-paths=/etc/pki/anchors &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson --prefix=/usr       \
+      --buildtype=release \
+      -Dtrust_paths=/etc/pki/anchors &amp;&amp;
+ninja</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>. 
-      Many tests will fail if the test suite is run as the
-      <systemitem class="username"> root</systemitem> user.
+      To test the results, issue: <command>ninja test</command>. 
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
+<screen role="root"><userinput>ninja install &amp;&amp;
 ln -sfv /usr/libexec/p11-kit/trust-extract-compat \
         /usr/bin/update-ca-certificates</userinput></screen>
 
@@ -137,18 +138,24 @@ ln -sfv /usr/libexec/p11-kit/trust-extract-compat \
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--with-trust-paths=/etc/pki/anchors</parameter>: this switch
+      <parameter>--buildtype=release</parameter>: Override the default
+      buildtype (<quote>debug</quote>), which would produce unoptimized
+      binaries.
+    </para>
+
+    <para>
+      <parameter>-Dtrust_paths=/etc/pki/anchors</parameter>: this switch
       sets the location of trusted certificates used by libp11-kit.so.
     </para>
 
     <para>
-      <option>--with-hash-impl=freebl</option>: Use this switch if you want to
+      <option>-Dhash_impl=freebl</option>: Use this switch if you want to
       use the Freebl library from <application>NSS</application> for SHA1 and
       MD5 hashing.
     </para>
 
     <para>
-      <option>--enable-doc</option>: Use this switch if you have installed
+      <option>-Dgtk_doc=true</option>: Use this switch if you have installed
       <xref linkend="gtk-doc"/> and <xref linkend="libxslt"/> and wish to
       rebuild the documentation and generate manual pages.
     </para>
