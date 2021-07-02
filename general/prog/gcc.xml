@@ -9,6 +9,8 @@
   <!ENTITY gcc-md5sum         "77f6252be0861ab918042acf42bc10ff">
   <!ENTITY gcc-size           "75 MB">
   <!ENTITY gcc-buildsize      "10.1 GB (2.4 GB installed with all listed languages; add 1.3 GB for tests)">
+  <!-- For me the SBU values are a bit faster on haswell, but much slower on ryzen 3400G,
+       so keeping these existing values as an approximation - ken -->
   <!ENTITY gcc-time           "28 SBU (with parallelism=4, add 73 SBU for tests with parallelism=4)">
 ]>
 
@@ -110,7 +112,7 @@
       </listitem>
     </itemizedlist>
 
-<!--    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
@@ -119,7 +121,6 @@
         </para>
       </listitem>
     </itemizedlist>
--->
 
     <bridgehead renderas="sect3">GCC Dependencies</bridgehead>
 <!--
@@ -177,10 +178,16 @@
     </para>
 
     <para>
-      Install <application>GCC</application> by running the following commands:
+      Install <application>GCC</application> by running the following commands.
+      <!-- dropping the patch in really needs an explanation, but does
+      not fit well with the current text. -->
+      It is necessary to apply the same patch now used in LFS to fix
+      various regressions.
     </para>
 
-<screen><userinput>case $(uname -m) in
+<screen><userinput>patch -Np1 -i ../gcc-&gcc-version;-upstream_fixes-1.patch &amp;&amp;
+
+case $(uname -m) in
   x86_64)
     sed -i.orig '/m64=/s/lib64/lib/' gcc/config/i386/t-linux64
   ;;
@@ -201,11 +208,11 @@ make</userinput></screen>
       <application>Valgrind</application> and <application>GDB</application>,
       the <application>GCC</application> part of the testsuite will run more
       tests than in LFS. Some of those will report FAIL and others XPASS
-      (pass when expected to FAIL). As of gcc-10.2.0, about 90 FAIL occur
+      (pass when expected to FAIL). As of gcc-11.1.0, about 90 FAIL occur
       in the <quote>guality</quote> suite, as well as miscellaneous failures
       throughout the rest of the test suite. If all the compilers above are
-      built, there will be  around 107 unexpected failures out of over
-      468,000 tests. To run the tests, issue:
+      built, there will be  around 102 unexpected failures out of over
+      481,000 tests. To run the tests, issue:
     </para>
 
 <screen><userinput>ulimit -s 32768 &amp;&amp;
