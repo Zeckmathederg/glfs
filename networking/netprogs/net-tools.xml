@@ -4,11 +4,11 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY net-tools-download-http "&sources-anduin-http;/net-tools/net-tools-&net-tools-version;.tar.gz">
-  <!ENTITY net-tools-download-ftp  "&sources-anduin-ftp;/net-tools/net-tools-&net-tools-version;.tar.gz">
-  <!ENTITY net-tools-md5sum        "6be14ed473cacdd68edeaa9605adc469">
-  <!ENTITY net-tools-size          "288 KB">
-  <!ENTITY net-tools-buildsize     "7.0 MB">
+  <!ENTITY net-tools-download-http "https://downloads.sourceforge.net/project/net-tools//net-tools-&net-tools-version;.tar.xz">
+  <!ENTITY net-tools-download-ftp  " ">
+  <!ENTITY net-tools-md5sum        "78aae762c95e2d731faf88d482e4cde5">
+  <!ENTITY net-tools-size          "228 KB">
+  <!ENTITY net-tools-buildsize     "7.5 MB">
   <!ENTITY net-tools-time          "less than 0.1 SBU">
 ]>
 
@@ -68,7 +68,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -78,7 +78,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+-->
 
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/net-tools"/></para>
@@ -90,9 +90,9 @@
 
     <para id="net-tools-automate-example" xreflabel="Net-tools">
       The instructions below automate the configuration process by piping
-      <command>yes</command> to the <command>make config</command> command.
+      <command>yes</command> to the <command>make</command> command.
       If you wish to run the interactive configuration process (by changing
-      the instruction to just <command>make config</command>), but you are
+      the instruction to just <command>make</command>), but you are
       not sure how to answer all the questions, then just accept the defaults.
       This will be just fine in the majority of cases. What you're asked here
       is a bunch of questions about which network protocols you've enabled
@@ -115,9 +115,9 @@
     </note>
 
     <para>
-      The patch below cleans up the installation so that it does not
-      overwrite the <application>ifconfig</application> and
-      <application>hostname</application> programs that were installed in LFS.
+      For this package, we use the DESTDIR method of installation in order
+      to easily remove files from the build that overwrite those that we want
+      to keep or are not appropriate for our system.
     </para>
 
     <para>
@@ -125,12 +125,13 @@
       following commands:
     </para>
 
-<screen><userinput>patch -Np1 -i ../net-tools-&net-tools-version;-remove_dups-1.patch &amp;&amp;
-sed -e "s;/\(s\|\)bin;/usr&amp;;g" -i Makefile &amp;&amp;
-sed -i '/#include &lt;netinet\/ip.h&gt;/d'  iptunnel.c &amp;&amp;
-
-yes "" | make config &amp;&amp;
-make</userinput></screen>
+<screen><userinput>export BINDIR='/usr/bin' SBINDIR='/usr/bin' &amp;&amp;
+yes "" | make                               &amp;&amp;
+make DESTDIR=$PWD/install install           &amp;&amp;
+rm    install/usr/bin/{nis,yp}domainname    &amp;&amp;
+rm    install/usr/bin/{hostname,dnsdomainname,domainname} &amp;&amp;
+rm -r install/usr/share/man/man1            &amp;&amp;
+unset BINDIR SBINDIR</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -140,7 +141,8 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role='root'><userinput>make update</userinput></screen>
+<screen role='root'><userinput>chown -R root:root install &amp;&amp;
+cp -a install/* /</userinput></screen>
 
   </sect2>
 
@@ -148,32 +150,18 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <command>sed -i "s;/\(s\|\)bin;/usr&amp;;g" -i Makefile</command>:
-      Modifies the <filename>Makefile</filename> to get the binaries
-      installed in the <filename class="directory">/usr</filename> hierarchy.
+      <command>export BINDIR='/usr/bin' SBINDIR='/usr/bin'</command>:
+      Ensure the executables are installed in the correct location.
     </para>
 
     <para>
-      <command>sed -i '/#include &lt;netinet\/ip.h&gt;/d' iptunnel.c</command>:
-      This fixes build breakage with linux-4.8 headers.
-    </para>
-<!--
-    <para>
-      <command>sed -i -e '/Token/s/y$/n/' config.in</command>: Change the
-      default for building obsolete token ring support to no.  This is a
-      simpler change than changing the location for the token ring headers.
-    </para>
-
-    <para>
-      <command>sed -i -e '/HAVE_HWSTRIP/s/y$/n/' config.in</command>:
-      Removes obsolete Metricom radio support that requires a header no longer
-      included in the kernel.
-    </para>
--->
-    <para>
-      <command>yes "" | make config</command>: Piping <command>yes</command>
+      <command>yes "" | make </command>: Piping <command>yes</command>
       to <command>make config</command> skips the interactive configuration and
       accepts the defaults.
+    </para>
+
+    <para>
+      <command>rm ...</command>: Remove unneeded programs and man pages.
     </para>
 
   </sect2>
@@ -187,9 +175,17 @@ make</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>arp,
-        ipmaddr, iptunnel, mii-tool, nameif, netstat,
-        plipconfig, rarp, route, and slattach
+        <seg>arp, 
+        ipconfig
+        ipmaddr, 
+        iptunnel, 
+        mii-tool, 
+        nameif, 
+        netstat,
+        plipconfig, 
+        rarp, 
+        route, and 
+        slattach
         </seg>
         <seg>None</seg>
         <seg>None</seg>
@@ -213,55 +209,19 @@ make</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-<!--
-      <varlistentry id="dnsdomainname">
-        <term><command>dnsdomainname</command></term>
-        <listitem>
-          <para>
-            reports the system's DNS domain name.
-          </para>
-          <indexterm zone="net-tools dnsdomainname">
-            <primary sortas="b-dnsdomainname">dnsdomainname</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="domainname">
-        <term><command>domainname</command></term>
-        <listitem>
-          <para>
-            reports or sets the system's NIS/YP domain name.
-          </para>
-          <indexterm zone="net-tools domainname">
-            <primary sortas="b-domainname">domainname</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="hostname">
-        <term><command>hostname</command></term>
-        <listitem>
-          <para>
-            reports or sets the name of the current host system.
-          </para>
-          <indexterm zone="net-tools hostname">
-            <primary sortas="b-hostname">hostname</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="ifconfig">
         <term><command>ifconfig</command></term>
         <listitem>
           <para>
-            is the main utility for configuring network interfaces.
+            is a tool for configuring network interfaces.
           </para>
           <indexterm zone="net-tools ifconfig">
             <primary sortas="b-ifconfig">ifconfig</primary>
           </indexterm>
         </listitem>
       </varlistentry>
--->
+
       <varlistentry id="ipmaddr">
         <term><command>ipmaddr</command></term>
         <listitem>
@@ -323,19 +283,7 @@ make</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-<!--
-      <varlistentry id="nisdomainname">
-        <term><command>nisdomainname</command></term>
-        <listitem>
-          <para>
-            does the same as <command>domainname</command>.
-          </para>
-          <indexterm zone="net-tools nisdomainname">
-            <primary sortas="b-nisdomainname">nisdomainname</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
+
       <varlistentry id="plipconfig">
         <term><command>plipconfig</command></term>
         <listitem>
@@ -386,19 +334,6 @@ make</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-<!--
-      <varlistentry id="ypdomainname">
-        <term><command>ypdomainname</command></term>
-        <listitem>
-          <para>
-            does the same as <command>domainname</command>.
-          </para>
-          <indexterm zone="net-tools ypdomainname">
-            <primary sortas="b-ypdomainname">ypdomainname</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
     </variablelist>
 
   </sect2>
