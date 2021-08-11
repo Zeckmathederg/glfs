@@ -4,34 +4,34 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;esr/source/firefox-&firefox-version;esr.source.tar.xz">
+  <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&JS78-version;esr/source/firefox-&JS78-version;esr.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "18045807c2f3969b41867f08fb645210">
-  <!ENTITY firefox-size          "365 MB">
+  <!ENTITY firefox-md5sum        "872623fc9f93ea8d3f3290024f0c0925">
+  <!ENTITY firefox-size          "319 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "6.7 GB (196 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "5.2 GB (186 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "28 SBU (on a typical 4-core machine) without tests">
+  <!ENTITY firefox-time          "28 SBU (on a 4-core machine) without tests">
 ]>
 
-<sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
-  <?dbhtml filename="firefox.html" ?>
+<sect1 id="firefox-legacy" xreflabel="Firefox-&JS78-version; Legacy">
+  <?dbhtml filename="firefox-legacy.html" ?>
 
   <sect1info>
     <date>$Date$</date>
   </sect1info>
 
-  <title>Firefox-&firefox-version;</title>
+  <title>Firefox-&JS78-version;</title>
 
-  <indexterm zone="firefox">
-    <primary sortas="a-Firefox">Firefox</primary>
+  <indexterm zone="firefox-legacy">
+    <primary sortas="a-Firefox">Firefox Legacy</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to Firefox</title>
+    <title>Introduction to Firefox Legacy</title>
 
     <para>
       <application>Firefox</application> is a stand-alone browser based on the
@@ -74,31 +74,38 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+<!--<bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/firefox-&firefox-version;esr-glibc234-1.patch"/>
+          <ulink url="&patch-root;/firefox-&firefox-version;esr-rust1520-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist>-->
+
+    <warning>
+      <para>
+        This is the old series of firefox ESR releases, the final release is
+        planned to be 78.15.0 in October 2021.  This page is expected to be
+        removed in November 2021 when firefox-91.3 is released.
+      </para>
+
+      <para>
+        If you are using glibc-2.34 or later, this old version of firefox will
+        not be usable and you should use <xref linkend="firefox"/>.
+      </para>
+
+      <para>
+        There are only two reasons to use this version: either you want to use
+        ftp from the browser and do not yet have a workaround, or you have a
+        system which for unexplained reasons cannot compile current firefox.
+      </para>
+    </warning>
 
     <note>
-
-      <!-- temporary note -->
       <para>
-        With the 91 ESR series, firefox no-longer works on ftp: links. Also,
-        on a few machines which have been adequately updated for the necessary
-        dependencies 91.0 fails to build with a message that a python check on
-        libgkrust.a identified 1 networking function (getsockname) in the rust
-        static library. The reason for this is not understood, but systems with
-        binutils-2.37, gcc-11.2.0 and glibc-2.34 appear to be unaffected.
-      </para>
-      <!-- end of temporary note -->
-
-      <para>
-        The directory name is firefox-&firefox-version;
+        The directory name is firefox-&JS78-version;
       </para>
 
       <para>
@@ -127,17 +134,6 @@ tar: Exiting with failure status due to previous errors
         to build this vary more widely than you might expect. The build times
         will increase significantly if your machine has to swap.
       </para>
-
-      <!-- commented, by 78.0 it seems to work reliably
-      <para>
-        The mach build system (Python scripts) can be somewhat unreliable: if
-        the build fails and reports an Error, it can still return a status of
-        success, causing a scripted build to try to install (which does not rerun
-        the build), fail during the preparations for installing, but still exit
-        with a status of success. Also, on occasion it may limit itself to only
-        running one set of jobs - that will make the build take about 3 times as
-        long as running with four sets of jobs.
-      </para>-->
 
       <para>
         Although upstream prefer to use <application>PulseAudio</application>,
@@ -209,7 +205,7 @@ tar: Exiting with failure status due to previous errors
   </sect2>
 
   <sect2 role="installation">
-    <title>Installation of Firefox</title>
+    <title>Installation of Firefox Legacy</title>
 
     <para>
       The configuration of <application>Firefox</application> is accomplished
@@ -292,6 +288,7 @@ ac_add_options --enable-optimize
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
+# --with-system-bz2 was removed in firefox-78
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-png
 ac_add_options --with-system-zlib
@@ -312,11 +309,23 @@ EOF</userinput></screen>
       commands:
     </para>
 
-    <para>
-      Apply a patch which allows compilation on systems running glibc-2.34:
+<!--<para>
+      Apply a patch that prevent a crash when opening HTML videos if
+      compiling against rust-1.52.0 or higher:
     </para>
 
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;esr-glibc234-1.patch</userinput></screen>
+<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;esr-rust1520-1.patch</userinput></screen>-->
+
+    <para>
+      In the esr version of firefox-78, the code to ensure that add-ons
+      are signed by the trusted root has been disabled, presumably for
+      organizations which require their own add-ons. To enable it as an
+      added security measure issue the following command:
+    </para>
+
+<screen><userinput>sed -e 's/Disable/Enable/'            \
+    -e '/^MOZ_REQUIRE_SIGNING/s/0/1/' \
+    -i build/mozconfig.common</userinput></screen>
 
     <para>
       If the geolocation APIs are needed:
@@ -372,7 +381,6 @@ esac</userinput></screen>
 
 <screen><userinput>export CC=gcc CXX=g++ &amp;&amp;
 export MOZBUILD_STATE_PATH=${PWD}/mozbuild &amp;&amp;
-./mach create-mach-environment             &amp;&amp;
 ./mach configure                           &amp;&amp;
 ./mach build</userinput></screen>
 
@@ -435,18 +443,7 @@ export MOZBUILD_STATE_PATH=${PWD}/mozbuild &amp;&amp;
       That directory is used for a (probably random) telemetry identifier.
       Creating this in the build directory, and deleting that after the
       installation, prevents it being used. If you wish to participate in
-      telemetry, export MOZBUILD_STATE_PATH to point to its default directory
-      and remove the entry from the <filename>mozconfig</filename>.
-    </para>
-
-    <para>
-      <command>./mach create-mach-environment</command>: This uses the system
-      python to create a virtual environment for <command>mach</command>.
-    </para>
-
-    <para>
-      <command>./mach configure</command>: This validates the supplied
-      dependencies and the <filename>mozconfig</filename>.
+      telemetry, export MOZBUILD_STATE_PATH to point to its default directory.
     </para>
 
     <para>
@@ -639,14 +636,14 @@ ln -sfv /usr/lib/firefox/browser/chrome/icons/default/default128.png \
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="firefox-prog">
+      <varlistentry id="firefox-legacy-prog">
         <term><command>firefox</command></term>
         <listitem>
           <para>
 	    is a <application>GTK+-3</application> internet browser that uses
 	    the Mozilla Gecko rendering engine
           </para>
-          <indexterm zone="firefox firefox-prog">
+          <indexterm zone="firefox-legacy firefox-legacy-prog">
             <primary sortas="b-firefox">firefox</primary>
           </indexterm>
         </listitem>
