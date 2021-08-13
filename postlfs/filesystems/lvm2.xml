@@ -6,13 +6,13 @@
 
   <!ENTITY lvm2-download-http "https://sourceware.org/ftp/lvm2/LVM2.&lvm2-version;.tgz">
   <!ENTITY lvm2-download-ftp  "ftp://sourceware.org/pub/lvm2/LVM2.&lvm2-version;.tgz">
-  <!ENTITY lvm2-md5sum        "ae295a6ecfeaf67a1dd795723fd227f6">
+  <!ENTITY lvm2-md5sum        "c4be18fcb94c84c26f71ff4235917c28">
   <!ENTITY lvm2-size          "2.5 MB">
-  <!ENTITY lvm2-buildsize     "37 MB (add 27 MB for tests; transient files can grow up to around 800 MB in the /tmp directory during tests)">
+  <!ENTITY lvm2-buildsize     "37 MB (add 18 MB for tests; transient files can grow up to around 800 MB in the /tmp directory during tests)">
   <!-- My build size was 124 MB with tests, but I'll leave this here. -renodr
        The files in /tmp are transient. I monitor /tmp with a loop during
        tests. -pierre, August 2020 -->
-  <!ENTITY lvm2-time          "0.2 SBU (using parallelism=4; add 16 to 48 SBU for tests, depending on disk speed)">
+  <!ENTITY lvm2-time          "0.2 SBU (using parallelism=4; add 9 to 48 SBU for tests, depending on disk speed)">
 ]>
 
 <sect1 id="lvm2" xreflabel="LVM2-&lvm2-version;">
@@ -122,7 +122,12 @@
     &lt;*/M&gt;   Crypt target support                          [CONFIG_DM_CRYPT]
     &lt;*/M&gt;   Snapshot target                               [CONFIG_DM_SNAPSHOT]
     &lt;*/M&gt;   Thin provisioning target                      [CONFIG_DM_THIN_PROVISIONING]
+    &lt;*/M&gt;   Cache target (EXPERIMENTAL)                   [CONFIG_DM_CACHE]
     &lt;*/M&gt;   Mirror target                                 [CONFIG_DM_MIRROR]
+    &lt;*/M&gt;   Zero target                                   [CONFIG_DM_ZERO]
+    &lt;*/M&gt;   I/O delaying target                           [CONFIG_DM_DELAY]
+  [*] Block devices ---&gt;
+    &lt;*/M&gt;   RAM block device support                      [CONFIG_BLK_DEV_RAM]
 Kernel hacking ---&gt;
   Generic Kernel Debugging Instruments ---&gt;
     [*] Magic SysRq key                                   [CONFIG_MAGIC_SYSRQ]</literal></screen>
@@ -198,11 +203,14 @@ make -C libdm install</userinput></screen>
 
     <para>
       The tests do not implement the <quote>expected fail</quote> possibility,
-      and a small number of test failures is expected by upstream. More
-      failures may happen because some kernel options are missing. For example,
-      the lack of the <emphasis>dm-delay</emphasis> device mapper target may
-      explain some failures. Some tests are flagged
-      <quote>warned</quote> if
+      and a small number of test failures is expected by upstream. 
+      <!-- 1 -->More failures may happen because some kernel options are missing. 
+      For example, the lack of the <emphasis>dm-delay</emphasis> device 
+      mapper target  explains some failures. 
+      <!-- 2 -->Some tests may fail if there is insufficient free space available 
+      in the partition with the /tmp directory.  At least one test fails if 16 TB 
+      is not available.
+      <!-- 3 -->Some tests are flagged  <quote>warned</quote> if
       <ulink url='https://github.com/jthornber/thin-provisioning-tools'>
       thin-provisioning-tools</ulink> are not installed. A workaround is to
       add the following flags to <command>configure</command>:
@@ -226,8 +234,8 @@ make -C libdm install</userinput></screen>
       are done).
 
       <note><simpara>The checks create device nodes in the /tmp directory.  The
-      tests will fail if /tmp is mounted with the nodev
-      option.</simpara></note>
+      tests will fail if /tmp is mounted with the nodev option.
+      </simpara></note>
     </para>
 
     <para>
