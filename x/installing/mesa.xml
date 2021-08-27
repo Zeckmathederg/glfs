@@ -6,10 +6,11 @@
 
   <!ENTITY mesa-download-http "https://mesa.freedesktop.org/archive/mesa-&mesa-version;.tar.xz">
   <!ENTITY mesa-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/mesa-&mesa-version;.tar.xz">
-  <!ENTITY mesa-md5sum        "115a4b7383982f03b2aa5b91d1a8a259">
+  <!ENTITY mesa-md5sum        "f81336168864b1f890edfa5db8587f2b">
   <!ENTITY mesa-size          "15 MB">
-  <!ENTITY mesa-buildsize     "547 MB (with docs)">
-  <!ENTITY mesa-time          "3.1 SBU (with parallelism=4 and docs)">
+  <!ENTITY mesa-buildsize     "799 MB (with docs, add 376 MB if running the tests)">
+                              <!-- using NINJAJOBS=6 -->
+  <!ENTITY mesa-time          "5.1 SBU (on a 4-core machine with docs)">
 ]>
 
 <sect1 id="mesa" xreflabel="Mesa-&mesa-version;">
@@ -128,9 +129,10 @@
       the patch above),
       <ulink url="http://omxil.sourceforge.net/">Bellagio OpenMAX Integration
       Layer</ulink> (for mobile platforms), 
-      <ulink url="http://www.nongnu.org/libunwind/">libunwind</ulink>, and
+      <ulink url="http://www.nongnu.org/libunwind/">libunwind</ulink>,
       <ulink url="https://github.com/tizonia/tizonia-openmax-il/wiki/Tizonia-OpenMAX-IL/">
-      libtizonia</ulink>
+      libtizonia</ulink>,  and
+      <ulink url="https://www.vulkan.org/">libvulkan</ulink> (for the zink driver)
     </para>
 
     <note>
@@ -184,11 +186,12 @@
 
     <para>
       Now, select the drivers you wish to install. For the X86 architecture, the
-      available gallium drivers are auto, <emphasis>or alternatively a choice
-      from</emphasis> i915, nouveau, r300, r600, radeonsi, svga, swrast, and
-      virgl. The latter is recommended if you intend to run the system under
-      <xref linkend="qemu"/>. If you wish to build all available gallium drivers,
-      use 'auto'.
+      available gallium drivers are auto (<emphasis>in 21.2.1 this does not select
+      crocus </emphasis>), <emphasis>or alternatively a choice from</emphasis>
+      crocus, i915, nouveau, r300, r600, radeonsi, svga, swrast, and virgl. The
+      latter is recommended if you intend to run the system under
+      <xref linkend="qemu"/>.<!-- If you wish to build all available gallium drivers,
+      use 'auto'. FIXME : does not build crocus in 21.2.1 -->
     </para>
 
     <para>
@@ -209,6 +212,9 @@
       Modify the commands below for your desired drivers.  The drivers listed
       below will cover most modern video cards and virtual machines.  For help in
       selecting drivers see <ulink url="https://docs.mesa3d.org/systems.html"/>.
+      <!-- these two don't seem to be mentioned in that mesa link -->
+      For intel drivers, specify crocus for i965 gen 4 through to haswell, iris
+      for broadwell and later.
     </para>
 
     <note>
@@ -218,7 +224,7 @@
       </para>
     </note>
 
-<screen><userinput>GALLIUM_DRV="i915,iris,nouveau,r600,radeonsi,svga,swrast,virgl"
+<screen><userinput>GALLIUM_DRV="crocus,i915,iris,nouveau,r600,radeonsi,svga,swrast,virgl"
 DRI_DRIVERS="i965,nouveau"</userinput></screen>
 
     <para>
@@ -244,15 +250,12 @@ unset GALLIUM_DRV DRI_DRIVERS &amp;&amp;
 ninja</userinput></screen>
 
     <para>
-      This package no longer comes with a test suite.
-    </para>
-<!--
-    <para>
       If you built the tests (see 'Command Explanations'), to run them issue:
       <command>ninja test</command>. 
-      Two tests in the llvmpipe suite are known to fail.
+      All 33 subtests tests in the mesa:compiler+glsl / glsl compiler warnings
+      suite are known to fail.
     </para>
--->
+
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
@@ -375,9 +378,11 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           libxatracker.so,
         </seg>
         <seg>
-          <!-- Begin DRI drivers : this is the full set from auto -->
+          <!-- Begini gallium DRI drivers : this is the full set -->
           d3dadapter9.so (optional), <!-- For Windows games. This is DirectX's
                                           Direct3D -->
+          crocus_dri.so,
+          i830_dri.so,
           i915_dri.so,
           i965_dri.so,
           iris_dri.so,
@@ -402,6 +407,7 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           libvdpau_r600.so, and
           libvdpau_radeonsi.so
           <!-- End VDPAU drivers -->
+          (Many of these drivers are hard-linked).
         </seg>
         <seg>
           $XORG_PREFIX/{include/{EGL,GL,GLES,GLES2,GLES3,KHR,vulkan},lib/{dri,vdpau}},
