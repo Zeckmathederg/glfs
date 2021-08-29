@@ -10,10 +10,10 @@
      URL for a prepared git version -->
   <!ENTITY qtwebengine-download-http "&sources-anduin-http;/qtwebengine/qtwebengine-&qtwebengine-version;.tar.xz">
   <!ENTITY qtwebengine-download-ftp  " ">
-  <!ENTITY qtwebengine-md5sum        "97ee413dccf03d2fc09a7718f39367f7">
+  <!ENTITY qtwebengine-md5sum        "af799617842cca0b765102c312fbdd46">
   <!ENTITY qtwebengine-size          "306 MB">
   <!ENTITY qtwebengine-buildsize     "5.1 GB (154 MB installed)">
-  <!ENTITY qtwebengine-time          "95 SBU (Using 6 jobs on a 4-core processor)">
+  <!ENTITY qtwebengine-time          "97 SBU (typical, Using parallelism=4)">
 ]>
 
 <sect1 id="qtwebengine" xreflabel="qtwebengine-&qtwebengine-version;">
@@ -56,14 +56,6 @@
       future chromium vulnerabilities. -->
 
     <warning>
-      <!-- FIXME : remove this para before we release 11.0 -->
-      <para>
-        <emphasis>If you are using a development version of LFS with binutils-2.37,
-        you must rebuild binutils with the patch which is now in LFS, otherwise the
-        build will eventually fail with a message 'error adding symbols: malformed
-        archive'.</emphasis>
-      </para>
- 
       <para>
         QtWebEngine uses a forked copy of chromium, and is therefore vulnerable
         to many issues found there. The Qt developers have always preferred to
@@ -85,7 +77,7 @@
       </para>
 
       <para> <!-- for git versions -->
-        The tarball linked to below was created from the 5.15 git branch
+        The tarball linked to below was created from the 5.15.6 git branch
         and the 87-branch of the chromium submodule (which is forked from
         chromium). See the GIT-VERSIONS file in the tarball (after applying
         any patches) for details of the latest commits.
@@ -101,8 +93,10 @@
       git fetch origin
       git branch -r
        after a release is prepared (even if the rest is not public), the 5.15
-       branch is probably what you want
-      git checkout origin/5.15
+       branch now seems to get updated and might be what you want. But in the
+       approach to 5.15.6 the backported CVE and other security fixes were only
+       applied to 5.15.6.  So, assuming that a 5.15.7 branch now exists,
+      git checkout origin/5.15.7
        Confirm that HEAD is where you expected.
        Now go to src/3rdparty
       git fetch origin
@@ -113,8 +107,8 @@
        Use git log or git tk to look at its HEAD and check it seems appropriate.
 
       To decide when it might be worth creating a new tarball, periodically keep
-      an eye on https://code.qt.io/cgit/qt/qtwebengine.git/ (currently, the 5.15
-      branch, 5.15.4 might get used later). The interesting items are CVE fixes
+      an eye on https://code.qt.io/cgit/qt/qtwebengine.git/ (currently, the 5.15.6
+      branch, 5.15.7 might get used later). The interesting items are CVE fixes
       for known chromium vulnerabilities, as well as numbered Security bugs -
       again, these relate to chromium.
 
@@ -122,20 +116,20 @@
       CVEs mentioned, and google found a link to a review page for Michael Brüning
       at https://codereview.qt.nokia.com/q/owner:michael.bruning%2540qt.io. At that
       time I could see various unmerged items, so I waited. The items for the
-      69-based chromium module are not relevant to 5.15 (possibly they will
-      eventually update 5.12). Review queues for other Qt employees might be found
+      90-based chromium module are not relevant to 5.15-series (possibly they will
+      be for qtwebengine-6+). Review queues for other Qt employees might be found
       in a similar way, but remember that everythng EXCEPT qtwebengine and chromium
       is private to Qt until they choose to release it.
 
       NOTE: the 3rdparty/chromium tree may contain more patches than have been
       merged into the current 5.15.x branch. Any patches after what was in the
-      last 'update chromium' merge in qtwebengine may break the build.  When Qt
-      is close to releasing a paid-for 5.15 version, items from 5.15.x get merged
-      into 5.15.
+      last 'update chromium' merge in qtwebengine occasionally break the build.
 
       After merging the contents of the qtwebengine and src/3rdparty git extracts,
       in the top level please create a GIT-VERSIONS file summarising the HEAD
-      commits of both parts, as a reminder of where we are up to.
+      commits of both parts, as a reminder of where we are up to. I've nove added
+      a CVE-fixes to keep track of what has been fixed (comits before 5.15.2 did not
+      mention the CVEs until they were detailed in a release).
 
       Now create tarballs - 'git archive' does not work across submodule boundaries,
       so you need to create one archive from the top of qtwebengine/ and another
@@ -174,7 +168,7 @@
         Please note that if you try to build webengine as part of
         <application>Qt</application> and the static library is not available,
         that build will either complete without installing webengine, or else
-        fail during the install (both variants have been observed in 5.12.0).
+        fail during the install (both variants were observed in 5.12.0).
       </para>
     </note>
 
@@ -220,13 +214,14 @@
           <!-- keep links for releases and git versions as a reminder
                that the tarball names names differ
           <ulink url="&patch-root;/qtwebengine-everywhere-src-&qtwebengine-version;-ICU68-2.patch"/> -->
+           <!--
           <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-upstream_fixes-2.patch"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Required patch:
-          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-build_fixes-4.patch"/>
+          Required patch:-->
+          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-build_fixes-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -255,7 +250,9 @@
       either <xref linkend="alsa-lib"/> or
       <xref linkend="pulseaudio"/> (or both),
       <xref linkend="ffmpeg"/>,
-      <xref linkend="icu"/>,
+      <!-- awkward wording - libxslt needs libxml2, if libxml2 is built
+           before icu then the *shipped* icu will be used -->
+      <xref linkend="icu"/> (built before <xref linkend="libxml2"/>) ,
       <xref linkend="libwebp"/>,
       <xref linkend="libxslt"/>, and
       <xref linkend="opus"/>
@@ -264,6 +261,7 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="libevent"/>,
+      <xref linkend="pipewire"/>,
       <xref linkend="poppler"/>,
       <ulink url="https://github.com/open-source-parsers/jsoncpp/releases">jsoncpp</ulink>,
       <ulink url="https://github.com/cisco/libsrtp/releases">libsrtp</ulink>,
@@ -298,21 +296,22 @@
 
 <screen role="root"><userinput>ln -svf /usr/bin/python{2,}</userinput></screen>
 
+<!-- retain, there might later be a patch rather than a full 306MB tarball
     <para>
       Now apply a patch for security and other fixes:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-upstream_fixes-2.patch</userinput></screen>
+<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-upstream_fixes-2.patch</userinput></screen>-->
 
     <para>
-      Next apply a patch to fix several issues that can prevent the build working:
+      Apply apply a patch to fix several issues that can prevent the build working:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-build_fixes-4.patch</userinput></screen>
+<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-build_fixes-1.patch</userinput></screen>
 
 <!-- start of commands for git versions only -->
     <para>
-      Although the first patch has ensured that git is not invoked during the build,
+      Although the patch has ensured that git is not invoked during the build,
       the build system has labyrinthine rules of byzantine complexity, and in
       particular trying to build without two <filename>.git</filename> directories
       will lead to it eventually falling into unexpected and unbuildable code
@@ -359,6 +358,7 @@ et.seq, particularly 037002.html which shows the commit near the end. -->
 
 <screen><userinput>sed -i 's/NINJAJOBS/NINJA_JOBS/' src/core/gn_run.pro</userinput></screen>
 
+<!-- now that we always install this as 5.15.2, this seems to be redundant
     <para>
       If an older version of the package's main library has been installed,
       when the package is built separately it will link to that in preference
@@ -369,7 +369,7 @@ et.seq, particularly 037002.html which shows the commit near the end. -->
 
 <screen role="root"><userinput>if [ -e ${QT5DIR}/lib/libQt5WebEngineCore.so ]; then
   mv -v ${QT5DIR}/lib/libQt5WebEngineCore.so{,.old}
-fi</userinput></screen>
+fi</userinput></screen>-->
 
     <para>
       Install <application>qtwebengine</application> by running the following
@@ -378,7 +378,6 @@ fi</userinput></screen>
 
 <screen><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
-
 qmake .. -- -system-ffmpeg -webengine-icu &amp;&amp;
 make</userinput></screen>
 
@@ -444,6 +443,15 @@ make</userinput></screen>
       to the build.
     </para>
 
+    <para>
+      <option>-webengine-jumbo-build 0</option>: If this is added to the qmake
+      command it will cause the 'Jumbo Build Merge Limit' to be reported as 'no'
+      instead of 8. That turns off the jumbo build. Some distros do that to get
+      a smaller build on some architectures such as MIPS. On x86_64 it might save
+      a little space in the build, but the build time will increase by a very
+      large amount.
+    </para>
+
     <!--
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" 
        href="../../xincludes/SIOCGSTAMP.xml"/>
@@ -453,25 +461,27 @@ make</userinput></screen>
       <option>NINJAJOBS=4 make</option>: If you patched system ninja in LFS to
       recognize the NINJAJOBS environment variable, this command will run system
       ninja with the specified number of jobs (i.e. 4). 
-      There are several reasons why you might want to do this:
+      There are several reasons why you might want to use options like this this:
     </para>
-      
+
       <itemizedlist>
         <listitem>
           <para>
             Building on a subset of CPUs allows measuring the build time
-            for that number of processors or to run other CPU-intensive tasks on
-            other cores.
+            for a smaller number of processors, and/or running other
+            CPU-intensive tasks at the same time. For an editor on a machine
+            with a lot of CPUs, trying to measure the build time for a 4-CPU
+            machine, <option>NINJAJOBS=4 make</option> will give a reasonable
+            approximation (there is a short period where N+2 python2 and node
+            jobs run).
           </para>
         </listitem>
         <listitem>
           <para>
-            Improving the build speed on a less-well endowed 4-core machine.
-            On a machine with a powerful CPU and plenty of RAM, running N+2
-            jobs (the ninja default for 4+ cores) for the large working sets
-            of the C++ compiles in this package is typically only marginally
-            faster than running N jobs at a time.  But for a machine with less
-            memory it can be much slower.
+            On a machine with only 4 CPUs online, the default of scheduling
+            N+2 jobsi for qtwebengine is slower by between 3% and 7%, probably
+            because of the size of the C++ files and their many includes and
+            templates. Therefore, if in doubt set NINJAJOBS to the number of CPUs.
           </para>
         </listitem>
         <listitem>
