@@ -6,10 +6,10 @@
 
   <!ENTITY seamonkey-download-http "&mozilla-http;/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.xz">
   <!ENTITY seamonkey-download-ftp " ">
-  <!ENTITY seamonkey-md5sum        "3cba72ec6a37f7c68fac48876a3a5f8f">
-  <!ENTITY seamonkey-size          "271 MB">
+  <!ENTITY seamonkey-md5sum        "f36c532bbd9c6903036aa02e9a40246b">
+  <!ENTITY seamonkey-size          "272 MB">
   <!ENTITY seamonkey-buildsize     "6.1 GB (159 MB installed)">
-  <!ENTITY seamonkey-time          "20 SBU (on a 4-core machine)">
+  <!ENTITY seamonkey-time          "21 SBU (with parallelism=4)">
 ]>
 
 <sect1 id="seamonkey" xreflabel="SeaMonkey-&seamonkey-version;">
@@ -136,22 +136,7 @@
         be out of date or contain security holes.
       </para>
     </note>
-<!--
-    <note>
-      <para>
-        You must have installed <application>Openssl</application> before
-        <application>Python 2</application> or the build system will quickly
-        fail with output including "ImportError: cannot import name
-        HTTPSHandler". If you are in any doubt about this (e.g. upgrading from
-        an older version of Seamonkey), check if
-        <filename>/usr/lib/python&python2-majorver;/lib-dynload/_ssl.so</filename>
-        exists.  If it does not, reinstall <xref linkend="python2"/> (after
-        installing <xref linkend="openssl"/>.  The latest version of any
-        <emphasis>currently maintained</emphasis> version of Openssl should be
-        satisfactory if already installed.
-      </para>
-    </note>
--->
+
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="alsa-lib"/>,
@@ -190,10 +175,8 @@
     </para>
 
 <screen><?dbfo keep-together="auto"?><userinput>cat &gt; mozconfig &lt;&lt; "EOF"
-<literal># If you have a multicore machine, all cores will be used by default.
-# If desired, you can reduce the number of cores used, e.g. to 1, by
-# uncommenting the next line and setting a valid number of CPU cores.
-#mk_add_options MOZ_MAKE_FLAGS="-j1"
+<literal># If you have a multicore machine, all cores will be used
+# unless you pass -jN to ./mach build
 
 # If you have installed DBus-Glib comment out this line:
 ac_add_options --disable-dbus
@@ -223,8 +206,6 @@ ac_add_options --disable-gconf
 ac_add_options --with-system-icu
 ac_add_options --with-system-libevent
 ac_add_options --with-system-nspr
-# nss-3.65 broke the build of seamonkey, use the shipped version
-# Fixed with 2.53.8
 ac_add_options --with-system-nss
 ac_add_options --with-system-webp
 
@@ -254,11 +235,7 @@ ac_add_options --enable-strip
 ac_add_options --enable-install-strip
 ac_add_options --enable-official-branding
 
-# From firefox-40 (and the corresponding version of seamonkey),
-# using system cairo caused seamonkey to crash
-# frequently when it was doing background rendering in a tab.
-# This appears to again work in seamonkey-2.49.2
-ac_add_options --enable-system-cairo
+# The option to use system cairo was removed in 2.53.9.
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -301,14 +278,18 @@ EOF</userinput></screen>
       commands:
     </para>
 
-<screen><userinput>CC=gcc CXX=g++ ./mach build</userinput></screen>
+<screen><userinput>export CC=gcc CXX=g++ &amp;&amp;
+./mach configure                           &amp;&amp;
+./mach build</userinput></screen>
 
+
+    <!-- comment this since llvm must have been installed for rust
     <note>
       <para>
         The CC and CXX variables above are only needed if 
         <xref linkend="llvm"/> is installed and you do not want to use clang.
       </para>
-    </note>
+    </note>-->
 
     <para>
       This package does not come with a test suite.
@@ -331,9 +312,28 @@ cp -v $(find -name seamonkey.1 | head -n1) /usr/share/man/man1</userinput></scre
     <title>Command Explanations</title>
 
     <para>
-      <command>./mach build</command>: <application>Seamonkey</application>
-      now uses this <application>python</application> script to run the
-      build and install.
+      <command>export CC=gcc CXX=g++ ...</command>: Upstream now prefer
+      <application>clang</application> so that they can use one compiler
+      everywhere. On the X86 architectures <application>clang</application>
+      takes a little longer than gcc to compile mozilla applications.
+    </para>
+
+    <para>
+      <command>./mach configure</command>: This validates the supplied
+      dependencies and the <filename>mozconfig</filename>.
+    </para>
+
+    <para>
+      <option>./mach build --verbose</option>: Use this alternative if you
+      need details of which files are being compiled, together with any C or
+      C++ flags being used. But do not add '--verbose' to the install command,
+      it is not accepted there.
+    </para>
+
+    <para>
+      <option>./mach build -jN</option>: The build should, by default, use
+      all the online CPU cores. If using all the cores causes the build to swap
+      because you have insufficient memory, using fewer cores can be faster.
     </para>
 
   </sect2>
