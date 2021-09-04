@@ -10,8 +10,8 @@
   <!ENTITY make-ca-time          "0.1 SBU (with all runtime deps)">
 
   <!ENTITY make-ca-download      "https://github.com/djlucas/make-ca/releases/download/v&make-ca-version;/make-ca-&make-ca-version;.tar.xz">
-  <!ENTITY make-ca-size          "28.5 KB">
-  <!ENTITY make-ca-md5sum        "e0356f5ae5623f227a3f69b5e8848ec6">
+  <!ENTITY make-ca-size          "29.8 KB">
+  <!ENTITY make-ca-md5sum        "957c39206ba0e9139807c5a47535747f">
 ]>
 
 <sect1 id="make-ca" xreflabel="make-ca-&make-ca-version;">
@@ -220,12 +220,19 @@ chmod 754 /etc/cron.weekly/update-pki.sh</userinput></screen>
 
     <para>
       The <filename class="directory">/etc/ssl/local</filename> directory
-      is available to add additional CA certificates to the system. For
-      instance, you might need to add an organization or government CA
-      certificate. Files in this directory must be in the
-      <application>OpenSSL</application> trusted certificate format. To
-      create an <application>OpenSSL</application> trusted certificate from
-      a regular PEM encoded file, you need to add trust arguments to the
+      is available to add additional CA certificates to the system trust store.
+      This directory is also used to store certificates that were added to or
+      modified  in the system trust store by <xref linkend="p11-kit"/> so that
+      trust values are maintained across upgrades. Files in this directory must
+      be in the <application>OpenSSL</application> trusted certificate format.
+      Certificates imported using the <command>trust</command> utility from
+      <xref linkend="p11-kit"/> will utilize the x509 Extended Key Usage values
+      to assign default trust values for the system anchors.
+    </para>
+
+    <para>If you need to override trust values, or otherwise need to create
+      an <application>OpenSSL</application> trusted certificate manually
+      from a regular PEM encoded file, you need to add trust arguments to the
       <command>openssl</command> command, and create a new certificate. For
       example, using the <ulink url="http://www.cacert.org/">CAcert</ulink>
       roots, if you want to trust both for all three roles, the following
@@ -242,7 +249,7 @@ openssl x509 -in root.crt -text -fingerprint -setalias "CAcert Class 1 root" \
 openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
         -addtrust serverAuth -addtrust emailProtection -addtrust codeSigning \
         > /etc/ssl/local/CAcert_Class_3_root.pem &amp;&amp;
-/usr/sbin/make-ca -r -f</userinput></screen>
+/usr/sbin/make-ca -r</userinput></screen>
 
     <bridgehead renderas="sect3">Overriding Mozilla Trust</bridgehead>
 
@@ -264,7 +271,7 @@ openssl x509 -in class3.crt -text -fingerprint -setalias "CAcert Class 3 root" \
              -addreject emailProtection \
              -addreject codeSigning \
        > /etc/ssl/local/Disabled_Makebelieve_CA_Root.pem &amp;&amp;
-/usr/sbin/make-ca -r -f</userinput></screen>
+/usr/sbin/make-ca -r</userinput></screen>
 
   </sect2>
 
