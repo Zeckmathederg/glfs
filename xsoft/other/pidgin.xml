@@ -6,9 +6,9 @@
 
   <!ENTITY pidgin-download-http "&sourceforge-dl;/pidgin/pidgin-&pidgin-version;.tar.bz2">
   <!ENTITY pidgin-download-ftp  " ">
-  <!ENTITY pidgin-md5sum        "bba0fd38ee1d8b9b725c4dbdc33e58e7">
+  <!ENTITY pidgin-md5sum        "476d808a268c693adcc8fc5c952dadd4">
   <!ENTITY pidgin-size          "8.3 MB">
-  <!ENTITY pidgin-buildsize     "297 MB (with tests and docs)">
+  <!ENTITY pidgin-buildsize     "302 MB (with tests and docs)">
   <!ENTITY pidgin-time          "0.6 SBU (using parallelism=4; with tests and docs)">
 ]>
 
@@ -69,6 +69,17 @@
         </para>
       </listitem>
     </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Required patch:
+          <ulink url="&patch-root;/pidgin-&pidgin-version;-fix_time_conv-1.patch"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
 
     <bridgehead renderas="sect3">Pidgin Dependencies</bridgehead>
 
@@ -140,20 +151,19 @@
     <title>Installation of Pidgin</title>
 
     <para>
-      If you wish to run the test suite, make sure that <xref
-      linkend="libidn"/> is installed and remove the switch
-      <quote>--disable-idn</quote>. Compile <application>Pidgin</application>
-      by running the following commands:
+      First, apply a patch that fixes time to string conversions:
     </para>
 
-<!-- - -with-gstreamer=1.0 is removed and gstreamer support is disabled
-     because of a build problem when both this and - -disable-vv are present.
-     See https://hastebin.com/utiwijizad.rb for more details, and check again
-     at the next version (2.14.1 or 3.0 - whichever is next). -->
+<screen><userinput>patch -Np1 -i ../pidgin-&pidgin-version;-fix_time_conv-1.patch</userinput></screen>
+
+    <para>
+      Compile <application>Pidgin</application> by running the following
+      commands:
+    </para>
 
 <screen><userinput>./configure --prefix=/usr        \
             --sysconfdir=/etc    \
-            --disable-gstreamer  \
+            --with-gstreamer=1.0 \
             --disable-avahi      \
             --disable-gtkspell   \
             --disable-meanwhile  \
@@ -171,8 +181,7 @@ make</userinput></screen>
 <screen remap="doc"><userinput>make docs</userinput></screen>
 
     <para>
-      Remember the remarks before <command>configure</command>. To test the
-      results, issue: <command>make check</command>.
+      To test the results, issue: <command>make check</command>.
     </para>
 
     <para>
@@ -190,7 +199,7 @@ cp -v README doc/gtkrc-2.0 /usr/share/doc/pidgin-&pidgin-version;</userinput></s
 
 <screen role="root"
         remap="doc"><userinput>mkdir -pv /usr/share/doc/pidgin-&pidgin-version;/api &amp;&amp;
-cp -v doc/html/* /usr/share/doc/pidgin-&pidgin-version;/api</userinput></screen>
+cp -rv doc/html/* /usr/share/doc/pidgin-&pidgin-version;/api</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/update-icons-and-desktop.xml"/>
@@ -200,21 +209,10 @@ cp -v doc/html/* /usr/share/doc/pidgin-&pidgin-version;/api</userinput></screen>
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!--
     <para>
-      <parameter>- -with-gstreamer=1.0</parameter>: Remove this switch
-      and add <option>- -disable-gstreamer</option>
+      <parameter>--with-gstreamer=1.0</parameter>: Remove this switch
+      and add <option>--disable-gstreamer</option>
       if you've not installed <xref linkend="gstreamer10"/>.
-    </para>
--->
-    <para>
-      <parameter>--disable-gstreamer</parameter>: This switch disables gstreamer
-      support because there are problems with the build when Voice/Video support
-      is disabled, and gstreamer is enabled.
-      <!-- The problems exist within gst_device_monitor. See
-           https://hastebin.com/utiwijizad.rb for more details.
-           FIXME: Check this at the next release of pidgin, or if we ever add
-           Farstream. -->
     </para>
 
     <para>
@@ -252,12 +250,7 @@ cp -v doc/html/* /usr/share/doc/pidgin-&pidgin-version;/api</userinput></screen>
       communication support. You should also remove the --disable-gstreamer
       flag.
     </para>
-<!--
-    <para>
-      <parameter>- -disable-tcl</parameter>: Remove this switch if you've
-      installed <xref linkend="tcl"/>.
-    </para>
-i-->
+
     <para>
       <option>--enable-cyrus-sasl</option>: Use this switch if you've installed
       <xref linkend="cyrus-sasl"/> and wish to build
@@ -317,24 +310,16 @@ i-->
 
       <seglistitem>
         <seg>
-          <!--finch,--> pidgin, purple-client-example,
+          pidgin, purple-client-example,
           purple-remote, purple-send, purple-send-async, and
           purple-url-handler
         </seg>
         <seg>
-          <!--libgnt.so,--> libpurple.so, and libpurple-client.so
+          libpurple.so, and libpurple-client.so
         </seg>
         <seg>
-        <!--
-          /usr/include/finch,
-          /usr/include/gnt,
-        -->
           /usr/include/libpurple,
           /usr/include/pidgin,
-        <!--
-          /usr/lib/finch,
-          /usr/lib/gnt,
-        -->
           /usr/lib/pidgin,
           /usr/lib/purple-2,
           /usr/share/doc/pidgin-&pidgin-version;,
@@ -350,19 +335,6 @@ i-->
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
- <!-- Seems to be removed with 2.14.0
-      <varlistentry id="finch">
-        <term><command>finch</command></term>
-        <listitem>
-          <para>
-            is a text-based instant messaging client.
-          </para>
-          <indexterm zone="pidgin finch">
-            <primary sortas="b-finch">finch</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
       <varlistentry id="pidgin-prog">
         <term><command>pidgin</command></term>
         <listitem>
