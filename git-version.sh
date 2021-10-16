@@ -32,10 +32,7 @@ esac
 full_date="$month $day$suffix, $year"
 
 sha="$(git describe --abbrev=1)"
-if git describe --all --match trunk > /dev/null 2> /dev/null; then
-	sha=$(echo "$sha" | sed 's/-g[^-]*$//')
-fi
-version="$sha"
+version=$(echo "$sha" | sed 's/-g[^-]*$//')
 
 if [ "$(git diff HEAD | wc -l)" != "0" ]; then
 	version="$version+"
