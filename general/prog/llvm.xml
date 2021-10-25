@@ -8,18 +8,18 @@
 
   <!ENTITY llvm-download-http "&llvm-url;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "72a257604efa1d32ef85a37cd9c66873">
-  <!ENTITY llvm-size          "41 MB">
-  <!ENTITY llvm-buildsize     "2.5 GB (715 MB installed, add 11 GB for tests)">
-  <!ENTITY llvm-time          "29 SBU (with parallelism=4, add 38 SBU for tests)">
+  <!ENTITY llvm-md5sum        "8c24626dce3ee9d87d1079ebf0897db5">
+  <!ENTITY llvm-size          "43 MB">
+  <!ENTITY llvm-buildsize     "4.0 GB (1 GB installed, with documentation, add 15 GB for tests)">
+  <!ENTITY llvm-time          "38 SBU (on 4 CPU cores, with documentation, add 14 SBU for tests)">
 
   <!ENTITY clang-download-http "&llvm-url;/clang-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "03d77af27fcbeeae4414fb4713b9fd7e">
-  <!ENTITY clang-size          "15 MB">
+  <!ENTITY clang-md5sum        "020cbac6e5786094fe4f96f72e290763">
+  <!ENTITY clang-size          "17 MB">
 
   <!ENTITY compiler-rt-download-http "&llvm-url;/compiler-rt-&llvm-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "40095daa9070b20eef9bdd32fdc53db5">
-  <!ENTITY compiler-rt-size          "2.1 MB">
+  <!ENTITY compiler-rt-md5sum        "e2e136656d27d60c5f40e20260f63c07">
+  <!ENTITY compiler-rt-size          "2.2 MB">
 ]>
 
 <sect1 id="llvm" xreflabel="LLVM-&llvm-version;">
@@ -266,7 +266,7 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
       class="directory">/sys/devices/system/cpu/cpu&lt;N&gt;/online</filename>
       by the <systemitem class="username">root</systemitem> user and makes them
       temporarily unusable by all jobs on the machine.)
-      Note that a few of the compiler-rt Sanitizer based tests (16 of more than 48000
+      Note that a few of the compiler-rt Sanitizer based tests (13 of more than 59000
       tests run) are known to fail. Some of the LLVM-Unit IR tests are known to
       fail as well.
     </para>
@@ -276,28 +276,33 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
     </para>
 
 <screen role="root"><userinput>ninja install</userinput></screen>
-
+<!-- as of version 13.0.0, the install process seems to install the html
+     documentation and the manual pages. The llvm html documentation
+     is installed into /usr/share/doc/llvm, while the clang html documentation
+     is installed into /usr/doc/clang. So we have just to move it. -->
     <para>
-      If you have built the the llvm documentation, install it by running the
-      following commands as the <systemitem class="username">root</systemitem>
-      user:
+      If you have built the the llvm documentation, it has been installed
+      by the above command, but it needs to be moved. As the
+      <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"
-        remap="doc"><userinput>install -v -m644 docs/man/* /usr/share/man/man1             &amp;&amp;
-install -v -d -m755 /usr/share/doc/llvm-&llvm-version;/llvm-html     &amp;&amp;
-cp -Rv docs/html/* /usr/share/doc/llvm-&llvm-version;/llvm-html</userinput></screen>
+        remap="doc"><userinput>
+install -v -d -m755 /usr/share/doc/llvm-&llvm-version;                        &amp;&amp;
+mv -v /usr/share/doc/llvm/html /usr/share/doc/llvm-&llvm-version;/llvm-html   &amp;&amp;
+rmdir -v /usr/share/doc/llvm</userinput></screen>
 
     <para>
-      If you have built the clang documentation, it can be installed in the
-      same way (again as the
-      <systemitem class="username">root</systemitem> user):
+      If you have built the clang documentation, it has been installed, but
+      needs to be moved too.  Again as the
+      <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"
-        remap="doc"><userinput>install -v -m644 tools/clang/docs/man/* /usr/share/man/man1 &amp;&amp;
-install -v -d -m755 /usr/share/doc/llvm-&llvm-version;/clang-html    &amp;&amp;
-cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</userinput></screen>
+        remap="doc"><userinput>
+install -v -d -m755 /usr/share/doc/llvm-&llvm-version;                        &amp;&amp;
+mv -v /usr/share/doc/clang/html /usr/share/doc/llvm-&llvm-version;/clang-html &amp;&amp;
+rmdir -v /usr/share/doc/clang</userinput></screen>
 
   </sect2>
 
@@ -387,39 +392,42 @@ cp -Rv tools/clang/docs/html/* /usr/share/doc/llvm-&llvm-version;/clang-html</us
           clang-&lt;version&gt;), clang-&lt;version&gt;, clang-check, clang-cl,
           clang-cpp (last two symlinks to clang), clang-extdef-mapping, clang-format,
           clang-offload-bundler, clang-offload-wrapper,
-          clang-refactor, clang-rename, clang-scan-deps,
+          clang-refactor, clang-rename, clang-repl, clang-scan-deps,
           diagtool, dsymutil, git-clang-format, hmaptool, llc, lli,
-          llvm-addr2line, llvm-ar, llvm-as, llvm-bcanalyzer,
+          llvm-addr2line (symlink to llvm-symbolizer),
+          llvm-ar, llvm-as, llvm-bcanalyzer,
           llvm-bitcode-strip (symlink to llvm-objcopy), llvm-cat,
           llvm-cfi-verify, llvm-config, llvm-cov, llvm-c-test, llvm-cvtres,
           llvm-cxxdump, llvm-cxxfilt, llvm-cxxmap,
           llvm-diff, llvm-dis, llvm-dlltool (symlink to llvm-ar), llvm-dwarfdump,
-          llvm-dwp, llvm-elfabi, llvm-exegenesis, llvm-extract, llvm-gsymutil, llvm-ifs,
+          llvm-dwp, llvm-exegenesis, llvm-extract, llvm-gsymutil, llvm-ifs,
           llvm-install-name-tool (symlink to llvm-objcopy), llvm-jitlink,
           llvm-lib (symlink to llvm-ar), llvm-libtool-darwin, llvm-link,
           llvm-lipo, llvm-lto, llvm-lto2, llvm-mc, llvm-mca, llvm-ml,
           llvm-modextract, llvm-mt, llvm-nm, llvm-objcopy, llvm-objdump,
-          llvm-opt-report, llvm-pdbutil, llvm-profdata, llvm-profgen,
+          llvm-opt-report, llvm-otool (symlink to llv-objdump),
+          llvm-pdbutil, llvm-profdata, llvm-profgen,
           llvm-ranlib (symlink to llvm-ar), llvm-rc,
           llvm-readelf (symlink to llvm-readobj), llvm-readobj, llvm-reduce,
-          llvm-rtdyld, llvm-size, llvm-split, llvm-stress, llvm-strings,
-          llvm-strip (symlink to llvm-objcopy), llvm-symbolizer, llvm-tblgen,
-          llvm-undname, llvm-xray, opt, sancov, sanstats, scan-build,
+          llvm-rtdyld, llvm-sim, llvm-size, llvm-split, llvm-stress,
+          llvm-strings, llvm-strip (symlink to llvm-objcopy), llvm-symbolizer,
+          llvm-tapi-diff, llvm-tblgen, llvm-undname, llvm-windres (symlink to
+          llvm-rc, llvm-xray, opt, sancov, sanstats, scan-build,
           scan-view, split-file, and verify-uselistorder
         </seg>
         <seg>
           libLLVM.so,
-          libLLVM*.a (84 libraries),
+          libLLVM*.a (89 libraries),
           libLTO.so,
           libRemarks.so,
           libclang.so,
           libclang-cpp.so,
-          libclang*.a (37 libraries),
+          libclang*.a (38 libraries),
           and LLVMgold.so
         </seg>
         <seg>
           /usr/include/{clang,clang-c,llvm,llvm-c},
-          /usr/lib/{clang,cmake/{clang,llvm}},
+          /usr/lib/{clang,cmake/{clang,llvm},libear,libscanbuild},
           /usr/share/{clang,opt-viewer,scan-build,scan-view}, and
           /usr/share/doc/llvm-&llvm-version;
         </seg>
