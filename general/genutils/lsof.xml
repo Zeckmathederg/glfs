@@ -4,17 +4,13 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-<!-- <!ENTITY lsof-download-http "https://www.mirrorservice.org/sites/lsof.itap.purdue.edu/pub/tools/unix/lsof/lsof_&lsof-version;.tar.bz2">
-<!ENTITY lsof-download-ftp " "> -->
 
-<!-- URL is for a mirror.  Change back to below if/when main site comes back. -->
-
-<!ENTITY lsof-download-http  "https://www.mirrorservice.org/sites/lsof.itap.purdue.edu/pub/tools/unix/lsof/lsof_&lsof-version;.tar.gz">
+<!ENTITY lsof-download-http  "https://github.com/lsof-org/lsof/releases/download/&lsof-version;/lsof_&lsof-version;.linux.tar.bz2">
 <!ENTITY lsof-download-ftp  " ">
-<!ENTITY lsof-md5sum        "10e1353aa4bf2fd5bbed65db9ef6fd47">
-<!ENTITY lsof-size          "1.1 MB">
-<!ENTITY lsof-buildsize     "9.6 MB">
-<!ENTITY lsof-time          "less than 0.1 SBU">
+<!ENTITY lsof-md5sum        "2a007f86fb0207fbce3e9d7542e1041c">
+<!ENTITY lsof-size          "493 KB">
+<!ENTITY lsof-buildsize     "3.7 MB (add 600 KB for tests)">
+<!ENTITY lsof-time          "less than 0.1 SBU (add 0.4 SBU for tests)">
 ]>
 
 <sect1 id="lsof" xreflabel="lsof-&lsof-version;">
@@ -81,8 +77,28 @@
       <xref linkend="libtirpc"/>
     </para>
 
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="nmap"/> (with a symbolic link <command>nc</command>
+      pointing to <command>ncat</command> in <filename class="directory">
+      /usr/bin</filename>; used in tests)
+    </para>
+
     <para condition="html" role="usernotes">User Notes:
     <ulink url="&blfs-wiki;/lsof"/></para>
+
+  </sect2>
+
+  <sect2 role="kernel" id="lsof-kernel">
+    <title>Kernel Configuration</title>
+
+    <para>
+      To run the tests, the following option  should be enabled in the kernel
+      configuration:
+    </para>
+
+<screen><literal>General setup  ---&gt;
+  [*] POSIX Message Queues    [CONFIG_POSIX_MQUEUE]</literal></screen>
 
   </sect2>
 
@@ -90,26 +106,34 @@
     <title>Installation of lsof</title>
 
     <para>
-      The contents of the <application>lsof</application> tarball
-      include another tarball with the source code, which needs, in turn,
-      to be unpacked. Install <application>lsof</application> by running the
+      Install <application>lsof</application> by running the
       following commands:
     </para>
 
-<screen><userinput>tar -xf lsof_&lsof-version;_src.tar  &amp;&amp;
-cd lsof_&lsof-version;_src           &amp;&amp;
-./Configure -n linux       &amp;&amp;
-make CFGL="-L./lib -ltirpc"</userinput></screen>
+<screen><userinput>./Configure -n linux &amp;&amp;
+make</userinput></screen>
 
     <para>
-      This package does not come with a working test suite.
+      The tests should be run as the <systemitem
+      class="username">root</systemitem> user. They require that the
+      POSIX message queues are enabled in the kernel, and that <xref
+      linkend="nmap"/> be installed with a symbolic link
+      <filename>/usr/bin/nc</filename> pointing to <command>ncat</command>.
+    </para>
+
+<screen role="root"
+        remap="test"><userinput>make check</userinput></screen>
+
+    <para>
+      Two tests fail if the tests are run from a script instead of an
+      interactive session.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>install -v -m0755 -o root -g root lsof /usr/bin &amp;&amp;
+<screen role="root"><userinput>install -v -m4755 -o root -g root lsof /usr/bin &amp;&amp;
 install -v lsof.8 /usr/share/man/man8</userinput></screen>
 
   </sect2>
@@ -123,8 +147,10 @@ install -v lsof.8 /usr/share/man/man8</userinput></screen>
     </para>
 
     <para>
-      <command>make CFGL="-L./lib -ltirpc"</command>: Add the libtirpc
-      libraries location to the <command>make</command> command.
+      <command>install -m4755 ...</command>: <command>lsof</command> should
+      be suid root to allwo users to list all files. This may be a security
+      threat on some systems. In that case change to <option>-m755</option>
+      and use <command>sudo</command> to run the program.
     </para>
 
   </sect2>
