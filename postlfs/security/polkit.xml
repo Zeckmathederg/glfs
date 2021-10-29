@@ -6,10 +6,10 @@
 
   <!ENTITY polkit-download-http "https://www.freedesktop.org/software/polkit/releases/polkit-&polkit-version;.tar.gz">
   <!ENTITY polkit-download-ftp  " ">
-  <!ENTITY polkit-md5sum        "b945e683eb5d633745864af6c5746726">
-  <!ENTITY polkit-size          "1.3 MB">
-  <!ENTITY polkit-buildsize     "23 MB (add 2 MB for tests)">
-  <!ENTITY polkit-time          "0.2 SBU (Using parallelism=4; add 0.3 SBU for tests)">
+  <!ENTITY polkit-md5sum        "a6efe21d021fafe4191ee30331ef801c">
+  <!ENTITY polkit-size          "1.6 MB">
+  <!ENTITY polkit-buildsize     "12 MB">
+  <!ENTITY polkit-time          "0.1 SBU (Using parallelism=4)">
 ]>
 
 <sect1 id="polkit" xreflabel="Polkit-&polkit-version;">
@@ -70,6 +70,7 @@
       </listitem>
     </itemizedlist>
 
+<!-- With the move to meson, the patch is no longer needed
     <bridgehead renderas="sect3"
                 revision="sysv">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact" revision="sysv">
@@ -80,6 +81,7 @@
         </para>
       </listitem>
     </itemizedlist>
+-->
 
     <bridgehead renderas="sect3">Polkit Dependencies</bridgehead>
 
@@ -91,6 +93,8 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <xref linkend="gobject-introspection"/>,
+      <xref linkend="libxslt"/>,
       <xref linkend="linux-pam"/>
       <phrase revision="sysv">
         and <xref role="first" linkend="elogind"/>
@@ -110,19 +114,24 @@
     </note>
 
 
+    <!-- Due to the fact that meson will not autodetect g-i and
+         has it set to required unless you pass an option, and the likelihood
+         of users ignoring a command explanation and then sending in mails
+         regarding KDE or GNOME not working after installing polkit, let's move
+         it to recommended. See #15640 for logic
     <bridgehead renderas="sect4">Optional (Required if building GNOME)</bridgehead>
     <para role="optional">
       <xref linkend="gobject-introspection"/>
     </para>
+    -->
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="dbus-python"/> and
-      <xref linkend="python-dbusmock"/> (for tests),
-      <xref linkend="DocBook"/>,
-      <xref linkend="docbook-xsl"/>,
-      <xref linkend="gtk-doc"/>, and
-      <xref linkend="libxslt"/>
+      <xref linkend="python-dbusmock"/> (for tests), and
+      <!--<xref linkend="DocBook"/>, (Part of libxslt's chain)
+      <xref linkend="docbook-xsl"/>,-->
+      <xref linkend="gtk-doc"/>
     </para>
 
     <bridgehead renderas="sect4" revision="systemd">Required Runtime Dependencies</bridgehead>
@@ -151,7 +160,7 @@
         then <xref linkend="DocBook"/> and <xref linkend="docbook-xsl"/> are
         required. If you have installed <xref linkend="libxslt"/>, but you do
         not want to install any of the DocBook packages mentioned, you will
-        need to use <option>--disable-man-pages</option> in the instructions
+        need to use <option>-Dman=false</option> in the instructions
         below.
       </para>
     </note>
@@ -175,6 +184,7 @@
 useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
         -g polkitd -s /bin/false polkitd</userinput></screen>
 
+<!-- All of this is irrelevant with meson
     <note revision="systemd">
       <para>
         When building <application>Polkit</application> with
@@ -197,62 +207,116 @@ useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
 
 <screen revision="sysv"><userinput>patch -Np1 -i ../polkit-&polkit-version;-fix_elogind_detection-1.patch &amp;&amp;
 autoreconf -fv</userinput></screen>
+-->
 
+    <para>
+      First, fix problems with setting permissions during installation and with
+      meson-0.60.0:
+    </para>
+
+<screen><userinput remap="pre">sed '/0,/s/^/#/' -i meson_post_install.py &amp;&amp;
+sed '/policy,/d' -i actions/meson.build \
+                 -i src/examples/meson.build</userinput></screen>
     <para>
       Install <application>Polkit</application> by running the following
       commands:
     </para>
 
-<screen revision="systemd"><userinput>./configure --prefix=/usr        \
-            --sysconfdir=/etc    \
-            --localstatedir=/var \
-            --disable-static     \
-            --with-os-type=LFS   &amp;&amp;
-make</userinput></screen>
+<screen revision="systemd"><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
-<screen revision="sysv"><userinput>./configure --prefix=/usr        \
-            --sysconfdir=/etc    \
-            --localstatedir=/var \
-            --disable-static     \
-            --with-os-type=LFS   \
-            --disable-libsystemd-login &amp;&amp;
-make</userinput></screen>
+meson --prefix=/usr                       \
+      -Dman=true                          \
+      -Dsession_tracking=libsystemd-login \
+      --buildtype=release                 \
+      ..                                  &amp;&amp;
+ninja</userinput></screen>
 
+<screen revision="sysv"><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson --prefix=/usr                 \
+      -Dman=true                    \
+      -Dsession_tracking=libelogind \
+      -Dsystemdsystemunitdir=/tmp   \
+      --buildtype=release           \
+      ..                            &amp;&amp;
+ninja</userinput></screen>
+
+<!--
     <para>
       To test the results, first ensure that the system
       <application>D-Bus</application> daemon is running.
       Then run <command>make check</command>.
+    </para>
+-->
+
+<!-- The subprojects directory which contains a wrapper for 'mocklibc'
+     is not shipped in the tarball like it should be. Whenever that is
+     fixed, -Dtests=true and ninja test is the ticket. -->
+
+    <para>
+      This package does not ship with a working test suite.
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root" revision="systemd"><userinput>ninja install</userinput></screen>
+
+<screen role="root" revision="sysv"><userinput>ninja install &amp;&amp;
+rm -v /tmp/*.service</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <!--
     <para revision="sysv">
-      <parameter>--disable-libsystemd-login</parameter>: This switch forces
+      <parameter>- -disable-libsystemd-login</parameter>: This switch forces
       polkit to build with elogind support (if available) rather than
       systemd-logind.
     </para>
 
+    
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
-
+    -->
+    
     <para>
-      <option>--with-authfw=shadow</option>: This switch enables the
+      <option>-Dauthfw=shadow</option>: This switch enables the
       package to use the <application>Shadow</application> rather than the
       <application>Linux PAM</application> Authentication framework. Use it
       if you have not installed <application>Linux PAM</application>.
     </para>
 
+    <!--
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../xincludes/gtk-doc-rebuild.xml"/>
+    -->
+
+    <para>
+      <option>-Dintrospection=false</option>: Use this option if you are certain
+      that you do not need gobject-introspection files for polkit, or do not have
+      gobject-introspection installed.
+    </para>
+
+    <para>
+      <option>-Dman=false</option>: Use this option to disable generating and
+      installing manual pages. This is useful if libxslt is not installed.
+    </para>
+
+    <para>
+      <option>-Dexamples=true</option>: Use this option to build the example
+      programs.
+    </para>
+
+    <para>
+      <option>-Dgtk_doc=true</option>: Use this option to enable building and
+      installing the API documentation.
+    </para>
 
   </sect2>
 
@@ -304,7 +368,7 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          pkaction, pkcheck, pk-example-frobnicate, pkexec,
+          pkaction, pkcheck, <!--pk-example-frobnicate,--> pkexec,
           pkttyagent and polkitd
         </seg>
         <seg>
@@ -350,6 +414,7 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
+<!--
       <varlistentry id="pk-example-frobnicate">
         <term><command>pk-example-frobnicate</command></term>
         <listitem>
@@ -362,7 +427,8 @@ EOF</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+-->
+      
       <varlistentry id="pkexec">
         <term><command>pkexec</command></term>
         <listitem>
