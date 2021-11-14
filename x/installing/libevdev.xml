@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY libevdev-version "1.11.0">
+  <!ENTITY libevdev-version "1.12.0">
 
   <!ENTITY libevdev-download-http "https://www.freedesktop.org/software/libevdev/libevdev-&libevdev-version;.tar.xz">
   <!ENTITY libevdev-download-ftp  " ">
-  <!ENTITY libevdev-md5sum        "b09838ec120dabeebc08fa6a1943594f">
-  <!ENTITY libevdev-size          "436 KB">
+  <!ENTITY libevdev-md5sum        "2186bc6b92c2c9573d8915b0a43acb43">
+  <!ENTITY libevdev-size          "433 KB">
   <!ENTITY libevdev-buildsize     "9.1 MB (with tests)">
   <!ENTITY libevdev-time          "0.2 SBU (with tests)">
 ]>
@@ -87,17 +87,23 @@
     <sect3 role="kernel" id="libevdev-kernel">
       <title>Kernel Configuration</title>
 
-    <para>
-      Enable the following options in the kernel configuration and recompile the
-      kernel if necessary:
-    </para>
+      <para>
+        Enable the following options in the kernel configuration and recompile
+        the kernel if necessary:
+      </para>
 
 <screen><literal>Device Drivers  ---&gt;
   Input device support ---&gt;
     &lt;*&gt; Generic input layer (needed for keyboard, mouse, ...) [CONFIG_INPUT]
     &lt;*&gt;   Event interface                   [CONFIG_INPUT_EVDEV]
     [*]   Miscellaneous devices  ---&gt;       [CONFIG_INPUT_MISC]
-      &lt;*&gt;    User level driver support      [CONFIG_INPUT_UINPUT]</literal></screen>
+      &lt;*/m&gt;    User level driver support    [CONFIG_INPUT_UINPUT]</literal></screen>
+
+      <para>
+        The last item is not strictly required for libevdev. If it is
+        compiled as a module, it is not loaded automatically.
+        It is needed for full test coverage.
+      </para>
 
       <indexterm zone="libevdev libevdev-kernel">
         <primary sortas="d-libevdev">libevdev</primary>
@@ -118,7 +124,11 @@ make</userinput></screen>
       <para>
         The regression tests can be run as the <systemitem
         class="username">root</systemitem> user with <command>make
-        check</command>, in a graphical session. Note that on some systems, the
+        check</command>, in a graphical session. You need to have enabled
+        the CONFIG_INPUT_UINPUT setting in the kernel for full test coverage.
+        If it is enabled as a module, the module is named
+        <command>uinput</command> and needs to be loaded before running the
+        tests. Note that on some systems, the
         tests may cause a hard lockup and require a reboot. On laptops, the
         system will go into Sleep and need to be woken up to finish the test
         suites.
