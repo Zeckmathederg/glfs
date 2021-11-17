@@ -29,6 +29,40 @@
   <sect2 role="package">
     <title>Introduction to Ntfs-3g</title>
 
+    <note>
+      <para id='ntfs3-kernel'>
+        A new read-write support for NTFS, called NTFS3, has been added
+        into Linux kernel since the 5.14 release.  The performance of NTFS3
+        is much better than ntfs-3g. To enable NTFS3, enable the following
+        options in the kernel configuration and recompile the kernel if
+        necessary:
+      </para>
+
+<screen><literal>File systems  ---&gt;
+  &lt;*/M&gt; NTFS Read-Write file system support [CONFIG_NTFS3_FS]</literal></screen>
+
+    <indexterm zone="ntfs-3g ntfs3-kernel">
+      <primary sortas="d-ntfs3">NTFS read-write support in kernel</primary>
+    </indexterm>
+
+      <para>
+        To ensure the <command>mount</command> command to use NTFS3 for
+        ntfs partitions, create a wrapper script:
+      </para>
+
+<screen role="nodump"><userinput>cat &gt;&gt; /usr/sbin/mount.ntfs &lt;&lt;"EOF" &amp;&amp;
+<literal>#!/bin/sh
+exec mount -t ntfs3 "$@"</literal>
+EOF
+chmod -v 755 /usr/sbin/mount.ntfs</userinput></screen>
+
+      <para>
+        With the kernel support available, ntfs-3g is only needed if you
+        need the utilities from it (for example, to create NTFS
+        filesystems).
+      </para>
+    </note>
+
     <para>
       The <application>Ntfs-3g</application> package contains a stable,
       read-write open source driver for NTFS partitions. NTFS partitions are
@@ -135,18 +169,18 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-ln -sv ../bin/ntfs-3g /usr/sbin/mount.ntfs &amp;&amp;
-ln -sv ntfs-3g.8 /usr/share/man/man8/mount.ntfs.8</userinput></screen>
+<screen role="root"><userinput>make install &amp;&amp;</userinput></screen>
 
     <para>
-      If you want ordinary users to be able to mount NTFS partitions you'll need
-      to set mount.ntfs with the root user ID. Note: it is probably unsafe to do
-      this on a computer that needs to be secure (like a server). As the
-      <systemitem class="username">root</systemitem> user:
+      It's recommended to use the in-kernel NTFS3 driver for mounting
+      NTFS filesystems, instead of ntfs-3g (see the note at the start of
+      this page).  However, if you want to use ntfs-3g to mount the NTFS
+      filesystems anyway, create a symlink for <command>mount</command>
+      command:
     </para>
 
-<screen role="root"><userinput>chmod -v 4755 /usr/bin/ntfs-3g</userinput></screen>
+<screen role="nodump"><userinput>ln -sv ../bin/ntfs-3g /usr/sbin/mount.ntfs &amp;&amp;
+ln -sv ntfs-3g.8 /usr/share/man/man8/mount.ntfs.8</userinput></screen>
 
   </sect2>
 
@@ -173,12 +207,6 @@ ln -sv ntfs-3g.8 /usr/share/man/man8/mount.ntfs.8</userinput></screen>
     <para>
       <option>--disable-ntfsprogs</option>: Disables installation of various
       utilities used to manipulate NTFS partitions.
-    </para>
-
-    <para>
-      <command>ln -sv ../bin/ntfs-3g /usr/sbin/mount.ntfs</command>: Creating
-      /sbin/mount.ntfs makes <command>mount</command> default to using Ntfs-3g
-      to mount NTFS partitions.
     </para>
 
     <para>
