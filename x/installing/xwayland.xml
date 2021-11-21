@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY xwayland-download-http "&xorg-download-http;/xserver/xwayland-&xwayland-version;.tar.xz">
+  <!ENTITY xwayland-download-ftp  "&xorg-download-ftp;/xserver/xwayland-&xwayland-version;.tar.xz">
+  <!ENTITY xwayland-md5sum        "ab422f8225dfeee2b09943fd991a5cee">
+  <!ENTITY xwayland-size          "1.2 MB">
+  <!ENTITY xwayland-buildsize     "84 MB (add 350 MB for test)">
+  <!ENTITY xwayland-time          "0.3 SBU (with paralellism=4; add 0.8 SBU for test, not including clone time)">
+]>
+
+<sect1 id="xwayland" xreflabel="Xwayland-&xwayland-version;">
+  <?dbhtml filename="xwayland.html"?>
+
+  <sect1info>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Xwayland-&xwayland-version;</title>
+
+  <indexterm zone="xwayland">
+    <primary sortas="a-xwayland">xwayland</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Xwayland</title>
+
+    <para>
+      The <application>Xwayland</application> package is an Xorg server
+      running on top of the wayland server. I has been separated from the
+      main Xorg server package. It allows running X clients inside a
+      wayland session.
+    </para>
+
+    &lfs110a_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&xwayland-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&xwayland-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &xwayland-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &xwayland-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &xwayland-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &xwayland-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Xwayland Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="pixman"/>,
+      <xref linkend="wayland-protocols"/>, and
+      <xref linkend="xorg7-font"/> (only font-util)
+    </para>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="libepoxy"/>,
+      <xref linkend="libtirpc"/>, and
+      <xref linkend="mesa"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="libgcrypt"/>,
+      <xref linkend="nettle"/>,
+      <xref linkend="xorg7-legacy"/>
+         (only bdftopcf, for building fonts required for the tests),
+      <ulink url="https://gitlab.freedesktop.org/xorg/test/rendercheck">rendercheck</ulink> (for tests), and
+      <ulink url="https://wayland.pages.freedesktop.org/weston/">weston</ulink> (for tests)
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/xwayland"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Xwayland</title>
+
+    <para>
+      Install <application>xwayland</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>sed '/install_man/,$d' -i meson.build &amp;&amp;
+
+mkdir build &amp;&amp;
+cd build    &amp;&amp;
+
+meson --prefix=$XORG_PREFIX         \
+      -Dxvfb=false                  \
+      -Dxkb_output_dir=/var/lib/xkb \
+      ..                            &amp;&amp;
+ninja</userinput></screen>
+
+    <para>
+      Building the test framework needs some work. First,
+      <ulink url="https://wayland.pages.freedesktop.org/weston/">weston</ulink>
+      brings in several dependencies, but the number can be reduced by
+      disabling unneeded features. The <command>meson</command> command
+      for a stripped down build of <application>weston</application> is shown
+      in <ulink
+      url="https://gitlab.freedesktop.org/xorg/xserver/-/blob/xwayland-21.1/.gitlab-ci/debian-install.sh">
+      Upstream continuous integration build</ulink>.
+    </para>
+
+    <para>
+      Furthermore, an X server needs to be running during the build of
+      <application>xts</application>. If not running the tests in a
+      graphical environment, you'll need to enable <command>Xvfb</command>
+      by removing the <parameter>-Dxvfb=false</parameter> above. The
+      instructions below suppose this has been done.
+    </para>
+
+    <para>
+      Running the tests involves downloading two other frameworks, in addition
+      to the mentioned optional dependencies:
+    </para>
+
+<screen remap="test"><userinput>mkdir tools &amp;&amp;
+pushd tools &amp;&amp;
+
+git clone https://gitlab.freedesktop.org/mesa/piglit.git --depth 1 &amp;&amp;
+cat &gt; piglit/piglit.conf &lt;&lt; EOF                                    &amp;&amp;
+<literal>[xts]
+path=$(pwd)/xts
+EOF</literal>
+
+git clone https://gitlab.freedesktop.org/xorg/test/xts --depth 1   &amp;&amp;
+
+export DISPLAY=:22           &amp;&amp;
+hw/vfb/Xvfb $DISPLAY &amp;
+VFB_PID=$!                   &amp;&amp;
+cd xts                       &amp;&amp;
+CFLAGS=-fcommon ./autogen.sh &amp;&amp;
+make                         &amp;&amp;
+kill $VFB_PID                &amp;&amp;
+unset DISPLAY VFB_PID        &amp;&amp;
+popd</userinput></screen>
+
+    <para>
+      Then the tests can be run with:
+    </para>
+
+<screen remap="test"><userinput>XTEST_DIR=$(pwd)/tools/xts PIGLIT_DIR=$(pwd)/tools/piglit ninja test</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>ninja install</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>sed '/install_man/,$d' -i meson.build</command>: Prevents
+      installing a manual page for <command>Xserver</command>,
+      which is not part of this package.
+    </para>
+
+    <para>
+      <parameter>-Dxvfb=false</parameter>: Prevents building the
+      <command>xvfb</command> program, which is also installed by
+      <xref linkend="xorg-server"/>. Remove if you do not plan to
+      install the X server.
+    </para>
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Program</segtitle>
+      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Directory</segtitle>
+
+      <seglistitem>
+        <seg>
+          Xwayland
+        </seg>
+        <seg>
+          None
+        </seg>
+        <seg>
+          None
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="Xwayland">
+        <term><command>Xwayland</command></term>
+        <listitem>
+          <para>
+            Allows X client to run under wayland.
+          </para>
+          <indexterm zone="xwayland Xwayland">
+            <primary sortas="b-Xwayland">Xwayland</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
