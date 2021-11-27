@@ -176,7 +176,15 @@ popd</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>ninja install</userinput></screen>
+<screen role="root" revision="sysv"><userinput>ninja install &amp;&amp;
+mkdir -pv /etc/X11/xorg.conf.d &amp;&amp;
+cat &gt;&gt; /etc/sysconfig/createfiles &lt;&lt; "EOF"
+<literal>/tmp/.X11-unix dir 1777 root root</literal>
+EOF</userinput></screen>
+
+<screen role="root" revision="systemd"><userinput>ninja install &amp;&amp;
+mkdir -pv /etc/X11/xorg.conf.d</userinput></screen>
+
   </sect2>
 
   <sect2 role="commands">
@@ -194,6 +202,21 @@ popd</userinput></screen>
       <xref linkend="xorg-server"/>. Remove if you do not plan to
       install the X server.
     </para>
+
+    <para>
+      <command>mkdir -pv /etc/X11/xorg.conf.d</command>: This directory is
+      needed to put configuration files for Xwayland. This command ensures
+      that it exists, as some applications might use it without first
+      creating it.
+    </para>
+
+    <para revision="sysv">
+      <command>cat &gt;&gt; /etc/sysconfig/createfiles...</command>: This
+      command creates the <filename class="directory">/tmp/.X11-unix</filename>
+      directory at startup, and ensures that the permissions and ownership
+      are correct as required by applications using Xwayland.
+    </para>
+
   </sect2>
 
   <sect2 role="content">
