@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="upgradedb" xreflabel="Upgrade Database">
+  <?dbhtml filename="upgradedb.html"?>
+
+  <sect1info>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Notes on Database Server Software</title>
+
+<screen>$ sudo systemctl status postgresql
+-- postgresql.service - PostgreSQL database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; vendor preset: enabled)
+     Active: failed (Result: exit-code) since Tue 2021-10-26 17:11:53 CDT; 2min 49s ago
+    Process: 17336 ExecStart=/usr/bin/pg_ctl -s -D ${PGROOT}/data start -w -t 120 (code=exited, status=1/FAILURE)
+        CPU: 7ms
+
+Oct 26 17:11:53 SVRNAME systemd[1]: Starting PostgreSQL database server...
+Oct 26 17:11:53 SRVNAME postgres[17338]: 2021-10-26 17:11:53.420 CDT [17338] FATAL:  database files are incompatible with server
+Oct 26 17:11:53 SRVNAME postgres[17338]: 2021-10-26 17:11:53.420 CDT [17338] DETAIL:  The data directory was initialized by PostgreSQL version 13, which is not compatible with this version 14.0.
+Oct 26 17:11:53 SRVNAME postgres[17336]: pg_ctl: could not start server
+Oct 26 17:11:53 SRVNAME postgres[17336]: Examine the log output.
+Oct 26 17:11:53 SRVNAME systemd[1]: postgresql.service: Control process exited, code=exited, status=1/FAILURE
+Oct 26 17:11:53 SRVNAME systemd[1]: postgresql.service: Failed with result 'exit-code'.
+Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.</screen>
+
+  <para>
+    If you like to avoid those situations like the one above finding
+    your database server software refusing to start, it is highly
+    recommended to read the following thoughts about how to upgrade
+    a DBMS (Database Management System) prior to actually doing the
+    upgrade.
+  </para>
+  <para>
+    Even if you are installing a DBMS the initial time, read it
+    anyway, it might give you a guideline on how to set up backup
+    and restore procedures (at least the strategy for building
+    them) which are sufficient for your needs and for the safety
+    of your data.
+  </para>
+  
+  <sect2>
+    <title>Upgrade database server packages</title>
+
+    <para>
+      Usually, DB systems work on a bunch of files which holds
+      the database metadata and the data itself. Those files
+      are highly optimized in their internal structures for use
+      by the server software. When upgrading such a server software,
+      it can happen that the server software expects a slightly
+      different file format than it has been created by previous
+      versions. In the best case, the new software can act on the
+      old format as well - while not benefitting from newer formats
+      which might result in better performance or of other improvements.
+      It can also happen that the new server software will reformat
+      the data files automatically at the first start.
+    </para>
+
+    <para>
+      Unfortunatly, the most likly case is that the new server
+      software complains about invalid data file formats and exits.
+      When this happens and you have overwritten the installed server
+      software with the new one, you are kind of lost as you lsot the
+      software which can read the data files and the new software is
+      unwilling to do so.
+    </para>
+
+    <para>
+       Changes in data file formats come usually beside major
+       version changes. But there is no guaranty. Before upgrading
+       the server software, check the documentation if there are
+       changes which will require a data file reformat.
+    </para>
+
+    <para>
+      Of course, if you have databases with content which is not
+      easily to rebuild, it is always a good idea of creating backups
+      of the database from time to time. When going to upgrade the
+      server software, the time is quite good to run another backup.
+    </para>
+
+    <sect3>
+      <title>Upgrade by backup and restore</title>
+
+      <note>
+        <para>
+          A backup is meaningless if there is no verified process
+          to restore the data from this backup. When running a
+          database server, you should not only create backups but you
+          should also verify that the process you designed to fullfill
+          the restore task is working properly. When you encounter a
+          problem with the restore at the time you urgently have to
+          rely on the backup data, it is too late - your database are
+          in high danger at this moment.
+        </para>
+      </note>
+
+      <para>
+        In general, most (all?) database server software provides
+        some basic tools to create backups of your data. Usually,
+        the backups created with those tools can be read by newer
+        versions of the software (here the restore tool). The other
+        way round (older resote tools can work with newer backup data)
+        is not defined and you should <emphasis>never</emphasis>
+        blindly assume that it would work. It might do, but usually
+        it doesn't.
+      </para>
+
+      <para>
+        The most easiest way to upgrade your database files is to
+      </para>
+
+      <itemizedlist>
+	<listitem>
+          <para>Create a full database backup using the old tools.</para>
+          <para>This step creates an offline copy of the database 
+          files ready to be used for long term archiving, for desaster
+          recovery or just as a preparation for upgrade. This offline
+          backups consists of the full one-to-one copy of the current
+          database files or a backup of the files from a certain time
+          in history plus all journal data (that is Oracle(R)
+          terminology, its called "Continuous Archiving" or "write
+          ahead log (WAL)" in Postgresql) containing information about
+          changes made to the data content. The later are more quickly
+          to create if the DB software provides such kind of journal as
+          you only have to save the changes which are recorded in those
+          journals from the last backup upto now. The amount of data to
+          backup is much less than doing a full backup all the time.</para>
+          <para>In terms of upgrading a DB server software, it is
+          recommended to perform a full backup (which can be used for
+          subsequent incremental backups) but if the amount of data is
+          too big an incremental backup will be sufficient, too. Which
+          strategy is sufficient for you depends on the amount of data
+          stored in your DB (is it a few hundret of table rows or is it
+          hundrets of Terabyte. A full backup of the later one isn't done
+          quickly (and we assume that the underlaying system of such a DB
+          might not be a home brewed LFS anyhow).</para>
+        </listitem>
+	<listitem>
+          <para>Upgrade the server software</para>
+          <para>In this step, instructions to build the database
+          server software are executed just as they are shown in 
+          subsequent sections talking about the DBMs like MariaDB or
+          Postgresql. This is building the software as
+          it is been done as usual in the BLFS book.</para>
+        </listitem>
+	<listitem>
+          <para>Restore the database by using the new tools.</para>
+          <para>To restore the data, the tools of the newly installed
+          server software is used. During the restore process, the new
+          tools will create and/or upgrade the data files in the
+          format the software expects them to be.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>
+        Since you have already a backup procedure in place (and you
+        have tested your restore procedure, don't you?), this way might
+        be the easiest way to upgrade as you are going to use well-known
+        processes to upgrade just as you allways do - at least in terms
+        of the backup and restore.
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Upgrade by system tools</title>
+
+      <para>
+        Some database systems (for instance Postgresql) provides
+        a tool which can reformat (=upgrade) the existing database
+        files to the new format. Since the upgrading tool has to
+        be used from the new server software (the old one cannot
+        know anything about a new file format), the old software
+        might be overwritten due to installation of the new software.
+      </para>
+
+      <para>
+        In case you have to restore a backup (may be because running
+        the upgrade tool failed) you have to reinstall the old version
+        to get back the access to your data.
+      </para>
+
+      <para>
+        Even though those tools might work one the actual database
+        files, it is still highly recommended to create a full backup
+        before running them. Any case of failure might result in a
+        serious damage of the database files.
+      </para>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Notes for specific DBMS</title>
+    
+    <sect3>
+      <title>PostgreSQL</title>
+      
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Upstream documentation for Backup &amp; Restore:
+        <ulink url="https://www.postgresql.org/docs/current/backup.html"/>
+      </para>
+      
+    </sect3>
+
+    <sect3>
+      <title>MariaDB</title>
+      
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Upstream documentation for Backup &amp; Restore:
+        <ulink url="https://mariadb.com/kb/en/backup-and-restore-overview/"/>
+      </para>
+      
+    </sect3>
+
+  </sect2>
+  
+</sect1>
