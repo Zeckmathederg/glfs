@@ -55,7 +55,7 @@ Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.<
     them) which are sufficient for your needs and for the safety
     of your data.
   </para>
-  
+
   <sect2>
     <title>Upgrade database server packages</title>
 
@@ -130,7 +130,7 @@ Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.<
       <itemizedlist>
 	<listitem>
           <para>Create a full database backup using the old tools.</para>
-          <para>This step creates an offline copy of the database 
+          <para>This step creates an offline copy of the database
           files ready to be used for long term archiving, for desaster
           recovery or just as a preparation for upgrade. This offline
           backups consists of the full one-to-one copy of the current
@@ -151,12 +151,18 @@ Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.<
           stored in your DB (is it a few hundret of table rows or is it
           hundrets of Terabyte. A full backup of the later one isn't done
           quickly (and we assume that the underlaying system of such a DB
-          might not be a home brewed LFS anyhow).</para>
+          might not be a home brewed LFS anyhow).
+          To close the last gap to fully protect your data, create a backup
+          of the corresponding old binaries (and/or their sources) and
+          store it along with the data files to
+          make sure that there is a fallback solution if it comes to
+          the situation that newer software might not be able to read
+          ancient data.</para>
         </listitem>
 	<listitem>
           <para>Upgrade the server software</para>
           <para>In this step, instructions to build the database
-          server software are executed just as they are shown in 
+          server software are executed just as they are shown in
           subsequent sections talking about the DBMs like MariaDB or
           Postgresql. This is building the software as
           it is been done as usual in the BLFS book.</para>
@@ -166,14 +172,15 @@ Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.<
           <para>To restore the data, the tools of the newly installed
           server software is used. During the restore process, the new
           tools will create and/or upgrade the data files in the
-          format the software expects them to be.</para>
+          format the software expects them to be. At this moment it is
+          assumed that newer software is capable to read old data.</para>
         </listitem>
       </itemizedlist>
 
       <para>
         Since you have already a backup procedure in place (and you
         have tested your restore procedure, don't you?), this way might
-        be the easiest way to upgrade as you are going to use well-known
+        be the easiest way to upgrade as you are going to use your wellknown
         processes to upgrade just as you allways do - at least in terms
         of the backup and restore.
       </para>
@@ -211,29 +218,77 @@ Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.<
 
   <sect2>
     <title>Notes for specific DBMS</title>
-    
+
     <sect3>
       <title>PostgreSQL</title>
-      
+
       <!-- might add some advanced notes for the DBMS here -->
 
       <para>Upstream documentation for Backup &amp; Restore:
         <ulink url="https://www.postgresql.org/docs/current/backup.html"/>
       </para>
-      
+
     </sect3>
 
     <sect3>
       <title>MariaDB</title>
-      
+
       <!-- might add some advanced notes for the DBMS here -->
 
       <para>Upstream documentation for Backup &amp; Restore:
         <ulink url="https://mariadb.com/kb/en/backup-and-restore-overview/"/>
       </para>
-      
+
     </sect3>
 
+    <sect3>
+      <title>Sqlite</title>
+
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Don't underestimate <application>Sqlite</application>, it
+      is a feature rich DBMS. The main difference to the two big
+      players above is that Sqlite does not provide access via a
+      network API. Sqlite databases are files always stored on the
+      same machine as the running program which reads/writes the
+      database. The manipulation of data content is done via API calls
+      to library functions directly within the program.</para>
+
+      <para>In the upstream documentation you may find the
+      following useful:</para>
+
+      <para>Documentation of the sqlite3 command line tool:
+        <ulink url="https://www.sqlite.org/cli.html"/>
+      </para>
+      <para>Documentation of backup API calls:
+        <ulink url="https://www.sqlite.org/backup.html"/>
+      </para>
+
+      <para>Unfortunatly, there is no dedicated chapter in the
+      upstream documentation talking about backup &amp; restore but
+      there are several articles about it somewhere else in the
+      Internet. One example is shown below.</para>
+
+      <para>Documentation for Backup &amp; Restore:
+        <ulink url="https://database.guide/backup-sqlite-database/"/>
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Berkeley DB</title>
+
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Just like <application>Sqlite</application> this
+      software acts on local database files meaning there is no
+      network interface, too.</para>
+
+      <para>The relevant resources for Backup &amp; Restore a Berkeley DB
+      are the man pages for <filename>db_dump</filename> and its
+      counterpart <filename>db_load</filename>.</para>
+
+    </sect3>
   </sect2>
-  
+
 </sect1>
