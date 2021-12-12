@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="upgradedb" xreflabel="Upgrade Database">
+  <?dbhtml filename="upgradedb.html"?>
+
+  <sect1info>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Important notes about upgrading Database Server Software</title>
+
+    <note><para>This section is about reinstalling database software
+    when an existing database is in use.  It is not applicable for
+    initial installations or if there is no existing database for
+    the package being updated, but users should read through it 
+    to become aware of issues that can arise in the future.</para></note>
+
+    <para>Lets start this chapter with a dramatic screenshot of an issue that
+    really happened.  This issue will not occur if you are going to install the
+    software the first time:</para>
+
+<screen>$ sudo systemctl status postgresql
+-- postgresql.service - PostgreSQL database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; vendor preset: enabled)
+     Active: failed (Result: exit-code) since Tue 2021-10-26 17:11:53 CDT; 2min 49s ago
+    Process: 17336 ExecStart=/usr/bin/pg_ctl -s -D ${PGROOT}/data start -w -t 120 (code=exited, status=1/FAILURE)
+        CPU: 7ms
+
+Oct 26 17:11:53 SVRNAME systemd[1]: Starting PostgreSQL database server...
+Oct 26 17:11:53 SRVNAME postgres[17338]: 2021-10-26 17:11:53.420 CDT [17338] FATAL:  
+                database files are incompatible with server
+Oct 26 17:11:53 SRVNAME postgres[17338]: 2021-10-26 17:11:53.420 CDT [17338] DETAIL:  
+                The data directory was initialized by PostgreSQL version 13,
+                which is not compatible with this version 14.0.
+Oct 26 17:11:53 SRVNAME postgres[17336]: pg_ctl: could not start server
+Oct 26 17:11:53 SRVNAME postgres[17336]: Examine the log output.
+Oct 26 17:11:53 SRVNAME systemd[1]: postgresql.service: Control process exited, code=exited, status=1/FAILURE
+Oct 26 17:11:53 SRVNAME systemd[1]: postgresql.service: Failed with result 'exit-code'.
+Oct 26 17:11:53 SRVNAME systemd[1]: Failed to start PostgreSQL database server.</screen>
+
+  <para>
+    To avoid situations like the one above finding your database server
+    software refusing to start, read the following thoughts about how to
+    upgrade a DBMS (Database Management System) prior to actually doing the
+    upgrade.
+  </para>
+
+  <para>
+    The root cause of the issue shown above was an upgrade
+    of the server software to a newer major version but leaving the
+    data files untouched. The administrator was able to recover without any
+    loss of data.
+  </para>
+
+  <para>
+    Even if you are doing an install DBMS install, read through this
+    section. Tt will provide you information about how to set up backup
+    and restore procedures (at least the strategy for building
+    them) which are sufficient for your needs and for the safety
+    of your data.
+  </para>
+
+  <sect2>
+    <title>Upgrade database server packages</title>
+
+    <para>
+      Database systems work on files which hold the database metadata and the
+      data itself. Those files are highly optimized in their internal
+      structures for use by the server software. When upgrading such server
+      software, newer server software may expect a different file format than
+      was created by previous versions. In the best case, the new software can
+      act on the old format as well&mdash;but not benefitting from newer
+      formats which might result in better performance or of other
+      improvements.  It can also happen that the new server software will
+      reformat the data files automatically when starting.
+    </para>
+
+    <para>
+      Unfortunatly, the most likly case is that the new server software
+      complains about out of date file formats and exits.  When this happens
+      and you have overwritten the installed server software, you may not be
+      able to read the data files and the new software is unwilling to do so.
+    </para>
+
+    <para>
+       Changes in data file formats usually happen at major version changes but
+       potentially can come at other times.  Before upgrading the server
+       software, check the documentation if there are changes which will
+       require reformatting the database.
+    </para>
+
+    <para>
+      Of course, if you have databases with content which is not easy to
+      rebuild, it is always a good idea to create backups of the database from
+      time to time. When upgrading the server software, it is time to run
+      another backup.
+    </para>
+
+    <sect3>
+      <title>Upgrade by backup and restore</title>
+
+      <note>
+        <para>
+          A backup is meaningless if there is no verified process
+          to restore the data from this backup. When running a
+          database server, you should not only create backups but you
+          should also verify that the process you designed to fullfill
+          the restore task is working properly. When you encounter a
+          problem with the restore when you urgently have to
+          rely on the backup data, it is too late&mdash;your database is
+          in danger.
+        </para>
+      </note>
+
+      <para>
+        In general, most (all?) database server software provides some basic
+        tools to create backups of your data. Usually the backups created with
+        those tools can be read by newer versions of the software (via a
+        restore tool). Using older restore tools with newer backup data is not
+        defined and you should <emphasis>never</emphasis> blindly assume that
+        it will work. It might, but usually it doesn't.
+      </para>
+
+      <para>
+        The easiest way to upgrade your database files is to
+      </para>
+
+      <itemizedlist>
+	<listitem>
+          <para>Create a full database backup using the old tools.</para>
+          
+          <para>This step creates an offline copy of the database files ready
+          to be used for long term archiving, for disaster recovery, or just
+          preparation for upgrade. This offline backup consists of the full
+          one-to-one copy of the current database files or a backup of the
+          files from a certain time in history plus all journal data (that is
+          Oracle&reg; terminology, it is called "Continuous Archiving" or
+          "write ahead log (WAL)" in Postgresql) containing information about
+          changes made to the data content. The later take less time to create
+          if the DB software provides this type of journaling as you only have
+          to save the changes after creating the last backup. The amount of
+          data to backup is much less than doing a full backup every
+          time.</para>
+
+          <para>In terms of upgrading database server software, a full backup
+          (which can be used for subsequent incremental backups) should be
+          made, but if the amount of data is too big, an incremental backup will
+          be sufficient. Which strategy is appropriate for you depends on
+          the amount of data stored in your database (is it a few hundred table
+          rows or is it hundreds of terabytes?). A full backup of the later one
+          isn't done quickly (and we assume that the underlying system of such
+          a database is probably not on an LFS system).  To close the last gap
+          to fully protect your data, create a backup of the corresponding old
+          binaries (and/or their sources) and store it along with the data
+          files to make sure that there is a fallback solution if 
+          the newer software is not able to read the older data.</para> 
+          </listitem> 
+
+          <listitem> 
+            <para>Upgrade the server software</para> 
+
+            <para>In this step, instructions to build the database server
+            software are executed just as they are shown in subsequent sections
+            talking about the DBMs like MariaDB or Postgresql. That is, build
+            the software as usual using BLFS instructions.</para> 
+          </listitem> 
+
+          <listitem> 
+            <para>Restore the database by using the new tools.</para> 
+
+            <para>To restore the data, the tools of the newly installed server
+            software should be used. During the restoration process, the new
+            tools will create and/or upgrade the data files in the format the
+            software requires. It is assumed that newer software is capable of
+            reading old data.</para>
+          </listitem> 
+          </itemizedlist>
+
+      <para>
+        Since you have already have a backup procedure in place (and you
+        have tested your restore procedure, right?), this might
+        be the easiest way to upgrade as you are going to use your well known
+        processes to upgrade just as you allways do&mdash;at least in terms
+        of the backup and restore.
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Upgrade the database files by using system tools</title>
+
+      <para>
+        Some database systems (for instance Postgresql) provide
+        a tool which can reformat (upgrade) the existing database
+        files to the new format. Since the upgrading tool has to
+        be used from the new server software (the old one cannot
+        know anything about a new file format), the old software
+        might be overwritten due to installation of the new software.
+      </para>
+
+      <para>
+        In case you have to restore a backup (for example, running
+        the upgrade tool failed) you have to reinstall the old version
+        to get back the access to your data.
+      </para>
+
+      <para>
+        Even though those tools might work with one of the actual database
+        files, you should create a full backup before running them. A failure
+        might result in a serious damage of the database files.
+      </para>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2>
+    <title>Notes for specific DBMS</title>
+
+    <sect3>
+      <title>PostgreSQL</title>
+
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Upstream documentation for Backup/Restore:
+        <ulink url="https://www.postgresql.org/docs/current/backup.html"/>
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>MariaDB</title>
+
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Upstream documentation for Backup/Restore:
+        <ulink url="https://mariadb.com/kb/en/backup-and-restore-overview/"/>
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Sqlite</title>
+
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Do not underestimate <application>Sqlite</application>. It is a
+      feature rich DBMS. The main difference from the two big players above is
+      that Sqlite does not provide access via a network API. Sqlite databases
+      are files always stored on the same machine as the running program which
+      uses the database. The manipulation of data content is done via API calls
+      to library functions directly within the program.</para>
+
+      <para>In the upstream documentation you may find the following
+      useful:</para>
+
+      <para>Documentation of the sqlite3 command line tool:
+        <ulink url="https://www.sqlite.org/cli.html"/>
+      </para>
+
+      <para>Documentation of backup API calls:
+        <ulink url="https://www.sqlite.org/backup.html"/>
+      </para>
+
+      <para>Unfortunatly, there is no dedicated chapter in the
+      upstream documentation talking about backup/restore but
+      there are several articles about it on the
+      Internet. One example is shown below.</para>
+
+      <para>Documentation for Backup/Restore:
+        <ulink url="https://database.guide/backup-sqlite-database/"/>
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Berkeley DB</title>
+
+      <!-- might add some advanced notes for the DBMS here -->
+
+      <para>Just like <application>Sqlite</application> this
+      software acts on local database files meaning there is no
+      network interface.</para>
+
+      <para>The relevant resources for Backup/Restore a Berkeley database
+      are the man pages for <filename>db_dump</filename> and its
+      counterpart <filename>db_load</filename>.</para>
+
+    </sect3>
+  </sect2>
+
+</sect1>
