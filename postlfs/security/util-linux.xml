@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY util-linux-download-http "https://www.kernel.org/pub/linux/utils/util-linux/v&util-linux-minor;/util-linux-&util-linux-version;.tar.xz">
+  <!ENTITY util-linux-download-ftp  " ">
+  <!ENTITY util-linux-md5sum        "d659bf7cd417d93dc609872f6334b019">
+  <!ENTITY util-linux-size          "5.4 MB">
+  <!ENTITY util-linux-buildsize     "60 MB">
+  <!ENTITY util-linux-time          "less than 0.1 SBU">
+]>
+
+<sect1 id="util-linux" xreflabel="Util-linux-&util-linux-version;">
+  <?dbhtml filename="util-linux.html"?>
+
+  <sect1info>
+    <date>$Date$</date>
+  </sect1info>
+
+  <title>Util-linux-&util-linux-version;</title>
+
+  <indexterm zone="util-linux">
+    <primary sortas="a-Util-linux">Util-linux</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Util-linux</title>
+
+    <para>
+      <application>Util-linux</application> was indeed installed in LFS and
+      there is no reason to reinstall it unless you installed
+      <application>Linux-PAM</application> after your LFS system was completed.
+      If you have installed <application>Linux-PAM</application>,
+      it's possible to build <command>su</command> and
+      <command>runuser</command> from <application>Util-linux</application>.
+      <application>Shadow</application> maintainers recommend to use
+      <command>su</command> from <application>Util-linux</application>,
+      instead of <application>Shadow</application>.
+    </para>
+
+    &lfs110a_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&util-linux-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&util-linux-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &util-linux-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &util-linux-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &util-linux-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &util-linux-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Util-linux Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="linux-pam"/>
+    </para>
+
+    <para condition="html" role="usernotes">
+      User Notes: <ulink url="&blfs-wiki;/shadow"/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Util-linux</title>
+
+    <important>
+      <para>
+        The installation commands shown below are for installations where
+        <application>Linux-PAM</application> has been installed and
+        <application>Util-linux</application> is being rebuilt to
+        support the <application>Linux-PAM</application> installation.
+      </para>
+
+      <para>
+        If you are upgrading <application>Util-linux</application>, follow
+        the instruction for <application>Util-linux</application> in
+		<ulink url='&lfs-dev;chapter08/util-linux.xml'>LFS</ulink>.  If
+        <application>Linux-PAM</application> has been installed,
+        <command>su</command> and <command>runuser</command> will
+        automatically be built too.  You should follow the
+        <xref linkend='pam-util-linux'/> to set up the PAM
+        configuration for them then.
+      </para>
+    </important>
+
+    <para>
+      Build <command>su</command> and <command>runuser</command> from
+      <application>Util-linux</application>:
+    </para>
+
+<screen><userinput>./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
+            --libdir=/usr/lib    \
+            --docdir=/usr/share/doc/util-linux-&util-linux-version; \
+            --disable-chfn-chsh  \
+            --disable-login      \
+            --disable-nologin    \
+            --disable-setpriv    \
+            --disable-pylibmount \
+            --disable-static     \
+            --without-python     \
+            runstatedir=/run     &amp;&amp;
+make su runuser</userinput></screen>
+
+    <para>
+      This package does not come with a test suite.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>install -vm4755 su      /usr/bin/su
+install -vm0755 runuser /usr/sbin/runuser
+find /usr/share/man -name su.1 -delete
+install -vm0644 sys-utils/{su,runuser}.1 /usr/share/man/man1</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>find /usr/share/man -name su.1 -delete</command>: This
+      is used to remove the man pages for <command>su</command> installed
+      from <application>Shadow</application>.
+      <application>Shadow</application> installs man pages with multiple
+      languages.  They need to be removed to prevent
+      <command>man su</command> from picking up a translated man page
+      instead of <filename>/usr/share/man/man1/su.1</filename>.
+    </para>
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring Linux-PAM to Work with Util-linux</title>
+
+    <sect3 id='pam-util-linux'>
+      <title>Config Files</title>
+
+      <para>
+        <filename>/etc/pam.d/su</filename>,
+        <filename>/etc/pam.d/su-l</filename>, and
+        <filename>/etc/pam.d/runuser</filename>
+      </para>
+
+      <indexterm zone="util-linux pam.d">
+        <primary sortas="e-etc-pam.d-su">/etc/pam.d/su</primary>
+      </indexterm>
+
+      <indexterm zone="util-linux pam.d">
+        <primary sortas="e-etc-pam.d-su">/etc/pam.d/su-l</primary>
+      </indexterm>
+
+      <indexterm zone="util-linux pam.d">
+        <primary sortas="e-etc-pam.d-su">/etc/pam.d/runuser</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3>
+      <title>Configuring the /etc/pam.d/ Files</title>
+
+      <para>
+        As the <systemitem class="username">root</systemitem> user, create
+        the following <application>Linux-PAM</application> configuration files
+        in the <filename class="directory">/etc/pam.d/</filename> directory
+        (or add the contents to the <filename>/etc/pam.conf</filename> file)
+        using the following commands:
+      </para>
+
+      <sect4>
+        <title>'su' and 'su-l'</title>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/su &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/su
+
+# always allow root
+auth      sufficient  pam_rootok.so
+
+# Allow users in the wheel group to execute su without a password
+# disabled by default
+#auth      sufficient  pam_wheel.so trust use_uid
+
+# include system auth settings
+auth      include     system-auth
+
+# limit su to users in the wheel group
+auth      required    pam_wheel.so use_uid
+
+# include system account settings
+account   include     system-account
+
+# Set default environment variables for the service user
+session   required    pam_env.so
+
+# include system session settings
+session   include     system-session
+
+# End /etc/pam.d/su</literal>
+EOF
+ln -sv su /etc/pam.d/su-l</userinput></screen>
+
+      </sect4>
+
+      <sect4>
+        <title>'runuser'</title>
+
+<screen role="root"><userinput>cat &gt; /etc/pam.d/runuser &lt;&lt; "EOF"
+<literal># Begin /etc/pam.d/runuser
+
+auth      sufficient  pam_rootok.so
+session   include     system-session
+
+# End /etc/pam.d/runuser</literal>
+EOF</userinput></screen>
+
+        <warning>
+          <para>
+            At this point, you should do a simple test to see if
+            <command>su</command> is working as expected. Open
+            another terminal and log in as a user, then
+            <command>su</command> to
+            <systemitem class="username">root</systemitem>.
+            If you do not see any errors, then all is well.
+            If you did receive errors, stop now and double check the
+            above configuration files manually. One obvious reason
+            for an error is if the user is not in group <systemitem
+            class="groupname">wheel</systemitem>. You may want to run
+            (as <systemitem class="username">root</systemitem>):
+            <command>usermod -a -G wheel
+            <replaceable>&lt;user&gt;</replaceable></command>.
+            Any other error is the sign of an error in the above
+            procedure. You can also run the test suite from the
+            <application>Linux-PAM</application> package to assist you
+            in determining the problem.
+          </para>
+        </warning>
+      </sect4>
+    </sect3>
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <para>
+      Listed below are the newly installed programs along with short
+      descriptions.
+    </para>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+
+      <seglistitem>
+        <seg>
+          su and runuser
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="su">
+        <term><command>su</command></term>
+        <listitem>
+          <para>
+            run a command with substitute user and group ID
+          </para>
+          <indexterm zone="util-linux su">
+            <primary sortas="b-su">su</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="runuser">
+        <term><command>runuser</command></term>
+        <listitem>
+          <para>
+            run a command with substitute user and group ID; it's like
+            <command>su</command> but can only be used as
+            the <systemitem class='username'>root</systemitem> user.
+          </para>
+          <indexterm zone="util-linux runuser">
+            <primary sortas="b-util-linux-runuser">runuser</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
