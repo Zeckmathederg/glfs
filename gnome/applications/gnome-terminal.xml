@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY gnome-terminal-download-http
-           "&gnome-download-http;/gnome-terminal/&gnome-minor-40;/gnome-terminal-&gnome-terminal-version;.tar.xz">
+           "&gnome-download-http;/gnome-terminal/&gnome-minor-42;/gnome-terminal-&gnome-terminal-version;.tar.xz">
   <!ENTITY gnome-terminal-download-ftp
-           "&gnome-download-ftp;/gnome-terminal/&gnome-minor-40;/gnome-terminal-&gnome-terminal-version;.tar.xz">
-  <!ENTITY gnome-terminal-md5sum        "06db1340df1c10a1b159b940c30db87c">
-  <!ENTITY gnome-terminal-size          "2.5 MB">
-  <!ENTITY gnome-terminal-buildsize     "48 MB">
+           "&gnome-download-ftp;/gnome-terminal/&gnome-minor-42;/gnome-terminal-&gnome-terminal-version;.tar.xz">
+  <!ENTITY gnome-terminal-md5sum        "26dd403c9bbfb51c6d632dd7f53301de">
+  <!ENTITY gnome-terminal-size          "1.7 MB">
+  <!ENTITY gnome-terminal-buildsize     "41 MB">
   <!ENTITY gnome-terminal-time          "0.1 SBU">
 ]>
 
@@ -105,13 +105,21 @@
     <title>Installation of GNOME Terminal</title>
 
     <para>
+      First, fix some deprecated schema entries:
+    </para>
+
+<screen><userinput remap="pre">sed -i -r 's:"(/system):"/org/gnome\1:g' src/external.gschema.xml</userinput></screen>
+
+    <para>
       Install <application>GNOME Terminal</application> by
       running the following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr       \
-            --disable-static    &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd   build &amp;&amp;
+
+meson --prefix=/usr --buildtype=release .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -121,9 +129,9 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root" revision="systemd"><userinput>make install</userinput></screen>
+<screen role="root" revision="systemd"><userinput>ninja install</userinput></screen>
 
-<screen role="root" revision="sysv"><userinput>make install &amp;&amp;
+<screen role="root" revision="sysv"><userinput>ninja install &amp;&amp;
 rm -v /usr/lib/systemd/user/gnome-terminal-server.service</userinput></screen>
 
     <note>
@@ -140,13 +148,13 @@ rm -v /usr/lib/systemd/user/gnome-terminal-server.service</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <option>--disable-search-provider</option>: This switch disables
+      <option>-Dsearch_provider=false</option>: This switch disables
       the <quote>search <application>gnome-shell</application></quote>
       provider. Use this option if you do not have gnome-shell installed.
     </para>
 
     <para>
-      <option>--without-nautilus-extension</option>: This switch disables
+      <option>-Dnautilus_extension=false</option>: This switch disables
       a dependency on the <application>nautilus</application> file
       manager. Use this option if you do not have Nautilus installed.
     </para>
@@ -180,7 +188,7 @@ rm -v /usr/lib/systemd/user/gnome-terminal-server.service</userinput></screen>
           (Nautilus Extension)
         </seg>
         <seg>
-          /usr/share/help/*/gnome-terminal
+          /usr/{lib,share/help/*}/gnome-terminal
         </seg>
       </seglistitem>
     </segmentedlist>
