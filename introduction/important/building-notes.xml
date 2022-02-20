@@ -135,7 +135,7 @@ bunzip2 -v patchname.bz2</userinput></screen>
     genuity of the package.  Download the checksum file from the upstream
     <emphasis role="bold">official</emphasis> website (or somewhere
     <emphasis role="bold">you can trust</emphasis>) and compare the
-    checksum of the package from unoffical location with it.  For example,
+    checksum of the package from unofficial location with it.  For example,
     SHA256 checksum can be checked with the command:</para>
 
     <note>
@@ -206,12 +206,32 @@ bunzip2 -v patchname.bz2</userinput></screen>
 
     <screen><userinput>make -j2</userinput></screen>
 
+    <para>
+      If you have applied the optional <command>sed</command> when building
+      <application>ninja</application> in LFS, you can use:
+    </para>
+
+    <screen><userinput>export NINJAJOBS=2</userinput></screen>
+
+    <para>
+      when a package uses <command>ninja</command>, or just:
+    </para>
+
+    <screen><userinput>ninja -j2</userinput></screen>
+
+    <para>
+      but for ninja, the default number of jobs is &lt;N&gt;+2, where &lt;N&gt;
+      is the number of processors available, so that using the above commands
+      is rather for limiting the number of jobs (see below for why this could
+      be necessary).
+    </para>
+
     <para>Generally the number of processes should not exceed the number of
     cores supported by the CPU.  To list the processors on your
     system, issue: <userinput>grep processor /proc/cpuinfo</userinput>.
     </para>
 
-    <para>In some cases, using multiple processors may result in a 'race'
+    <para>In some cases, using multiple processes may result in a 'race'
     condition where the success of the build depends on the order of the
     commands run by the <command>make</command> program.  For instance, if an
     executable needs File A and File B, attempting to link the program before
@@ -222,7 +242,8 @@ bunzip2 -v patchname.bz2</userinput></screen>
 
     <para>If this occurs, the best way to proceed is to drop back to a
     single processor build.  Adding '-j1' to a make command will override
-    the similar setting in the MAKEFLAGS environment variable.</para>
+    the similar setting in the <envar>MAKEFLAGS</envar> environment
+    variable.</para>
 
     <note><para>When running the package tests or the install portion of the
     package build process, we do not recommend using an option greater than
@@ -230,6 +251,22 @@ bunzip2 -v patchname.bz2</userinput></screen>
     have not been validated using parallel procedures and may fail with issues
     that are difficult to debug.</para></note>
 
+    <important>
+      <para>
+        Another problem may occur with modern CPU's, which have a lot of cores.
+        Each job started consumes memory, and if the sum of the needed
+        memory for each job exceeds the available memory, you may encounter
+        either an OOM (Out of Memory) kernel interrupt or intense swapping
+        that will slow the build beyond reasonable limits.
+      </para>
+
+      <para>
+        Some compilations with <command>g++</command> may consume up to 2.5 GB
+        of memory, so to be safe, you should restrict the number of jobs
+        to (Total Memory in GB)/2.5, at least for big packages such as LLVM,
+        WebKitGtk, QtWebEngine, or libreoffice.
+      </para>
+    </important>
   </sect2>
 
   <sect2 id="automating-builds" xreflabel="Automated Building Procedures">

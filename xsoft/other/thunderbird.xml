@@ -6,10 +6,10 @@
 
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
   <!ENTITY thunderbird-download-ftp  " ">
-  <!ENTITY thunderbird-md5sum        "7a4d6d930a66a1068737bdff18211e00">
-  <!ENTITY thunderbird-size          "387 MB">
-  <!ENTITY thunderbird-buildsize     "7.0 GB (202 MB installed)">
-  <!ENTITY thunderbird-time          "30 SBU (on a 4-core machine)">
+  <!ENTITY thunderbird-md5sum        "61216b647e84d5145e69c60acd6bd6c5">
+  <!ENTITY thunderbird-size          "386 MB">
+  <!ENTITY thunderbird-buildsize     "7.1 GB (202 MB installed)">
+  <!ENTITY thunderbird-time          "28 SBU (on a 4-core machine)">
   <!-- Removed the -j1 time because python and rust do not obey it, although
        the C/C++ code appears to obey it -->
 ]>
@@ -72,7 +72,7 @@
       </listitem>
     </itemizedlist>
 
-
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -82,6 +82,7 @@
         </para>
       </listitem>
     </itemizedlist>
+-->
 
     <bridgehead renderas="sect3">Thunderbird Dependencies</bridgehead>
 
@@ -217,11 +218,26 @@ ac_add_options --with-system-png
 ac_add_options --with-system-zlib</literal>
 EOF</userinput></screen>
 
+<!-- no longer needed with 91.6
     <para>
       Apply a patch which allows compilation on systems with Wayland-1.20:
     </para>
 
 <screen><userinput remap="pre">patch -p1 -i ../thunderbird-&thunderbird-version;-buildfix-1.patch</userinput></screen>
+-->
+
+<!-- applying this for 11.1: upstream haven't make their mind yet
+     https://bugzilla.mozilla.org/show_bug.cgi?id=1729459 -->
+    <para>
+      If building on a 32 bit machine, the following sed works around
+      an issue with an incompatible <quote>double</quote> type in one
+      header file:
+    </para>
+
+<screen><userinput>case "$(uname -m)" in
+    i?86) sed -e '/typedef[ ]*double/s/double/long double/' \
+              -i modules/fdlibm/src/math_private.h ;;
+esac</userinput></screen>
 
     <para>
       Now invoke the Python <command>mach</command> script to compile
