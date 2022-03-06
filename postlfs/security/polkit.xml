@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY polkit-download-http "https://www.freedesktop.org/software/polkit/releases/polkit-&polkit-version;.tar.gz">
+  <!ENTITY polkit-download-http "https://gitlab.freedesktop.org/polkit/polkit/-/archive/&polkit-version;/polkit-&polkit-version;.tar.gz">
   <!ENTITY polkit-download-ftp  " ">
-  <!ENTITY polkit-md5sum        "a6efe21d021fafe4191ee30331ef801c">
-  <!ENTITY polkit-size          "1.6 MB">
-  <!ENTITY polkit-buildsize     "12 MB">
-  <!ENTITY polkit-time          "0.1 SBU (Using parallelism=4)">
+  <!ENTITY polkit-md5sum        "5687b19e9ca9a0225957b8967d8f4458">
+  <!ENTITY polkit-size          "740 KB">
+  <!ENTITY polkit-buildsize     "8.9 MB (with tests)">
+  <!ENTITY polkit-time          "0.2 SBU (with tests, using parallelism=4)">
 ]>
 
 <sect1 id="polkit" xreflabel="Polkit-&polkit-version;">
@@ -217,9 +217,10 @@ sed '/policy,/d' -i actions/meson.build \
 cd    build &amp;&amp;
 
 meson --prefix=/usr                       \
+      --buildtype=release                 \
       -Dman=true                          \
       -Dsession_tracking=libsystemd-login \
-      --buildtype=release                 \
+      -Dtests=true                        \
       ..                                  &amp;&amp;
 ninja</userinput></screen>
 
@@ -227,27 +228,22 @@ ninja</userinput></screen>
 cd    build &amp;&amp;
 
 meson --prefix=/usr                 \
+      --buildtype=release           \
       -Dman=true                    \
       -Dsession_tracking=libelogind \
       -Dsystemdsystemunitdir=/tmp   \
-      --buildtype=release           \
+      -Dtests=true   \
       ..                            &amp;&amp;
 ninja</userinput></screen>
 
-<!--
+    <!--
+      "-t3" for raising the timeout to 90s, i. e. 3x the default:
+      https://gitlab.freedesktop.org/polkit/polkit/-/merge_requests/107
+    -->
     <para>
       To test the results, first ensure that the system
       <application>D-Bus</application> daemon is running.
-      Then run <command>make check</command>.
-    </para>
--->
-
-<!-- The subprojects directory which contains a wrapper for 'mocklibc'
-     is not shipped in the tarball like it should be. Whenever that is
-     fixed, -Dtests=true and ninja test is the ticket. -->
-
-    <para>
-      This package does not ship with a working test suite.
+      Then run <command>meson test -t3</command>.
     </para>
 
     <para>
