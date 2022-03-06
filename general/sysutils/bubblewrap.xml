@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY bubblewrap-download-http "https://github.com/projectatomic/bubblewrap/releases/download/v&bubblewrap-version;/bubblewrap-&bubblewrap-version;.tar.xz">
+  <!ENTITY bubblewrap-download-http "https://github.com/containers/bubblewrap/releases/download/v&bubblewrap-version;/bubblewrap-&bubblewrap-version;.tar.xz">
   <!ENTITY bubblewrap-download-ftp  " ">
-  <!ENTITY bubblewrap-md5sum        "a1b802c8381527bf6acbeed7e5ceac3a">
-  <!ENTITY bubblewrap-size          "136 KB">
-  <!ENTITY bubblewrap-buildsize     "2.2 MB">
-  <!ENTITY bubblewrap-time          "0.1 SBU">
+  <!ENTITY bubblewrap-md5sum        "a481e7981e9c00e6b3eeaa05e9c2dc07">
+  <!ENTITY bubblewrap-size          "142 KB">
+  <!ENTITY bubblewrap-buildsize     "3.5 MB (with tests)">
+  <!ENTITY bubblewrap-time          "less than 0.1 SBU (with tests)">
 ]>
 
 <sect1 id="bubblewrap" xreflabel="bubblewrap-&bubblewrap-version;">
@@ -74,9 +74,10 @@
 
     <bridgehead renderas="sect3">Bubblewrap Dependencies</bridgehead>
 
-    <bridgehead renderas="sect4">Optional (to generate manual pages)</bridgehead>
+    <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="libxslt"/>
+      <xref linkend="libxslt"/> (to generate manual pages) and
+      <xref linkend="libseccomp"/> (built with python bindings, for tests)
     </para>
 
     <para condition="html" role="usernotes">
@@ -95,25 +96,27 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build            &amp;&amp;
+cd    build            &amp;&amp;
+meson --prefix=/usr .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       Next, if you desire to run the test suite, fix an issue caused by the
       merged-/usr configuration in LFS:
     </para>
 
-<screen><userinput remap="pre">sed 's@symlink usr/lib64@ro-bind-try /lib64@' -i tests/libtest.sh</userinput></screen>
+<screen remap="test"><userinput>sed 's@symlink usr/lib64@ro-bind-try /lib64@' -i ../tests/libtest.sh</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>
+      To test the results, issue: <command>ninja test</command>
     </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
   </sect2>
 
   <sect2 role="content">
