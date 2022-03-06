@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY upower-download-http "https://gitlab.freedesktop.org/upower/upower/uploads/177df5b9f9b76f25a2ad9da41aa0c1fa/upower-&upower-version;.tar.xz">
+  <!ENTITY upower-download-http "https://gitlab.freedesktop.org/upower/upower/-/archive/v&upower-version;/upower-v&upower-version;.tar.bz2">
   <!ENTITY upower-download-ftp  " ">
-  <!ENTITY upower-md5sum        "0c945817c12a7967d2c5edf7138fcf80">
-  <!ENTITY upower-size          "438 KB">
-  <!ENTITY upower-buildsize     "15 MB (with tests)">
-  <!ENTITY upower-time          "0.1 SBU (using parallelism=4, add 0.8 SBU for tests)">
+  <!ENTITY upower-md5sum        "f87ac5b7198f3041f06e7b3c121d442c">
+  <!ENTITY upower-size          "136 KB">
+  <!ENTITY upower-buildsize     "6.2 MB (with tests)">
+  <!ENTITY upower-time          "less than 0.1 SBU (using parallelism=4, 0.4 SBU for tests)">
 ]>
 
 <sect1 id="upower" xreflabel="UPower-&upower-version;">
@@ -127,15 +127,30 @@
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr         \
-             --sysconfdir=/etc    \
-             --localstatedir=/var \
-             --enable-deprecated  \
-             --disable-static     &amp;&amp;
-make</userinput></screen>
+<screen revision="sysv"><userinput>sed '/subdir.*doc/d' -i meson.build &amp;&amp;
+mkdir build                         &amp;&amp;
+cd    build                         &amp;&amp;
+meson --prefix=/usr                        \
+      --buildtype=release                  \
+      -Dgtk-doc=false                      \
+      -Dman=false                          \
+      -Dsystemdsystemunitdir=no            \
+      -Dudevrulesdir=/usr/lib/udev/rules.d \
+      ..                            &amp;&amp;
+ninja</userinput></screen>
+
+<screen revision="systemd"><userinput>sed '/subdir.*doc/d' -i meson.build &amp;&amp;
+mkdir build                         &amp;&amp;
+cd    build                         &amp;&amp;
+meson --prefix=/usr       \
+      --buildtype=release \
+      -Dgtk-doc=false     \
+      -Dman=false         \
+      ..                            &amp;&amp;
+ninja</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>. Some
+      To test the results, issue: <command>ninja test</command>. Some
       checks may not pass due to missing files. Test suite should be run from
       a local GUI session started with dbus-launch.
     </para>
@@ -144,7 +159,7 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
   </sect2>
 
@@ -152,16 +167,38 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--enable-deprecated</parameter>: This switch enables
-      deprecated functionality which is still needed by some
-      applications.
+      <command>sed 'subdir.*doc/d' ...</command>: Even when passing
+      <parameter>-Dgtk-doc=false</parameter> and
+      <parameter>-Dman=false</parameter>, the build still needs
+      <application>GTK-doc</application>. This command allows building
+      without it. Remove if you have <application>GTK-doc</application>
+      installed and you wish to build the documentation (remove also
+      the next two parameters).
     </para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
+    <para>
+      <parameter>-Dgtk-doc=false</parameter>: Prevents building the
+      documentation. Remove if you have <application>GTK-doc</application>
+      installed and wish to build the documentation.
+    </para>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
+    <para>
+      <parameter>-Dman=false</parameter>: Prevents building the
+      manual pages. Remove if you have <application>GTK-doc</application>
+      installed and wish to build the manual pages.
+    </para>
+
+    <para revision="sysv">
+      <parameter>-Dsystemdsystemunitdir=no</parameter>: Removes
+      the dependency on <application>systemd</application>.
+    </para>
+
+    <para revision="sysv">
+      <parameter>-Dudevrulesdir=/usr/lib/udev/rules.d</parameter>: Tells
+      the build system where to install <application>udev</application>
+      rules, because the information is missing in
+      <filename>/usr/lib/pkgconfig/libudev.pc</filename>
+    </para>
 
   </sect2>
 
@@ -182,7 +219,7 @@ make</userinput></screen>
       menu and selecting &apos;Collect kernel timers statistics&apos;.
     </para>
 -->
-    <sect3  id="upower-init" revision="systemd">
+    <sect3  id="upower-init">
       <title>Systemd Unit</title>
 
       <para>
