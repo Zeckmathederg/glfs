@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY mutter-download-http "&gnome-download-http;/mutter/&gnome-41;/mutter-&mutter-version;.tar.xz">
-  <!ENTITY mutter-download-ftp  "&gnome-download-ftp;/mutter/&gnome-41;/mutter-&mutter-version;.tar.xz">
-  <!ENTITY mutter-md5sum        "49766d24a63cb9ca3f6bf20c188ca9a5">
+  <!ENTITY mutter-download-http "&gnome-download-http;/mutter/&gnome-42;/mutter-&mutter-version;.tar.xz">
+  <!ENTITY mutter-download-ftp  "&gnome-download-ftp;/mutter/&gnome-42;/mutter-&mutter-version;.tar.xz">
+  <!ENTITY mutter-md5sum        "9141c8037f71b6676d28107c7bcee26f">
   <!ENTITY mutter-size          "2.6 MB">
-  <!ENTITY mutter-buildsize     "75 MB">
-  <!ENTITY mutter-time          "0.6 SBU (Using parallelism=4)">
+  <!ENTITY mutter-buildsize     "176 MB (with tests)">
+  <!ENTITY mutter-time          "0.9 SBU (Using parallelism=4, add 0.6 SBU for tests)">
 ]>
 
 <sect1 id="mutter" xreflabel="Mutter-&mutter-version;">
@@ -71,17 +71,15 @@
       </listitem>
     </itemizedlist>
 
-<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required download:
-          <ulink url="&sources-anduin-http;/mutter/xvfb-run"/>
+          Recommended patch:
+          <ulink url="&patch-root;/mutter-&mutter-version;-consolidated_fixes-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
--->
 
     <bridgehead renderas="sect3">Mutter Dependencies</bridgehead>
 
@@ -140,14 +138,12 @@
   <sect2 role="installation">
     <title>Installation of Mutter</title>
 
-<!--
     <para>
-      First, install an additional tool that is required by meson as the
-      <systemitem class="username">root</systemitem> user:
+      First, apply a patch that fixes annoying bugs found after GNOME 42
+      release:
     </para>
 
- <screen role="root"><userinput remap="pre">install -v -m755 ../xvfb-run /usr/bin</userinput></screen>
- -->
+<screen><userinput>patch -Np1 -i ../mutter-&mutter-version;-consolidated_fixes-1.patch</userinput></screen>
 
     <para>
       Install <application>Mutter</application> by running the following
@@ -170,7 +166,6 @@ ninja</userinput></screen>
       <filename>native-headless</filename>, is known to fail.
     </para>
     -->
-    <!--
     <para>
       The test suite requires debug functions enabled in the build, and
       an external program called <command>xvfb-run</command>.
@@ -183,28 +178,30 @@ ninja</userinput></screen>
       and <command>Xvfb</command> can be installed from either
       <xref linkend='xorg-server'/> or <xref linkend='xwayland'/>.
       You should also replace the
-      <parameter>- -buildtype=release -Dtests=false</parameter> in
+      <parameter>--buildtype=release -Dtests=false</parameter> in
       the <command>meson</command> command, with
-      <parameter>- -buildtype=debugoptimized -Dtests=true</parameter>.
-      To run the tests, issue:
-      <command>dbus-run-session ninja test</command>. Note that the tests
-      require an active X session to run correctly, and that
-      <filename>native-headless</filename> is known to fail.
+      <parameter>--buildtype=debugoptimized -Dtests=true</parameter>.
+      The test suite requires the mutter schema to be installed on the
+      system, so it is better to run the tests after installing the package.
     </para>
-    -->
 
-    <!-- "catchsegv" from glibc is needed, but it's removed in 2.35 -->
+    <!-- "catchsegv" from glibc is needed, but it's removed in 2.35
     <para>
       The test suite for this package does not work on systems using glibc-2.35 
       and later.
     </para>
-
+    -->
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>ninja install</userinput></screen>
 
+    <para>
+      The tests can now be run: issue
+      <command>dbus-run-session ninja test</command>. Note that the tests
+      require an active X session to run correctly, and that
+      <filename>native-headless</filename> is known to fail.
   </sect2>
 
   <sect2 role="commands">
@@ -215,8 +212,7 @@ ninja</userinput></screen>
 
     <para>
       <parameter>-Dtests=false</parameter>: Prevents building the tests,
-      and removes a hard requirement on <command>catchsegv</command> or
-      <command>xvfb-run</command>.
+      and removes a hard requirement on <command>xvfb-run</command>.
     </para>
 
     <para>
@@ -241,10 +237,10 @@ ninja</userinput></screen>
           mutter
         </seg>
         <seg>
-          libmutter-9.so
+          libmutter-10.so
         </seg>
         <seg>
-          /usr/{lib,include,libexec/installed-tests,share/{installed-tests}}/mutter-9
+          /usr/{lib,include,libexec/installed-tests,share/{,installed-tests}}/mutter-10
         </seg>
       </seglistitem>
     </segmentedlist>
