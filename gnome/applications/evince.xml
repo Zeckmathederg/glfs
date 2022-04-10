@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY evince-download-http
-     "&gnome-download-http;/evince/&gnome-41;/evince-&evince-version;.tar.xz">
+     "&gnome-download-http;/evince/&gnome-42;/evince-&evince-version;.tar.xz">
   <!ENTITY evince-download-ftp
-     "&gnome-download-ftp;/evince/&gnome-41;/evince-&evince-version;.tar.xz">
-  <!ENTITY evince-md5sum        "920d88772c8e1a91027aec643258db4e">
-  <!ENTITY evince-size          "2.8 MB">
-  <!ENTITY evince-buildsize     "47 MB">
+     "&gnome-download-ftp;/evince/&gnome-42;/evince-&evince-version;.tar.xz">
+  <!ENTITY evince-md5sum        "6d5410e00aa9219c97eb3fc6f40a2630">
+  <!ENTITY evince-size          "2.7 MB">
+  <!ENTITY evince-buildsize     "64 MB">
   <!ENTITY evince-time          "0.2 SBU (Using parallelism=4)">
 ]>
 
@@ -109,7 +109,7 @@
       <xref linkend="libtiff"/>,
       <xref linkend="texlive"/> (or <xref linkend="tl-installer"/>),
       <ulink url="http://djvu.sourceforge.net/">DjVuLibre</ulink>,
-      <!--<ulink url="https://wiki.gnome.org/action/show/Projects/libgxps">libgxps</ulink>,-->
+      <ulink url="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</ulink>,
       <ulink url="http://www.freedesktop.org/wiki/Software/libspectre/">libspectre</ulink>,
       <ulink url="https://github.com/jlaurens/synctex">Synctex</ulink>, and
       <ulink url="https://www.t1lib.org/">t1lib</ulink>
@@ -131,12 +131,6 @@
 <screen><userinput remap="pre">export CPPFLAGS="-I/opt/texlive/&texlive-year;/include" &amp;&amp;
 export LDFLAGS="$LDFLAGS -L/opt/texlive/&texlive-year;/lib"</userinput></screen>
 
-    <para>
-      Next, fix building with newer versions of
-      <application>meson</application>:
-    </para>
-
-<screen><userinput>find . -name meson.build | xargs sed -i '/merge_file/{n;d}'</userinput></screen>
 
     <para>
       Install <application>Evince</application> by running the following
@@ -146,16 +140,21 @@ export LDFLAGS="$LDFLAGS -L/opt/texlive/&texlive-year;/lib"</userinput></screen>
 <screen revision="sysv"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson --prefix=/usr       \
-      --buildtype=release \
-      -Dgtk_doc=false     \
+meson --prefix=/usr          \
+      --buildtype=release    \
+      -Dgtk_doc=false        \
+      --wrap-mode=nodownload \
       -Dsystemduserunitdir=no .. &amp;&amp;
 ninja</userinput></screen>
 
 <screen revision="systemd"><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson --prefix=/usr --buildtype=release -Dgtk_doc=false .. &amp;&amp;
+meson --prefix=/usr          \
+      --buildtype=release    \
+      -Dgtk_doc=false        \
+      --wrap-mode=nodownload \
+      ..                     &amp;&amp;
 ninja</userinput></screen>
 
     <para>
@@ -179,30 +178,30 @@ ninja</userinput></screen>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/meson-buildtype-release.xml"/>
 
-    <!--
-    <para>
-      <parameter>- -enable-compile-warnings=minimum</parameter>: This
-      switch prevents a warning about a date format being treated as an error by
-      <application>gcc-6.1</application>.
-    </para>
-    -->
-
     <para>
       <parameter>CPPFLAGS="..." LDFLAGS="$LDFLAGS ..."</parameter>: If
       <application>TeXLive</application> has been installed in
       <filename class="directory">/opt/texlive/&texlive-year;</filename> the
-      configure script will find <filename class='libraryfile'>libkpathsea.so</filename>
-      and enable the DVI backend, but without this addition the compile will fail
-      because it cannot find the required headers. Adding this to a system where
-      <application>TeXLive</application> has not been installed does not break the
-      build.
+      configure script will find
+      <filename class='libraryfile'>libkpathsea.so</filename> and enable the
+      DVI backend, but without this addition the compile will fail because it
+      cannot find the required headers. Adding this to a system where
+      <application>TeXLive</application> has not been installed does not break
+      the build.
     </para>
 
     <para>
       <parameter>-Dgtk_doc=false</parameter>: This switch disables generating
       the gtk-doc API reference documentation. If you have
       <xref role="nodep" linkend="gtk-doc"/> installed and wish to generate
-      the API reference documentation, remove this switch.
+      the API reference documentation, remove this switch and the following
+      one.
+    </para>
+
+    <para>
+      <parameter>--wrap-mode=nodownload</parameter>: This switch disables
+      fetching any dependency: the build system tries to fetch gi-docgen
+      even if <parameter>-Dgtk_doc=false</parameter> is passed.
     </para>
 
     <para>
@@ -215,14 +214,6 @@ ninja</userinput></screen>
       don't have <xref role="nodep" linkend="gobject-introspection"/>
       installed and don't wish to have introspection support built into Evince.
     </para>
-
-<!--
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
--->
 
     <para>
       <option>-Dnautilus=false</option>: This switch disables building
@@ -257,13 +248,13 @@ ninja</userinput></screen>
           evince, evince-previewer, and evince-thumbnailer
         </seg>
         <seg>
-          libevdocument3.so,
-          libevview3.so, and
-          /usr/lib/nautilus/extensions-3.0/libevince-properties-page.so
+          libevdocument3.so and
+          libevview3.so
         </seg>
         <seg>
           /usr/{include,lib,share}/evince,
-          /usr/share/gtk-doc/html/{evince,libevdocument-3.0,libevview-3.0}, and
+          /usr/share/gtk-doc/html/{evince,libevdocument-3.0,libevview-3.0}
+               (optional), and
           /usr/share/help/*/evince
         </seg>
       </seglistitem>
