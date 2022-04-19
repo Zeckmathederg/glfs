@@ -153,11 +153,11 @@
     <!-- sect1info mode svn-keys:
            Self-made template to process SVN keywords found in sect1info. -->
   <xsl:template match="sect1info" mode="svn-keys">
-    <p class="updated">Last updated <!-- by
+    <!-- <p class="updated">Last updated --><!-- by
       <xsl:apply-templates select="othername" mode="svn-keys"/> -->
-      on
+    <!--  on
       <xsl:apply-templates select="date" mode="svn-keys"/>
-    </p>
+    </p> -->
   </xsl:template>
 
     <!-- othername mode svn-keys:
