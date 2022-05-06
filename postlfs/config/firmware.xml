@@ -96,10 +96,8 @@
       <para>
         Nvidia GPUs from Kepler onwards require signed firmware, otherwise the
         nouveau driver is unable to provide hardware acceleration. Nvidia has
-        now released firmware up to Turing (most, maybe all, GTX16xx and RTX20xx
-        GPUs) to linux-firmware, and kernels from linux-5.6 should support it,
-        although Mesa support may require a development version until Mesa-20.2
-        is released. Note that faster clocks than the default are not enabled
+        now released firmware up to Ampere (GeForce30 series) to linux-firmware.
+        Note that faster clocks than the default are not enabled
         by the released firmware.
       </para>
     </listitem>
@@ -155,8 +153,9 @@
       provided updates for processors from SandyBridge onwards, although those
       are no-longer supported for new fixes. New versions of AMD
       firmware are rare and usually only apply to a few models, although
-      motherboard manufacturers get extra updates which maybe update microcode
-      along with the changes to support newer CPUs and faster memory.
+      motherboard manufacturers get AGESA (AMD Generic Encapsulated Software
+      Architecture) updates to change BIOS values, e.g. to support more memory
+      variants or newer CPUs.
     </para>
 
     <para>
@@ -176,17 +175,38 @@
     </para>
 
     <para>
+      In previous versions of this book, late loading of microcode to see if
+      it gets applied was recommended, followed by using an initrd to force
+      early loading. But now that the contents of the Intel microcode tarball
+      is documented, and AMD microcode can be read by a Python script to
+      determine which machines it covers, there is no real reason to use late
+      loading.
+    </para>
+
+    <para>
       It is still possible to manually force late loading of microcode, either
       for testing or to prevent having to reboot. You will need to reconfigure
       your kernel for either method. The instructions here will create a
       kernel <filename>.config</filename> to suite early loading, before
       forcing late loading to see if there is any microcode. If there is,
       the instructions then show you how to create an initrd for early loading.
+      It is also possible to build the same microcode bin file into the kernel,
+      which allows early loading but requires the kernel to be recompiled to
+      update the microcode
     </para>
 
     <para>
       To confirm what processor(s) you have (if more than one, they will be
-      identical) look in /proc/cpuinfo.
+      identical) look in /proc/cpuinfo. Determine the decimal values of the cpu
+      family, model and stepping by running the following command (it will also
+      report the current microcode version):
+    </para>
+
+<screen><userinput>head -n7 /proc/cpuinfo</userinput></screen>
+
+    <para>
+      Convert the cpu family, model and stepping to pairs of hexadecimal digits.
+      You can now check if there is any microcode available.
     </para>
 
     <para>
@@ -194,7 +214,7 @@
       as a distro would do, go down to 'Early loading of microcode' and cat all
       the Intel blobs to GenuineIntel.bin or cat all the AMD blobs to
       AuthenticAMD.bin. This creates a larger initrd - for all Intel machines in
-      the 20200609 update the size is 3.0 MB compared to typically 24 KB for one
+      the 20200609 update the size was 3.0 MB compared to typically 24 KB for one
       machine.
     </para>
 
@@ -209,7 +229,7 @@
         <!-- at one time, some skylakes had problems with a certain revision
         secure version of the microcode, for those machines which can boot it, -->
         secure version of the microcode
-        is microcode-20220207.<!-- If you have a Skylake machine, please read the
+        is microcode-20220419.<!-- If you have a Skylake machine, please read the
         Caution in the 'Early loading of microcode' section below.-->  Extract this
         file in the normal way, the microcode is in the <filename>intel-ucode
         </filename> directory, containing various blobs with names in the form
@@ -218,7 +238,7 @@
 
       <para>
         In the past, intel did not provide any details of which blobs had
-        changed versions, but now the release note details this.
+        changed versions, but now the releasenote details this.
       </para>
 
       <para>
@@ -231,31 +251,13 @@
         'https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/index.html'/>.
       </para>
 
-      <!-- commented, I don't think there is a new listed item for 2011-11 vulns
-          (platypus etc : intel-sa-00381 and 0389)
-          and anyway the very latest stable releases have backports : ken
       <para>
-        The documentation on the latest SRBDS (Special Register Buffer Data
-        Sampling) vulnerabilities/fixes will be documented in kernels 5.4.46,
-        5.6.18, 5.7.2, 5.8.0 and later.
-      </para>-->
-
-      <para>
-        Now you need to determine your processor's identity to see if there
-        is any microcode for it. Determine the decimal values of the cpu family,
-        model and stepping by running the following command (it will also report
-        the current microcode version):
-      </para>
-
-<screen><userinput>head -n7 /proc/cpuinfo</userinput></screen>
-
-      <para>
-        Convert the cpu family, model and stepping to pairs of hexadecimal
-        digits. For a Skylake i3 6100 (described as Intel(R) Core(TM) i3-6100
+        For a Skylake i3 6100 (described as Intel(R) Core(TM) i3-6100
         CPU) the relevant values are cpu family 6, model 94, stepping 3 so in
         this case the required identification is 06-5e-03. A look at the blobs
         will show that there is one for this CPU (although for older issues it
-        might have already been applied by the BIOS). If there is a blob for
+        might have already been applied by the BIOS).
+        If there is a blob for
         your system then test if it will be applied by copying it (replace
         &lt;XX-YY-ZZ&gt; by the identifier for your CPU) to where the
         kernel can find it:
@@ -283,7 +285,7 @@ Processor type and features  ---&gt;
 <screen><userinput>echo 1 > /sys/devices/system/cpu/microcode/reload</userinput></screen>
 
       <para>
-        Then use the following command to see if anything was loaded:
+        Then use the following command to check if anything was loaded:
         (N.B. the dates when microcode was created may be months ahead of when
         it was released.)
       </para>
@@ -329,8 +331,23 @@ Processor type and features  ---&gt;
         from <ulink url=
           '&sources-anduin-http;/linux-firmware/amd-ucode/'/>.
         The family is always specified in hex. Families 10h to 14h (16 to 20)
-        are in microcode_amd.bin.  Families 15h, 16h and 17h have their own
-        containers.  Create the required directory and put the firmware you
+        are in microcode_amd.bin.  Families 15h, 16h, 17h (Zen, Zen+, Zen2) and
+        19h (Zen3) have their own containers.  Very few machines are likely to
+        get updated microcode. There is a Python3 script at <ulink url=
+        'https://github.com/AMDESE/amd_ucode_info/blob/master/amd_ucode_info.py'/>.
+        Download that script and run it against the bin file to check which
+        processors have updates.
+      </para>
+
+      <para>
+        For the very old Athlon(tm) II X2 in these examples the values were
+        cpu family 16, model 5, stepping 3 giving an identification of
+        Family=0x10 Model=0x05 Stepping=0x03
+      </para>
+
+      <para>
+        If you wish to try late loading,
+        create the required directory and put the firmware you
         downloaded into it as the <systemitem
         class="username">root</systemitem> user:
       </para>
@@ -357,7 +374,7 @@ Processor type and features  ---&gt;
 <screen><userinput>echo 1 > /sys/devices/system/cpu/microcode/reload</userinput></screen>
 
       <para>
-        Then use the following command to see if anything was loaded:
+        Then use the following command to check if anything was loaded:
       </para>
 
 <screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
@@ -598,9 +615,13 @@ cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
       <title>Firmware for Nvidia video chips</title>
 
       <para>
-        Some Nvidia graphics chips need firmware updates to take advantage
-        of all the card's capability.  These are generally the GeForce 8, 9,
-        9300, and 200-900 series chips.  For more exact information, see
+        Nvidia has released basic signed firmware for recent graphics chips,
+        but significantly after the chips and its own binary drivers were first
+        available. For other chips it has been necessary to extract the firmware
+        from the binary driver.
+      </para>
+      <para>
+        For more exact information about which chips need extracted firmware, see
         <ulink url=
           "https://nouveau.freedesktop.org/wiki/VideoAcceleration/#firmware"/>.
       </para>
@@ -616,13 +637,21 @@ cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
       &lt;*/M&gt; Nouveau (NVIDIA) cards                          [CONFIG_DRM_NOUVEAU]</literal></screen>
 
       <para>
-        The steps to install the Nvidia firmware are:
+        If the necessary firmware is available in the
+        <filename class="directory">nvidia/</filename> directory of
+        linux-firmware, copy it to
+        <filename class="directory">/lib/firmware/nouveau</filename>.
+      </para>
+      <para>
+        If the firmware has not been made available in linux-firmware,
+        for the old chips mentioned in the nouveau wiki link above ensure you have
+        installed <xref linkend="python2"/> and run the following commands:
       </para>
 
 <screen><userinput>wget https://raw.github.com/imirkin/re-vp2/master/extract_firmware.py
 wget http://us.download.nvidia.com/XFree86/Linux-x86/325.15/NVIDIA-Linux-x86-325.15.run
 sh NVIDIA-Linux-x86-325.15.run --extract-only
-python extract_firmware.py
+python2 extract_firmware.py
 mkdir -p /lib/firmware/nouveau
 cp -d nv* vuc-* /lib/firmware/nouveau/</userinput></screen>
 
