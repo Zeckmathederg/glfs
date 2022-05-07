@@ -611,6 +611,72 @@ cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
 
     </sect3>
 
+    <sect3 id="amdgpu-video-firmware">
+      <title>Firmware for AMD/ATI amdgpu video chips</title>
+
+      <para>
+        All video controllers using the amdgpu kernel driver require firmware,
+        whether you will be using the xorg amdgpu driver, the xserver's modesetting
+        driver, or just kernel modesetting to get a console framebuffer larger than
+        80x25.
+      </para>
+
+      <para>
+        Install <xref linkend="pciutils"/> and use that to check the model name
+        (look for 'VGA compatible controller:'). If you have an APU (Accelerated
+        Processing Unit, i.e. CPU and video on the same chip) that will probably
+        tell you the name. If you have a separate amdgpu video card you will need
+        to search to determine which name it uses (e.g. a card described as
+        Advanced Micro Devices, Inc. [AMD/ATI] Baffin [Radeon RX 550 640SP / RX
+        560/560X] needs Polaris11 firmware.  There is a table of "Family, Chipset
+        name, Product name and Firmware" at the end of the Kernel sections in
+	<ulink url="https://wiki.gentoo.org/wiki/AMDGPU#Known_firmware_blobs">
+        AMDGPU</ulink> page of the Gentoo wiki.
+    </para>
+
+    <para>
+      Once you have identified the firmware name, install all the relevant
+      files for it. For example, the Baffin card mentioned above has 21 different
+      polaris11* files, APUs such as renoir and picasso have at least 12 files and
+      might gain more in future updates (e.g. the raven APU now has a 13th file,
+      raven_ta.bin).
+    </para>
+
+<screen><userinput>mkdir -pv /lib/firmware/amdgpu
+cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/amdgpu</userinput></screen>
+
+    <para>
+      If disk space is not a problem, you could install all the current amdgpu
+      firmware files and not worry about exactly which chipset is installed.
+    </para>
+
+    <para>
+      You are recommended to build the kernel amdgpu driver as a module.
+      In your kernel .config set at least the following options and review
+      the other AMDGPU options according to what hardware you are building
+      for, e.g ACP (Audio Co-Processor) support for some APUs,
+    </para>
+
+<screen><literal>Device Drivers ---&gt;
+  Graphics support ---&gt;
+      Direct Rendering Manager ---&gt;
+        [*] Direct Rendering Manager (XFree86 ... support)  [CONFIG_DRM]
+        [M] AMD GPU                                         [CONFIG_DRM_AMDGPU]
+        Display Engine Configuration ---&gt;
+          [*] AMD DC - Enable new display engine (NEW)      [CONFIG_DRM_AMD_DC]</literal></screen>
+
+      <para>
+        As written above at the end of the section on 'Firmware for ATI video
+        chips', loading large blobs from /lib/firmware can take a noticeable
+        time during which the screen will be blank. On a slow machine you might
+        wish to refer to the 'Kernel Configuration for additional firmware'
+        part of <xref linkend="xorg-amdgpu-driver"/> and compile all the
+        required modules into the kernel to reduce this time, at the cost of
+        using more kernel memory.
+      </para>
+
+    </sect3>
+
     <sect3 id="nvidia-video-firmware">
       <title>Firmware for Nvidia video chips</title>
 
