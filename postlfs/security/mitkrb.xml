@@ -6,10 +6,10 @@
 
   <!ENTITY mitkrb-download-http "https://kerberos.org/dist/krb5/&mitkrb-major-version;/krb5-&mitkrb-version;.tar.gz">
   <!ENTITY mitkrb-download-ftp  " ">
-  <!ENTITY mitkrb-md5sum        "37722be6228da68ea83a008f782c7f53">
+  <!ENTITY mitkrb-md5sum        "e88657aca6e6b0528c11a78643498bd5">
   <!ENTITY mitkrb-size          "8.3 MB">
-  <!ENTITY mitkrb-buildsize     "132 MB (add 15 MB for tests)">
-  <!ENTITY mitkrb-time          "0.6 SBU (Using parallelism=4; add 0.8 SBU for tests)">
+  <!ENTITY mitkrb-buildsize     "130 MB (add 14 MB for tests)">
+  <!ENTITY mitkrb-time          "0.4 SBU (Using parallelism=4; add 5.8 SBU for tests)">
 ]>
 
 <sect1 id="mitkrb" xreflabel="MIT Kerberos V5-&mitkrb-version;">
@@ -72,7 +72,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -82,12 +82,11 @@
         </para>
       </listitem>
     </itemizedlist>
-
+ -->
     <bridgehead renderas="sect3">MIT Kerberos V5 Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <!-- <xref linkend="dejagnu"/> (for full test coverage), -->
       <xref linkend="bind-utils"/>,
       <xref linkend="gnupg2"/> (to authenticate the package),
       <xref linkend="keyutils"/>,
@@ -98,6 +97,7 @@
       <xref linkend="yasm"/>,
       <ulink url="http://thrysoee.dk/editline/">libedit</ulink>,
       <ulink url="https://cmocka.org/">cmocka</ulink>,
+      <ulink url="https://pypi.org/project/kdcproxy/">kdcproxy</ulink>,
       <ulink url="https://pypi.org/project/pyrad/">pyrad</ulink>, and
       <ulink url="https://cwrap.org/resolv_wrapper.html">resolv_wrapper</ulink>
     </para>
@@ -118,25 +118,24 @@
 
   <sect2 role="installation">
     <title>Installation of MIT Kerberos V5</title>
-
+<!--
     <para>
       Next, fix several issues identified by OpenSSL-3:
     </para>
 
 <screen><userinput remap="pre">patch -Np1 -i ../mitkrb-&mitkrb-version;-openssl3_fixes-1.patch</userinput></screen>
-
+-->
     <para>
       Build <application>MIT Kerberos V5</application> by running the
       following commands:
     </para>
 
 <screen><userinput>cd src &amp;&amp;
-
+<!-- dejagnu is not used anymore for tests
 sed -i -e 's@\^u}@^u cols 300}@' tests/dejagnu/config/default.exp     &amp;&amp;
+-->
 sed -i -e '/eq 0/{N;s/12 //}'    plugins/kdb/db2/libdb2/test/run.test &amp;&amp;
-sed -i '/t_iprop.py/d'           tests/Makefile.in                    &amp;&amp;
-
-autoreconf -fiv &amp;&amp;
+sed -i '/t_kadm5.py/d'           lib/kadm5/Makefile.in                &amp;&amp;
 
 ./configure --prefix=/usr            \
             --sysconfdir=/etc        \
@@ -176,11 +175,8 @@ cp -vfr ../doc/*  /usr/share/doc/krb5-&mitkrb-version;</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      The first <command>sed</command> increases the width of the virtual
-      terminal used for some tests to prevent some spurious text in the output
-      which is taken as a failure. The second <command>sed</command> removes a
-      test that is known to fail. The third <command>sed</command> removes a
-      test that is known to hang.
+      The two <command>sed</command> commands remove
+      tests that are known to fail.
     </para>
 
     <para>
