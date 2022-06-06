@@ -159,18 +159,18 @@
     </para>
 
     <para>
-      There are two ways of loading the microcode, described as 'early' and
+      There were two ways of loading the microcode, described as 'early' and
       'late'. Early loading happens before userspace has been started, late
-      loading happens after userspace has started. Not surprisingly, early
-      loading is preferred, (see e.g. an explanatory comment in a kernel
-      commit noted at <ulink url="https://lwn.net/Articles/530346/">
-        x86/microcode: Early load microcode</ulink> on LWN.)  Indeed, it
-      is needed to work around one particular erratum in early Intel Haswell
-      processors which had TSX enabled.  (See <ulink url=
+      loading happens after userspace has started. However, late loading is
+      known to be problematic and not supported anymore (see the kernel commit
+      <ulink url="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d23d33e">
+        x86/microcode: Taint and warn on late loading</ulink>.)  Indeed, early
+      loading is needed to work around one particular erratum in early Intel
+      Haswell processors which had TSX enabled.  (See <ulink url=
       "http://www.anandtech.com/show/8376/intel-disables-tsx-instructions-erratum-found-in-haswell-haswelleep-broadwellyi/">
         Intel Disables TSX Instructions: Erratum Found in Haswell,
-        Haswell-E/EP, Broadwell-Y
-      </ulink>.) Without this update glibc can do the wrong thing in uncommon
+        Haswell-E/EP, Broadwell-Y</ulink>.)
+      Without this update glibc can do the wrong thing in uncommon
       situations.
     </para>
 
@@ -184,15 +184,13 @@
     </para>
 
     <para>
-      It is still possible to manually force late loading of microcode, either
-      for testing or to prevent having to reboot. You will need to reconfigure
-      your kernel for either method. The instructions here will create a
-      kernel <filename>.config</filename> to suite early loading, before
-      forcing late loading to see if there is any microcode. If there is,
-      the instructions then show you how to create an initrd for early loading.
-      It is also possible to build the same microcode bin file into the kernel,
-      which allows early loading but requires the kernel to be recompiled to
-      update the microcode
+      It might be still possible to manually force late loading of microcode.
+      But it may cause kernel malfunction and you should take the risk yourself.
+      You will need to reconfigure your kernel for either method. The
+      instructions here will show you how to create an initrd for early
+      loading. It is also possible to build the same microcode bin file into
+      the kernel, which allows early loading but requires the kernel to be
+      recompiled to update the microcode.
     </para>
 
     <para>
@@ -205,7 +203,8 @@
 <screen><userinput>head -n7 /proc/cpuinfo</userinput></screen>
 
     <para>
-      Convert the cpu family, model and stepping to pairs of hexadecimal digits.
+      Convert the cpu family, model and stepping to pairs of hexadecimal
+      digits, and remember the value of the <quote>microcode</quote> field.
       You can now check if there is any microcode available.
     </para>
 
@@ -238,7 +237,10 @@
 
       <para>
         In the past, intel did not provide any details of which blobs had
-        changed versions, but now the releasenote details this.
+        changed versions, but now the releasenote details this.  You can
+        compare the microcode version in <filename>/proc/cpuinfo</filename>
+        with the version for your CPU model in the releasenote to know if
+        there is an update.
       </para>
 
       <para>
@@ -252,23 +254,15 @@
       </para>
 
       <para>
-        For a Skylake i3 6100 (described as Intel(R) Core(TM) i3-6100
-        CPU) the relevant values are cpu family 6, model 94, stepping 3 so in
-        this case the required identification is 06-5e-03. A look at the blobs
-        will show that there is one for this CPU (although for older issues it
-        might have already been applied by the BIOS).
-        If there is a blob for
-        your system then test if it will be applied by copying it (replace
-        &lt;XX-YY-ZZ&gt; by the identifier for your CPU) to where the
-        kernel can find it:
-      </para>
-
-<screen><userinput>mkdir -pv /lib/firmware/intel-ucode
-cp -v intel-ucode/&lt;XX-YY-ZZ&gt; /lib/firmware/intel-ucode</userinput></screen>
-
-      <para>
-        Now that the Intel microcode has been prepared, use the following
-        options when you configure the kernel to load Intel microcode:
+        For an Icelake mobile (described as Intel(R) Core(TM) i7-1065G7
+        CPU) the relevant values are cpu family 6, model 126, stepping 5 so
+        in this case the required identification is 06-7e-05. The
+        releasenote says the latest microcode for it is versioned 0xb0.  If
+        the value of the <quote>microcode</quote> field in
+        <filename>/proc/cpuinfo</filename> is 0xb0 or greater, it indicates
+        the microcode update is already applied by the BIOS.  Otherwise,
+        configure the kernel to support loading Intel microcode, and then
+        proceed to <xref linkend='early-microcode'/>:
       </para>
 
 <screen><literal>General Setup ---&gt;
@@ -276,50 +270,6 @@ cp -v intel-ucode/&lt;XX-YY-ZZ&gt; /lib/firmware/intel-ucode</userinput></screen
 Processor type and features  ---&gt;
   [*] CPU microcode loading support  [CONFIG_MICROCODE]
   [*]      Intel microcode loading support [CONFIG_MICROCODE_INTEL]</literal></screen>
-
-      <para>
-        After you have successfully booted the new system, force late loading
-        by using the command:
-      </para>
-
-<screen><userinput>echo 1 > /sys/devices/system/cpu/microcode/reload</userinput></screen>
-
-      <para>
-        Then use the following command to check if anything was loaded:
-        (N.B. the dates when microcode was created may be months ahead of when
-        it was released.)
-      </para>
-
-<screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
-
-      <para>
-        This old example showing the very old BIOS firmware version
-        was created by temporarily booting without
-        microcode, to show the current Firmware Bug messages, then the late load
-        shows it being updated to revision 0xea which was current at that time.
-      </para>
-
-<screen><literal>[    0.000000] Linux version 5.12.8 (lfs@leshp) (gcc (GCC) 11.1.0,
-               GNU ld (GNU Binutils) 2.36.1)
-               #2 SMP PREEMPT Fri Jun 4 01:25:02 BST 2021
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.12.8-sda11 root=/dev/sda11 ro
-               resume=/dev/sda10
-[    0.028741] [Firmware Bug]: TSC_DEADLINE disabled due to Errata;
-               please update microcode to version: 0xb2 (or later)
-[    0.115716] SRBDS: Vulnerable: No microcode
-[    0.115826] MDS: Vulnerable: Clear CPU buffers attempted, no microcode
-[    0.389005] microcode: sig=0x506e3, pf=0x2, revision=0x74
-[    0.389030] microcode: Microcode Update Driver: v2.2.
-[   70.089502] microcode: updated to revision 0xea, date = 2021-01-25
-[   70.089528] x86/CPU: CPU features have changed after loading microcode,
-               but might not take effect.
-[   70.089530] microcode: Reload completed, microcode revision: 0xea</literal></screen>
-
-      <para>
-        If the microcode was not updated, there is no new microcode for this
-        system's processor. If it did get updated, you can now proceed to
-        <xref linkend='early-microcode'/>.
-      </para>
 
     </sect3>
 
@@ -342,22 +292,19 @@ Processor type and features  ---&gt;
       <para>
         For the very old Athlon(tm) II X2 in these examples the values were
         cpu family 16, model 5, stepping 3 giving an identification of
-        Family=0x10 Model=0x05 Stepping=0x03
+        Family=0x10 Model=0x05 Stepping=0x03.  One line of the
+        <command>amd_ucode_info.py</command> script output describes the
+        microcode version for it:
       </para>
 
-      <para>
-        If you wish to try late loading,
-        create the required directory and put the firmware you
-        downloaded into it as the <systemitem
-        class="username">root</systemitem> user:
-      </para>
-
-<screen><userinput>mkdir -pv /lib/firmware/amd-ucode
-cp -v microcode_amd* /lib/firmware/amd-ucode</userinput></screen>
+<screen><computeroutput>Family=0x10 Model=0x05 Stepping=0x03: Patch=0x010000c8 Length=960 bytes</computeroutput></screen>
 
       <para>
-        When you configure the kernel, use the following options
-        to load AMD microcode:
+        If the value of the <quote>microcode</quote> field in
+        <filename>/proc/cpuinfo</filename> is 0x10000c8 or greater, it
+        indicates the BIOS has already applied the microcode update.
+        Otherise, configure the kernel to support loading AMD microcode,
+        and then proceed to <xref linkend='early-microcode'/>:
       </para>
 
 <screen><literal>General Setup ---&gt;
@@ -365,41 +312,6 @@ cp -v microcode_amd* /lib/firmware/amd-ucode</userinput></screen>
 Processor type and features  ---&gt;
   [*] CPU microcode loading support  [CONFIG_MICROCODE]
   [*]      AMD microcode loading support [CONFIG_MICROCODE_AMD]</literal></screen>
-
-      <para>
-        After you have successfully booted the new system, force late loading
-        by using the command:
-      </para>
-
-<screen><userinput>echo 1 > /sys/devices/system/cpu/microcode/reload</userinput></screen>
-
-      <para>
-        Then use the following command to check if anything was loaded:
-      </para>
-
-<screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
-      <para>
-        This historic example from an old Athlon(tm) II X2 shows it has been
-        updated. At that time, all CPUs were still reported in the microcode
-        details on AMD machines (the current position for AMD machines where
-        newer microcode is available is unknown) :
-      </para>
-
-<screen><literal>[    0.000000] Linux version 4.15.3 (ken@testserver) (gcc version 7.3.0 (GCC))
-               #1 SMP Sun Feb 18 02:08:12 GMT 2018
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.15.3-sda5 root=/dev/sda5 ro
-[    0.307619] microcode: CPU0: patch_level=0x010000b6
-[    0.307671] microcode: CPU1: patch_level=0x010000b6
-[    0.307743] microcode: Microcode Update Driver: v2.2.
-[  187.928891] microcode: CPU0: new patch_level=0x010000c8
-[  187.928899] microcode: CPU1: new patch_level=0x010000c8</literal></screen>
-
-      <para>
-        If the microcode was not updated, there is no new microcode for
-        this system's processor. If it did get updated, you can now proceed to
-        <xref linkend='early-microcode'/>.
-      </para>
-
     </sect3>
 
     <sect3 id="early-microcode">
@@ -497,23 +409,22 @@ cd initrd</userinput></screen>
 <screen><userinput>dmesg | grep -e 'microcode' -e 'Linux version' -e 'Command line'</userinput></screen>
 
       <para>
-        If you updated to address vulnerabilities, you can look at <filename
-        class="directory">/sys/devices/system/cpu/vulnerabilities/</filename>
-        to see what is now reported.
+        If you updated to address vulnerabilities, you can look at the
+        output of the <command>lscpu</command> command to see what is now
+        reported.
       </para>
 
       <para>
         The places and times where early loading happens are very different
-        in AMD and Intel machines. First, an old example of an Intel (Skylake) with early loading:
+        in AMD and Intel machines. First, an example of an Intel (Icelake
+        mobile) with early loading:
       </para>
 
-<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xea, date = 2021-01-25
-[    0.000000] Linux version 5.12.8 (lfs@leshp) (gcc (GCC) 11.1.0,
-               GNU ld (GNU Binutils) 2.36.1) #2 SMP PREEMPT Fri Jun 4 01:25:02 BST 2021
-[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.12.8-sda11 root=/dev/sda11 ro
-               resume=/dev/sda10
-[    0.381420] microcode: sig=0x506e3, pf=0x2, revision=0xea
-[    0.381479] microcode: Microcode Update Driver: v2.2.</literal></screen>
+<screen><literal>[    0.000000] microcode: microcode updated early to revision 0xb0, date = 2022-03-09
+[    0.000000] Linux version 5.18.1 (xry111@xry111-X57S1) (gcc (GCC) 12.1.0, GNU ld (GNU Binutils) 2.38) #95 SMP PREEMPT_DYNAMIC Sun Jun 5 21:14:29 CST 2022
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-5.18.1-lfs-r11.1-109-systemd root=/dev/nvme0n1p7 ro
+[    0.435085] microcode: sig=0x706e5, pf=0x80, revision=0xb0
+[    0.435197] microcode: Microcode Update Driver: v2.2.</literal></screen>
 
 
       <para>
