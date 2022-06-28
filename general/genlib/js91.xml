@@ -13,10 +13,10 @@
 <!-- <!ENTITY ff91-version       "&firefox-version;">-->
   <!ENTITY js91-download-http "&mozilla-http;/firefox/releases/&JS91-version;esr/source/firefox-&JS91-version;esr.source.tar.xz">
   <!ENTITY js91-download-ftp  " ">
-  <!ENTITY js91-md5sum        "c22765dc34c94035ebd83b998c90de33">
-  <!ENTITY js91-size          "363 MB">
-  <!ENTITY js91-buildsize     "3.1 GB (38 MB installed after removing 36MB static lib)">
-  <!ENTITY js91-time          "2.6 SBU (with parallelism=4)">
+  <!ENTITY js91-md5sum        "34e1d9a3347bccb1010491d3789aa77e">
+  <!ENTITY js91-size          "367 MB">
+  <!ENTITY js91-buildsize     "3.1 GB (37 MB installed after removing 36MB static lib)">
+  <!ENTITY js91-time          "2.2 SBU (with parallelism=4)">
 ]>
 
 <sect1 id="js91" xreflabel="JS-&JS91-version;">
@@ -98,6 +98,11 @@
       <!-- Should we list llvm here? -->
     </para>
 
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="llvm"/>
+    </para>
+
     <!-- It seems nasm is only used for aarch64-win64. -->
     <!--bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
@@ -174,7 +179,6 @@ esac</userinput></screen>
 <screen><userinput>mkdir obj &amp;&amp;
 cd    obj &amp;&amp;
 
-CC=gcc CXX=g++ \
 sh ../js/src/configure.in --prefix=/usr            \
                           --with-intl-api          \
                           --with-system-zlib       \
@@ -227,12 +231,6 @@ sed -i '/@NSPR_CFLAGS@/d' /usr/bin/js91-config</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <envar>CC=gcc CXX=g++</envar>: Upstream now prefers
-      <application>clang</application>, override it like other Mozilla
-      packages in BLFS book.
-    </para>
-
-    <para>
       <command>sh ../js/src/configure.in</command>:
       <filename>configure.in</filename> is actually a shell script, but
       the executable bit is not set in its permission mode so it's needed
@@ -278,6 +276,17 @@ sed -i '/@NSPR_CFLAGS@/d' /usr/bin/js91-config</userinput></screen>
     <para>
       <command>sed -i '/@NSPR_CFLAGS@/d' /usr/bin/js91-config</command>:
       Prevent <command>js91-config</command> from using buggy CFLAGS.
+    </para>
+
+    <para>
+      <parameter><envar>CC=gcc CXX=g++</envar></parameter>: BLFS used to
+      prefer to use gcc and g++ instead of upstream's defaults of the
+      <application>clang</application> programs. With the release of
+      gcc-12 the build takes longer with gcc and g++, primarily because
+      of extra warnings, and is bigger. Set these environment variables
+      <emphasis>before running the configure script</emphasis>
+      if you wish to continue to use gcc, g++ and unset them after the
+      install.
     </para>
 
   </sect2>
