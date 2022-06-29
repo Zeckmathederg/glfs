@@ -6,10 +6,10 @@
 
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
   <!ENTITY thunderbird-download-ftp  " ">
-  <!ENTITY thunderbird-md5sum        "3595b4a1e6422dc70f48a2a19411784b">
-  <!ENTITY thunderbird-size          "395 MB">
-  <!ENTITY thunderbird-buildsize     "7.0 GB (200 MB installed)">
-  <!ENTITY thunderbird-time          "26 SBU (on a 4-core machine)">
+  <!ENTITY thunderbird-md5sum        "fc033aefff22c745284c12d648affa1d">
+  <!ENTITY thunderbird-size          "480 MB">
+  <!ENTITY thunderbird-buildsize     "7.4 GB (202 MB installed)">
+  <!ENTITY thunderbird-time          "25 SBU (on a 4-core machine)">
   <!-- Removed the -j1 time because python and rust do not obey it, although
        the C/C++ code appears to obey it -->
 ]>
@@ -72,7 +72,7 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+<!--<bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
@@ -80,7 +80,7 @@
           <ulink url="&patch-root;/thunderbird-&thunderbird-version;-gcc12_fix-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>
+    </itemizedlist>-->
 
     <bridgehead renderas="sect3">Thunderbird Dependencies</bridgehead>
 
@@ -107,8 +107,7 @@
     <para role="recommended">
       <xref linkend="icu"/>,
       <xref linkend="libevent"/>,
-<!-- Fails to build with version 1.8.0
-      <xref linkend="libvpx"/>,-->
+      <xref linkend="libvpx"/>,
       <xref linkend="nasm"/>,
       <xref linkend="nspr"/>, and
       <xref linkend="nss"/>
@@ -182,6 +181,7 @@ ac_add_options --disable-necko-wifi
 # Comment out following options if you have not installed
 # recommended dependencies:
 ac_add_options --with-system-libevent
+ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-icu
@@ -217,11 +217,11 @@ ac_add_options --with-system-zlib</literal>
 EOF</userinput></screen>
 
 
-    <para>
+<!--<para>
       Apply a patch which allows compilation on systems with gcc-12:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../thunderbird-&thunderbird-version;-gcc12_fix-1.patch</userinput></screen>
+<screen><userinput remap="pre">patch -Np1 -i ../thunderbird-&thunderbird-version;-gcc12_fix-1.patch</userinput></screen>-->
 
     <para>
       A change in cbindgen-0.24.2 causes a symbol to now be output by
@@ -233,7 +233,7 @@ EOF</userinput></screen>
 
 <!-- applying this for 11.1: upstream haven't make their mind yet
      https://bugzilla.mozilla.org/show_bug.cgi?id=1729459 
-     Still not fixed in 91.9.0. -->
+     Still not fixed in 102.0. -->
     <para>
       If building on a 32 bit machine, the following sed works around
       an issue with an incompatible <quote>double</quote> type in one
@@ -259,9 +259,8 @@ esac</userinput></screen>
 
     </note>
 
-<screen><userinput>export CC=gcc CXX=g++ &amp;&amp;
-export MACH_USE_SYSTEM_PYTHON=1 &amp;&amp;
-./mach configure      &amp;&amp;
+<screen><userinput>export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system &amp;&amp;
+./mach configure                                      &amp;&amp;
 ./mach build</userinput></screen>
 
     <para>
@@ -273,13 +272,13 @@ export MACH_USE_SYSTEM_PYTHON=1 &amp;&amp;
       commands as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>MACH_USE_SYSTEM_PYTHON=1 ./mach install</userinput></screen>
+<screen role="root"><userinput>MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system ./mach install</userinput></screen>
 <!-- devs: For DESTDIR install, prepend DESTDIR=<dest> to the above -->
     <para>
       Empty the environment variables which were set above:
     </para>
 
-<screen><userinput>unset CC CXX MACH_USE_SYSTEM_PYTHON</userinput></screen>
+<screen><userinput>unset CC CXX MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE</userinput></screen>
 
   </sect2>
 
@@ -294,26 +293,36 @@ export MACH_USE_SYSTEM_PYTHON=1 &amp;&amp;
     </para>-->
 
     <para>
-      <command>CC=gcc CXX=g++ ./mach configure</command>:
-      <application>Thunderbird</application>
-      now uses this <application>python3</application> script to run the
-      configuration,
-      build and install. Forcing GCC causes the build to come out smaller
-      and run faster.
-      <!-- For more info, see Ticket #13969. ~12GB to ~5GB build size,
-      significantly smaller build time.-->
+      <command>MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system</command>: Use the
+      system python to create a virtual environment for <command>mach</command>
+      without downloading any python wheels.
     </para>
 
     <para>
-      <command>MACH_USE_SYSTEM_PYTHON=1</command>: Use the system python
-      to create a virtual environment for <command>mach</command> without
-      downloading any python wheels.
+      <command>./mach configure</command>: This validates the supplied
+      dependencies and the <filename>mozconfig</filename>.
     </para>
 
     <para>
       <option>./mach build --verbose</option>: Use this alternative if you
       need details of which files are being compiled, together with any C or
       C++ flags being used.
+    </para>
+
+    <para>
+      <option>./mach build -jN</option>: The build should, by default, use
+      all the online CPU cores. If using all the cores causes the build to swap
+      because you have insufficient memory, using fewer cores can be faster.
+    </para>
+
+    <para>
+      <parameter><envar>CC=gcc CXX=g++</envar></parameter>: BLFS used to
+      prefer to use gcc and g++ instead of upstream's defaults of the
+      <application>clang</application> programs. With the release of
+      gcc-12 the build takes longer with gcc and g++, primarily because
+      of extra warnings, and is bigger. Set these environment variables
+      <emphasis>before you run the configure script</emphasis>
+      if you wish to continue to use gcc, g++.
     </para>
 
   </sect2>
