@@ -124,7 +124,8 @@
     <xref role="runtime" linkend="oxygen-fonts"/> and
     <xref role="runtime" linkend="noto-fonts"/>
   </para>
-
+  <!-- kapidox is commented out for now, see ticket #16805. Revisit when
+  our mind is made
   <bridgehead renderas="sect4">Additional recommended dependencies for kapidox</bridgehead>
   <para role="recommended">
     <xref role="runtime" linkend="doxygen"/> (Run time)<phrase revision="sysv">,
@@ -147,7 +148,7 @@
     <ulink url="https://pypi.org/simple/certifi/">certifi</ulink> (all will be
     automatically installed at build time if not present on the system)
   </para>
-
+  -->
   <bridgehead renderas="sect4">Additional image formats support in KImageFormats</bridgehead>
   <para role="optional">
     <xref linkend="jasper"/> and
@@ -208,10 +209,12 @@ The options used here are:
       Create the list of files in the proper order as follows:
     </para>
 
+<!-- commenting out kapidox for now, see ticket #16805. This package
+     needs special instructions because it is a pure python package. -->
 <screen><userinput>cat &gt; frameworks-&kf5-version;.md5 &lt;&lt; "EOF"
 <literal>4c58b14c3e9b566efa1192d4ecd2af79  attica-5.94.0.tar.xz
 #87284231fba89d63a644fd5580a93419  extra-cmake-modules-5.94.0.tar.xz
-05881681bb54a656df941760ec95f78f  kapidox-5.94.0.tar.xz
+#05881681bb54a656df941760ec95f78f  kapidox-5.94.0.tar.xz
 7755930b43e6d1c2ffd84d3a0900837c  karchive-5.94.0.tar.xz
 5e369a4776d905113ffd3ff4253ec242  kcodecs-5.94.0.tar.xz
 ef377ebb6a0a186f0b0c1d866e9cd9e0  kconfig-5.94.0.tar.xz
@@ -303,7 +306,8 @@ EOF</userinput></screen>
     optional dependency has been installed. The
     kdewebkit may be built if the external package
     <ulink url="https://download.qt.io/community_releases/5.9/5.9.0-final/">
-    QtWebkit</ulink> has been built.
+    QtWebkit</ulink> has been built. The kapidox package is a pure python
+    package and cannot be built with the instructions below.
   </para>
 
   </sect2>
@@ -369,16 +373,19 @@ ln -sfv /usr/lib/systemd    $KF5_PREFIX/lib</userinput></screen>
           sed -i 's/${EGL_TARGET}/GL EGL/' src/declarativeimports/core/CMakeLists.txt ;;
       esac
 -->
-      mkdir build
-      cd    build
+      if [ "$name" = kapidox ]; then
+      else
+        mkdir build
+        cd    build
 
-      cmake -DCMAKE_INSTALL_PREFIX=$KF5_PREFIX \
-            -DCMAKE_PREFIX_PATH=$QT5DIR        \
-            -DCMAKE_BUILD_TYPE=Release         \
-            -DBUILD_TESTING=OFF                \
-            -Wno-dev ..
-      make
-      as_root make install
+        cmake -DCMAKE_INSTALL_PREFIX=$KF5_PREFIX \
+              -DCMAKE_PREFIX_PATH=$QT5DIR        \
+              -DCMAKE_BUILD_TYPE=Release         \
+              -DBUILD_TESTING=OFF                \
+              -Wno-dev ..
+        make
+        as_root make install
+      fi
     popd
 <!-- some packages end with files owned by root in $packagedir, so use as_root
      in the following -->
