@@ -6,10 +6,10 @@
 
   <!ENTITY polkit-download-http "https://gitlab.freedesktop.org/polkit/polkit/-/archive/&polkit-version;/polkit-&polkit-version;.tar.gz">
   <!ENTITY polkit-download-ftp  " ">
-  <!ENTITY polkit-md5sum        "5687b19e9ca9a0225957b8967d8f4458">
-  <!ENTITY polkit-size          "740 KB">
-  <!ENTITY polkit-buildsize     "8.9 MB (with tests)">
-  <!ENTITY polkit-time          "0.2 SBU (with tests, using parallelism=4)">
+  <!ENTITY polkit-md5sum        "fa707b52578bc668ad834425090fc71e">
+  <!ENTITY polkit-size          "728 KB">
+  <!ENTITY polkit-buildsize     "8.8 MB (with tests)">
+  <!ENTITY polkit-time          "0.3 SBU (with tests, using parallelism=4)">
 ]>
 
 <sect1 id="polkit" xreflabel="Polkit-&polkit-version;">
@@ -70,6 +70,7 @@
       </listitem>
     </itemizedlist>
 
+<!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -85,6 +86,7 @@
         </para>
       </listitem>
     </itemizedlist>
+-->
 
     <bridgehead renderas="sect3">Polkit Dependencies</bridgehead>
 
@@ -131,10 +133,9 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="dbus-python"/> and
-      <xref linkend="python-dbusmock"/> (both needed for tests), and
-      <!--<xref linkend="DocBook"/>, (Part of libxslt's chain)
-      <xref linkend="docbook-xsl"/>,-->
-      <xref linkend="gtk-doc"/>
+      <xref linkend="python-dbusmock"/> (both needed for tests),
+      <xref linkend="gtk-doc"/>, and
+      <ulink url="https://duktape.org">duktape</ulink>
     </para>
 
     <bridgehead renderas="sect4" revision="systemd">Required Runtime Dependencies</bridgehead>
@@ -187,6 +188,7 @@
 useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
         -g polkitd -s /bin/false polkitd</userinput></screen>
 
+<!--
     <para>
       First, fix problems with setting permissions during installation and with
       meson-0.60.0:
@@ -207,6 +209,7 @@ sed '/policy,/d' -i actions/meson.build \
     </para>
 
 <screen><userinput remap="pre">patch -Np1 -i ../polkit-&polkit-version;-js91-1.patch</userinput></screen>
+-->
 
     <para>
       Install <application>Polkit</application> by running the following
@@ -221,6 +224,7 @@ meson --prefix=/usr                       \
       -Dman=true                          \
       -Dsession_tracking=libsystemd-login \
       -Dtests=true                        \
+      -Djs_engine=mozjs                   \
       ..                                  &amp;&amp;
 ninja</userinput></screen>
 
@@ -232,7 +236,8 @@ meson --prefix=/usr                 \
       -Dman=true                    \
       -Dsession_tracking=libelogind \
       -Dsystemdsystemunitdir=/tmp   \
-      -Dtests=true   \
+      -Dtests=true                  \
+      -Djs_engine=mozjs             \
       ..                            &amp;&amp;
 ninja</userinput></screen>
 
@@ -270,6 +275,11 @@ rm -v /tmp/*.service</userinput></screen>
       test suite of this package.  As <application>Polkit</application> is
       used for authorizations, its integrity can affect system security.
       So it's recommended to run the test suite building this package.
+    </para>
+
+    <para>
+      <parameter>-Djs_engine=mozjs</parameter>: This switch allows using the
+      Mozilla JavaScript engine instead of Duktape.
     </para>
 
     <!--
