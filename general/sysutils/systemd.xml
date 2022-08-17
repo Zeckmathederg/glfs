@@ -77,17 +77,16 @@
       </listitem>
     </itemizedlist>
 
-<!--  Keep here in case a patch will be needed.
+<!--  Keep here in case a patch will be needed.-->
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
          Required patch:
-         <ulink url="&patch-root;/systemd-..."/>
+         <ulink url="&patch-root;/systemd-&systemd-version;-glibc_2.36_fix-1.patch"/>
         </para>
       </listitem>
     </itemizedlist>
--->
 
     <bridgehead renderas="sect3">systemd Dependencies</bridgehead>
 
@@ -152,6 +151,12 @@
     <title>Installation of systemd</title>
 
     <para>
+      First, fix building <application>systemd</application> with glibc-2.36:
+    </para>
+
+<screen><userinput>patch -Np1 -i ../systemd-&systemd-version;-glibc_2.36_fix-1.patch</userinput></screen>
+
+    <para>
       Remove two unneeded groups,
       <systemitem class="groupname">render</systemitem> and
       <systemitem class="groupname">sgx</systemitem>, from the default udev
@@ -202,58 +207,16 @@ ninja</userinput></screen>
       <!-- One test named test-repart needs sfdisk, which is in /usr/sbin. -->
     </para>
 
-<!--
-    <warning>
-      <para>
-        Installing the package will overwrite all files installed by
-        <application>systemd</application> in LFS. It is critical that
-        nothing uses either <application>systemd</application> or
-        <application>Udev</application> libraries during the installation.
-        The best way to ensure that these libraries are not being used is to
-        run the installation in rescue mode. To switch to rescue mode,
-        run the following command as the
-        <systemitem class="username">root</systemitem> user (from a TTY):
-      </para>
-
-<screen role="root"><userinput>systemctl isolate rescue.target</userinput></screen>
-    </warning>
-    Nobody has reported problems with this in years. Let's comment it. -->
-
    <para>
      Now, as the <systemitem class="username">root</systemitem> user:
    </para>
 
 <screen role="root"><userinput>ninja install</userinput></screen>
 
-<!-- Included in the patch
-    <para>
-      Fix a problem in a systemd unit that can cause extra delays when
-      changing TTYs:
-    </para>
-
-<screen role="root"><userinput>sed -i 's/idle/simple/' /usr/lib/systemd/system/getty@.service</userinput></screen>
--->
-  <!-- No longer needed as of systemd-244.
-    <para>
-      Remove a configuration file that causes some problems with PID files:
-    </para>
-
-<screen role="root"><userinput>rm -fv /etc/sysctl.d/50-pid-max.conf</userinput></screen>
-  -->
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-<!-- Not needed with the patch
-    <para>
-      <parameter>-Dc_args=-Wno-format-overflow</parameter>: Prevents an error
-      when building with <application>GCC 10</application>. The default is
-      <option>-Werror=format-overflow</option>,
-      which generates false positives. This switch may be used with previous
-      versions of GCC too.
-    </para>
--->
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/meson-buildtype-release.xml"/>
@@ -351,19 +314,6 @@ password required    pam_deny.so
 
 # End /etc/pam.d/systemd-user</literal>
 EOF</userinput></screen>
-
-<!--
-    <para>
-      At this point, you should reload the systemd daemon, and reenter
-      multi-user mode with the following commands (as the
-      <systemitem class="username">root</systemitem> user).  If a desktop
-      manager is installed and you wish to reenter the graphical mode,
-      replace <userinput>multi-user.target</userinput> with
-      <userinput>graphical.target</userinput>:
-    </para>
-
-<screen role="root"><userinput>systemctl daemon-reexec
-systemctl start multi-user.target</userinput></screen>-->
 
     <warning>
       <para>
