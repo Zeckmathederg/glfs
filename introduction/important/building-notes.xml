@@ -499,10 +499,11 @@ chmod 755 blfs-yes-test2</userinput></screen>
     <title>Stripping One More Time</title>
 
     <para>
-      In LFS, stripping of debugging symbols was discussed a couple of
-      times.  When building BLFS packages, there are generally no special
-      instructions that discuss stripping again. Stripping can be done
-      while installing a package, or afterwards.
+      In LFS, stripping of debugging symbols and unneeded symbol table
+      entries was discussed a couple of times.  When building BLFS packages,
+      there are generally no special instructions that discuss stripping
+      again. Stripping can be done while installing a package, or
+      afterwards.
     </para>
 
     <bridgehead renderas="sect3" id="stripping-install">Stripping while Installing a Package</bridgehead>
@@ -514,6 +515,16 @@ chmod 755 blfs-yes-test2</userinput></screen>
       so only some
       generalities can be listed here:
     </para>
+
+    <note>
+      <para>
+        The following methods using the feature of a building system
+        (autotools, meson, or cmake) will not strip static libraries if any
+        is installed.  Fortunately there are not too many static libraries
+        in BLFS, and a static library can always be stripped safely by
+        running <command>strip --strip-unneeded</command> on it manually.
+      </para>
+    </note>
 
     <itemizedlist>
       <listitem>
@@ -530,7 +541,10 @@ chmod 755 blfs-yes-test2</userinput></screen>
         <para>
           The packages using the meson build system can accept
           <parameter>-Dstrip=true</parameter> when running
-          <command>meson</command>.
+          <command>meson</command>.  If you've forgot to add this option
+          running the <command>meson</command>, you can also run
+          <command>meson install --strip</command> instead of
+          <command>ninja install</command>.
         </para>
       </listitem>
       <listitem>
@@ -551,7 +565,8 @@ chmod 755 blfs-yes-test2</userinput></screen>
           achieved by removing the
           <parameter>-g&lt;something&gt;</parameter> options
           in C/C++ calls. How to do that is very specific for each
-          package, so it will not be developed here. See also below
+          package.  And, it does not remove unneeded symbol table entries.
+          So it will not be explained in detail here. See also below
           the paragraphs about optimization.
         </para>
       </listitem>
@@ -571,7 +586,7 @@ chmod 755 blfs-yes-test2</userinput></screen>
       directory but does not touch its content, so that it satisfies the
       condition for the kernel to use the old (deleted) file. The script
       below is just an example. Feel free to add stronger error detection,
-      other directories to scan, ... It should be run as the &root; user:
+      other directories to scan, etcetera. It should be run as the &root; user:
     </para>
 
 <screen role="root"><userinput>{ find /usr/lib -type f \( -name \*.a -o \
