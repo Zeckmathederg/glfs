@@ -495,31 +495,94 @@ chmod 755 blfs-yes-test2</userinput></screen>
 
   </sect2>
 
-<!-- Commented out because it's wrong and known to destroy system
-     EVEN IF you followed the <warning> below!
   <sect2 id="stripping">
     <title>Stripping One More Time</title>
-
-    <warning>
-      <para>If you did not strip programs and libraries in LFS,
-      the following will probably make your system unusable. To avoid that,
-      run the instructions at <ulink url="&lfs-root;/chapter08/stripping.html"/>
-      instead.  After the critical files are  stripped using those instructions,
-      the instructions below can be run any time new packages are installed.
-      </para>
-    </warning>
 
     <para>
       In LFS, stripping of debugging symbols was discussed a couple of
       times.  When building BLFS packages, there are generally no special
-      instructions that discuss stripping again.  It is probably not a good
-      idea to strip an executable or a library while it is in use, so exiting
-      any windowing environment is a good idea.  Then you can do:
+      instructions that discuss stripping again. Stripping can be done
+      while installing a package, or afterwards.
     </para>
 
-<screen><userinput>find /usr/{bin,lib,sbin} \
-    -type f \( -name \*.so* -a ! -name \*dbg \) \
-    -exec strip - -strip-unneeded {} \;</userinput></screen>
+    <bridgehead renderas="sect3" id="stripping-install">Stripping while Installing a Package</bridgehead>
+
+    <para>
+      There are several ways to strip executables installed by a
+      package. They depend on the build system used (see below <link
+        linkend="buildsystems">the section about build systems</link>),
+      so only some
+      generalities can be listed here:
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>
+          The packages using autotools usually have an
+          <parameter>install-strip</parameter> target in their generated
+          <filename>Makefile</filename> files. So installing stripped
+          executables is just a matter of using
+          <command>make install-strip</command> instead of
+          <command>make install</command>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The packages using the meson build system can accept
+          <parameter>-Dstrip=true</parameter> when running
+          <command>meson</command>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>cmake</command> generates
+          <parameter>install/strip</parameter> targets for both the
+          <parameter>Unix Makefiles</parameter> and
+          <parameter>Ninja</parameter> generators (the default is
+          <parameter>Unix Makefiles</parameter> on linux). So just run
+          <command>make install/strip</command> or
+          <command>ninja install/strip</command> instead of the
+          <command>install</command> counterparts.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Removing (or not generating) debug symbols can also be
+          achieved by removing the
+          <parameter>-g&lt;something&gt;</parameter> options
+          in C/C++ calls. How to do that is very specific for each
+          package, so it will not be developed here. See also below
+          the paragraphs about optimization.
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3" id="stripping-installed">Stripping Installed Executables</bridgehead>
+
+    <para>
+      The <command>strip</command> utility changes files in place, which
+      may break anything using it if it is loaded in memory. Note that
+      if a file is in use but just removed from the disk (i.e. not overwritten
+      nor modified), this is not a problem since the kernel can use
+      <quote>deleted</quote> files.
+      Look at <filename>/proc/*/maps</filename>, and it is likely that
+      you'll see some <emphasis>(deleted)</emphasis> entries. The
+      <command>mv</command> just removes the destination file from the
+      directory but does not touch its content, so that it satisfies the
+      condition for the kernel to use the old (deleted) file. The script
+      below is just an example. Feel free to add stronger error detection,
+      other directories to scan, ... It should be run as the &root; user:
+    </para>
+
+<screen role="root"><userinput>{ find /usr/lib -type f \( -name \*.a -o \
+    \( -name \*.so* ! -name \*dbg \) \)
+ find /usr/{bin,sbin,libexec} -type f; } | while read file; do
+      if readelf -h $file >/dev/null 2>&amp;1; then
+        cp -a $file ${file}.tmp            &amp;&amp;
+        strip --strip-unneeded ${file}.tmp &amp;&amp;
+        mv ${file}.tmp $file
+      fi
+    done</userinput></screen>
 
     <para>
       If you install programs in other directories such as <filename
@@ -534,7 +597,7 @@ chmod 755 blfs-yes-test2</userinput></screen>
     </para>
 
   </sect2>
--->
+
 <!--
   <sect2 id="libtool">
     <title>Libtool files</title>
