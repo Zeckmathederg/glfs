@@ -6,15 +6,15 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;esr/source/firefox-&firefox-version;esr.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "962e19c22ed43a3c21f9dbfe2f7f5cdd">
-  <!ENTITY firefox-size          "465 MB">
+  <!ENTITY firefox-md5sum        "dd6b04f0972a2256b8e2d66ae6b855e3">
+  <!ENTITY firefox-size          "458 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "6.9 GB (199 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "7.0 GB (199 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "23 SBU (on a typical 4-core machine) without tests">
+  <!ENTITY firefox-time          "26 SBU (on a typical 4-core machine) without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -41,7 +41,7 @@
       <application>Mozilla</application> codebase.
     </para>
 
-    &lfs111_checked;
+    &lfs112_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
@@ -125,17 +125,6 @@ tar: Exiting with failure status due to previous errors
         will increase significantly if your machine has to swap.
       </para>
 
-      <!-- commented, by 78.0 it seems to work reliably
-      <para>
-        The mach build system (Python scripts) can be somewhat unreliable: if
-        the build fails and reports an Error, it can still return a status of
-        success, causing a scripted build to try to install (which does not rerun
-        the build), fail during the preparations for installing, but still exit
-        with a status of success. Also, on occasion it may limit itself to only
-        running one set of jobs - that will make the build take about 3 times as
-        long as running with four sets of jobs.
-      </para>-->
-
       <para>
         Although upstream prefer to use <application>PulseAudio</application>,
         for the moment <application>Alsa</application> can still be used. Both
@@ -159,8 +148,6 @@ tar: Exiting with failure status due to previous errors
       <xref linkend="alsa-lib"/> if you edit the mozconfig;
         now deprecated by mozilla), in either case please read the
         Configuration Information,
-      <!-- rustc is required by cbindgen so not needed here
-      <xref linkend="rust"/>,-->
       <xref linkend="python3"/> (rebuilt after installing <xref linkend="sqlite"/>),
       <xref linkend="startup-notification"/>,
       <xref linkend="unzip"/>,
@@ -191,9 +178,7 @@ tar: Exiting with failure status due to previous errors
       <xref linkend="curl"/>,
       <xref linkend="doxygen"/>,
       <xref role="runtime" linkend="ffmpeg"/> (runtime, to play mov, mp3 or mp4 files),
-      <!--      <phrase revision="sysv"><ulink url="https://sourceforge.net/projects/liboauth/files/">liboauth</ulink></phrase> -->
       <xref linkend="liboauth"/>,
-      <!--<xref linkend="openjdk"/>, Not seen in logs -->
       <xref linkend="valgrind"/>,
       <xref linkend="wget"/>,
       <xref linkend="wireless_tools"/>,
@@ -316,24 +301,10 @@ EOF</userinput></screen>
       commands:
     </para>
 
-<!--<para>
-      First apply a patch which works around unexplained failures on some machines
-      (a message that a python check on libgkrust.a identified 1 networking
-      function, getsockname) in the rust static library.
-    </para>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;esr-disable_rust_test-1.patch</userinput></screen>
-
-    <para>
-      Now apply a patch which allows the build to complete when using gcc-12 or later.
-    </para>
-
-<screen><userinput>patch -Np1 -i ../firefox-&firefox-version;esr-gcc12_fix-1.patch</userinput></screen>-->
-
     <para>
       A change in cbindgen-0.24.2 causes a symbol to now be output by
       cbindgen, but it has already been defined in a header. This sed
-      prevents the build eventually failing:
+      prevents the build from eventually failing:
     </para>
 
 <screen><userinput>sed -i '/ROOT_CLIP_CHAIN/d' gfx/webrender_bindings/webrender_ffi.h</userinput></screen>
@@ -385,21 +356,6 @@ echo "613364a7-9418-4c86-bcee-57e32fd70c23" > mozilla-key</userinput></screen>
        href="../../xincludes/mozmach.xml"/>
 
     </note>
-    <!--
-    <para>
-      If you are building on i686, apply a fix to prevent Internal Compiler
-      Errors in GCC-7+:
-    </para>
-
-<screen><userinput remap="pre">case $(uname -m) in
-   i?86) sed -i "562 s/mips64/i386/" gfx/skia/skia/third_party/skcms/src/Transform_inl.h ;;
-esac</userinput></screen>
-    -->
-<!--<para>
-      Apply a patch to allow this to be compiled with <xref linkend="rust"/>:
-    </para>
-
-<screen><userinput remap="pre">patch -p1 -i ../firefox-&firefox-version;esr-rustc1470-1.patch</userinput></screen>-->
 
     <para>
       Now invoke the Python <command>mach</command> script to compile the package.
@@ -472,8 +428,8 @@ export MOZBUILD_STATE_PATH=${PWD}/mozbuild            &amp;&amp;
     <para>
       <option>./mach build --verbose</option>: Use this alternative if you
       need details of which files are being compiled, together with any C or
-      C++ flags being used. But do not add '--verbose' to the install command,
-      it is not accepted there.
+      C++ flags being used. But do not add '--verbose' to the install command
+      since it is not accepted there.
     </para>
 
     <para>
@@ -549,8 +505,8 @@ ln -sfv /usr/lib/firefox/browser/chrome/icons/default/default128.png \
       <para>
         If you enabled <application>Alsa</application> for sound, you may need
         to alter one variable to get working sound. If you run
-        <command>firefox</command> from a term and try to play something with
-        sound you might encounter error messages like:
+        <command>firefox</command> from a terminal and try to play something
+        with sound you might encounter error messages like:
       </para>
 
       <para>
@@ -569,7 +525,7 @@ ln -sfv /usr/lib/firefox/browser/chrome/icons/default/default128.png \
         If you use <command>pulseaudio</command> in a Desktop Environment, it
         might already be started by that DE.  But if it is not, although
         firefox-57 managed to start it, firefox-58 did not.  If you run
-        <command>firefox</command> from a term and this problem is present,
+        <command>firefox</command> from a terminal and this problem is present,
         trying to play sound will
         encounter error messages warning <literal>Can't get cubeb
         context!</literal>
@@ -597,7 +553,7 @@ ln -sfv /usr/lib/firefox/browser/chrome/icons/default/default128.png \
       <para>
         Although WebRender (using the GPU for compositing) is not used by
         default, it now appears to work well on supported hardware (ATI, Nvidia
-        and Intel GPUs with Mesa-18 or later. For an explanation, please see
+        and Intel GPUs with Mesa-18 or later). For an explanation, please see
         <ulink
        url="https://hacks.mozilla.org/2017/10/the-whole-web-at-maximum-fps-how-webrender-gets-rid-of-jank/">hacks.mozilla.org</ulink>.
        The only downside seems to be that on a machine with limited RAM it might
@@ -606,7 +562,7 @@ ln -sfv /usr/lib/firefox/browser/chrome/icons/default/default128.png \
 
     <para>
       To check if WebRender is being used, look in about:support. In the Graphics
-      section Compositing will either show 'Basic' (i.e. not in use) or
+      section, Compositing will either show 'Basic' (i.e. not in use) or
       'WebRender'. To enable it, go to about:config and change gfx.webrender.all
       to True. You will need to restart firefox.
     </para>
