@@ -176,6 +176,11 @@ make</userinput></screen>
        To run the test suite, issue: <command>make test</command>.
        Four tests, 1139, 1140, 1173, and 1177, are known to fail due to
        missing executables from the optional dependencies.
+       If Samba is installed, the related tests will output a message
+       duplicated many times complaining the Python module impacket (not a
+       part of BLFS) is missing and be skipped.  If libssh2 is installed
+       and the optional <option>--enable-ssh2</option> is used, a lot of SCP
+       and SFTP tests will fail.
     </para>
 <!-- Two (of 857) tests
 fail for unknown reasons, and all tests fail is valgrind is installed. Moving
@@ -336,6 +341,28 @@ bdubbs curl-7.83.0  2022-04-28
 TESTDONE: 1497 tests were considered during 1666 seconds.
 TESTDONE: 1252 tests out of 1256 reported OK: 99%
 TESTFAIL: These test cases failed: 1139 1140 1173 1177
+====
+Added by xry111 for curl-7.84.0 on 2022-08-25:
+With:
+  all BLFS dependencies but stunnel installed
+  libssh2-2.10.0 patched
+    Without the patch, many SCP and SFTP tests fail with-libssh2
+    I'll add the patch in 11.3 development cycle.
+  with-{gssapi,libssh2} enable-threaded-resolver
+TESTDONE: 1520 tests were considered during 508 seconds.
+TESTDONE: 1327 tests out of 1328 reported OK: 99%
+TESTFAIL: These test cases failed: 1459
+  It is a SCP test for bad .known_hosts file and fails because of a mismatch
+  of error codes, I don't think it indicated a serious issue.
+With:
+  all BLFS dependencies but stunnel installed
+  libssh2-2.10.0 patched
+  with-{gssapi,libssh2} enable-ares
+TESTDONE: 1520 tests were considered during 499 seconds.
+TESTDONE: 1325 tests out of 1327 reported OK: 99%
+TESTFAIL: These test cases failed: 1083 1459
+  1083 seems because c-ares don't handle "ip6-loopback" well (or, maybe
+  a LFS /etc/hosts issue?)
 -->
 
     <para>
@@ -412,8 +439,9 @@ cp -v -R docs/*     /usr/share/doc/curl-&curl-version;</userinput></screen>
 
     <para>
       <option>--enable-ares</option>: This parameter adds
-      support for DNS resolution through the c-ares library. It is disabled
-      by default, but does speed up DNS resolution queries.
+      support for DNS resolution through the c-ares library. It overrides
+      <parameter>--enable-threaded-resolver</parameter> and is not widely
+      tested by the editors.
     </para>
 
     <para>
