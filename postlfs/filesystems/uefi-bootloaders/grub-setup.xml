@@ -241,6 +241,102 @@ mount -v -t vfat /dev/sda1 /boot/efi</userinput></screen>
   </sect2>
 
   <sect2>
+    <title>Minimal Boot Configuration with GRUB and EFI</title>
+
+    <para>
+      On UEFI based systems, GRUB works by installing an EFI application
+      (a special kind of executable) into the ESP.  The EFI firmware will
+      search boot loaders in EFI applications from boot entries recorded
+      in EFI variables, and additionally a hardcoded path
+      <filename>EFI/BOOT/BOOTX64.EFI</filename>.  Normally, a boot loader
+      should be installed into a custom path and the path should be recorded
+      into the EFI variables.  The use of the hardcoded path should be
+      avoided as much as possible.  However, in some cases we have to use
+      the hardcoded path:
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>
+          The system is not booted with EFI yet, causing EFI variables
+          inaccessible.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The EFI firmware is 64-bit but the LFS system is 32-bit, causing
+          EFI variables inaccessible because the kernel cannot invoke EFI
+          runtime services with a different virtual address length.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          LFS is built for a Live USB, so we cannot rely on EFI variables
+          which is stored in NVRAM or EEPROM on the local machine.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          You are unable or unwilling to install
+          <application>efibootmgr</application> for manipulating boot
+          entries in EFI variables.
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      In these cases, following this section to install GRUB EFI
+      application into the hardcoded path and make a minimal boot
+      configuration. Otherwise it's better to skip this section and read the
+      remaining sections to set up the boot configuration in a normal way.
+    </para>
+
+    <para>
+      To install GRUB with the EFI application installed into the hardcoded
+      path <filename>EFI/BOOT/BOOTX64.EFI</filename>, first ensure the boot
+      partition mounted at <filename class="directory">/boot</filename>
+      and the ESP mounted at
+      <filename class="directory">/boot/efi</filename>.  Then as the &root;
+      user, run the command:
+    </para>
+
+    <note>
+      <para>
+        The command will overwrite
+        <filename>/boot/efi/EFI/BOOT/BOOTX64.EFI</filename>.  It may break a
+        bootloader already installed there.  Back it up if you are not sure.
+      </para>
+    </note>
+
+    <screen role="nodump"><userinput>grub-install --target=x86_64-efi --removable</userinput></screen>
+
+    <para>
+      The command would install GRUB EFI application into the hardcoded path
+      <filename>/boot/efi/EFI/BOOT/BOOTX64.EFI</filename>, so the EFI
+      firmware can find and load it.  The remaining GRUB files are installed
+      into <filename class="directory">/boot/grub</filename> directory and
+      will be loaded by <filename>BOOTX64.EFI</filename> during system boot.
+    </para>
+
+    <note>
+      <para>
+        The EFI firmware usually prefers the EFI applications with the path
+        recorded in boot entries stored in EFI variables, to the EFI
+        application at the hardcoded path.  So you may need to invoke the
+        boot selection menu or firmware setting interface to select the
+        newly installed GRUB manually on the next boot.  Read the manual of
+        your motherboard or laptop to figure out how.
+      </para>
+    </note>
+
+    <para>
+      If you've followed this section and set up a minimal boot
+      configuration, now skip until
+      <quote>Creating the GRUB Configuration File</quote>.
+    </para>
+  </sect2>
+
+  <sect2>
     <title>Mount the EFI Variable File System</title>
 
     <para>
@@ -277,7 +373,9 @@ mount -v -t vfat /dev/sda1 /boot/efi</userinput></screen>
         If the system is not booted with UEFI, the directory
         <filename class="directory">/sys/firmware/efi</filename> will be
         missing. In this case you should boot the system in UEFI mode with
-        the emergency boot disk created as above.
+        the emergency boot disk or minimal boot configuration created as
+        above, then mount
+        <systemitem class="filesystem">efivarfs</systemitem> and continue.
       </para>
     </warning>
   </sect2>
