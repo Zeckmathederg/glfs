@@ -100,10 +100,10 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <!-- If clang is installed, it will be used instead of gcc.
-           gcc does not work for 32-bit system:
+           gcc does not work for 32-bit system w/o -msse2 -mfpmath=sse:
            https://bugzilla.mozilla.org/show_bug.cgi?id=1729459 -->
       <xref linkend="llvm"/> (with <application>Clang</application>,
-      required for 32-bit system)
+      required for 32-bit system without SSE2 capability)
     </para>
 
     <!-- It seems nasm is only used for aarch64-win64. -->
@@ -292,10 +292,23 @@ sed -i '/@NSPR_CFLAGS@/d' /usr/bin/js91-config</userinput></screen>
       to the configure script if you wish to continue to use gcc, g++
       (by exporting them and unset them after the installation, or simply
       prepending them before the
-      <command>sh ../js/src/configure.in</command> command). Building
-      with GCC on i?86 is currently broken.
+      <command>sh ../js/src/configure.in</command> command).  If you are
+      building on a 32-bit system, also see below.
     </para>
 
+    <para>
+      <option><envar>CXXFLAGS="-msse2 -mfpmath=sse"</envar></option>:
+      Use SSE2 instead of 387 for double-precision floating-point
+      operations.  It's needed by GCC to satisify the expectations of
+      upstream (Mozilla) developers with floating-point arithmatics.
+      Use it if you are building this package on a 32-bit system with
+      GCC (if Clang is not installed or GCC is explicitly specified).
+      Note that this will cause JS to crash on a processor without SSE2
+      capability.  If you are running the system on such an old processor,
+      Clang is strictly needed.  This setting is not needed on 64-bit
+      systems because all 64-bit x86 processors support SSE2 and the 64-bit
+      compilers (both Clang and GCC) use SSE2 by default.
+    </para>
   </sect2>
 
   <sect2 role="content">
