@@ -6,16 +6,16 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.xz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "7b8d77e094cf003ed9500c961b282343">
-  <!ENTITY rust-size          "130 MB">
+  <!ENTITY rust-md5sum        "e77ac3a786d013604061b17f99dd9b27">
+  <!ENTITY rust-size          "131 MB">
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
        to measure it, or du -sm to look at the size of the build tree before and
        after the tests. -->
 
-  <!ENTITY rust-buildsize     "8.8 GB (472 MB installed) including 266 MB of ~/.cargo files for the user building this. Add 6.9 GB including extra 243 MB of ~/.cargo files if running the tests">
-  <!ENTITY rust-time          "20 SBU (including download time; add 13 SBU for tests, both on a 4-core machine)">
+  <!ENTITY rust-buildsize     "10 GB (516 MB installed) including 266 MB of ~/.cargo files for the user building this. Add 6.2 GB including extra 243 MB of ~/.cargo files if running the tests">
+  <!ENTITY rust-time          "15 SBU (including download time; add 7 SBU for tests, both on a 4-core machine)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -33,32 +33,6 @@
 
   <sect2 role="package">
     <title>Introduction to Rust</title>
-
-    <note>
-      <para>
-        Currently Rust compiler produces SSE2 instructions for 32-bit x86,
-        causing the generated code broken on 32-bit systems without a
-        SSE2-capable processor.  All x86 processor models released after
-        2004 should be SSE2-capable.  Run
-        <command>lscpu | grep sse2</command> as a test.  If it outputs
-        anything, your CPU is SSE2-capable and OK.  Otherwise you may try
-        to build this package <emphasis>on a SSE2-capable system</emphasis>
-        with the following fix applied:
-      </para>
-
-      <!-- computeroutput used deliberately to stop anyone from copying
-           blindly -->
-<screen role="nodump"><computeroutput>sed 's@pentium4@pentiumpro@' -i \
-    compiler/rustc_target/src/spec/i686_unknown_linux_gnu.rs</computeroutput></screen>
-
-      <para>
-        And copy the resulted
-        <filename class="directory">/opt/rustc-&rust-version;</filename>
-        to the system without SSE2 capability. But this change is still
-        under upstream review and not tested by BLFS editors.
-      </para>
-    </note>
-
     <para>
       The <application>Rust</application> programming language is designed
       to be a safe, concurrent, practical language.
@@ -251,6 +225,31 @@
   <sect2 role="installation">
     <title>Installation of Rust</title>
 
+    <note>
+      <para>
+        Currently Rust compiler produces SSE2 instructions for 32-bit x86,
+        causing the generated code broken on 32-bit systems without a
+        SSE2-capable processor.  All x86 processor models released after
+        2004 should be SSE2-capable.  Run
+        <command>lscpu | grep sse2</command> as a test.  If it outputs
+        anything, your CPU is SSE2-capable and OK.  Otherwise you may try
+        to build this package <emphasis>on a SSE2-capable system</emphasis>
+        with the following fix applied:
+      </para>
+
+      <!-- computeroutput used deliberately to stop anyone from copying
+           blindly -->
+<screen role="nodump"><computeroutput>sed 's@pentium4@pentiumpro@' -i \
+    compiler/rustc_target/src/spec/i686_unknown_linux_gnu.rs</computeroutput></screen>
+
+      <para>
+        And copy the resulting
+        <filename class="directory">/opt/rustc-&rust-version;</filename>
+        to the system without SSE2 capability. But this change is still
+        under upstream review and not tested by BLFS editors.
+      </para>
+    </note>
+
     <para>
       To install into the
       <filename class="directory">/opt</filename> directory, remove the symlink
@@ -357,10 +356,12 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     </para>
 
     <para>
-      At a minimum, 44 tests will fail: all 43 of the tests in
+      At a minimum, 51 tests will fail: all 46 of the tests in
       the <quote>assembly</quote> suite which are not skipped (various lints
       cause the warnings in these tests to be treated as errors), and
-      run-make-fulldeps/long-linker-command-lines.
+      5 other tests, 4 of which involve the
+      <filename>rustdoc-ui/issue-98690.rs</filename> file, and another one,
+      <filename>run-make-fulldeps/long-linker-command-lines</filename>.
 <!--  If <command>gdb</command> is installed,  another failure
       (debuginfo/function-names.rs) can be expected.
       # seems ok with 11.2 ken -->
@@ -497,7 +498,8 @@ cp -a install/* /</userinput></screen>
       now got compiled during the install, but it was broken in that version.
       <!-- might be unbroken in 1.36.0, if so remove broken from description
        of miri below. https://github.com/rust-lang/rust/issues/61830 -->
-      Omitting it should save a little time.
+      Omitting it should save a little time. Even if this switch is
+      not given, miri is not installed.
     </para>
 
     <para>
@@ -603,9 +605,8 @@ EOF</userinput></screen>
       <seglistitem>
         <seg>
           cargo-clippy, cargo-fmt, cargo-miri (optional), cargo, clippy-driver,
-          miri (optional),
-          rls, rust-demangler, rust-gdb, rust-gdbgui, rust-lldb, rustc,
-          rustdoc, and rustfmt
+          miri (optional), rls, rust-analyzer, rust-demangler, rust-gdb,
+          rust-gdbgui, rust-lldb, rustc, rustdoc, and rustfmt
         </seg>
         <seg>
           librustc-driver-&lt;16-byte-hash&gt;.so,
@@ -654,9 +655,8 @@ EOF</userinput></screen>
         <term><command>cargo-miri</command></term>
         <listitem>
           <para>
-            <!-- FIXME reword to 'is used by' if Miri installed
-             AND works enough to report its \-\-help -->
-            is for use by Miri to interpret bin crates and tests
+            is for use by Miri to interpret bin crates and tests. It is
+            not installed by default.
           </para>
           <indexterm zone="rust cargo-miri">
             <primary sortas="b-cargo-miri">cargo-miri</primary>
@@ -693,7 +693,7 @@ EOF</userinput></screen>
         <listitem>
           <para>
             is an interpreter for Rust's mid-level intermediate representation
-            (MIR). It is broken in this version
+            (MIR). It is not installed by default.
           </para>
           <indexterm zone="rust miri">
             <primary sortas="b-miri">miri</primary>
@@ -724,6 +724,19 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="rust rust-analyzer">
             <primary sortas="b-rust-analyzer">rust-analyzer</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="rust-demangler">
+        <term><command>rust-demangler</command></term>
+        <listitem>
+          <para>
+            converts a list of Rust mangled symbols into a
+            corresponding list of demangled symbols
+          </para>
+          <indexterm zone="rust rust-demangler">
+            <primary sortas="b-rust-demangler">rust-demangler</primary>
           </indexterm>
         </listitem>
       </varlistentry>
