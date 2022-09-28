@@ -8,18 +8,24 @@
 
   <!ENTITY llvm-download-http "&llvm-url;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "80072c6a4be8b9adb60c6aac01f577db">
-  <!ENTITY llvm-size          "47 MB">
-  <!ENTITY llvm-buildsize     "3.1 GB (824 MB installed, with documentation, add 20 GB for tests)">
-  <!ENTITY llvm-time          "33 SBU (on 4 CPU cores, with documentation, add 18 SBU for tests)">
+  <!ENTITY llvm-md5sum        "f517bb2708fe68907bd48642c4fac5fe">
+  <!ENTITY llvm-size          "51 MB">
+  <!ENTITY llvm-buildsize     "3.8 GB (922 MB installed, with documentation, add 18.3 GB for tests)">
+  <!ENTITY llvm-time          "20 SBU (on 4 CPU cores, with documentation, add 14 SBU for tests)">
 
   <!ENTITY clang-download-http "&llvm-url;/clang-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "c469d3dc25c743a1e7f17cc6dc32ca62">
+  <!ENTITY clang-md5sum        "abb7f1286b084b7c149fd83c7b1d8564">
   <!ENTITY clang-size          "18 MB">
 
   <!ENTITY compiler-rt-download-http "&llvm-url;/compiler-rt-&llvm-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "4fe314438ea54811f9a02d9e4f90e4dd">
-  <!ENTITY compiler-rt-size          "2.3 MB">
+  <!ENTITY compiler-rt-md5sum        "6dd59ad1f511915e4d70872c91014ddc">
+  <!ENTITY compiler-rt-size          "2.2 MB">
+
+  <!ENTITY cmake-llvm-download-http "&sources-anduin-http;/llvm/llvm-cmake-&llvm-version;.src.tar.xz">
+<!--  <!ENTITY cmake-llvm-download-http "&llvm-url;/cmake-&llvm-version;.src.tar.xz">
+      Renamed cmake-15.0.1.src.tar.xz and placed on anduin.-->
+  <!ENTITY cmake-llvm-md5sum        "8b768b6128baf4e6797ae54a10bc0ed2">
+  <!ENTITY cmake-llvm-size          "6.8 KB">
 ]>
 
 <sect1 id="llvm" xreflabel="LLVM-&llvm-version;">
@@ -98,6 +104,26 @@
       </listitem>
     </itemizedlist>
 
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+      <bridgehead role="required" renderas="sect4">Cmake modules for LLVM</bridgehead>
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>
+            Download: <ulink url="&cmake-llvm-download-http;"/>
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Download MD5 sum: &cmake-llvm-md5sum;
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Download size: &cmake-llvm-size;
+          </para>
+        </listitem>
+      </itemizedlist>
+
     <bridgehead renderas="sect3">Recommended Download</bridgehead>
       <bridgehead role="recommended" renderas="sect4">Clang</bridgehead>
       <itemizedlist spacing="compact">
@@ -137,7 +163,7 @@
           </para>
         </listitem>
       </itemizedlist>
-
+      <!-- not needed for 15.0.1
       <itemizedlist spacing="compact">
         <listitem>
           <para>
@@ -147,7 +173,7 @@
           </para>
         </listitem>
       </itemizedlist>
-
+      -->
       <itemizedlist spacing="compact">
         <listitem>
           <para>
@@ -177,9 +203,10 @@
       <xref linkend="PyYAML"/>, <!-- for yaml2obj -->
       <xref linkend="zip"/>,
       <ulink url="https://ocaml.org/">OCaml</ulink>,
-      <ulink url="https://pypi.org/project/psutil/">psutil</ulink>,
-      <ulink url="https://pypi.python.org/pypi/recommonmark">recommonmark</ulink>,
-      <ulink url="https://pypi.python.org/pypi/Sphinx">Sphinx</ulink>, and
+      <ulink url="https://pypi.org/project/psutil/">psutil</ulink> (for tests),
+      <ulink url="https://pypi.python.org/pypi/recommonmark">recommonmark</ulink>
+      and <ulink url="https://pypi.python.org/pypi/Sphinx">Sphinx</ulink>
+      (for building the documentation), and
       <ulink url="https://github.com/Z3Prover/z3">Z3</ulink>
     </para>
 
@@ -193,14 +220,17 @@
 
     <note>
       <para>
-        Starting with version 14.0.0, the tarball extracts to two directories:
-        <filename class="directory">llvm-&lt;version&gt;-src</filename>
-        and <filename class="directory">cmake</filename>. This does not change
-        the instructions below; they should be run after changing to
-        the <filename class="directory">llvm-&lt;version&gt;-src</filename>
-        directory, and both directories should be removed after finishing the
-        build.
+        Starting with version 15.0.0, an additional tarball
+        <filename>llvm-cmake-&llvm-version;.src.tar.xz</filename>
+        needs to be extracted at the same level as the
+        <filename>llvm-&llvm-version;.src.tar.xz</filename> tarball,
+        and the extracted directory needs to be renamed to
+        <filename class="directory">cmake</filename>.
       </para>
+
+<screen><userinput>tar xf ../llvm-cmake-&llvm-version;.src.tar.xz &amp;&amp;
+mv cmake-&llvm-version;.src ../cmake</userinput></screen>
+
     </note>
 
     <para>
@@ -227,15 +257,13 @@ mv projects/compiler-rt-&llvm-version;.src projects/compiler-rt</userinput></scr
     </para>
 
 <screen><userinput>grep -rl '#!.*python' | xargs sed -i '1s/python$/python3/'</userinput></screen>
-
+<!--
     <para>
       If you have downloaded <application>compiler-rt</application>,
       fix building it with glibc-2.36 by using the following command:
     </para>
-<!-- need <../<patch> instead of -i because -d changes directory
-     before applying -i -->
 <screen><userinput remap="pre">patch -Np2 -d projects/compiler-rt &lt;../compiler-rt-14.0.6-glibc_2_36-1.patch</userinput></screen>
-
+-->
     <para>
       If you have downloaded <application>clang</application>,
       apply the following patch to enable <xref linkend="gSSP"/> by default
@@ -300,9 +328,17 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
       temporarily unusable by all jobs on the machine.)
       <!--Note that 2 of more than 62090 tests (llvm-libtool-darwin/L-and-l.test
       and ThreadSanitizer-x86_64) are known to fail.-->
-      Note that three tests, <filename>extendhfsf2_test.c</filename>,
+      <!--Note that three tests, <filename>extendhfsf2_test.c</filename>,
       <filename>truncdfhf2_test.c</filename>, and
-      <filename>truncsfhf2_test.c</filename> are known to fail.
+      <filename>truncsfhf2_test.c</filename> are known to fail.-->
+      <!-- 15.0.1: -->
+      Note that six tests out of more than 64,700 are known to fail:
+      <filename>AddressSanitizer-x86_64-linux :: TestCases/log-path_test.cpp</filename>,
+      <filename>AddressSanitizer-x86_64-linux-dynamic :: TestCases/log-path_test.cpp</filename>,
+      <filename>DataFlowSanitizer-x86_64 :: custom.cpp</filename>,
+      <filename>DataFlowSanitizer-x86_64 :: origin_unaligned_memtrans.c</filename>,
+      <filename>MemProfiler-x86_64-linux :: TestCases/log_path_test.cpp</filename>, and
+      <filename>MemProfiler-x86_64-linux-dynamic :: TestCases/log_path_test.cpp</filename>.
     </para>
 
     <para>
@@ -321,9 +357,9 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
     </para>
 
 <screen role="root"
-        remap="doc"><userinput>install -v -d -m755 /usr/share/doc/llvm-&llvm-version;                        &amp;&amp;
-mv -v /usr/share/doc/llvm/html /usr/share/doc/llvm-&llvm-version;/llvm-html   &amp;&amp;
-rmdir -v /usr/share/doc/llvm</userinput></screen>
+        remap="doc"><userinput>install -v -d -m755 /usr/share/doc/llvm-&llvm-version;            &amp;&amp;
+mv -v /usr/share/doc/LLVM/llvm /usr/share/doc/llvm-&llvm-version; &amp;&amp;
+rmdir -v --ignore-fail-on-non-empty /usr/share/doc/LLVM</userinput></screen>
 
     <para>
       If you have built the clang documentation, it has been installed, but
@@ -332,9 +368,9 @@ rmdir -v /usr/share/doc/llvm</userinput></screen>
     </para>
 
 <screen role="root"
-        remap="doc"><userinput>install -v -d -m755 /usr/share/doc/llvm-&llvm-version;                        &amp;&amp;
-mv -v /usr/share/doc/clang/html /usr/share/doc/llvm-&llvm-version;/clang-html &amp;&amp;
-rmdir -v /usr/share/doc/clang</userinput></screen>
+        remap="doc"><userinput>install -v -d -m755 /usr/share/doc/llvm-&llvm-version;             &amp;&amp;
+mv -v /usr/share/doc/LLVM/clang /usr/share/doc/llvm-&llvm-version; &amp;&amp;
+rmdir -v --ignore-fail-on-non-empty /usr/share/doc/LLVM</userinput></screen>
 
   </sect2>
 
@@ -374,8 +410,8 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
       <parameter>-DLLVM_LINK_LLVM_DYLIB=ON</parameter>: Used in conjunction with
       <parameter>-DLLVM_BUILD_LLVM_DYLIB=ON</parameter>, this switch enables
       linking the tools against the shared library instead of the static ones.
-      It also slightly reduces their size and also ensures that llvm-config
-      will correctly use libLLVM-&llvm-majmin-version;.so.
+      It slightly reduces their size and also ensures that llvm-config
+      will correctly use libLLVM-&llvm-maj-version;.so.
     </para>
 
     <para>
@@ -437,16 +473,19 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
           bugpoint, c-index-test, clang, clang++ (symlinks to
           clang-&lt;version&gt;), clang-&lt;version&gt;, clang-check, clang-cl,
           clang-cpp (last two symlinks to clang), clang-extdef-mapping, clang-format,
-          clang-offload-bundler, clang-offload-wrapper,
+          clang-linker-wrapper, clang-nvlink-wrapper,
+          clang-offload-bundler, clang-offload-packager, clang-offload-wrapper,
           clang-refactor, clang-rename, clang-repl, clang-scan-deps,
-          diagtool, dsymutil, git-clang-format, hmaptool, llc, lli,
+          diagtool, dsymutil, git-clang-format, hmaptool, intercept-build, llc, lli,
           llvm-addr2line (symlink to llvm-symbolizer),
           llvm-ar, llvm-as, llvm-bcanalyzer,
           llvm-bitcode-strip (symlink to llvm-objcopy), llvm-cat,
           llvm-cfi-verify, llvm-config, llvm-cov, llvm-c-test, llvm-cvtres,
           llvm-cxxdump, llvm-cxxfilt, llvm-cxxmap,
-          llvm-diff, llvm-dis, llvm-dlltool (symlink to llvm-ar), llvm-dwarfdump,
-          llvm-dwp, llvm-exegenesis, llvm-extract, llvm-gsymutil, llvm-ifs,
+          llvm-debuginfod, llvm-debuginfod-find,
+          llvm-diff, llvm-dis, llvm-dlltool (symlink to llvm-ar),
+          llvm-dwarfdump, llvm-dwarfutil,
+          llvm-dwp, llvm-exegesis, llvm-extract, llvm-gsymutil, llvm-ifs,
           llvm-install-name-tool (symlink to llvm-objcopy), llvm-jitlink,
           llvm-lib (symlink to llvm-ar), llvm-libtool-darwin, llvm-link,
           llvm-lipo, llvm-lto, llvm-lto2, llvm-mc, llvm-mca, llvm-ml,
@@ -455,20 +494,21 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
           llvm-pdbutil, llvm-profdata, llvm-profgen,
           llvm-ranlib (symlink to llvm-ar), llvm-rc,
           llvm-readelf (symlink to llvm-readobj), llvm-readobj, llvm-reduce,
+          llvm-remark-size-diff,
           llvm-rtdyld, llvm-sim, llvm-size, llvm-split, llvm-stress,
           llvm-strings, llvm-strip (symlink to llvm-objcopy), llvm-symbolizer,
           llvm-tapi-diff, llvm-tblgen, llvm-undname, llvm-windres (symlink to
-          llvm-rc, llvm-xray, opt, sancov, sanstats, scan-build,
-          scan-view, split-file, and verify-uselistorder
+          llvm-rc), llvm-xray, opt, sancov, sanstats, scan-build,
+          scan-build-py, scan-view, split-file, and verify-uselistorder
         </seg>
         <seg>
           libLLVM.so,
-          libLLVM*.a (89 libraries),
+          libLLVM*.a (96 libraries),
           libLTO.so,
           libRemarks.so,
           libclang.so,
           libclang-cpp.so,
-          libclang*.a (38 libraries),
+          libclang*.a (41 libraries),
           and LLVMgold.so
         </seg>
         <seg>
@@ -561,20 +601,30 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
         </listitem>
       </varlistentry>
 
- <!--
-      <varlistentry id="clang-func-mapping">
-        <term><command>clang-func-mapping</command></term>
+      <varlistentry id="clang-linker-wrapper">
+        <term><command>clang-linker-wrapper</command></term>
         <listitem>
           <para>
-            collects the name and location of all function definitions in the
-            source files.
+            is a wrapper utility over the host linker
           </para>
-          <indexterm zone="llvm clang-func-mapping">
-            <primary sortas="b-clang-func-mapping">clang-func-mapping</primary>
+          <indexterm zone="llvm clang-linker-wrapper">
+            <primary sortas="b-clang-linker-wrapper">clang-linker-wrapper</primary>
           </indexterm>
         </listitem>
       </varlistentry>
--->
+
+      <varlistentry id="clang-nvlink-wrapper">
+        <term><command>clang-nvlink-wrapper</command></term>
+        <listitem>
+          <para>
+            is a wrapper tool over the nvlink program
+          </para>
+          <indexterm zone="llvm clang-nvlink-wrapper">
+            <primary sortas="b-clang-nvlink-wrapper">clang-nvlink-wrapper</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="clang-offload-bundler">
         <term><command>clang-offload-bundler</command></term>
         <listitem>
@@ -584,6 +634,20 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
           </para>
           <indexterm zone="llvm clang-offload-bundler">
             <primary sortas="b-clang-offload-bundler">clang-offload-bundler</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="clang-offload-packager">
+        <term><command>clang-offload-packager</command></term>
+        <listitem>
+          <para>
+            is a tool to bundle several object files into a single binary,
+            which can then be used to create a fatbinary containing offloading
+            code
+          </para>
+          <indexterm zone="llvm clang-offload-packager">
+            <primary sortas="b-clang-offload-packager">clang-offload-packager</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -882,6 +946,32 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-debuginfod">
+        <term><command>llvm-debuginfod</command></term>
+        <listitem>
+          <para>
+            is a service providing debug information over an HTTP API for
+            analyzing stripped binaries
+          </para>
+          <indexterm zone="llvm llvm-debuginfod">
+            <primary sortas="b-llvm-debuginfod">llvm-debuginfod</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-debuginfod-find">
+        <term><command>llvm-debuginfod-find</command></term>
+        <listitem>
+          <para>
+            is an interface to the <command>llvm-debuginfod</command> daemon
+            for finding debuginfod artifacts
+          </para>
+          <indexterm zone="llvm llvm-debuginfod-find">
+            <primary sortas="b-llvm-debuginfod-find">llvm-debuginfod-find</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-diff">
         <term><command>llvm-diff</command></term>
         <listitem>
@@ -915,6 +1005,18 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
           </para>
           <indexterm zone="llvm llvm-dwarfdump">
             <primary sortas="b-llvm-dwarfdump">llvm-dwarfdump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="llvm-dwarfutil">
+        <term><command>llvm-dwarfutil</command></term>
+        <listitem>
+          <para>
+            is a tool to copy and manipulate debug info
+          </para>
+          <indexterm zone="llvm llvm-dwarfutil">
+            <primary sortas="b-llvm-dwarfutil">llvm-dwarfutil</primary>
           </indexterm>
         </listitem>
       </varlistentry>
@@ -1295,6 +1397,19 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="llvm-remark-size-diff">
+        <term><command>llvm-remark-size-diff</command></term>
+        <listitem>
+          <para>
+            reports the difference in instruction count and stack size
+            remarks between two remark files
+          </para>
+          <indexterm zone="llvm llvm-remark-size-diff">
+            <primary sortas="b-llvm-remark-size-diff">llvm-remark-size-diff</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="llvm-rtdyld">
         <term><command>llvm-rtdyld</command></term>
         <listitem>
@@ -1406,20 +1521,18 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
         </listitem>
       </varlistentry>
 
-<!--
-      <varlistentry id="obj2yaml">
-        <term><command>obj2yaml</command></term>
+      <varlistentry id="intercept-build">
+        <term><command>intercept-build</command></term>
         <listitem>
           <para>
-            takes an object file, and produces a YAML representation of the
-            file
+            generates a database of build commands for a project
           </para>
-          <indexterm zone="llvm obj2yaml">
-            <primary sortas="b-obj2yaml">obj2yaml</primary>
+          <indexterm zone="llvm intercept-build">
+            <primary sortas="b-intercept-build">intercept-build</primary>
           </indexterm>
         </listitem>
       </varlistentry>
--->
+
 
       <varlistentry id="opt">
         <term><command>opt</command></term>
@@ -1466,6 +1579,19 @@ rmdir -v /usr/share/doc/clang</userinput></screen>
           </para>
           <indexterm zone="llvm scan-build">
             <primary sortas="b-scan-build">scan-build</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="scan-build-py">
+        <term><command>scan-build-py</command></term>
+        <listitem>
+          <para>
+            is a <application>Python</application> script that invokes the
+            <application>Clang</application> static analyzer
+          </para>
+          <indexterm zone="llvm scan-build-py">
+            <primary sortas="b-scan-build-py">scan-build-py</primary>
           </indexterm>
         </listitem>
       </varlistentry>
