@@ -4,30 +4,29 @@
   <!ENTITY % general-entities SYSTEM "../../../general.ent">
   %general-entities;
 
-  <!ENTITY pytz-download-http "https://github.com/pypa/pytz/releases/download/&pytz-version;/pytz-&pytz-version;.tar.gz">
+  <!ENTITY pytz-download-http "https://github.com/stub42/pytz/archive/refs/tags/release_&pytz-version;/pytz-&pytz-version;.tar.gz">
   <!ENTITY pytz-download-ftp  " ">
-  <!ENTITY pytz-md5sum        "e713c1939f294fd729af4a7be40dd141">
-  <!ENTITY pytz-size          "83 KB">
+  <!ENTITY pytz-md5sum        "855307f8455430a3375946970a2177cc">
+  <!ENTITY pytz-size          "606 KB">
   <!ENTITY pytz-buildsize     "2.6 MB">
   <!ENTITY pytz-time          "less than 0.1 SBU">
 ]>
 
   <sect2 id="pytz" xreflabel="pytz-&pytz-version;">
 
-    <title>Packaging-&pytz-version;</title>
+    <title>Pytz-&pytz-version;</title>
 
     <indexterm zone="pytz">
       <primary sortas="a-pytz">pytz</primary>
     </indexterm>
 
     <sect3 role="package">
-      <title>Introduction to Packaging Module</title>
+      <title>Introduction to Pytz Module</title>
 
       <para>
-        The <application>Packaging</application> library provides utilities
-        that implement the interoperability specifications which have clearly
-        one correct behaviour or benefit greatly from having a single shared
-        implementation.
+        The <application>Pytz</application> library brings the IANA tz database
+        into Python. It allows acuurate and cross-platform timezone
+        calculations.
       </para>
 
       &lfs112_checked;
@@ -66,29 +65,54 @@
         </listitem>
       </itemizedlist>
 
-      <bridgehead renderas="sect4">Packaging Dependencies</bridgehead>
+      <bridgehead renderas="sect4">Pytz dependencies</bridgehead>
 
-      <bridgehead renderas="sect5">Required</bridgehead>
-      <para role="optional">
-        <xref linkend="pyparsing"/>
+      <bridgehead renderas="sect5">Recommended</bridgehead>
+      <para role="recommended">
+        <xref linkend="rsync"/> (used in the build instructions)
       </para>
 
     </sect3>
 
     <sect3 role="installation">
-      <title>Installation of Packaging</title>
+      <title>Installation of Pytz</title>
 
-    <para> Build the module: </para>
+      <para>
+        Before building the python wheel, the timezone database has to
+        be compiled:
+      </para>
 
-<screen><userinput>pip3 wheel -w dist --no-build-isolation --no-deps $PWD</userinput></screen>
+<screen><userinput>make -C tz               \
+     ZFLAGS='-b fat'     \
+     PACKRATDATA=        \
+     TOPDIR=$(pwd)/build \
+     USRDIR=             \
+     USRSHAREDIR=etc     \
+     install             &amp;&amp;
 
-    <para>
-      This package does not come with a test suite.
-    </para>
+for d in zoneinfo zoneinfo-leaps zoneinfo-posix; do       \
+    rsync -a $(pwd)/build/etc/$d/ $(pwd)/build/etc/$d.tmp &amp;&amp;
+    rm -rf $(pwd)/build/etc/$d                            &amp;&amp;
+    mv $(pwd)/build/etc/$d.tmp $(pwd)/build/etc/$d
+done &amp;&amp;
 
-    <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
-    </para>
+python3 gen_tzinfo.py &amp;&amp;
+cp -a build/etc/zoneinfo build/dist/pytz/zoneinfo</userinput></screen>
+    
+      <para>
+        Build the module:
+      </para>
+
+<screen><userinput>cd build/dist &amp;&amp;
+pip3 wheel -w dist --no-build-isolation --no-deps $PWD</userinput></screen>
+
+      <para>
+        This package does not come with a test suite.
+      </para>
+
+      <para>
+        Now, as the <systemitem class="username">root</systemitem> user:
+      </para>
 
 <screen role="root"><userinput>pip3 install --no-index --find-links dist --no-cache-dir --no-user pytz</userinput></screen>
 
