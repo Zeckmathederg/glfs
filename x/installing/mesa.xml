@@ -6,10 +6,10 @@
 
   <!ENTITY mesa-download-http "https://mesa.freedesktop.org/archive/mesa-&mesa-version;.tar.xz">
   <!ENTITY mesa-download-ftp  "ftp://ftp.freedesktop.org/pub/mesa/mesa-&mesa-version;.tar.xz">
-  <!ENTITY mesa-md5sum        "731cdd53d5f9dd695aae1b3a37081d5f">
+  <!ENTITY mesa-md5sum        "5ff97bb6bf82af6f81b41ff9dacbcc0a">
   <!ENTITY mesa-size          "16 MB">
-  <!ENTITY mesa-buildsize     "366 MB (with docs, add 325 MB for tests)">
-  <!ENTITY mesa-time          "2.2 SBU (Using parallelism=4; with docs, add 0.5 SBU for tests)">
+  <!ENTITY mesa-buildsize     "462 MB (with docs, add 230 MB for tests)">
+  <!ENTITY mesa-time          "2.4 SBU (Using parallelism=4; with docs, add 0.5 SBU for tests)">
 ]>
 
 <sect1 id="mesa" xreflabel="Mesa-&mesa-version;">
@@ -249,11 +249,10 @@ meson --prefix=$XORG_PREFIX   \
       -Dplatforms=x11,wayland \
       -Dgallium-drivers=auto  \
       -Dvulkan-drivers=""     \
-      -Dglx=dri               \
       -Dvalgrind=disabled     \
       -Dlibunwind=disabled    \
       ..                      &amp;&amp;
-
+<!-- Removed for 22.2.1: seems to be the default  -Dglx=dri      \ -->
 ninja</userinput></screen>
 
     <para>
@@ -300,17 +299,11 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
       severely slow down the libraries in certain use-cases. Without this
       switch, build sizes can span into the 2GB range.
     </para>
-<!--
-    <para>
-      <parameter>-Ddri-drivers="..."</parameter>: This parameter
-      controls which (non-gallium) dri drivers should be built.
-    </para>
--->
+
     <para>
       <parameter>-Dgallium-drivers="..."</parameter>: This parameter
       controls which Gallium3D drivers should be built.
     </para>
-
 <!--
     <para>
       <parameter>-Dosmesa=true</parameter>: This switch enables building
@@ -326,9 +319,11 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
 
     <para>
-      <parameter>-Degl-native-platform="..."</parameter>: This parameter
-      controls which Embedded Graphics Library support will be built. Available
-      linux options are auto (default), x11, wayland, surfaceless, and drm.
+      <parameter>-Dvulkan-drivers=""</parameter>: This switch allows choosing
+      which Vulkan drivers are built. The default is auto, but this requires
+      the optional dependency <filename>glslang</filename>. So it is better
+      to pass an empty list, in order to remove the need for that
+      dependency.  Nothing in BLFS uses Vulkan anyway.
     </para>
 
     <para>
@@ -348,11 +343,9 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
 
     <para>
-      <option>-Dvulkan-drivers=...</option>: This switch allows choosing which
-      Vulkan drivers are built. Since BLFS does not use
-      Vulkan, it is safe to leave the list of Vulkan drivers empty. The default
-      is auto. Note that you must have the optional dependency
-      <filename>glslang</filename> installed in order to enable Vulkan drivers.
+      <option>-Degl-native-platform="..."</option>: This parameter
+      controls which Embedded Graphics Library support will be built. Available
+      linux options are auto (default), x11, wayland, surfaceless, and drm.
     </para>
 
   </sect2>
@@ -379,12 +372,13 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           libXvMCr600.so,
           libgbm.so,
           libglapi.so,
-          <!-- Begin Vulkan drivers -->
+          <!-- No Vulkan driver anymore
           libvulkan_intel.so,
           libvulkan_lvp.so,
-          libvulkan_radeon.so, and
-          <!-- End Vulkan drivers -->
-          libxatracker.so
+          libvulkan_radeon.so,-->
+          libxatracker.so,
+          libXvMCnouveau.so, and
+          libXvMCr600.so
         </seg>
         <seg>
           <!-- Begin gallium DRI drivers : this is the full set -->
@@ -416,11 +410,12 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           (Many of these drivers are hard-linked).
         </seg>
         <seg>
-          $XORG_PREFIX/{include/{EGL,GL,GLES,GLES2,GLES3,KHR},
+          <!-- $XORG_PREFIX/include/GL is installed by xorg-protos -->
+          $XORG_PREFIX/{include/{EGL,GLES,GLES2,GLES3,KHR},
           $XORG_PREFIX/lib/{dri,vdpau}},
           $XORG_PREFIX/share/drirc.d (contains workarounds for various applications,
           particularly browsers and games),
-          $XORG_PREFIX/share/vulkan,
+          <!--          $XORG_PREFIX/share/vulkan, -->
           and
           /usr/share/doc/mesa-&mesa-version;
         </seg>
