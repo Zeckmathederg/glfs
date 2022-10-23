@@ -37,8 +37,8 @@
 
     <para>
       The <application>Linux PAM</application> package contains
-      Pluggable Authentication Modules used to enable the local
-      system administrator to choose how applications authenticate
+      Pluggable Authentication Modules used by the local
+      system administrator to control how application programs authenticate
       users.
     </para>
 
@@ -123,14 +123,15 @@
       <para role="required">
         <xref role="runtime" linkend="shadow"/>
         <phrase revision="systemd"> and <xref role="runtime" linkend="systemd"/>
-        need</phrase><phrase revision="sysv">needs</phrase> to be reinstalled
+        must</phrase><phrase revision="sysv">must</phrase> be reinstalled
+        and reconfigured
         after installing and configuring <application>Linux PAM</application>.
       </para>
 
       <para role="recommended">
          With Linux-PAM-1.4.0 and higher, the pam_cracklib module is not
-         installed by default. To enforce strong passwords, it is recommended
-         to use <xref role="runtime" linkend="libpwquality"/>.
+         installed by default. Use <xref role="runtime" linkend="libpwquality"/>
+         to enforce strong passwords.
       </para>
     </note>
 
@@ -143,7 +144,7 @@
     <title>Installation of Linux PAM</title>
 
     <para revision="sysv">
-      First prevent the installation of an unneeded systemd file:
+      First, prevent the installation of an unneeded systemd file:
     </para>
 
 <screen revision="sysv"><userinput>sed -e /service_DATA/d \
@@ -158,8 +159,8 @@ autoreconf</userinput></screen>
 <screen><userinput>tar -xf ../Linux-PAM-&linux-pam-docs-version;-docs.tar.xz --strip-components=1</userinput></screen>
 
     <para>
-      If you instead want to regenerate the documentation, fix the
-      <command>configure</command> script so that it detects lynx if installed:
+      If you want to regenerate the documentation yourself, fix the
+      <command>configure</command> script so it will detect lynx:
     </para>
 
 <screen><userinput>sed -e 's/dummy elinks/dummy lynx/'                                    \
@@ -167,7 +168,7 @@ autoreconf</userinput></screen>
     -i configure</userinput></screen>
 
     <para>
-      Install <application>Linux PAM</application> by
+      Compile and link <application>Linux PAM</application> by
       running the following commands:
     </para>
 
@@ -185,27 +186,27 @@ make</userinput></screen>
     </para>
 
     <caution>
-      <title>Reinstallation or upgrade of Linux PAM</title>
+      <title>Reinstallation or Upgrade of Linux PAM</title>
       <para>
         If you have a system with Linux PAM installed and working, be careful
         when modifying the files in
         <filename class="directory">/etc/pam.d</filename>, since your system
         may become totally unusable. If you want to run the tests, you do not
         need to create another <filename>/etc/pam.d/other</filename> file. The
-        installed one can be used for that purpose.
+        existing file can be used for the tests.
       </para>
 
       <para>
          You should also be aware that <command>make install</command>
          overwrites the configuration files in
          <filename class="directory">/etc/security</filename> as well as
-         <filename>/etc/environment</filename>. In case you
+         <filename>/etc/environment</filename>. If you
          have modified those files, be sure to back them up.
       </para>
     </caution>
 
     <para>
-      For a first installation, create the configuration file by issuing the
+      For a first-time installation, create a configuration file by issuing the
       following commands as the <systemitem class="username">root</systemitem>
       user:
     </para>
@@ -221,13 +222,13 @@ EOF</userinput></screen>
 
     <para>
       Now run the tests by issuing <command>make check</command>.
-      Ensure there are no errors produced by the tests before continuing the
-      installation. Note that the checks are quite long.  It may be useful to
-      redirect the output to a log file in order to inspect it thoroughly.
+      Be sure the tests produced no errors before continuing the
+      installation. Note that the tests are very long.
+      Redirect the output to a log file, so you can inspect it thoroughly.
     </para>
 
     <para>
-      Only in case of a first installation, remove the configuration file
+      For a first-time installation, remove the configuration file
       created earlier by issuing the following command as the
       <systemitem class="username">root</systemitem> user:
     </para>
@@ -258,7 +259,7 @@ chmod -v 4755 /usr/sbin/unix_chkpwd</userinput></screen>
       (<xref linkend="DocBook"/>, <xref linkend="docbook-xsl"/>, <xref
       linkend="libxslt"/>, and <xref linkend="lynx"/> or <ulink
       url="&w3m-url;">W3m</ulink>) are installed, the manual pages, and the
-      html and text documentations are (re)generated and installed.
+      html and text documentation files, are generated and installed.
       Furthermore, if <xref linkend="fop"/> is installed, the PDF
       documentation is generated and installed. Use this switch if you do not
       want to rebuild the documentation.
@@ -266,8 +267,8 @@ chmod -v 4755 /usr/sbin/unix_chkpwd</userinput></screen>
 
     <para>
       <command>chmod -v 4755 /usr/sbin/unix_chkpwd</command>:
-      The <command>unix_chkpwd</command> helper program must be setuid
-      so that non-<systemitem class="username">root</systemitem>
+      The setuid bit for the <command>unix_chkpwd</command> helper program must be 
+      turned on, so that non-<systemitem class="username">root</systemitem>
       processes can access the shadow file.
     </para>
 
@@ -277,7 +278,7 @@ chmod -v 4755 /usr/sbin/unix_chkpwd</userinput></screen>
     <title>Configuring Linux-PAM</title>
 
     <sect3 id="pam-config">
-      <title>Config Files</title>
+      <title>Configuration Files</title>
 
       <para>
         <filename>/etc/security/*</filename> and
@@ -300,7 +301,7 @@ chmod -v 4755 /usr/sbin/unix_chkpwd</userinput></screen>
       <para>
         Configuration information is placed in
         <filename class="directory">/etc/pam.d/</filename>.
-        Below is an example file:
+        Here is a sample file:
       </para>
 
 <screen><literal># Begin /etc/pam.d/other
@@ -313,7 +314,7 @@ password        required        pam_unix.so     nullok
 # End /etc/pam.d/other</literal></screen>
 
       <para>
-        Now set up some generic files.  As the
+        Now create some generic configuration files.  As the
         <systemitem class="username">root</systemitem> user:
       </para>
 
@@ -355,12 +356,12 @@ EOF
      <para>
        If you wish to enable strong password support, install
        <xref linkend="libpwquality"/>, and follow the
-       instructions in that page to configure the pam_pwquality
+       instructions on that page to configure the pam_pwquality
        PAM module with strong password support.
      </para>
 
 <!-- With the removal of the pam_cracklib module, we're supposed to be using
-     libpwquality. That already includes instructions in it's configuration
+     libpwquality. That already includes instructions in its configuration
      information page, so we'll use those instead.
 
      Linux-PAM must be installed prior to libpwquality so that PAM support
@@ -416,10 +417,10 @@ password  required    pam_unix.so       sha512 shadow try_first_pass
 EOF</userinput></screen>
 -->
       <para>
-        Now add a restrictive <filename>/etc/pam.d/other</filename>
+        Next, add a restrictive <filename>/etc/pam.d/other</filename>
         configuration file.  With this file, programs that are PAM aware will
         not run unless a configuration file specifically for that application
-        is created.
+        exists.
       </para>
 
 <screen role="root"><userinput>cat &gt; /etc/pam.d/other &lt;&lt; "EOF"
@@ -439,13 +440,14 @@ EOF</userinput></screen>
 
       <para>
         The <application>PAM</application> man page (<command>man
-        pam</command>) provides a good starting point for descriptions
-        of fields and allowable entries.
-        <!-- not accessible 2022-09-08
+        pam</command>) provides a good starting point to learn
+        about the several fields, and allowable entries.
+        <!-- not accessible 2022-09-08 -->
+        <!-- it's available at a different address 2022-10-23-->
         The
-        <ulink url="http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html">
+        <ulink url="https://www.docs4dev.com/docs/en/linux-pam/1.1.2/reference/Linux-PAM_SAG.html">
           Linux-PAM System Administrators' Guide
-        </ulink> is recommended for additional information.-->
+        </ulink> is recommended for additional information.
       </para>
 
       <important>
