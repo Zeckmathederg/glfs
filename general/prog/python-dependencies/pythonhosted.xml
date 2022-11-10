@@ -7,8 +7,8 @@
   <!ENTITY pythonhosted-download-http "See Below">
   <!ENTITY pythonhosted-download-ftp  " ">
   <!ENTITY pythonhosted-md5sum        "See Below">
-  <!ENTITY pythonhosted-size          "TBD MB">
-  <!ENTITY pythonhosted-buildsize     "TBD GB (TBD MB installed)">
+  <!ENTITY pythonhosted-size          "14 MB">
+  <!ENTITY pythonhosted-buildsize     "2.2 MB">
   <!ENTITY pythonhosted-time          "TBD SBU)">
 ]>
 
@@ -25,8 +25,9 @@
    <title>Introduction to pythonhosted.org Files</title>
 
   <para>
-    The instructions below build all of the pythonhosted.org packages 
-    by using bash scripts.
+     This section is for user convenience and is optional. 
+     It can be used to fetch and install all the pythonhosted.org module 
+     packages below in two convenient scripts.
   </para>
 
   &lfs112_checked;
@@ -148,7 +149,6 @@ EOF</userinput></screen>
 PYTHONHOSTED=https://files.pythonhosted.org/packages/source
 
 mkdir -p pythonhosted
-rm -f pythonhosted/*.gz
 cd pythonhosted
 
 for package in $(grep -v '^#' ../pythonhosted-files.md5 | awk '{print $2}')
@@ -175,56 +175,64 @@ EOF</literal></userinput></screen>
     <title>Installation of Pythonhosted Modules</title>
 
     <para>
-      Install all of the packages by running the following
-      commands:
+      Set up a script to install all of the packages:
     </para>
 
-    <screen><userinput>for package in $(grep -v '^#' ../pythonhosted-files.md5 | awk '{print $2}')
+    <screen><userinput>cat &gt; install-pythonhosted-files.sh &lt;&lt; "EOF"
+<literal>#! /bin/bash
+
+cd pythonhosted
+
+for package in $(grep -v '^#' ../pythonhosted-files.md5 | awk '{print $2}')
 do
   name=$(echo $package|sed 's/-[[:digit:]].*$//')
 
   # Don't try to install the package if it already installed  
-  installed_version=$(pip3 show $name 2&gt; /dev/null | grep Version: | awk '{print $2}')
-  if [ -n $installed_version ]; then   
-    [ $(echo $package | grep -q $installed_version) ] &amp;&amp; continue
+  installed=$(pip3 show $name 2&gt; /dev/null | grep Version:)
+    
+  unset version
+  if [ -n $installed ]; then   
+    version=$(echo $installed | awk '{print $2}') 
   fi
 
+  if [ -n "$version" ]; then
+    if [ ! $(echo $package | grep -q $version) ]; then
+      echo $package is already installed
+      continue
+    fi
+  fi
+
+  # Now install the package
   packagedir=${package%.tar.?z*}
+  rm -rf $packagedir
   tar -xf $package
   pushd $packagedir
     pip3 wheel -w dist --no-build-isolation --no-deps $PWD
     sudo pip3 install --no-index --find-links dist --no-cache-dir \
                       --no-user --upgrade $name
   popd
-  rm -rf $packagedir
-done</userinput></screen> 
+done</literal></userinput></screen> 
+
+    <para>
+       Now run the script to install the files.  If the script is run 
+       multiple times, it will not try to reinstall the modules unless
+       the version in the .md5 file has been changed.
+    </para>
+
+   <screen><userinput>bash install-pythonhosted-files.sh</userinput></screen>
+
+   <para>Some of the packages have test procedures. See the individual 
+   package sections below to run any desired tests.</para>
 
   </sect3>
-  <!--
-  <sect2 role="content">
+
+  <sect3 role="content">
     <title>Contents</title>
 
-    <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
-      <segtitle>Installed Directories</segtitle>
+    <para>
+       See the contents of the individual package sections below.
+    </para>
 
-      <seglistitem>
-        <seg>
-           There are too many plasma programs (63 in /opt/kf5/bin) to list
-           separately here.
-        </seg>
-        <seg>
-           There are too many plasma libraries (40 in /opt/kf5/lib) to list
-           separately here.
-        </seg>
-        <seg>
-           There are too many plasma directories (over 1000 in /opt/kf5) to
-           list separately here.
-        </seg>
-      </seglistitem>
-    </segmentedlist>
+  </sect3>
 
-  </sect2>
-  -->
 </sect2>
