@@ -6,15 +6,15 @@
 
   <!ENTITY firefox-download-http "&mozilla-http;/firefox/releases/&firefox-version;esr/source/firefox-&firefox-version;esr.source.tar.xz">
   <!ENTITY firefox-download-ftp  " ">
-  <!ENTITY firefox-md5sum        "5ad962e43ad29245238feeba558941d9">
-  <!ENTITY firefox-size          "460 MB">
+  <!ENTITY firefox-md5sum        "3b3e610898ccda554519f744e634c50c">
+  <!ENTITY firefox-size          "457 MB">
   <!-- NB with stylo, much of the build uses rust, and therefore cargo files.
     But the extra cached cargo files, if any, seem to be minimal -->
-  <!ENTITY firefox-buildsize     "7.1 GB (199 MB installed) without tests">
+  <!ENTITY firefox-buildsize     "7.1 GB (197 MB installed) without tests">
   <!-- editors: with ff63 and rust-1.29, ./mach build -j4 is probably the
    most practical way to get a timing on a machine with more cores, if taking
    cores offline is not practical. If in doubt, round up -->
-  <!ENTITY firefox-time          "21 SBU (on a zen1 machine using -j4) without tests">
+  <!ENTITY firefox-time          "20 SBU using -j4, without tests">
 ]>
 
 <sect1 id="firefox" xreflabel="Firefox-&firefox-version;">
@@ -364,12 +364,21 @@ echo "613364a7-9418-4c86-bcee-57e32fd70c23" > mozilla-key</userinput></screen>
 <screen><userinput>grep -rl \"rU\" | xargs sed -i 's/"rU"/"r"/'</userinput></screen>
 
     <para>
+      Then fix an issue with regular expressions in python-3.11:
+    </para>
+
+<screen><userinput>sed -e 's/?s)\./?s:.)/'               \
+    -e '/?m)/{s/?m)/?m:/;s/\$"/$)"/}' \
+    -e '/?s)%/{s/?s)/?s:/;s/?"/?)"/}' \
+    -i xpcom/idl-parser/xpidl/xpidl.py</userinput></screen>
+
+    <para>
       Now invoke the Python <command>mach</command> script to compile the package.
     </para>
 
 <screen><userinput>export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none &amp;&amp;
-export MOZBUILD_STATE_PATH=${PWD}/mozbuild            &amp;&amp;
-./mach configure                                      &amp;&amp;
+export MOZBUILD_STATE_PATH=${PWD}/mozbuild          &amp;&amp;
+./mach configure                                    &amp;&amp;
 ./mach build</userinput></screen>
 
     <para>

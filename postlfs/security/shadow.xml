@@ -6,9 +6,9 @@
 
   <!ENTITY shadow-download-http "https://github.com/shadow-maint/shadow/releases/download/&shadow-version;/shadow-&shadow-version;.tar.xz">
   <!ENTITY shadow-download-ftp  " ">
-  <!ENTITY shadow-md5sum        "710bcc89c39683609aacfef9f08bd854">
+  <!ENTITY shadow-md5sum        "b1ab01b5462ddcf43588374d57bec123">
   <!ENTITY shadow-size          "1.7 MB">
-  <!ENTITY shadow-buildsize     "36 MB">
+  <!ENTITY shadow-buildsize     "45 MB">
   <!ENTITY shadow-time          "0.2 SBU">
 ]>
 
@@ -138,6 +138,7 @@ find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \; &amp;&amp;
 find man -name Makefile.in -exec sed -i 's/passwd\.5 / /'   {} \; &amp;&amp;
 
 sed -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
+    -e 's@#\(SHA_CRYPT_..._ROUNDS 5000\)@\1000@'      \
     -e 's@/var/spool/mail@/var/mail@'                 \
     -e '/PATH=/{s@/sbin:@@;s@/bin:@@}'                \
     -i etc/login.defs                                 &amp;&amp;
@@ -187,15 +188,18 @@ make</userinput></screen>
 
     <para>
       <command>sed -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' -e
-      's@/var/spool/mail@/var/mail@' -e '/PATH=/{s@/sbin:@@;s@/bin:@@}'
-      -i etc/login.defs</command>: Instead of using
-      the default 'DES' method, this command modifies the installation to use
-      the more secure 'SHA512' method of hashing passwords, which also allows
-      passwords longer than eight characters. It also changes the obsolete
-      <filename class="directory">/var/spool/mail</filename> location for user
-      mailboxes that <application>Shadow</application> uses by default to the
-      <filename class="directory">/var/mail</filename> location. It also
-      changes the default path to be consistent with that set in LFS.
+        's@#SHA_CRYPT_..._ROUNDS 5000@&amp;000@' -e
+        's@/var/spool/mail@/var/mail@' -e '/PATH=/{s@/sbin:@@;s@/bin:@@}'
+        -i etc/login.defs</command>: Instead of using the default 'DES'
+      method, this command modifies the installation to use the more secure
+      'SHA512' method of hashing passwords, which also allows passwords
+      longer than eight characters. The number of rounds is also increased
+      to prevent brute force pasword attacks. The command also changes the
+      obsolete <filename class="directory">/var/spool/mail</filename> location
+      for user mailboxes that <application>Shadow</application> uses by
+      default to the <filename class="directory">/var/mail</filename>
+      location. It also changes the default path to be consistent with that
+      set in LFS.
     </para>
 <!--
     <para>
@@ -553,8 +557,18 @@ done</userinput></screen>
         <indexterm zone="shadow pam-access">
           <primary sortas="e-etc-security-access.conf">/etc/security/access.conf</primary>
         </indexterm>
-
-<screen role="root"><userinput>[ -f /etc/login.access ] &amp;&amp; mv -v /etc/login.access{,.NOUSE}</userinput></screen>
+<!-- to editors: it is a common belief that:
+        if <condition>; then <command>; fi
+     is equivalent to:
+        <condition> && <command>
+     This is not true in bash; try:
+        ([ 0 = 1 ] && echo not reachable); echo $? # echoes 1
+     vs
+        (if [ 0 = 1 ]; then echo not reachable; fi); echo $? # echoes 0
+     So in scripts that may call subshells (for example through sudo) and
+     that need error reporting, the outcome _is_ different. In all
+     cases, for bash, the "if" form should be preferred.-->
+<screen role="root"><userinput>if [ -f /etc/login.access ]; then mv -v /etc/login.access{,.NOUSE}; fi</userinput></screen>
       </sect4>
 
       <sect4 id="pam-limits">
@@ -573,7 +587,7 @@ done</userinput></screen>
           <primary sortas="e-etc-security-limits.conf">/etc/security/limits.conf</primary>
         </indexterm>
 
-<screen role="root"><userinput>[ -f /etc/limits ] &amp;&amp; mv -v /etc/limits{,.NOUSE}</userinput></screen>
+<screen role="root"><userinput>if [ -f /etc/limits ]; then mv -v /etc/limits{,.NOUSE}; fi</userinput></screen>
 
         <caution>
           <para>
