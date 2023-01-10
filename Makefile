@@ -270,3 +270,18 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL) version
 
 version:
 	$(Q)./git-version.sh $(REV)
+
+ALL_PYTHON_DEPS := $(filter-out general/prog/python-dependencies/pythonhosted.xml, $(wildcard general/prog/python-dependencies/*.xml))
+
+PYTHONHOSTED_MODS := requests sphinx_rtd_theme pytest gi-docgen
+
+PYTHONHOSTED_DEPS := $(addprefix general/prog/python-modules/,$(addsuffix .xml,$(PYTHONHOSTED_MODS)))
+
+general/prog/python-dependencies/pythonhosted.xml: $(ALL_PYTHON_DEPS) $(PYTHONHOSTED_DEPS) stylesheets/pythonhosted.xsl
+	@echo Generating pythonhosted.xml
+	@xsltproc --xinclude \
+	-o temp.xml \
+	--stringparam packages "$(PYTHONHOSTED_MODS)" \
+       	stylesheets/pythonhosted.xsl \
+	general/prog/python-modules.xml
+	@mv temp.xml $@
