@@ -91,14 +91,20 @@ pierre: seems that it now returns Error 404 (November 2021).
 
   </sect2>
 
-  <sect2 role="installation">
-    <title>Installation of dhcpcd</title>
+  <sect2 id='dhcpcd-privsep'>
+    <title>Privilege separation</title>
 
     <para>
-      Recent releases of <application>dhcpcd</application> implement privilege
-      separation. Additional installation steps are necessary to set up
-      the proper environment, which are performed by issuing the following
-      commands as the <systemitem class="username">root</systemitem> user:
+      Recent releases of <application>dhcpcd</application> optionally support
+      privilege separation. As the practical security benefits of this are
+      unclear for a program like <application>dhcpcd</application> and the
+      setup is more complicated, the book currently defaults to disable it.
+    </para>
+    <para>
+      If you however would like to use privilege separation, additional
+      installation steps are necessary to set up the proper environment. Issue
+      the following commands as the
+      <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>install  -v -m700 -d /var/lib/dhcpcd &amp;&amp;
@@ -111,14 +117,32 @@ useradd  -c 'dhcpcd PrivSep' \
          -u 52 dhcpcd &amp;&amp;
 chown    -v dhcpcd:dhcpcd /var/lib/dhcpcd </userinput></screen>
 
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of dhcpcd</title>
+
     <para>Fix a runtime error caused by a change in glibc-2.36:</para>
 
 <screen><userinput>sed '/Deny everything else/i SECCOMP_ALLOW(__NR_getrandom),' \
     -i src/privsep-linux.c</userinput></screen>
 
     <para>
-      Install <application>dhcpcd</application> by running the following
-      commands:
+      Build <application>dhcpcd</application> without privilege separation
+      by running the following command:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr                \
+            --sysconfdir=/etc            \
+            --libexecdir=/usr/lib/dhcpcd \
+            --dbdir=/var/lib/dhcpcd      \
+            --runstatedir=/run           \
+            --disable-privsep         &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      Build <application>dhcpcd</application> with privilege separation
+      by running the following commands:
     </para>
 
 <screen><userinput>./configure --prefix=/usr                \
@@ -170,6 +194,24 @@ install -v -m 644 dhcpcd-hooks/50-dhcpcd-compat /lib/dhcpcd/dhcpcd-hooks/</useri
       <parameter>--runstatedir=/run</parameter>: The default
       <filename class="directory">/var/run</filename> is a symbolic
       link to <filename class="directory">/run</filename>.
+    </para>
+
+    <para>
+      <option>--with-hook=...</option>: You can optionally install more hooks,
+      for example to install some configuration files such as
+      <filename>ntp.conf</filename>. The set of hooks is in the
+      <filename class="directory">dhcpcd-hooks</filename> directory in the
+      build tree.
+    </para>
+
+    <para>
+      <parameter>--disable-privsep</parameter>: Do not use privileg separation,
+      which is the default.
+    </para>
+
+    <para>
+      <parameter>--privsepuser=dhcpcd</parameter>: Use this unpriviled user
+      in a privilege separation setup.
     </para>
 
     <para>
