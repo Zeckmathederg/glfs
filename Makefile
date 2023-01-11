@@ -102,7 +102,7 @@ all: blfs nochunks
 world: all blfs-patch-list dump-commands test-links
 
 html: $(BASEDIR)/index.html
-$(BASEDIR)/index.html: $(RENDERTMP)/$(BLFSHTML) version
+$(BASEDIR)/index.html: $(RENDERTMP)/$(BLFSHTML)
 	@echo "Generating chunked XHTML files..."
 	$(Q)xsltproc --nonet                                    \
                 --stringparam chunk.quietly $(CHUNK_QUIET) \
@@ -136,7 +136,7 @@ $(BASEDIR)/index.html: $(RENDERTMP)/$(BLFSHTML) version
    done;
 
 nochunks: $(BASEDIR)/$(NOCHUNKS_OUTPUT)
-$(BASEDIR)/$(NOCHUNKS_OUTPUT): $(RENDERTMP)/$(BLFSHTML) version
+$(BASEDIR)/$(NOCHUNKS_OUTPUT): $(RENDERTMP)/$(BLFSHTML)
 	@echo "Generating non-chunked XHTML file..."
 	$(Q)xsltproc --nonet                                \
                 --stringparam rootid "$(ROOT_ID)"      \
@@ -159,7 +159,7 @@ clean:
 	$(Q)rm -f $(RENDERTMP)/blfs*
 
 validate: $(RENDERTMP)/$(BLFSFULL)
-$(RENDERTMP)/$(BLFSFULL): general.ent packages.ent $(ALLXML) $(ALLXSL) version
+$(RENDERTMP)/$(BLFSFULL): version.ent
 	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
 
 	@echo "Adjusting for revision $(REV)..."
@@ -178,7 +178,7 @@ $(RENDERTMP)/$(BLFSFULL): general.ent packages.ent $(ALLXML) $(ALLXSL) version
                $(RENDERTMP)/$(BLFSHTML2)
 
 profile-html: $(RENDERTMP)/$(BLFSHTML)
-$(RENDERTMP)/$(BLFSHTML): $(RENDERTMP)/$(BLFSFULL) version
+$(RENDERTMP)/$(BLFSHTML): $(RENDERTMP)/$(BLFSFULL)
 	@echo "Generating profiled XML for XHTML..."
 	$(Q)xsltproc --nonet                              \
                 --stringparam profile.condition html \
@@ -191,7 +191,7 @@ blfs-patch-list: blfs-patches.sh
 	$(Q)awk '{if ($$1 == "copy") {sub(/.*\//, "", $$2); print $$2}}' \
 	  blfs-patches.sh > blfs-patch-list
 
-blfs-patches.sh: $(RENDERTMP)/$(BLFSFULL) version
+blfs-patches.sh: $(RENDERTMP)/$(BLFSFULL)
 	@echo "Generating blfs patch script..."
 	$(Q)xsltproc --nonet                     \
                 --output blfs-patches.sh    \
@@ -199,7 +199,7 @@ blfs-patches.sh: $(RENDERTMP)/$(BLFSFULL) version
                 $(RENDERTMP)/$(BLFSFULL)
 
 wget-list: $(BASEDIR)/wget-list
-$(BASEDIR)/wget-list: $(RENDERTMP)/$(BLFSFULL) version
+$(BASEDIR)/wget-list: $(RENDERTMP)/$(BLFSFULL)
 	@echo "Generating wget list for $(REV) at $(BASEDIR)/wget-list ..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet                       \
@@ -208,7 +208,7 @@ $(BASEDIR)/wget-list: $(RENDERTMP)/$(BLFSFULL) version
                 $(RENDERTMP)/$(BLFSFULL)
 
 test-links: $(BASEDIR)/test-links
-$(BASEDIR)/test-links: $(RENDERTMP)/$(BLFSFULL) version
+$(BASEDIR)/test-links: $(RENDERTMP)/$(BLFSFULL)
 	@echo "Generating test-links file..."
 	$(Q)mkdir -p $(BASEDIR)
 	$(Q)xsltproc --nonet                        \
@@ -260,7 +260,7 @@ systemd-units:
    fi
 
 dump-commands: $(DUMPDIR)
-$(DUMPDIR): $(RENDERTMP)/$(BLFSFULL) version
+$(DUMPDIR): $(RENDERTMP)/$(BLFSFULL)
 	@echo "Dumping book commands..."
 	$(Q)xsltproc --output $(DUMPDIR)/          \
                 stylesheets/dump-commands.xsl \
@@ -269,9 +269,9 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL) version
 
 .PHONY: blfs all world html nochunks tmpdir clean  \
    validate profile-html blfs-patch-list wget-list test-links \
-   dump-commands  bootscripts systemd-units version
+   dump-commands  bootscripts systemd-units
 
-version:
+version.ent: general.ent packages.ent $(ALLXML) $(ALLXSL)
 	$(Q)./git-version.sh $(REV)
 
 ALL_PYTHON_DEPS := $(filter-out general/prog/python-dependencies/pythonhosted.xml, $(wildcard general/prog/python-dependencies/*.xml))
