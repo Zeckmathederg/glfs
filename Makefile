@@ -8,10 +8,13 @@ CHUNK_QUIET  = 1
 ROOT_ID      =
 SHELL        = /bin/bash
 
+PYHOSTED = general/prog/python-dependencies/pythonhosted.xml
 ALLXML := $(filter-out $(RENDERTMP)/%, \
-	$(wildcard *.xml */*.xml */*/*.xml */*/*/*.xml */*/*/*/*.xml))
+	$(filter-out $(PYHOSTED), \
+	$(wildcard *.xml */*.xml */*/*.xml */*/*/*.xml */*/*/*/*.xml)))
 ALLXSL := $(filter-out $(RENDERTMP)/%, \
 	$(wildcard *.xsl */*.xsl */*/*.xsl */*/*/*.xsl */*/*/*/*.xsl))
+
 
 ifdef V
   Q =
