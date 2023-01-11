@@ -40,12 +40,14 @@
   </xsl:template>
 
   <xsl:template match="*" mode="gen-dep">
+    <!--
     <xsl:message>
       <xsl:text>generating deps for </xsl:text>
       <xsl:value-of select="@id"/>
       <xsl:text>
 </xsl:text>
     </xsl:message>
+-->
     <xsl:apply-templates
       select="descendant::para[@role='required' or
                                @role='recommended']"
@@ -108,6 +110,7 @@
   </xsl:template>
 
   <xsl:template match="/">
+    <!--
     <xsl:message>
       <xsl:text>Generating new pythonhosted.xml with list:
 </xsl:text>
@@ -115,6 +118,7 @@
       <xsl:text>
 </xsl:text>
     </xsl:message>
+-->
     <xsl:value-of select="$part1"/>
     <xsl:call-template name="make-md5">
       <xsl:with-param name="list" select="normalize-space($dep-list)"/>
@@ -150,12 +154,14 @@
 
   <xsl:template match="sect2" mode="md5-line">
     <xsl:param name="first-char" select="''"/>
+    <!--
     <xsl:message>
       <xsl:text>Generating md5 for </xsl:text>
       <xsl:value-of select="@id"/>
       <xsl:text>
 </xsl:text>
     </xsl:message>
+-->
     <xsl:copy-of select="$first-char"/>
     <xsl:apply-templates select=".//para[contains(text(),'MD5')]" mode="md5"/>
     <xsl:text>  </xsl:text>
