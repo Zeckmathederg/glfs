@@ -278,9 +278,9 @@ ALL_PYTHON_DEPS := $(filter-out general/prog/python-dependencies/pythonhosted.xm
 
 PYTHONHOSTED_MODS := requests sphinx_rtd_theme pytest gi-docgen
 
-PYTHONHOSTED_DEPS := $(addprefix general/prog/python-modules/,$(addsuffix .xml,$(PYTHONHOSTED_MODS)))
+PYTHONHOSTED_MOD_PAGES := $(addprefix general/prog/python-modules/,$(addsuffix .xml,$(PYTHONHOSTED_MODS)))
 
-general/prog/python-dependencies/pythonhosted.xml: $(ALL_PYTHON_DEPS) $(PYTHONHOSTED_DEPS) stylesheets/pythonhosted.xsl
+$(PYHOSTED): $(ALL_PYTHON_DEPS) $(PYTHONHOSTED_MOD_PAGES) stylesheets/pythonhosted.xsl
 	@echo Generating pythonhosted.xml
 	@xsltproc --xinclude \
 	-o temp.xml \
