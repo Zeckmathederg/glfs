@@ -159,7 +159,7 @@ clean:
 	$(Q)rm -f $(RENDERTMP)/blfs*
 
 validate: $(RENDERTMP)/$(BLFSFULL)
-$(RENDERTMP)/$(BLFSFULL): version.ent
+$(RENDERTMP)/$(BLFSFULL): $(PYHOSTED) version.ent
 	$(Q)[ -d $(RENDERTMP) ] || mkdir -p $(RENDERTMP)
 
 	@echo "Adjusting for revision $(REV)..."
