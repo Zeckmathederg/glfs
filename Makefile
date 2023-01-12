@@ -269,23 +269,28 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL)
 	$(Q)touch $(DUMPDIR)
 
 .PHONY: blfs all world html nochunks tmpdir clean  \
-   validate profile-html blfs-patch-list wget-list test-links \
-   dump-commands  bootscripts systemd-units
+   validate profile-html blfs-patch-list wget-list \
+	test-links dump-commands  bootscripts systemd-units
 
 version.ent: general.ent packages.ent $(ALLXML) $(ALLXSL)
 	$(Q)./git-version.sh $(REV)
 
-ALL_PYTHON_DEPS := $(filter-out $(PYHOSTED), $(wildcard general/prog/python-dependencies/*.xml))
+ALL_PYTHON_DEPS := $(filter-out $(PYHOSTED), \
+                   $(wildcard general/prog/python-dependencies/*.xml))
 
 PYTHONHOSTED_MODS := requests sphinx_rtd_theme pytest gi-docgen
 
-PYTHONHOSTED_MOD_PAGES := $(addprefix general/prog/python-modules/,$(addsuffix .xml,$(PYTHONHOSTED_MODS)))
+PYTHONHOSTED_MOD_PAGES := $(addprefix general/prog/python-modules/,\
+                          $(addsuffix .xml,$(PYTHONHOSTED_MODS)))
 
-$(PYHOSTED): $(ALL_PYTHON_DEPS) $(PYTHONHOSTED_MOD_PAGES) stylesheets/pythonhosted.xsl | version.ent
-	$(Q)echo Generating pythonhosted.xml
-	$(Q)xsltproc --xinclude \
-	-o temp.xml \
-	--stringparam packages "$(PYTHONHOSTED_MODS)" \
-       	stylesheets/pythonhosted.xsl \
-	general/prog/python-modules.xml
+$(PYHOSTED): $(ALL_PYTHON_DEPS)        \
+             $(PYTHONHOSTED_MOD_PAGES) \
+             stylesheets/pyhosted-inc.xsl
+             stylesheets/pythonhosted.xsl | version.ent
+	@echo Generating pythonhosted.xml
+	$(Q)xsltproc --xinclude                                    \
+                --output temp.xml                             \
+                --stringparam packages "$(PYTHONHOSTED_MODS)" \
+                stylesheets/pythonhosted.xsl                  \
+                general/prog/python-modules.xml
 	$(Q)mv temp.xml $@
