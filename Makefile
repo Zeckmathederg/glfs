@@ -283,9 +283,9 @@ PYTHONHOSTED_MODS := requests sphinx_rtd_theme pytest gi-docgen
 PYTHONHOSTED_MOD_PAGES := $(addprefix general/prog/python-modules/,\
                           $(addsuffix .xml,$(PYTHONHOSTED_MODS)))
 
-$(PYHOSTED): $(ALL_PYTHON_DEPS)        \
-             $(PYTHONHOSTED_MOD_PAGES) \
-             stylesheets/pyhosted-inc.xsl
+$(PYHOSTED): $(ALL_PYTHON_DEPS)           \
+             $(PYTHONHOSTED_MOD_PAGES)    \
+             stylesheets/pyhosted-inc.xsl \
              stylesheets/pythonhosted.xsl | version.ent
 	@echo Generating pythonhosted.xml
 	$(Q)xsltproc --xinclude                                    \
