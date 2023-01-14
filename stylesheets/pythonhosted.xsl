@@ -156,11 +156,19 @@
     <xsl:param name="list" select="normalize-space($dep-list)"/>
     <xsl:choose>
       <xsl:when test="contains($list,' ')">
-        <xsl:call-template name="make-md5">
-          <xsl:with-param name="list" select="substring-before($list,' ')"/>
-        </xsl:call-template>
-        <xsl:text>
+        <xsl:variable name="dep" select="substring-before($list,' ')"/>
+        <xsl:choose>
+      <!-- requests, docutils, and sphinx are not taken from pythonhosted:
+           don't have them in the .md5 file, even commented out -->
+          <xsl:when test="$dep='requests' or $dep='docutils' or $dep='sphinx'"/>
+          <xsl:otherwise>
+            <xsl:call-template name="make-md5">
+              <xsl:with-param name="list" select="$dep"/>
+            </xsl:call-template>
+            <xsl:text>
 </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:call-template name="make-md5">
           <xsl:with-param name="list" select="substring-after($list,' ')"/>
         </xsl:call-template>
