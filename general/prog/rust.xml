@@ -6,16 +6,16 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.xz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "e77ac3a786d013604061b17f99dd9b27">
-  <!ENTITY rust-size          "131 MB">
+  <!ENTITY rust-md5sum        "96b082a8b44707eafa9d696923f40c28">
+  <!ENTITY rust-size          "136 MB">
   <!-- Gentle Reminder: buildsize is how much the user requires for the real
        install, i.e. the source with its DESTDIR *plus* the DESTDIR.  You
        can 'mkdir /tmp/RUST ; cp -a install/* /tmp/RUST' and then run 'du -sch'
        to measure it, or du -sm to look at the size of the build tree before and
        after the tests. -->
 
-  <!ENTITY rust-buildsize     "10 GB (516 MB installed) including 266 MB of ~/.cargo files for the user building this. Add 6.2 GB including extra 243 MB of ~/.cargo files if running the tests">
-  <!ENTITY rust-time          "21 SBU (including download time; add 10 SBU for tests, both on a 4-core machine)">
+  <!ENTITY rust-buildsize     "9.4 GB (674 MB installed) including 360 MB of ~/.cargo files for the user building this. Add 6.5 GB including extra 312 MB of ~/.cargo files if running the tests">
+  <!ENTITY rust-time          "17 SBU (including download time; add 23 SBU for tests, both on a 4-core machine)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -257,14 +257,15 @@
 
     <para>
       To install into the
-      <filename class="directory">/opt</filename> directory, remove the symlink
+      <filename class="directory">/opt</filename> directory, remove any
+      existing <filename>/opt/rustc</filename> symlink
       and create a new directory (i.e. with a different name if trying a
-      modified build).
+      modified build of the same version).
       As the <systemitem class="username">root</systemitem>
       user:
     </para>
 
-<screen role="root"><userinput>mkdir /opt/rustc-&rust-version;             &amp;&amp;
+<screen role="root"><userinput>mkdir /opt/rustc-&rust-version;         &amp;&amp;
 ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
 
     <note>
@@ -283,8 +284,12 @@ ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
 
 <screen><userinput>cat &lt;&lt; EOF &gt; config.toml
 <literal># see config.toml.example for more possible options
-# See the 8.4 book for an example using shipped LLVM
-# e.g. if not installing clang, or using a version before 10.0
+# See the 8.4 book for an old example using shipped LLVM
+# e.g. if not installing clang, or using a version before 13.0
+
+# tell x.py to not keep printing an annoying warning
+changelog-seen = 2
+
 [llvm]
 # by default, rust will build for a myriad of architectures
 targets = "X86"
@@ -296,8 +301,11 @@ link-shared = true
 # omit docs to save time and space (default is to build them)
 docs = false
 
-# install cargo as well as rust
+# install extended tools: cargo, clippy, etc
 extended = true
+
+# Specify which extended tools (those from the default install).
+tools = ["cargo", "clippy", "rustfmt"]
 
 [install]
 prefix = "/opt/rustc-&rust-version;"
@@ -307,9 +315,11 @@ docdir = "share/doc/rustc-&rust-version;"
 channel = "stable"
 rpath = false
 
-# BLFS does not install the FileCheck executable from llvm,
-# so disable codegen tests
-codegen-tests = false
+# BLFS used to not install the FileCheck executable from llvm,
+# so disabled codegen tests.  The assembly tests rely on FileCheck
+# and cannot easily be disabled, so those will anyway fail if
+# FileCheck has not been installed.
+#codegen-tests = false
 
 [target.x86_64-unknown-linux-gnu]
 # NB the output of llvm-config (i.e. help options) may be
@@ -340,10 +350,9 @@ EOF</userinput></screen>
        -e '/^curl-sys /s/0.4.48/0.4.50/' \
        src/tools/cargo/Cargo.toml &amp;&amp; -->
 
-<screen><userinput>export RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi" &amp;&amp;
-{ [ ! -e /usr/include/libssh2.h ] ||
+<screen><userinput>{ [ ! -e /usr/include/libssh2.h ] ||
   export LIBSSH2_SYS_USE_PKG_CONFIG=1; } &amp;&amp;
-python3 ./x.py build --exclude src/tools/miri</userinput></screen>
+python3 ./x.py build</userinput></screen>
 
     <note>
       <para>
@@ -357,21 +366,18 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
     </note>
 
     <para>
-      To run the tests issue <command>python3 ./x.py test --verbose
-      --no-fail-fast | tee rustc-testlog</command>: as with the build, that
-      will use all available CPUs.
+      To run the tests (again using all available CPUs) issue:
     </para>
+      <!-- screen with nodump to lay it out on multiple lines -->
+<screen role="nodump">export LD_LIBRARY_PATH=$PWD/build/x86_64-unknown-linux-gnu/stage1/lib/ &amp;&amp;
+  python3 ./x.py test --verbose --no-fail-fast |
+    tee rustc-testlog ;
+unset LD_LIBRARY_PATH</screen>
 
     <para>
-      At a minimum, 51 tests will fail: all 46 of the tests in
-      the <quote>assembly</quote> suite which are not skipped (various lints
-      cause the warnings in these tests to be treated as errors), and
-      5 other tests, 4 of which involve the
-      <filename>rustdoc-ui/issue-98690.rs</filename> file, and another one,
-      <filename>run-make-fulldeps/long-linker-command-lines</filename>.
-<!--  If <command>gdb</command> is installed,  another failure
-      (debuginfo/function-names.rs) can be expected.
-      # seems ok with 11.2 ken -->
+      If <command>FileCheck</command> from <application>LLVM</application> has
+      not been installed, all 47 tests from the <quote>assembly</quote> suite
+      will fail.
     </para>
 
     <para>
@@ -396,33 +402,25 @@ python3 ./x.py build --exclude src/tools/miri</userinput></screen>
       Therefore, you should determine the number of failures.
     </para>
 
-<!--
- The total number
-      of tests varies depending on which dependencies are present, e.g. more
-      will be run if <command>gdb</command> is available. If you wish, the
-      total number which were considered can be found if you run:
+    <para>
+      The number of tests which passed and failed can be found by running:
     </para>
 
-<screen remap="test"><userinput>egrep 'running [[:digit:]]+ test' rustc-testlog | awk '{ sum += $2 } END { print sum }'</userinput></screen>-->
+<!-- split into two lines for narrower screen windows -->
+<screen remap="test"><userinput>grep '^test result:' rustc-testlog |
+ awk '{sum1 += $4; sum2 += $6} END { print sum1 " passed; " sum2 " failed" }'</userinput></screen>
 
     <para>
-      The number of tests which failed can be found by running:
-    </para>
-
-<screen remap="test"><userinput>grep '^test result:' rustc-testlog | awk  '{ sum += $6 } END { print sum }'</userinput></screen>
-
-    <para>
-      And similarly if you care about how many tests passed use $4, for those
-      which were ignored (i.e. skipped) use $8 (and $10 for 'measured', $12 for
-      'filtered out' but both are probably zero).
+      The other available fields are $8 for those which were ignored
+      (i.e. skipped),  $10 for 'measured' and $12 for 'filtered out' but both
+      those last two are probably zero.
     </para>
 
     <para>
       Still as your normal user, do a DESTDIR install:
     </para>
 
-<screen><userinput>DESTDIR=${PWD}/install python3 ./x.py install &amp;&amp;
-unset LIBSSH2_SYS_USE_PKG_CONFIG</userinput></screen>
+<screen><userinput>DESTDIR=${PWD}/install python3 ./x.py install &amp;&amp;</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user
@@ -435,7 +433,7 @@ cp -a install/* /</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
-    <title>Command Explanations</title>
+    <title>Command Explanations</title>			
 
     <para>
       <command>ln -svfn rustc-&rust-version; /opt/rustc</command>: if this is
@@ -453,6 +451,17 @@ cp -a install/* /</userinput></screen>
 
     <para>
       <command>extended = true</command>: this installs Cargo alongside Rust.
+    </para>
+
+    <para>
+      <command>tools = ["cargo", "clippy", "rustfmt"]</command>: if the tools
+      are not scecified, the absence of <application>Miri</application> now
+      causes the install to fail. But <application>Miri</application> is not
+      built in the stable channel. Some of the other tools are unlikely to
+      be useful unless using (old) code analyzers or editing the standard library.
+      This set match those from the 'default' profile in binary command
+      <command>rustup</command> which are recommended for most users, except that
+      the documentation was disabled at the start of the '[build]' section.
     </para>
 
     <para>
@@ -488,24 +497,27 @@ cp -a install/* /</userinput></screen>
       future release, this sed causes the fixed versions to be used.
     </para>-->
 
+    <!-- https://github.com/alexcrichton/ssh2-rs/issues/173 -->
     <para>
+      <command>export LIBSSH2_SYS_USE_PKG_CONFIG=1</command>: Allow
+      <command>cargo</command> to link to system libssh2.
+    </para>
+
+<!--<para>
       <command>export RUSTFLAGS="$RUSTFLAGS -C link-args=-lffi"</command>:
       This adds a link to libffi to any RUSTFLAGS you may already be passing
       to the build. On some systems, linking fails to include libffi unless
       this is used. The reason why this is needed is not clear.
-    </para>
+      2023-01-14 : assumed to be no longer needed, but it is some years
+      since one person reported needing this, keep it commented for the moment.
+    </para>-->
 
     <para>
-      <command>--exclude src/tools/miri</command>: For a long time, the miri
-      crate (an interpreter for the Midlevel Intermediate Representation)
-      has failed to build on releases. It is optional, but the failure
-      messages can persuade people that the whole build failed.  However,
-      although it is not built in the main compile, with rustc-1.35.0 it
-      now got compiled during the install, but it was broken in that version.
-      <!-- might be unbroken in 1.36.0, if so remove broken from description
-       of miri below. https://github.com/rust-lang/rust/issues/61830 -->
-      Omitting it should save a little time. Even if this switch is
-      not given, miri is not installed.
+      <command>export LD_LIBRARY_PATH=$PWD/build/x86_64-unknown-linux-gnu/stage1/lib/</command>:
+      In builds where rpath is enabled, the stage1 libraries can be used by the
+      tests. But BLFS has disabled rpath: this environment variable allows a lot
+      more tests to run. Without it there are no reported failures in most runs,
+      but some odd messages in the test log implying failures.
     </para>
 
     <para>
@@ -516,12 +528,6 @@ cp -a install/* /</userinput></screen>
     <para>
       <command>--no-fail-fast</command>: this switch ensures that the test suite
       will not stop at the first error.
-    </para>
-
-    <!-- https://github.com/alexcrichton/ssh2-rs/issues/173 -->
-    <para>
-      <command>export LIBSSH2_SYS_USE_PKG_CONFIG=1</command>: Allow
-      <command>cargo</command> to link to system libssh2.
     </para>
 
     <para>
@@ -607,10 +613,9 @@ EOF</userinput></screen>
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
-      <seglistitem>
+      <seglistitem>			
         <seg>
-          cargo-clippy, cargo-fmt, cargo-miri (optional), cargo, clippy-driver,
-          miri (optional), rls, rust-analyzer, rust-demangler, rust-gdb,
+          cargo-clippy, cargo-fmt, cargo, clippy-driver, rust-gdb,
           rust-gdbgui, rust-lldb, rustc, rustdoc, and rustfmt
         </seg>
         <seg>
@@ -656,7 +661,7 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="cargo-miri">
+<!--  <varlistentry id="cargo-miri">
         <term><command>cargo-miri</command></term>
         <listitem>
           <para>
@@ -667,7 +672,7 @@ EOF</userinput></screen>
             <primary sortas="b-cargo-miri">cargo-miri</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry>-->
 
       <varlistentry id="cargo">
         <term><command>cargo</command></term>
@@ -693,7 +698,7 @@ EOF</userinput></screen>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="miri">
+<!--  <varlistentry id="miri">
         <term><command>miri</command></term>
         <listitem>
           <para>
@@ -744,7 +749,7 @@ EOF</userinput></screen>
             <primary sortas="b-rust-demangler">rust-demangler</primary>
           </indexterm>
         </listitem>
-      </varlistentry>
+      </varlistentry> -->
 
       <varlistentry id="rust-gdb">
         <term><command>rust-gdb</command></term>
