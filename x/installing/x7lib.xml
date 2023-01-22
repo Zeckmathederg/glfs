@@ -37,8 +37,8 @@
   <!ENTITY libXmu-version                  "1.1.4">
   <!ENTITY libXmu-md5sum                   "ed52d396115fbc4d05300762aab79685">
 
-  <!ENTITY libXpm-version                  "3.5.14">
-  <!ENTITY libXpm-md5sum                   "8001c7e6d2727609da2a78d8e08a2977">
+  <!ENTITY libXpm-version                  "3.5.15">
+  <!ENTITY libXpm-md5sum                   "b3c58c94e284fd6940d3615e660a0007">
 
   <!ENTITY libXaw-version                  "1.0.14">
   <!ENTITY libXaw-md5sum                   "c1ce21c296bbf3da3e30cf651649563e">
@@ -175,7 +175,8 @@
       <xref linkend="xmlto"/> with one or more of the following:
       <xref linkend="fop"/>,
       <xref linkend="Links"/>,
-      <xref linkend="lynx"/>, and
+      <xref linkend="lynx"/>, 
+      <ulink url="https://github.com/vapier/ncompress">ncompress</ulink> (for some tests), and
       <ulink url="&w3m-url;">W3m</ulink> (to generate additional PDF or text
       documentation for the libXfont package).
     </para>
@@ -265,7 +266,8 @@ md5sum -c ../lib-&xorg-version;.md5</userinput></screen>
 
     <para>
       BLFS developers have confirmed that <application>libX11</application>,
-      <application>libXt</application>, <application>libXmu</application>, and
+      <application>libXt</application>, <application>libXmu</application>, 
+      <application>libXpm</application>, and
       <application>libxshmfence</application> are distributed with working test
       suites.
     </para>
@@ -295,16 +297,21 @@ do
       ./configure $XORG_CONFIG $docdir \
                   --with-appdefaultdir=/etc/X11/app-defaults
     ;;
+
+    libXpm-[0-9]* )
+      sed -i '/TestAll.*TRUE/s|^|//|' test/TestAllFiles.h
+      ./configure $XORG_CONFIG $docdir --disable-open-zfile
+    ;;
     <!--
     libX11-* )
       ./configure $XORG_CONFIG $docdir \
                   - -disable-thread-safety-constructor
     ;;-->
-
     * )
       ./configure $XORG_CONFIG $docdir
     ;;
   esac
+
   make
   #make check 2>&amp;1 | tee ../$packagedir-make_check.log
   as_root make install
@@ -329,12 +336,18 @@ done</userinput></screen>
       This fixes a bug in (at least) XFCE at runtime.
     </para>
 -->
-<!--
+
     <para>
-      <command>sed ... src/xftfreetype.c include/X11/Xft/XftCompat.h</command>:
-      Add fixes for changes in recent glibc headers.
+      <command>sed ... test/TestAllFiles.h</command>:
+      Fix a test file to work without the optional <command>compress</command> 
+      program.
     </para>
--->
+
+    <para>
+      <parameter>--disable-open-zfile</parameter>: Allow 
+      <application>libXpm</application> to build without the 
+      optional <command>compress</command> command present.
+    </para>
 
     <para>
       <parameter>--disable-devel-docs</parameter>: Disable generation of
