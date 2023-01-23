@@ -13,8 +13,10 @@ SHELL        = /bin/bash
 #ALLXML := $(filter-out $(RENDERTMP)/%, \
 #	$(filter-out $(PYHOSTED), \
 #	$(wildcard *.xml */*.xml */*/*.xml */*/*/*.xml */*/*/*/*.xml)))
-#ALLXSL := $(filter-out $(RENDERTMP)/%, \
-#	$(wildcard *.xsl */*.xsl */*/*.xsl */*/*/*.xsl */*/*/*/*.xsl))
+ALLXML := $(filter-out $(RENDERTMP)/%, \
+            $(wildcard *.xml */*.xml */*/*.xml */*/*/*.xml */*/*/*/*.xml))
+ALLXSL := $(filter-out $(RENDERTMP)/%, \
+            $(wildcard *.xsl */*.xsl */*/*.xsl */*/*/*.xsl */*/*/*/*.xsl))
 
 ifdef V
   Q =
@@ -32,6 +34,12 @@ ifneq ($(REV), sysv)
   endif
 endif
 
+# Let's get the previous REV: it'll be used to see if we should
+# rebuild version.ent
+PREVREV != if [ -f conditional.ent ]; then \
+              gawk '/INCLUDE/{ print $$3 }' conditional.ent; \
+           fi
+
 ifeq ($(REV), sysv)
   BASEDIR         ?= $(HOME)/public_html/blfs-book
   NOCHUNKS_OUTPUT ?= blfs-book.html
@@ -48,7 +56,6 @@ else
   BLFSFULL        ?= blfs-systemd-full.xml
 
 endif
-
 
 blfs: html wget-list
 
@@ -272,8 +279,12 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL)
    validate profile-html blfs-patch-list wget-list \
 	test-links dump-commands  bootscripts systemd-units
 
-.PHONY: version.ent
-version.ent: general.ent packages.ent $(ALLXML) $(ALLXSL)
+# make version.ent unconditionally if we have changed REV
+ifneq ($(REV), $(PREVREV))
+   .PHONY: version.ent
+endif
+
+version.ent: general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL)
 	$(Q)./git-version.sh $(REV)
 
 #ALL_PYTHON_DEPS := $(filter-out $(PYHOSTED), \
