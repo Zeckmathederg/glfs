@@ -272,6 +272,7 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL)
    validate profile-html blfs-patch-list wget-list \
 	test-links dump-commands  bootscripts systemd-units
 
+.PHONY: version.ent
 version.ent: general.ent packages.ent $(ALLXML) $(ALLXSL)
 	$(Q)./git-version.sh $(REV)
 
