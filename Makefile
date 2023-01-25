@@ -284,8 +284,8 @@ ifneq ($(REV), $(PREVREV))
    .PHONY: version.ent
 endif
 
-version.ent: general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL)
-	$(Q)./git-version.sh $(REV)
+version.ent: git-version.sh general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL) Makefile
+	$(Q)./$< $(REV) $^
 
 #ALL_PYTHON_DEPS := $(filter-out $(PYHOSTED), \
 #                   $(wildcard general/prog/python-dependencies/*.xml))
