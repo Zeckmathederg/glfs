@@ -34,6 +34,12 @@ ifneq ($(REV), sysv)
   endif
 endif
 
+# Let's get the previous REV: it'll be used to see if we should
+# rebuild version.ent
+PREVREV != if [ -f conditional.ent ]; then \
+              gawk '/INCLUDE/{ print $$3 }' conditional.ent; \
+           fi
+
 ifeq ($(REV), sysv)
   BASEDIR         ?= $(HOME)/public_html/blfs-book
   NOCHUNKS_OUTPUT ?= blfs-book.html
@@ -273,7 +279,12 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL)
    validate profile-html blfs-patch-list wget-list \
 	test-links dump-commands  bootscripts systemd-units
 
-version.ent: general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL) build-env
+# make version.ent unconditionally if we have changed REV
+ifneq ($(REV), $(PREVREV))
+   .PHONY: version.ent
+endif
+
+version.ent: general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL)
 	$(Q)./git-version.sh $(REV)
 
 #ALL_PYTHON_DEPS := $(filter-out $(PYHOSTED), \
@@ -298,12 +309,3 @@ version.ent: general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL) build-env
 #                stylesheets/pythonhosted.xsl                  \
 #                general/prog/python-modules.xml
 #	$(Q)mv temp.xml $@
-
-.PHONY: update-build-env
-update-build-env:
-	$(Q)echo REV=$(REV) > $@.new
-	$(Q)echo BASEDIR=$(BASEDIR) >> $@.new
-	$(Q)diff $@.new $@ 2>/dev/null >/dev/null || mv $@.new $@
-	$(Q)rm -f $@.new
-
-build-env: update-build-env
