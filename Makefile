@@ -299,11 +299,11 @@ version.ent: general.ent packages.ent gnome.ent $(ALLXML) $(ALLXSL) build-env
 #                general/prog/python-modules.xml
 #	$(Q)mv temp.xml $@
 
-build-env: update-build-env
-	$(Q)echo REV=$(REV) > build-env.new
-	$(Q)echo BASEDIR=$(BASEDIR) >> build-env.new
-	$(Q)diff build-env{.new,} 2>/dev/null >/dev/null || mv build-env{.new,}
-	$(Q)rm -f build-env.new
-
 .PHONY: update-build-env
-update-build-env: ; @true
+update-build-env:
+	$(Q)echo REV=$(REV) > $@.new
+	$(Q)echo BASEDIR=$(BASEDIR) >> $@.new
+	$(Q)diff $@.new $@ 2>/dev/null >/dev/null || mv $@.new $@
+	$(Q)rm -f $@.new
+
+build-env: update-build-env
