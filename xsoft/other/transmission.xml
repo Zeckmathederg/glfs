@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY transmission-download-http "https://raw.githubusercontent.com/transmission/transmission-releases/master/transmission-&transmission-version;.tar.xz">
+  <!ENTITY transmission-download-http "https://github.com/transmission/transmission/releases/download/&transmission-version;/transmission-&transmission-version;.tar.xz">
   <!ENTITY transmission-download-ftp  " ">
-  <!ENTITY transmission-md5sum        "a23a32672b83c89b9b61e90408f53d98">
-  <!ENTITY transmission-size          "3.2 MB">
-  <!ENTITY transmission-buildsize     "228 MB">
-  <!ENTITY transmission-time          "0.5 SBU (with Qt and GTK gui interfaces; using parallelism=4)">
+  <!ENTITY transmission-md5sum        "d73915000cf2871404b45a64969cea83">
+  <!ENTITY transmission-size          "9.9 MB">
+  <!ENTITY transmission-buildsize     "337 MB">
+  <!ENTITY transmission-time          "a year or so..">
 ]>
 
 <sect1 id="transmission" xreflabel="Transmission-&transmission-version;">
@@ -31,13 +31,6 @@
       Linux ISOs) and reduces the need for the distributors to provide server
       bandwidth.
     </para>
-
-    <note><para>
-      The download speed of the client defaults to 50 KB/s which is quite slow.
-      It can be raised, but even on a fast internet connection, the highest
-      speeds seen were about 500 KB/s. For those that have internet capabilities
-      faster than about 1 MB/s, direct downloads (if available) will be much faster.
-    </para></note>
 
     &lfs112_checked;
 
@@ -75,16 +68,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Optional patch:
-          <ulink url="&patch-root;/transmission-&transmission-version;-pidfile_doc-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
-
 
     <bridgehead renderas="sect3">Transmission Dependencies</bridgehead>
 
@@ -96,12 +79,13 @@
 
     <bridgehead renderas="sect4">Recommended (to build a GUI)</bridgehead>
     <para role="recommended">
-      <xref linkend="gtk3"/> and
+      <xref linkend="gtkmm3"/> or
       <xref linkend="qt5"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="nodejs"/> (only for building, not a run-time dependency),
       <xref linkend="doxygen"/> and
       <xref linkend="gdb"/>
     </para>
@@ -114,12 +98,6 @@
   <sect2 role="installation">
     <title>Installation of Transmission</title>
 
-    <para>
-      Apply an optional patch to document the pid-file option
-      on the man-page of <command>transmission-daemon</command>:
-    </para>
-
-<screen><userinput remap="pre">patch -Np1 -i ../transmission-&transmission-version;-pidfile_doc-1.patch</userinput></screen>
 
 
     <para>
@@ -127,21 +105,17 @@
       following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --enable-cli &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release  \
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release  \
+      -DENABLE_QT=OFF -DENABLE_WEB=ON -DENABLE_CLI=ON .. &amp;&amp;
 make</userinput></screen>
 
-    <para>
-      Compile the Qt GUI with the following commands:
-    </para>
-
-<screen><userinput>pushd qt        &amp;&amp;
-  qmake qtr.pro &amp;&amp;
-  make          &amp;&amp;
-popd</userinput></screen>
-
-    <para>
-      This package does not come with a test suite.
-    </para>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
@@ -149,15 +123,14 @@ popd</userinput></screen>
 
 <screen role="root"><userinput>make install</userinput></screen>
 
+
     <para>
-      If you compiled the Qt GUI, install it by running the following commands
-      as the <systemitem class="username">root</systemitem> user:
+      As transmission.png seems to be missing, create it from the svg::
     </para>
 
-<screen role="root"><userinput>make INSTALL_ROOT=/usr -C qt install &amp;&amp;
-
-install -m644 qt/transmission-qt.desktop /usr/share/applications/transmission-qt.desktop &amp;&amp;
-install -m644 qt/icons/transmission.png  /usr/share/pixmaps/transmission-qt.png</userinput></screen>
+<screen role="root"><userinput>rsvg-convert \
+/usr/share/icons/hicolor/scalable/apps/transmission.svg \
+/usr/share/pixmaps/transmission.png</userinput></screen>
 
   </sect2>
 
@@ -165,15 +138,18 @@ install -m644 qt/icons/transmission.png  /usr/share/pixmaps/transmission-qt.png<
     <title>Command Explanations</title>
 
     <para>
-      <option>--enable-cli</option>: This switch enables building the cli client.
+      <option>--DENABLE_QT=OFF</option>: This switch disable building
+      the <application>Qt5</application> client. Set to ON for building it.
     </para>
 
-    <!-- with-gtk is auto detected if gtk3 is present -->
     <para>
-      <option>--without-gtk</option>: This switch disables building of the
-      <application>GTK+</application> interface if
-      <application>GTK+</application> is present on the system (useful for
-      <application>Qt5</application> or cli only builds).
+      <option>--DENABLE_CLI=ON</option>: This switch enables building
+      the cli client.
+    </para>
+
+    <para>
+      <option>--DENABLE_WEB=ON</option>: This switch enables building
+      the web client.
     </para>
 
   </sect2>
