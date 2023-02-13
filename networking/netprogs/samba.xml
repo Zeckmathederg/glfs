@@ -6,16 +6,12 @@
 
   <!ENTITY samba-download-http "https://download.samba.org/pub/samba/stable/samba-&samba-version;.tar.gz">
   <!ENTITY samba-download-ftp  " ">
-  <!ENTITY samba-md5sum        "19fda231295a8c5f93ca8c75e695abbf">
+  <!ENTITY samba-md5sum        "8e1d89cad4de151a6de83ff1eac359a1">
   <!ENTITY samba-size          "29 MB">
-  <!ENTITY samba-buildsize     "627 MB (add 36 MB for quicktest)">
-  <!ENTITY samba-time          "2.4 SBU (using parallelism=4; add 0.6 SBU for quicktest)">
+  <!ENTITY samba-buildsize     "715 MB (add 30 MB for quicktest)">
+  <!ENTITY samba-time          "2.2 SBU (using parallelism=4; add 0.3 SBU for quicktest)">
 ]>
-<!-- [pierre 2021-11-11]: quick test seems to be much smaller than previously.
-     I'll update anyway since this is a high priority release: feel free
-     to update figures. I seem to have all the optional dependencies that
-     are in the book, in addition to the python venv as set up in the
-     instructions below. -->
+
 <sect1 id="samba" xreflabel="Samba-&samba-version;">
   <?dbhtml filename="samba.html"?>
 
@@ -34,7 +30,7 @@
       services to SMB/CIFS clients and Windows networking to Linux clients.
       <application>Samba</application> can also be configured as a Windows
       Domain Controller replacement, a file/print server acting as a member
-      of a Windows Active Directory domain and a NetBIOS (rfc1001/1002)
+      of a Windows Active Directory domain and a NetBIOS (RFC1001/1002)
       nameserver (which among other things provides LAN browsing support).
     </para>
 
@@ -121,7 +117,6 @@
       <xref linkend="talloc"/> (included),
       <xref linkend="vala"/>,
       <xref linkend="valgrind"/> (optionally used by the test suite),
-      <!--<xref linkend="wireshark"/> (module installed),-->
       <xref linkend="xfsprogs"/>,
       <ulink url="https://cmocka.org/">cmocka</ulink>,
       <ulink url="https://cryptography.io/en/latest/">cryptography</ulink>,
@@ -150,7 +145,6 @@
       <xref linkend="pytest"/>,
       <ulink url="&pypi;/argparse/">argparse</ulink>,
       <ulink url="&pypi;/extras/">extras</ulink>,
-      <!--<ulink url="&pypi;/enum34/">enum34</ulink>,-->
       <ulink url="&pypi;/hypothesis/">hypothesis</ulink>,
       <ulink url="&pypi;/coverage/">coverage</ulink>,
       <ulink url="&pypi;/pytest-cov/">pytest-cov</ulink>,
@@ -185,18 +179,6 @@
 <screen><userinput remap="pre">python3 -m venv pyvenv &amp;&amp;
 ./pyvenv/bin/pip3 install cryptography pyasn1 iso8601</userinput></screen>
 
-    <!-- To editors: with the following "fix", the test suite reports "4
-         unexpected passes" for me.  If those tests still fail on some
-         systems, uncomment *and* change "knownfail" to "skip" to silence
-         the related tests.  -->
-
-<!--
-    <para>
-      Fix a test that always fails:
-    </para>
-
-<screen><userinput>echo "^samba4.rpc.echo.*on.*ncacn_np.*with.*object.*nt4_dc" >> selftest/knownfail</userinput></screen>
--->
     <para>
       Install <application>Samba</application> by running the following
       commands:
@@ -332,22 +314,6 @@ install -v -m755    examples/LDAP/{get*,ol*} \
       <option>--with-selftest-prefix=SELFTEST_PREFIX</option>: This option
       specifies the test suite work directory (default=./st).
     </para>
-
-<!-- FIXME removed during merged-/usr transition.
-    <para>
-      <command>mv -v /usr/lib/libnss_win{s,bind}.so* /lib</command>:
-      The nss libraries are installed in
-      <filename class="directory">/usr/lib</filename> by default. Move them to
-      <filename class="directory">/lib</filename>.
-    </para>
-
-    <para>
-      <command>ln -v -sf ../../lib/libnss_winbind.so.2 /usr/lib/libnss_winbind.so</command>
-      and <command>ln -v -sf ../../lib/libnss_wins.so.2    /usr/lib/libnss_wins.so</command>:
-      These symlinks are required when applications build against these
-      libraries.
-    </para>
--->
 
     <para>
       <command>install -v -m644 examples/LDAP/* /etc/openldap/schema</command>:
@@ -564,38 +530,6 @@ ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb</userinput></screen>
           <phrase revision="systemd">systemd unit</phrase> are needed.
         </para>
 
- <!-- All of these docs are years out of date. These were written for Samba 3,
-      and still mention Windows XP Professional as the current OS, dating them
-      back to before 2006 (When Windows Vista Business was released).
-        <para>
-          There is quite a bit of documentation available which covers many
-          of these advanced configurations. Point your web browser to the links
-          below to view some of the documentation included with the
-          <application>Samba</application> package:
-        </para>
-
-        <itemizedlist spacing='compact'>
-          <listitem>
-            <para>
-              Using Samba, 2nd Edition; a popular book published by O'Reilly
-              <ulink url=
-                "http://www.samba.org/samba/docs/using_samba/toc.html"/>
-            </para>
-          </listitem>
-          <listitem>
-            <para>
-              The Official Samba HOWTO and Reference Guide <ulink url=
-               "http://www.samba.org/samba/docs/man/Samba-HOWTO-Collection/"/>
-            </para>
-          </listitem>
-          <listitem>
-            <para>
-              Samba-3 by Example
-              <ulink url="http://www.samba.org/samba/docs/man/Samba-Guide/"/>
-            </para>
-          </listitem>
-        </itemizedlist>
- -->
       </sect4>
 
       <sect4>
@@ -720,17 +654,15 @@ systemctl start smbd.socket</userinput></screen>
           ldbadd, ldbdel, ldbedit, ldbmodify, ldbrename, ldbsearch, locktest,
           masktest, mdsearch, mvxattr, ndrdump, net, nmbd, nmblookup, ntlm_auth,
           oLschema2ldif, pdbedit, profiles, regdiff, regpatch, regshell,
-          regtree, rpcclient, <!--samba,--> samba-gpupdate,
-           <!-- with 4.15.3, 'samba' is in /sbin -->
-          samba-regedit, samba-tool, sharesec, smbcacls,
-          smbclient, smbcontrol, smbcquotas, smbd, smbget, smbpasswd, smbspool,
-          smbstatus, smbtar, smbtorture, smbtree,
+          regtree, rpcclient, samba-gpupdate, samba-regedit, samba-tool,
+          sharesec, smbcacls, smbclient, smbcontrol, smbcquotas, smbd, smbget,
+          smbpasswd, smbspool, smbstatus, smbtar, smbtorture, smbtree,
           tdbbackup, tdbdump, tdbrestore, tdbtool, testparm, wbinfo, and winbindd
         </seg>
 
         <seg>
           libdcerpc-binding.so, libdcerpc-samr.so,
-          libdcerpc-server-core.so, <!--libdcerpc-server.so,--> libdcerpc.so,
+          libdcerpc-server-core.so, libdcerpc.so,
           libndr-krb5pac.so, libndr-nbt.so, libndr.so,
           libndr-standard.so, libnetapi.so, libnss_winbind.so, libnss_wins.so,
           libsamba-credentials.so, libsamba-errors.so,
@@ -838,7 +770,7 @@ systemctl start smbd.socket</userinput></screen>
         <term><command>ldbdel</command></term>
         <listitem>
           <para>
-            is a command-line program for deleting LDB database records
+            is a command-line utility for deleting LDB database records
           </para>
           <indexterm zone="samba ldbdel">
             <primary sortas="b-ldbdel">ldbdel</primary>
@@ -1037,7 +969,7 @@ systemctl start smbd.socket</userinput></screen>
         <listitem>
           <para>
             is a utility that reports and changes SIDs in Windows
-            registry files. It currently only supports Windows NT
+            registry files
           </para>
           <indexterm zone="samba profiles">
             <primary sortas="b-profiles">profiles</primary>
@@ -1373,7 +1305,7 @@ systemctl start smbd.socket</userinput></screen>
         <term><command>testparm</command></term>
         <listitem>
           <para>
-            checks an <filename>smb.conf</filename> file for proper syntax
+            checks a <filename>smb.conf</filename> file for proper syntax
           </para>
           <indexterm zone="samba testparm">
             <primary sortas="b-testparm">testparm</primary>
