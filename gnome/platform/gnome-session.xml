@@ -153,16 +153,18 @@ ninja</userinput></screen>
 <screen role="root"><userinput>mv -v /usr/share/doc/gnome-session{,-&gnome-session-version;}</userinput></screen>
 
 
-  <para>This package creates two Xorg based .desktop files in the
-  /usr/share/xsessions/ directory.  Only one is needed in a 
-  BLFS system, so prevent the extra file showing up as an option 
-  in a window manager.  Also differentiate the X11 and Wayland versions
-  of Gnome.  As the &root; user:</para>
+    <para>
+      This package creates two Xorg based <filename>.desktop</filename> files
+      in the <filename class="directory">/usr/share/xsessions/</filename>
+      directory, and two Wayland based <filename>.desktop</filename> files in
+      the <filename class="directory">/usr/share/wayland-sessions/</filename>
+      directory.  Only one is needed in each directory on a BLFS system, so
+      prevent the extra files showing up as options in a display manager.  As
+      the &root; user:
+    </para>
 
-<screen role="root"><userinput>mkdir -p /usr/share/xsessions/deprecated                                      &amp;&amp;
-mv -v /usr/share/xsessions/gnome-xorg.desktop /usr/share/xsessions/deprecated &amp;&amp;
-sed -i '/Name/s/$/ (X11)/' /usr/share/xsessions/gnome.desktop
-</userinput></screen>
+<screen role="root"><userinput>rm -v /usr/share/xsessions/gnome.desktop &amp;&amp;
+rm -v /usr/share/wayland-sessions/gnome.desktop</userinput></screen>
 
     <para revision="sysv">
       Now, as the <systemitem class="username">root</systemitem> user,
@@ -170,6 +172,18 @@ sed -i '/Name/s/$/ (X11)/' /usr/share/xsessions/gnome.desktop
     </para>
 
 <screen role="root" revision="sysv"><userinput>rm -rv /tmp/{*.d,*.target,*.service}</userinput></screen>
+
+<!-- this part is not needed on systemd, since the dbus session is created
+by systemd-user.-->
+    <para revision="sysv">
+      The startup sequence of gnome-wayland needs to create a dbus session.
+      On SysV, this has to be added to the shipped
+      <filename>gnome-wayland.desktop</filename> file, which is written for
+      systemd. As the &root; user:
+    </para>
+
+<screen role="root" revision="sysv"><userinput>sed -e 's@^Exec=@&amp;/usr/bin/dbus-run-session @' \
+    -i /usr/share/wayland-sessions/gnome-wayland.desktop</userinput></screen>
 
   </sect2>
 
