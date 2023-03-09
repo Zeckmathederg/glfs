@@ -4,12 +4,12 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY libpaper-download-http "https://ftp.debian.org/debian/pool/main/libp/libpaper/libpaper_&libpaper-version;.tar.gz">
+  <!ENTITY libpaper-download-http "https://github.com/rrthomas/libpaper/releases/download/v&libpaper-version;/libpaper-&libpaper-version;.tar.gz">
   <!ENTITY libpaper-download-ftp  " ">
-  <!ENTITY libpaper-md5sum        "38bc55688c0fc5544edaa5a951a45fbd">
-  <!ENTITY libpaper-size          "48 KB">
-  <!ENTITY libpaper-buildsize     "3.5 MB">
-  <!ENTITY libpaper-time          "less than 0.1 SBU">
+  <!ENTITY libpaper-md5sum        "39322b429e795e33410db65b6d2fe163">
+  <!ENTITY libpaper-size          "1.2 MB">
+  <!ENTITY libpaper-buildsize     "11 MB (with tests)">
+  <!ENTITY libpaper-time          "0.1 SBU (with tests)">
 ]>
 
 <sect1 id="libpaper" xreflabel="libpaper-&libpaper-version;">
@@ -80,85 +80,23 @@
       commands:
     </para>
 
-<screen><userinput>autoreconf -fi                &amp;&amp;
-./configure --prefix=/usr     \
-            --sysconfdir=/etc \
-            --disable-static &amp;&amp;
+<screen><userinput>./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --disable-static     \
+            --enable-relocatable \
+            --docdir=/usr/share/doc/paper-&libpaper-version; &amp;&amp;
 make</userinput></screen>
 
     <para>
-      This package does not come with a test suite.
+      To test the results, issue: <command>make check</command>.
     </para>
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
+      Now, as the &root; user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-mkdir -vp /etc/libpaper.d</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
-     <para>
-       The /etc/libpaper.d directory contains scripts to run after the paper
-       size has been changed. This package puts no scripts here, but other
-       packages may.  If the fcron package has not been installed, create the
-       <command>run-parts</command> script as shown in the <xref
-       linkend='run-parts'/> section.
-     </para>
-
-<!--
-cat &gt; /usr/bin/run-parts &lt;&lt; "EOF"
-<literal>#!/bin/sh
-# run-parts:  Runs all the scripts found in a directory.
-# from Slackware, by Patrick J. Volkerding with ideas borrowed
-# from the Red Hat and Debian versions of this utility.
-
-# keep going when something fails
-set +e
-
-if [ $# -lt 1 ]; then
-  echo "Usage: run-parts &lt;directory&gt;"
-  exit 1
-fi
-
-if [ ! -d $1 ]; then
-  echo "Not a directory: $1"
-  echo "Usage: run-parts &lt;directory&gt;"
-  exit 1
-fi
-
-# There are several types of files that we would like to
-# ignore automatically, as they are likely to be backups
-# of other scripts:
-IGNORE_SUFFIXES="~ ^ , .bak .new .rpmsave .rpmorig .rpmnew .swp"
-
-# Main loop:
-for SCRIPT in $1/* ; do
-  # If this is not a regular file, skip it:
-  if [ ! -f $SCRIPT ]; then
-    continue
-  fi
-  # Determine if this file should be skipped by suffix:
-  SKIP=false
-  for SUFFIX in $IGNORE_SUFFIXES ; do
-    if [ ! "$(basename $SCRIPT $SUFFIX)" = "$(basename $SCRIPT)" ]; then
-      SKIP=true
-      break
-    fi
-  done
-  if [ "$SKIP" = "true" ]; then
-    continue
-  fi
-  # If we've made it this far, then run the script if it's executable:
-  if [ -x $SCRIPT ]; then
-    $SCRIPT || echo "$SCRIPT failed."
-  fi
-done
-
-exit 0</literal>
-EOF
-
-chmod -v 755 /usr/bin/run-parts</userinput></screen>
--->
   </sect2>
 
   <sect2 role="commands">
@@ -168,19 +106,10 @@ chmod -v 755 /usr/bin/run-parts</userinput></screen>
       href="../../xincludes/static-libraries.xml"/>
 
     <para>
-      <command>mkdir -pv /etc/libpaper.d</command>:
-      <application>libpaper</application> expects that packages will install
-      files into this directory.
+      <option>--enable-relocatable</option>:
+      This option is needed to run the tests.
     </para>
-<!--
-    <para>
-      <command>cat &gt; /usr/bin/run-parts &lt;&lt; "EOF"</command> :
-      <filename>paperconfig</filename> is a script which will invoke
-      <command>run-parts</command> if <filename
-      class="directory">/etc/libpaper.d</filename> exists. No other BLFS
-      package installs this, so we create it here.
-    </para>
--->
+
   </sect2>
 
   <sect2 role="configuration">
@@ -190,16 +119,13 @@ chmod -v 755 /usr/bin/run-parts</userinput></screen>
       <title>Configuration Information</title>
 
       <para>
-        Create <filename>/etc/papersize</filename> to set the default
+        Create <filename>/etc/paper</filename> to set the default
         system paper size.  Issue the following command as the
-        <systemitem class="username">root</systemitem> user to set this to
-        &apos;A4&apos; (libpaper prefers the lowercase form). You may wish
+        &root; user to set this to 'a4'. You may wish 
         to use a different size, such as letter.
       </para>
 
-<screen role="root"><userinput>cat &gt; /etc/papersize &lt;&lt; "EOF"
-<literal>a4</literal>
-EOF</userinput></screen>
+<screen role="root"><userinput>echo "a4" &gt; /etc/paper</userinput></screen>
 
     </sect3>
 
@@ -215,13 +141,13 @@ EOF</userinput></screen>
 
       <seglistitem>
         <seg>
-          paperconf, paperconfig, run-parts
+          paper
         </seg>
         <seg>
           libpaper.so
         </seg>
         <seg>
-          /etc/libpaper.d
+          /usr/share/doc/paper-&libpaper-version;
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -231,42 +157,18 @@ EOF</userinput></screen>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
 
-      <varlistentry id="paperconf">
-        <term><command>paperconf</command></term>
+      <varlistentry id="paper">
+        <term><command>paper</command></term>
         <listitem>
           <para>
             prints paper configuration information
           </para>
-          <indexterm zone="libpaper paperconf">
-            <primary sortas="b-paperconf">paperconf</primary>
+          <indexterm zone="libpaper paper">
+            <primary sortas="b-paper">paper</primary>
           </indexterm>
         </listitem>
       </varlistentry>
 
-      <varlistentry id="paperconfig">
-        <term><command>paperconfig</command></term>
-        <listitem>
-          <para>
-            configures the system default paper size
-          </para>
-          <indexterm zone="libpaper paperconfig">
-            <primary sortas="b-paperconfig">paperconfig</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-<!--
-      <varlistentry id="run-parts">
-        <term><command>run-parts</command></term>
-        <listitem>
-          <para>
-            runs all the scripts found in a directory.
-          </para>
-          <indexterm zone="libpaper run-parts">
-            <primary sortas="b-run-parts">run-parts</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
       <varlistentry id="libpaper-lib">
         <term><filename class="libraryfile">libpaper.so</filename></term>
         <listitem>
