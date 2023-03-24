@@ -612,8 +612,12 @@ chmod 755 blfs-yes-test2</userinput></screen>
       and it is likely that you'll see some <emphasis>(deleted)</emphasis>
       entries. The <command>mv</command> just removes the destination file from
       the directory but does not touch its content, so that it satisfies the
-      condition for the kernel to use the old (deleted) file. The script below
-      is just an example.
+      condition for the kernel to use the old (deleted) file.
+      But this approach can detach hard links into duplicated copies,
+      causing a bloat which is obviously unwanted as we are stripping to
+      reduce system size.  If two files in a same file system share the
+      same inode number, they are hard links to each other and we should
+      reconstruct the link.  The script below is just an example.
       It should be run as the &root; user:
     </para>
 
@@ -625,17 +629,28 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
+last_fs_inode=
+last_file=
+
 { find /usr/lib -type f -name '*.so*' ! -name '*dbg'
   find /usr/lib -type f -name '*.a'
   find /usr/{bin,sbin,libexec} -type f
-} |  while read file; do
+} | xargs stat -c '%m %i %n' | sort | while read file; do
        if ! readelf -h $file >/dev/null 2>&amp;1; then continue; fi
        if file $file | grep --quiet --invert-match 'not stripped'; then continue; fi
+
+       if [ "$fs $inode" = "$last_fs_inode" ]; then
+         ln -f $last_file $file;
+         continue;
+       fi
 
        cp --preserve $file    ${file}.tmp
        strip --strip-unneeded ${file}.tmp
        mv ${file}.tmp $file
-     done</literal>
+
+       last_fs_inode="$fs $inode"
+       last_file=$file
+done</literal>
 EOF
 chmod 744 /usr/sbin/strip-all.sh</userinput></screen>
 
