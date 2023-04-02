@@ -378,6 +378,49 @@ fmtutil-sys --all</userinput></screen>
 
 <screen role="root"><userinput>ln -svf $TEXLIVE_PREFIX/lib/libkpathsea.so /usr/lib</userinput></screen>
 
+    <note>
+      <!-- following based on fedora, but amended to run in the BLFS
+           layout, where adapting fedora's script for mtxrun did not
+           reliably work. ken -->
+      <para>
+        TeXLive includes some files for ConTeXt but the source of that is
+        separate and has moved on from using luatex in the previous 'mkiv'
+        version to using luametatex which can be pulled with git from
+        <ulink url="href=https://github.com/contextgarden/luametatex/releases/tags/"/>.
+        Luametatex uses meson and ninja, but it does not fit easily into
+        the BLFS layout of TeXLive.
+      </para>
+      <para>
+        However, with a little extra work 'mkiv' files can still be processed
+        using the files shipped in texmf.
+      </para>
+    </note>
+
+    <para>
+       The following steps, run as the
+       <systemitem class="username">root</systemitem> user, will create
+       <command>mtxrun</command> and <command>context</command> and
+       then use <command>mtxrun --generate</command> (again, a lot of
+       output) to initialize the context system:
+     </para>
+
+<!-- I've put blank lines in this to make it a little less hard to read. ken -->
+<screen role="root"><userinput>mkdir -pv $TEXLIVE_PREFIX/texmf-var/luatex-cache/context/ &amp;&amp;
+
+ln -sfv /$TEXLIVE_PREFIX/texmf-dist/scripts/context/lua/mtxrun.lua \
+        /$TEXLIVE_PREFIX/bin/$TEXARCH/mtxrun &amp;&amp;
+
+cat > $TEXLIVE_PREFIX/bin/$TEXARCH/context &lt;&lt; EOF
+#!/bin/sh
+export TEXMF=$TEXLIVE_PREFIX/texmf-dist;
+export TEXMFCNF=$TEXLIVE_PREFIX/texmf-dist/web2c;
+export TEXMFCACHE=$TEXLIVE_PREFIX/texmf-var/luatex-cache/context/;
+$TEXLIVE_PREFIX/bin/$TEXARCH/mtxrun --script context "\$@"
+EOF
+chmod -v 0755 $TEXLIVE_PREFIX/bin/$TEXARCH/context &amp;&amp;
+
+mtxrun --generate</userinput></screen>
+
     <para>
       You can now proceed to <xref linkend="asymptote"/>,
       <xref linkend="biber"/>, <xref linkend="dvisvgm"/> and / or <xref
@@ -455,9 +498,15 @@ fmtutil-sys --all</userinput></screen>
       Metafont bases and Metapost mems.
     </para>
 
-<!--<para>
-      <command>mtxrun \-\-generate</command>: This initializes the ConTeXt system.
-    </para>-->
+    <para>
+      <command>mkdir -pv $TEXLIVE_PREFIX/texmf-var/luatex-cache/context/</command>:
+      the context script created after this will not run correctly if this
+      directory is not present.
+    </para>
+
+    <para>
+      <command>mtxrun --generate</command>: This initializes the ConTeXt system.
+    </para>
 
   </sect2>
 
