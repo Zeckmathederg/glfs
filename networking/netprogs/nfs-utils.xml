@@ -7,10 +7,10 @@
   <!ENTITY nfs-utils-root "&kernel-dl;/linux/utils/nfs-utils" >
   <!ENTITY nfs-utils-download-http "&nfs-utils-root;/&nfs-utils-version;/nfs-utils-&nfs-utils-version;.tar.xz">
   <!ENTITY nfs-utils-download-ftp  " ">
-  <!ENTITY nfs-utils-md5sum        "0961dc4777363b88f10305fc4957449f">
-  <!ENTITY nfs-utils-size          "700 KB">
-  <!ENTITY nfs-utils-buildsize     "17 MB">
-  <!ENTITY nfs-utils-time          "0.2 SBU">
+  <!ENTITY nfs-utils-md5sum        "d47ff4ca79b71d64d37c0f0e81aae134">
+  <!ENTITY nfs-utils-size          "712 KB">
+  <!ENTITY nfs-utils-buildsize     "17 MB (with tests">
+  <!ENTITY nfs-utils-time          "0.2 SBU (with tests)">
 ]>
 
 <sect1 id="nfs-utils" xreflabel="nfs-utils-&nfs-utils-version;">
@@ -73,8 +73,10 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="libtirpc"/> and
-      <xref linkend="rpcsvc-proto"/>
+      <xref linkend="libtirpc"/>,
+      <xref linkend="libevent"/>, 
+      <xref linkend="rpcsvc-proto"/>, and
+      <xref linkend="sqlite"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -85,7 +87,6 @@
       This is now built in, as of 2.2.1-->
       <xref linkend="libnsl"/> (for NIS client support),
       <xref linkend="openldap"/> (for LDAP authentication),
-      <xref linkend="sqlite"/>,
       <xref linkend="mitkrb"/> or
       <ulink url="http://www.citi.umich.edu/projects/nfsv4/linux/">
         libgssapi
@@ -198,36 +199,36 @@ useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
             --sysconfdir=/etc      \
             --sbindir=/usr/sbin    \
             --disable-nfsv4        \
-            --disable-gss &amp;&amp;
+            --disable-gss i        \
+            LIBS="-lsqlite3 -levent_core" &amp;&amp;
 make</userinput></screen>
 
     <!-- Test breakage: see
-    http://lists.linuxfromscratch.org/pipermail/blfs-book/2017-December/071861.html -->
+    http://lists.linuxfromscratch.org/pipermail/blfs-book/2017-December/071861.html 
     <para>
       This package does not come with a working test suite.
     </para>
+    -->
 
     <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
+      Now, as the &root; user:
     </para>
 
 <!-- dev note: make statduser=$(whoami) DESTDIR=<DESTDIR> install -->
 
-<screen role='root'><userinput>make install                      &amp;&amp;
-chmod u+w,go+r /usr/sbin/mount.nfs    &amp;&amp;
-chown nobody.nogroup /var/lib/nfs</userinput></screen>
+<screen role='root'><userinput>make install                       &amp;&amp;
+chmod u+w,go+r /usr/sbin/mount.nfs &amp;&amp;
+chown nobody:nogroup /var/lib/nfs</userinput></screen>
 
-    <!-- commented, in case the tests get fixed
     <para>
-      The tests for this package require that the package be installed and
-      configured as specified below.  In addition, the daemon from <xref
-      linkend="rpcbind"/> needs to be running and the tests need to be run as
-      the <systemitem class="username">root</systemitem> user.
+      The tests for this package require that the package be installed.
+      In addition, the rpc.statd daemon must not be running and the tests 
+      need to be run as the &root; user.
     </para>
 
     <para>
-      To test the results, issue, as root: <command>make check</command>.
-    </para>-->
+      To test the results, issue, as &root;: <command>make check</command>.
+    </para>
 
   </sect2>
 
@@ -251,7 +252,12 @@ chown nobody.nogroup /var/lib/nfs</userinput></screen>
     </para>
 
     <para>
-      <command>chown nobody.nogroup /var/lib/nfs</command>: The
+      <parameter>LIBS="-lsqlite3 -levent_core"</parameter>: is required for 
+      the fsidd program.
+    </para>
+
+    <para>
+      <command>chown nobody:nogroup /var/lib/nfs</command>: The
       rpc.statd program uses the ownership of this directory to set
       it's UID and GID.  This command sets those to unprivileged entries.
     </para>
@@ -456,7 +462,7 @@ EOF</userinput></screen>
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
-        <seg>exportfs, mountstats, mount.nfs, mount.nfs4 (link to mount.nfs),
+        <seg>exportfs, fsidd, mountstats, mount.nfs, mount.nfs4 (link to mount.nfs),
         nfsconf, nfsdclnts, nfsiostat, nfsstat, rpc.mountd, rpc.nfsd, rpc.statd,
         rpcdebug, showmount, sm-notify, start-statd,
         umount.nfs (link to mount.nfs), and umount.nfs4 (link to mount.nfs)</seg>
@@ -478,6 +484,19 @@ EOF</userinput></screen>
           </para>
           <indexterm zone="nfs-utils exportfs">
             <primary sortas="b-exportfs">exportfs</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="fsidd">
+        <term><command>fsidd</command></term>
+        <listitem>
+          <para>
+            offers a local UNIX domain socket interface
+            for all NFS userspace to query the reexport database
+          </para>
+          <indexterm zone="nfs-utils fsidd">
+            <primary sortas="b-fsidd">fsidd</primary>
           </indexterm>
         </listitem>
       </varlistentry>
