@@ -6,10 +6,10 @@
 
   <!ENTITY webkitgtk-download-http "https://webkitgtk.org/releases/webkitgtk-&webkitgtk-version;.tar.xz">
   <!ENTITY webkitgtk-download-ftp  " ">
-  <!ENTITY webkitgtk-md5sum        "de05d314a3ecb5fb3835e4d84f8f466d">
-  <!ENTITY webkitgtk-size          "31 MB">
+  <!ENTITY webkitgtk-md5sum        "20aa14992701802a58bb5e333296a963">
+  <!ENTITY webkitgtk-size          "38 MB">
   <!ENTITY webkitgtk-buildsize     "1.1 GB (174 MB installed)">
-  <!ENTITY webkitgtk-time          "34 SBU (using parallelism=4)">
+  <!ENTITY webkitgtk-time          "34 SBU (for GTK-3, using parallelism=4, add 36 SBU for GTK-4)">
 ]>
 
 <sect1 id="webkitgtk" xreflabel="WebKitGTK-&webkitgtk-version;">
@@ -89,6 +89,7 @@
       <xref linkend="gst10-plugins-base"/>,
       <xref linkend="gst10-plugins-bad"/>,
       <xref linkend="gtk3"/>,
+      <xref linkend="gtk4"/>,
       <xref linkend="icu"/>,
       <xref linkend="lcms2"/>,
       <xref linkend="libgudev"/>,
@@ -118,7 +119,6 @@
     <para role="optional">
       <xref linkend="bubblewrap"/>,
       <xref linkend="gi-docgen"/>,
-      <xref linkend="gtk4"/>,
       <xref linkend="harfbuzz"/>,
       <xref linkend="wayland"/>,
       <xref linkend="woff2"/>,
@@ -148,6 +148,17 @@
 <screen><userinput>patch -Np1 -i ../webkitgtk-&webkitgtk-version;-upstream_fix-1.patch</userinput></screen>
 -->
 
+    <important>
+      <para>
+        This package allows building with either GTK-3 or GTK-4, but not both
+        in the same build. To build the GTK-4 version for packages such as
+        Epiphany, make sure to set -DUSE_GTK4=ON. For other packages, such as
+        Balsa or Evolution, the GTK-3 version is required, so set 
+        -DUSE_GTK4=OFF if you want to build this package to use those
+        applications. Both versions can be installed on the same system.
+      </para>
+    </important>
+
     <para>
       Install <application>WebKitGTK</application> by running the
       following commands:
@@ -166,6 +177,7 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DENABLE_MINIBROWSER=ON     \
       -DENABLE_DOCUMENTATION=OFF  \
       -DUSE_WOFF2=OFF             \
+      -DUSE_GTK4=[ON or OFF]      \
       -DUSE_WPE_RENDERER=ON       \
       -DENABLE_BUBBLEWRAP_SANDBOX=OFF \
       -Wno-dev -G Ninja ..        &amp;&amp;
@@ -184,6 +196,7 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DENABLE_MINIBROWSER=ON     \
       -DENABLE_DOCUMENTATION=OFF  \
       -DUSE_WOFF2=OFF             \
+      -DUSE_GTK4=[ON or OFF]      \
       -DUSE_WPE_RENDERER=ON       \
       -DENABLE_JOURNALD_LOG=OFF   \
       -DENABLE_BUBBLEWRAP_SANDBOX=OFF \
@@ -332,12 +345,16 @@ install -vm644  ../Documentation/webkit2gtk-web-extension-4.1/* \
           WebKitWebDriver
         </seg>
         <seg>
-          libjavascriptcoregtk-4.1.so and
-          libwebkit2gtk-4.1.so
+          libjavascriptcoregtk-4.1.so,
+          libjavascriptcoregtk-6.0.so,
+          libwebkit2gtk-4.1.so, and
+          libwebkitgtk-6.0.so
         </seg>
         <seg>
           /usr/include/webkitgtk-4.1,
-          /usr/lib{,exec}/webkit2gtk-4.1, and
+          /usr/include/webkitgtk-6.0,
+          /usr/lib{,exec}/webkit2gtk-4.1,
+          /usr/lib{,exec}/webkitgtk-6.0, and
           /usr/share/gtk-doc/html/{jsc-glib,webkit2gtk{,-web-extension}}-4.1
         </seg>
       </seglistitem>
@@ -402,6 +419,20 @@ install -vm644  ../Documentation/webkit2gtk-web-extension-4.1/* \
         </listitem>
       </varlistentry>
 
+      <varlistentry id="libjavascriptcoregtk-6.0">
+        <term><filename class="libraryfile">libjavascriptcoregtk-6.0.so</filename></term>
+        <listitem>
+          <para>
+            contains core JavaScript API functions used by
+            <command>jsc</command> and
+            <filename class="libraryfile">libwebkitgtk-6.0.so</filename>
+          </para>
+          <indexterm zone="webkitgtk libjavascriptcoregtk-6.0">
+            <primary sortas="c-libjavascriptcoregtk-6.0">libjavascriptcoregtk-6.0.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
       <varlistentry id="libwebkit2gtk-4">
         <term><filename class="libraryfile">libwebkit2gtk-4.1.so</filename></term>
         <listitem>
@@ -410,6 +441,19 @@ install -vm644  ../Documentation/webkit2gtk-web-extension-4.1/* \
           </para>
           <indexterm zone="webkitgtk libwebkit2gtk-4">
             <primary sortas="c-libwebkit2gtk-4">libwebkit2gtk-4.1.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libwebkitgtk-6">
+        <term><filename class="libraryfile">libwebkitgtk-6.0.so</filename></term>
+        <listitem>
+          <para>
+            contains the <application>WebKit</application> API functions for
+            GTK-4 applications
+          </para>
+          <indexterm zone="webkitgtk libwebkitgtk-6">
+            <primary sortas="c-libwebkitgtk-6">libwebkitgtk-6.0.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
