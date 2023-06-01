@@ -6,8 +6,8 @@
 
   <!ENTITY libssh2-download-http "https://www.libssh2.org/download/libssh2-&libssh2-version;.tar.gz">
   <!ENTITY libssh2-download-ftp  " ">
-  <!ENTITY libssh2-md5sum        "f604ba083fad23bf715a9ecccc9f57f4">
-  <!ENTITY libssh2-size          "944 KB">
+  <!ENTITY libssh2-md5sum        "a01d543fd891ca48fe47726540d50b17">
+  <!ENTITY libssh2-size          "1.1 MB">
   <!ENTITY libssh2-buildsize     "13 MB (with tests)">
   <!ENTITY libssh2-time          "0.2 SBU (with tests)">
 ]>
@@ -80,9 +80,11 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="gnupg2"/>,
-      <xref linkend="libgcrypt"/>, and
-      <xref linkend="openssh"/> (all three are required for the test suite)
+      <xref linkend="cmake"/> (can be used instead of the
+      <command>configure</command> script),
+      <xref linkend="libgcrypt"/> (can be used instead of OpenSSL),
+      <xref linkend="openssh"/> (for some tests), and
+      <ulink url='https://www.docker.com'>Docker</ulink> (for some tests)
     </para>
 
     <para condition="html" role="usernotes">
@@ -94,17 +96,22 @@
     <title>Installation of libssh2</title>
 
     <para>
-      Apply a patch to fix incompatibility with recent OpenSSH releases:
+      If you want to test the package, exclude the tests requiring a static
+      library:
     </para>
 
-<screen><userinput>patch -Np1 -i ../libssh2-&libssh2-version;-upstream_fix-1.patch</userinput></screen>
+<screen><userinput>sed -E '/^DOCKER_TEST/,/^SSHD_TEST/s/test_(auth_keyboard_info.* |hostkey |simple)/$(NOTHING)/' \
+    -i tests/Makefile.inc &amp;&amp;
+autoreconf -fi</userinput></screen>
 
     <para>
       Install <application>libssh2</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr --disable-static &amp;&amp;
+<screen><userinput>./configure --prefix=/usr          \
+            --disable-docker-tests \
+            --disable-static       &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -120,6 +127,12 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <parameter>--disable-docker-tests</parameter>: Disable the tests
+      requiring Docker, which is beyond the scope of BLFS.  Remove this
+      switch if you've installed Docker and you wish to run the test suite.
+    </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/static-libraries.xml"/>
