@@ -5,12 +5,12 @@
   %general-entities;
 
   <!ENTITY tracker3-download-http
-           "&gnome-download-http;/tracker/3.4/tracker-&tracker3-version;.tar.xz">
+           "&gnome-download-http;/tracker/3.5/tracker-&tracker3-version;.tar.xz">
   <!ENTITY tracker3-download-ftp
-           "&gnome-download-ftp;/tracker/3.4/tracker-&tracker3-version;.tar.xz">
-  <!ENTITY tracker3-md5sum        "161d074eeae05dffc77911f12cf5ec14">
-  <!ENTITY tracker3-size          "1.8 MB">
-  <!ENTITY tracker3-buildsize     "34 MB (with tests)">
+           "&gnome-download-ftp;/tracker/3.5/tracker-&tracker3-version;.tar.xz">
+  <!ENTITY tracker3-md5sum        "f78a0d145007d9871174be21a49ce9ef">
+  <!ENTITY tracker3-size          "2.5 MB">
+  <!ENTITY tracker3-buildsize     "51 MB (with tests)">
   <!ENTITY tracker3-time          "0.3 SBU (with tests)">
 ]>
 
@@ -102,7 +102,11 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="asciidoc"/>,
-      <xref linkend="gtk-doc"/>,
+<!--  It looks like not used even if docs=true,
+      the pre-built doc is shipped in tarball and will be installed
+      <xref linkend="gi-docgen"/>
+-->
+      <xref linkend="graphviz"/>,
       <xref linkend="libsoup"/>,
       <ulink url="https://github.com/scop/bash-completion/">bash-completion</ulink>, and
       <ulink url="https://github.com/snowballstem/snowball/">libstemmer</ulink>
@@ -119,6 +123,14 @@
     <title>Installation of Tracker</title>
 
     <para>
+      Fix the location to install the documentation into:
+    </para>
+
+<screen><userinput>mv docs/reference/libtracker-sparql/doc/{Tracker-3.0,tracker-&tracker3-version;} &amp;&amp;
+sed '/docs_name/s/Tracker-3.0/tracker-&tracker3-version;/' \
+    -i docs/reference/libtracker-sparql/meson.build</userinput></screen>
+
+    <para>
       Install <application>Tracker</application> by running the following
       commands:
     </para>
@@ -128,7 +140,6 @@ cd    build &amp;&amp;
 
 meson setup --prefix=/usr       \
             --buildtype=release \
-            -Ddocs=false        \
             -Dman=false         \
             ..                  &amp;&amp;
 ninja</userinput></screen>
@@ -138,22 +149,24 @@ cd    build &amp;&amp;
 
 meson setup --prefix=/usr                 \
             --buildtype=release           \
-            -Ddocs=false                  \
             -Dman=false                   \
             -Dsystemd_user_services=false \
             ..                            &amp;&amp;
 ninja</userinput></screen>
 
     <para>
-      To test the results, issue: <command>ninja test</command>. The tests
-      should be run from a graphical session.
-    </para>
-
-    <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
 <screen role="root"><userinput>ninja install</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>meson configure -Ddebug=true
+      &amp;&amp; ninja test</command>.
+      The test suite should be run from a graphical session. One test,
+      <filename>tracker: fts / fts</filename>, is known to fail due to an
+      incompatiblity with SQLite-3.42.
+    </para>
 
   </sect2>
 
@@ -163,13 +176,6 @@ ninja</userinput></screen>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/meson-buildtype-release.xml"/>
-
-    <para>
-      <parameter>-Ddocs=false</parameter>: This switch prevents the
-      build process from generating API documentation. Omit this switch if you
-      have <xref linkend="gtk-doc" role="nodep"/> installed and wish to
-      generate and install the API documentation.
-    </para>
 
     <para>
       <parameter>-Dman=false</parameter>: This switch prevents the build
@@ -182,6 +188,13 @@ ninja</userinput></screen>
       <parameter>-Dsystemd_user_services=false</parameter>: This switch prevents
       the build process from installing systemd user services since they are
       useless on SysV systems.
+    </para>
+
+    <para>
+      <command>meson configure -Ddebug=true</command>: This command enables
+      some debug checks necessary for the test suite.  We don't want to
+      enable them for the installed Tracker 3 libraries and programs, so
+      we run the test suite after installation.
     </para>
 
   </sect2>
@@ -206,7 +219,8 @@ ninja</userinput></screen>
           /usr/{include,lib}/tracker-3.0,
           /usr/libexec/tracker3,
           /usr/share/tracker3, and
-          /usr/share/gtk-doc/html/{libtracker-sparql,ontology}-3 (optional)
+          /usr/share/doc/Tracker-3.0 (optional)
+          <!-- Xi, when you change documentation, please change this path -->
         </seg>
       </seglistitem>
     </segmentedlist>

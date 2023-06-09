@@ -6,10 +6,10 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.xz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "2fac6c46422e743f5f05287e89e72f22">
-  <!ENTITY rust-size          "121 MB">
-  <!ENTITY rust-buildsize     "8.0 GB (286 MB installed); add 7.4 GB if running the tests">
-  <!ENTITY rust-time          "24 SBU (including download time; add 15 SBU for tests, both using parallelism=4)">
+  <!ENTITY rust-md5sum        "165792a4266021589b2d6061f208755f">
+  <!ENTITY rust-size          "134 MB">
+  <!ENTITY rust-buildsize     "8.9 GB (289 MB installed); add 6.4 GB if running the tests">
+  <!ENTITY rust-time          "6.7 SBU (including download time; add 6.2 SBU for tests, both using parallelism=8)">
 ]>
 
 <sect1 id="rust" xreflabel="rustc-&rust-version;">
@@ -282,7 +282,7 @@ extended = true
 locked-deps = true
 
 # Specify which extended tools (those from the default install).
-tools = ["cargo", "clippy", "rustfmt"]
+tools = ["cargo", "clippy", "rustdoc", "rustfmt"]
 
 # Use the source code shipped in the tarball for the dependencies.
 # The combination of this and the "locked-deps" entry avoids downloading
@@ -389,6 +389,8 @@ python3 ./x.py build</userinput></screen>
 <screen remap="test"><userinput>grep '^test result:' rustc-testlog |
  awk '{sum1 += $4; sum2 += $6} END { print sum1 " passed; " sum2 " failed" }'</userinput></screen>
 
+<!-- For rustc-1.70.0, I got: 28494 passed; 14 failed. -bdubbs -->
+
     <para>
       The other available fields are $8 for those which were ignored
       (i.e. skipped),  $10 for 'measured' and $12 for 'filtered out' but both
@@ -413,6 +415,15 @@ python3 ./x.py build</userinput></screen>
     </note>
 
 <screen role='root'><userinput>python3 ./x.py install</userinput></screen>
+
+    <para>
+      Still as the &root; user, symlink a <application>Zsh</application>
+      completion file into the correct location:
+    </para>
+
+<screen role='root'><userinput>install -vdm755 /usr/share/zsh/site-functions      &amp;&amp;
+ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
+        /usr/share/zsh/site-functions</userinput></screen>
 
   </sect2>
 
@@ -440,14 +451,11 @@ python3 ./x.py build</userinput></screen>
     </para>
 
     <para>
-      <command>tools = ["cargo", "clippy", "rustfmt"]</command>: if the tools
-      are not scecified, the absence of <application>Miri</application> now
-      causes the install to fail. But <application>Miri</application> is not
-      built in the stable channel. Some of the other tools are unlikely to
-      be useful unless using (old) code analyzers or editing the standard library.
-      This set match those from the 'default' profile in binary command
-      <command>rustup</command> which are recommended for most users, except that
-      the documentation was disabled at the start of the '[build]' section.
+      <command>tools = ["cargo", "clippy", "rustdoc", "rustfmt"]</command>:
+      only build the tools from the 'default' profile in binary command
+      <command>rustup</command> which are recommended for most users.
+      The other tools are unlikely to be useful unless using (old) code
+      analyzers or editing the standard library.
     </para>
 
     <para>

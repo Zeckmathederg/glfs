@@ -6,10 +6,10 @@
 
   <!ENTITY elogind-download-http "https://github.com/elogind/elogind/archive/v&elogind-version;/elogind-&elogind-version;.tar.gz">
   <!ENTITY elogind-download-ftp  " ">
-  <!ENTITY elogind-md5sum        "32ab2201281f14738d9c045f3669c14d">
-  <!ENTITY elogind-size          "1.5 MB">
-  <!ENTITY elogind-buildsize     "41 MB (with tests)">
-  <!ENTITY elogind-time          "0.2 SBU (with parallelism=4)">
+  <!ENTITY elogind-md5sum        "2be2c43298e2fc41c5bee33dde605f01">
+  <!ENTITY elogind-size          "1.8 MB">
+  <!ENTITY elogind-buildsize     "45 MB (with tests)">
+  <!ENTITY elogind-time          "0.3 SBU (with parallelism=4)">
 ]>
 
 <sect1 id="elogind" revision="sysv" xreflabel="elogind-&elogind-version;">
@@ -74,6 +74,11 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">elogind Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="Jinja2"/>
+    </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
@@ -145,7 +150,7 @@ File systems ---&gt;
       commands:
     </para>
 
-<screen><userinput>sed -i '/Disable polkit/,+8 d' meson.build &amp;&amp;
+<screen><userinput><!--sed -i '/Disable polkit/,+8 d' meson.build &amp;&amp;
 
 sed '/request_name/i\
 r = sd_bus_set_exit_on_disconnect(m->bus, true);\
@@ -153,14 +158,15 @@ if (r &lt; 0)\
     return log_error_errno(r, "Failed to set exit on disconnect: %m");' \
     -i src/login/logind.c &amp;&amp;
 
-mkdir build &amp;&amp;
+-->mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson setup ..                    \
-      --prefix=/usr               \
-      --buildtype=release         \
-      -Dman=auto                  \
-      -Dcgroup-controller=elogind \
+meson setup ..                              \
+      --prefix=/usr                         \
+      --buildtype=release                   \
+      -Dman=auto                            \
+      -Ddocdir=/usr/share/doc/elogind-&elogind-version; \
+      -Dcgroup-controller=elogind           \
       -Ddbuspolicydir=/etc/dbus-1/system.d &amp;&amp;
 ninja</userinput></screen>
 
@@ -182,7 +188,7 @@ ln -sfvn elogind /usr/include/systemd</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
+    <!--
     <para>
       <command>sed ... meson.build</command>: This change allows the
       package to be built without polkit being installed (it is still a
@@ -194,6 +200,11 @@ ln -sfvn elogind /usr/include/systemd</userinput></screen>
       <command>sed ... src/login/logind.c</command>: This change allows the
       elogind daemon to exit when it is disconnected from dbus (for example
       when dbus is killed).
+    </para>
+    -->
+    <para>
+      <parameter>-Ddocdir=/usr/share/doc/elogind-&elogind-version;</parameter>:
+      This is needed to install documentation in a versioned directory.
     </para>
 
     <para>
@@ -212,6 +223,13 @@ ln -sfvn elogind /usr/include/systemd</userinput></screen>
       <parameter>-Dman=auto</parameter>: The default value of this switch is
       <emphasis>false</emphasis>. Setting it to <emphasis>auto</emphasis>
       allows building and installing the man pages if the recommended
+      dependencies are installed.
+    </para>
+
+    <para>
+      <option>-Dhtml=auto</option>: The default value of this switch is
+      <emphasis>false</emphasis>. Setting it to <emphasis>auto</emphasis>
+      allows building and installing the html documentation if the recommended
       dependencies are installed.
     </para>
 
@@ -315,7 +333,7 @@ EOF</userinput></screen>
            libelogind.so
         </seg>
         <seg>
-          /lib/elogind,
+          /usr/lib/elogind,
           /etc/elogind,
           /usr/include/elogind, and
           /usr/share/doc/elogind-&elogind-version;
