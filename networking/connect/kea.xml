@@ -10,6 +10,7 @@
   <!ENTITY kea-size          "9.8 MB">
   <!ENTITY kea-buildsize     "1.9 GB">
   <!ENTITY kea-time          "5 SBU"> <!-- CHECK -->
+  <!ENTITY kea-arm-vers      "2.2.0">
 ]>
 
 <sect1 id="kea" xreflabel="KEA-&kea-dhcp-version;">
@@ -26,7 +27,7 @@
     <title>Introduction to ISC Kea</title>
 
     <para>
-      The <application>ISC Kea</application> package contains the 
+      The <application>ISC Kea</application> package contains the
       server programs for DHCP. It is the successor of the
       <xref linkend="dhcp"/> server which is end-of-life since December 2022.
     </para>
@@ -73,7 +74,7 @@
     <para role="required">
       <xref linkend="log4cplus"/>
     </para>
-    
+
     <para condition="html" role="usernotes">User Notes:
       <ulink url="&blfs-wiki;/kea"/>
     </para>
@@ -135,20 +136,30 @@ make</userinput></screen>
     </para>
 
   </sect2>
-  
+
   <sect2 role="configuration">
     <title>Configuring ISC Kea DHCP</title>
 
-    <para>Consult the 
-    <ulink url="https://kea.readthedocs.io/en/kea-2.2.0/">Kea Administrator Reference Manual</ulink>
-    for detailled information about the configuration of Kea.</para>
+    <para>Consult the
+    <ulink url="https://kea.readthedocs.io/en/kea-&kea-arm-vers;/">Kea Administrator Reference Manual</ulink>
+    for detailled information about the configuration of <application>ISC Kea</application>
+    as it is a quite capable system. The configuration shown a bare
+    minimum to get a DHCP server running but it already includes
+    configuration for DDNS (Dynamic DNS). That setup might be working
+    for small networks with a few clients and low traffic. For greater
+    installations with thousands of clients, <application>ISC Kea</application>
+    can be configured to use databases (mariabd or postgresql) to store
+    the leases and build a cluster with multiple nodes. It can
+    be integrated to <ulink url="https://www.isc.org/categories/stork/">Stork</ulink>
+    which is a management dashboard to <application>ISC Kea</application>.</para>
+
 
     <para>The support of IPv4, IPv6 and DDNS has been splitted into
     separate servers which runs independently from each other. Each
     of them has its own configuration file. Additional configuration
     files come from the keactrl agent which is uses to control the
     servers in an easy way.</para>
-    
+
     <sect3 id="kea-dhcp-config">
       <title>Config Files</title>
 
@@ -175,11 +186,10 @@ make</userinput></screen>
       <indexterm zone="kea kea-dhcp6-config">
         <primary sortas="e-etc-kea-dhcp6.conf">/etc/kea/kea-dhcp6.conf</primary>
       </indexterm>
-
+-->
       <indexterm zone="kea kea-dhcp-ddns-config">
         <primary sortas="e-etc-kea-dhcp-ddns.conf">/etc/kea/kea-dhcp-ddns.conf</primary>
       </indexterm>
--->
     </sect3>
 
     <sect3 id="keactrl-config">
@@ -197,22 +207,22 @@ make</userinput></screen>
         <listitem>
           <para>IPv4 DHCP server</para>
           <para>This daemon handles requests for IPv4 addresses.
-          Set <literal>dhcp4=yes</literal> to start it, set 
+          Set <literal>dhcp4=yes</literal> to start it, set
           <literal>dhcp4=no</literal> in case DHCP service for IPv4
           is not wanted.</para>
         </listitem>
         <listitem>
           <para>IPv6 DHCP server</para>
           <para>This daemon handles requests for IPv6 addresses.
-          Set <literal>dhcp6=yes</literal> to start it, set 
+          Set <literal>dhcp6=yes</literal> to start it, set
           <literal>dhcp6=no</literal> in case DHCP service for IPv6
           is not wanted.</para>
         </listitem>
         <listitem>
           <para>Dynamic DNS</para>
           <para>This daemon is used to update a DNS server dynamically
-          when Kea assignes an IP address to a device. 
-          Set <literal>dhcp_ddns=yes</literal> to enable it, set 
+          when Kea assignes an IP address to a device.
+          Set <literal>dhcp_ddns=yes</literal> to enable it, set
           <literal>dhcp_ddns=no</literal> in case dynamic DNS updates
           are not wanted.</para>
         </listitem>
@@ -231,7 +241,7 @@ make</userinput></screen>
       dependencies are not covered by the current BLFS book.</para>
 
       <para>With the following command, Kea will be configured to
-      start the dhcp service for IPv4 and the 
+      start the dhcp service for IPv4 and the
       dynamic DNS update, while the control agent and
       the dhcp service for IPv6 remains down. Tweak the command to
       match your needs on started services and execute as the
@@ -247,88 +257,7 @@ make</userinput></screen>
     </sect3>
 
     <sect3 id="kea-dhcp4-config">
-      <title>IPv4 Server Configuration</title>
-
-      <para>
-        A sample configuration file is created in <filename>/etc/kea/kea-dhcpd4.conf</filename>.
-        Adjust the file to suit your needs or overwrite it by using
-        the following sample as the <systemitem class="username">root</systemitem>
-        user:
-      </para>
-
-<screen role="nodump" ><userinput>cat &gt; /etc/kea/kea-dhcpd4.conf &lt;&lt; "EOF"
-<literal>// Begin /etc/kea/kea-dhcpd4.conf
-{
-"Dhcp4": {
-    "interfaces-config": {
-        "interfaces": [ "eth0" ]
-    },
-    "control-socket": {
-        "socket-type": "unix",
-        "socket-name": "/run/kea/kea4-ctrl-socket"
-    },
-    "lease-database": {
-        "type": "memfile",
-        "lfc-interval": 3600
-    },
-    "renew-timer": 900,
-    "rebind-timer": 1800,
-    "valid-lifetime": 3600,
-    "option-data": [
-        {
-            "name": "domain-name-servers",
-            "data": "192.168.2.1, 192.168.2.2"
-        },
-        {
-            "name": "domain-search",
-            "data": "mydomain.example.org, example.org"
-        }
-    ],
-    "subnet4": [
-        {
-            "subnet": "192.168.2.0/24",
-            "pools": [
-                {
-                    "pool": "192.168.2.16 - 192.168.2.64"
-                }
-            ],
-            "option-data": [
-                {
-                    "name: "routers",
-                    "value": "192.168.2.254"
-                }
-            ],
-            "reservations": [
-                {
-                    "hw-address": "00:11:22:33:44:55",
-                    "ip-address": "192.168.2.65",
-                    "hostname": "host-2-65"
-                },
-                {
-                    "hw-address": "00:00:00:00:00:01",
-                    "ip-address": "192.168.2.253",
-                    "hostname": "special-host",
-                    "option-data": [
-                        {
-                            "name": "domain-name-servers",
-                            "data": "192.168.1.1"
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}
-}
-// End /etc/kea/kea-dhcpd4.conf</literal>
-EOF</userinput></screen>
-
-      <note>
-        <para>The double braces at the end of the config is not a typo.</para>
-      </note>
-
-      <para>The configuration for IPv6 is similar to the configuration
-      of IPv4. The configuration file is <filename>/etc/kea/kea-dhcpd6.conf</filename>.</para>
+      <title>IPv4 DHCP Server Configuration</title>
 
       <para>
         If you want to start the DHCP Server at boot, install the
@@ -343,6 +272,185 @@ EOF</userinput></screen>
 
 <screen role="root"><userinput>make install-kea-dhcpd</userinput></screen>
 
+      <para>
+        A sample configuration file is created in <filename>/etc/kea/kea-dhcpd4.conf</filename>.
+        Adjust the file to suit your needs or overwrite it by using
+        the following sample as the <systemitem class="username">root</systemitem>
+        user:
+      </para>
+
+<screen role="nodump" ><userinput>cat &gt; /etc/kea/kea-dhcpd4.conf &lt;&lt; "EOF"
+<literal>// Begin /etc/kea/kea-dhcpd4.conf
+{
+"Dhcp4": {
+    // Add names of your network interfaces to listen on.
+    "interfaces-config": {
+        "interfaces": [ "eth0", "eth2" ]
+    },
+
+    "control-socket": {
+        "socket-type": "unix",
+        "socket-name": "/tmp/kea4-ctrl-socket"
+    },
+
+    "lease-database": {
+        "type": "memfile",
+        "lfc-interval": 3600
+    },
+
+    "expired-leases-processing": {
+        "reclaim-timer-wait-time": 10,
+        "flush-reclaimed-timer-wait-time": 25,
+        "hold-reclaimed-time": 3600,
+        "max-reclaim-leases": 100,
+        "max-reclaim-time": 250,
+        "unwarned-reclaim-cycles": 5
+    },
+
+    "renew-timer": 900,
+    "rebind-timer": 1800,
+    "valid-lifetime": 3600,
+
+    // Enable DDNS - Kea will dynamically update the DNS
+    "ddns-send-updates" : true,
+    "ddns-qualifying-suffix": "your.domain.tld",
+    "dhcp-ddns" : {
+        "enable-updates": true
+    },
+
+    "subnet4": [
+        {
+            "subnet": "192.168.56.0/24",
+            "pools": [ { "pool": "192.168.56.16 - 192.168.56.254" } ],
+            "option-data": [
+                {
+                    "name": "domain-name",
+                    "data": "your.domain.tld"
+                },
+                {
+                    "name": "domain-name-servers",
+                    "data": "192.168.56.2, 192.168.3.7"
+                },
+                {
+                    "name": "domain-search",
+                    "data": "your.domain.tld"
+                },
+                {
+                    "name": "routers",
+                    "data": "192.168.56.2"
+                }
+            ]
+        }
+    ],
+
+    "loggers": [
+        {
+            "name": "kea-dhcp4",
+            "output_options": [
+                {
+                    "output": "/var/log/kea-dhcp4.log",
+                    "pattern": "%D{%Y-%m-%d %H:%M:%S.%q} %-5p %m\n"
+                }
+            ],
+            "severity": "INFO",
+            "debuglevel": 0
+        }
+    ]
+}
+}
+// End /etc/kea/kea-dhcpd4.conf</literal>
+EOF</userinput></screen>
+
+      <note>
+        <para>The double braces at the end of the config is not a typo.
+        This is because the inner "dhcp4" block is not indented as is
+        should be because the configuration data would move too much
+        to the right.</para>
+      </note>
+
+      <para>The configuration for IPv6 is similar to the configuration
+      of IPv4. The configuration file is <filename>/etc/kea/kea-dhcpd6.conf</filename>.</para>
+
+    </sect3>
+
+    <sect3 id="kea-dhcp-ddns-config">
+      <title>Dynamic DNS Configuration</title>
+
+      <para>
+        If there is a <xref linkend="bind"/> server running, <application>ISC Kea</application>
+        can update the DNS when it gives an IP address to a client.
+        A sample configuration file is created in <filename>/etc/kea/kea-dhcp-ddns.conf</filename>.
+        Adjust the file to suit your needs or overwrite it by using
+        the following sample as the <systemitem class="username">root</systemitem>
+        user:
+      </para>
+
+<screen role="nodump" ><userinput>cat &gt; /etc/kea/kea-dhcp-ddns.conf &lt;&lt; "EOF"
+<literal>// Begin /etc/kea/kea-dhcp-ddns.conf
+{
+"DhcpDdns": {
+    "ip-address": "127.0.0.1",
+    "port": 53001,
+    "control-socket": {
+        "socket-type": "unix",
+        "socket-name": "/tmp/kea-ddns-ctrl-socket"
+    },
+
+    "tsig-keys": [
+        {
+            "name"      : "rndc-key",
+            "algorithm" : "hmac-sha256",
+            "secret"    : "1FU5hD7faYaajQCjSdA54JkTPQxbbPrRnzOKqHcD9cM="
+        }
+    ],
+
+    "forward-ddns" : {
+        "ddns-domains" : [
+            {
+                "name" : "your.domain.tld.",
+                //"key-name" : "rndc-key",
+                "dns-servers" : [
+                    {
+                        "ip-address" : "127.0.0.1",
+                        "port" : 53
+                    }
+                ]
+            }
+        ]
+    },
+
+    "reverse-ddns" : {
+        "ddns-domains" : [
+            {
+                "name" : "56.168.192.in-addr.arpa.",
+                //"key-name" : "rndc-key",
+                "dns-servers" : [
+                    {
+                        "ip-address" : "127.0.0.1",
+                        "port" : 53
+                    }
+                ]
+            }
+        ]
+    },
+
+    "loggers": [
+        {
+            "name": "kea-dhcp-ddns",
+            "output_options": [
+                {
+                    "output": "/var/log/kea-ddns.log"
+                    "pattern": "%D{%Y-%m-%d %H:%M:%S.%q} %-5p %m\n"
+                }
+            ],
+            "severity": "INFO",
+            "debuglevel": 0
+        }
+    ]
+}
+}
+// End /etc/kea/kea-dhcp-ddns.conf</literal>
+EOF</userinput></screen>
     </sect3>
 
   </sect2>
