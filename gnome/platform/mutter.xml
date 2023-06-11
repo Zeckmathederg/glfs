@@ -88,20 +88,18 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="desktop-file-utils"/>,
-      <xref linkend="gobject-introspection"/>,
-      <xref linkend="startup-notification"/>, and
-      <xref linkend="sysprof"/>
+      <xref linkend="gobject-introspection"/>, and
+      <xref linkend="startup-notification"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended (Required to
     build the Wayland compositor)</bridgehead>
     <para role="recommended">
       <xref linkend="libinput"/>,
+      <xref linkend="sysprof"/>,
       <xref linkend="wayland"/>,
       <xref linkend="wayland-protocols"/>, and
       <xref linkend="xwayland"/>.
-      Additionally, <xref linkend="gtk3"/> needs to be built with
-      <application>Wayland</application> support.
     </para>
 
     <bridgehead renderas="sect4"
@@ -116,9 +114,12 @@
       <xref linkend="xorg-server"/> (for X11 sessions)
     </para>
 
-    <!-- NOTE: Mutter compiles git versions of COGL and Clutter for it's own
-    internal use. This is because the wayland support upstream isn't advanced
-    enough for the graphics stack used in Mutter. -->
+    <!-- NOTE: Mutter compiles shipped Cogl and Clutter for it's own
+    internal use. This is because the upstream has decided that Cogl and
+    Clutter should be only used by Mutter in the future, so the development
+    of Cogl and Clutter is now performed in the Mutter repository.  The
+    "standalone" Cogl and Clutter are considered obsolete now and we should
+    try to archive them.  -->
 
     <para condition="html" role="usernotes">User Notes:
       <ulink url="&blfs-wiki;/mutter"/>
@@ -140,6 +141,7 @@ cd    build &amp;&amp;
 meson setup --prefix=/usr              \
             --buildtype=release        \
             -Dtests=false              \
+            -Dprofiler=false           \
             ..                         &amp;&amp;
 ninja</userinput></screen>
 
@@ -163,7 +165,7 @@ ninja</userinput></screen>
     -->
 
     <para>
-      The test suite requires debug functions to be enabled in the build, and an
+      The test suite requires an
       external program called <command>xvfb-run</command>.  If you wish to run
       the tests, you should download and install it before running
       <command>meson</command>.
@@ -178,7 +180,7 @@ ninja</userinput></screen>
 
       You should also replace <parameter>-Dtests=false</parameter> in the
       <command>meson</command> command, with
-      <parameter>-Dtests=true</parameter>.  The test
+      <parameter>-Dtests=true -Dclutter_tests=false</parameter>.  The test
       suite requires the mutter schema to be installed on the system, so it is
       better to run the tests after installing the package.
     </para>
@@ -200,7 +202,7 @@ ninja</userinput></screen>
       from one test:
     </para>
 
-<screen role='test'><userinput>sed 's/zenity --[a-z]*/gtk3-demo/' -i ../src/tests/x11-test.sh</userinput></screen>
+<screen role='test'><userinput>sed 's/zenity --[a-z]*/gtk4-demo/' -i ../src/tests/x11-test.sh</userinput></screen>
 
     <para>
       Now run the test suite:
@@ -212,28 +214,17 @@ ninja</userinput></screen>
 
     <para>
       The tests require an active X or wayland session.
-      The <filename>native-unit</filename> test is known to fail.
+      <!-- https://gitlab.gnome.org/GNOME/mutter/-/issues/2848 -->
+      The <filename>test_framebuffer_get_bits</filename> test is known to fail.
       A lot of tests will fail if the opengl rendering is not done in hardware.
       Don't make any mouse or keyboard input while the test suite is
       running or some tests may fail.
     </para>
+
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <!-- https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/5512
-         If debug is disabled, the "assertion 'CLUTTER_IS_ACTOR (self)'
-         failed" message will turn into a crash.  Enabling debug is just a
-         work around, it's not a proper fix.
-    <para>
-      <parameter>- -buildtype=debugoptimized</parameter>: Override the
-      default buildtype (<quote>debug</quote>), which would produce
-      unoptimized binaries.  It's used instead of
-      <option>- -buildtype=release</option> to work around an issue
-      causing gnome-shell to crash.
-    </para>
-    -->
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../../xincludes/meson-buildtype-release.xml"/>
@@ -244,10 +235,18 @@ ninja</userinput></screen>
     </para>
 
     <para>
-      <option>-Dprofiler=false</option>: Use this option if
-      <application>Sysprof</application> is not installed, and you don't
-      want meson to download <application>Sysprof</application> source
-      code.
+      <parameter>-Dprofiler=false</parameter>: Allow building this package
+      without <application>Sysprof</application>.  Remove this option if
+      you've installed <application>Sysprof</application> and want to
+      analysis the rendering performance of
+      <application>Mutter</application>.
+    </para>
+
+    <para>
+      <option>-Dtests=true -Dclutter-tests=false</option>: Building all the
+      tests but the tests for the shipped <application>Clutter</application>
+      library.  The <application>Clutter</application> tests are known to
+      fail with <option>--buildtype=release</option>.
     </para>
 
   </sect2>
@@ -255,7 +254,7 @@ ninja</userinput></screen>
   <sect2 role="starting" id="mutter-starting">
     <title>Starting Mutter</title>
 
-    <!-- Mutter as a Wayland compositor Works with mutter-42.4 and 43.0.
+    <!-- Mutter as a Wayland compositor works with recent mutter releases.
          IIRC mutter can also be used as a X window manager: just replace
          "twm" with "mutter &dash;&dash;x11" in xinitrc. But I've not tested
          such a configuration recently (I don't build Xorg Server or xinit
@@ -303,7 +302,7 @@ ninja</userinput></screen>
           mutter
         </seg>
         <seg>
-          libmutter-12.so
+          libmutter-12.so and libmutter-test-12.so (optional)
         </seg>
         <seg>
           /usr/{lib,include,libexec/installed-tests,share/{,installed-tests}}/mutter-12
@@ -337,6 +336,21 @@ ninja</userinput></screen>
           </para>
           <indexterm zone="mutter libmutter">
             <primary sortas="c-libmutter">libmutter-12.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libmutter-test">
+        <term><filename class="libraryfile">libmutter-test-12.so</filename></term>
+        <listitem>
+          <para>
+            contains the <application>Mutter</application> test suite API
+            functions; this library is only installed if the test suite of
+            this package is enabled and it is needed by
+            <application>gnome-shell</application> test suite
+          </para>
+          <indexterm zone="mutter libmutter-test">
+            <primary sortas="c-libmutter-test">libmutter-test-12.so</primary>
           </indexterm>
         </listitem>
       </varlistentry>
