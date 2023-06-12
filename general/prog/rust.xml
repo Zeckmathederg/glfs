@@ -351,7 +351,16 @@ python3 ./x.py build</userinput></screen>
       To run the tests (again using all available CPUs) issue:
     </para>
 
-<screen remap="test"><userinput>python3 ./x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></screen>
+<screen remap="test"><userinput>SSL_CERT_DIR=/etc/ssl/certs \
+python3 ./x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></screen>
+
+    <!-- https://github.com/rust-lang/rust/issues/112209 -->
+    <para>
+      Three <literal>ui</literal> tests may fail (depending on the length
+      of absolute path of the
+      <filename class='directory'>rustc-&rust-version;-src</filename>
+      directory).
+    </para>
 
     <para>
       If <command>FileCheck</command> from <application>LLVM</application> has
@@ -438,20 +447,20 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
     </para>
 
     <para>
-      <command>targets = "X86"</command>: this avoids building all the available
+      <literal>targets = "X86"</literal>: this avoids building all the available
       linux cross-compilers (AArch64, MIPS, PowerPC, SystemZ, etc). Unfortunately,
       rust insists on installing source files for these below
       <filename class="directory">/opt/rustc/lib/src</filename>.
     </para>
 
     <para>
-      <command>extended = true</command>: this installs several tools
+      <literal>extended = true</literal>: this installs several tools
       (specified by the <literal>tools</literal> entry) alongside
       <command>rustc</command>.
     </para>
 
     <para>
-      <command>tools = ["cargo", "clippy", "rustdoc", "rustfmt"]</command>:
+      <literal>tools = ["cargo", "clippy", "rustdoc", "rustfmt"]</literal>:
       only build the tools from the 'default' profile in binary command
       <command>rustup</command> which are recommended for most users.
       The other tools are unlikely to be useful unless using (old) code
@@ -459,14 +468,14 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
     </para>
 
     <para>
-      <command>channel = "stable"</command>: this ensures only stable features
+      <literal>channel = "stable"</literal>: this ensures only stable features
       can be used, the default in <filename>config.toml</filename> is to use
       development features, which is not appropriate for a released version.
     </para>
 
     <!-- comment while using shipped LLVM -->
     <para>
-      <command>[target.x86_64-unknown-linux-gnu]</command>: the syntax of
+      <literal>[target.x86_64-unknown-linux-gnu]</literal>: the syntax of
       <filename>config.toml</filename> requires an <literal>llvm-config</literal>
       entry for each target for which system-llvm is to be used. Change the target
       to <literal>[target.i686-unknown-linux-gnu]</literal> if you are building
@@ -498,13 +507,20 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
       since one person reported needing this, keep it commented for the moment.
     </para>-->
 
+    <!-- https://github.com/alexcrichton/openssl-probe/issues/25 -->
     <para>
-      <command>--verbose</command>: this switch can sometimes provide more
+      <envar>SSL_CERT_DIR=/etc/ssl/certs</envar>: Work around an issue
+      causing test failures with the CA certificate store layout used by
+      <xref linkend='make-ca'/>.
+    </para>
+
+    <para>
+      <parameter>--verbose</parameter>: this switch can sometimes provide more
       information about a test which fails.
     </para>
 
     <para>
-      <command>--no-fail-fast</command>: this switch ensures that the test suite
+      <parameter>--no-fail-fast</parameter>: this switch ensures that the test suite
       will not stop at the first error.
     </para>
 
