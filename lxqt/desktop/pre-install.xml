@@ -71,7 +71,8 @@ pathappend /opt/lxqt/bin           PATH
 pathappend /opt/lxqt/share/man/    MANPATH
 pathappend /opt/lxqt/lib/pkgconfig PKG_CONFIG_PATH
 pathappend /opt/lxqt/lib/plugins   QT_PLUGIN_PATH
-# End LXQt profile</literal>
+
+export CMAKE_PREFIX_PATH=$LXQT_PREFIX# End LXQt profile</literal>
 EOF
 
 cat &gt;&gt; /etc/profile.d/qt5.sh &lt;&lt; "EOF"
@@ -99,22 +100,15 @@ EOF</userinput></screen>
 <screen><userinput>source /etc/profile</userinput></screen>
 
     <para>
-      Some packages from the KDE Frameworks5 bundle install files into D-Bus
-      directories. In order to have D-Bus find those files, the easiest way is
-      to create a symlink. Some packages may also install icons and desktop
-      files. Since many packages use the <filename
-      class="directory">/usr/share</filename> heirarchy, is is a good idea to
-      create symlinks to avoid having multiple locations for these files.  Run
-      the following commands as the &root; user:
+      Some packages from the KF5 bundle and lxqt packagesinstall files into
+      files in /usr/share, but look in $LFS_PREFIX/share. In order to have 
+      applications find these files, create a symlink between these directories. 
+      Run the following commands as the &root; user:
     </para>
 
-<screen role="root"><userinput>source /etc/profile                                       &amp;&amp;
-install -v -dm755 /usr/share/lxqt
-ln -sfv /usr/share/lxqt                $LXQT_PREFIX/share &amp;&amp;
-ln -sfv /usr/share/applications        $LXQT_PREFIX/share &amp;&amp;
-ln -sfv /usr/share/icons               $LXQT_PREFIX/share &amp;&amp;
-ln -sfv /usr/share/desktop-directories $LXQT_PREFIX/share &amp;&amp;
-ln -sfv /usr/share/dbus-1              $LXQT_PREFIX/share</userinput></screen>
+<screen role="root"><userinput>source /etc/profile              &amp;&amp;
+install -v -dm755   $LXQT_PREFIX &amp;&amp;
+ln -sfv /usr/share  $LXQT_PREFIX</userinput></screen>
 
 <!--install -v -dm755                $LXQT_PREFIX/share/icons &amp;&amp;-->
     <tip>
@@ -169,16 +163,7 @@ ln -sfv lxqt-&lxqt-version; /opt/lxqt</userinput></screen>
           may be omitted, but with a negligible impact on build time and size
         </para>
       </step>
-<!--
-      <step>
-        <para>
-          Build <xref linkend="gtk2"/> and its required and recommended
-          dependencies. GTK+2 is needed for <xref linkend="libfm"/>, and
-          brings the <command>gtk-update-icon-cache</command> executable,
-          which is needed by libqtxdg
-        </para>
-      </step>
--->
+
       <step>
         <para>
           Build required Qt dependencies, and some of the recommended or
@@ -216,6 +201,7 @@ sed -i '/base/d;/tools/d;/x11extras/d;/svg/d;/declarative/d;/wayland/d' tempconf
           <phrase revision="sysv">
             <xref linkend="pm-utils"/>,
           </phrase>
+
           <xref linkend="polkit"/>,
           <xref linkend="pulseaudio"/>, and
           <xref linkend="upower"/>.
