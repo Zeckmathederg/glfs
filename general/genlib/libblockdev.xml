@@ -74,16 +74,17 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="gobject-introspection"/>,
-      <xref linkend="libbytesize"/>,
-      <xref linkend="libyaml"/>,
-      <xref linkend="parted"/>, and
-      <xref linkend="volume_key"/>
+      <xref linkend="glib2"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="libnvme"/>
+      <xref linkend="cryptsetup"/>,
+      <xref linkend="gobject-introspection"/> (required for GNOME),
+      <xref linkend="keyutils"/>,
+      <xref linkend="libbytesize"/>,
+      <xref linkend="libnvme"/>, and
+      <xref linkend="lvm2"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -91,6 +92,8 @@
       <xref linkend="btrfs-progs"/>,
       <xref linkend="gtk-doc"/>,
       <xref linkend="mdadm"/>,
+      <xref linkend="parted"/>,
+      <xref linkend="volume_key"/>,
       <ulink url="https://people.redhat.com/~heinzm/sw/dmraid/">dmraid</ulink>,
       <ulink url="https://bcachefs.org/">bcachefs</ulink>, and
       <ulink url="https://github.com/pmem/ndctl">ndctl</ulink>
@@ -114,12 +117,15 @@
       the following commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr     \
-            --sysconfdir=/etc \
-            --with-python3    \
-            --without-gtk-doc \
-            --without-nvdimm  \
-            --without-dm      &amp;&amp;
+<screen><userinput>./configure --prefix=/usr      \
+            --sysconfdir=/etc  \
+            --with-python3     \
+            --without-escrow   \
+            --without-gtk-doc  \
+            --without-lvm      \
+            --without-lvm_dbus \
+            --without-nvdimm   \
+            --without-tools    &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -133,13 +139,68 @@ make</userinput></screen>
 <screen role="root"><userinput>make install</userinput></screen>
 
   </sect2>
-<!--
+
   <sect2 role="commands">
     <title>Command Explanations</title>
 
+    <para>
+      <parameter>--without-escrow</parameter>: This switch allows building
+      <application>libblockdev</application> without
+      <xref linkend="volume_key"/> installed.  Remove it if you've installed
+      <xref linkend="volume_key"/>.
+    </para>
+
+    <para>
+      <parameter>--without-lvm --without-lvm_dbus
+      --without-tools</parameter>: The combination of these switches allows
+      building <application>libblockdev</application> without
+      <xref linkend="parted"/> installed.  Remove it if you've installed
+      <xref linkend="parted"/> and wish to build the
+      <command>lvm-cache-stats</command> or <command>vfat-resize</command>
+      utilities, or wish <application>libblockdev</application> to support
+      logical volumes.
+    </para>
+
+    <para>
+      <option>--without-btrfs --without-mdraid --without-tools</option>:
+      The combination of these switches allows building
+      <application>libblockdev</application> without
+      <xref linkend="libbytesize"/> installed.  The
+      <option>--without-mdraid</option> option will break
+      <xref linkend="udisks2"/>, so don't use it unless you really know what
+      you are doing.
+    </para>
+
+    <para>
+      <option>--without-crypto</option>: This switch allows building
+      <application>libblockdev</application> without
+      <xref linkend="cryptsetup"/> or <xref linkend="keyutils"/> installed.
+      This switch will break <xref linkend="udisks2"/>, so don't use it
+      unless you really know what you are doing.
+    </para>
+
+    <para>
+      <option>--without-dm --without-lvm --without-lvm_dbus
+      --without-mpath</option>: The combination of these switches allows
+      building <application>libblockdev</application> without
+      <xref linkend="lvm2"/> installed.  The <option>--without-dm</option>
+      and <option>--without-mpath</option> options are not in the
+      instruction in the instruction provided by the book because
+      <xref linkend="lvm2"/> is required for <xref linkend="cryptsetup"/>
+      and <xref linkend="cryptsetup"/> is a recommended dependency of
+      <application>libblockdev</application> anyway.
+    </para>
+
+    <para>
+      <option>--without-nvme</option>: This switch allows building
+      <application>libblockdev</application> without
+      <xref linkend="libnvme"/> installed.  This switch will break
+      <xref linkend="udisks2"/>, so don't use it unless you really know what
+      you are doing.
+    </para>
 
   </sect2>
--->
+
   <sect2 role="content">
     <title>Contents</title>
 
@@ -150,29 +211,28 @@ make</userinput></screen>
 
       <seglistitem>
         <seg>
-          lvm-cache-stats
+          lvm-cache-stats and vfat-resize (both optional)
         </seg>
         <seg>
           libbd_btrfs.so,
           libbd_crypto.so,
+          libbd_dm.so,
           libbd_fs.so,
-          libbd_kbd.so,
           libbd_loop.so,
-          libbd_lvm.so,
-          libbd_lvm-dbus.so,
+          libbd_lvm.so (optional),
+          libbd_lvm-dbus.so (optional),
           libbd_mdraid.so,
           libbd_mpath.so,
+          libbd_nvme.so,
           libbd_part.so,
-          libbd_part_err.so,
           libbd_swap.so,
-          libbd_utils.so,
-          libbd_vdo.so, and
+          libbd_utils.so, and
           libblockdev.so
         </seg>
         <seg>
           /etc/libblockdev,
           /usr/include/blockdev, and
-          /usr/share/gtk-doc/html/libblockdev
+          /usr/share/gtk-doc/html/libblockdev (optional)
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -194,6 +254,18 @@ make</userinput></screen>
         </listitem>
       </varlistentry>
 
+      <varlistentry id="vfat-resize">
+        <term><command>vfat-resize</command></term>
+        <listitem>
+          <para>
+            resizes <systemitem class="filesystem">vfat</systemitem>
+            file systems
+          </para>
+          <indexterm zone="libblockdev vfat-resize">
+            <primary sortas="b-vfat-resize">vfat-resize</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
     </variablelist>
 
   </sect2>
