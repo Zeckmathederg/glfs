@@ -13,139 +13,15 @@
   <indexterm zone="lxqt-pre-install">
     <primary sortas="g-lxqt-pre-install">LXQt Pre-Install</primary>
   </indexterm>
-
-    <para>
-      LXQt can be installed in /usr or /opt/lxqt.
-    </para>
-
-  <sect2>
-    <title>Installing in /usr</title>
-
-    <para>
-      Installing in <filename class="directory">/usr</filename> creates
-      a simpler setup.  Run:
-    </para>
-
-<screen><userinput>export LXQT_PREFIX=/usr</userinput></screen>
-
-    <para>
-      Either add that to your own <filename>.bash_profile</filename>
-      so that it will still be set if you build the packages over a
-      period of time, or else add it to the system profile as the
-      &root; user:
-    </para>
-
-<screen role="root"><userinput>cat &gt; /etc/profile.d/lxqt.sh &lt;&lt; "EOF"
-<literal># Begin LXQt profile
-export LXQT_PREFIX=/usr
-# End LXQt profile</literal>
-EOF</userinput></screen>
-
-    <para>
-      There is no other configuration needed to install LXQt in
-      <filename class="directory">/usr</filename>.
-    </para>
-
-  </sect2>
-
-  <sect2>
-    <title>Installing in /opt/lxqt</title>
-
-    <para>
-      Installing in <filename class="directory">/opt/lxqt</filename> may
-      simplify upgrading to a later version of LXQt.
-    </para>
-
-    <para>
-      Some variables need to be defined in your system profile, as the
-      &root; user:
-    </para>
-
-<screen role="root"><userinput>install -vdm755 /opt/lxqt/{bin,lib}
-
-cat &gt; /etc/profile.d/lxqt.sh &lt;&lt; "EOF"
-<literal># Begin LXQt profile
-export LXQT_PREFIX=/opt/lxqt
-
-pathappend /opt/lxqt/bin           PATH
-pathappend /opt/lxqt/share/man/    MANPATH
-pathappend /opt/lxqt/lib/pkgconfig PKG_CONFIG_PATH
-pathappend /opt/lxqt/lib/plugins   QT_PLUGIN_PATH
-
-export CMAKE_PREFIX_PATH=$LXQT_PREFIX
-# End LXQt profile</literal>
-EOF
-
-cat &gt;&gt; /etc/profile.d/qt5.sh &lt;&lt; "EOF"
-<literal># Begin Qt5 changes for LXQt
-pathappend $QT5DIR/plugins         QT_PLUGIN_PATH
-# End Qt5 changes for LXQt</literal>
-EOF</userinput></screen>
-
-    <para>
-      Expand your <filename>/etc/ld.so.conf</filename> file:
-    </para>
-
-<screen role="root"><userinput>cat &gt;&gt; /etc/ld.so.conf &lt;&lt; "EOF"
-<literal># Begin LXQt addition
-/opt/lxqt/lib
-# End LXQt addition
-</literal>
-EOF</userinput></screen>
-
-    <para>
-      Before starting to install the packages in the following pages, remember
-      to execute:
-    </para>
-
-<screen><userinput>source /etc/profile</userinput></screen>
-
-    <para>
-      Some packages from the KF5 bundle and lxqt packages install files into
-      /usr/share, but look in $LXQT_PREFIX/share. In order to have
-      applications find these files, create a symlink between these directories.
-      Run the following commands as the &root; user:
-    </para>
-
-<screen role="root"><userinput>source /etc/profile              &amp;&amp;
-install -v -dm755   $LXQT_PREFIX &amp;&amp;
-ln -sfv /usr/share  $LXQT_PREFIX</userinput></screen>
-
-<!--install -v -dm755                $LXQT_PREFIX/share/icons &amp;&amp;-->
-    <tip>
-      <para>
-        Sometimes, the installation paths are hardcoded into installed files.
-        This is the reason why <filename class="directory">/opt/lxqt</filename>
-        is used as installation prefix instead of <filename
-        class="directory">/opt/lxqt-&lxqt-version;</filename>. After installing
-        <application>LXQt Desktop</application>, you may rename the directory
-        and create a symlink:
-      </para>
-
-<screen role="root"><userinput>mv /opt/lxqt{,-&lxqt-version;}
-ln -sfv lxqt-&lxqt-version; /opt/lxqt</userinput></screen>
-
-      <para>
-        Later on, you may want to install other versions of <application>LXQt
-        Desktop</application>. To do that, just remove the symlink and use
-        <filename class="directory">/opt/lxqt</filename> as the prefix again.
-        Which version of <application>LXQt Desktop</application> you use
-        depends only on where the symlink points. No other reconfiguration will
-        be needed.
-      </para>
-    </tip>
-
-  </sect2>
-
   <sect2>
     <title>Notes about building LXQt dependencies</title>
 
     <para>
       <application>LXQt</application> obviously needs <xref linkend="qt5"/>,
       but not all Qt5 modules and dependencies are necessary. Since the aim
-      of <application>LXQt</application> is to be light weight, it may be
-      interesting to cut down the Qt5 overhead, and to build only parts of it.
-      To build Qt and LXQT dependencies, the proposed order is the following:
+      of <application>LXQt</application> is to be light weight, it is possible 
+      to cut down the Qt5 overhead, and to build only parts of it.
+      
     </para>
 
     <procedure>
