@@ -8,13 +8,12 @@
   <!ENTITY sddm-download-ftp  " ">
   <!ENTITY sddm-md5sum        "7af67d5fb767639861d35c80eb4e1191">
   <!ENTITY sddm-size          "3.4 MB">
-  <!ENTITY sddm-buildsize     "20 MB">
-  <!ENTITY sddm-time          "0.6 SBU ">
+  <!ENTITY sddm-buildsize     "22 MB">
+  <!ENTITY sddm-time          "0.3 SBU (Using parallelism=4">
 ]>
 
 <sect1 id="sddm" xreflabel="sddm-&sddm-version;">
   <?dbhtml filename="sddm.html"?>
-
 
   <title>sddm-&sddm-version;</title>
 
@@ -144,9 +143,9 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DENABLE_JOURNALD=OFF       \
       -DNO_SYSTEMD=ON             \
       -DRUNTIME_DIR=/run/sddm     \
-      -DDATA_INSTALL_DIR=/usr/share/sddm \
       -DUSE_ELOGIND=ON            \
       -DBUILD_MAN_PAGES=ON        \
+      -DDATA_INSTALL_DIR=/usr/share/sddm \
       -DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf \
       .. &amp;&amp;
 make</userinput></screen>
@@ -208,41 +207,22 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
       <title>Config Files</title>
 
       <para>
-        /usr/lib/sddm/sddm.conf.d/*, /etc/sddm.conf.d/*, and /etc/sddm.conf
+        /etc/sddm.config
       </para>
-
-      <indexterm zone="sddm sddm-config">
-        <primary sortas="e-usr-lib-sddm.conf.d">/usr/lib/sddm/sddm.conf.d</primary>
-      </indexterm>
-
-      <indexterm zone="sddm sddm-config">
-        <primary sortas="e-sddm.conf.d">/etc/sddm.conf.d</primary>
-      </indexterm>
 
       <indexterm zone="sddm sddm-config">
         <primary sortas="e-sddm.conf">/etc/sddm.conf</primary>
       </indexterm>
 
       <para>
-        Only <filename>/etc/sddm.conf</filename> is installed, but the
-        configuration files are read in the following order: all files in
-        <filename class="directory">/usr/lib/sddm/sddm.conf.d</filename> in
-        alphabetical order, then all files in <filename class="directory">
-        /etc/sddm.conf.d</filename> in alphabetical order, and finally
-        <filename>/etc/sddm.conf</filename>.
-      </para>
-
-      <para>
         Normally, you want to edit this file. For example, if Xorg is installed
-        in /opt, use your preferred editor as the <systemitem
-        class="username">root</systemitem> user to replace the default
-        <emphasis>XauthPath</emphasis> value by
-        <emphasis>/opt/xorg/bin/xauth</emphasis>. Or, as the <systemitem
-        class="username">root</systemitem> user, issue:
+        in /opt, use your preferred editor as the root; user to replace the
+        default <emphasis>XauthPath</emphasis> value by
+        <emphasis>/opt/xorg/bin/xauth</emphasis>. Or, as the &root; user,
+        issue:
       </para>
 
-<screen role="root"><userinput>sed -e '/ServerPath/ s|usr|opt/xorg|' \
-    -i.orig /etc/sddm.conf</userinput></screen>
+<screen role="root"><userinput>sed -i.orig '/ServerPath/ s|usr|opt/xorg|' /etc/sddm.conf</userinput></screen>
 
       <para>
         This command will do the substitution and create a copy of the original
@@ -251,31 +231,28 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
 
       <para>
         From now on, we will describe how to modify configurations using sed.
-        Of course, you may instead use your preferred editor as the <systemitem
-        class="username">root</systemitem> user.
+        Of course, you may instead use your preferred editor as the &root;
+        user.
       </para>
 
       <para>
         For security reasons, you normally want the default
         <emphasis>ServerArguments=-nolisten tcp</emphasis>, unless a remote
         machine needs access to the local X server. In that case, as the
-        <systemitem class="username">root</systemitem> user, issue:
+        &root; user, issue:
       </para>
 
-<screen role="root"><userinput>sed -e 's/-nolisten tcp//'\
-    -i /etc/sddm.conf</userinput></screen>
+<screen role="root"><userinput>sed -i 's/-nolisten tcp//' /etc/sddm.conf</userinput></screen>
 
       <para>
         Desktop (Notebook) users, normally wish the Num Lock key on (off).  For
-        that, as the <systemitem
-        class="username">root</systemitem> user, issue:
+        that, as the &root;, issue:
       </para>
 
-<screen role="root"><userinput>sed -e 's/\"none\"/\"on\"/' \
-    -i /etc/sddm.conf</userinput></screen>
+<screen role="root"><userinput>sed -i 's/none/on/' /etc/sddm.conf</userinput></screen>
 
       <para>
-        for Desktop users. For Notebook users, replace \"on\" by \"off\",
+        for Desktop users. For Notebook users, replace /on/ by /off/
         in the command above.
       </para>
 
@@ -285,7 +262,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
       <title>Boot Script</title>
 
       <para>
-        Install the <filename revision="sysv">/etc/rc.d/init.d/sddm</filename>
+        Install the <filename revision="sysv">/etc/rc.d/init.d/xdm</filename>
         init script from the <xref linkend="bootscripts" revision="sysv"/>
         <xref linkend="systemd-units" revision="systemd"/> package.
       </para>
@@ -302,6 +279,13 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
 
     <sect3>
       <title>Linux PAM Configuration</title>
+
+      <note>
+        <para>
+           The install procedure above installed a set of PAM configuration
+           files.  These procedures overwrite them.
+        </para>
+      </note>
 
       <para>
         If you have built <application>sddm</application>
@@ -419,10 +403,10 @@ EOF</userinput></screen>
 
       <para>
         If the sddm bootscript has been installed, start sddm by running, as the
-        <systemitem class="username">root</systemitem> user:
+        &root; user:
       </para>
 
-<screen role="root"><userinput>/etc/rc.d/init.d/sddm start</userinput></screen>
+<screen role="root"><userinput>/etc/rc.d/init.d/xdn start</userinput></screen>
 
       <para>
         By convention, X should be executed at runlevel 5, consequently, the
@@ -450,13 +434,15 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
       <title>Available Sessions</title>
 
       <para>
-        The greeter offers a list of available sessions,
-        depending on the Window Managers and Desktop Environments installed. The
-        list includes sessions which have a corresponding
-        <filename>.desktop</filename> file installed under
-        <filename class="directory">/usr/share/xsessions</filename>. Most of the
-        Window Managers and Desktop Environments automatically provide those
-        files, but if necessary, you may include a custom one.
+
+        The greeter offers a list of available sessions, depending on the
+        Window Managers and Desktop Environments installed. The list includes
+        sessions which have a corresponding <filename>.desktop</filename> file
+        installed under 
+        <filename class="directory">/usr/share/xsessions</filename>. Most of 
+        the Window Managers and Desktop Environments automatically provide 
+        those files, but if necessary, you may include a custom one.
+      
       </para>
 
     </sect3>
@@ -485,7 +471,7 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
 <screen><userinput>sddm-greeter --test-mode --theme <replaceable>&lt;theme path&gt;</replaceable></userinput></screen>
 
     </sect3>
-
+<!--
     <sect3 id="sddm-Issues">
       <title>Known Issues</title>
 
@@ -543,7 +529,7 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
       </para>
 
     </sect3>
-
+-->
   </sect2>
 
   <sect2 role="content">
@@ -556,7 +542,8 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
 
       <seglistitem>
         <seg>
-          sddm and sddm-greeter
+          sddm and 
+          sddm-greeter
         </seg>
         <seg>
           None
