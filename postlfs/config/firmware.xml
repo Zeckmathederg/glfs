@@ -494,29 +494,15 @@ cd initrd</userinput></screen>
 <screen><userinput>mkdir -pv /lib/firmware/radeon
 cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
 
-      <para>
-        There are actually two ways of installing this firmware. One is
-        compiling the firmware into the kernel - that is slightly faster to
-        load, but uses more kernel memory. Here we will use the alternative
-        method of making the radeon driver a module. In your kernel config
-        set the following:
-      </para>
-
-<screen><literal>Device Drivers ---&gt;
-  Graphics support ---&gt;
-      Direct Rendering Manager ---&gt;
-        [*] Direct Rendering Manager (XFree86 ... support)  [CONFIG_DRM]
-      [M] ATI Radeon                                        [CONFIG_DRM_RADEON]</literal></screen>
-
-      <para>
-        Loading several large blobs from /lib/firmware takes a noticeable
-        time, during which the screen will be blank. If you do not enable the
-        penguin framebuffer logo, or change the console size by using a bigger
-        font, that probably does not matter. If desired, you can slightly
-        reduce the time if you follow the alternate method of specifying 'y'
-        for CONFIG_DRM_RADEON covered in BLFS at the link above &mdash; you
-        must specify each needed radeon blob if you do that.
-      </para>
+    <para>
+      Building the kernel amdgpu driver as a module is recommended because
+      the firmware files need to be accessible at the time it is loaded.
+      If you are building it as a part of the kernel image for any reason,
+      you need to either include the firmwares in the initramfs (read
+      <xref linkend='initramfs'/> for details), or include them in the
+      kernel image itself (read <xref linkend='firmware-in-kernel-image'/>
+      for details).
+    </para>
 
     </sect3>
 
@@ -560,28 +546,14 @@ cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/amdgpu</userinput></screen>
     </para>
 
     <para>
-      Building the kernel amdgpu driver as a module is recommended.
-      In your kernel .config set at least the following options and review
-      the other AMDGPU options according to your target hardware,
-      for example "ACP (Audio Co-Processor) Configuration":
+      Building the kernel amdgpu driver as a module is recommended because
+      the firmware files need to be accessible at the time it is loaded.
+      If you are building it as a part of the kernel image for any reason,
+      you need to either include the firmwares in the initramfs (read
+      <xref linkend='initramfs'/> for details), or include them in the
+      kernel image itself (read <xref linkend='firmware-in-kernel-image'/>
+      for details).
     </para>
-
-<screen><literal>Device Drivers ---&gt;
-  Graphics support ---&gt;
-      Direct Rendering Manager ---&gt;
-        [*] Direct Rendering Manager (XFree86 ... support)  [CONFIG_DRM]
-        [M] AMD GPU                                         [CONFIG_DRM_AMDGPU]
-        Display Engine Configuration ---&gt;
-          [*] AMD DC - Enable new display engine (NEW)      [CONFIG_DRM_AMD_DC]</literal></screen>
-
-      <para>
-        As written above at the end of the section on 'Firmware for ATI video
-        chips', loading large blobs from /lib/firmware can take a noticeable
-        time during which the screen will be blank. On a slow machine you
-        might wish and compile all the
-        required modules into the kernel to reduce this time, at the cost of
-        using more kernel memory.
-      </para>
 
     </sect3>
 
@@ -749,6 +721,54 @@ cp -av -T --no-preserve=ownership ucm2 /usr/share/alsa/ucm2</userinput></screen>
       controllers, bluetooth adaptors, or TV recorders. The same principles
       apply.
     </para>
+
+  </sect2>
+
+  <sect2 id='firmware-in-kernel-image'>
+    <title>Include Firmware Blobs in the Kernel Image</title>
+
+    <para>
+      Some drivers, notably the drivers for ATI or AMD GPU, requires the
+      firmware files accessible at the time it is loaded.  The easiest
+      method to handle these drivers is building them as a kernel module.
+      An alternative method is creating an initramfs (read
+      <xref linkend='initramfs'/> for details) including the firmware files.
+      If you don't want to use either methods, you may include the firmware
+      files in the kernel image itself.  Install the needed firmwares into
+      <filename class='directory'>/lib/firmware</filename> first, then
+      set the following kernel configuration and rebuild the kernel:
+    </para>
+
+    <screen><literal>Device Drivers  ---&gt;
+  Generic Driver Options  ---&gt;
+    Firmware loader ---*gt;
+      -*- Firmware loading facility
+      (<replaceable>amdgpu/aaaa.bin amdgpu/bbbb.bin</replaceable>) Build named firmware blobs into the kernel binary
+      (/lib/firmware) Firmware blobs root directory</literal></screen>
+
+    <para>
+      Replace <replaceable>amdgpu/aaa.bin amdgpu/bbbb.bin</replaceable>
+      with a whitespace-separated list of paths to the needed firmware
+      files, relative to
+      <filename class='directory'>/lib/firmware</filename>.  A method
+      easier than manually typing the list (it may be long) is running the
+      following command:
+    </para>
+
+    <screen><userinput>echo CONFIG_EXTRA_FIRMWARE='"'$({ cd /lib/firmware; echo <replaceable>amdgpu/*</replaceable> })'"' &gt;&gt; .config
+make oldconfig</userinput></screen>
+
+    <para>
+      Replace <replaceable>amdgpu/*</replaceable> with a shell pattern
+      matching the needed firmware files.
+    </para>
+
+    <warning>
+      <para>
+	Do not distribute a kernel image containing the firmwares to others
+	or you may violate GPL.
+      </para>
+    </warning>
 
   </sect2>
 
