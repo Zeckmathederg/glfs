@@ -70,7 +70,7 @@
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="cmake"/>,
-      <xref linkend="extra-cmake-modules"/> and
+      <xref linkend="extra-cmake-modules"/>, and
       &qt5-deps;
     </para>
 
@@ -80,12 +80,7 @@
       <xref linkend="linux-pam"/>, and
       <xref linkend="upower"/>
     </para>
-<!--
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional">
-      <xref linkend="docutils"/> (for the man pages)
-    </para>
--->
+
 <!--
     <para condition="html" role="usernotes">User Notes:
       <ulink url="&blfs-wiki;/sddm"/>
@@ -155,6 +150,10 @@ cd    build &amp;&amp;
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DCMAKE_BUILD_TYPE=Release  \
+      -DRUNTIME_DIR=/run/sddm     \
+      -DBUILD_MAN_PAGES=ON        \
+      -DDATA_INSTALL_DIR=/usr/share/sddm \
+      -DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf \
       .. &amp;&amp;
 make</userinput></screen>
 
@@ -186,7 +185,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
       this version of BLFS does not support <application>systemd</application>.
     </para>
 
-    <para revision="sysv">
+    <para>
       <parameter>-DDBUS_CONFIG_FILENAME=sddm_org.freedesktop.DisplayManager.conf</parameter>:
       This switch prevents the file <filename>
       /etc/dbus-1/system.d/org.freedesktop.DisplayManager.conf</filename> from
@@ -216,7 +215,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
 
       <para>
         Normally, you want to edit this file. For example, if Xorg is installed
-        in /opt, use your preferred editor as the root; user to replace the
+        in /opt, use your preferred editor as the &root; user to replace the
         default <emphasis>XauthPath</emphasis> value by
         <emphasis>/opt/xorg/bin/xauth</emphasis>. Or, as the &root; user,
         issue:
@@ -245,7 +244,7 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
 <screen role="root"><userinput>sed -i 's/-nolisten tcp//' /etc/sddm.conf</userinput></screen>
 
       <para>
-        Desktop (Notebook) users, normally wish the Num Lock key on (off).  For
+        Desktop (Notebook) users, normally want the Num Lock key on (off).  For
         that, as the &root;, issue:
       </para>
 
@@ -261,10 +260,15 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
     <sect3 id="sddm-bootscript">
       <title>Boot Script</title>
 
-      <para>
+      <para revision="sysv">
         Install the <filename revision="sysv">/etc/rc.d/init.d/xdm</filename>
         init script from the <xref linkend="bootscripts" revision="sysv"/>
-        <xref linkend="systemd-units" revision="systemd"/> package.
+        package, as the &root; user:
+      </para>
+
+      <para revision="systemd">
+        Enable the pre-installed systemd unit by running the following command
+        as the &root; user:
       </para>
 
       <indexterm zone="sddm sddm-bootscript">
@@ -282,8 +286,9 @@ install -v -dm755 -o sddm -g sddm /var/lib/sddm
 
       <note>
         <para>
-           The install procedure above installed a set of PAM configuration
-           files.  These procedures overwrite them.
+          The install procedure above installed a set of PAM configuration
+          files. These procedures overwrite them and use versions compatible
+          with a BLFS environment.
         </para>
       </note>
 
@@ -410,7 +415,7 @@ EOF</userinput></screen>
 
       <para>
         By convention, X should be executed at runlevel 5, consequently, the
-        same is true for <application>sddm</application>. However, LFS default
+        same is true for <application>sddm</application>. However, the default
         runlevel is 3. Changing to runlevel 5, from a console terminal, as
         <systemitem class="username">root</systemitem> user, starts the
         <command>sddm</command> bootscript, bringing up the greeter screen:
@@ -421,7 +426,7 @@ EOF</userinput></screen>
       <para>
         In order to permanently set the default to 5, starting the
         <command>sddm</command> greeter screen automatically, modify
-        <filename>/etc/inittab</filename>.  As the <systemitem
+        <filename>/etc/inittab</filename> as the <systemitem
         class="username">root</systemitem> user:
       </para>
 
@@ -434,15 +439,14 @@ sed -i '/initdefault/ s/3/5/' /etc/inittab</userinput></screen>
       <title>Available Sessions</title>
 
       <para>
-
         The greeter offers a list of available sessions, depending on the
         Window Managers and Desktop Environments installed. The list includes
         sessions which have a corresponding <filename>.desktop</filename> file
-        installed under 
-        <filename class="directory">/usr/share/xsessions</filename>. Most of 
-        the Window Managers and Desktop Environments automatically provide 
-        those files, but if necessary, you may include a custom one.
-      
+        installed under
+        <filename class="directory">/usr/share/xsessions</filename> or
+        <filename class="directory">/usr/share/wayland-sessions</filename>.
+        Most of the Window Managers and Desktop Environments automatically
+        provide those files, but if necessary, you may include a custom one.
       </para>
 
     </sect3>
