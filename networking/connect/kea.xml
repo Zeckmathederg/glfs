@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY kea-download-http "https://downloads.isc.org/isc/kea/&kea-dhcp-version;/kea-&kea-dhcp-version;.tar.gz">
+  <!ENTITY kea-download-ftp  "ftp://ftp.isc.org/isc/kea/&kea-dhcp-version;/kea-&kea-dhcp-version;.tar.gz">
+  <!ENTITY kea-md5sum        "e01bdc8d68cfaca1cae17b20b26e09b6">
+  <!ENTITY kea-size          "9.9 MB">
+  <!ENTITY kea-buildsize     "1.1 GB">
+  <!ENTITY kea-time          "14 SBU"><!-- Thats unexpectedly long -->
+  <!ENTITY kea-arm-vers      "&kea-dhcp-version;">
+]>
+
+<sect1 id="kea" xreflabel="KEA-&kea-dhcp-version;">
+  <?dbhtml filename="kea.html"?>
+
+
+  <title>Kea &kea-dhcp-version;</title>
+
+  <indexterm zone="kea">
+    <primary sortas="a-KEA">Kea</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to ISC Kea</title>
+
+    <para>
+      The <application>ISC Kea</application> package contains the
+      server programs for DHCP. It is the successor of the
+      old ISC DHCP server which is end-of-life since December 2022.
+    </para>
+
+    &lfs113_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&kea-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&kea-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &kea-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &kea-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &kea-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &kea-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Kea Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="boost"/>,
+      <xref linkend="log4cplus"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="mitkrb"/>, for documentation
+      <xref linkend="doxygen"/>,
+      <xref linkend="graphviz"/>,
+      <xref linkend="sphinx_rtd_theme"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional database backends</bridgehead>
+    <para role="optional">
+      <xref linkend="mariadb"/> or <ulink url="https://www.mysql.com/">MySQL</ulink>,
+      <xref linkend="postgresql"/>
+    </para>
+<!--
+    <para condition="html" role="usernotes">Editor Notes:
+      <ulink url="&blfs-wiki;/kea"/>
+    </para>
+-->
+  </sect2>
+
+  <sect2 role="kernel" id="kea-dhcp-kernel">
+    <title>Kernel Configuration</title>
+
+    <para>
+      You must have Packet Socket support. IPv6 support is optional.
+    </para>
+
+<screen><literal>[*] Networking support ---&gt;        [CONFIG_NET]
+      Networking options ---&gt;
+        &lt;*&gt; Packet socket          [CONFIG_PACKET]
+        &lt;*&gt; The IPv6 Protocol ---&gt; [CONFIG_IPV6]</literal></screen>
+    <indexterm zone="kea kea-dhcp-kernel">
+      <primary sortas="k-KEA">Kea</primary>
+    </indexterm>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of ISC Kea DHCP</title>
+
+    <para>
+      Install <application>ISC Kea DHCP</application> by running
+      the following commands:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --docdir=/usr/share/doc/kea-&kea-dhcp-version; \
+            --localstatedir=/var \
+            --enable-shell       \
+            --with-openssl       \
+            --disable-static &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make check</command>.
+    </para>
+
+    <para>
+      To install the <application>ISC Kea DHCP</application> suite,
+      issue the following commands as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make -j1 install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>--with-pgsql</parameter> or <parameter>--with-mysql</parameter>:
+      <application>ISC Kea</application> can store the leases on a
+      database. This might be useful in large environments running
+      a cluster of DHCP servers. Using the <emphasis>memfile</emphasis>
+      backend (which is a CSV file stored locally) is possible anyhow.
+    </para>
+
+    <para>
+      <parameter>--enable-generate-docs</parameter>:
+      If documentation is to be rebuilt, add that option. Several
+      dependencies must be installed for generating the documentation.
+    </para>
+
+    <para>
+      <parameter>make -j1 install</parameter>: ISC does not recommend
+      any form of parallel or job server options when doing the install.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring ISC Kea DHCP</title>
+
+    <para>The support of IPv4, IPv6 and DDNS has been splitted into
+    separate servers which runs independently from each other. Each
+    of them has its own configuration file. Additional configuration
+    files come from the keactrl agent which is uses to control the
+    servers in an easy way.</para>
+
+    <para>Consult the
+    <ulink url="https://kea.readthedocs.io/en/kea-&kea-arm-vers;/">Kea Administrator Reference Manual</ulink>
+    for detailed information about the configuration of <application>ISC Kea</application>
+    as it is a quite capable system. The configuration shown a bare
+    minimum to get a DHCP server running but it already includes
+    configuration for DDNS (Dynamic DNS). That setup might be working
+    for small networks with a few clients and low traffic. For greater
+    installations with thousands of clients, <application>ISC Kea</application>
+    can be configured to use databases (mariadb or postgresql) to store
+    the leases and build a cluster with multiple nodes. It can
+    be integrated to <ulink url="https://www.isc.org/categories/stork/">ISC Stork</ulink>
+    which is a management dashboard to <application>ISC Kea</application>.</para>
+
+    <para>
+      If you want to start the DHCP Server at boot, install the
+      <phrase revision="sysv"><filename>/etc/rc.d/init.d/kea-dhcpd</filename>
+      init script</phrase>
+      <phrase revision="systemd"><filename>kea-dhcpd.service</filename>
+      unit</phrase> included in the
+      <xref linkend="bootscripts" revision="sysv"/>
+      <xref linkend="systemd-units" revision="systemd"/>
+      package:
+    </para>
+
+<screen role="root"><userinput>make install-kea-dhcpd</userinput></screen>
+
+    <sect3 id="kea-dhcp-config">
+      <title>Config Files</title>
+
+      <para>
+        <filename>/etc/kea/keactrl.conf</filename>,
+        <filename>/etc/kea/kea-ctrl-agent.conf</filename>,
+        <filename>/etc/kea/kea-dhcp4.conf</filename>,
+        <filename>/etc/kea/kea-dhcp6.conf</filename> and
+        <filename>/etc/kea/kea-dhcp-ddns.conf</filename>
+      </para>
+
+      <indexterm zone="kea keactrl-config">
+        <primary sortas="e-etc-kea-keactrl.conf">/etc/kea/keactrl.conf</primary>
+      </indexterm>
+
+      <indexterm zone="kea kea-ctrl-agent-config">
+        <primary sortas="e-etc-kea-kea-ctrl-agent.conf">/etc/kea/kea-ctrl-agent.conf</primary>
+      </indexterm>
+
+      <indexterm zone="kea kea-dhcp4-config">
+        <primary sortas="e-etc-kea-dhcp4.conf">/etc/kea/kea-dhcp4.conf</primary>
+      </indexterm>
+<!--
+      <indexterm zone="kea kea-dhcp6-config">
+        <primary sortas="e-etc-kea-dhcp6.conf">/etc/kea/kea-dhcp6.conf</primary>
+      </indexterm>
+-->
+      <indexterm zone="kea kea-dhcp-ddns-config">
+        <primary sortas="e-etc-kea-dhcp-ddns.conf">/etc/kea/kea-dhcp-ddns.conf</primary>
+      </indexterm>
+    </sect3>
+
+    <sect3 id="keactrl-config">
+      <title>Kea Control Configuration</title>
+
+      <para><command>keactrl</command> is used to control the
+      independent servers (IPv4, IPv6, DDNS). Its configuration file
+      <filename>/etc/kea/keactrl.conf</filename> is installed by
+      default and includes many path settings which are defined
+      due to the <command>configure</command> at build time. It also
+      includes settings to specify which of the servers should be
+      started.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Control Agent</para>
+          <para>The Control Agent is a daemon which allows the
+          (re)configuration of the Kea DHCP service via REST API.
+          Set <literal>ctrl_agent=yes</literal> to start the
+          control agent (service providing a REST API), set
+          <literal>ctrl_agent=no</literal> in case the control agent
+          is not needed.</para>
+        </listitem>
+        <listitem>
+          <para>IPv4 DHCP server</para>
+          <para>This daemon handles requests for IPv4 addresses.
+          Set <literal>dhcp4=yes</literal> to start it, set
+          <literal>dhcp4=no</literal> in case DHCP service for IPv4
+          is not wanted.</para>
+        </listitem>
+        <listitem>
+          <para>IPv6 DHCP server</para>
+          <para>This daemon handles requests for IPv6 addresses.
+          Set <literal>dhcp6=yes</literal> to start it, set
+          <literal>dhcp6=no</literal> in case DHCP service for IPv6
+          is not wanted.</para>
+        </listitem>
+        <listitem>
+          <para>Dynamic DNS</para>
+          <para>This daemon is used to update a DNS server dynamically
+          when Kea assignes an IP address to a device.
+          Set <literal>dhcp_ddns=yes</literal> to enable it, set
+          <literal>dhcp_ddns=no</literal> in case dynamic DNS updates
+          are not wanted.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The Netconf service is not installed because required
+      dependencies are not covered by the current BLFS book.</para>
+
+      <para>With the following command, Kea will be configured to
+      start the dhcp service for IPv4 and the
+      dynamic DNS update, while the control agent and
+      the dhcp service for IPv6 remains down. Tweak the command to
+      match your needs on started services and execute as the
+      <systemitem class="username">root</systemitem> user:</para>
+
+<screen><userinput role="root">sed -e "s/^dhcp4=.*/dhcp4=yes/" \
+    -e "s/^dhcp6=.*/dhcp6=no/" \
+    -e "s/^dhcp_ddns=.*/dhcp_ddns=yes/" \
+    -e "s/^ctrl_agent=.*/ctrl_agent=no/" \
+    -i /etc/kea/keactrl.conf
+</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="kea-ctrl-agent-config">
+      <title>Control Agent Configuration</title>
+
+      <para>
+        The provided configuration could be used without changes
+        but in BLFS objects like sockets are stored in
+        <filename class="directory">/run</filename>
+        rather than in
+        <filename class="directory">/tmp</filename>.
+      </para>
+
+<screen role="nodump"><userinput>cat &gt; /etc/kea/kea-ctrl-agent.conf &lt;&lt; "EOF"
+<literal>// Begin /etc/kea/kea-ctrl-agent.conf
+{
+  // This is a basic configuration for the Kea Control Agent.
+  // RESTful interface to be available at http://127.0.0.1:8000/
+  "Control-agent": {
+    "http-host": "127.0.0.1",
+    "http-port": 8000,
+    "control-sockets": {
+      "dhcp4": {
+        "socket-type": "unix",
+        "socket-name": "/run/kea4-ctrl-socket"
+      },
+      "dhcp6": {
+        "socket-type": "unix",
+        "socket-name": "/run/kea6-ctrl-socket"
+      },
+      "d2": {
+        "socket-type": "unix",
+        "socket-name": "/run/kea-ddns-ctrl-socket"
+      }
+    },
+
+    "loggers": [
+      {
+        "name": "kea-ctrl-agent",
+        "output_options": [
+          {
+            "output": "/var/log/kea-ctrl-agent.log"
+            "pattern": "%D{%Y-%m-%d %H:%M:%S.%q} %-5p %m\n"
+          }
+        ],
+        "severity": "INFO",
+        "debuglevel": 0
+      }
+    ]
+  }
+}
+// End /etc/kea/kea-ctrl-agent.conf</literal>
+EOF</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="kea-dhcp4-config">
+      <title>IPv4 DHCP Server Configuration</title>
+
+      <para>
+        A sample configuration file is created in <filename>/etc/kea/kea-dhcp4.conf</filename>.
+        Adjust the file to suit your needs or overwrite it by using
+        the following sample as the <systemitem class="username">root</systemitem>
+        user:
+      </para>
+
+<screen role="nodump"><userinput>cat &gt; /etc/kea/kea-dhcp4.conf &lt;&lt; "EOF"
+<literal>// Begin /etc/kea/kea-dhcp4.conf
+{
+  "Dhcp4": {
+    // Add names of your network interfaces to listen on.
+    "interfaces-config": {
+      "interfaces": [ "eth0", "eth2" ]
+    },
+
+    "control-socket": {
+      "socket-type": "unix",
+      "socket-name": "/run/kea4-ctrl-socket"
+    },
+
+    "lease-database": {
+      "type": "memfile",
+      "lfc-interval": 3600
+    },
+
+    "expired-leases-processing": {
+      "reclaim-timer-wait-time": 10,
+      "flush-reclaimed-timer-wait-time": 25,
+      "hold-reclaimed-time": 3600,
+      "max-reclaim-leases": 100,
+      "max-reclaim-time": 250,
+      "unwarned-reclaim-cycles": 5
+    },
+
+    "renew-timer": 900,
+    "rebind-timer": 1800,
+    "valid-lifetime": 3600,
+
+    // Enable DDNS - Kea will dynamically update the DNS
+    "ddns-send-updates" : true,
+    "ddns-qualifying-suffix": "your.domain.tld",
+    "dhcp-ddns" : {
+      "enable-updates": true
+    },
+
+    "subnet4": [
+      {
+        "subnet": "192.168.56.0/24",
+        "pools": [ { "pool": "192.168.56.16 - 192.168.56.254" } ],
+        "option-data": [
+          {
+            "name": "domain-name",
+            "data": "your.domain.tld"
+          },
+          {
+            "name": "domain-name-servers",
+            "data": "192.168.56.2, 192.168.3.7"
+          },
+          {
+            "name": "domain-search",
+            "data": "your.domain.tld"
+          },
+          {
+            "name": "routers",
+            "data": "192.168.56.2"
+          }
+        ]
+      }
+    ],
+
+    "loggers": [
+      {
+        "name": "kea-dhcp4",
+        "output_options": [
+          {
+            "output": "/var/log/kea-dhcp4.log",
+            "pattern": "%D{%Y-%m-%d %H:%M:%S.%q} %-5p %m\n"
+          }
+        ],
+        "severity": "INFO",
+        "debuglevel": 0
+      }
+    ]
+  }
+}
+// End /etc/kea/kea-dhcp4.conf</literal>
+EOF</userinput></screen>
+
+      <para>
+        The configuration for IPv6 is similar to the configuration
+        of IPv4. The configuration file is
+        <filename>/etc/kea/kea-dhcp6.conf</filename>.
+      </para>
+
+    </sect3>
+
+    <sect3 id="kea-dhcp-ddns-config">
+      <title>Dynamic DNS Configuration</title>
+
+      <para>
+        If there is a <xref linkend="bind"/> server running,
+        <application>ISC Kea</application> can update the DNS when
+        it gives an IP address to a client. A sample configuration
+        file is created in <filename>/etc/kea/kea-dhcp-ddns.conf</filename>.
+        Adjust the file to suit your needs or overwrite it by using
+        the following sample as the <systemitem class="username">root</systemitem>
+        user:
+      </para>
+
+<screen role="nodump" ><userinput>cat &gt; /etc/kea/kea-dhcp-ddns.conf &lt;&lt; "EOF"
+<literal>// Begin /etc/kea/kea-dhcp-ddns.conf
+{
+  "DhcpDdns": {
+    "ip-address": "127.0.0.1",
+    "port": 53001,
+    "control-socket": {
+      "socket-type": "unix",
+      "socket-name": "/run/kea-ddns-ctrl-socket"
+    },
+
+    "tsig-keys": [
+      {
+        "name"      : "rndc-key",
+        "algorithm" : "hmac-sha256",
+        "secret"    : "1FU5hD7faYaajQCjSdA54JkTPQxbbPrRnzOKqHcD9cM="
+      }
+    ],
+
+    "forward-ddns" : {
+      "ddns-domains" : [
+        {
+          "name" : "your.domain.tld.",
+          "key-name": "rndc-key",
+          "dns-servers" : [
+            {
+              "ip-address" : "127.0.0.1",
+              "port" : 53
+            }
+          ]
+        }
+      ]
+    },
+
+    "reverse-ddns" : {
+      "ddns-domains" : [
+        {
+          "name" : "56.168.192.in-addr.arpa.",
+          "key-name": "rndc-key",
+          "dns-servers" : [
+            {
+              "ip-address" : "127.0.0.1",
+              "port" : 53
+            }
+          ]
+        }
+      ]
+    },
+
+    "loggers": [
+      {
+        "name": "kea-dhcp-ddns",
+        "output_options": [
+          {
+            "output": "/var/log/kea-ddns.log",
+            "pattern": "%D{%Y-%m-%d %H:%M:%S.%q} %-5p %m\n"
+          }
+        ],
+        "severity": "INFO",
+        "debuglevel": 0
+      }
+    ]
+  }
+}
+// End /etc/kea/kea-dhcp-ddns.conf</literal>
+EOF</userinput></screen>
+
+      <note>
+        <para>
+          The value of <literal>secret</literal> is just an example.
+          Generate the key for your installation by using the
+          <command>rndc-confgen -a</command> command or the
+          <command>tsig-keygen</command> command which both are
+          provided by <xref linkend="bind"/>.
+        </para>
+        <para>
+          In this sample config it is assumed that the DNS server
+          runs on the same machine as Kea does (accessable via
+          <literal>127.0.0.1</literal>) and that this machine has
+          the IP <literal>192.168.56.2</literal>.
+        </para>
+      </note>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          keactrl, kea-admin, kea-ctrl-agent, kea-dhcp4, kea-dhcp6,
+          kea-dhcp-ddns, kea-lfc, kea-shell
+        </seg>
+        <seg>
+          libkea-*
+        </seg>
+        <seg>
+          /etc/kea,
+          /usr/include/kea,
+          /var/lib/kea
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="keactrl">
+        <term><command>keactrl</command></term>
+        <listitem>
+          <para>
+            Tool to control (start/stop) the server processes.
+          </para>
+          <indexterm zone="kea keactrl">
+            <primary sortas="b-keactrl">keactrl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="kea-admin">
+        <term><command>kea-admin</command></term>
+        <listitem>
+          <para>
+            kea-admin is a shell script which offers database maintenance.
+          </para>
+          <indexterm zone="kea kea-admin">
+            <primary sortas="b-kea-admin">kea-admin</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="kea-ctrl-agent">
+        <term><command>kea-ctrl-agent</command></term>
+        <listitem>
+          <para>
+            Daemon which exposes a RESTful control interface for
+            managing Kea servers.
+          </para>
+          <indexterm zone="kea kea-ctrl-agent">
+            <primary sortas="b-kea-ctrl-agent">kea-ctrl-agent</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="kea-dhcp4">
+        <term><command>kea-dhcp4</command></term>
+        <listitem>
+          <para>
+            The server daemon providing IPv4 addresses.
+          </para>
+          <indexterm zone="kea kea-dhcp4">
+            <primary sortas="b-kea-dhcp4">kea-dhcp4</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="kea-dhcp6">
+        <term><command>kea-dhcp6</command></term>
+        <listitem>
+          <para>
+            The server daemon providing IPv6 addresses.
+          </para>
+          <indexterm zone="kea kea-dhcp6">
+            <primary sortas="b-kea-dhcp6">kea-dhcp6</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="kea-dhcp-ddns">
+        <term><command>kea-dhcp-ddns</command></term>
+        <listitem>
+          <para>
+            The server daemon performing the dynamic DNS updates.
+          </para>
+          <indexterm zone="kea kea-dhcp-ddns">
+            <primary sortas="b-kea-dhcp-ddns">kea-dhcp-ddns</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="kea-lfc">
+        <term><command>kea-lfc</command></term>
+        <listitem>
+          <para>
+            The kea-lfc service process removes redundant information
+            from the files used to provide persistent storage for the
+            memfile database backend. It is run by the Kea DHCP server.
+          </para>
+          <indexterm zone="kea kea-lfc">
+            <primary sortas="b-kea-lfc">kea-lfc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <varlistentry id="keashell">
+        <term><command>keashell</command></term>
+        <listitem>
+          <para>
+            RESTful client to the <application>ISC Kea</application>
+            services.
+          </para>
+          <indexterm zone="kea keashell">
+            <primary sortas="b-keashell">keashell</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>

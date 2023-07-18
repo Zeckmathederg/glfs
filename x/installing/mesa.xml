@@ -133,7 +133,7 @@
       (for vulkan drivers),
       <ulink url="https://github.com/tizonia/tizonia-openmax-il/wiki/Tizonia-OpenMAX-IL/">
       libtizonia</ulink>,  and
-      <ulink url="https://www.vulkan.org/">libvulkan</ulink>
+      <ulink url="https://github.com/KhronosGroup/Vulkan-Loader">Vulkan-Loader</ulink>
     </para>
 <!--
     <note>
@@ -147,6 +147,71 @@
       </para>
     </note>
 -->
+  </sect2>
+
+  <sect2 role="kernel" id="mesa-kernel"
+         xreflabel='Mesa Kernel Configuration'>
+    <title>Kernel Configuration</title>
+
+    <para>
+      Enable the following options in the kernel configuration and
+      recompile the kernel if necessary:
+    </para>
+
+<screen><literal>Device Drivers  ---&gt;
+  Graphics support ---&gt;
+    &lt;*/M&gt;   Direct Rendering Manager (XFree86 ... support) ---&gt; [CONFIG_DRM]
+    &lt; /M&gt;   ATI Radeon                         [CONFIG_DRM_RADEON]  # For r300 or r600
+    &lt; /M&gt;   AMD GPU                            [CONFIG_DRM_AMDGPU]  # For radeonsi
+      [*] Enable AMDGPU support for SI parts   [CONFIG_DRM_AMDGPU_SI]
+      [*] Enable AMDGPU support for CIK parts  [CONFIG_DRM_AMDGPU_CIK]
+      Display Engine Configuration
+        [*] AMD DC - Enable new display engine [CONFIG_DRM_AMD_DC]
+    &lt; /*/M&gt; Nouveau (NVIDIA) cards             [CONFIG_DRM_NOUVEAU] # For nouveau
+    &lt; /*/M&gt; Intel 8xx/9xx/G3x/G4x/HD Graphics  [CONFIG_DRM_I915]    # For i915, crocus, or iris
+    &lt; /*/M&gt; DRM driver for VMware Virtual GPU  [CONFIG_DRM_VMWGFX]  # For svga
+    &lt; /*/M&gt; Virtual GEM provider               [CONFIG_DRM_VGEM]    # For swrast</literal></screen>
+
+    <note>
+      <para>
+        The corresponding Mesa Gallium3D driver name is provided as the
+        comment for the configuration entries.  If you don't know the name
+        of the Mesa Gallium3D driver for your GPU, see <xref
+        linkend="mesa-gallium-drivers"/> below.
+      </para>
+
+      <para>
+        <option>CONFIG_DRM_RADEON</option>,
+        <option>CONFIG_DRM_AMDGPU</option>,
+        <option>CONFIG_DRM_NOUVEAU</option>, and
+        <option>CONFIG_DRM_I915</option> may require firmware.
+        See <xref linkend='postlfs-firmware'/> for details.
+      </para>
+
+      <para>
+        Selecting <option>CONFIG_DRM_RADEON</option> or
+        <option>CONFIG_DRM_AMDGPU</option> as
+        <quote><literal>y</literal></quote> is not recommended. If it is, any
+        required firmware must be built as a part of the kernel image or the
+        initramfs for the driver to function correctly.
+      </para>
+
+      <para>
+        The sub-entries under <option>CONFIG_DRM_AMDGPU</option> are used
+        to ensure the AMDGPU kernel driver supports all GPUs using the
+        <literal>radeonsi</literal> driver.  They are not needed if you
+        won't need <option>CONFIG_DRM_AMDGPU</option> itself. They
+        may be unneeded for some GPU models.
+      </para>
+
+      <para>
+        For <literal>swrast</literal>, <option>CONFIG_DRM_VGEM</option>
+        is not strictly needed but recommended as an optimization.
+      </para>
+    </note>
+    <indexterm zone="mesa mesa-kernel">
+      <primary sortas="d-mesa">mesa</primary>
+    </indexterm>
   </sect2>
 
   <sect2 role="installation">
@@ -176,24 +241,6 @@
       </para>
     </note>
 
-    <para>
-      Now, select the drivers you wish to install. For the X86 architecture, the
-      available gallium drivers are auto (<emphasis>in 21.2.1 this does not select
-      crocus </emphasis>), <emphasis>or alternatively a choice from</emphasis>
-      crocus, i915, iris, nouveau, r300, r600, radeonsi, svga, swrast, and virgl.
-      The latter can provide acceleration in <xref linkend="qemu"/> if that has
-      been linked against
-      <ulink url="https://gitlab.freedesktop.org/virgl/virglrenderer/~/releases/">virglrenderer</ulink>
-      (you will need a freedesktop.org account to get to that page, you can
-      download the 0.9.1 release without an account from
-     <ulink url="https://gitlab.freedesktop.org/virgl/virglrenderer/-/archive/0.9.1/virglrenderer-0.9.1.tar.bz2">virglrenderer-0.9.1</ulink>).-->
-
-<!-- If you wish to build all available gallium drivers,
-      use 'auto'. FIXME : does not build crocus in 21.2.1 -->
-
-      <!-- crocus was added to the default x86/x86_64 drivers for meson in the
-      master branch on 2021-08-31, at some point it will appear in a stable release
-    </para>
 -->
 <!--
     <para>
@@ -289,8 +336,35 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
 
     <para>
-      <parameter>-Dgallium-drivers="..."</parameter>: This parameter
+      <anchor id='mesa-gallium-drivers' xreflabel='Mesa Gallium3D Drivers'/>
+      <parameter>-Dgallium-drivers=auto</parameter>: This parameter
       controls which Gallium3D drivers should be built.
+      <literal>auto</literal> selects all Gallium3D drivers available
+      for x86: <literal>r300</literal> (for ATI Radeon 9000 or Radeon X
+      series), <literal>r600</literal> (for AMD/ATI Radeon HD 2000-6000
+      series), <literal>radeonsi</literal> (for AMD Radeon HD 7000 or newer
+      AMD GPU models), <literal>nouveau</literal>
+      (for Supported NVIDIA GPUs, they are listed as all
+      <quote>3D features</quote> either <quote>DONE</quote> or
+      <quote>N/A</quote> in <ulink
+      url='https://nouveau.freedesktop.org/FeatureMatrix.html'>the Nouveau
+      status page</ulink>), <literal>virgl</literal> (for QEMU virtual GPU
+      with <application>virglrender</application> support; note that BLFS
+      <xref linkend='qemu'/> is not built with
+      <application>virglrender</application>), <literal>svga</literal>
+      (for VMWare virtual GPU), <literal>swrast</literal> (using CPU for 3D
+      rasterisation; note that it's much slower than using a modern
+      3D-capable GPU, so it should be only used if the GPU is not supported
+      by other drivers), <literal>iris</literal> (for Intel GPUs shipped
+      with Broadwell or newer CPUs), <literal>crocus</literal> (for Intel
+      GMA 3000, X3000 series, 4000 series, or X4000 series GPUs shipped with
+      chipsets, or Intel HD GPUs shipped with pre-Broadwell CPUs),
+      <literal>i915</literal> (for Intel GMA 900, 950, 3100, or 3150 GPUs
+      shipped with chipsets or Atom D/N 4xx/5xx CPUs).  You may replace
+      <literal>auto</literal> with a comma-separated list to build only
+      a subset of these drivers if you precisely know which drivers you
+      need, for example
+      <option>-Dgallium-drivers=radeonsi,iris,swrast</option>.
     </para>
 <!--
     <para>
@@ -309,9 +383,11 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     <para>
       <parameter>-Dvulkan-drivers=""</parameter>: This switch allows choosing
       which Vulkan drivers are built. The default is auto, but this requires
-      the optional dependency <filename>glslang</filename>. So it is better
-      to pass an empty list, in order to remove the need for that
-      dependency.  Nothing in BLFS uses Vulkan anyway.
+      the optional dependencies <application>glslang</application> and
+      <application>Vulkan-Loader</application>.  Vulkan is a newer API
+      designed for utilizing the GPUs with a performance better than OpenGL,
+      but nothing in BLFS benefits from it for now.  So we pass an empty
+      list in order to remove the need for these dependencies.
     </para>
 
     <para>
@@ -364,9 +440,12 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           libxatracker.so
         </seg>
         <seg>
-          <!-- Begin gallium DRI drivers : this is the full set -->
-<!--          d3dadapter9.so (optional),   For Windows games. This is DirectX's
-                                          Direct3D -->
+          <!-- d3dadapter9.so (optional)
+               I guess this is useless today, Wine applications use Vulkan
+               through libvkd3d, and new games with native Linux support
+               likely uses Vulkan directly.  -->
+          <!-- Begin gallium DRI drivers (*_dri.so) and VA-API drivers
+               (*_drv_video.so): this is the full set -->
           crocus_dri.so,
           i915_dri.so,
           iris_dri.so,

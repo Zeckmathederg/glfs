@@ -6,8 +6,8 @@
 
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
   <!ENTITY thunderbird-download-ftp  " ">
-  <!ENTITY thunderbird-md5sum        "48d0bb152a73f4c62739b4eb7fe0eb3c">
-  <!ENTITY thunderbird-size          "479 MB">
+  <!ENTITY thunderbird-md5sum        "4113a557a9730e4af8891ee7d7e27883">
+  <!ENTITY thunderbird-size          "507 MB">
   <!ENTITY thunderbird-buildsize     "7.3 GB (205 MB installed)">
   <!ENTITY thunderbird-time          "20 SBU (on a 4-core machine)">
   <!-- Removed the -j1 time because python and rust do not obey it, although
@@ -72,15 +72,6 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-      <listitem>
-        <para>
-          Required patch:
-          <ulink url="&patch-root;/thunderbird-&thunderbird-version;-consolidated-1.patch"/>
-        </para>
-      </listitem>
-    </itemizedlist>
 
     <bridgehead renderas="sect3">Thunderbird Dependencies</bridgehead>
 
@@ -127,6 +118,7 @@
       <!--<xref linkend="cyrus-sasl"/>,-->
       <!--<xref linkend="doxygen"/>,-->
       <!--<xref linkend="GConf"/>,-->
+      <xref role="runtime" linkend="pciutils"/> (runtime),
       <xref linkend="wget"/>,
       <xref linkend="wireless_tools"/>, and
       <ulink url="https://facebook.github.io/watchman/">watchman</ulink>
@@ -232,11 +224,11 @@ esac</userinput></screen>
 -->
 
     <para>
-      Fix building Thunderbird with Clang 16 or C++ headers from GCC 13.
-      And, work around a build failure with Rustc-1.70.0:
+      Fix an issue occurring when building with GCC-13:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../thunderbird-&thunderbird-version;-consolidated-1.patch</userinput></screen>
+<screen><userinput>sed -e '/&lt;exception&gt;/i#include &lt;cstdint&gt;' \
+    -i comm/third_party/rnp/src/libsexp/include/sexp/sexp-error.h</userinput></screen>
 
     <para>
       Now invoke the Python <command>mach</command> script to compile
@@ -251,23 +243,6 @@ esac</userinput></screen>
       href="../../xincludes/mozmach.xml"/>
 
     </note>
-    <!-- Fixed in 102.8
-    <para>
-      First remove an obsolete flag in python code, that has been removed
-      in python-3.11:
-    </para>
-
-<screen><userinput>grep -rl \"rU\" | xargs sed -i 's/"rU"/"r"/'</userinput></screen>
-
-    <para>
-      Then fix an issue with regular expressions in python-3.11:
-    </para>
-
-<screen><userinput>sed -e 's/?s)\./?s:.)/'               \
-    -e '/?m)/{s/?m)/?m:/;s/\$"/$)"/}' \
-    -e '/?s)%/{s/?s)/?s:/;s/?"/?)"/}' \
-    -i xpcom/idl-parser/xpidl/xpidl.py</userinput></screen>
--->
 
 <screen><userinput>export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none &amp;&amp;
 export MOZBUILD_STATE_PATH=./mozbuild               &amp;&amp;

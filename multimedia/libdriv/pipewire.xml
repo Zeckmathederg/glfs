@@ -6,10 +6,10 @@
 
   <!ENTITY pipewire-download-http "https://github.com/PipeWire/pipewire/archive/&pipewire-version;/pipewire-&pipewire-version;.tar.gz">
   <!ENTITY pipewire-download-ftp  " ">
-  <!ENTITY pipewire-md5sum        "b07218e9c5e0e1f3c80fe288c378d8c4">
+  <!ENTITY pipewire-md5sum        "684576cc32eb622e8987cbb73b07d770">
   <!ENTITY pipewire-size          "2.0 MB">
-  <!ENTITY pipewire-buildsize     "65 MB (with tests)">
-  <!ENTITY pipewire-time          "0.5 SBU (with tests, both using parallelism=4)">
+  <!ENTITY pipewire-buildsize     "80 MB (with tests)">
+  <!ENTITY pipewire-time          "0.6 SBU (with tests, both using parallelism=4)">
 ]>
 
 <sect1 id="pipewire" xreflabel="pipewire-&pipewire-version;">
@@ -125,10 +125,10 @@
 <screen><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson setup --prefix=/usr       \
-            --buildtype=release \
-            -Dsession-managers= \
-            ..                  &amp;&amp;
+meson setup ..                \
+      --prefix=/usr           \
+      --buildtype=release     \
+      -Dsession-managers="[]" &amp;&amp;
 ninja</userinput></screen>
 
     <para>
@@ -157,8 +157,13 @@ ninja</userinput></screen>
       href="../../xincludes/meson-buildtype-release.xml"/>
 
     <para>
-      <parameter>-Dsession-managers=</parameter>: This switch
-      prevents automatic downloading external dependencies.
+      <parameter>-Dsession-managers=[]</parameter>: This switch
+      allows to specify the session managers to build as subprojects. Since
+      the recommended session manager (<ulink
+        url="https://gitlab.freedesktop.org/pipewire/wireplumber">
+        WirePlumber</ulink>) is available as a standalone
+      project, don't specify anything here. This prevents downloading external
+      dependencies during the meson step.
     </para>
 
     <para>
@@ -190,8 +195,6 @@ ninja</userinput></screen>
       <seglistitem>
         <seg>
           pipewire,
-          pipewire-avb,
-          pipewire-pulse,
           pw-cat,
           pw-cli,
           pw-config,
@@ -212,33 +215,15 @@ ninja</userinput></screen>
           spa-json-dump,
           spa-monitor,
           spa-resample, and
-          pw-dsdplay, pw-midiplay, pw-midirecord, pw-play, and pw-record
-          (symlinks to pw-cat)
+          pipewire-aes67, pipewire-avb, pipewire-pulse (symlinks to pipewire),
+          pw-dsdplay, pw-encplay, pw-midiplay, pw-midirecord, pw-play,
+          pw-record (symlinks to pw-cat)
         </seg>
         <seg>
           libpipewire-0.3.so and
-          56 modules below /usr/lib/pipewire-0.3 and /usr/lib/spa-0.2<!--,
-     [pierre July 29th, 2020]: all the following libs are in subdirectories
-     of /usr/lib. I'm not sure they should appear. But if they should, there
-     are many more libs to list...
-          libpulse-mainloop-glib-pw.so,
-          libpulse.so,
-          libpulse-simple.so,
-          libasound_module_pcm_pipewire.so, and
-          libgstpipewire.so
-      [bdubbs Sep 29th, 2020]: add
-          libpipewire-module-{access,adapter,client-device,client-node,
-            link-factory,metadata,portal,profiler,protocol-native,
-            rtkit,session-manager,spa-device,spa-device-factory,spa-node,
-            spa-node-factory}.so
-          libasound_module_ctl_pipewire.so
-          libasound_module_pcm_pipewire.so
-          libspa-{alsa,audioconvert,audiomixer,bluez5,control,dbus,support
-            v4l2,videoconvert}.so
-          -->
+          58 modules below /usr/lib/pipewire-0.3 and /usr/lib/spa-0.2
         </seg>
         <seg>
-          <!--/etc/pipewire,-->
           /usr/include/pipewire-0.3,
           /usr/include/spa-0.2,
           /usr/lib/alsa-lib,
@@ -269,7 +254,7 @@ ninja</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      <!-- not installed now: deprecated
       <varlistentry id="pipewire-media-session">
         <term><command>pipewire-media-session</command></term>
         <listitem>
@@ -282,7 +267,7 @@ ninja</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-
+      -->
       <varlistentry id="pipewire-pulse">
         <term><command>pipewire-pulse</command></term>
         <listitem>
@@ -443,20 +428,6 @@ ninja</userinput></screen>
         </listitem>
       </varlistentry>
 
-<!--
-      <varlistentry id="pw-pulse">
-        <term><command>pw-pulse</command></term>
-        <listitem>
-          <para>
-            runs Pulseaudio applications on pipewire.
-          </para>
-          <indexterm zone="pipewire pw-pulse">
-            <primary sortas="b-pw-pulse">pw-pulse</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
-
       <varlistentry id="pw-reserve">
         <term><command>pw-reserve</command></term>
         <listitem>
@@ -564,20 +535,7 @@ ninja</userinput></screen>
           </indexterm>
         </listitem>
       </varlistentry>
-<!--
-      <varlistentry id="libpulse-mainloop-glib-pw">
-        <term><filename class="libraryfile">libpulse-mainloop-glib-pw.so</filename></term>
-        <listitem>
-          <para>
-            provides a glib main() loop for pulseaudio to route media through
-            pipewire.
-          </para>
-          <indexterm zone="pipewire libpulse-mainloop-glib-pw">
-            <primary sortas="c-libpulse-mainloop-glib-pw">libpulse-mainloop-glib-pw.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
+      <!-- not in /usr/lib
       <varlistentry id="libpulse">
         <term><filename class="libraryfile">libpulse.so</filename></term>
         <listitem>
