@@ -21,6 +21,7 @@ ind0 = 0
 ind1 = 0
 menu_id = 1
 stack = []
+if_stack = []
 
 expand_var_mp = { 'SRCARCH': 'x86' }
 
@@ -45,12 +46,16 @@ def cur_menu():
     global stack
     return stack[-1][3] if len(stack) else 0
 
+def cur_if():
+    global if_stack
+    return if_stack[-1] if len(if_stack) else []
+
 def parse_config(buf):
     global ind0, ind1, stack, menu_id
     is_menu = buf[0].startswith('menu')
     key = buf[0].split()[1].strip()
 
-    deps = ['menu']
+    deps = ['menu'] + cur_if()
     title = None
     klass = None
     for line in buf[1:]:
@@ -74,13 +79,16 @@ def parse_config(buf):
         return []
     val = known_config[key]
     comment = None
+    forced = None
 
     if type(val) == dict:
-        comment = val['comment']
+        comment = val.get('comment')
+        forced = val.get('forced')
         val = val['value']
 
     assert(title and klass)
-    title = title.strip('"')
+    title = title.strip().lstrip('"')
+    title = title[:title.find('"')]
 
     if klass == 'string':
         val = '(' + val + ')'
@@ -94,13 +102,20 @@ def parse_config(buf):
             for c in val:
                 if c not in 'M* ' or (c == 'M' and klass != 'tristate'):
                     raise Exception('unknown setting %s for %s' % (c, key))
-            val = '/'.join(val)
+            bracket = None
             if klass == 'tristate':
-                val = '<' + val + '>'
-            elif klass == 'bool':
-                val = '[' + val + ']'
-            else:
+                if forced and 'M' not in val:
+                    # render this "as-is" a forced bool
+                    klass = 'bool'
+                else:
+                    bracket = '{}' if forced else '<>'
+
+            if klass == 'bool':
+                bracket = '--' if forced else '[]'
+
+            if not bracket:
                 raise Exception('should not reach here')
+            val = bracket[0] + '/'.join(val) + bracket[1]
 
     arrow = ' --->' if is_menu else ''
     r = [(ind0, val, ind1, title, arrow, key, cur_menu(), comment)]
@@ -126,7 +141,7 @@ def parse_choice(buf):
     return r
 
 def load_kconfig(file):
-    global ind0, ind1, stack, path, menu_id
+    global ind0, ind1, stack, path, menu_id, if_stack
     r = []
     config_buf = []
     with open(path + file) as f:
@@ -160,6 +175,13 @@ def load_kconfig(file):
                 if r[-1][1] == "":
                     # prune empty menu
                     r = r[:-1]
+            elif line.startswith('if '):
+                line = line[3:]
+                top = cur_if()
+                top += [x.strip() for x in line.split("&&")]
+                if_stack += [top]
+            elif line.startswith('endif'):
+                if_stack = if_stack[:-1]
     return r
 
 known_config = {}
