@@ -13,6 +13,8 @@
 #     DRM_I915="*M"
 #   for choice:
 #     HIGHMEM64G="X"
+#   an entry with comment:
+#     DRM_I915 = { value = " *M", comment = "for i915, crocus, or iris" }
 
 choice_bit = 1 << 30
 ind0 = 0
@@ -71,6 +73,11 @@ def parse_config(buf):
     if key not in known_config:
         return []
     val = known_config[key]
+    comment = None
+
+    if type(val) == dict:
+        comment = val['comment']
+        val = val['value']
 
     assert(title and klass)
     title = title.strip('"')
@@ -82,6 +89,8 @@ def parse_config(buf):
         if (val == 'X'):
             val = '(X)'
         else:
+            val = list(val)
+            val.sort()
             for c in val:
                 if c not in 'M* ' or (c == 'M' and klass != 'tristate'):
                     raise Exception('unknown setting %s for %s' % (c, key))
@@ -94,7 +103,7 @@ def parse_config(buf):
                 raise Exception('should not reach here')
 
     arrow = ' --->' if is_menu else ''
-    r = [(ind0, val, ind1, title, arrow, key, cur_menu())]
+    r = [(ind0, val, ind1, title, arrow, key, cur_menu(), comment)]
     menu_id += is_menu
     stack_ent = (key, 2, 0, menu_id) if is_menu else (key, 0, 2, cur_menu())
     ind0 += stack_ent[1]
@@ -110,7 +119,7 @@ def parse_choice(buf):
         line = line.strip()
         if line.startswith('prompt '):
             title = line[len('prompt '):].strip().strip('"')
-    r = [(ind0, "", ind1, title, ' --->', '', cur_menu())]
+    r = [(ind0, "", ind1, title, ' --->', '', cur_menu(), None)]
     menu_id += 1
     stack += [('menu', 2, 0, menu_id | choice_bit)]
     ind0 += 2
@@ -141,7 +150,7 @@ def load_kconfig(file):
                 config_buf = [line]
             elif line.startswith("menu"):
                 title = expand_var(line[4:].strip().strip('"'))
-                r += [(ind0, "", ind1, title, ' --->', '', cur_menu())]
+                r += [(ind0, "", ind1, title, ' --->', '', cur_menu(), None)]
                 menu_id += 1
                 stack += [('menu', 2, 0, menu_id)]
                 ind0 += 2
@@ -170,7 +179,7 @@ r = load_kconfig("Kconfig")
 
 ## Calculate the maximum value length for each menu
 max_val_len = {}
-for _, val, _, _, _, _, menu in r:
+for _, val, _, _, _, _, menu, _ in r:
     x = max_val_len[menu] if menu in max_val_len else 0
     max_val_len[menu] = max(x, len(val))
 
@@ -181,9 +190,10 @@ buf = []
 
 done = [x[5] for x in r]
 for i in known_config:
-    assert(i in done)
+    if i not in done:
+        raise Exception("%s seems not exist" % i)
 
-for i0, val, i1, title, arrow, key, menu in r:
+for i0, val, i1, title, arrow, key, menu, comment in r:
     if val:
         val += (max_val_len[menu] - len(val)) * ' '
     line = i0 * ' ' + val + (i1 + bool(val)) * ' '
@@ -204,6 +214,8 @@ for i0, val, i1, title, arrow, key, menu in r:
     else:
         key = '... ' + key
         line += '\n' + ' ' * (max_line - len(key)) + key
+    if comment:
+        line = ' ' * i0 + '# ' + comment + ':\n' + line
     buf += [line.replace('<', '&lt;').replace('>', '&gt;').rstrip()]
 
 import kernel_version
