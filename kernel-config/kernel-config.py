@@ -156,8 +156,8 @@ def load_kconfig(file):
                 else:
                     config_buf += [line]
                     continue
-            if line.startswith('source'):
-                sub = expand_var(line.split()[1].strip('"'))
+            if line.startswith('source') or line.startswith('\tsource'):
+                sub = expand_var(line.strip().split()[1].strip('"'))
                 r += load_kconfig(sub)
             elif line.startswith('config') or line.startswith('menuconfig'):
                 config_buf = [line]

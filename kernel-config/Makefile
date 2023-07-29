@@ -1,4 +1,4 @@
-INPUT = $(wildcard */*.toml */*/*.toml)
+INPUT = $(wildcard */*.toml */*/*.toml */*/*/*.toml)
 OUTPUT = $(patsubst %.toml, ../%-kernel.xml, $(INPUT))
 
 ifeq ($(KERNEL_TREE),)
