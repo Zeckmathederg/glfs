@@ -103,18 +103,11 @@ def parse_config(buf):
                 if c not in 'M* ' or (c == 'M' and klass != 'tristate'):
                     raise Exception('unknown setting %s for %s' % (c, key))
             bracket = None
-            if klass == 'tristate':
-                if forced and 'M' not in val:
-                    # render this "as-is" a forced bool
-                    klass = 'bool'
-                else:
-                    bracket = '{}' if forced else '<>'
-
-            if klass == 'bool':
+            if klass == 'tristate' and forced != '*' :
+                bracket = '{}' if forced else '<>'
+            else:
                 bracket = '--' if forced else '[]'
 
-            if not bracket:
-                raise Exception('should not reach here')
             val = bracket[0] + '/'.join(val) + bracket[1]
 
     arrow = ' --->' if is_menu else ''
