@@ -50,6 +50,12 @@ def cur_if():
     global if_stack
     return if_stack[-1] if len(if_stack) else []
 
+def clean_dep(d):
+    d = d.strip()
+    if d.endswith('=y') or d.endswith('=M'):
+        d = d[:-2]
+    return d
+
 def parse_config(buf):
     global ind0, ind1, stack, menu_id
     is_menu = buf[0].startswith('menu')
@@ -62,7 +68,7 @@ def parse_config(buf):
         line = line.strip()
         if line.startswith('depends on '):
             new_deps = line[len('depends on '):].split('&&')
-            deps += [x.strip() for x in new_deps]
+            deps += [clean_dep(x) for x in new_deps]
         else:
             for prefix in ['tristate', 'bool', 'string']:
                 if line.startswith(prefix + ' '):
@@ -140,7 +146,7 @@ def load_kconfig(file):
     with open(path + file) as f:
         for line in f:
             if len(config_buf):
-                if not line.startswith('\t'):
+                if not (line.startswith('\t') or line.startswith('    ')):
                     if config_buf[0] == 'choice\n':
                         r += parse_choice(config_buf)
                     else:
