@@ -54,6 +54,8 @@ def clean_dep(d):
     d = d.strip()
     if d.endswith('=y') or d.endswith('=M'):
         d = d[:-2]
+    elif d.endswith(' != ""'):
+        d = d[:-6]
     return d
 
 def parse_config(buf):
