@@ -149,6 +149,7 @@ def parse_config(buf):
     ind0 += stack_ent[1]
     ind1 += stack_ent[2]
     stack += [stack_ent]
+
     return r
 
 def parse_choice(buf):
@@ -228,19 +229,20 @@ for i in reversed(range(len(r))):
     index_ikey[r[i][5]] = i
 
 for i in reversed(range(len(r))):
-    if r[i][1] is not None:
+    if r[i][1] != None:
         key = r[i][5]
         fa = main_dep.get(key)
         if not fa:
             continue
         j = index_ikey[fa]
-        if type(fa) == int:
-            # The main dependency is a menu, just mark it used
+        if type(fa) == int or not r[j][3]:
+            # The main dependency is a menu or untitled magic entry,
+            # just mark it used
             r[j][1] = ''
-        if (r[j][1] is None) and r[j][3]:
+        if r[j][1] is None:
             raise Exception('[%s] needs unselected [%s]' % (key, fa))
 
-r = [i for i in r if i[1] is not None]
+r = [i for i in r if i[1] != None and i[3]]
 
 # Now we are going to pretty-print r
 
