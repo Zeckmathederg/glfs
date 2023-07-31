@@ -301,9 +301,6 @@ for i0, val, i1, title, arrow, key, menu, comment in r:
 
     buf += [line.rstrip()]
 
-import kernel_version
-kver = kernel_version.kernel_version(path)
-
 from jinja2 import Template
 
 t = Template('''<?xml version="1.0" encoding="ISO-8859-1"?>
