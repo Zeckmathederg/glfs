@@ -24,6 +24,7 @@ stack = []
 if_stack = []
 
 expand_var_mp = { 'SRCARCH': 'x86' }
+main_dep = {}
 
 def expand_var(s):
     for k in expand_var_mp:
@@ -39,16 +40,16 @@ def pop_stack(cond):
     ind1 -= i1
 
 def pop_stack_while(cond):
-    while len(stack) and cond(stack[-1][0]):
+    while stack and cond(stack[-1][0]):
         pop_stack(cond)
 
 def cur_menu():
     global stack
-    return stack[-1][3] if len(stack) else 0
+    return stack[-1][3] if stack else 0
 
 def cur_if():
     global if_stack
-    return if_stack[-1] if len(if_stack) else []
+    return if_stack[-1][:] if if_stack else []
 
 def clean_dep(d):
     d = d.strip()
@@ -61,31 +62,47 @@ def clean_dep(d):
 def parse_config(buf):
     global ind0, ind1, stack, menu_id
     is_menu = buf[0].startswith('menu')
-    key = buf[0].split()[1].strip()
-
+    is_nonconfig_menu = buf[0].startswith('menu ')
+    key = None if is_nonconfig_menu else buf[0].split()[1].strip()
+    title = buf[0][len('menu '):] if is_nonconfig_menu else None
     deps = ['menu'] + cur_if()
-    title = None
     klass = None
+
     for line in buf[1:]:
         line = line.strip()
         if line.startswith('depends on '):
             new_deps = line[len('depends on '):].split('&&')
             deps += [clean_dep(x) for x in new_deps]
+        elif line.startswith('prompt'):
+            title = line[len('prompt '):]
         else:
             for prefix in ['tristate', 'bool', 'string']:
                 if line.startswith(prefix + ' '):
                     title = line[len(prefix) + 1:]
                     klass = prefix
+                elif line == prefix:
+                    klass = prefix
                 elif line.startswith('def_' + prefix + ' '):
                     klass = prefix
-                elif line.startswith('prompt '):
-                    title = line[len('prompt '):]
+                else:
+                    continue
+
+                if '"' in line:
+                    tail = line[line.rfind('"') + 1:].strip()
+                    if tail[:3] == 'if ':
+                        deps += [clean_dep(x) for x in tail[3:].split('&&')]
 
     pop_stack_while(lambda x: x not in deps)
 
-    if key not in known_config:
-        return []
-    val = known_config[key]
+    menu_id += is_menu
+    internal_key = key or menu_id
+    if stack:
+        fa = stack[-1][0]
+        if fa == 'menu':
+            fa = cur_menu() & ~choice_bit
+        main_dep[internal_key] = fa
+
+    val = known_config.get(key)
     comment = None
     forced = None
 
@@ -94,11 +111,14 @@ def parse_config(buf):
         forced = val.get('forced')
         val = val['value']
 
-    assert(title and klass)
-    title = title.strip().lstrip('"')
-    title = title[:title.find('"')]
+    klass = klass or 'string'
+    if title:
+        title = title.strip().lstrip('"')
+        title = title[:title.find('"')]
 
-    if klass == 'string':
+    if not val:
+        pass
+    elif klass == 'string':
         val = '(' + val + ')'
     else:
         assert((val == 'X') == bool(cur_menu() & choice_bit))
@@ -119,9 +139,13 @@ def parse_config(buf):
             val = bracket[0] + '/'.join(val) + bracket[1]
 
     arrow = ' --->' if is_menu else ''
-    r = [(ind0, val, ind1, title, arrow, key, cur_menu(), comment)]
-    menu_id += is_menu
-    stack_ent = (key, 2, 0, menu_id) if is_menu else (key, 0, 2, cur_menu())
+    r = [ind0, val, ind1, title, arrow, internal_key, cur_menu(), comment]
+
+    # Don't indent for untitled (internal) entries
+    x = 2 if title else 0
+
+    key = key or 'menu'
+    stack_ent = (key, 2, 0, menu_id) if is_menu else (key, 0, x, cur_menu())
     ind0 += stack_ent[1]
     ind1 += stack_ent[2]
     stack += [stack_ent]
@@ -135,8 +159,16 @@ def parse_choice(buf):
         line = line.strip()
         if line.startswith('prompt '):
             title = line[len('prompt '):].strip().strip('"')
-    r = [(ind0, "", ind1, title, ' --->', '', cur_menu(), None)]
+
     menu_id += 1
+
+    if stack:
+        fa = stack[-1][0]
+        if fa == 'menu':
+            fa = cur_menu() & ~choice_bit
+        main_dep[menu_id] = fa
+
+    r = [ind0, None, ind1, title, ' --->', menu_id, cur_menu(), None]
     stack += [('menu', 2, 0, menu_id | choice_bit)]
     ind0 += 2
     return r
@@ -147,12 +179,12 @@ def load_kconfig(file):
     config_buf = []
     with open(path + file) as f:
         for line in f:
-            if len(config_buf):
+            if config_buf:
                 if not (line.startswith('\t') or line.startswith('    ')):
                     if config_buf[0] == 'choice\n':
-                        r += parse_choice(config_buf)
+                        r += [parse_choice(config_buf)]
                     else:
-                        r += parse_config(config_buf)
+                        r += [parse_config(config_buf)]
                     config_buf = []
                 else:
                     config_buf += [line]
@@ -160,22 +192,13 @@ def load_kconfig(file):
             if line.startswith('source') or line.startswith('\tsource'):
                 sub = expand_var(line.strip().split()[1].strip('"'))
                 r += load_kconfig(sub)
-            elif line.startswith('config') or line.startswith('menuconfig'):
+            elif line.startswith('config') or line.startswith('menu'):
                 config_buf = [line]
             elif line.startswith('choice'):
                 config_buf = [line]
-            elif line.startswith("menu"):
-                title = expand_var(line[4:].strip().strip('"'))
-                r += [(ind0, "", ind1, title, ' --->', '', cur_menu(), None)]
-                menu_id += 1
-                stack += [('menu', 2, 0, menu_id)]
-                ind0 += 2
             elif line.startswith('endmenu') or line.startswith('endchoice'):
                 pop_stack_while(lambda x: x != 'menu')
                 pop_stack(lambda x: x == 'menu')
-                if r[-1][1] == "":
-                    # prune empty menu
-                    r = r[:-1]
             elif line.startswith('if '):
                 line = line[3:]
                 top = cur_if()
@@ -196,14 +219,35 @@ if path[-1] != '/':
 with open(argv[2], 'rb') as f:
     known_config = tomllib.load(f)
 
-r = load_kconfig("Kconfig")
+r = load_kconfig('Kconfig')
+
+# Refcount all menus
+
+index_ikey = {}
+for i in reversed(range(len(r))):
+    index_ikey[r[i][5]] = i
+
+for i in reversed(range(len(r))):
+    if r[i][1] is not None:
+        key = r[i][5]
+        fa = main_dep.get(key)
+        if not fa:
+            continue
+        j = index_ikey[fa]
+        if type(fa) == int:
+            # The main dependency is a menu, just mark it used
+            r[j][1] = ''
+        if (r[j][1] is None) and r[j][3]:
+            raise Exception('[%s] needs unselected [%s]' % (key, fa))
+
+r = [i for i in r if i[1] is not None]
 
 # Now we are going to pretty-print r
 
 ## Calculate the maximum value length for each menu
 max_val_len = {}
 for _, val, _, _, _, _, menu, _ in r:
-    x = max_val_len[menu] if menu in max_val_len else 0
+    x = max_val_len.get(menu) or 0
     max_val_len[menu] = max(x, len(val))
 
 ## Output
@@ -211,7 +255,7 @@ for _, val, _, _, _, _, menu, _ in r:
 max_line = 80
 buf = []
 
-done = [x[5] for x in r]
+done = [x[5] for x in r] + ['revision']
 for i in known_config:
     if i not in done:
         raise Exception("%s seems not exist" % i)
@@ -229,24 +273,32 @@ for i0, val, i1, title, arrow, key, menu, comment in r:
     line += title + arrow
     rem = max_line - len(line)
 
-    if key:
-        key = ' [' + key + ']'
+    key = ' [' + key + ']' if type(key) == str else ''
 
     if len(key) <= rem:
         line += (rem - len(key)) * ' ' + key
     else:
         key = '... ' + key
         line += '\n' + ' ' * (max_line - len(key)) + key
+    if type(comment) == str:
+        comment = [comment]
     if comment:
-        line = ' ' * i0 + '# ' + comment + ':\n' + line
+        comment = '\n'.join([' ' * i0 + '# ' + line for line in comment])
+        line = comment + ':\n' + line
     buf += [line.replace('<', '&lt;').replace('>', '&gt;').rstrip()]
 
 import kernel_version
 kver = kernel_version.kernel_version(path)
 
-print('''<?xml version="1.0" encoding="ISO-8859-1"?>
+from jinja2 import Template
+
+t = Template('''<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE note PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">''')
-print('<!-- Automatically generated by kernel-config.py')
-print('     DO NOT EDIT! -->')
-print('<screen><literal>' + '\n'.join(buf) + '</literal></screen>')
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<!-- Automatically generated by kernel-config.py
+     DO NOT EDIT! -->
+<screen{{ rev }}><literal>{{ '\n'.join(buf) }}</literal></screen>''')
+
+rev = known_config.get('revision')
+rev = ' revision="%s"' % rev if rev else ''
+print(t.render(rev = rev, buf = buf))
