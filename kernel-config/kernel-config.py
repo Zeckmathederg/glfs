@@ -61,8 +61,9 @@ def clean_dep(d):
 
 def parse_config(buf):
     global ind0, ind1, stack, menu_id
-    is_menu = buf[0].startswith('menu')
-    is_nonconfig_menu = buf[0].startswith('menu ')
+    is_choice = buf[0].strip() == 'choice'
+    is_menu = buf[0].startswith('menu') or is_choice
+    is_nonconfig_menu = buf[0].startswith('menu ') or is_choice
     key = None if is_nonconfig_menu else buf[0].split()[1].strip()
     title = buf[0][len('menu '):] if is_nonconfig_menu else None
     deps = ['menu'] + cur_if()
@@ -145,33 +146,13 @@ def parse_config(buf):
     x = 2 if title else 0
 
     key = key or 'menu'
-    stack_ent = (key, 2, 0, menu_id) if is_menu else (key, 0, x, cur_menu())
+    menu = (menu_id if is_menu else cur_menu())
+    menu |= choice_bit if is_choice else 0
+    stack_ent = (key, 2, 0, menu) if is_menu else (key, 0, x, menu)
     ind0 += stack_ent[1]
     ind1 += stack_ent[2]
     stack += [stack_ent]
 
-    return r
-
-def parse_choice(buf):
-    global ind0, ind1, stack, menu_id
-    assert(buf[0] == 'choice\n')
-    title = ''
-    for line in buf:
-        line = line.strip()
-        if line.startswith('prompt '):
-            title = line[len('prompt '):].strip().strip('"')
-
-    menu_id += 1
-
-    if stack:
-        fa = stack[-1][0]
-        if fa == 'menu':
-            fa = cur_menu() & ~choice_bit
-        main_dep[menu_id] = fa
-
-    r = [ind0, None, ind1, title, ' --->', menu_id, cur_menu(), None]
-    stack += [('menu', 2, 0, menu_id | choice_bit)]
-    ind0 += 2
     return r
 
 def load_kconfig(file):
@@ -182,10 +163,7 @@ def load_kconfig(file):
         for line in f:
             if config_buf:
                 if not (line.startswith('\t') or line.startswith('    ')):
-                    if config_buf[0] == 'choice\n':
-                        r += [parse_choice(config_buf)]
-                    else:
-                        r += [parse_config(config_buf)]
+                    r += [parse_config(config_buf)]
                     config_buf = []
                 else:
                     config_buf += [line]
