@@ -1,0 +1,22 @@
+INPUT = $(wildcard */*.toml */*/*.toml */*/*/*.toml)
+OUTPUT = $(patsubst %.toml, ../%-kernel.xml, $(INPUT))
+
+ifeq ($(KERNEL_TREE),)
+$(error "must set KERNEL_TREE=/path/to/kernel/source")
+endif
+
+all: $(OUTPUT) ../introduction/welcome/conventions-kernel.xml
+
+kernel.version: s-kernel-version; @true
+s-kernel-version: Makefile kernel_version.py
+	./kernel_version.py $(KERNEL_TREE) > tmp-kernel.version
+	if ! diff tmp-kernel.version $@ 2>/dev/null >/dev/null; then \
+		mv tmp-kernel.version kernel.version;                    \
+	fi
+	touch s-kernel-version
+
+../%-kernel.xml: %.toml kernel-config.py kernel_version.py kernel.version
+	./kernel-config.py $(KERNEL_TREE) $< > $@
+
+../introduction/welcome/conventions-kernel.xml: kernel-config.py testdata/Kconfig testdata/config.toml.example
+	./kernel-config.py testdata testdata/config.toml.example > $@

@@ -88,17 +88,16 @@
       kernel if necessary:
     </para>
 
-<screen><literal>File systems  ---&gt;
-  &lt;*/M&gt; FUSE (Filesystem in Userspace) support [CONFIG_FUSE_FS]</literal></screen>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="fuse-kernel.xml"/>
 
     <para>
       Character devices in userspace should be enabled too for running the
       tests:
     </para>
 
-<screen><literal>File systems  ---&gt;
-  &lt;*/M&gt; FUSE (Filesystem in Userspace) support  [CONFIG_FUSE_FS]
-  &lt;*/M&gt;   Character device in Userspace support [CONFIG_CUSE]</literal></screen>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="fuse-test-kernel.xml"/>
 
     <indexterm zone="fuse3 fuse-kernel">
       <primary sortas="d-fuse3">Fuse 3</primary>
@@ -136,14 +135,21 @@ popd</userinput></screen>
       role="username">root</systemitem> user):
     </para>
 
-    <!-- EDITORS NOTE: To view the results of the tests, look for
+    <!-- EDITORS NOTE:
+
+         Don't use 'pytest' instead of 'python3 -m pytest'.  There is no
+         testenv/bin/pytest (as at pytest-7.4.0) so 'pytest' resolves to
+         /usr/bin/pytest, and the shebang of it is /usr/bin/python3.11.
+         So it won't find the looseversion installed in testenv.
+
+         To view the results of the tests, look for
          "short test summary info" at the end of your log. Below skipped tests,
          you will see "X passed, X skipped, X failed (if any) in X seconds" -->
 
 <screen role="root" remap="test"><userinput>python3 -m venv --system-site-packages testenv &amp;&amp;
 source testenv/bin/activate                    &amp;&amp;
 pip3 install looseversion                      &amp;&amp;
-pytest                                         &amp;&amp;
+python3 -m pytest                              &amp;&amp;
 deactivate</userinput></screen>
 
     <para>
@@ -154,6 +160,11 @@ deactivate</userinput></screen>
       when the kernel was built. One test,
       <filename>test/util.py</filename>, will output a warning due to the usage
       of an unknown mark in pytest.
+      <!-- I really don't know why.  But it always happen for me, maybe
+           kernel configuration issue... -->
+      One test named
+      <filename>test_notify_inval_entry[True-expire_entries]</filename>
+      may fail under certain circumstances.
     </para>
 
     <para>
@@ -164,10 +175,9 @@ deactivate</userinput></screen>
 chmod u+s /usr/bin/fusermount3 &amp;&amp;
 
 cd ..                          &amp;&amp;
-install -v -m755 -d /usr/share/doc/fuse-&fuse3-version; &amp;&amp;
-install -v -m644    doc/{README.NFS,kernel.txt} \
-                    /usr/share/doc/fuse-&fuse3-version; &amp;&amp;
-cp -Rv doc/html     /usr/share/doc/fuse-&fuse3-version;</userinput></screen>
+cp -Rv doc/html -T /usr/share/doc/fuse-&fuse3-version; &amp;&amp;
+install -v -m644   doc/{README.NFS,kernel.txt} \
+                   /usr/share/doc/fuse-&fuse3-version;</userinput></screen>
 
   </sect2>
 
