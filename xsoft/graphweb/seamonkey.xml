@@ -6,7 +6,7 @@
 
   <!ENTITY seamonkey-download-http "&mozilla-http;/seamonkey/releases/&seamonkey-version;/source/seamonkey-&seamonkey-version;.source.tar.xz">
   <!ENTITY seamonkey-download-ftp  " ">
-  <!ENTITY seamonkey-md5sum        "92ebcb6d9410442a9c1cf9c321f292f4">
+  <!ENTITY seamonkey-md5sum        "5fd91a88005c2cc2a3ba4addfb5ff35e">
   <!ENTITY seamonkey-size          "254 MB">
   <!ENTITY seamonkey-buildsize     "4.4 GB (159 MB installed)">
   <!ENTITY seamonkey-time          "11 SBU (with parallelism=4)">
@@ -259,46 +259,30 @@ EOF</userinput></screen>
        href="../../xincludes/mozmach.xml"/>
     </note>
 
-<!-- Applied upstream
-    <para>
-      Apply a patch to fix a build failure with LLVM-16:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../seamonkey-&seamonkey-version;-upstream_fixes-1.patch</userinput></screen>
--->
+<!--
     <para>
       First remove an obsolete flag in python code, that has been removed
       in python-3.11:
     </para>
 
 <screen><userinput>grep -rl \'rU\' | xargs sed -i "s/'rU'/'r'/"</userinput></screen>
-
-<!-- Causes issues since xpidl is python2 in Seamonkey
-    <para>
-      Then fix an issue with regular expressions in python-3.11:
-    </para>
-
-<screen><userinput>sed -e 's/?s)\./?s:.)/'               \
-    -e '/?m)/{s/?m)/?m:/;s/\$"/$)"/}' \
-    -e '/?s)%/{s/?s)/?s:/;s/?"/?)"/}' \
-    -i xpcom/idl-parser/xpidl/xpidl.py</userinput></screen>
 -->
-
+<!--
     <para>
       Next, work around a problem in the Python virtual environment:
     </para>
 
 <screen><userinput>sed -i "/if sys.executable !=/i\    open(join(bin_dir, 'pyvenv.cfg'), 'w').close()" \
     third_party/python/virtualenv/virtualenv.py</userinput></screen>
+-->
 
-<!-- Applied upstream
     <para>
-      Next, work around a crash that occurs when playing audio when Seamonkey
-      is compiled with rustc-1.67 or higher:
+      Fix a problem with the bundled 'distro' python module:
     </para>
 
-<screen><userinput>sed -i '/USE_PULSE_RUST/d' media/libcubeb/src/moz.build</userinput></screen>
--->
+<screen><userinput>sed -e '1012 s/stderr=devnull/stderr=subprocess.DEVNULL/' \
+    -e '1013 s/OSError/(OSError, subprocess.CalledProcessError)/' \
+    -i third_party/python/distro/distro.py</userinput></screen>
 
     <para>
       Compile <application>SeaMonkey</application> by running the following
@@ -306,7 +290,7 @@ EOF</userinput></screen>
     </para>
 
 <screen><userinput>export CC=clang CXX=clang++          &amp;&amp;
-./mach configure || ./mach configure &amp;&amp;
+./mach configure &amp;&amp;
 ./mach build</userinput></screen>
 
 
@@ -350,10 +334,10 @@ cp -v $(find -name seamonkey.1 | head -n1) /usr/share/man/man1</userinput></scre
     </para>
 
     <para>
-      <command>./mach configure || ./mach configure</command>: This validates
+      <command>./mach configure</command>: This validates
       the supplied dependencies and the <filename>mozconfig</filename>.
-      This is run twice because problems with mach will cause it to fail the
-      first time.
+      <!--This is run twice because problems with mach will cause it to fail the
+      first time.-->
     </para>
 
     <para>
