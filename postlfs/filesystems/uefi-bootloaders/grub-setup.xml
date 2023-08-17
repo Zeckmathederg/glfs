@@ -23,6 +23,54 @@
     </para>
   </sect2>
 
+  <sect2 role="kernel" id="uefi-kernel">
+    <title>Kernel Configuration for UEFI support</title>
+
+    <para>
+      Enable the following options in the kernel configuration and recompile
+      the kernel if necessary:
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="grub-setup-kernel.xml"/>
+
+    <variablelist>
+      <title>The meaning of the configuration options:</title>
+
+      <varlistentry>
+        <term><parameter>CONFIG_PARTITION_ADVANCED</parameter></term>
+        <listitem>
+          <para>If it's not enabled,
+          <parameter>CONFIG_EFI_PARTITION</parameter> will be enabled
+          automatically.  But when it's enabled, you must set
+          <parameter>CONFIG_EFI_PARTITION</parameter> to enabled as
+          well.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <parameter>CONFIG_SYSFB_SIMPLEFB</parameter>,
+          <parameter>CONFIG_DRM</parameter>,
+          <parameter>CONFIG_DRM_FBDEV_EMULATION</parameter>,
+          <parameter>CONFIG_DRM_SIMPLEDRM</parameter>,
+          <parameter>CONFIG_FB</parameter>, and
+          <parameter>CONFIG_FRAMEBUFFER_CONSOLE</parameter></term>
+        <listitem>
+          <para>The combination of these options provides the Linux console
+          support on top of the UEFI framebuffer.  To allow the kernel to
+          print debug messages at an early boot stage, they shouldn't be
+          built as kernel modules unless an initramfs will be used.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+    <indexterm zone="grub-setup uefi-kernel">
+      <primary sortas="d-uefi">UEFI</primary>
+    </indexterm>
+  </sect2>
+
   <sect2>
     <title>Create an Emergency Boot Disk</title>
 
@@ -79,14 +127,15 @@ Syncing disks.</literal></screen>
       and mount it:
     </para>
 
-<screen role="nodump"><userinput>mkdir -pv /mnt/rescue &amp;&amp;
-mount -v -t vfat /dev/sdx1 /mnt/rescue</userinput></screen>
+<screen role="nodump"><userinput>mount --mkdir -v -t vfat /dev/sdx1 -o codepage=437,iocharset=iso8859-1 \
+      /mnt/rescue</userinput></screen>
 
     <para>
       Install GRUB for EFI on the partition:
     </para>
 
-<screen role="nodump"><userinput>grub-install --target=x86_64-efi --removable --efi-directory=/mnt/rescue --boot-directory=/mnt/rescue</userinput></screen>
+<screen role="nodump"><userinput>grub-install --target=x86_64-efi --removable \
+             --efi-directory=/mnt/rescue --boot-directory=/mnt/rescue</userinput></screen>
 
     <para>
       Unmount the partition:
@@ -102,54 +151,6 @@ mount -v -t vfat /dev/sdx1 /mnt/rescue</userinput></screen>
       motherboard or laptop.
     </para>
 
-  </sect2>
-
-  <sect2 role="kernel" id="uefi-kernel">
-    <title>Kernel Configuration for UEFI support</title>
-
-    <para>
-      Enable the following options in the kernel configuration and recompile
-      the kernel if necessary:
-    </para>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="grub-setup-kernel.xml"/>
-
-    <variablelist>
-      <title>The meaning of the configuration options:</title>
-
-      <varlistentry>
-        <term><parameter>CONFIG_PARTITION_ADVANCED</parameter></term>
-        <listitem>
-          <para>If it's not enabled,
-          <parameter>CONFIG_EFI_PARTITION</parameter> will be enabled
-          automatically.  But when it's enabled, you must set
-          <parameter>CONFIG_EFI_PARTITION</parameter> to enabled as
-          well.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>
-          <parameter>CONFIG_SYSFB_SIMPLEFB</parameter>,
-          <parameter>CONFIG_DRM</parameter>,
-          <parameter>CONFIG_DRM_FBDEV_EMULATION</parameter>,
-          <parameter>CONFIG_DRM_SIMPLEDRM</parameter>,
-          <parameter>CONFIG_FB</parameter>, and
-          <parameter>CONFIG_FRAMEBUFFER_CONSOLE</parameter></term>
-        <listitem>
-          <para>The combination of these options provides the Linux console
-          support on top of the UEFI framebuffer.  To allow the kernel to
-          print debug messages at an early boot stage, they shouldn't be
-          built as kernel modules unless an initramfs will be used.</para>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
-
-    <indexterm zone="grub-setup uefi-kernel">
-      <primary sortas="d-uefi">UEFI</primary>
-    </indexterm>
   </sect2>
 
   <sect2>
@@ -197,13 +198,13 @@ mount -v -t vfat /dev/sdx1 /mnt/rescue</userinput></screen>
       the ESP):
     </para>
 
-<screen role="nodump"><userinput>mkdir -pv /boot/efi &amp;&amp;
-mount -v -t vfat /dev/sda1 /boot/efi</userinput></screen>
+<screen role="nodump"><userinput>mount --mkdir -v -t vfat /dev/sda1 -o codepage=437,iocharset=iso8859-1 \
+      /boot/efi</userinput></screen>
 
     <para>
-      Add an entry for the ESP in
-      <filename>/etc/fstab</filename>, so it will be mounted automatically
-      during system boot:
+      If you want to mount the ESP automatically during system boot,
+      as the &root; user, add an entry for the ESP into
+      <filename>/etc/fstab</filename>:
     </para>
 
 <screen role="nodump"><userinput>cat &gt;&gt; /etc/fstab &lt;&lt; EOF</userinput>
@@ -443,8 +444,8 @@ if loadfont /boot/grub/fonts/unicode.pf2; then
   terminal_output gfxterm
 fi
 
-menuentry "GNU/Linux, Linux 6.1.11-lfs-11.3"  {
-  linux   /boot/vmlinuz-6.1.11-lfs-11.3 root=/dev/sda2 ro
+menuentry "GNU/Linux, Linux 6.4.10-lfs-12.0"  {
+  linux   /boot/vmlinuz-6.4.10-lfs-12.0 root=/dev/sda2 ro
 }
 
 menuentry "Firmware Setup" {
