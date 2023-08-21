@@ -89,12 +89,13 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend="glib2"/> and
-      <xref linkend="duktape"/>
+      <xref linkend="glib2"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
+      <!-- For jhalfs just make it required to avoid over-complexity. -->
+      <xref role="required" linkend="duktape"/>,
       <xref linkend="gobject-introspection"/>,
       <xref linkend="libxslt"/>,<phrase revision="systemd"> and</phrase>
       <xref linkend="linux-pam"/><phrase revision="sysv">, and
@@ -185,7 +186,7 @@ useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
       Explanations below for more information):
     </para>
 
-<screen><userinput remap="nodep">sed -e 's/JS_Init/JS::DisableJitBackend(); &amp;/' \
+<screen><userinput remap="nodump">sed -e 's/JS_Init/JS::DisableJitBackend(); &amp;/' \
     -i src/polkitbackend/polkitbackendjsauthority.cpp</userinput></screen>
 
 <!--
@@ -249,10 +250,14 @@ ninja</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>sed -e 's/JS_Init/JS::DisableJitBackend(); &amp;/' ...
-      </parameter>: The JIT compiling of JS102 needs W+X mapping which
-      is dangerous and is not permitted by current
-      <application>systemd</application>.
+      <command>sed -e 's/JS_Init/JS::DisableJitBackend(); &amp;/' ...
+      </command>: The JIT compiling of JS102 needs W+X mapping which
+      is dangerous and is not permitted by the
+      <application>systemd</application> unit file shipped within the polkit
+      package.  This command is not strictly needed on systems based on
+      sysvinit but it still improves security.  It has no effect if building
+      polkit with the recommended <xref linkend='duktape'/> Javascript
+      engine.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
