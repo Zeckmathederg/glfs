@@ -285,6 +285,11 @@ iptables -A OUTPUT -j ACCEPT
 # (e.g. port mode ftp)
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
+# Drop any incoming MULTICAST or BROADCAST packet before logging:
+# The box outputs several of them when using netbios or mDNS, and those
+# appear immediately as incoming, which clutters the log.
+iptables -A INPUT -m addrtype --dst-type BROADCAST,MULTICAST -j DROP
+
 # Log everything else.
 iptables -A INPUT -j LOG --log-prefix "FIREWALL:INPUT "
 
