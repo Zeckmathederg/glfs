@@ -34,6 +34,24 @@
       be dropped into place by packages or by the user.
     </para>
 
+    <note>
+      <para>
+        Some other packages may handle some ACPI events as well and they
+        may conflict with this package.  For example, &logind;
+        (read the documentation for <option>Handle*=</option> in
+        <filename>logind.conf(5)</filename> for details) and
+        <xref linkend='upower'/> (used by many desktop environments such as
+        GNOME, KDE, and XFCE for handling ACPI events).  If you've installed
+        such a package and it's enough for your use case, this package is
+        probably not needed.  If you really need this package, you must be
+        careful configuring it and the other packages handling ACPI events
+        to avoid conflicts.  Notably, &logind; handles some ACPI events
+        by default, so the handling of these events by &logind; should be
+        disabled first if handling these events with acpid
+        (again, read <filename>logind.conf(5)</filename> for details).
+      </para>
+    </note>
+
     &lfs120_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -111,12 +129,15 @@ cp -r samples /usr/share/doc/acpid-&acpid-version;</userinput></screen>
     </para>
 
     <para>
-      The following brief example will suspend the system when the laptop lid
-      is closed (it requires <xref linkend="pm-utils"/>):
+      The following brief example will suspend the system when the laptop
+      lid is closed<phrase revision='sysv'> (it requires
+      <xref linkend="pm-utils"/>)</phrase>.  The example also disables
+      the default handling of the lid close event by &logind; when the
+      system is on battery and not connected to any external monitor,
+      in order to avoid a conflict:
     </para>
 
-    <!-- TODO: Move from pm-suspend to systemctl suspend for systemd -->
-<screen role="root"><userinput>cat &gt; /etc/acpi/events/lid &lt;&lt; "EOF"
+<screen revision='sysv' role="nodump"><userinput>cat &gt; /etc/acpi/events/lid &lt;&lt; "EOF"
 <literal>event=button/lid
 action=/etc/acpi/lid.sh</literal>
 EOF
@@ -126,11 +147,31 @@ cat &gt; /etc/acpi/lid.sh &lt;&lt; "EOF"
 /bin/grep -q open /proc/acpi/button/lid/LID/state &amp;&amp; exit 0
 /usr/sbin/pm-suspend</literal>
 EOF
-chmod +x /etc/acpi/lid.sh</userinput></screen>
+chmod +x /etc/acpi/lid.sh
+
+mkdir -pv /etc/elogind/logind.conf.d
+echo <literal>HandleLidSwitch=ignore</literal> &gt; /etc/elogind/logind.conf.d/acpi.conf</userinput></screen>
+
+<screen revision='systemd' role="nodump"><userinput>cat &gt; /etc/acpi/events/lid &lt;&lt; "EOF"
+<literal>event=button/lid
+action=/etc/acpi/lid.sh</literal>
+EOF
+
+cat &gt; /etc/acpi/lid.sh &lt;&lt; "EOF"
+<literal>#!/bin/sh
+/bin/grep -q open /proc/acpi/button/lid/LID/state &amp;&amp; exit 0
+/usr/bin/systemctl suspend</literal>
+EOF
+chmod +x /etc/acpi/lid.sh
+
+mkdir -pv /etc/systemd/logind.conf.d
+echo <literal>HandleLidSwitch=ignore</literal> &gt; /etc/systemd/logind.conf.d/acpi.conf</userinput></screen>
 
     <para>
-      Unfortunately, not every computer labels ACPI events in the same way. To
-      determine how your buttons are recognized, use the
+      Unfortunately, not every computer labels ACPI events in the same way
+      (for example, the lid may be recognized as <filename>LID0</filename>
+      instead of <filename>LID</filename>).
+      To determine how your buttons are recognized, use the
       <command>acpi_listen</command> tool. Also, look in the <filename
       class="directory">samples</filename> directory under <filename
       class="directory">/usr/share/doc/acpid-&acpid-version;</filename>
