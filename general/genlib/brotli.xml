@@ -6,11 +6,11 @@
 
   <!ENTITY brotli-download-http "https://github.com/google/brotli/archive/v&brotli-version;/brotli-&brotli-version;.tar.gz">
   <!ENTITY brotli-download-ftp  " ">
-  <!ENTITY brotli-md5sum        "c2274f0c7af8470ad514637c35bcee7d">
-  <!ENTITY brotli-size          "476 KB">
-  <!ENTITY brotli-buildsize     "24 MB (with python3 bindings)">
+  <!ENTITY brotli-md5sum        "3a6a3dba82a3604792d3cb0bd41bca60">
+  <!ENTITY brotli-size          "500 KB">
+  <!ENTITY brotli-buildsize     "33 MB (with python3 bindings)">
   <!-- The python tests for this package are broken.  The tarball is missing a lot of test files -->
-  <!ENTITY brotli-time          "0.4 SBU (with python3 bindings)">
+  <!ENTITY brotli-time          "0.3 SBU (with python3 bindings; parallelism=4)">
 ]>
 
 <sect1 id="brotli" xreflabel="Brotli-&brotli-version;">
@@ -72,40 +72,28 @@
 
     <bridgehead renderas="sect3">Brotli Dependencies</bridgehead>
 
-    <!-- Not "Required" because we can use
-         "./bootstrap && ./configure ... && make && make install".
-         Doing so can break an optional circular dependency:
-         curl is recommended for cmake, and brotli is optional for curl. -->
-    <bridgehead renderas="sect4">Recommended</bridgehead>
-    <para role="recommended">
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
       <xref linkend="cmake"/>
     </para>
 
   </sect2>
 
-
   <sect2 role="installation">
     <title>Installation of Brotli</title>
-
-    <para>
-      At first, fix an issue in pkg-config files:
-    </para>
-
-<screen><userinput>sed -i 's@-R..libdir.@@' scripts/*.pc.in</userinput></screen>
 
     <para>
       Install <application>brotli</application> by running the following
       commands:
     </para>
 
-<screen><userinput>mkdir out &amp;&amp;
-cd    out &amp;&amp;
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr \
       -DCMAKE_BUILD_TYPE=Release  \
       ..  &amp;&amp;
 make</userinput></screen>
-
 
     <para>
       To test the results, issue: <command>make test</command>.
@@ -123,16 +111,22 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install &amp;&amp;
-cd ..</userinput></screen>
+<screen role="root"><userinput>make install</userinput></screen>
 
     <para>
-      If desired, build and install the <application>Python3</application>
+      If desired, build the <application>Python3</application>
+      bindings:
+    </para>
+
+<screen><userinput>cd .. &amp;&amp;
+pip3 wheel -w dist --no-build-isolation --no-deps $PWD</userinput></screen>
+
+    <para>
+      Install the <application>Python3</application>
       bindings as the &root; user:
     </para>
 
-<screen role="root"><userinput>pip3 wheel -w dist --no-build-isolation --no-deps $PWD &amp;&amp;
-pip3 install --no-index --find-links dist --no-cache-dir --no-user Brotli</userinput></screen>
+<screen role="root"><userinput>pip3 install --no-index --find-links dist --no-cache-dir --no-user Brotli</userinput></screen>
 
   </sect2>
 
@@ -149,9 +143,9 @@ pip3 install --no-index --find-links dist --no-cache-dir --no-user Brotli</useri
           brotli
         </seg>
         <seg>
-          libbrotlicommon{-static.a,.so},
-          libbrotlidec{,-static.a,.so}, and
-          libbrotlienc{,-static.a,.so}
+          libbrotlicommon.so,
+          libbrotlidec.so, and
+          libbrotlienc.so
         </seg>
         <seg>
           /usr/include/brotli and
