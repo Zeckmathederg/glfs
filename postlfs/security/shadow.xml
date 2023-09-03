@@ -6,10 +6,10 @@
 
   <!ENTITY shadow-download-http "https://github.com/shadow-maint/shadow/releases/download/&shadow-version;/shadow-&shadow-version;.tar.xz">
   <!ENTITY shadow-download-ftp  " ">
-  <!ENTITY shadow-md5sum        "b1ab01b5462ddcf43588374d57bec123">
+  <!ENTITY shadow-md5sum        "bb0166bebc24db9003bb77bfd1359042">
   <!ENTITY shadow-size          "1.7 MB">
-  <!ENTITY shadow-buildsize     "45 MB">
-  <!ENTITY shadow-time          "0.2 SBU">
+  <!ENTITY shadow-buildsize     "49 MB">
+  <!ENTITY shadow-time          "less than 0.1 SBUi (with parallelism=4)">
 ]>
 
 <sect1 id="shadow" xreflabel="Shadow-&shadow-version;">
@@ -91,6 +91,12 @@
       <xref role="nodep" linkend="cracklib"/>
     </para>
 
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <ulink url="https://libbsd.freedesktop.org/wiki/">libbsd</ulink> and
+      <ulink url="https://www.openwall.com/tcb/">tcb</ulink>
+    </para>
+
   </sect2>
 
   <sect2 role="installation">
@@ -122,8 +128,6 @@
     </para>
 <!--
 <screen><userinput>patch -Np1 -i ../shadow-4.10-useradd_segfault-1.patch &amp;&amp;
-
-sed -i "224s/rounds/min_rounds/" libmisc/salt.c        &amp;&amp;
 -->
 <screen><userinput>sed -i 's/groups$(EXEEXT) //' src/Makefile.in          &amp;&amp;
 
@@ -136,10 +140,11 @@ sed -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD YESCRYPT@' \
     -e '/PATH=/{s@/sbin:@@;s@/bin:@@}'                  \
     -i etc/login.defs                                   &amp;&amp;
 
-./configure --sysconfdir=/etc               \
-            --disable-static                \
-            --with-{b,yes}crypt             \
-            --with-group-name-max-length=32 &amp;&amp;
+./configure --sysconfdir=/etc   \
+            --disable-static    \
+            --without-libbsd    \
+            --with-{b,yes}crypt &amp;&amp;<!--
+This is the default:            - -with-group-name-max-length=32 &amp;&amp;-->
 make</userinput></screen>
 
     <para>
@@ -193,17 +198,20 @@ make</userinput></screen>
       location. It also changes the default path to be consistent with that
       set in LFS.
     </para>
-<!--
+
     <para>
-      <command>sed ... libmisc/salt.c</command> and
-      <command>sed ... libsubid/Makefile.am</command>: Fix a couple of errors
-      that were found after the package was released.
+      <parameter>--without-libbsd</parameter>: Prevents looking for the
+      <command>readpassphrase</command> function, which can be found only in
+      <filename class="libraryfile">libbsd</filename>, which we do not
+      have in BLFS. An internal implementation of
+      <command>readpassphrase</command> is used instead.
     </para>
--->
+<!-- This is the default
     <para>
-      <parameter>--with-group-name-max-length=32</parameter>: The maximum
+      <parameter>-\-with-group-name-max-length=32</parameter>: The maximum
       user name is 32 characters. Make the maximum group name the same.
     </para>
+    -->
 <!--
     <para>
       <parameter>-\-without-su</parameter>: Don't reinstall
