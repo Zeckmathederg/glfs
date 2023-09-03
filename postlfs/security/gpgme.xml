@@ -120,19 +120,52 @@ so do not advertise python2
 cd build &amp;&amp;
 
 ../configure --prefix=/usr --disable-gpg-test &amp;&amp;
-make</userinput></screen>
+make PYTHONS=</userinput></screen>
+
+    <para>
+      If <xref linkend='swig'/> is installed, build the Python 3 binding as
+      a wheel:
+    </para>
+
+<screen><userinput>if swig -version > /dev/null; then
+  srcdir=$PWD/../lang/python \
+  top_builddir=$PWD          \
+  pip3 wheel -w dist --no-build-isolation --no-deps --no-cache-dir \
+             $PWD/lang/python
+fi</userinput></screen>
 
     <para>
       To test the results, you should have <xref linkend="gnupg2"/> installed
-      and remove the <command>--disable-gpg-test</command> above. Issue:
-      <command>make -k check</command>.
+      and remove the <command>--disable-gpg-test</command> above. If
+      <xref linkend='swig'/> is installed, it's necessary to adapt the
+      test suite to use the Python 3 binding just built as a wheel as well.
+      Issue:
     </para>
+
+<screen remap='test'><userinput>if swig -version > /dev/null; then
+  python3 -m venv testenv                                              &amp;&amp;
+  testenv/bin/pip3 install --no-index --find-links=dist --no-cache-dir \
+                           gpg                                         &amp;&amp;
+  sed '/PYTHON/s#run-tests.py#&amp; --python-libdir=/dev/null#'            \
+      -i lang/python/tests/Makefile
+fi &amp;&amp;
+
+make -k check PYTHONS= PYTHON=$PWD/testenv/bin/python3</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install PYTHONS=</userinput></screen>
+
+    <para>
+      If <xref linkend='swig'/> is installed, still as the &root; user,
+      install the Python 3 binding:
+    </para>
+
+<screen role="root"><userinput>if swig -version > /dev/null; then
+  pip3 install --no-index --find-links=dist --no-cache-dir --no-user gpg
+fi</userinput></screen>
 
   </sect2>
 
@@ -144,6 +177,13 @@ make</userinput></screen>
       passed to configure, the test programs are built during
       <command>make</command> stage, which requires <xref linkend="gnupg2"/>.
       This parameter is not needed if <xref linkend="gnupg2"/> is installed.
+    </para>
+
+    <para>
+      <parameter>PYTHONS=</parameter>: Disable building Python binding
+      using the deprecated <command>python3 setup.py build</command>
+      command.  The explicit instruction to build the Python 3 binding with
+      the <command>pip3 wheel</command> command is provided.
     </para>
 
   </sect2>
