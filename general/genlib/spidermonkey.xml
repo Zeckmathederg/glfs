@@ -6,10 +6,10 @@
 
   <!ENTITY spidermonkey-download-http "&mozilla-http;/firefox/releases/&spidermonkey-version;esr/source/firefox-&spidermonkey-version;esr.source.tar.xz">
   <!ENTITY spidermonkey-download-ftp  " ">
-  <!ENTITY spidermonkey-md5sum        "466e1dbe2a2eb23eceeb8986568e59c7">
-  <!ENTITY spidermonkey-size          "464 MB">
-  <!ENTITY spidermonkey-buildsize     "3.3 GB (39 MB installed after removing 34MB static lib)">
-  <!ENTITY spidermonkey-time          "2.0 SBU (with parallelism=4)">
+  <!ENTITY spidermonkey-md5sum        "c8deec3a0e558a1882f11bbea2fbd462">
+  <!ENTITY spidermonkey-size          "484 MB">
+  <!ENTITY spidermonkey-buildsize     "3.3 GB (39 MB installed after removing 36MB static lib; additional 0.4 GB for the tests)">
+  <!ENTITY spidermonkey-time          "2.0 SBU (with parallelism=4; additional 3.8 SBU for the tests)">
 ]>
 
 <sect1 id="spidermonkey" xreflabel="SpiderMonkey from Firefox-&spidermonkey-version;">
@@ -31,8 +31,8 @@
       In BLFS, the source code of SpiderMonkey is taken from Firefox.
     </para>
 
-    <!-- To editors: make sure polkit works with mozjs before
-         tagging mozjs.  -->
+    <!-- To editors: make sure polkit works with mozjs when
+         tagging SpiderMonkey or upgrading it to a new major version.  -->
     &lfs120_checked;
 
     <bridgehead renderas="sect3">Package Information</bridgehead>
@@ -170,13 +170,13 @@ tar: Exiting with failure status due to previous errors
 <screen><userinput>mkdir obj &amp;&amp;
 cd    obj &amp;&amp;
 
-sh ../js/src/configure.in --prefix=/usr            \
-                          --with-intl-api          \
-                          --with-system-zlib       \
-                          --with-system-icu        \
-                          --disable-jemalloc       \
-                          --disable-debug-symbols  \
-                          --enable-readline        &amp;&amp;
+../js/src/configure --prefix=/usr            \
+                    --with-intl-api          \
+                    --with-system-zlib       \
+                    --with-system-icu        \
+                    --disable-jemalloc       \
+                    --disable-debug-symbols  \
+                    --enable-readline        &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -185,13 +185,18 @@ make</userinput></screen>
       JSTESTS_EXTRA_ARGS="--timeout 300 --wpt=disabled"</command>.
       It's recommended to redirect the output into a log.
       <!-- recheck when ICU gets upgraded -->
-      <!-- Still true with 102 -renodr -->
-      Because we are building with system ICU, more than one hundred tests
+      Because we are building with system ICU, 8 tests
       (out of a total of more than 50,000) are known to fail.
     </para>
     <para>
-      To run the JIT test suite, issue:
-      <command>make -C js/src check-jit-test
+      The JIT test suite can use a large amount of system memory.
+      Running the JIT test suite without enough memory may invoke the
+      the kernel OOM killer and cause stability issue.  To run the JIT test
+      suite, ensure the amount of available system memory is at least 16 GB,
+      <!-- When I run it within a cgroup with 8 GB memory assigned, the test
+           is OOM killed.  Increasing the assigned memory to 16 GB makes
+           all tests pass.  -->
+      then issue: <command>make -C js/src check-jit-test
       JITTEST_EXTRA_ARGS="--timeout 300"</command>.
     </para>
 
