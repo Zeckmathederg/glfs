@@ -200,34 +200,63 @@ tar -xvf filename.tar.bz2</userinput></screen>
     <para>For many modern systems with multiple processors (or cores) the
     compilation time for a package can be reduced by performing a "parallel
     make" by either setting an environment variable or telling the make program
-    how many processors are available. For instance, a Core2Duo can support two
-    simultaneous processes with: </para>
+    to simultaneously execute multiple jobs.</para>
 
-    <screen><userinput>export MAKEFLAGS='-j2'</userinput></screen>
+    <para>For instance, an Intel Core i9-13900K CPU contains 8 performance
+    (P) cores and 16 efficiency (E) cores, and the P cores support SMT
+    (Simultaneous MultiThreading, also known as
+    <quote>Hyper-Threading</quote>) so each P core can run two threads
+    simultaneously and the Linux kernel will treat each P core as two
+    logical cores.  As the result, there are 32 logical cores in total.
+    To utilize all these logical cores running <command>make</command>, we
+    can set an environment variable to tell <command>make</command> to
+    run 32 jobs simultaneously:</para>
+
+    <screen><userinput>export MAKEFLAGS='-j32'</userinput></screen>
 
     <para>or just building with:</para>
 
-    <screen><userinput>make -j2</userinput></screen>
+    <screen><userinput>make -j32</userinput></screen>
 
     <para>
       If you have applied the optional <command>sed</command> when building
       <application>ninja</application> in LFS, you can use:
     </para>
 
-    <screen><userinput>export NINJAJOBS=2</userinput></screen>
+    <screen><userinput>export NINJAJOBS=32</userinput></screen>
 
     <para>
       when a package uses <command>ninja</command>, or just:
     </para>
 
-    <screen><userinput>ninja -j2</userinput></screen>
+    <screen><userinput>ninja -j32</userinput></screen>
 
     <para>
-      but for ninja, the default number of jobs is N + 2, if
-      the number of logical processors N is greater than 2; or N + 1 if
+      If you are not sure about the number of logical cores, run the
+      <command>nproc</command> command.
+    </para>
+
+    <para>
+      For <command>make</command>, the default number of jobs is 1.  But
+      for <command>ninja</command>, the default number of jobs is N + 2 if
+      the number of logical cores N is greater than 2; or N + 1 if
       N is 1 or 2.  The reason to use a number of jobs slightly greater
-      than the number of logical processors is keeping all logical
+      than the number of logical cores is keeping all logical
       processors busy even if some jobs are performing I/O operations.
+    </para>
+
+    <para>
+      Note that the <option>-j</option> switches only limits the parallel
+      jobs started by <command>make</command> or <command>ninja</command>,
+      but each job may still spawn its own processes or threads.  For
+      example, <command>ld.gold</command> will use multiple threads for
+      linking, and some tests of packages can spawn multiple threads for
+      testing thread safety properties.  There is no generic way for the
+      building system to know the number of processes or threads spawned by
+      a job. So generally we should not consider the value passed with
+      <option>-j</option> a hard limit of the number of logical cores to
+      use.  Read <xref linkend='build-in-cgroup'/> if you want to set such
+      a hard limit.
     </para>
 
     <para>Generally the number of processes should not exceed the number of
@@ -248,13 +277,7 @@ tar -xvf filename.tar.bz2</userinput></screen>
     single processor build.  Adding <option>-j1</option> to a make command
     will override the similar setting in the <envar>MAKEFLAGS</envar>
     environment variable.</para>
-<!-- outdated
-    <note><para>When running the package tests or the install portion of the
-    package build process, we do not recommend using an option greater than
-    '-j1' unless specified otherwise.  The installation procedures or checks
-    have not been validated using parallel procedures and may fail with issues
-    that are difficult to debug.</para></note>
--->
+
     <important>
       <para>
         Another problem may occur with modern CPU's, which have a lot of cores.
@@ -271,6 +294,160 @@ tar -xvf filename.tar.bz2</userinput></screen>
         WebKitGtk, QtWebEngine, or libreoffice.
       </para>
     </important>
+  </sect2>
+
+  <sect2 id="build-in-cgroup">
+    <title>Use Linux Control Group to Limit the Resource Usage</title>
+
+    <para>
+      Sometimes we want to limit the resource usage when we build a
+      package.  For example, when we have 8 logical cores, we may want
+      to use only 6 cores for building the package and reserve another
+      2 cores for playing a movie.  The Linux kernel provides a feature
+      called control groups (cgroup) for such a need.
+    </para>
+
+    <para>
+      Enable control group in the kernel configuration, then rebuild the
+      kernel and reboot if necessary:
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="cgroup-kernel.xml"/>
+
+    <!-- We need cgroup2 mounted at /sys/fs/cgroup.  It's done by
+         systemd itself in LFS systemd, mountvirtfs script in LFS sysv. -->
+
+    <para revision='systemd'>
+      Ensure <xref linkend='systemd'/> and <xref linkend='shadow'/> have
+      been rebuilt with <xref linkend='linux-pam'/> support (if you are
+      interacting via a SSH or graphical session, also ensure the
+      <xref linkend='openssh'/> server or the desktop manager has been
+      built with <xref linkend='linux-pam'/>).  As the &root; user, create
+      a configuration file to allow resource control without &root;
+      privilege, and instruct <command>systemd</command> to reload the
+      configuration:
+    </para>
+
+    <screen revision="systemd" role="nodump"><userinput>mkdir -pv /etc/systemd/system/user@.service.d &amp;&amp;
+cat &gt; /etc/systemd/system/user@.service.d/delegate.conf &lt;&lt; EOF &amp;&amp;
+<literal>[Service]
+Delegate=memory cpuset</literal>
+systemctl daemon-reload</userinput></screen>
+
+    <para revision='systemd'>
+      Then logout and login again.  Now to run <command>make -j5</command>
+      with the first 4 logical cores and 8 GB of system memory, issue:
+    </para>
+
+    <screen revision="systemd" role="nodump"><userinput>systemctl   --user start dbus                &amp;&amp;
+systemd-run --user --pty --pipe --wait -G -d \
+            -p MemoryHigh=8G                 \
+            -p AllowedCPUs=0-3               \
+            make -j5</userinput></screen>
+
+    <para revision='sysv'>
+      Ensure <xref linkend='sudo'/> is installed.  To run
+      <command>make -j5</command> with the first 4 logical cores and 8 GB
+      of system memory, issue:
+    </para>
+
+    <!-- "\EOF" because we expect $$ to be expanded by the "bash -e"
+         shell, not the current shell.
+
+         TODO: can we use elogind to delegate the controllers (like
+         systemd) to avoid relying on sudo?  -->
+    <screen revision="sysv" role="nodump"><userinput>bash -e &lt;&lt; \EOF
+  sudo mkdir /sys/fs/cgroup/$$
+  sudo sh -c \
+    "echo +memory +cpuset > /sys/fs/cgroup/cgroup.subtree_control"
+  sudo sh -c \
+    "echo 0-3 > /sys/fs/cgroup/$$/cpuset.cpus"
+  sudo sh -c \
+    "echo $((8 &lt;&lt; 30)) > /sys/fs/cgroup/$$/memory.high"
+  (
+    sudo sh -c "echo $BASHPID > /sys/fs/cgroup/$$/cgroup.procs"
+    exec make -j5
+  )
+  sudo rmdir /sys/fs/cgroup/$$
+EOF</userinput></screen>
+
+    <para>
+      With
+      <phrase revision='systemd'>
+        <parameter>MemoryHigh=8G</parameter>
+      </phrase>
+      <phrase revision='sysv'>
+        <literal>8589934592</literal> (expanded from
+        <userinput>$((8 &lt;&lt; 30))</userinput>) in the
+        <filename>memory.high</filename> entry
+      </phrase>, a soft limit of memory usage is set.
+      If the processes in the cgroup (<command>make</command> and all the
+      descendants of it) uses more than 8 GB of system memory in total,
+      the kernel will throttle down the processes and try to reclaim the
+      system memory from them.  But they can still use more than 8 GB of
+      system memory.  If you want to make a hard limit instead, replace
+      <phrase revision='systemd'>
+        <parameter>MemoryHigh</parameter> with
+        <parameter>MemoryMax</parameter>.
+      </phrase>
+      <phrase revision='sysv'>
+        <filename>memory.high</filename> with
+        <filename>memory.max</filename>.
+      </phrase>
+      But doing so will cause the processes killed if 8 GB is not enough
+      for them.
+    </para>
+
+    <para>
+      <phrase revision='systemd'>
+        <parameter>AllowedCPUs=0-3</parameter>
+      </phrase>
+      <phrase revision='sysv'>
+        <literal>0-3</literal> in the <filename>cpuset.cpus</filename>
+        entry
+      </phrase> makes the kernel only run the processes in the cgroup on
+      the logical cores with numbers 0, 1, 2, or 3.  You may need to
+      adjust this setting based the mapping between the logical cores and the
+      physical cores.  For example, with an Intel Core i9-13900K CPU,
+      the logical cores 0, 2, 4, ..., 14 are mapped to the first threads of
+      the eight physical P cores, the logical cores 1, 3, 5, ..., 15 are
+      mapped to the second threads of the physical P cores, and the logical
+      cores 16, 17, ..., 31 are mapped to the 16 physical E cores.  So if
+      we want to use four threads from four different P cores, we need to
+      specify <literal>0,2,4,6</literal> instead of <literal>0-3</literal>.
+      Note that the other CPU models may use a different mapping scheme.
+      If you are not sure about the mapping between the logical cores
+      and the physical cores, run <command>grep -E '^processor|^core'
+      /proc/cpuinfo</command> which will output logical core IDs in the
+      <computeroutput>processor</computeroutput> lines, and physical core
+      IDs in the <computeroutput>core id</computeroutput> lines.
+    </para>
+
+    <para>
+      When the <command>nproc</command> or <command>ninja</command> command
+      runs in a cgroup, it will use the number of logical cores assigned to
+      the cgroup as the <quote>system logical core count</quote>.  For
+      example, in a cgroup with logical cores 0-3 assigned,
+      <command>nproc</command> will print
+      <computeroutput>4</computeroutput>, and <command>ninja</command>
+      will run 6 (4 + 2) jobs simultaneously if no <option>-j</option>
+      setting is explicitly given.
+    </para>
+
+    <para revision="systemd">
+      Read the man pages <filename>systemd-run(1)</filename> and
+      <filename>systemd.resource-control(5)</filename> for the detailed
+      explanation of parameters in the command.
+    </para>
+
+    <para revision="sysv">
+      Read the <filename>Documentation/admin-guide/cgroup-v2.rst</filename>
+      file in the Linux kernel source tree for the detailed explanation of
+      <systemitem class="filesystem">cgroup2</systemitem> pseudo file
+      system entries referred in the command.
+    </para>
+
   </sect2>
 
   <sect2 id="automating-builds" xreflabel="Automated Building Procedures">
@@ -961,7 +1138,7 @@ chmod 744 /usr/sbin/strip-all.sh</userinput></screen>
 
       <para>
         Like <command>ninja</command>, by default <command>cargo</command>
-        uses all logical processors.  This can often be worked around,
+        uses all logical cores.  This can often be worked around,
         either by exporting
         <envar>CARGO_BUILD_JOBS=<replaceable>&lt;N&gt;</replaceable></envar>
         or passing
