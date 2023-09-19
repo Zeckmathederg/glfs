@@ -8,28 +8,28 @@
 
   <!ENTITY llvm-download-http "&llvm-url;/llvm-&llvm-version;.src.tar.xz">
   <!ENTITY llvm-download-ftp  " ">
-  <!ENTITY llvm-md5sum        "d9185fc007c32aea27a6de3c7c1eb90d">
-  <!ENTITY llvm-size          "54 MB">
-  <!ENTITY llvm-buildsize     "3.1 GB (938 MB installed; add 20 GB for tests and 308 MB for documentation)">
+  <!ENTITY llvm-md5sum        "78e1fbd14517f31f921b3224c0cd4e45">
+  <!ENTITY llvm-size          "57 MB">
+  <!ENTITY llvm-buildsize     "4.2 GB (964 MB installed; add 20 GB for tests and 308 MB for documentation)">
   <!ENTITY llvm-time          "13 SBU (Add 8 SBU for tests; both using parallelism=8)">
 
   <!ENTITY clang-download-http "&llvm-url;/clang-&llvm-version;.src.tar.xz">
-  <!ENTITY clang-md5sum        "cb3e79db62c4c3b78cfcdebe66b00268">
-  <!ENTITY clang-size          "20 MB">
+  <!ENTITY clang-md5sum        "469238335351f47893c665cc0fdbfcb6">
+  <!ENTITY clang-size          "21 MB">
 
   <!ENTITY compiler-rt-download-http "&llvm-url;/compiler-rt-&llvm-version;.src.tar.xz">
-  <!ENTITY compiler-rt-md5sum        "3061b4cb0b2428a32b4fb5db540fe66c">
-  <!ENTITY compiler-rt-size          "2.3 MB">
+  <!ENTITY compiler-rt-md5sum        "295430747ca56dd2e2ab1c1a33c1ea3f">
+  <!ENTITY compiler-rt-size          "2.4 MB">
 
   <!-- CMake modules and third party dependencies renamed and uploaded
        onto anduin to avoid stupid file names.  -->
 
-  <!ENTITY cmake-llvm-download-http "&sources-anduin-http;/llvm/llvm-cmake.src.tar.xz">
-  <!ENTITY cmake-llvm-md5sum         "356a1aff675d281d7c76165269d33bd5">
-  <!ENTITY cmake-llvm-size           "9 KB">
+  <!ENTITY cmake-llvm-download-http "&sources-anduin-http;/llvm/llvm-cmake-&llvm-maj-version;.src.tar.xz">
+  <!ENTITY cmake-llvm-md5sum         "2b75b6446bfd5d0dcc288cd412b6a52a">
+  <!ENTITY cmake-llvm-size           "12 KB">
 
-  <!ENTITY llvm-3rdparty-download-http "&sources-anduin-http;/llvm/llvm-third-party.src.tar.xz">
-  <!ENTITY llvm-3rdparty-md5sum        "8b506e49e5fa4c41186ba8ba7da5af82">
+  <!ENTITY llvm-3rdparty-download-http "&sources-anduin-http;/llvm/llvm-third-party-&llvm-maj-version;.src.tar.xz">
+  <!ENTITY llvm-3rdparty-md5sum        "09c9f2259766dd65b75cd728df11b395">
   <!ENTITY llvm-3rdparty-size          "376 KB">
 ]>
 
@@ -233,8 +233,8 @@
 
     <para>
       Two additional tarballs
-      <filename>llvm-cmake.src.tar.xz</filename> and
-      <filename>llvm-third-party.src.tar.xz</filename> are
+      <filename>llvm-cmake-&llvm-maj-version;.src.tar.xz</filename> and
+      <filename>llvm-third-party-&llvm-maj-version;.src.tar.xz</filename> are
       needed by LLVM building system.  The upstream expects them extracted
       at the same level as the
       <filename>llvm-&llvm-version;.src.tar.xz</filename> tarball,
@@ -246,11 +246,11 @@
       <filename>llvm-&llvm-version;.src</filename> hierarchy:
     </para>
 
-<screen><userinput>tar -xf ../llvm-cmake.src.tar.xz                                   &amp;&amp;
-tar -xf ../llvm-third-party.src.tar.xz                             &amp;&amp;
-sed '/LLVM_COMMON_CMAKE_UTILS/s@../cmake@llvm-cmake.src@'          \
-    -i CMakeLists.txt                                              &amp;&amp;
-sed '/LLVM_THIRD_PARTY_DIR/s@../third-party@llvm-third-party.src@' \
+<screen><userinput>tar -xf ../llvm-cmake-&llvm-maj-version;.src.tar.xz                                   &amp;&amp;
+tar -xf ../llvm-third-party-&llvm-maj-version;.src.tar.xz                             &amp;&amp;
+sed '/LLVM_COMMON_CMAKE_UTILS/s@../cmake@llvm-cmake-&llvm-maj-version;.src@'          \
+    -i CMakeLists.txt                                                 &amp;&amp;
+sed '/LLVM_THIRD_PARTY_DIR/s@../third-party@llvm-third-party-&llvm-maj-version;.src@' \
     -i cmake/modules/HandleLLVMOptions.cmake</userinput></screen>
 
     <para>
@@ -263,11 +263,17 @@ mv tools/clang-&llvm-version;.src tools/clang</userinput></screen>
 
     <para>
       If you have downloaded <application>compiler-rt</application>,
-      install it into the source tree by running the following commands:
+      install it into the source tree by running the following commands,
+      <!-- https://github.com/llvm/llvm-project/pull/66761 -->
+      and modify the building system so it will find the
+      <filename class='directory'>
+        llvm-cmake-&llvm-maj-version;.src</filename> directory correctly:
     </para>
 
-<screen><userinput>tar -xf ../compiler-rt-&llvm-version;.src.tar.xz -C projects &amp;&amp;
-mv projects/compiler-rt-&llvm-version;.src projects/compiler-rt</userinput></screen>
+<screen><userinput>tar -xf ../compiler-rt-&llvm-version;.src.tar.xz -C projects    &amp;&amp;
+mv projects/compiler-rt-&llvm-version;.src projects/compiler-rt &amp;&amp;
+sed '/^set(LLVM_COMMON_CMAKE_UTILS/d'                   \
+    -i projects/compiler-rt/CMakeLists.txt</userinput></screen>
 
     <para>
      There are many Python scripts in this package which use
@@ -285,7 +291,7 @@ mv projects/compiler-rt-&llvm-version;.src projects/compiler-rt</userinput></scr
     </para>
 <!-- need <../<patch> instead of -i because -d changes directory
      before applying -i -->
-<screen><userinput remap="pre">patch -Np2 -d tools/clang &lt;../clang-&llvm-version;-enable_default_ssp-1.patch</userinput></screen>
+<screen><userinput remap="pre">patch -Np2 -d tools/clang &lt;../clang-&llvm-maj-version;-enable_default_ssp-1.patch</userinput></screen>
 
     <para>
       If you have downloaded <application>compiler-rt</application>,
@@ -384,44 +390,11 @@ systemd-run --user --pty -d -G -p LimitCORE=0 ninja check-all</userinput></scree
       <filename>Linux/clone_setns.cpp</filename> will fail if
       <option>CONFIG_USER_NS</option> is not enabled in kernel
       configuration.
-      <!-- https://github.com/llvm/llvm-project/issues/64388 -->
-      The tests named <filename>AtoiAndFriendsOOBTest</filename>,
-      <filename>StrtolOOBTest</filename>,
-      <filename>StrtollOOBTest</filename>,
-      <filename>interception_malloc_test.cpp</filename>, and
-      <filename>scanf-allocate.cpp</filename> are known to fail with
-      Glibc-2.38.
-      <!-- 16.0.3: 67327 Passed, 23510 Unsupported, 85 Skipped,
-                   124 Expectedly Failed
-           16.0.4  67327 Passed, 23507 Unsupported, 85 Skipped,
-                   124 Expectedly Failed, 6 Failed
-           Failed Tests (6):
-           AddressSanitizer-x86_64-linux         :: TestCases/log-path_test.cpp
-           AddressSanitizer-x86_64-linux-dynamic :: TestCases/log-path_test.cpp
-           MemProfiler-x86_64-linux              :: TestCases/log_path_test.cpp
-           MemProfiler-x86_64-linux-dynamic      :: TestCases/log_path_test.cpp
-           LLVM                   :: tools/llvm-libtool-darwin/L-and-l.test
-           ThreadSanitizer-x86_64 :: Linux/clone_setns.cpp
-
-           16.0.5 had the same test failures as 16.0.4.  - bdubbs
-
-           16.0.5 in LFS r11.3-141 with a minimal kernel configuration:
-           67330 Passed, 23512 Unsupported, 85 Skipped,
-           124 Expectedly Failed, 1 Failed
-           FAIL: ThreadSanitizer-x86_64 :: Linux/clone_setns.cpp - xry111
-
-           16.0.5 with Glibc-2.38:
-           63716 Passed, 23512 Unsupported, 85 Skipped,
-           124 Expectedly Failed, 15 Failed
-
-           - AtoiAndFriendsOOBTest, StrtolOOBTest, StrtollOOBTest
-             (repeated 4 times with different configurations)
-           - interception_malloc_test.cpp (repeated 2 times)
-           - scanf-allocate.cpp
-      -->
+      <!-- 17.0.1: 69321 Passed, 25066 Unsupported, 337 Skipped,
+                   131 Expectedly Failed -->
 
       <!-- To editors: it seems there is a more thorough test suite named
-           "test-suite-16.0.0.src.tar.xz" on the GitHub release download
+           "test-suite-x.y.z.src.tar.xz" on the GitHub release download
            page.  The usage of it is on
            https://llvm.org/docs/TestSuiteGuide.html.  It looks like we've
            never mentioned it in BLFS.
