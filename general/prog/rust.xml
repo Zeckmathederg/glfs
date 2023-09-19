@@ -308,11 +308,15 @@ llvm-config = "/usr/bin/llvm-config"
 llvm-config = "/usr/bin/llvm-config"</literal>
 EOF</userinput></screen>
 
-<!--<para>
-     Adapt rustc to allow it to build and function with the changes in LLVM-9:
+    <para>
+      Adapt rustc to allow it to build and function with the changes in
+      LLVM-17:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../rustc-&rust-version;-llvm9_fixes-1.patch</userinput></screen>-->
+<screen><userinput remap="pre">sed 's/FS,/"", &amp;/'                                        \
+    -i ./compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp &amp;&amp;
+sed '/LLVMContext.h/i#include "llvm/ADT/SmallString.h"'   \
+    -i compiler/rustc_llvm/llvm-wrapper/SymbolWrapper.cpp</userinput></screen>
 
     <para>
       Compile <application>Rust</application> by running the following
@@ -361,6 +365,21 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
       <filename>rustc-testlog</filename> file and search for the
       <computeroutput>note: the full type name has been written
       to</computeroutput>... messages and they can be safely ignored.
+    </para>
+
+    <!-- https://github.com/rust-lang/rust/pull/115869 -->
+    <para>
+      The test named <filename>tests/ui/issues/issue-21763.rs</filename>
+      is known to fail.
+    </para>
+
+    <para>
+      With LLVM-17, the tests named
+      <!-- https://github.com/rust-lang/rust/issues/109671 -->
+      <filename>tests/ui/abi/stack-protector.rs</filename> and
+      <!-- https://github.com/rust-lang/rust/pull/105545 -->
+      <filename>tests/ui/dyn-star/llvm-old-style-ptrs.rs</filename> are
+      known to fail.
     </para>
 
     <para>
