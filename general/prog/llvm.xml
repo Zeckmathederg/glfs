@@ -348,9 +348,12 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
       a large amount of disk space, and the core dump process can
       significantly slow down the testing.  To test the results with core
       dump disabled, <phrase revision='systemd'>ensure
-      <xref linkend='systemd'/> is rebuilt with
-      <xref linkend='linux-pam'/> support and the current login session is
-      started after updating the
+      <xref linkend='systemd'/> and <xref linkend='shadow'/> have
+      been rebuilt with <xref linkend='linux-pam'/> support (if you are
+      interacting via a SSH or graphical session, also ensure the
+      <xref linkend='openssh'/> server or the desktop manager has been
+      built with <xref linkend='linux-pam'/>) and the current login session
+      is started after updating the
       <filename>/etc/pam.d/system-session</filename> file to include
       <filename class='libraryfile'>pam_systemd.so</filename>,
       then </phrase>issue:
@@ -376,19 +379,20 @@ ninja docs-llvm-html  docs-llvm-man</userinput></screen>
 systemd-run --user --pty -d -G -p LimitCORE=0 ninja check-all</userinput></screen>
 
     <para>
-      <!-- EDITORS - if you have more than 4 cores, take some offline to measure
+      <!-- EDITORS - if you have more than 4 cores, use a cgroup to measure
       the elapsed time for the tests.  Also, libstdc++.a and perhaps libstdc++fs.a
       are used by a couple of the link-static tests. -->
-      Tests are
-      built with all <emphasis>available</emphasis> cores, but run using the number
-      of <emphasis>online</emphasis> processors. (The difference is that available
-      cores can be limited using <command>taskset</command>, but taking them offline
-      requires echoing 0 to <filename
-      class="directory">/sys/devices/system/cpu/cpu&lt;N&gt;/online</filename>
-      by the <systemitem class="username">root</systemitem> user and makes them
-      temporarily unusable by all jobs on the machine.)  One test named
-      <filename>Linux/clone_setns.cpp</filename> will fail if
-      <option>CONFIG_USER_NS</option> is not enabled in kernel
+      If <option>-jN</option> (N replaced with a number) is passed to
+      <command>ninja</command>, the tests will be built with N logical
+      cores, but run using all available logical cores.
+      Run the test command in a cgroup (<phrase revision='systemd'>pass
+        the <option>-p AllowedCPUs=...</option> option to the
+        <command>systemd-run</command> command,
+      </phrase>
+      read <xref linkend='build-in-cgroup'/> for details) to limit the
+      number of logical cores for running the tests.
+      One test named <filename>Linux/clone_setns.cpp</filename> will fail
+      if <option>CONFIG_USER_NS</option> is not enabled in kernel
       configuration.
       <!-- 17.0.1: 69321 Passed, 25066 Unsupported, 337 Skipped,
                    131 Expectedly Failed -->
