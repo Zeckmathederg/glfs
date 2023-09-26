@@ -118,11 +118,13 @@ useradd -c "GDM Daemon Owner" -d /var/lib/gdm -u 21 \
         -g gdm -s /bin/false gdm &amp;&amp;
 passwd -ql gdm</userinput></screen>
 
+<!--
     <para revision="sysv">
       First, adapt GDM to build without systemd present:
     </para>
 
 <screen revision="sysv"><userinput remap="pre">sed -i -r '/(^| )systemd_dep/d' meson.build</userinput></screen>
+-->
 
     <para>
       Install <application>GDM</application> by running the following
@@ -136,14 +138,15 @@ passwd -ql gdm</userinput></screen>
 mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-meson setup ..                    \
-      --prefix=/usr               \
-      --buildtype=release         \
-      -Dgdm-xsession=true         \
-      -Drun-dir=/run/gdm          \
-      -Dsystemd-journal=false     \
-      -Dsystemdsystemunitdir=/tmp \
-      -Dsystemduserunitdir=/tmp   &amp;&amp;
+meson setup ..                  \
+      --prefix=/usr             \
+      --buildtype=release       \
+      -Dgdm-xsession=true       \
+      -Drun-dir=/run/gdm        \
+      -Dlogind-provider=elogind \
+      -Dsystemd-journal=false   \
+      -Dsystemdsystemunitdir=no \
+      -Dsystemduserunitdir=no   &amp;&amp;
 ninja</userinput></screen>
 
 <screen revision="systemd"><userinput>mkdir build &amp;&amp;
@@ -164,10 +167,7 @@ ninja</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root" revision="sysv"><userinput>ninja install &amp;&amp;
-rm -rv /tmp/*.{service,target.d}</userinput></screen>
-
-<screen role="root" revision="systemd"><userinput>ninja install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
 
   </sect2>
 
