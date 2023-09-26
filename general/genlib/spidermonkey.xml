@@ -187,17 +187,52 @@ make</userinput></screen>
       <!-- recheck when ICU gets upgraded -->
       Because we are building with system ICU, 8 tests
       (out of a total of more than 50,000) are known to fail.
+      The test suite is executed with all CPU cores available: even in a
+      cgroup with less cores assigned, it still attempts to spawn as many
+      testing jobs as the number of <emphasis>all</emphasis> cores in the
+      system; fortunately the kernel still won't run these jobs on cores
+      not assigned to the cgroup so the CPU usage is still controlled.
     </para>
     <para>
-      The JIT test suite can use a large amount of system memory.
-      Running the JIT test suite without enough memory may invoke 
-      the kernel OOM killer and causes stability issues. To run the JIT test
-      suite, ensure the amount of available system memory is at least 16 GB,
-      <!-- When I run it within a cgroup with 8 GB memory assigned, the test
-           is OOM killed.  Increasing the assigned memory to 16 GB makes
-           all tests pass.  -->
-      then issue: <command>make -C js/src check-jit-test
-      JITTEST_EXTRA_ARGS="--timeout 300"</command>.
+      To run the JIT test suite, issue: <command>make -C js/src
+      check-jit-test JITTEST_EXTRA_ARGS="--timeout 300"</command>.
+      Like the SpiderMonkey test suite, the number of test jobs is same as
+      the number of all CPU cores in the system even if a cgroup is used. To
+      make things worse, there are six tests each of them will use 3 GB
+      of system memory, so the peak memory usage may be up to 18 GB if the
+      number of cores is six or more.  Running the JIT test suite without
+      enough memory may invoke the kernel OOM killer and cause stability
+      issues.  If you don't have enough system memory available, append
+      <option>-jN</option> after <option>--timeout 300</option> with N
+      replaced by the number of parallel test jobs you want to start.  For
+      example, if you have 16 GB system memory available and 8 CPU cores,
+      issue <command>make -C js/src check-jit-test
+      JITTEST_EXTRA_ARGS="--timeout=300 -j5"</command> to run the test with
+      5 parallel jobs so the memory usage won't exceed 15 GB.
+      <!-- TL;DR: DO NOT REMOVE MEMORY USAGE NOTE W/O MY CONFIRMATION!
+
+           "six tests": bug1782468-ptrdiff-veclen.js, it's ran with 6
+           different configurations.
+
+           "may": this is stochasitic (like all parallelization issue),
+           don't remove the note about memory usage simply because "I cannot
+           reproduce it".
+
+           "peak": the time period using so much memory is very short, so
+           don't just watch the output of "top" or "free" with eyesight.
+           Run the test in a cgroup and read the "memory.peak" psuedo file
+           for a proper measurement.
+
+           Q: Why not just document some test failures?
+           A: This *really* can cause stability issue because the kernel
+              may OOM kill another process if the test is not ran in a
+              cgroup with memory.max set.  Even if running it in a cgroup,
+              the kernel may still OOM kill the "main" process controlling
+              the test process instead of a single test job, causing a
+              incomplete test.
+
+                                                                 - xry111
+      -->
     </para>
 
     <caution>
