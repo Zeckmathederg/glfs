@@ -4,14 +4,14 @@
   <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
-  <!ENTITY cairo-download-http "&gnome-download-http;/cairo/&cairo-minor;/cairo-&cairo-version;.tar.xz">
+  <!ENTITY cairo-download-http "https://www.cairographics.org/releases/cairo-&cairo-version;.tar.xz">
   <!--<!ENTITY cairo-download-http "https://www.cairographics.org/snapshots/cairo-&cairo-version;.tar.xz">
   <!ENTITY cairo-download-http "&sources-anduin-http;/cairo/cairo-&cairo-version;.tar.xz">-->
   <!ENTITY cairo-download-ftp  " ">
-  <!ENTITY cairo-md5sum        "c5a6f255af72a2e5faa8e6a53dd882e2">
-  <!ENTITY cairo-size          "33 MB">
-  <!ENTITY cairo-buildsize     "137 MB">
-  <!ENTITY cairo-time          "0.4 SBU (Using parallelism=4)">
+  <!ENTITY cairo-md5sum        "3f0685fbadc530606f965b9645bb51d9">
+  <!ENTITY cairo-size          "32 MB">
+  <!ENTITY cairo-buildsize     "98 MB">
+  <!ENTITY cairo-time          "0.3 SBU (Using parallelism=4)">
 ]>
 
 <sect1 id="cairo" xreflabel="Cairo-&cairo-version;">
@@ -30,7 +30,7 @@
     <para>
       <application>Cairo</application> is a 2D graphics library with support for
       multiple output devices. Currently supported output targets include the
-      <application>X</application> Window System, win32, image buffers,
+      <application>X</application> Window System, Win32, image buffers,
       PostScript, PDF and SVG. Experimental backends include OpenGL, Quartz and
       XCB file output. <application>Cairo</application> is designed to produce
       consistent output on all output media while taking advantage of display
@@ -132,6 +132,7 @@
 
     <!-- /usr/include/ansidecl.h says "This file is part of the GNU C
     Library", but it's actually installed by Binutils.  -->
+<!--
     <para>
       Adapt this package for Binutils-2.39 or later:
     </para>
@@ -144,20 +145,22 @@
 
 <screen><userinput>sed -e "/@prefix@/a exec_prefix=@exec_prefix@" \
     -i util/cairo-script/cairo-script-interpreter.pc.in</userinput></screen>
+-->
 
     <para>
       Install <application>Cairo</application> by running the following
       commands:
     </para>
 
-<screen><userinput>./configure --prefix=/usr    \
-            --disable-static \
-            --enable-tee &amp;&amp;
-make</userinput></screen>
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson setup --prefix=/usr --buildtype=release .. &amp;&amp;
+ninja</userinput></screen>
 
     <para>
       This package does not have a working test suite.
-      <!-- The test suite can be run with 'make check', but 488 tests fail and
+      <!-- The test suite can be run with 'ninja test', but 488 tests fail and
       59 tests pass. This seems to be due to minute changes in the expected
       output, similar to librsvg's tests. Since it's a huge chunk of the tests,
       let's keep it as "broken" for now.-->
@@ -167,50 +170,41 @@ make</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>ninja install</userinput></screen>
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!-- Not needed with 1.17.4
+<!-- Enabled by default in 1.18.0 (would be -Dtee=enabled otherwise)
     <para>
-      <parameter>autoreconf -fv</parameter>: This prevents
-      <command>configure</command> ending in error with the current version
-      of <application>automake</application> because the AM_INIT_AUTOMAKE
-      definitions came from a previous version.
-    </para>
--->
-
-    <para>
-      <parameter>--enable-tee</parameter>: This switch enables the
+      <parameter>- -enable-tee</parameter>: This switch enables the
       experimental tee surface backend which is required if using
       system-installed <application>Cairo</application> with Mozilla applications.
     </para>
+-->
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
+      href="../../xincludes/meson-buildtype-release.xml"/>
 
     <para>
-      <option>--enable-xlib-xcb</option>: This switch enables several
+      <option>-Dxlib-xcb=enabled</option>: This switch enables several
       experimental Xlib/XCB functions used by some window managers.
     </para>
 
+<!-- Removed in 1.18.0
     <para>
-      <option>--enable-gl</option>: This switch enables
+      <option>- -enable-gl</option>: This switch enables
       <application>Cairo</application>'s experimental
       <application>OpenGL</application> surface which
       is required for <application>Wayland</application>
       compositor and some other packages that are not
       part of BLFS.
     </para>
-
-<!--<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/gtk-doc-rebuild.xml"/>
-      NOTE: For this version, no docs are installed by default -->
+-->
 
     <para>
-      <option>--enable-gtk-doc</option>: Use this parameter if GTK-Doc is
+      <option>-Dgtk_doc=true</option>: Use this parameter if GTK-Doc is
       installed and you wish to create and install the documentation.
     </para>
 
@@ -229,11 +223,13 @@ make</userinput></screen>
           cairo-trace
         </seg>
         <seg>
-          libcairo.so, libcairo-gobject.so and
+          libcairo.so,
+          libcairo-gobject.so, and
           libcairo-script-interpreter.so
         </seg>
         <seg>
-          /usr/{include,lib,share/gtk-doc/html}/cairo
+          /usr/include/cairo and
+          /usr/lib/cairo
         </seg>
       </seglistitem>
     </segmentedlist>
@@ -242,20 +238,6 @@ make</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-<!--
-     <varlistentry id="cairo-sphinx">
-        <term><command>cairo-sphinx</command></term>
-        <listitem>
-          <para>
-            is an internal utility for regression analysis
-          </para>
-          <indexterm zone="cairo cairo-sphinx">
-            <primary sortas="b-cairo-sphinx">cairo-sphinx</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
--->
 
       <varlistentry id="cairo-trace">
         <term><command>cairo-trace</command></term>
