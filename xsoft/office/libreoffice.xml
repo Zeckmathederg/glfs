@@ -7,24 +7,24 @@
   <!ENTITY libreoffice-dl "https://download.documentfoundation.org/libreoffice/src/&libreoffice-version;">
 
   <!ENTITY libreoffice-core-download-http "&libreoffice-dl;/libreoffice-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-core-md5sum        "e847e0f3caf04b76a698afd22d9ee1a5">
-  <!ENTITY libreoffice-core-size          "267 MB">
+  <!ENTITY libreoffice-core-md5sum        "13fca0b5df68b445340d7c5f8373e99c">
+  <!ENTITY libreoffice-core-size          "268 MB">
 
   <!ENTITY libreoffice-dict-download-http "&libreoffice-dl;/libreoffice-dictionaries-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-dict-md5sum        "567f7631bd1eceee4e67c5bbaf7b3e39">
+  <!ENTITY libreoffice-dict-md5sum        "f44ce208c556bc06c9e09a9d742cf580">
   <!ENTITY libreoffice-dict-size          "51 MB">
 
   <!ENTITY libreoffice-help-download-http "&libreoffice-dl;/libreoffice-help-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-help-md5sum        "ac08310518f3caf31888ff037e49ae78">
-  <!ENTITY libreoffice-help-size          "160 MB">
+  <!ENTITY libreoffice-help-md5sum        "5dd9257d057c547ba37bbb2d1a77e5af">
+  <!ENTITY libreoffice-help-size          "159 MB">
 
   <!ENTITY libreoffice-translations-download-http "&libreoffice-dl;/libreoffice-translations-&libreoffice-dlversion;.tar.xz">
-  <!ENTITY libreoffice-translations-md5sum        "bf954ea30e11667b5fc328762b830767">
+  <!ENTITY libreoffice-translations-md5sum        "6ec3d46a10a4b62c86b9890779775198">
   <!ENTITY libreoffice-translations-size          "207 MB">
 
   <!-- full size remeasured for 7.0.0.3 -->
 
-  <!ENTITY libreoffice-buildsize  "10 GB including the additional files if downloaded during the build (727 MB installed). Installing the whole set of languages requires more than 25 GB (around 3 GB installed)">
+  <!ENTITY libreoffice-buildsize  "10 GB including the additional files if downloaded during the build (758 MB installed). Installing the whole set of languages requires more than 25 GB (around 3 GB installed)">
 
  <!-- Editors: many updates to poppler will break LO using system poppler until
       somebody is able to provide a patch or sed.  In these cases, please mark
@@ -57,7 +57,7 @@
 
        For 7.5.4.2, I increased the parallelism to 8.  -bdubbs
   -->
-  <!ENTITY libreoffice-time "40 SBU with parallelism=8 (will vary due to download time)">
+  <!ENTITY libreoffice-time "22 SBU with parallelism=8 (will vary due to download time)">
 
 ]>
 
@@ -119,8 +119,8 @@
         build. The download time will vary with the local internet speed and
         server load.  The download time is about 3 minutes on a fiber connection
         and probably not much more than 10 minutes on an ADSL connection.
-        If you have not downloaded one or more of the following, they 
-        will also be downloaded during the build.
+        If you have not installed one or more of the following dependencies,
+        they will also be downloaded during the build.
       </para>
     </note>
 
@@ -320,7 +320,8 @@
 
     <para>
       There are many optional dependencies not listed here. They can be
-      found in <quote>download.lst</quote> (source directory).
+      found in the <filename>download.lst</filename> file in the sources
+      directory.
     </para>
 
     <para condition="html" role="usernotes">
@@ -330,18 +331,20 @@
 
   <sect2 role="installation">
     <title>Installation of LibreOffice</title>
-
+    <!-- since there is no "." in the "tar -t" listing, I cannot see
+    how no-overwrite-dir would be needed...
     <important>
       <para>
         Unlike the other packages, we assume that you have not yet unpacked the
-        package. This is because the <option>--no-overwrite-dir</option>
+        package. This is because the <option>- -no-overwrite-dir</option>
         switch is needed in case you unpack as the <systemitem
         class="username">root</systemitem> user.
       </para>
     </important>
 
-<screen role="nodump"><userinput>tar -xf libreoffice-&libreoffice-dlversion;.tar.xz --no-overwrite-dir &amp;&amp;
+<screen role="nodump"><userinput>tar -xf libreoffice-&libreoffice-dlversion;.tar.xz - -no-overwrite-dir &amp;&amp;
 cd libreoffice-&libreoffice-dlversion;</userinput></screen>
+-->
 
 <!-- keep a commented instruction if no patches are currently required -->
 <!--
@@ -415,19 +418,15 @@ ln -sv src/libreoffice-translations-&libreoffice-dlversion;/translations/</useri
    i?86) sed /-Os/d -i solenv/gbuild/platform/LINUX_INTEL_GCC.mk ;;
 esac</userinput></screen>
 
-    <!-- see the attachment in Ticket #18435 -->
-    <para>
-      If you decide to pass the <option>--disable-java</option> to configure,
-      fix an issue that causes the build to fail:
-    </para>
-
-<screen><userinput>sed -i '940i #if HAVE_FEATURE_JAVA' cui/source/options/optjava.cxx &amp;&amp;
-sed -i '966i #endif'                cui/source/options/optjava.cxx</userinput></screen>
-
     <para>
       Prepare <application>LibreOffice</application> for compilation by running
       the following commands:
     </para>
+
+    <!--Editors: if it happens you need to remove some "with-system-xxx"
+    instruction because libreoffice temporarily cannot use the current
+    system version, please keep it around commented out, so that it can be
+    remembered to test it with higher versions of libreoffice. -->
 
 <screen><userinput>sed -e "/gzip -f/d"   \
     -e "s|.1.gz|.1|g" \
@@ -448,6 +447,7 @@ sed -e "/distro-install-file-lists/d" -i Makefile.in &amp;&amp;
              --enable-release-build=yes  \
              --enable-python=system      \
              --with-jdk-home=/opt/jdk    \
+             --with-system-boost         \
              --with-system-clucene       \
              --with-system-curl          \
              --with-system-epoxy         \
@@ -557,10 +557,6 @@ fi</userinput></screen>
     <para>
       <command>sed -e ...</command>: The first sed prevents compression of the
       manual pages and the second one prevents the install from failing.
-      <!--and the third one allows the build to use poppler-0.86.1 and later.-->
-      <!-- FIXME update hardcoded poppler version in text when necessary -->
-      <!-- FIXME as far as I can tell, that sed is no longer present, so I
-           commented the description out here. -renodr -->
     </para>
 
     <para>
@@ -573,7 +569,7 @@ fi</userinput></screen>
       <parameter>--with-lang='fr en-GB'</parameter>: This switch sets
       what languages to support. To list several languages, separate them with
       a space. For all languages, use
-      <parameter>--with-lang=ALL</parameter>. Note that the translations file
+      <option>--with-lang=ALL</option>. Note that the translations file
       is not needed and won't be downloaded if using only en-US as a language.
     </para>
 
@@ -602,15 +598,12 @@ fi</userinput></screen>
       set.
     </para>
 
-    <!-- The boost issues have resurfaced with boost-1.83.0... this time it's
-         with the locale library.
     <para>
-      <parameter>- -with-system-boost</parameter>: This switch enables using
+      <parameter>--with-system-boost</parameter>: This switch enables using
       system boost. From time to time, recent versions of boost break
       the build of libreoffice. In this case, it is possible to use the
       bundled copy of boost by removing this flag.
     </para>
-    -->
 
     <para>
       <parameter>--disable-dconf</parameter>: This switch disables compiling
