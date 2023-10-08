@@ -6,8 +6,8 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.xz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "4125b8bf1b0bc6a520f8ec21252322e7">
-  <!ENTITY rust-size          "145 MB">
+  <!ENTITY rust-md5sum        "2b5fd1623a6591c3e31eaec674ccc81c">
+  <!ENTITY rust-size          "148 MB">
   <!ENTITY rust-buildsize     "8.9 GB (292 MB installed); add 6.4 GB if running the tests">
   <!ENTITY rust-time          "6.7 SBU (including download time; add 6.2 SBU for tests, both using parallelism=8)">
 ]>
@@ -309,16 +309,6 @@ llvm-config = "/usr/bin/llvm-config"</literal>
 EOF</userinput></screen>
 
     <para>
-      Adapt rustc to allow it to build and function with the changes in
-      LLVM-17:
-    </para>
-
-<screen><userinput remap="pre">sed 's/FS,/"", &amp;/'                                        \
-    -i ./compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp &amp;&amp;
-sed '/LLVMContext.h/i#include "llvm/ADT/SmallString.h"'   \
-    -i compiler/rustc_llvm/llvm-wrapper/SymbolWrapper.cpp</userinput></screen>
-
-    <para>
       Compile <application>Rust</application> by running the following
       commands:
     </para>
@@ -347,25 +337,8 @@ python3 x.py build</userinput></screen>
       To run the tests (again using all available CPUs) issue:
     </para>
 
-<screen remap="test"><userinput>mkdir -pv .github/workflows                    &amp;&amp;
-python3 x.py run src/tools/expand-yaml-anchors &amp;&amp;
-SSL_CERT_DIR=/etc/ssl/certs                    \
+<screen remap="test"><userinput>SSL_CERT_DIR=/etc/ssl/certs \
 python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></screen>
-
-    <!-- https://github.com/rust-lang/rust/issues/112209
-         I only saw 2 failures with 1.71.1, but Rainer saw 6 ones.
-         I don't want to find out the maximum number (by building rustc
-         in somewhere like /a/very/long/long/long/.../long/path) so I'd
-         just omit the exact number of failures here. -->
-    <para>
-      Some <literal>ui</literal> tests may fail (the number of failures
-      depends on the length of the absolute path to the
-      <filename class='directory'>rustc-&rust-version;-src</filename>
-      directory).  These failures can be identified by viewing the
-      <filename>rustc-testlog</filename> file and search for the
-      <computeroutput>note: the full type name has been written
-      to</computeroutput>... messages and they can be safely ignored.
-    </para>
 
     <!-- https://github.com/rust-lang/rust/pull/115869 -->
     <para>
@@ -374,28 +347,10 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
     </para>
 
     <para>
-      With LLVM-17, the tests named
-      <!-- https://github.com/rust-lang/rust/issues/109671 -->
-      <filename>tests/ui/abi/stack-protector.rs</filename> and
-      <!-- https://github.com/rust-lang/rust/pull/105545 -->
-      <filename>tests/ui/dyn-star/llvm-old-style-ptrs.rs</filename> are
-      known to fail.
-    </para>
-
-    <para>
       If <command>FileCheck</command> from <application>LLVM</application> has
       not been installed, all 47 tests from the <quote>assembly</quote> suite
       will fail.
     </para>
-
-    <para>
-      On some systems, scripting the tests may result in the tests hanging on
-      <filename>test: combine_install_with_separate_uninstall</filename>. If
-      this happens, the problem can be worked around by pressing the Enter key.
-      The test can also be removed with:
-    </para>
-
-<screen role="nodump"><userinput>sed -e '/runtest combine_install_with/s/^/#/g' -i src/tools/rust-installer/test.sh</userinput></screen>
 
     <para>
       As with all large test suites, other tests might fail on some machines -
@@ -452,7 +407,7 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
 
 <screen role='root'><userinput>python3 x.py install</userinput></screen>
 
-    <!-- TODO: Report to upstream if this persists in the next release -->
+    <!-- https://github.com/rust-lang/rust/issues/115213 -->
     <para>
       The building system attempts to install some files twice, and during
       the second attempt it renames the old one (installed in the first
