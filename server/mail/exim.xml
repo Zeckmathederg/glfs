@@ -9,10 +9,10 @@
   <!ENTITY exim-download-ftp    " ">
   <!-- if above don't work, please use one of the official mirrors at
        http://www.exim.org/mirmon/ftp_mirrors.html -->
-  <!ENTITY exim-md5sum          "1554c5c9fbc0fb9ee02430ed65d98ea4">
+  <!ENTITY exim-md5sum          "27f552d5ba125a734d867642400d1d43">
   <!ENTITY exim-size            "1.8 MB">
-  <!ENTITY exim-buildsize       "17 MB">
-  <!ENTITY exim-time            "0.3 SBU">
+  <!ENTITY exim-buildsize       "21 MB">
+  <!ENTITY exim-time            "less than 0.1 SBU (at -j4)">
 
   <!ENTITY exim-daemon-version  "&exim-version;-2">
 ]>
@@ -119,7 +119,8 @@
       <xref linkend="postgresql"/>,
       <xref linkend="sqlite"/>,
       <xref linkend="x-window-system"/>,
-      <ulink url="https://github.com/heimdal/heimdal">Heimdal GSSAPI</ulink>, and
+      <ulink url="https://github.com/heimdal/heimdal">Heimdal GSSAPI</ulink>,
+      <ulink url="https://github.com/shevek/libspf2/">libspf2</ulink>, and
       <ulink url="http://www.trusteddomain.org/opendmarc/">OpenDMARC</ulink>
     </para>
 
@@ -138,20 +139,6 @@
 <screen role="root"><userinput>groupadd -g 31 exim &amp;&amp;
 useradd -d /dev/null -c "Exim Daemon" -g exim -s /bin/false -u 31 exim</userinput></screen>
 
-<!-- Applied in 4.96
-    <para>
-      If you want to build with <application>PAM</application> support, apply the following patch:
-    </para>
-
-<screen><userinput>patch -Np2 -i ../exim-&exim-version;-call_pam-1.patch</userinput></screen>
-
-    <para>
-      Apply a patch required for building against openssl version 3:
-    </para>
-
-<screen><userinput>patch -Np2 -i ../exim-&exim-version;-openssl3_fix-1.patch</userinput></screen>
--->
-
     <para>
       Configure <application>Exim</application> with the following commands:
     </para>
@@ -159,9 +146,7 @@ useradd -d /dev/null -c "Exim Daemon" -g exim -s /bin/false -u 31 exim</userinpu
 <screen><userinput>sed -e 's,^BIN_DIR.*$,BIN_DIRECTORY=/usr/sbin,'    \
     -e 's,^CONF.*$,CONFIGURE_FILE=/etc/exim.conf,' \
     -e 's,^EXIM_USER.*$,EXIM_USER=exim,'           \
-    -e '/# SUPPORT_TLS=yes/s,^#,,'                   \
-    -e '/# USE_OPENSSL/s,^#,,'                       \
-    -e 's,^EXIM_MONITOR,#EXIM_MONITOR,' src/EDITME > Local/Makefile &amp;&amp;
+    -e '/# USE_OPENSSL/s,^#,,' src/EDITME > Local/Makefile &amp;&amp;
 
 printf "USE_GDBM = yes\nDBMLIB = -lgdbm\n" >> Local/Makefile
 </userinput></screen>
@@ -194,8 +179,8 @@ echo "EXTRALIBS=-lpam" >> Local/Makefile
 <screen role="root"><userinput>make install                                    &amp;&amp;
 install -v -m644 doc/exim.8 /usr/share/man/man8 &amp;&amp;
 
-install -v -d -m755    /usr/share/doc/exim-&exim-version; &amp;&amp;
-install -v -m644 doc/* /usr/share/doc/exim-&exim-version; &amp;&amp;
+install -vdm 755    /usr/share/doc/exim-&exim-version; &amp;&amp;
+cp      -Rv doc/*   /usr/share/doc/exim-&exim-version; &amp;&amp;
 
 ln -sfv exim /usr/sbin/sendmail                 &amp;&amp;
 install -v -d -m750 -o exim -g exim /var/spool/exim</userinput></screen>
@@ -709,8 +694,7 @@ EOF</userinput></screen>
         <term><command>exiwhat</command></term>
         <listitem>
           <para>
-            queries running <application>Exim</application>
-          processes
+            queries running <application>Exim</application> processes
           </para>
           <indexterm zone="exim exiwhat">
             <primary sortas="b-exiwhat">exiwhat</primary>
