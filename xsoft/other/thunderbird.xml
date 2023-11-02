@@ -142,6 +142,47 @@
     </note>
 
     <para>
+      The building system ships several internal copies of the Python 3
+      modules <application>setuptools</application> and
+      <filename>six.py</filename>.  The shipped copies are too old
+      to work well with Python 3.12 or later.  Replace them with the
+      symlinks to the LFS <application>setuptools</application> package and
+      <xref linkend='six'/> already installed on the system, and adapt the
+      building system for these updated Python modules.  We also need to
+      rewrite the code based on the <filename>imp</filename> module removed
+      in Python 3.12 and later using the <filename>importlib</filename>
+      module:
+    </para>
+
+<screen><userinput>(for i in $(find -name six.py); do
+   ln -sfv /usr/lib/python&python3-majorver;/site-packages/six.py $i
+   [ $? = 0 ] || exit $?
+ done) &amp;&amp;
+
+sed '/ConfigParser/s/Safe//'                          \
+    -i testing/mozbase/mozprofile/mozprofile/prefs.py &amp;&amp;
+
+(for i in setuptools distutils-precedence.pth  \
+          pkg_resources _distutils_hack; do
+   rm -rf third_party/python/setuptools/$i     &amp;&amp;
+   ln -sv /usr/lib/python&python3-majorver;/site-packages/$i \
+          third_party/python/setuptools
+   [ $? = 0 ] || exit $?
+ done) &amp;&amp;
+
+sed 's/distutils/setuptools._&amp;/'           \
+    -i python/mozbuild/mozbuild/nodeutil.py &amp;&amp;
+
+sed -e '/^import/s/imp$/importlib.util/'             \
+    -e 's/imp.new_module/__import__/'                \
+    -e "s/imp.load_source\(.*\)/spec =               \
+        importlib.util.spec_from_file_location\1;    \
+        mod = importlib.util.module_from_spec(spec); \
+        spec.loader.exec_module(mod)/" -i python/mach/mach/main.py &amp;&amp;
+sed '/import imp/d' -i netwerk/dns/prepare_tlds.py
+</userinput></screen>
+
+    <para>
       The configuration of <application>Thunderbird</application> is
       accomplished by creating a <filename>mozconfig</filename> file containing
       the desired configuration options. A default
