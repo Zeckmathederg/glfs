@@ -351,18 +351,25 @@
 <screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-build_fixes-1.patch</userinput></screen>
 
     <para>
-      Apply a patch that resolves problems when building with ffmpeg-5 and later:
+      If building with system <xref linkend='ffmpeg'/> as the editors
+      recommand, apply a patch that resolves problems when building with
+      ffmpeg-5 and later:
     </para>
 
 <screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-ffmpeg5_fixes-1.patch</userinput></screen>
-<!--
+
+    <!-- The ffmpeg commit effadce6c756247ea8bae32dc13bb3e6f464f0eb
+         already in system ffmpeg, but not this old shipped copy.
+         Not marked nodump because it won't affect the build with system
+         ffmpeg anyway.  -->
     <para>
-      Apply a patch that resolves problems when building with icu-73 and later:
+      Otherwise, fix an issue in shipped ffmpeg causing it fail to build
+      with Binutils 2.41 or later:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-icu_73-1.patch</userinput></screen>
+<screen><userinput remap="pre">sed 's/(uint8_t)\(([^)]*)\|shift\)/\1 \&amp; 0x1F/' \
+    -i src/3rdparty/chromium/third_party/ffmpeg/libavcodec/x86/mathops.h</userinput></screen>
 
--->
 <!-- start of commands for git versions only -->
     <para>
       Although the build_fixes patch has ensured that git is not invoked during the build,
@@ -511,7 +518,10 @@ make</userinput></screen>
       ffmpeg to decode H264 and H265 codecs.  If built as part of full Qt5, the
       system icu is automatically used (only) by Qt5Core if it is available, but
       unless this option is used webengine will always use its shipped copy of icu,
-      adding time and space to the build.
+      adding time and space to the build.  Remove the
+      <parameter>-system-ffmpeg</parameter> switch if you don't have
+      <xref linkend='ffmpeg'/> installed and want to build this package
+      with an internal copy of ffmpeg.
     </para>
 
     <para>
