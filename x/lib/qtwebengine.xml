@@ -417,6 +417,39 @@ sed -e "s/'rU'/'r'/" \
     -i src/3rdparty/chromium/tools/grit/grit/util.py</userinput></screen>
 
     <para>
+      Several fixes are needed for using Python-3.12+: first, either remove
+      references to the removed <command>imp</command> module or
+      replace it with the newer <command>importlib</command> module:
+    </para>
+
+<screen><userinput>sed -e "/import imp/d"                                                    \
+    -i src/3rdparty/chromium/mojo/public/tools/mojom/mojom/fileutil.py    \
+       src/3rdparty/chromium/mojo/public/tools/mojom/mojom/parse/lexer.py &amp;&amp;
+sed -e "s/import imp/import importlib.util/" \
+    -e 's@.*load_source.*@\
+    spec = importlib.util.spec_from_file_location(fullname, filepath)\
+    mod = importlib.util.module_from_spec(spec);\
+    spec.loader.exec_module(mod)\
+    return mod@'                             \
+    -i src/3rdparty/chromium/components/resources/protobufs/binary_proto_generator.py</userinput></screen>
+
+    <para>
+      Remove an obsolete instance of and a reference to the
+      <command>six</command> module:
+    </para>
+
+<screen><userinput>sed -e /six.move/d \
+    -i src/3rdparty/chromium/third_party/protobuf/python/google/protobuf/internal/python_message.py &amp;&amp;
+    rm -r src/3rdparty/chromium/tools/grit/third_party/six</userinput></screen>
+
+    <para>
+      There is also a workaround needed for ICU-74+:
+    </para>
+
+<screen><userinput>sed -e 's/^#define BA_LB_COUNT.*$/#define BA_LB_COUNT 40/' \
+-i src/3rdparty/chromium/third_party/blink/renderer/platform/text/text_break_iterator.cc</userinput></screen>
+
+    <para>
       Finally, fix a change in the build system which allows its developers to
       pass e.g. -j20 to make (for quick tests of some areas) but breaks the
       build with LFS's use of the NINJAJOBS environment variable:
