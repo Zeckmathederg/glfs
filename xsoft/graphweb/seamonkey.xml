@@ -208,11 +208,14 @@ ac_add_options --with-system-webp
 # faster. Comment this if you need to run a debugger. Note: This is
 # required for compilation on i686.
 ac_add_options --disable-debug-symbols
-
+<!-- With Firefox ESR 128 we'd replace the following part with "- -enable-elf-hack=relr", or remove it if relr becomes the default.  But I've no idea if SeaMonkey will have this change backported.  -->
 # The elf-hack is reported to cause failed installs (after successful builds)
 # on some machines. It is supposed to improve startup time and it shrinks
-# libxul.so by a few MB - comment this if you know your machine is not affected.
+# libxul.so by a few MB.  With recent Binutils releases the linker already
+# supports a much safer and generic way for this.
 ac_add_options --disable-elf-hack
+ac_add_options --enable-linker=bfd
+export LDFLAGS="$LDFLAGS -Wl,-z,pack-relative-relocs"
 
 # Seamonkey has some additional features that are not turned on by default,
 # such as an IRC client, calendar, and DOM Inspector. The DOM Inspector
@@ -230,13 +233,14 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 
-# rust-simd does not compile with recent versions of rust.
-# It is disabled in recent versions of firefox
+# The Rust code for SIMD optimization is much more outdated than
+# Firefox and Thunderbird, so it does not build with recent Rustc.
 ac_add_options --disable-rust-simd
 
-ac_add_options --enable-optimize="-O2"
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
+
+# You cannot distribute the binary if you do this.
 ac_add_options --enable-official-branding
 
 # The option to use system cairo was removed in 2.53.9.
