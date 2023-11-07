@@ -82,6 +82,16 @@
           <ulink url="&patch-root;/seamonkey-&seamonkey-version;-consolidated_fixes-1.patch"/>
         </para>
       </listitem>
+      <listitem>
+        <para>
+          Required Python module:
+          <ulink url="&pymodules-dl;/s/setuptools/setuptools-&setuptools-version;.tar.gz"/>
+        </para>
+        <para>
+          This module has already been installed in LFS, but now we need
+          to rebuild its wheel package for SeaMonkey building system.
+        </para>
+      </listitem>
     </itemizedlist>
 
     <note>
@@ -100,6 +110,7 @@
       <xref linkend="cbindgen"/>,
       <xref linkend="gtk3"/>,
       <xref linkend="nodejs"/>,
+      <xref linkend="six"/>,
       <xref linkend="unzip"/>,
       <xref linkend="yasm"/>, and
       <xref linkend="zip"/>
@@ -269,14 +280,57 @@ EOF</userinput></screen>
 
 <screen><userinput>patch -Np1 -i ../seamonkey-&seamonkey-version;-consolidated_fixes-1.patch</userinput></screen>
 
-<!--
     <para>
-      Next, work around a problem in the Python virtual environment:
+      The building system ships several internal copies of the Python 3
+      module <filename>six.py</filename> and wheel packages for
+      <filename>pip</filename> and <filename>setuptools</filename> modules.
+      Theses shipped modules are too old to work well with Python 3.12 or
+      later.  Replace the shipped <filename>six.py</filename> copies with
+      the symlinks to <xref linkend='six'/> already installed on the system,
+      link the updated <filename>pip</filename> wheel package shipped
+      as a part of Python 3 in LFS into the building system, and build an
+      updated <filename>setuptools</filename> wheel package.  Then adapt
+      the building system for the updated modules.  We also need to rewrite
+      the code based on the <filename>imp</filename> module removed in
+      Python 3.12 and later using the <filename>importlib</filename> module:
     </para>
 
-<screen><userinput>sed -i "/if sys.executable !=/i\    open(join(bin_dir, 'pyvenv.cfg'), 'w').close()" \
-    third_party/python/virtualenv/virtualenv.py</userinput></screen>
--->
+    <screen><userinput>(for i in $(find -name six.py); do
+   ln -sfv /usr/lib/python3.12/site-packages/six.py $i
+   [ $? = 0 ] || exit $?
+ done) &amp;&amp;
+
+ln -sv /usr/lib/python&python3-majorver;/ensurepip/_bundled/pip-*.whl \
+       third_party/python/virtualenv/virtualenv_support &amp;&amp;
+
+tar xf ../setuptools-&setuptools-version;.tar.gz                             &amp;&amp;
+pip3 wheel --no-build-isolation --no-deps --no-cache-dir       \
+           $PWD/setuptools-&setuptools-version;                              \
+           -w third_party/python/virtualenv/virtualenv_support &amp;&amp;
+
+sed '/ConfigParser/s/Safe//'                          \
+    -i testing/mozbase/mozprofile/mozprofile/prefs.py &amp;&amp;
+
+sed 's/distutils/setuptools._&amp;/'            \
+    -i python/mozbuild/mozbuild/nodeutil.py &amp;&amp;
+
+sed 's/readfp/read_file/' -i ipc/ipdl/ipdl.py &amp;&amp;
+
+sed -e '/^import/s/imp$/importlib.util/'             \
+    -e 's/imp.new_module/__import__/'                \
+    -e "s/imp.load_source\(.*\)/spec =               \
+        importlib.util.spec_from_file_location\1;    \
+        mod = importlib.util.module_from_spec(spec); \
+        spec.loader.exec_module(mod)/" -i python/mach/mach/main.py &amp;&amp;
+
+sed -e '/^import/s/imp$/importlib.util/'                          \
+    -e '/imp.PY_SOURCE/d'                                         \
+    -e "s/\([a-z_]*\) = imp.load_module([^,]*,[^,]*,\(.*\)/spec = \
+        importlib.util.spec_from_file_location('script', \2);     \
+        \1 = importlib.util.module_from_spec(spec);               \
+        spec.loader.exec_module(\1)/"                             \
+    -i netwerk/dns/prepare_tlds.py                                \
+       python/mozbuild/mozbuild/action/file_generate.py</userinput></screen>
 
     <para>
       Fix a problem with the bundled 'distro' python module:
