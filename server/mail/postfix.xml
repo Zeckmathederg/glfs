@@ -86,13 +86,14 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="db"/>,
-      <xref linkend="cyrus-sasl"/>, and
-      <xref linkend="libnsl"/>
+      <xref linkend="cyrus-sasl"/>,
+      <xref linkend="libnsl"/>, and
+      <xref linkend="lmdb"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
+      <xref linkend="db"/>,
       <xref linkend="icu"/> for Email Address Internationalization (SMTPUTF8) support,
       <xref linkend="mariadb"/> or <ulink url="https://www.mysql.com/">MySQL</ulink>,
       <xref linkend="openldap"/>,
@@ -161,8 +162,9 @@ chown -v postfix:postfix /var/mail</userinput></screen>
       <note>
         <para>
           For all variants of the CCARGS you should ensure that -DNO_NIS is
-          specified so that the build does not attempt to access an rpcsvc header
-          which does not exist in BLFS.
+          specified so that the build does not attempt to access an rpcsvc
+          header which do not exist in BLFS.  If <xref linkend='db'/> is
+          not installed, -DNO_DB needs to be specified as well.
         </para>
       </note>
 
@@ -178,9 +180,20 @@ chown -v postfix:postfix /var/mail</userinput></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl'
+<screen><literal>CCARGS="-DNO_NIS -DNO_DB \
+        -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl"
 AUXLIBS='-lsasl2'</literal></screen>
+      </sect4>
 
+      <sect4>
+        <title>LMDB</title>
+        <para>
+          To use <application>LMDB</application> with
+          <application>Postfix</application>, use the following arguments:
+        </para>
+
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_LMDB'
+AUXLIBS_LMDB='-llmdb'</literal></screen>
       </sect4>
 
       <sect4>
@@ -191,7 +204,7 @@ AUXLIBS='-lsasl2'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DHAS_LDAP'
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_LDAP'
 AUXLIBS='-lldap -llber'</literal></screen>
 
       </sect4>
@@ -204,7 +217,7 @@ AUXLIBS='-lldap -llber'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DHAS_SQLITE'
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_SQLITE'
 AUXLIBS='-lsqlite3 -lpthread'</literal></screen>
 
       </sect4>
@@ -217,7 +230,7 @@ AUXLIBS='-lsqlite3 -lpthread'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DHAS_MYSQL -I/usr/include/mysql'
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_MYSQL -I/usr/include/mysql'
 AUXLIBS='-lmysqlclient -lz -lm'</literal></screen>
 
       </sect4>
@@ -230,7 +243,7 @@ AUXLIBS='-lmysqlclient -lz -lm'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DHAS_PGSQL -I/usr/include/postgresql'
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_PGSQL -I/usr/include/postgresql'
 AUXLIBS='-lpq -lz -lm'</literal></screen>
 
       </sect4>
@@ -244,7 +257,7 @@ AUXLIBS='-lpq -lz -lm'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DHAS_CDB'
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_CDB'
 AUXLIBS='<replaceable>&lt;/path/to/CDB&gt;</replaceable>/libcdb.a'</literal></screen>
 
       </sect4>
@@ -257,7 +270,7 @@ AUXLIBS='<replaceable>&lt;/path/to/CDB&gt;</replaceable>/libcdb.a'</literal></sc
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DUSE_TLS -I/usr/include/openssl/'
+<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DUSE_TLS -I/usr/include/openssl/'
 AUXLIBS='-lssl -lcrypto'</literal></screen>
       </sect4>
 
@@ -268,14 +281,17 @@ AUXLIBS='-lssl -lcrypto'</literal></screen>
 
       <para>
         Adjust the following according to your needs. For example,
-        if you have <application>Cyrus SASL</application>,
+	if you have <application>Cyrus SASL</application> and
+	<application>LMDB</application>,
         install <application>Postfix</application> by running the following
         commands:
       </para>
 
-<screen><userinput>make CCARGS="-DNO_NIS -DUSE_TLS -I/usr/include/openssl/            \
-             -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl" \
+<screen><userinput>make CCARGS="-DNO_NIS -DNO_DB -DUSE_TLS -I/usr/include/openssl/    \
+             -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl  \
+             -DHAS_LMDB"                                           \
      AUXLIBS="-lssl -lcrypto -lsasl2"                              \
+     AUXLIBS_LMDB="-llmdb"                                         \
      makefiles &amp;&amp;
 make</userinput></screen>
 
@@ -375,6 +391,24 @@ EOF</userinput></screen>
         To protect an existing <filename>/etc/aliases</filename> file,
         the above command appends these aliases to it if it exists. This file
         should be checked and duplicate aliases removed, if present.
+      </para>
+
+      <para>
+        The BLFS editors recommend to use LMDB instead of Berkeley DB for
+        Postfix lookup tables.  Add a line into
+        <filename>/etc/postfix/main.cf</filename> to make
+        <command>postmap</command> to encode the lookup tables in the LMDB
+        format by default:
+      </para>
+
+<screen role="root"><userinput>echo 'default_database_type = lmdb' &gt;&gt; /etc/postfix/main.cf</userinput></screen>
+
+      <para>
+        Note that if you are following an online tutorial to configure
+        Postfix, the tutorial may refer to a lookup table with
+        <literal>hash:/path/to/lookup_table</literal>.  You should replace
+        <literal>hash</literal> with <literal>lmdb</literal> in order to use
+        a lookup table encoded in the LMDB format.
       </para>
 
       <note>
