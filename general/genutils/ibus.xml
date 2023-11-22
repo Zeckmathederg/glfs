@@ -88,7 +88,6 @@
     <para role="required">
       <xref linkend="dconf"/>,
       <!-- needed since we're using autogen.sh -->
-      <xref linkend="gtk-doc"/>,
       <xref linkend="iso-codes"/>, and
       <xref linkend="vala"/>
     </para>
@@ -103,15 +102,16 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="gtk4"/> (to build IM module for it),
+      <xref linkend="gtk-doc"/> (for generating API documentation),
       <xref linkend="dbus-python"/> and
       <xref linkend="pygobject3"/> (both to build the Python support library),
-      <!--<xref linkend="gtk-doc"/>, and-->
       <!--<xref linkend="pyxdg" role="runtime"/>
       (runtime, for the <command>ibus-setup</command>), and
       NOTE: The reference to the 'xdg' python module is commented out in the source -->
       <xref linkend="libxkbcommon"/>,
-      <xref linkend="wayland"/> (both to build the Wayland support programs), and
-      <ulink url="https://www.joypixels.com/">EmojiOne</ulink>
+      <xref linkend="wayland"/> (both to build the Wayland support programs),
+      <ulink url="https://www.joypixels.com/">EmojiOne</ulink>, and
+      <ulink url="https://github.com/AyatanaIndicators/libdbusmenu">libdbusmenu</ulink>
     </para>
 
   </sect2>
@@ -149,27 +149,38 @@ unzip -uo ../UCD.zip -d /usr/share/unicode/ucd</userinput></screen>
     -i data/dconf/org.freedesktop.ibus.gschema.xml</userinput></screen>
 
     <para>
+      If <xref linkend='gtk-doc'/> is not installed, remove the references
+      to it:
+    </para>
+
+<screen><userinput>if ! [ -e /usr/bin/gtkdocize ]; then
+  sed '/docs/d;/GTK_DOC/d' -i Makefile.am configure.ac
+fi</userinput></screen>
+
+    <para>
       Install <application>ibus</application> by running the following
       commands:
     </para>
 
-<screen revision='sysv'><userinput>SAVE_DIST_FILES=1                   \
-PYTHON=python3                      \
-./autogen.sh --prefix=/usr          \
-             --sysconfdir=/etc      \
-             --disable-python2      \
-             --disable-appindicator \
-             --disable-emoji-dict   \
-             --disable-systemd-services &amp;&amp;
+<screen revision='sysv'><userinput>SAVE_DIST_FILES=1 NOCONFIGURE=1 ./autogen.sh &amp;&amp;
+
+PYTHON=python3                     \
+./configure --prefix=/usr          \
+            --sysconfdir=/etc      \
+            --disable-python2      \
+            --disable-appindicator \
+            --disable-emoji-dict   \
+            --disable-systemd-services &amp;&amp;
 make</userinput></screen>
 
-<screen revision='systemd'><userinput>SAVE_DIST_FILES=1                   \
-PYTHON=python3                      \
-./autogen.sh --prefix=/usr          \
-             --sysconfdir=/etc      \
-             --disable-python2      \
-             --disable-appindicator \
-             --disable-emoji-dict   &amp;&amp;
+<screen revision='systemd'><userinput>SAVE_DIST_FILES=1 NOCONFIGURE=1 ./autogen.sh &amp;&amp;
+
+PYTHON=python3                     \
+./configure --prefix=/usr          \
+            --sysconfdir=/etc      \
+            --disable-python2      \
+            --disable-appindicator \
+            --disable-emoji-dict   &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -192,18 +203,15 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
+      <parameter>--disable-appindicator</parameter>: This switch disables
+      use of libdbusmenu. Omit if you installed the optional dependency.
+    </para>
+
+    <para>
       <parameter>--disable-emoji-dict</parameter>: This switch disables the
       use of emoticon dictionaries. Omit if you installed the optional
       package.
     </para>
-
-<!--
-    <para>
-      <parameter>- -disable-unicode-dict</parameter>: This switch disables the use
-      of unicode dictionaries. Omit if you installed the optional
-      Unicode Character Database.
-    </para>
--->
 
     <para>
       <option>--disable-gtk2</option>: This switch disables building
@@ -227,6 +235,22 @@ make</userinput></screen>
       <option>--enable-wayland</option>: This switch enables building
       the <application>Wayland</application> support programs.
       Use it if you have installed the optional dependencies.
+    </para>
+
+    <para>
+      <envar>NOCONFIGURE=1</envar>: Prevent <command>autogen.sh</command>
+      from running the generated <command>configure</command> script.  We'll
+      run the script manually instead of relying on
+      <command>autogen.sh</command> to run it, because
+      <command>autogen.sh</command> would set <option>-fsanitize=address
+      -fsanitize=leak</option> in <envar>CFLAGS</envar> running
+      <command>configure</command>, but those compiler options are not
+      suitable for productive use and they may also cause a build failure.
+      <!-- GCC security policy: "Libraries like libvtv and the sanitizers
+           are intended to be used in diagnostic cases and not intended for
+           use in sensitive environments."  In my build it also causes
+           "compose/sequences-little-endian" bail out with a sanitizer
+           warning and the package to FTBFS.  -->
     </para>
 
     <para>
