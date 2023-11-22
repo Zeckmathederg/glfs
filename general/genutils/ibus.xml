@@ -71,7 +71,7 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Optional Download</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
 
     <itemizedlist spacing="compact">
       <listitem>
@@ -87,6 +87,8 @@
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="dconf"/>,
+      <!-- needed since we're using autogen.sh -->
+      <xref linkend="gtk-doc"/>,
       <xref linkend="iso-codes"/>, and
       <xref linkend="vala"/>
     </para>
@@ -103,7 +105,7 @@
       <xref linkend="gtk4"/> (to build IM module for it),
       <xref linkend="dbus-python"/> and
       <xref linkend="pygobject3"/> (both to build the Python support library),
-      <xref linkend="gtk-doc"/>, and
+      <!--<xref linkend="gtk-doc"/>, and-->
       <!--<xref linkend="pyxdg" role="runtime"/>
       (runtime, for the <command>ibus-setup</command>), and
       NOTE: The reference to the 'xdg' python module is commented out in the source -->
@@ -117,13 +119,20 @@
   <sect2 role="installation">
     <title>Installation of ibus</title>
 
+<!--
     <para>
       If the optional Unicode Character Database was downloaded, install it
       now as the <systemitem class="username">root</systemitem> user:
     </para>
+-->
+
+    <para>
+      First, install the Unicode Character Database as the &root; user:
+    </para>
 
 <screen role="root"><userinput>mkdir -p                /usr/share/unicode/ucd &amp;&amp;
 unzip -uo ../UCD.zip -d /usr/share/unicode/ucd</userinput></screen>
+
 <!--
     <note>
       <para>
@@ -133,7 +142,8 @@ unzip -uo ../UCD.zip -d /usr/share/unicode/ucd</userinput></screen>
     </note>
 -->
     <para>
-      Fix an issue with deprecated schema entries:</para>
+      Fix an issue with deprecated schema entries:
+    </para>
 
 <screen><userinput>sed -e 's@/desktop/ibus@/org/freedesktop/ibus@g' \
     -i data/dconf/org.freedesktop.ibus.gschema.xml</userinput></screen>
@@ -143,8 +153,8 @@ unzip -uo ../UCD.zip -d /usr/share/unicode/ucd</userinput></screen>
       commands:
     </para>
 
-<screen revision='sysv'><userinput>SAVE_DIST_FILES=1 \
-PYTHON=python3    \
+<screen revision='sysv'><userinput>SAVE_DIST_FILES=1                   \
+PYTHON=python3                      \
 ./autogen.sh --prefix=/usr          \
              --sysconfdir=/etc      \
              --disable-python2      \
@@ -153,8 +163,8 @@ PYTHON=python3    \
              --disable-systemd-services &amp;&amp;
 make</userinput></screen>
 
-<screen revision='systemd'><userinput>SAVE_DIST_FILES=1 \
-PYTHON=python3    \
+<screen revision='systemd'><userinput>SAVE_DIST_FILES=1                   \
+PYTHON=python3                      \
 ./autogen.sh --prefix=/usr          \
              --sysconfdir=/etc      \
              --disable-python2      \
@@ -168,8 +178,6 @@ make</userinput></screen>
       not installed in LFS.
       <!-- The log says "No idea to simulate key events in Wayland"
            in a Mutter wayland session.  -->
-      The test named xkb-latin-layouts is known to fail with a recent
-      xkeyboard-config release.
     </para>
 
     <para>
@@ -189,11 +197,13 @@ make</userinput></screen>
       package.
     </para>
 
+<!--
     <para>
-      <parameter>--disable-unicode-dict</parameter>: This switch disables the use
+      <parameter>- -disable-unicode-dict</parameter>: This switch disables the use
       of unicode dictionaries. Omit if you installed the optional
       Unicode Character Database.
     </para>
+-->
 
     <para>
       <option>--disable-gtk2</option>: This switch disables building
@@ -225,6 +235,14 @@ make</userinput></screen>
       <application>Python 3</application>. Use it if you want
       to build the <application>Python 3</application> support
       library.
+    </para>
+
+    <para>
+      <envar>SAVE_DIST_FILES=1</envar>: This environment variable makes
+      the <command>autogen.sh</command> script save some pre-generated
+      header files instead of overwriting them when it is run. This prevents
+      build failures when generating <filename>ibusemojigen.h</filename>.
+      <!-- This is needed because we do not have the Emoji dictionary.-->
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
