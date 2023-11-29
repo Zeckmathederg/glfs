@@ -99,6 +99,8 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
 
+      <xref linkend="glslang"/> (required for Vulkan support),
+
       <xref role="first" linkend="libva"/> (to provide VA-API support for some
       gallium drivers, note that there is a circular dependency. You must
       build <application>libva</application> first without EGL and GLX support,
@@ -109,11 +111,13 @@
       <xref linkend="llvm"/> (required for Gallium3D, nouveau, and radeonsi
       drivers and for swrast, the software rasterizer which is sometimes referred
       to as llvmpipe. See <ulink role="nodep"
-      url="https://docs.mesa3d.org/systems.html"/> for more information), and
+      url="https://docs.mesa3d.org/systems.html"/> for more information),
 
       <xref linkend="wayland-protocols"/> (required for
         <xref role="nodep" linkend='plasma5-build'/>,
-        GNOME, and recommended for <xref role="nodep" linkend='gtk3'/>)
+        GNOME, and recommended for <xref role="nodep" linkend='gtk3'/>), and
+
+      <xref linkend="vulkan-loader"/> (required for Vulkan support)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -128,12 +132,12 @@
       <application>Mesa</application>; this includes the same programs added by
       the patch above),
       <ulink url="https://omxil.sourceforge.net/">Bellagio OpenMAX Integration
-      Layer</ulink> (for mobile platforms),
-      <ulink url="https://github.com/KhronosGroup/glslang">glslang</ulink>
-      (for vulkan drivers),
+      Layer</ulink> (for mobile platforms), and
+      <!--<ulink url="https://github.com/KhronosGroup/glslang">glslang</ulink>
+      (for vulkan drivers),-->
       <ulink url="https://github.com/tizonia/tizonia-openmax-il/wiki/Tizonia-OpenMAX-IL/">
-      libtizonia</ulink>,  and
-      <ulink url="https://github.com/KhronosGroup/Vulkan-Loader">Vulkan-Loader</ulink>
+      libtizonia</ulink>,
+      <!-- <ulink url="https://github.com/KhronosGroup/Vulkan-Loader">Vulkan-Loader</ulink> -->
     </para>
 <!--
     <note>
@@ -289,7 +293,7 @@ meson setup                   \
       --buildtype=release     \
       -Dplatforms=x11,wayland \
       -Dgallium-drivers=auto  \
-      -Dvulkan-drivers=""     \
+      -Dvulkan-drivers=auto   \
       -Dvalgrind=disabled     \
       -Dlibunwind=disabled    \
       ..                      &amp;&amp;
@@ -380,13 +384,11 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     </para>
 
     <para>
-      <parameter>-Dvulkan-drivers=""</parameter>: This switch allows choosing
-      which Vulkan drivers are built. The default is auto, but this requires
-      the optional dependencies <application>glslang</application> and
-      <application>Vulkan-Loader</application>.  Vulkan is a newer API
-      designed for utilizing the GPUs with a performance better than OpenGL,
-      but nothing in BLFS benefits from it for now.  So we pass an empty
-      list in order to remove the need for these dependencies.
+      <parameter>-Dvulkan-drivers=auto</parameter>: This switch enables support
+      for the Vulkan graphics API. It automatically builds all graphics drivers
+      that are available for Vulkan. If you wish to build specific drivers,
+      valid options include 'amd', 'intel', 'intel_hasvk', and 'swrast'. If you
+      do not want Vulkan support, change 'auto' to "".
     </para>
 
     <para>
@@ -422,7 +424,9 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
       <segtitle>Installed Libraries</segtitle><!-- in /usr/lib -->
-      <segtitle>Installed Drivers</segtitle><!-- in /usr/lib/<subdir> -->
+      <segtitle>Installed DRI Drivers</segtitle><!-- in /usr/lib/dri -->
+      <segtitle>Installed VDPAU Drivers</segtitle><!-- in /usr/lib/vdpau -->
+      <segtitle>Installed Vulkan Drivers</segtitle><!-- in /usr/lib -->
       <segtitle>Installed Directories</segtitle>
 
       <seglistitem>
@@ -458,9 +462,11 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           radeonsi_drv_video.so,
           swrast_dri.so,
           virtio_gpu_dri.so,
-          virtio_gpu_drv_video.so,
-          vmwgfx_dri.so,
+          virtio_gpu_drv_video.so, and
+          vmwgfx_dri.so
           <!-- End DRI Drivers -->
+        </seg>
+        <seg>
           <!-- Begin VDPAU drivers -->
           libvdpau_nouveau.so,
           libvdpau_r300.so
@@ -471,11 +477,18 @@ cp -rfv ../docs/* /usr/share/doc/mesa-&mesa-version;</userinput></screen>
           (Many of these drivers are hard-linked).
         </seg>
         <seg>
+          libvulkan_intel_hasvk.so,
+          libvulkan_intel.so,
+          libvulkan_lvp.so, and
+          libvulkan_radeon.so
+        </seg>
+        <seg>
           <!-- $XORG_PREFIX/include/GL is installed by xorg-protos -->
           $XORG_PREFIX/{include/{EGL,GLES,GLES2,GLES3,KHR},
           $XORG_PREFIX/lib/{dri,vdpau}},
           $XORG_PREFIX/share/drirc.d (contains workarounds for various applications,
           particularly browsers and games),
+          $XORG_PREFIX/share/vulkan,
           and /usr/share/doc/mesa-&mesa-version;
         </seg>
       </seglistitem>
