@@ -169,24 +169,30 @@ make</userinput></screen>
   <sect2 role="configuration">
     <title>Configuring ISC Kea DHCP Server</title>
 
-    <para>The support of IPv4, IPv6 and DDNS has been split into
-    separate servers which runs independently from each other. Each
-    of them has its own configuration file. Additional configuration
-    files come from the keactrl agent which is uses to control the
-    servers in an easy way.</para>
+    <para>
+      The support of IPv4, IPv6 and DDNS has been split into
+      separate servers which runs independently from each other. Each
+      of them has its own configuration file.<phrase revision="sysv">
+      Additional configuration files come from the keactrl agent which
+      is used to control the servers in an easy way.</phrase>
+    </para>
 
-    <para>Consult the
-    <ulink url="https://kea.readthedocs.io/en/kea-&kea-arm-vers;/">Kea Administrator Reference Manual</ulink>
-    for detailed information about the configuration of <application>ISC Kea</application>
-    as it is a quite capable system. The configuration shown a bare
-    minimum to get a DHCP server running but it already includes
-    configuration for DDNS (Dynamic DNS). That setup might be working
-    for small networks with a few clients and low traffic. For greater
-    installations with thousands of clients, <application>ISC Kea</application>
-    can be configured to use databases (mariadb or postgresql) to store
-    the leases and build a cluster with multiple nodes. It can
-    be integrated to <ulink url="https://www.isc.org/categories/stork/">ISC Stork</ulink>
-    which is a management dashboard to <application>ISC Kea</application>.</para>
+    <para>
+      Consult the <ulink
+        url="https://kea.readthedocs.io/en/kea-&kea-arm-vers;/">
+        Kea Administrator Reference Manual</ulink>
+      for detailed information about the configuration of
+      <application>ISC Kea</application> as it is a quite capable system.
+      The configuration shown below is a bare minimum to get a DHCP server
+      running but it already includes configuration for DDNS (Dynamic DNS).
+      That setup might be working for small networks with a few clients and
+      low traffic. For greater installations with thousands of clients,
+      <application>ISC Kea</application> can be configured to use databases
+      (mariadb or postgresql) to store the leases and build a cluster with
+      multiple nodes. It can be integrated to
+      <ulink url="https://www.isc.org/categories/stork/">ISC Stork</ulink>
+      which is a management dashboard to <application>ISC Kea</application>.
+    </para>
 
     <para>
       If you want to start the DHCP Server at boot, install the
@@ -205,14 +211,16 @@ make</userinput></screen>
       <title>Config Files</title>
 
       <para>
-        <filename>/etc/kea/keactrl.conf</filename>,
+        <phrase revision="sysv">
+          <filename>/etc/kea/keactrl.conf</filename>,
+        </phrase>
         <filename>/etc/kea/kea-ctrl-agent.conf</filename>,
         <filename>/etc/kea/kea-dhcp4.conf</filename>,
-        <filename>/etc/kea/kea-dhcp6.conf</filename> and
+        <filename>/etc/kea/kea-dhcp6.conf</filename>, and
         <filename>/etc/kea/kea-dhcp-ddns.conf</filename>
       </para>
 
-      <indexterm zone="kea keactrl-config">
+      <indexterm zone="kea keactrl-config" revision="sysv">
         <primary sortas="e-etc-kea-keactrl.conf">/etc/kea/keactrl.conf</primary>
       </indexterm>
 
@@ -223,17 +231,17 @@ make</userinput></screen>
       <indexterm zone="kea kea-dhcp4-config">
         <primary sortas="e-etc-kea-dhcp4.conf">/etc/kea/kea-dhcp4.conf</primary>
       </indexterm>
-<!--
+
       <indexterm zone="kea kea-dhcp6-config">
         <primary sortas="e-etc-kea-dhcp6.conf">/etc/kea/kea-dhcp6.conf</primary>
       </indexterm>
--->
+
       <indexterm zone="kea kea-dhcp-ddns-config">
         <primary sortas="e-etc-kea-dhcp-ddns.conf">/etc/kea/kea-dhcp-ddns.conf</primary>
       </indexterm>
     </sect3>
 
-    <sect3 id="keactrl-config">
+    <sect3 id="keactrl-config" revision="sysv">
       <title>Kea Control Configuration</title>
 
       <para><command>keactrl</command> is used to control the
@@ -278,15 +286,19 @@ make</userinput></screen>
         </listitem>
       </itemizedlist>
 
-      <para>The Netconf service is not installed because required
-      dependencies are not covered by the current BLFS book.</para>
+      <para>
+        The Netconf service is not installed because required
+        dependencies are not covered by the current BLFS book.
+.    </para>
 
-      <para>With the following command, Kea will be configured to
-      start the dhcp service for IPv4 and the
-      dynamic DNS update, while the control agent and
-      the dhcp service for IPv6 remains down. Tweak the command to
-      match your needs on started services and execute as the
-      <systemitem class="username">root</systemitem> user:</para>
+      <para>
+        With the following command, Kea will be configured to
+        start the dhcp service for IPv4 and the
+        dynamic DNS update, while the control agent and
+        the dhcp service for IPv6 remain down. Tweak the command to
+        match your needs on started services and execute as the
+        &root; user:
+      </para>
 
 <screen role="root"><userinput>sed -e "s/^dhcp4=.*/dhcp4=yes/" \
     -e "s/^dhcp6=.*/dhcp6=no/" \
@@ -294,6 +306,56 @@ make</userinput></screen>
     -e "s/^ctrl_agent=.*/ctrl_agent=no/" \
     -i /etc/kea/keactrl.conf
 </userinput></screen>
+
+    </sect3>
+
+    <sect3 id="kea-sysd-config" revision="systemd">
+      <title>Kea Configuration Using Systemd Units</title>
+
+      <para>
+        Four service units are used to start various daemons
+        provided by Kea:
+      </para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Control Agent</para>
+          <para>
+            The Control Agent is a daemon which allows the
+            (re)configuration of the Kea DHCP service via REST API.
+            Run <command>systemctl enable kea-ctrl-agent</command>
+            if this daemon is needed.
+          </para>
+        </listitem>
+        <listitem>
+          <para>IPv4 DHCP server</para>
+          <para>
+            This daemon handles requests for IPv4 addresses.
+            Run <command>systemctl enable kea-dhcp4-server</command> to
+            have it started by systemd.
+          </para>
+        </listitem>
+        <listitem>
+          <para>IPv6 DHCP server</para>
+          <para>
+            This daemon handles requests for IPv6 addresses.
+            Run <command>systemctl enable kea-dhcp6-server</command> to
+            have it started by systemd.
+          </para>
+        </listitem>
+        <listitem>
+          <para>Dynamic DNS</para>
+          <para>
+            This daemon is used to update a DNS server dynamically
+            when Kea assigns an IP address to a device.
+            Run <command>systemctl enable kea-ddns-server</command> to
+            have it started by systemd.
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The Netconf service is not installed because required
+      dependencies are not covered by the current BLFS book.</para>
 
     </sect3>
 
@@ -442,6 +504,11 @@ EOF</userinput></screen>
 }
 // End /etc/kea/kea-dhcp4.conf</literal>
 EOF</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="kea-dhcp6-config">
+      <title>IPv6 DHCP Server Configuration</title>
 
       <para>
         The configuration for IPv6 is similar to the configuration
