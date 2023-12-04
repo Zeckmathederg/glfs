@@ -6,10 +6,10 @@
 
   <!ENTITY kea-download-http "https://downloads.isc.org/isc/kea/&kea-dhcp-version;/kea-&kea-dhcp-version;.tar.gz">
   <!ENTITY kea-download-ftp  " ">
-  <!ENTITY kea-md5sum        "e01bdc8d68cfaca1cae17b20b26e09b6">
-  <!ENTITY kea-size          "9.9 MB">
-  <!ENTITY kea-buildsize     "1.1 GB">
-  <!ENTITY kea-time          "14 SBU"><!-- Thats unexpectedly long -->
+  <!ENTITY kea-md5sum        "ad23d02b3ce0475eb077da05b0ae2429">
+  <!ENTITY kea-size          "10 MB">
+  <!ENTITY kea-buildsize     "1.5 GB (332 MB installed; add 4 GB for tests)">
+  <!ENTITY kea-time          "4.1 SBU (with parallelism=4; add 12 SBU for tests)">
   <!ENTITY kea-arm-vers      "&kea-dhcp-version;">
 ]>
 
@@ -77,10 +77,12 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="mitkrb"/>, for documentation
+      <xref linkend="mitkrb"/>,
+      <xref linkend="valgrind"/>; for documentation:
       <xref linkend="doxygen"/>,
       <xref linkend="graphviz"/>, and
-      <xref linkend="sphinx_rtd_theme"/>
+      <xref linkend="sphinx_rtd_theme"/>; for tests:
+      <ulink url="https://google.github.io/googletest/">GoogleTest</ulink>
     </para>
 
     <bridgehead renderas="sect4">Optional database backends</bridgehead>
@@ -115,6 +117,20 @@
     <title>Installation of ISC Kea DHCP Server</title>
 
     <para>
+      First fix detection of Python-3.12 by the build system:
+    </para>
+
+<screen><userinput>sed -e 's/:3/:4/' \
+    -i configure</userinput></screen>
+
+    <para>
+      Remove one installation step that uses an obsolete python module:
+    </para>
+
+<screen><userinput>sed -e '/dlist="/d' \
+    -i src/bin/shell/Makefile.in</userinput></screen>
+
+    <para>
       Install <application>ISC Kea DHCP Server</application> by running
       the following commands:
     </para>
@@ -129,7 +145,12 @@
 make</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>.
+      To test the results, you must have installed GoogleTest and kept
+      its source. You should also have passed
+      <option>--with-gtest-source=/path/to/googletest/sourcedir</option> to
+      <command>configure</command> above. Run the tests with
+      <command>make check</command>. Three tests in the TLSTest suite are
+      known to fail.
     </para>
 
     <para>
@@ -146,7 +167,21 @@ make</userinput></screen>
     <title>Command Explanations</title>
 
     <para>
-      <parameter>--with-pgsql</parameter> or <parameter>--with-mysql</parameter>:
+      <parameter>--enable-shell</parameter>: Allows building
+      <command>kea-shell</command>, a command line interface for
+      the control agent.
+    </para>
+
+    <para>
+      <parameter>--with-openssl</parameter>: Allows using OpenSSL for
+      communicating with the control-agent and for DNS updates.
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
+
+    <para>
+      <option>--with-pgsql</option> or <option>--with-mysql</option>:
       <application>ISC Kea</application> can store the leases on a
       database. This might be useful in large environments running
       a cluster of DHCP servers. Using the <emphasis>memfile</emphasis>
@@ -154,13 +189,13 @@ make</userinput></screen>
     </para>
 
     <para>
-      <parameter>--enable-generate-docs</parameter>:
+      <option>--enable-generate-docs</option>:
       If documentation is to be rebuilt, add that option. Several
       dependencies must be installed for generating the documentation.
     </para>
 
     <para>
-      <parameter>make -j1 install</parameter>: ISC does not recommend
+      <command>make -j1 install</command>: ISC does not recommend
       any form of parallel or job server options when doing the install.
     </para>
 
@@ -364,7 +399,7 @@ make</userinput></screen>
 
       <para>
         The provided configuration could be used without changes
-        but in BLFS objects like sockets are stored in
+        but in BLFS, objects like sockets are stored in
         <filename class="directory">/run</filename>
         rather than in
         <filename class="directory">/tmp</filename>.
@@ -418,9 +453,11 @@ EOF</userinput></screen>
 
       <para>
         A sample configuration file is created in <filename>/etc/kea/kea-dhcp4.conf</filename>.
-        Adjust the file to suit your needs or overwrite it by using
-        the following sample as the <systemitem class="username">root</systemitem>
-        user:
+        Adjust the file to suit your needs or overwrite it by running
+        the following command as the &root; user (you'll need to edit this
+        file anyway: at least the <emphasis>interfaces</emphasis> field,
+        the <emphasis>ddns-qualifying-suffix</emphasis> field, and almost
+        all the fields in <emphasis>Subnet4</emphasis>:
       </para>
 
 <screen role="nodump"><userinput>cat &gt; /etc/kea/kea-dhcp4.conf &lt;&lt; "EOF"
@@ -526,9 +563,8 @@ EOF</userinput></screen>
         <application>ISC Kea</application> can update the DNS when
         it gives an IP address to a client. A sample configuration
         file is created in <filename>/etc/kea/kea-dhcp-ddns.conf</filename>.
-        Adjust the file to suit your needs or overwrite it by using
-        the following sample as the <systemitem class="username">root</systemitem>
-        user:
+        Adjust the file to suit your needs or overwrite it by running
+        the following command as the &root; user:
       </para>
 
 <screen role="nodump" ><userinput>cat &gt; /etc/kea/kea-dhcp-ddns.conf &lt;&lt; "EOF"
@@ -607,8 +643,8 @@ EOF</userinput></screen>
           provided by <xref linkend="bind"/>.
         </para>
         <para>
-          In this sample config it is assumed that the DNS server
-          runs on the same machine as Kea does (accessable via
+          In this example configuration, it is assumed that the DNS server
+          runs on the same machine as Kea does (accessible via
           <literal>127.0.0.1</literal>) and that this machine has
           the IP <literal>192.168.56.2</literal>.
         </para>
@@ -632,11 +668,35 @@ EOF</userinput></screen>
           kea-dhcp-ddns, kea-lfc, kea-shell
         </seg>
         <seg>
-          libkea-*
+          libkea-asiodns.so,
+          libkea-asiolink.so,
+          libkea-cc.so,
+          libkea-cgfclient.so,
+          libkea-cryptolink.so,
+          libkea-d2srv.so,
+          libkea-database.so,
+          libkea-dhcp_ddns.so,
+          libkea-dhcp++.so,
+          libkea-dhcpsrv.so,
+          libkea-dns++.so,
+          libkea-eval.so,
+          libkea-exceptions.so,
+          libkea-hooks.so,
+          libkea-http.so,
+          libkea-log.so,
+          libkea-process.so,
+          libkea-stats.so,
+          libkea-tcp.so,
+          libkea-util.so, and
+          libkea-util-io.so
         </seg>
         <seg>
           /etc/kea,
           /usr/include/kea,
+          /usr/lib/kea,
+          /usr/lib/python&python3-majorver;/site-packages/kea,
+          /usr/share/kea,
+          /usr/share/doc/kea-&kea-version;, and
           /var/lib/kea
         </seg>
       </seglistitem>
