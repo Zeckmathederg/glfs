@@ -185,6 +185,10 @@ def load_kconfig(file):
                 if_stack += [top]
             elif line.startswith('endif'):
                 if_stack = if_stack[:-1]
+
+    if config_buf:
+        r += [parse_config(config_buf)]
+
     return r
 
 known_config = {}
