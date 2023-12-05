@@ -263,7 +263,7 @@ for i0, val, i1, title, arrow, key, menu, comment in r:
     if len(title) > rem:
         title = title[:rem - 3] + '...'
 
-    b = title.lstrip('YyMmNnHh')
+    b = title.lstrip('YyMmNnHh.' + "".join(map(str, range(10))))
     a = title[:len(title) - len(b)]
     b0 = "<emphasis role='blue'>" + escape(b[0]) + "</emphasis>"
     line += escape(a) + b0 + escape(b[1:]) + escape(arrow)
