@@ -257,6 +257,9 @@ systemd-units:
      tar -cJhf $$UNITS.tar.xz -C $(RENDERTMP) $$UNITS;                  \
    fi
 
+test-options:
+	$(Q)xsltproc --xinclude --nonet stylesheets/test-options.xsl index.xml
+
 dump-commands: $(DUMPDIR)
 $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL) version
 	@echo "Dumping book commands..."
@@ -267,7 +270,7 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL) version
 
 .PHONY: blfs all world html nochunks tmpdir clean             \
    validate profile-html blfs-patch-list wget-list test-links \
-   dump-commands  bootscripts systemd-units version
+   dump-commands  bootscripts systemd-units version test-options
 
 version:
 	$(Q)./git-version.sh $(REV)
