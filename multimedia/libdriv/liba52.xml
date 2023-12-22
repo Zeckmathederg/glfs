@@ -91,7 +91,7 @@
             --mandir=/usr/share/man \
             --enable-shared         \
             --disable-static        \
-            CFLAGS="${CFLAGS:--g -O3} $([ $(uname -m) = x86_64 ] &amp;&amp; echo -fPIC)" &amp;&amp;
+            CFLAGS="${CFLAGS:--g -O3} -fPIC" &amp;&amp;
 make</userinput></screen>
 
     <para>
@@ -113,10 +113,15 @@ install -v -m644 -D doc/liba52.txt \
     <title>Command Explanations</title>
 
     <para>
-      <parameter>CFLAGS="${CFLAGS:--g -O3} ...</parameter>: This sets
-      CFLAGS to -g -O3
-      (which is the default) but then on x86_64 adds -fPIC. This is needed to
-      compile <application>liba52</application> on x86_64.
+      <parameter>CFLAGS="${CFLAGS:--g -O3} -fPIC"</parameter>: This appends
+      <option>-fPIC</option> to <envar>CFLAGS</envar> but use
+      <option>-g -O3</option> (the default of this package) instead of an
+      empty string when <envar>CFLAGS</envar> is not set.
+      This is needed to compile <application>liba52</application> without
+      runtime text relocation.  Runtime text relocation is prohibited on
+      x86_64 so <option>-fPIC</option> is strictly required.  On 32-bit x86
+      runtime text relocation is allowed but it's insecure and it may waste
+      physical RAM, so <option>-fPIC</option> is still better.
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
