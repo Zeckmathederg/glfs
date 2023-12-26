@@ -191,49 +191,6 @@ tar: Exiting with failure status due to previous errors
   <sect2 role="installation">
     <title>Installation of Firefox</title>
 
-<!--
-    <para>
-      The building system ships several internal copies of the Python 3
-      modules <application>setuptools</application> and
-      <filename>six.py</filename>.  The shipped copies are too old
-      to work well with Python 3.12 or later.  Replace them with the
-      symlinks to the LFS <application>setuptools</application> package and
-      <xref linkend='six'/> already installed on the system, and adapt the
-      building system for these updated Python modules.  We also need to
-      rewrite the code based on the <filename>imp</filename> module removed
-      in Python 3.12 and later using the <filename>importlib</filename>
-      module:
-    </para>
-
-<screen><userinput>(for i in $(find -name six.py); do
-   ln -sfv /usr/lib/python&python3-majorver;/site-packages/six.py $i
-   [ $? = 0 ] || exit $?
- done) &amp;&amp;
-
-sed '/ConfigParser/s/Safe//'                          \
-    -i testing/mozbase/mozprofile/mozprofile/prefs.py &amp;&amp;
-
-(for i in setuptools distutils-precedence.pth  \
-          pkg_resources _distutils_hack; do
-   rm -rf third_party/python/setuptools/$i     &amp;&amp;
-   ln -sv /usr/lib/python&python3-majorver;/site-packages/$i \
-          third_party/python/setuptools
-   [ $? = 0 ] || exit $?
- done) &amp;&amp;
-
-sed 's/distutils/setuptools._&amp;/'            \
-    -i python/mozbuild/mozbuild/nodeutil.py &amp;&amp;
-
-sed -e '/^import/s/imp$/importlib.util/'             \
-    -e 's/imp.new_module/__import__/'                \
-    -e "s/imp.load_source\(.*\)/spec =               \
-        importlib.util.spec_from_file_location\1;    \
-        mod = importlib.util.module_from_spec(spec); \
-        spec.loader.exec_module(mod)/" -i python/mach/mach/main.py &amp;&amp;
-sed '/import imp/d' -i netwerk/dns/prepare_tlds.py
-</userinput></screen>
--->
-
     <!-- https://bugzilla.mozilla.org/show_bug.cgi?id=1859752
          https://hg.mozilla.org/try/rev/d5f3b0c4f08a -->
     <para>
@@ -420,10 +377,12 @@ echo "613364a7-9418-4c86-bcee-57e32fd70c23" > mozilla-key</userinput></screen>
       Now invoke the Python <command>mach</command> script to compile the package.
     </para>
 
-<screen><userinput>export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none &amp;&amp;
+<screen><userinput>
+export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none &amp;&amp;
 export MOZBUILD_STATE_PATH=${PWD}/mozbuild          &amp;&amp;
-python3.11 ./mach configure                                    &amp;&amp;
-python3.11 ./mach build</userinput></screen>
+export PYTHON311=/opt/python3.11/bin/python3.11     &amp;&amp;
+PYTHON311 ./mach configure                          &amp;&amp;
+PYTHPN311 ./mach build</userinput></screen>
 
     <para>
       The <filename>mozconfig</filename> above disables the tests because
@@ -440,25 +399,28 @@ python3.11 ./mach build</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none python3.11 ./mach install</userinput></screen>
+<screen role="root"><userinput>
+export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none &amp;&amp;
+export PYTHON311=/opt/python3.11/bin/python3.11     &amp;&amp;
+PYTHON ./mach install</userinput></screen>
 
     <para>
       Empty the environment variables which were set above:
     </para>
 
-<screen><userinput>unset MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE MOZBUILD_STATE_PATH</userinput></screen>
+<screen><userinput>
+unset MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE 
+unset MOZBUILD_STATE_PATH
+unset PYTHON311</userinput></screen>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-<!--<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/SIOCGSTAMP.xml"/>-->
-
     <para>
       <command>export MOZBUILD_STATE_PATH=${PWD}/mozbuild</command>: The build
-      is now supposed to tell you that it intends to create <filename
+      tells you that it intends to create <filename
       class="directory">~/.mozbuild</filename>, and offer you an option to
       press &lt;ENTER&gt; to accept this, or Ctrl-C to cancel and restart the
       build after specifying the directory. In practice, the message may not
@@ -467,16 +429,14 @@ python3.11 ./mach build</userinput></screen>
 
     <para>
       That directory is used for a (probably random) telemetry identifier.
-      Creating this in the build directory, and deleting that after the
-      installation, prevents it being used. If you wish to participate in
-      telemetry, export MOZBUILD_STATE_PATH to point to its default directory
-      and remove the entry from the <filename>mozconfig</filename>.
+      Creating this directory within the build directory and deleting it after the
+      installation prevents it being used.
     </para>
 
     <para>
       <command>MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none</command>: Use the
       system python to create a virtual environment for <command>mach</command>
-      without downloading any python wheels nor using the system python modules.
+      without downloading any python wheels and without using the system python modules.
       This prevents version mismatches between system modules and bundled ones.
     </para>
 
