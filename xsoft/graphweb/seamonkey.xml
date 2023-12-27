@@ -74,6 +74,7 @@
       </listitem>
     </itemizedlist>
 
+    <!--
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -93,6 +94,7 @@
         </para>
       </listitem>
     </itemizedlist>
+    -->
 
     <note>
       <para>
@@ -110,7 +112,7 @@
       <xref linkend="cbindgen"/>,
       <xref linkend="gtk3"/>,
       <xref linkend="nodejs"/>,
-      <xref linkend="six"/>,
+      <xref linkend="python311"/>,
       <xref linkend="unzip"/>,
       <xref linkend="yasm"/>, and
       <xref linkend="zip"/>
@@ -262,6 +264,8 @@ EOF</userinput></screen>
        href="../../xincludes/mozshm.xml"/>
     </note>
 
+<!-- Restore when no longer using Python 3.11. We may want to restore the patch
+     at that point as well, which includes the 'distro' and 'ICU' changes. -renodr
     <para>
       First, fix several problems that occur with Python-3.12 and ICU-74.
       If you are not using ICU-74 and Python-3.12, do not apply this patch.
@@ -278,17 +282,25 @@ EOF</userinput></screen>
        third_party/python/virtualenv/virtualenv_support &amp;&amp;
 
 tar xf ../setuptools-&setuptools-version;.tar.gz                             &amp;&amp;
-pip3 wheel --no-build-isolation --no-deps --no-cache-dir       \
+pip3 wheel - -no-build-isolation - -no-deps - -no-cache-dir       \
            $PWD/setuptools-&setuptools-version;                              \
            -w third_party/python/virtualenv/virtualenv_support</userinput></screen>
+-->
 
     <para>
-      Next, if you are on Python-3.11 still, fix a problem with the bundled
-      'distro' python module. This has been included in the patch for
-      Python-3.12 users:
+      First, if you are building with system ICU, adapt the line break mapping
+      for ICU-74 and later:
     </para>
 
-<screen role="nodump"><userinput>sed -e '1012 s/stderr=devnull/stderr=subprocess.DEVNULL/' \
+<screen><userinput remap="pre">(for i in {43..47}; do
+   sed '/ZWJ/s/$/,CLASS_CHARACTER/' -i intl/lwbrk/LineBreaker.cpp || exit $?
+done)</userinput></screen>
+
+    <para>
+      Next, fix a problem with the bundled 'distro' python module:
+    </para>
+
+<screen><userinput remap="pre">sed -e '1012 s/stderr=devnull/stderr=subprocess.DEVNULL/' \
     -e '1013 s/OSError/(OSError, subprocess.CalledProcessError)/' \
     -i third_party/python/distro/distro.py</userinput></screen>
 
@@ -297,8 +309,9 @@ pip3 wheel --no-build-isolation --no-deps --no-cache-dir       \
       commands:
     </para>
 
-<screen><userinput>AUTOCONF=true ./mach configure &amp;&amp;
-./mach build</userinput></screen>
+<screen><userinput>export PYTHON311=/opt/python3.11/bin/python3.11 &amp;&amp;
+$PYTHON311 AUTOCONF=true ./mach configure       &amp;&amp;
+$PYTHON311 AUTOCONF=true ./mach build</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -309,9 +322,9 @@ pip3 wheel --no-build-isolation --no-deps --no-cache-dir       \
       commands as the <systemitem class="username">root</systemitem> user:
     </para>
 
-
-<screen role="root"><userinput>./mach install                  &amp;&amp;
+<screen role="root"><userinput>$PYTHON311 ./mach install       &amp;&amp;
 chown -R 0:0 /usr/lib/seamonkey &amp;&amp;
+unset $PYTHON311                &amp;&amp;
 
 cp -v $(find -name seamonkey.1 | head -n1) /usr/share/man/man1</userinput></screen>
 
