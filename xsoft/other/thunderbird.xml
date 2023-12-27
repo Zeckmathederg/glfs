@@ -6,9 +6,9 @@
 
   <!ENTITY thunderbird-download-http "&mozilla-http;/thunderbird/releases/&thunderbird-version;/source/thunderbird-&thunderbird-version;.source.tar.xz">
   <!ENTITY thunderbird-download-ftp  " ">
-  <!ENTITY thunderbird-md5sum        "f4bdb62a3dabdba41296f875a1e86ac0">
-  <!ENTITY thunderbird-size          "508 MB">
-  <!ENTITY thunderbird-buildsize     "6.4 GB (236 MB installed)">
+  <!ENTITY thunderbird-md5sum        "450439b766df7bbfbf077ccfab1154be">
+  <!ENTITY thunderbird-size          "506 MB">
+  <!ENTITY thunderbird-buildsize     "6.5 GB (236 MB installed)">
   <!ENTITY thunderbird-time          "17 SBU (on a 8-core machine)">
   <!-- Removed the -j1 time because python and rust do not obey it, although
        the C/C++ code appears to obey it.
@@ -84,8 +84,7 @@
       <xref linkend="nodejs"/>,
       <xref linkend="pulseaudio"/> (or <xref linkend="alsa-lib"/> if you edit
       the mozconfig; although it is now deprecated by mozilla),
-      <xref linkend="python3"/> (rebuilt with the sqlite module),
-      <xref linkend="six"/>,
+      <xref linkend="python311"/> (rebuilt with the sqlite module),
       <xref linkend="startup-notification"/>, and
       <xref linkend="unzip"/>
       <!--<xref linkend="yasm"/>-->
@@ -136,6 +135,7 @@
       </para>
     </note>
 
+ <!-- Restore after Python 3.12 is usable for this package again
     <para>
       The building system ships several internal copies of the Python 3
       modules <application>setuptools</application> and
@@ -176,6 +176,7 @@ sed -e '/^import/s/imp$/importlib.util/'             \
         spec.loader.exec_module(mod)/" -i python/mach/mach/main.py &amp;&amp;
 sed '/import imp/d' -i netwerk/dns/prepare_tlds.py
 </userinput></screen>
+-->
 
     <para>
       The configuration of <application>Thunderbird</application> is
@@ -255,8 +256,9 @@ EOF</userinput></screen>
 
 <screen><userinput>export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none &amp;&amp;
 export MOZBUILD_STATE_PATH=./mozbuild               &amp;&amp;
-./mach configure                                    &amp;&amp;
-./mach build</userinput></screen>
+export PYTHON311=/opt/python3.11/bin/python3.11     &amp;&amp;
+$PYTHON311 ./mach configure                         &amp;&amp;
+$PYTHON311 ./mach build</userinput></screen>
 
     <para>
       This package does not come with a test suite.
@@ -267,13 +269,16 @@ export MOZBUILD_STATE_PATH=./mozbuild               &amp;&amp;
       commands as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none ./mach install</userinput></screen>
+<screen role="root"><userinput>MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none $PYTHON311 ./mach install</userinput></screen>
 <!-- devs: For DESTDIR install, prepend DESTDIR=<dest> to the above -->
+
     <para>
       Empty the environment variables which were set above:
     </para>
 
-<screen><userinput>unset MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE MOZBUILD_STATE_PATH</userinput></screen>
+<screen><userinput>unset MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE &amp;&amp;
+unset MOZBUILD_STATE_PATH                     &amp;&amp;
+unset PYTHON311</userinput></screen>
 
   </sect2>
 
