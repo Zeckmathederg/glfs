@@ -6,8 +6,8 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.xz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "ed0a20a070a3470b63bc612c82ea23fa">
-  <!ENTITY rust-size          "149 MB">
+  <!ENTITY rust-md5sum        "62d794105a8c98923a67e6d9ce032be0">
+  <!ENTITY rust-size          "153 MB">
   <!ENTITY rust-buildsize     "8.9 GB (298 MB installed); add 6.4 GB if running the tests">
   <!ENTITY rust-time          "6.7 SBU (including download time; add 6.2 SBU for tests, both using parallelism=8)">
 ]>
@@ -145,15 +145,15 @@
       </listitem>
     </itemizedlist>
 
-<!--<bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Required patch:
-          <ulink url="&patch-root;/rustc-&rust-version;-llvm9_fixes-1.patch"/>
+          Optional patch (recommended if running the test suite):
+          <ulink url="&patch-root;/rustc-&rust-version;-testsuite_fix-1.patch"/>
         </para>
       </listitem>
-    </itemizedlist>-->
+    </itemizedlist>
 
     <bridgehead renderas="sect3">Rust Dependencies</bridgehead>
 
@@ -186,7 +186,11 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="gdb"/> (used by the test suite if it is present),
-      <xref linkend="git"/> (required by the test suite), and
+      <xref linkend="git"/> (required by the test suite),
+      <ulink url="https://github.com/bytecodealliance/wasmtime/tree/main/cranelift">cranelift</ulink>,
+      <ulink url="https://jemalloc.net/">jemalloc</ulink>,
+      libgccjit (read command explanation in
+      <xref role="nodep" linkend="gcc"/>), and
       <ulink url='https://libgit2.org/'>libgit2</ulink>
     </para>
 
@@ -246,6 +250,13 @@ ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
     </note>
 
     <para>
+      If running the test suite, apply a patch to prevent the building
+      system from unnecessarily rebuilding the compiler:
+    </para>
+
+    <screen><userinput>patch -Np1 -i ../rustc-&rust-version;-testsuite_fix-1.patch</userinput></screen>
+
+    <para>
       Create a suitable <filename>config.toml</filename> file which will
       configure the build.
     </para>
@@ -255,8 +266,10 @@ ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
 # See the 8.4 book for an old example using shipped LLVM
 # e.g. if not installing clang, or using a version before 13.0
 
-# tell x.py to not keep printing an annoying warning
-changelog-seen = 2
+# Tell x.py the editors have reviewed the content of this file
+# and updated it to follow the major changes of the building system,
+# so x.py will not warn us to do such a review.
+change-id = 116881
 
 [llvm]
 # by default, rust will build for a myriad of architectures
@@ -297,6 +310,10 @@ description = "for BLFS &version;"
 # FileCheck has not been installed.
 #codegen-tests = false
 
+# Enable the same optimizations as the official upstream build.
+lto = "thin"
+codegen-units = 1
+
 [target.x86_64-unknown-linux-gnu]
 # NB the output of llvm-config (i.e. help options) may be
 # dumped to the screen when config.toml is parsed.
@@ -307,6 +324,20 @@ llvm-config = "/usr/bin/llvm-config"
 # dumped to the screen when config.toml is parsed.
 llvm-config = "/usr/bin/llvm-config"</literal>
 EOF</userinput></screen>
+
+    <note>
+      <para>
+        The <command>python3 x.py</command> commands may output a warning
+        message complaining <quote><computeroutput>no codegen-backends
+        config matched the requested path to build a codegen
+        backend</computeroutput></quote>.  And the provided
+        <quote>suggestion</quote> (<computeroutput>add backend to
+        codegen-backends in config.toml</computeroutput>) will not silence
+        it.  This warning is <ulink
+        url='https://github.com/rust-lang/rust/issues/110692'>bogus</ulink>
+        and it should be ignored.
+      </para>
+    </note>
 
     <para>
       Compile <application>Rust</application> by running the following
