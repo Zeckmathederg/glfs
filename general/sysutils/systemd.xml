@@ -167,13 +167,6 @@
 
   <sect2 role="installation">
     <title>Installation of systemd</title>
-<!--
-    <para>
-      First, fix a security issue in systemd-coredump:
-    </para>
-
-<screen><userinput>patch -Np1 -i ../systemd-&systemd-version;-security_fix-1.patch</userinput></screen>
--->
 
     <para>
       Remove two unneeded groups,
@@ -184,6 +177,14 @@
 
 <screen><userinput remap="pre">sed -i -e 's/GROUP="render"/GROUP="video"/' \
        -e 's/GROUP="sgx", //' rules.d/50-udev-default.rules.in</userinput></screen>
+
+    <para>
+      Now fix a security vulnerability in the DNSSEC verification of
+      <command>systemd-resolved</command>:
+    </para>
+
+    <screen><userinput>sed -e '/return FLAGS_SET.*AUTHENTICATED/s/(t/(dt/' \
+    -i src/resolve/resolved-dns-transaction.c</userinput></screen>
 
     <para>
       Rebuild <application>systemd</application> by running the
