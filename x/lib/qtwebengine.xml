@@ -242,7 +242,7 @@
       <listitem>
         <para>
           Required patch:
-          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-build_fixes-1.patch"/>
+          <ulink url="&patch-root;/qtwebengine-&qtwebengine-version;-build_fixes-2.patch"/>
         </para>
       </listitem>
       <listitem>
@@ -268,7 +268,8 @@
     <para role="required">
       <xref linkend="nodejs"/>,
       <xref linkend="nss"/>,
-      <xref linkend="pciutils"/>, and
+      <xref linkend="pciutils"/>,
+      <xref linkend="python311"/>, and
       (<xref linkend='qt5'/> or
        <xref role="nodep" linkend='qt5-components'/> with qtlocation and qtwebchannel)
     </para>
@@ -345,7 +346,7 @@
       and to force it to use python3:
     </para>
 
-<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-build_fixes-1.patch</userinput></screen>
+<screen><userinput remap="pre">patch -Np1 -i ../qtwebengine-&qtwebengine-version;-build_fixes-2.patch</userinput></screen>
 
     <para>
       If building with system <xref linkend='ffmpeg'/> as the editors
@@ -359,6 +360,8 @@
          already in system ffmpeg, but not this old shipped copy.
          Not marked nodump because it won't affect the build with system
          ffmpeg anyway.  -->
+
+    <!-- Now in build_fixes-2
     <para>
       Otherwise, fix an issue in shipped ffmpeg causing it fail to build
       with Binutils 2.41 or later:
@@ -366,6 +369,7 @@
 
 <screen><userinput remap="pre">sed 's/(uint8_t)\(([^)]*)\|shift\)/\1 \&amp; 0x1F/' \
     -i src/3rdparty/chromium/third_party/ffmpeg/libavcodec/x86/mathops.h</userinput></screen>
+    -->
 
 <!-- start of commands for git versions only -->
     <para>
@@ -404,6 +408,9 @@
 <screen><userinput>sed -e '/link_pulseaudio/s/false/true/' \
     -i src/3rdparty/chromium/media/media_options.gni</userinput></screen>
 
+<!-- Now in build_fixes-2.patch (except Python 3.12 changes, those are commented
+     until we eventually move to Python 3.12 again for this package (though
+     hopefully by that point these issues will be resolved)
     <para>
       Next, fix the build tools so they can be run with Python-3.11+:
     </para>
@@ -456,27 +463,20 @@ rm -r src/3rdparty/chromium/tools/grit/third_party/six</userinput></screen>
 
 <screen><userinput>sed -e 's/^#define BA_LB_COUNT.*$/#define BA_LB_COUNT 40/' \
     -i src/3rdparty/chromium/third_party/blink/renderer/platform/text/text_break_iterator.cc</userinput></screen>
+-->
 
-    <para>
-      If you are using the system copy of libxml2 (which requires that libxml2
-      has been built with the '--with-icu' option), adapt to an API change:
-    </para>
-
-<screen role="nodump"><userinput>sed -e 's/xmlError/const xmlError/' \
--i src/3rdparty/chromium/third_party/blink/renderer/core/xml/xslt_processor.h \
--i src/3rdparty/chromium/third_party/blink/renderer/core/xml/xslt_processor_libxslt.cc</userinput></screen>
-
+<!-- In build_fixes-2.patch now
     <para>
       Finally, fix a change in the build system which allows its developers to
       pass e.g. -j20 to make (for quick tests of some areas) but breaks the
       build with LFS's use of the NINJAJOBS environment variable:
     </para>
-
+-->
 <!-- editors: See thread at
 http://lists.linuxfromscratch.org/pipermail/blfs-dev/2019-December/036996.html
 et.seq, particularly 037002.html which shows the commit near the end. -->
 
-<screen><userinput>sed -i 's/NINJAJOBS/NINJA_JOBS/' src/core/gn_run.pro</userinput></screen>
+<!--<screen><userinput>sed -i 's/NINJAJOBS/NINJA_JOBS/' src/core/gn_run.pro</userinput></screen>-->
 
 <!-- now that we always install this as 5.15.2, this seems to be redundant
     <para>
@@ -498,6 +498,8 @@ fi</userinput></screen>-->
 <screen><userinput>sed -e '/#include/i#include &lt;vector&gt;' \
     -i src/3rdparty/chromium/third_party/skia/src/utils/SkParseColor.cpp</userinput></screen>-->
 
+<!-- PATH=[...] will cause /opt/python3.11/bin/python3.11 to be hardcoded into
+     the makefiles instead of whichever python is in /usr/bin -->
     <para>
       Install <application>qtwebengine</application> by running the following
       commands:
@@ -505,7 +507,10 @@ fi</userinput></screen>-->
 
 <screen><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
-qmake .. -- -system-ffmpeg -proprietary-codecs -webengine-icu &amp;&amp;
+PATH=/opt/python3.11/bin:$PATH qmake .. --                  \
+                                        -system-ffmpeg      \
+                                        -proprietary-codecs \
+                                        -webengine-icu      &amp;&amp;
 make</userinput></screen>
 
 <!--
@@ -553,6 +558,15 @@ make</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
+
+    <para>
+      <command>PATH=/opt/python3.11/bin:$PATH</command>: This switch forces
+      this package to use the version of Python 3.11 that is installed in /opt.
+      This is done to reduce the chances for problems that may occur during the
+      build, and to simplify the instructions since this package is incompatible
+      with Python 3.12 without additional modifications.
+      <!-- Ticket #19016 -->
+    </para>
 
     <para>
       <command>qmake</command>: This will build the included copy of
