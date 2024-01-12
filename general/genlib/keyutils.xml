@@ -92,23 +92,26 @@
 make</userinput></screen>
 
     <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make NO_ARLIB=1 LIBDIR=/usr/lib BINDIR=/usr/bin SBINDIR=/usr/sbin install</userinput></screen>
+
+    <para>
+      The test suite can only run after installing this package.
       To test the results, issue, as the
       <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root" remap="test"><userinput>make -k test</userinput></screen>
+<screen role="root" remap="test"><userinput>sed -e 's/executable/\\(pie \\)?/' \
+    -i tests/toolbox.inc.sh        &amp;&amp;
+make -k test</userinput></screen>
 
     <para>
       Note that several tests will fail if certain uncommon kernel options
       were not used when the kernel was built.  These include CONFIG_BIG_KEYS,
       CONFIG_KEY_DH_OPERATIONS, and CONFIG_CRYPTO_DH.
     </para>
-
-    <para>
-      Now, as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>make NO_ARLIB=1 LIBDIR=/usr/lib BINDIR=/usr/bin SBINDIR=/usr/sbin install</userinput></screen>
 
   </sect2>
 
@@ -118,6 +121,14 @@ make</userinput></screen>
     <para>
       <command>sed ... Makefile</command>: This command ensures the pkgconfig
       file is placed in the correct directory.
+    </para>
+
+    <para>
+      <command>sed ... tests/toolbox.inc.sh</command>: In LFS, GCC has been
+      configured with <option>--enable-default-pie</option> so
+      <command>/usr/bin/bash</command> is a PIE, but the test script does
+      not anticipate it.  Fix this oversight so the test can run on a LFS
+      system.
     </para>
 
     <para>
