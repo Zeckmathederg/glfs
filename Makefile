@@ -108,6 +108,7 @@ $(BASEDIR)/index.html: $(RENDERTMP)/$(BLFSHTML) version
                 --stringparam base.dir $(BASEDIR)/         \
                 stylesheets/blfs-chunked.xsl               \
                 $(RENDERTMP)/$(BLFSHTML)
+	$(Q)sed -i 's/xmlns:xlink.*xlink"//' $(BASEDIR)/longindex.html
 
 	@echo "Copying CSS code and images..."
 	$(Q)if [ ! -e $(BASEDIR)/stylesheets ]; then \
@@ -141,6 +142,7 @@ $(BASEDIR)/$(NOCHUNKS_OUTPUT): $(RENDERTMP)/$(BLFSHTML) version
                 --output $(BASEDIR)/$(NOCHUNKS_OUTPUT) \
                 stylesheets/blfs-nochunks.xsl          \
                 $(RENDERTMP)/$(BLFSHTML)
+	$(Q)sed -i 's/xmlns:xlink.*xlink"//' $(BASEDIR)/$(NOCHUNKS_OUTPUT)
 
 	@echo "Running Tidy and obfuscate.sh on non-chunked XHTML..."
 	$(Q)tidy -config tidy.conf $(BASEDIR)/$(NOCHUNKS_OUTPUT) || true
