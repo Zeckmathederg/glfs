@@ -114,6 +114,8 @@
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <xref linkend="apache"/> (for some tests),
+      <xref role='runtime' linkend='fcron'/> (runtime, for scheduling
+      <command>git maintenance</command> jobs),
       <xref role="runtime" linkend="gnupg2"/> (runtime, may be used to sign
       <application>Git</application> commits or tags, or verify the signatures
       of them),
@@ -131,9 +133,13 @@
       <ulink url="https://metacpan.org/pod/Authen::SASL">Authen::SASL</ulink> and
       <ulink url="https://metacpan.org/pod/MIME::Base64">MIME::Base64</ulink>
       (both runtime, for <command>git send-email</command>),
-      and <xref linkend='perl-io-socket-ssl'/> (runtime, for
+      <phrase revision='sysv'>and </phrase><xref
+      linkend='perl-io-socket-ssl'/> (runtime, for
       <command>git send-email</command> to connect to a SMTP server with
-      SSL encryption)
+      SSL encryption),
+      <phrase>and <xref role='runtime' linkend='systemd'/>
+      (runtime, rebuilt with <xref role='nodep' linkend='linux-pam'/>, for
+      scheduling <command>git maintenance</command> jobs)</phrase>
     </para>
 
     <bridgehead renderas="sect4">Optional (to create the man pages, html docs
@@ -186,12 +192,15 @@ make</userinput></screen>
 
     <para>
       The test suite can be run in parallel mode. To run the test suite, issue:
-      <command>make test</command>. <!--If run as a normal user, 0 tests
-      should be reported as failed in the final summary.-->
-      <!-- all tests pass with 2.42.0
-      If <xref linkend="apache"/> is installed,
-      three tests in <filename>t5559-http-fetch-smart-http2.sh</filename> are
-      known to fail due to cURL-8.1.x.-->
+      <command>make test -k |&amp; tee test.log</command>.  If some test
+      fails, the list of failed tests can be shown via
+      <command>grep '^not ok' test.log | grep -v TODO</command>.
+      <phrase revision='systemd'>One test named <literal>start and stop
+      Linux/systemd maintenance</literal> is known to fail if the current
+      login session is not started after rebuilding
+      <xref linkend='systemd'/> with <xref linkend='linux-pam'/>
+      support, or it's a SSH session but the SSH server is not configured
+      with <option>UsePAM</option> enabled.</phrase>
     </para>
 
     <para>
