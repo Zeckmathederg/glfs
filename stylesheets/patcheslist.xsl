@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='ISO-8859-1'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE xsl:stylesheet [
  <!ENTITY % general-entities SYSTEM "../general.ent">
   %general-entities;
@@ -22,27 +22,35 @@
   </xsl:param>
 
   <xsl:template match="/">
-    <xsl:text>#! /bin/bash&#x0a;&#x0a;</xsl:text>
-    <xsl:text>function copy
+    <xsl:text>#! /bin/bash
+
+function copy
 {
    cp $1 $2 >>copyerrs 2>&amp;1
-}&#x0a;&#x0a;</xsl:text>
-      <!-- Create dest.dir if it don't exist -->
-    <xsl:text>mkdir -p </xsl:text>
+}
+
+# Create dest.dir if it doesn't exist
+# Change to it
+# Remove old patches and possible list of missing patches
+# Ensure correct ownership
+
+mkdir -p </xsl:text>
     <xsl:value-of select="$dest.dir"/>
-    <xsl:text> &amp;&amp;&#x0a;</xsl:text>
-    <xsl:text>cd </xsl:text>
+    <xsl:text> &amp;&amp;
+cd </xsl:text>
     <xsl:value-of select="$dest.dir"/>
-    <xsl:text> &amp;&amp;&#x0a;&#x0a;</xsl:text>
-      <!-- Remove old patches and possible list of missing patches-->
-    <xsl:text>rm -f *.patch copyerrs &amp;&amp;&#x0a;&#x0a;</xsl:text>
+    <xsl:text> &amp;&amp;
+
+    rm -f *.patch copyerrs &amp;&amp;
+
+</xsl:text>
     <xsl:apply-templates/>
-      <!-- Ensure correct ownership -->
-    <xsl:text>&#x0a;chgrp lfswww *.patch &amp;&amp;&#x0a;</xsl:text>
-    <xsl:text>if [ `wc -l copyerrs|sed 's/ *//' |cut -f1 -d' '` -gt 0 ]; then
+    <xsl:text>
+chgrp lfswww *.patch &amp;&amp;
+if [ `wc -l copyerrs|sed 's/ *//' |cut -f1 -d' '` -gt 0 ]; then
   mail -s "Missing BLFS patches" blfs-book@lists.linuxfromscratch.org &lt; copyerrs
-fi</xsl:text>
-    <xsl:text>&#x0a;exit&#x0a;</xsl:text>
+fi
+exit</xsl:text>
   </xsl:template>
 
   <xsl:template match="//text()"/>
@@ -99,7 +107,8 @@ fi</xsl:text>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:value-of select="$patch.name"/>
-      <xsl:text> . &#x0a;</xsl:text>
+      <xsl:text> .
+</xsl:text>
     </xsl:if>
   </xsl:template>
 
