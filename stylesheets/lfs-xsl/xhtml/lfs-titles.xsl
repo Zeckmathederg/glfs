@@ -127,23 +127,25 @@
   </xsl:template>
 
     <!-- sect3.titlepage:
-           Uses h3 and removed a lot of unneeded code.
-           Use generic titlepage.mode template in case there are child
-            elements (xref)-->
+         Same as sect2 except it uses h3 -->
     <!-- The original template is in {docbook-xsl}/xhtml/titlepage.templates.xsl -->
   <xsl:template name="sect3.titlepage">
-    <h3 class="{name(.)}">
-      <xsl:if test="@id">
-        <a id="{@id}" name="{@id}"/>
-      </xsl:if>
-      <xsl:if test="$section.autolabel != 0">
-        <xsl:apply-templates select="." mode="label.markup"/>
-        <xsl:text>. </xsl:text>
-      </xsl:if>
-      <xsl:apply-templates select="./title" mode="titlepage.mode"/>
-    </h3>
+    <xsl:choose>
+      <xsl:when test="string-length(title) = 0"/>
+      <xsl:otherwise>
+        <h3 class="{name(.)}">
+          <xsl:if test="@id">
+            <a id="{@id}" name="{@id}"/>
+          </xsl:if>
+          <xsl:if test="not(ancestor::preface) and $section.autolabel != 0">
+            <xsl:apply-templates select="." mode="label.markup"/>
+            <xsl:text>. </xsl:text>
+          </xsl:if>
+          <xsl:value-of select="title"/>
+        </h3>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
-
     <!-- dedication.titlepage:
            Uses h2 and removed a lot of unneeded code. -->
     <!-- The original template is in {docbook-xsl}/xhtml/titlepage.templates.xsl -->
