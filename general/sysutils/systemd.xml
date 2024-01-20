@@ -361,6 +361,33 @@ password required    pam_deny.so
 # End /etc/pam.d/systemd-user</literal>
 EOF</userinput></screen>
 
+    <!-- For some unknown reason if I don't do this, the per-user systemd
+         manager fails to start with "Trying to run as user instance,
+         but $XDG_RUNTIME_DIR is not set."  This command is enough to
+         fix the issue, and it also seems logical to start using the newly
+         rebuilt systemd right away (like "exec bash -&dash;login" in LFS),
+         so just add it.  -->
+    <para>
+      As the &root; user, replace the running <command>systemd</command>
+      manager (the <command>init</command> process) with the
+      <command>systemd</command> executable newly built and installed:
+    </para>
+
+    <screen role='root'><userinput>systemctl daemon-reexec</userinput></screen>
+
+    <important>
+      <para>
+        Now ensure <xref linkend='shadow'/> has been already rebuilt with
+        <xref linkend='linux-pam'/> support first, then logout, and login
+        again.  This ensures the running login session registered with
+        <command>systemd-logind</command> and a per-user systemd instance
+        running for each user owning a login session.  Many BLFS packages
+        listing Systemd as a dependency needs the
+        <command>systemd-logind</command> integration and/or a running
+        per-user systemd instance.
+      </para>
+    </important>
+
     <warning>
       <para>
         If upgrading from a previous version of systemd and an
