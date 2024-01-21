@@ -46,6 +46,34 @@
     </div>
   </xsl:template>
 
+    <!-- part:
+         Output non sect1 child elements before the TOC
+         Output title outside of the <div> because we want to be able to
+         use it at a fixed position -->
+    <!-- The original template is in {docbook-xsl}/xhtml/divisions.xsl -->
+  <xsl:template match="part">
+    <xsl:call-template name="id.warning"/>
+
+    <xsl:call-template name="part.titlepage"/>
+
+    <div>
+      <xsl:apply-templates select="." mode="common.html.attributes"/>
+      <xsl:call-template name="id.attribute">
+        <xsl:with-param name="conditional" select="0"/>
+      </xsl:call-template>
+
+      <xsl:apply-templates/>
+      <xsl:variable name="toc.params">
+        <xsl:call-template name="find.path.params">
+          <xsl:with-param name="table" select="normalize-space($generate.toc)"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:if test="not(partintro) and contains($toc.params, 'toc')">
+        <xsl:call-template name="division.toc"/>
+      </xsl:if>
+    </div>
+  </xsl:template>
+
     <!-- chapter:
            Output non sect1 child elements before the TOC
            Output title before div to be able to fix the title position -->
@@ -79,6 +107,41 @@
       </xsl:if>
       <xsl:call-template name="process.footnotes"/>
     </div>
+  </xsl:template>
+
+    <!-- appendix:
+           Output non sect1 child elements before the TOC
+           Output title before div to be able to fix the title position -->
+    <!-- The original template is in {docbook-xsl}/xhtml/components.xsl -->
+  <xsl:template match="appendix">
+
+    <xsl:call-template name="id.warning"/>
+
+    <xsl:call-template name="appendix.titlepage"/>
+
+    <xsl:element name="div" namespace="http://www.w3.org/1999/xhtml">
+      <xsl:call-template name="common.html.attributes">
+        <xsl:with-param name="inherit" select="1"/>
+      </xsl:call-template>
+      <xsl:call-template name="id.attribute">
+        <xsl:with-param name="conditional" select="0"/>
+      </xsl:call-template>
+
+      <xsl:apply-templates/>
+
+      <xsl:variable name="toc.params">
+        <xsl:call-template name="find.path.params">
+          <xsl:with-param name="table" select="normalize-space($generate.toc)"/>
+        </xsl:call-template>
+      </xsl:variable>
+
+      <xsl:if test="contains($toc.params, 'toc')">
+        <xsl:call-template name="component.toc">
+          <xsl:with-param name="toc.title.p" select="contains($toc.params, 'title')"/>
+        </xsl:call-template>
+      </xsl:if>
+
+    </xsl:element>
   </xsl:template>
 
     <!-- sect1:
