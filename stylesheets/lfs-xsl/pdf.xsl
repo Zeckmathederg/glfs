@@ -52,8 +52,8 @@
     <!-- Allow URLs to be automatically hyphenated.
          We have expanded the support to several inline tags.
          See pdf/lfs-mixed.xsl. The character in the
-         select attribute is a zero width space, encoded in utf-8-->
-  <xsl:param name="ulink.hyphenate" select="'​'"/>
+         select attribute is a zero width space -->
+  <xsl:param name="ulink.hyphenate" select="'&#x200B;'"/>
 
     <!-- List of characters to allow ulink URLs, and supported inline tags,
          to be automatically hyphenated on.

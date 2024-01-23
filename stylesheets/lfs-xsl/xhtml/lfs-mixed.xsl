@@ -295,8 +295,8 @@
         </xsl:when>
         <xsl:when test="$numcols &gt; 3">
         <!-- the character in the <td> element is a non breaking space
-             (unicode A0), encoded in utf-8 -->
-          <td> </td>
+             (unicode A0) -->
+          <td>&#xA0;</td>
         </xsl:when>
         <xsl:otherwise/>
       </xsl:choose>

@@ -22,6 +22,7 @@
   <xsl:include href="xhtml/lfs-index.xsl"/>
   <xsl:include href="xhtml/lfs-legalnotice.xsl"/>
   <xsl:include href="xhtml/lfs-navigational.xsl"/>
+  <xsl:include href="xhtml/lfs-glossary.xsl"/>
 
     <!-- sect1:
            Prevent creation of dummy sect1 files used to emulate sub-chapters. -->
