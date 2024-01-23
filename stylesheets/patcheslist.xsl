@@ -107,8 +107,7 @@ exit</xsl:text>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:value-of select="$patch.name"/>
-      <xsl:text> .
-</xsl:text>
+      <xsl:text> .&#xA;</xsl:text>
     </xsl:if>
   </xsl:template>
 
