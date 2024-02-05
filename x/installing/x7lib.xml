@@ -16,8 +16,8 @@
   <!ENTITY libX11-version                  "1.8.7">
   <!ENTITY libX11-md5sum                   "1b9bc39366eab2cc7b018907df715f34">
 
-  <!ENTITY libXext-version                 "1.3.5">
-  <!ENTITY libXext-md5sum                  "964942427fcc5a9fa0539661421857c8">
+  <!ENTITY libXext-version                 "1.3.6">
+  <!ENTITY libXext-md5sum                  "e59476db179e48c1fb4487c12d0105d1">
 
   <!ENTITY libFS-version                   "1.0.9">
   <!ENTITY libFS-md5sum                    "742863a552ecd53cdb957b7b276213cc">
@@ -85,8 +85,8 @@
   <!ENTITY libXv-version                   "1.0.12">
   <!ENTITY libXv-md5sum                    "70bfdd14ca1a563c218794413f0c1f42">
 
-  <!ENTITY libXvMC-version                 "1.0.13">
-  <!ENTITY libXvMC-md5sum                  "11a358e7229fa28dc9801c1e64fe2e18">
+  <!ENTITY libXvMC-version                 "1.0.14">
+  <!ENTITY libXvMC-md5sum                  "a90a5f01102dc445c7decbbd9ef77608">
 
   <!ENTITY libXxf86dga-version             "1.1.6">
   <!ENTITY libXxf86dga-md5sum              "74d1acf93b83abeb0954824da0ec400b">
@@ -94,11 +94,11 @@
   <!ENTITY libXxf86vm-version              "1.1.5">
   <!ENTITY libXxf86vm-md5sum               "5b913dac587f2de17a02e17f9a44a75f">
 
-  <!ENTITY libpciaccess-version            "0.17">
-  <!ENTITY libpciaccess-md5sum             "1466cf950c914ad2db1dbb76c9a724db">
+  <!ENTITY libpciaccess-version            "0.18">
+  <!ENTITY libpciaccess-md5sum             "54f48367e37666f9e0f12571d1ee3620">
 
-  <!ENTITY libxkbfile-version              "1.1.2">
-  <!ENTITY libxkbfile-md5sum               "8af2275955d40166bb647b14e4896ab1">
+  <!ENTITY libxkbfile-version              "1.1.3">
+  <!ENTITY libxkbfile-md5sum               "229708c15c9937b6e5131d0413474139">
 
   <!ENTITY libxshmfence-version            "1.3.2">
   <!ENTITY libxshmfence-md5sum             "faa74f7483074ce7d4349e6bdc237497">
@@ -282,9 +282,12 @@ md5sum -c ../lib-&xorg-version;.md5</userinput></screen>
 <screen><userinput>for package in $(grep -v '^#' ../lib-&xorg-version;.md5 | awk '{print $2}')
 do
   packagedir=${package%.tar.?z*}
+  echo "Building $packagedir"
+
   tar -xf $package
   pushd $packagedir
   docdir="--docdir=$XORG_PREFIX/share/doc/$packagedir"
+  
   case $packagedir in
     libXfont2-[0-9]* )
       ./configure $XORG_CONFIG $docdir --disable-devel-docs
@@ -298,11 +301,18 @@ do
     libXpm-[0-9]* )
       ./configure $XORG_CONFIG $docdir --disable-open-zfile
     ;;
-    <!--
-    libX11-* )
-      ./configure $XORG_CONFIG $docdir \
-                  - -disable-thread-safety-constructor
-    ;;-->
+  
+    libpciaccess* )
+      mkdir build
+      cd    build
+        meson setup --prefix=$XORG_PREFIX --buildtype=release ..
+        ninja
+        #ninja test
+        as_root ninja install
+      popd     # $packagedir
+      continue # for loop
+    ;;
+
     * )
       ./configure $XORG_CONFIG $docdir
     ;;
