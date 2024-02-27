@@ -266,7 +266,8 @@ for i0, val, i1, title, arrow, key, menu, comment in r:
 
     b = title
     if not is_choice:
-        b = b.lstrip('YyMmNnHh.' + "".join(map(str, range(10))))
+        while not (b[0].isalpha() and b[0] not in 'YyMmNnHh'):
+            b = b[1:]
     a = title[:len(title) - len(b)]
     b0 = "<emphasis role='blue'>" + escape(b[0]) + "</emphasis>"
     line += escape(a) + b0 + escape(b[1:]) + escape(arrow)
