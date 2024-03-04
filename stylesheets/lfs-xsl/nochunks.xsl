@@ -116,7 +116,7 @@ a:active { color: #6b77b1 ! important;}
   padding: 0 1em;
 }
 
-.book h1, .book .authorgroup, .book .copyright, .book .legalnotice .revhistory {
+/*.book h1,*/ .book .authorgroup, .book .copyright, .book .legalnotice .revhistory {
   background: #f5f6f7;
   margin: 0px auto;
   padding: .1em 1em;
@@ -181,6 +181,10 @@ h1 {
 .book h1 {
   margin: 0;
   padding: 0.4em;
+  background: #f5f6f7;
+  border-top: .2em solid #dbddec;
+  border-bottom: .2em solid #dbddec;
+  text-align: center;
 }
 
 h1.title sup {
@@ -191,7 +195,7 @@ h2 {
   font-size: 144%;
 }
 
-.preface h2, .part h1, .chapter h2, .appendix h2, .index h1, .sect1 h2 {
+.preface h2, .part h1, .chapter h2, .appendix h2, .index h1, .sect1 h2, .part h2 {
   background: #f5f6f7;
   border-top: .2em solid #dbddec;
   border-bottom: .2em solid #dbddec;
