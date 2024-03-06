@@ -339,6 +339,18 @@ EOF</userinput></screen>
       </para>
     </note>
 
+    <!-- https://github.com/rust-lang/rust/pull/116672 -->
+    <para>
+      If building with system <xref linkend='llvm'/>,
+      adapt rustc to allow it to build and function with the changes in
+      LLVM-18:
+    </para>
+
+<screen><userinput remap="pre">sed 's/f[0-9][0-9]:/i128:128-&amp;/' \
+    -i compiler/rustc_target/src/spec/targets/{i?86,x86_64}*.rs &amp;&amp;
+sed '/static_assert_size!\((Lit|MetaItemLit|BasicBlockData|Terminator)/d' \
+    -ri compiler/{rustc_ast/src/ast.rs,rustc_middle/src/mir/mod.rs}</userinput></screen>
+
     <para>
       Compile <application>Rust</application> by running the following
       commands:
@@ -376,6 +388,15 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
       Two tests,<filename>tests/ui/issues/issue-21763.rs</filename> and
       <filename>tests/debuginfo/regression-bad-location-list-67992.rs</filename>,
       are known to fail.
+    </para>
+
+    <para>
+      With LLVM-18, two codegen tests named
+      <!-- https://github.com/rust-lang/rust/pull/119523 -->
+      <filename>abi-main-signature-32bit-c-int.rs</filename> and
+      <!-- Don't know why yet ??? -->
+      <filename>slice-reverse.rs</filename> are
+      known to fail.
     </para>
 
     <para>
@@ -467,7 +488,7 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
   </sect2>
 
   <sect2 role="commands">
-    <title>Command Explanations</title>			
+    <title>Command Explanations</title>
 
     <para>
       <command>ln -svfn rustc-&rust-version; /opt/rustc</command>: if this is
@@ -604,7 +625,7 @@ EOF</userinput></screen>
       <segtitle>Installed Libraries</segtitle>
       <segtitle>Installed Directories</segtitle>
 
-      <seglistitem>			
+      <seglistitem>
         <seg>
           cargo-clippy, cargo-fmt, cargo, clippy-driver, rust-gdb,
           rust-gdbgui, rust-lldb, rustc, rustdoc, and rustfmt
