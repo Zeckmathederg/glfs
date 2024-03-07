@@ -373,6 +373,42 @@ echo "613364a7-9418-4c86-bcee-57e32fd70c23" > mozilla-key</userinput></screen>
 
 <screen><userinput remap="pre">patch -Np1 -i ../firefox-&firefox-version;-ffmpeg_6-1.patch</userinput></screen>-->
 
+    <!-- https://github.com/rust-lang/rust-bindgen/pull/2689 -->
+    <para>
+      Adapt the shipped <application>rust-bindgen</application> copy for
+      LLVM-18 and later, and tell <command>cargo</command> we've modified
+      the code of <application>rust-bindgen</application> so the checksum
+      verification of this crate should be skipped:
+    </para>
+
+    <screen><userinput>sed -e "/match cursor.kind()/a                                    \
+        CXCursor_LinkageSpec => return Err(ParseError::Recurse)," \
+    -i third_party/rust/bindgen/ir/item.rs                        &amp;&amp;
+
+cat &gt;&gt; Cargo.toml &lt;&lt; EOF &amp;&amp;
+<literal>[patch.crates-io.bindgen_0_64_0]
+package = "bindgen"
+version = "0.64.0"
+path = "third_party/rust/bindgen"</literal>
+EOF
+
+sed -r '/name = "bindgen"/,+5 s/^source|^checksum/#&amp;/' \
+    -i Cargo.lock</userinput></screen>
+
+    <!-- https://hg.mozilla.org/mozilla-central/rev/ba6abbd36b49 -->
+    <para>
+      Adapt the WebRTC code to use 64-bit timestamp to fix a build
+      failure with Clang-18 and later:
+    </para>
+
+    <screen><userinput>sed 's/uint32_t timestamp/uint64_t timestamp/'                \
+    -i dom/media/gmp-plugin-openh264/gmp-fake-openh264.cpp    \
+       dom/media/gtest/TestGMPRemoveAndDelete.cpp             \
+       dom/media/webrtc/libwebrtcglue/WebrtcGmpVideoCodec.cpp &amp;&amp;
+
+sed '/mInputImageMap/s/uint32_t/uint64_t/' \
+    -i dom/media/webrtc/libwebrtcglue/WebrtcGmpVideoCodec.h</userinput></screen>
+
     <para>
       Now invoke the Python <command>mach</command> script to compile the package.
     </para>
