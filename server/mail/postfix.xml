@@ -9,8 +9,8 @@
   mirror status, some of the mirrors shown as http are actually https -->
   <!ENTITY postfix-download-http "https://ghostarchive.org/postfix/postfix-release/official/postfix-&postfix-version;.tar.gz">
   <!ENTITY postfix-download-ftp  " ">
-  <!ENTITY postfix-md5sum        "ae12d4dfc965a74a691a22ace14e7207">
-  <!ENTITY postfix-size          "4.6 MB">
+  <!ENTITY postfix-md5sum        "3eda9b945ed6cdf11ef58a731c574a04">
+  <!ENTITY postfix-size          "4.7 MB">
   <!ENTITY postfix-buildsize     "208 MB">
   <!ENTITY postfix-time          "0.1 SBU (Using parallelism=4)">
 ]>
@@ -172,6 +172,23 @@ chown -v postfix:postfix /var/mail</userinput></screen>
         For more details read the readme files.
       </para>
 
+      <para>
+        Initialize the <envar>CCARGS</envar> and <envar>AUXLIBS</envar>
+        according to the note above:
+      </para>
+
+<screen><userinput>CCARGS="-DNO_NIS -DNO_DB"
+AUXLIBS=""</userinput></screen>
+
+      <para>
+        Next, the <envar>CCARGS</envar> and the <envar>AUXLIBS</envar>
+        variables are filled with settings depending on the actual
+        system configuration. If an optional package is installed but
+        should <emphasis>not</emphasis> be included in the
+        <application>Postfix</application> build, simply skip the
+        corresponding <code>if [ ... ]; then</code> scriptlets.
+      </para>
+
       <sect4>
         <title>Cyrus-SASL</title>
 
@@ -180,9 +197,10 @@ chown -v postfix:postfix /var/mail</userinput></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS="-DNO_NIS -DNO_DB \
-        -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl"
-AUXLIBS='-lsasl2'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/libsasl2.so ]; then
+  CCARGS="$CCARGS -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl"
+  AUXLIBS="$AUXLIBS -lsasl2"
+fi</userinput></screen>
       </sect4>
 
       <sect4>
@@ -192,8 +210,10 @@ AUXLIBS='-lsasl2'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_LMDB'
-AUXLIBS_LMDB='-llmdb'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/liblmdb.so ]; then
+  CCARGS="$CCARGS -DHAS_LMDB"
+  AUXLIBS="$AUXLIBS -llmdb"
+fi</userinput></screen>
       </sect4>
 
       <sect4>
@@ -204,8 +224,10 @@ AUXLIBS_LMDB='-llmdb'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_LDAP'
-AUXLIBS_LDAP='-lldap -llber'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/libldap.so -a -r /usr/lib/liblber.so ]; then
+  CCARGS="$CCARGS -DHAS_LDAP"
+  AUXLIBS="$AUXLIBS -lldap -llber"
+fi</userinput></screen>
 
       </sect4>
 
@@ -217,8 +239,10 @@ AUXLIBS_LDAP='-lldap -llber'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_SQLITE'
-AUXLIBS_SQLITE='-lsqlite3 -lpthread'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/libsqlite3.so ]; then
+  CCARGS="$CCARGS -DHAS_SQLITE"
+  AUXLIBS="$AUXLIBS -lsqlite3 -lpthread"
+fi</userinput></screen>
 
       </sect4>
 
@@ -230,8 +254,10 @@ AUXLIBS_SQLITE='-lsqlite3 -lpthread'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_MYSQL -I/usr/include/mysql'
-AUXLIBS_MYSQL='-lmysqlclient -lz -lm'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/libmysqlclient.so ]; then
+  CCARGS="$CCARGS -DHAS_MYSQL -I/usr/include/mysql"
+  AUXLIBS="$AUXLIBS -lmysqlclient -lz -lm"
+fi</userinput></screen>
 
       </sect4>
 
@@ -243,8 +269,10 @@ AUXLIBS_MYSQL='-lmysqlclient -lz -lm'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_PGSQL -I/usr/include/postgresql'
-AUXLIBS_PGSQL='-lpq -lz -lm'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/libpq.so ]; then
+  CCARGS="$CCARGS -DHAS_PGSQL -I/usr/include/postgresql"
+  AUXLIBS="$AUXLIBS -lpq -lz -lm"
+fi</userinput></screen>
 
       </sect4>
 
@@ -257,8 +285,10 @@ AUXLIBS_PGSQL='-lpq -lz -lm'</literal></screen>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DHAS_CDB'
-AUXLIBS_CDB='<replaceable>&lt;/path/to/CDB&gt;</replaceable>/libcdb.a'</literal></screen>
+<screen><literal>if [ -r <replaceable>&lt;/path/to/CDB&gt;</replaceable>/libcdb.a ]; then
+  CCARGS="$CCARGS -DHAS_CDB"
+  AUXLIBS="$AUXLIBS <replaceable>&lt;/path/to/CDB&gt;</replaceable>/libcdb.a"
+fi</literal></screen>
 
       </sect4>
 
@@ -270,8 +300,15 @@ AUXLIBS_CDB='<replaceable>&lt;/path/to/CDB&gt;</replaceable>/libcdb.a'</literal>
           <application>Postfix</application>, use the following arguments:
         </para>
 
-<screen><literal>CCARGS='-DNO_NIS -DNO_DB -DUSE_TLS -I/usr/include/openssl/'
-AUXLIBS='-lssl -lcrypto'</literal></screen>
+<screen><userinput>if [ -r /usr/lib/libssl.so -a -r /usr/lib/libcrypto.so ]; then
+  CCARGS="$CCARGS -DUSE_TLS -I/usr/include/openssl/"
+  AUXLIBS="$AUXLIBS -lssl -lcrypto"
+fi</userinput></screen>
+        <para>
+          <application>OpenSSL</application> is installed by LFS so it
+          should be always there. The <code>if ... then</code> is here
+          just for consistency.
+        </para>
       </sect4>
 
     </sect3>
@@ -280,19 +317,14 @@ AUXLIBS='-lssl -lcrypto'</literal></screen>
       <title>Installing Postfix</title>
 
       <para>
-        Adjust the following according to your needs. For example,
-	if you have <application>Cyrus SASL</application> and
-	<application>LMDB</application>,
-        install <application>Postfix</application> by running the following
-        commands:
+        There might be duplicate settings in <envar>AUXLIBS</envar>
+        like <code>-lm</code> when both, <application>MariaDB</application>
+        and <application>PostgreSQL</application> are used. They do
+        not harm. Install <application>Postfix</application> by
+        running the following commands:
       </para>
 
-<screen><userinput>make CCARGS="-DNO_NIS -DNO_DB -DUSE_TLS -I/usr/include/openssl/    \
-             -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl  \
-             -DHAS_LMDB"                                           \
-     AUXLIBS="-lssl -lcrypto -lsasl2"                              \
-     AUXLIBS_LMDB="-llmdb"                                         \
-     makefiles &amp;&amp;
+<screen><userinput>make CCARGS="$CCARGS" AUXLIBS="$AUXLIBS" makefiles &amp;&amp;
 make</userinput></screen>
 
     <!-- There is a test suite, but it fails a lot. It seems to need
