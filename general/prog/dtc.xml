@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY dtc-download-http "https://kernel.org/pub/software/utils/dtc/dtc-&dtc-version;.tar.xz">
+  <!ENTITY dtc-md5sum        "228576aceed3aa89f54283aa0f1eb820">
+  <!ENTITY dtc-size          "164 KB">
+  <!ENTITY dtc-buildsize     "14 MB">
+  <!ENTITY dtc-time          "less than 0.1 SBU">
+]>
+
+<!-- Try to keep the indentation used in this file-->
+<sect1 id="dtc" xreflabel="dtc-&dtc-version;">
+  <?dbhtml filename="dtc.html"?>
+
+  <title>Dtc-&dtc-version;</title>
+
+  <indexterm zone="dtc">
+    <primary sortas="a-dtc">dtc</primary>
+  </indexterm>
+
+  <!--Required section-->
+  <sect2 role="package">
+    <title>Introduction to Dtc</title>
+
+    <para>
+      The <application>dtc</application> package contains the Device Tree
+      Compiler for working with device tree source and binary files and also
+      libfdt, a utility library for reading and manipulating device trees
+      in the binary format.
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&dtc-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &dtc-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &dtc-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &dtc-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &dtc-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Dtc Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend='libyaml'/>,
+      <xref linkend='setuptools_scm'/>,
+      <xref linkend='swig'/>, and
+      <xref linkend='texlive'/>
+    </para>
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Dtc</title>
+
+    <para>
+      Install <application>dtc</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson setup --prefix=/usr        \
+            --buildtype=release  \
+            -Dpython=disabled .. &amp;&amp;
+ninja</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>meson test -v</command>.
+      <!-- https://github.com/dgibson/dtc/commit/32174a66efa4 -->
+      Two tests named <filename>cell-overflow.dts</filename> and
+      <filename>cell-overflow-results.dts</filename> are known to fail.
+    </para>
+
+    <para>
+      Now, as the &root; user:
+    </para>
+
+    <screen role="root"><userinput>ninja install</userinput></screen>
+
+    <para>
+      Still as the &root; user, remove the useless static library:
+    </para>
+
+    <screen role="root"><userinput>rm /usr/lib/libfdt.a</userinput></screen>
+
+    <para>
+      If you have <xref linkend='texlive'/> installed, you can build the PDF
+      format of the documentation by issuing the following command:
+    </para>
+
+    <screen remap="doc"><userinput>pushd ../Documentation
+  latexmk -bibtex --pdf dtc-paper &amp;&amp;
+  latexmk -bibtex --pdf dtc-paper -c
+popd</userinput></screen>
+
+    <para>
+      To install the documentation, as the &root; user issue the following
+      command:
+    </para>
+
+    <screen role="root"><userinput>cp -R ../Documentation -T /usr/share/doc/dtc-&dtc-version;</userinput></screen>
+
+    <para>
+      If you have installed both <xref linkend='setuptools_scm'/> and
+      <xref linkend='swig'/> and you wish to install the Python 3 binding
+      of this package, build the Python 3 module:
+    </para>
+
+    <screen role="nodump"><userinput>sed '/use_scm_version/i "fallback_version": "1.7.0",' \
+    -i ../setup.py                                    &amp;&amp;
+
+&build-wheel-cmd; ..</userinput></screen>
+
+    <para>
+      As the &root; user, install the Python 3 module:
+    </para>
+
+    <screen role="nodump"><userinput>&install-wheel;</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/meson-buildtype-release.xml"/>
+
+    <para>
+      <parameter>-Dpython=disabled</parameter>: This switch prevents
+      building the Python 3 binding with the deprecated method
+      (running <command>setup.py</command> directly).  We will build the
+      Python 3 binding with the <command>pip3 wheel</command> command
+      separately if wanted.
+    </para>
+
+    <para>
+      <command>sed ... ../setup.py</command>: This command allows building
+      the Python 3 binding from a release tarball (instead of a Git
+      checkout).
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Directory</segtitle>
+
+      <seglistitem>
+        <seg>
+          convert-dtsv0, dtc, dtdiff, fdtdump, fdtget, fdtoverlay,
+          and fdtput
+        </seg>
+        <seg>
+          libfdt.so
+        </seg>
+        <seg>
+          /usr/lib/python&python3-majorver;/site-packages/libfdt-&dtc-version;.dist-info
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="convert-dtsv0">
+        <term><command>convert-dtsv0</command></term>
+        <listitem>
+          <para>
+            converts device tree v0 source to device tree v1
+          </para>
+          <indexterm zone="dtc convert-dtsv0">
+            <primary sortas="b-convert-dtsv0">convert-dtsv0</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dtc-prog">
+        <term><command>dtc</command></term>
+        <listitem>
+          <para>
+            compiles device tree source (dts) to device tree binary blob
+            (dtb), or de-compiles dtb to dts
+          </para>
+          <indexterm zone="dtc dtc-prog">
+            <primary sortas="b-dtc">dtc</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dtdiff">
+        <term><command>dtdiff</command></term>
+        <listitem>
+          <para>
+            compares two different device tree
+          </para>
+          <indexterm zone="dtc dtdiff">
+            <primary sortas="b-dtdiff">dtdiff</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="fdtdump">
+        <term><command>fdtdump</command></term>
+        <listitem>
+          <para>
+            prints a readable version of a flat device-tree file
+          </para>
+          <indexterm zone="dtc fdtdump">
+            <primary sortas="b-fdtdump">fdtdump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="fdtget">
+        <term><command>fdtget</command></term>
+        <listitem>
+          <para>
+            reads values from device-tree
+          </para>
+          <indexterm zone="dtc fdtget">
+            <primary sortas="b-fdtget">fdtget</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="fdtoverlay">
+        <term><command>fdtoverlay</command></term>
+        <listitem>
+          <para>
+            applies a number of overlays to a base device tree blob
+          </para>
+          <indexterm zone="dtc fdtoverlay">
+            <primary sortas="b-fdtoverlay">fdtoverlay</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="fdtput">
+        <term><command>fdtput</command></term>
+        <listitem>
+          <para>
+            writes a property value to a device tree
+          </para>
+          <indexterm zone="dtc fdtput">
+            <primary sortas="b-fdtput">fdtput</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libfdt">
+        <term><filename class="libraryfile">libfdt.so</filename></term>
+        <listitem>
+          <para>
+            is a utility library for reading and manipulating device trees
+            in the binary format
+          </para>
+          <indexterm zone="dtc libfdt">
+            <primary sortas="c-libfdt">libfdt.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+</sect1>
