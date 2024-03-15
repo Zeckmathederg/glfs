@@ -170,10 +170,11 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="libssh2"/> and
+      <xref linkend="libssh2"/>,
       <xref linkend="llvm"/>
       (built with -DLLVM_LINK_LLVM_DYLIB=ON so that rust can link to
-      system LLVM instead of building its shipped version)
+      system LLVM instead of building its shipped version), and
+      <xref linkend="sqlite"/>
     </para>
 
     <note>
@@ -362,7 +363,9 @@ sed '/static_assert_size!\((Lit|MetaItemLit|BasicBlockData|Terminator)/d' \
        src/tools/cargo/Cargo.toml &amp;&amp; -->
 
 <screen><userinput>{ [ ! -e /usr/include/libssh2.h ] ||
-  export LIBSSH2_SYS_USE_PKG_CONFIG=1; } &amp;&amp;
+  export LIBSSH2_SYS_USE_PKG_CONFIG=1; }    &amp;&amp;
+{ [ ! -e /usr/include/sqlite3.h ] ||
+  export LIBSQLITE3_SYS_USE_PKG_CONFIG=1; } &amp;&amp;
 python3 x.py build</userinput></screen>
 
     <note>
@@ -449,12 +452,14 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
       <para>
         If <command>sudo</command> or <command>su</command> is invoked for
         switching to the &root; user, ensure
-        <envar>LIBSSH2_SYS_USE_PKG_CONFIG</envar> is correctly passed or the
-        following command may completely rebuild this package.  For
-        <command>sudo</command>, use the
-        <option>--preserve-env=LIBSSH2_SYS_USE_PKG_CONFIG</option> option.
-        For <command>su</command>, do <emphasis>not</emphasis> use the
-        <option>-</option> or <option>--login</option> options.
+        <envar>LIBSSH2_SYS_USE_PKG_CONFIG</envar> and
+        <envar>LIBSQLITE3_SYS_USE_PKG_CONFIG</envar> are correctly passed or
+        the following command may rebuild <command>cargo</command> with
+        shipped copies of libssh2 and sqlite.  For <command>sudo</command>,
+        use the
+        <option>--preserve-env=LIB{SSH2,SQLITE3}_SYS_USE_PKG_CONFIG</option>
+        option.  For <command>su</command>, do <emphasis>not</emphasis> use
+        the <option>-</option> or <option>--login</option> options.
       </para>
     </note>
 
@@ -480,10 +485,10 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
         /usr/share/zsh/site-functions</userinput></screen>
 
     <para>
-      Finally, unset the <envar>LIBSSH2_SYS_USE_PKG_CONFIG</envar> variable:
+      Finally, unset the exported environment variables:
     </para>
 
-<screen><userinput>unset LIBSSH2_SYS_USE_PKG_CONFIG</userinput></screen>
+<screen><userinput>unset LIB{SSH2,SQLITE3}_SYS_USE_PKG_CONFIG</userinput></screen>
 
   </sect2>
 
@@ -547,6 +552,15 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
     <para>
       <command>export LIBSSH2_SYS_USE_PKG_CONFIG=1</command>: Allow
       <command>cargo</command> to link to system libssh2.
+    </para>
+
+    <!-- src/tools/cargo/Cargo.toml is specifying "bundled" as the
+         upstream is suggesting to avoid issues building for Windoge.
+         We don't care about Windoge so override this if we have
+         system sqlite3.  -->
+    <para>
+      <command>export LIBSQLITE3_SYS_USE_PKG_CONFIG</command>: Allow
+      <command>cargo</command> to link to system sqlite.
     </para>
 
 <!--<para>
