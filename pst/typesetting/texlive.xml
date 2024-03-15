@@ -348,59 +348,29 @@ fmtutil-sys --all</userinput></screen>
 <screen role="root"><userinput>ln -svf $TEXLIVE_PREFIX/lib/libkpathsea.so{,.6} /usr/lib</userinput></screen>
 
     <note>
-      <!-- following based on fedora, but amended to run in the BLFS
-           layout, where adapting fedora's script for mtxrun did not
-           reliably work. ken -->
       <para>
-        TeXLive includes some files for ConTeXt but the source of that is
-        separate and has moved on from using luatex in the previous 'mkiv'
-        version to using luametatex which can be pulled with git from <ulink
-        url="https://github.com/contextgarden/luametatex/tags">github luametatex</ulink>.
-        LuaMetaTeX uses meson and ninja, but it does not fit easily into
-        the BLFS layout of TeXLive.
-        <!-- FIXME - when removing, keep that link to luametatex tags, and note
-        that building and installing that to fit with a BLFS install of TeXLive
-        will not be a trivial exercise.-->
-      </para>
-      <para>
-        However, with a little extra work 'mkiv' files can still be processed
-        using the files shipped in texmf.
+        TeXLive does not include the source for ConTeXt, only the items that
+        are at CTAN. Trying to build ConTeXt purely from source on a  BLFS
+        TeXLive system is a niche usage and looks as if it will be more trouble
+        than it is worth.
       </para>
 
       <para>
-        <emphasis>Fixes to use ConTeXt will be removed when the texlive source next
-        has to be updated for either a vulnerability fix which requires backporting
-        luatex changes, or for TeXLive 2024. If you are a BLFS user of ConTeXt you
-        should be prepared to use the latest tag from github (the link is
-        in first paragraph of this Note). Building and installing that to work with
-        a BLFS install of TeXLive will not be a trivial exercise.</emphasis>
+        If you wish to use ConTeXt with <command>luametatex</command> (most of
+        the old MKII and MKIV code was removed from TeXLive 2023 by the ConTeXt
+        developer), starting with the binary (only installing ConTeXt) would
+        probably be the easiest way to bootstrep it. The source for
+        <command>luametatex</command> can be pulled with git from <ulink
+        url="https://github.com/contextgarden/luametatex/tags">github
+        luametatex</ulink>, compiled with meson and ninja, and installed by
+        copying to the correct program directory. This should avoid having to
+        fix all the symlinks etc and also avoid including the many unrelated
+        <!-- trying to use a filename tag here is rejected within para ?? -->
+        parts of texmf-dist.
+        See comments 1 to 5 of
+        <ulink url="&blfs-ticket-root;17823">#17823</ulink>.
       </para>
     </note>
-
-    <para>
-       The following steps, run as the
-       <systemitem class="username">root</systemitem> user, will create
-       <command>mtxrun</command> and <command>context</command>.
-     </para>
-
-<!-- I've put blank lines in this to make it a little less hard to read. ken -->
-<screen role="root"><userinput>sed -e '/local template=\[\[--ini/s/\(primaryflags%\)\(.*\)/\1 --socket --shell-escape \2/' \
- -e '/local template=\[\[%primaryflags%/s/\(primaryflags%\)\(.*\)/\1 --socket --shell-escape \2/' \
-  -i $TEXLIVE_PREFIX/texmf-dist/scripts/context/lua/mtxrun.lua &amp;&amp;
-
-mkdir -pv $TEXLIVE_PREFIX/texmf-var/luatex-cache/context/ &amp;&amp;
-
-ln -sfv /$TEXLIVE_PREFIX/texmf-dist/scripts/context/lua/mtxrun.lua \
-        /$TEXLIVE_PREFIX/bin/$TEXARCH/mtxrun &amp;&amp;
-
-cat > $TEXLIVE_PREFIX/bin/$TEXARCH/context &lt;&lt; EOF
-#!/bin/sh
-export TEXMF=$TEXLIVE_PREFIX/texmf-dist;
-export TEXMFCNF=$TEXLIVE_PREFIX/texmf-dist/web2c;
-export TEXMFCACHE=$TEXLIVE_PREFIX/texmf-var/luatex-cache/context/;
-$TEXLIVE_PREFIX/bin/$TEXARCH/mtxrun --script context "\$@"
-EOF
-chmod -v 0755 $TEXLIVE_PREFIX/bin/$TEXARCH/context</userinput></screen>
 
     <para>
       You can now proceed to <xref linkend="asymptote"/>,
@@ -412,16 +382,6 @@ chmod -v 0755 $TEXLIVE_PREFIX/bin/$TEXARCH/context</userinput></screen>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
-
-    <para>
-      <command>patch -Np1 -i ../texlive-&texlive-version;-source-security_fix-1.patch</command>:
-      this updates the luatex source to v1.17.0 to fix security issues.
-    </para>
-
-    <para>
-      <command>sed -e '/local template (...)' (...)mtxrun.lua</command>: this makes a
-      change in a texmf-dist script so that ConTeXt can now run with luatex-v1.17.0.
-    </para>
 
     <para>
       <command>-C</command>: create config.cache, this saves significant
@@ -447,7 +407,7 @@ chmod -v 0755 $TEXLIVE_PREFIX/bin/$TEXARCH/context</userinput></screen>
       href="../../xincludes/tex-xpdf.xml"/>-->
 
     <para>
-      <command>--disable-dvisvgm</command>: As noted above, the shipped version
+      <parameter>--disable-dvisvgm</parameter>: As noted above, the shipped version
       of dvisvgm, which has modified configuration files, cannot be built with
       shared system libraries.
     </para>
@@ -483,12 +443,6 @@ chmod -v 0755 $TEXLIVE_PREFIX/bin/$TEXARCH/context</userinput></screen>
     <para>
       <command>fmtutil-sys --all</command>: This initializes the TeX formats,
       Metafont bases and Metapost mems.
-    </para>
-
-    <para>
-      <command>mkdir -pv $TEXLIVE_PREFIX/texmf-var/luatex-cache/context/</command>:
-      the context script created after this will not run correctly if this
-      directory is not present.
     </para>
 
     <para>
