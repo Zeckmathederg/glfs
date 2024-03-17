@@ -6,10 +6,13 @@
 
   <!ENTITY webkitgtk-download-http "https://webkitgtk.org/releases/webkitgtk-&webkitgtk-version;.tar.xz">
   <!ENTITY webkitgtk-download-ftp  " ">
-  <!ENTITY webkitgtk-md5sum        "9cf27d88b55e5b8168f4835b17ea6fd0">
-  <!ENTITY webkitgtk-size          "33 MB">
+  <!ENTITY webkitgtk-md5sum        "20fef6a9122fc46f66f2f8550d5f08c6">
+  <!ENTITY webkitgtk-size          "36 MB">
   <!ENTITY webkitgtk-buildsize     "1.2 GB (195 MB installed, add 148 MB for GTK-4)">
   <!ENTITY webkitgtk-time          "23 SBU (for GTK-3, using parallelism=8, add 22 SBU for GTK-4)">
+
+  <!ENTITY libbacktrace
+    "<ulink url='https://github.com/ianlancetaylor/libbacktrace'>libbacktrace</ulink>">
 ]>
 
 <sect1 id="webkitgtk" xreflabel="WebKitGTK-&webkitgtk-version;">
@@ -101,9 +104,8 @@
       <xref linkend="openjpeg2"/>,
       <xref linkend="ruby"/>,
       <xref linkend="sqlite"/>,
-      <xref linkend="unifdef"/>,
-      <xref linkend="which"/>, and
-      <xref linkend="wpebackend-fdo"/>
+      <xref linkend="unifdef"/>, and
+      <xref linkend="which"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -120,17 +122,15 @@
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <!--<xref linkend="bubblewrap"/>,-->
       <xref linkend="gi-docgen"/>,
       <xref linkend="harfbuzz"/>,
       <xref linkend="wayland"/>,
       <xref linkend="woff2"/>,
       <ulink url="https://ccache.dev/">ccache</ulink>,
       <ulink url="https://sourceforge.net/projects/hunspell/files/Hyphen/">Hyphen</ulink>,
-      <!--<ulink url="https://github.com/AOMediaCodec/libavif">libavif</ulink>,-->
+      &libbacktrace;,
       <ulink url="https://github.com/libjxl/libjxl">libjxl</ulink>, and
       <ulink url="https://gnome.pages.gitlab.gnome.org/libmanette/">libmanette</ulink>
-      <!--<ulink url="https://github.com/flatpak/xdg-dbus-proxy">xdg-dbus-proxy</ulink>-->
     </para>
 
   </sect2>
@@ -140,19 +140,6 @@
 
     <bridgehead renderas="sect3">Installation of
     <application>WebKitGTK</application></bridgehead>
-
-    <!-- https://bugs.webkit.org/show_bug.cgi?id=262777
-         https://github.com/WebKit/WebKit/commit/c29a26a02441 -->
-
-<!-- Fixed in 2.42.2
-    <para>
-      First, fix an issue breaking Web sites relying on Javascript Blob API:
-    </para>
-
-<screen><userinput>sed "/bool BlobURL::isSecureBlobURL/,/^}/                                \
-     s/return false/return SecurityOrigin::isSecure(getOriginURL(url))/" \
-    -i Source/WebCore/fileapi/BlobURL.cpp</userinput></screen>
--->
 
     <important>
       <para>
@@ -165,20 +152,6 @@
         the only difference is the setting of <command>-DUSE_GTK4</command>
       </para>
     </important>
-
-
-    <!-- https://github.com/WebKit/WebKit/commit/3d53735756 and
-         https://bugs.webkit.org/show_bug.cgi?id=268739 -->
-
-    <para>
-      First, if you are on a 32-bit machine, fix a build failure:
-    </para>
-
-<screen><userinput remap="pre">case $(uname -m) in
-   i?86) sed -e '/UNUSED_VARIABLE(t6)/d' \
-             -e '/UNUSED_VARIABLE(t7)/d' \
-             -i Source/JavaScriptCore/llint/LowLevelInterpreter.cpp ;;
-esac</userinput></screen>
 
     <para>
       If you want to install the GTK+-3 version of
@@ -193,13 +166,13 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_SKIP_RPATH=ON       \
       -DPORT=GTK                  \
       -DLIB_INSTALL_DIR=/usr/lib  \
+      -DUSE_LIBBACKTRACE=OFF      \
       -DUSE_LIBHYPHEN=OFF         \
       -DENABLE_GAMEPAD=OFF        \
       -DENABLE_MINIBROWSER=ON     \
       -DENABLE_DOCUMENTATION=OFF  \
       -DUSE_WOFF2=OFF             \
       -DUSE_GTK4=OFF              \
-      -DUSE_WPE_RENDERER=ON       \
       -DUSE_JPEGXL=OFF            \
       -DENABLE_BUBBLEWRAP_SANDBOX=ON \
       -Wno-dev -G Ninja ..        &amp;&amp;
@@ -213,6 +186,7 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_SKIP_RPATH=ON       \
       -DPORT=GTK                  \
       -DLIB_INSTALL_DIR=/usr/lib  \
+      -DUSE_LIBBACKTRACE=OFF      \
       -DUSE_LIBHYPHEN=OFF         \
       -DENABLE_GAMEPAD=OFF        \
       -DENABLE_MINIBROWSER=ON     \
@@ -220,7 +194,6 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DUSE_WOFF2=OFF             \
       -DUSE_GTK4=OFF              \
       -DUSE_JPEGXL=OFF            \
-      -DUSE_WPE_RENDERER=ON       \
       -DENABLE_JOURNALD_LOG=OFF   \
       -DENABLE_BUBBLEWRAP_SANDBOX=ON \
       -Wno-dev -G Ninja ..        &amp;&amp;
@@ -240,22 +213,6 @@ ninja</userinput></screen>
 <screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
-      As the <option>-DENABLE_DOCUMENTATION=OFF</option> option is used,
-      the documentation is not rebuilt nor installed now.  If you need the
-      documentation, you can either install <xref linkend='gi-docgen'/>
-      and remove this option from the <command>cmake</command> command,
-      or install the pre-built documentation instead:
-    </para>
-
-<screen role='root'><userinput>install -vdm755 /usr/share/gtk-doc/html/{jsc-glib,webkit2gtk{,-web-extension}}-4.1 &amp;&amp;
-install -vm644  ../Documentation/jsc-glib-4.1/*              \
-                /usr/share/gtk-doc/html/jsc-glib-4.1         &amp;&amp;
-install -vm644  ../Documentation/webkit2gtk-4.1/*            \
-                /usr/share/gtk-doc/html/webkit2gtk-4.1       &amp;&amp;
-install -vm644  ../Documentation/webkit2gtk-web-extension-4.1/* \
-                /usr/share/gtk-doc/html/webkit2gtk-web-extension-4.1</userinput></screen>
-
-    <para>
       If you want to install the GTK4 version of
       <application>WebKitGTK</application>, run the following commands:
     </para>
@@ -267,6 +224,7 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_SKIP_RPATH=ON       \
       -DPORT=GTK                  \
       -DLIB_INSTALL_DIR=/usr/lib  \
+      -DUSE_LIBBACKTRACE=OFF      \
       -DUSE_LIBHYPHEN=OFF         \
       -DENABLE_GAMEPAD=OFF        \
       -DENABLE_MINIBROWSER=ON     \
@@ -274,7 +232,6 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DUSE_WOFF2=OFF             \
       -DUSE_GTK4=ON               \
       -DUSE_JPEGXL=OFF            \
-      -DUSE_WPE_RENDERER=ON       \
       -DENABLE_BUBBLEWRAP_SANDBOX=ON \
       -Wno-dev -G Ninja ..        &amp;&amp;
 ninja</userinput></screen>
@@ -286,6 +243,7 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_SKIP_RPATH=ON       \
       -DPORT=GTK                  \
       -DLIB_INSTALL_DIR=/usr/lib  \
+      -DUSE_LIBBACKTRACE=OFF      \
       -DUSE_LIBHYPHEN=OFF         \
       -DENABLE_GAMEPAD=OFF        \
       -DENABLE_MINIBROWSER=ON     \
@@ -293,7 +251,6 @@ cmake -DCMAKE_BUILD_TYPE=Release  \
       -DUSE_WOFF2=OFF             \
       -DUSE_GTK4=ON               \
       -DUSE_JPEGXL=OFF            \
-      -DUSE_WPE_RENDERER=ON       \
       -DENABLE_JOURNALD_LOG=OFF   \
       -DENABLE_BUBBLEWRAP_SANDBOX=ON \
       -Wno-dev -G Ninja ..        &amp;&amp;
@@ -305,6 +262,18 @@ ninja</userinput></screen>
 
 <screen role="root"><userinput>ninja install</userinput></screen>
 
+    <para>
+      As the <option>-DENABLE_DOCUMENTATION=OFF</option> option is used,
+      the documentation is not rebuilt nor installed now.  If you need the
+      documentation, you can either install <xref linkend='gi-docgen'/>
+      and remove this option from the <command>cmake</command> command,
+      or install the pre-built documentation (only for the GTK-4 version)
+      instead:
+    </para>
+
+<screen role='root'><userinput>install -vdm755 /usr/share/gtk-doc/html &amp;&amp;
+cp -rv Documentation/* /usr/share/gtk-doc/html</userinput></screen>
+
   </sect2>
 
   <sect2 role="commands">
@@ -314,6 +283,13 @@ ninja</userinput></screen>
       <command>sed ... TextCheckerEnchant.cpp</command>: This command
       is needed to allow the build to complete with enchant-2.x.
     </para> -->
+
+    <para>
+      <parameter>-DUSE_LIBBACKTRACE=OFF</parameter>: This switch disables
+      the use of libbacktrace for dumping a stack trace when a crash
+      happens.  You need to install &libbacktrace; if you wish to enable it
+      (replacing OFF with ON or just removing the switch).
+    </para>
 
     <para>
       <parameter>-DUSE_LIBHYPHEN=OFF</parameter>: This switch disables the
@@ -341,11 +317,6 @@ ninja</userinput></screen>
     <para>
       <parameter>-DENABLE_MINIBROWSER=ON</parameter>: This switch enables
       compiling and installing the MiniBrowser.
-    </para>
-
-    <para>
-      <parameter>-DUSE_WPE_RENDERER=ON</parameter>: This switch uses the WPE
-      renderer, which is recommended by upstream.
     </para>
 
     <para>
@@ -420,8 +391,10 @@ ninja</userinput></screen>
           /usr/include/webkitgtk-4.1,
           /usr/include/webkitgtk-6.0,
           /usr/lib{,exec}/webkit2gtk-4.1,
-          /usr/lib{,exec}/webkitgtk-6.0, and
+          /usr/lib{,exec}/webkitgtk-6.0,
           /usr/share/gtk-doc/html/{jsc-glib,webkit2gtk{,-web-extension}}-4.1
+          (optional), and
+          /usr/share/gtk-doc/html/{jsc-glib,webkit2gtk{,-web-process-extension}}-6.0
         </seg>
       </seglistitem>
     </segmentedlist>
