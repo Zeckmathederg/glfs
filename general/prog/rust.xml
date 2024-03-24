@@ -6,8 +6,8 @@
 
   <!ENTITY rust-download-http "https://static.rust-lang.org/dist/rustc-&rust-version;-src.tar.xz">
   <!ENTITY rust-download-ftp  " ">
-  <!ENTITY rust-md5sum        "14a8ac688b461a3127090cad513aee05">
-  <!ENTITY rust-size          "155 MB">
+  <!ENTITY rust-md5sum        "7df442945fb2e32cbccd45a7faa3a5e1">
+  <!ENTITY rust-size          "156 MB">
   <!ENTITY rust-buildsize     "8.9 GB (298 MB installed); add 6.4 GB if running the tests">
   <!ENTITY rust-time          "6.7 SBU (including download time; add 6.2 SBU for tests, both using parallelism=8)">
 ]>
@@ -144,7 +144,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+    <!-- only keep this here for reuse in case we need a patch
     <bridgehead renderas="sect3">Additional Downloads</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -154,7 +154,7 @@
         </para>
       </listitem>
     </itemizedlist>
-
+    -->
     <bridgehead renderas="sect3">Rust Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
@@ -251,13 +251,6 @@ ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
     </note>
 
     <para>
-      If running the test suite, apply a patch to prevent the build
-      system from unnecessarily rebuilding the compiler:
-    </para>
-
-    <screen><userinput>patch -Np1 -i ../rustc-&rust-version;-testsuite_fix-1.patch</userinput></screen>
-
-    <para>
       Create a suitable <filename>config.toml</filename> file which will
       configure the build.
     </para>
@@ -270,7 +263,7 @@ ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
 # Tell x.py the editors have reviewed the content of this file
 # and updated it to follow the major changes of the building system,
 # so x.py will not warn us to do such a review.
-change-id = 118703
+change-id = 102579
 
 [llvm]
 # by default, rust will build for a myriad of architectures
@@ -340,18 +333,6 @@ EOF</userinput></screen>
       </para>
     </note>
 
-    <!-- https://github.com/rust-lang/rust/pull/116672 -->
-    <para>
-      If building with system <xref linkend='llvm'/>,
-      adapt rustc to allow it to build and function with the changes in
-      LLVM-18:
-    </para>
-
-<screen><userinput remap="pre">sed 's/f[0-9][0-9]:/i128:128-&amp;/' \
-    -i compiler/rustc_target/src/spec/targets/{i?86,x86_64}*.rs &amp;&amp;
-sed '/static_assert_size!\((Lit|MetaItemLit|BasicBlockData|Terminator)/d' \
-    -ri compiler/{rustc_ast/src/ast.rs,rustc_middle/src/mir/mod.rs}</userinput></screen>
-
     <para>
       Compile <application>Rust</application> by running the following
       commands:
@@ -388,18 +369,16 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
 
     <!-- https://github.com/rust-lang/rust/pull/115869 -->
     <para>
-      Two tests,<filename>tests/ui/issues/issue-21763.rs</filename> and
+      Two tests, <filename>tests/ui/issues/issue-21763.rs</filename> and
       <filename>tests/debuginfo/regression-bad-location-list-67992.rs</filename>,
       are known to fail.
     </para>
 
+    <!-- https://github.com/rust-lang/rust/pull/120529 -->
     <para>
-      With LLVM-18, two codegen tests named
-      <!-- https://github.com/rust-lang/rust/pull/119523 -->
-      <filename>abi-main-signature-32bit-c-int.rs</filename> and
-      <!-- Don't know why yet ??? -->
-      <filename>slice-reverse.rs</filename> are
-      known to fail.
+      With LLVM-18, two <literal>[run-make]</literal> tests named
+      <filename>rustdoc-target-spec-json-path</filename> and
+      <filename>target-specs</filename> are known to fail.
     </para>
 
     <para>
@@ -466,22 +445,17 @@ python3 x.py test --verbose --no-fail-fast | tee rustc-testlog</userinput></scre
 <screen role='root'><userinput>python3 x.py install rustc std &amp;&amp;
 python3 x.py install --stage=1 cargo clippy rustfmt</userinput></screen>
 
-    <!-- https://github.com/rust-lang/rust/issues/115213 -->
     <para>
-      The building system attempts to install some files twice, and during
-      the second attempt it renames the old one (installed in the first
-      attempt) with the <filename class='extension'>.old</filename> suffix.
-      As the &root; user, remove these files:
-    </para>
-
-    <screen role='root'><userinput>find /opt/rustc-&rust-version; -name "*.old" -delete</userinput></screen>
-
-    <para>
-      Still as the &root; user, symlink a <application>Zsh</application>
+      Still as the &root; user, fix the installation of documentations
+      and symlink a <application>Zsh</application>
       completion file into the correct location:
     </para>
 
-<screen role='root'><userinput>install -vdm755 /usr/share/zsh/site-functions      &amp;&amp;
+    <screen role='root'><userinput>rm -fv /opt/rustc-&rust-version;/share/doc/rustc-&rust-version;/*.old   &amp;&amp;
+install -vm644 README.md                                \
+               /opt/rustc-&rust-version;/share/doc/rustc-&rust-version; &amp;&amp;
+
+install -vdm755 /usr/share/zsh/site-functions      &amp;&amp;
 ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
         /usr/share/zsh/site-functions</userinput></screen>
 
