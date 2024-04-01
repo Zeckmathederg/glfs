@@ -6,10 +6,10 @@
 
   <!ENTITY libical-download-http "https://github.com/libical/libical/releases/download/v&libical-version;/libical-&libical-version;.tar.gz">
   <!ENTITY libical-download-ftp  " ">
-  <!ENTITY libical-md5sum        "aab3e2c80a5a61c744204675bff19ae0">
+  <!ENTITY libical-md5sum        "cc790ea49701df0335d42b89d57c04bc">
   <!ENTITY libical-size          "888 KB">
-  <!ENTITY libical-buildsize     "38 MB (with tests and API documentation)">
-  <!ENTITY libical-time          "0.4 SBU (with tests and documentation)">
+  <!ENTITY libical-buildsize     "24 MB (with tests)">
+  <!ENTITY libical-time          "0.1 SBU (iusing parallelism=4; with tests)">
 <!-- run at -j1 because it fails at -j4 -->
 ]>
 
@@ -96,14 +96,6 @@
   <sect2 role="installation">
     <title>Installation of libical</title>
 
-<!-- Not needed with 3.0.9
-    <para>First make some fixes for the latest versions of icu and Python:</para>
-
-<screen><userinput>sed -i '/define LEAP_MONTH/a #define FALSE 0' src/libical/icalrecur.c &amp;&amp;
-sed -i 's/array/arraytest/'       src/test/libical-glib/CMakeLists.txt &amp;&amp;
-mv src/test/libical-glib/array.py src/test/libical-glib/arraytest.py</userinput></screen>
--->
-
     <para>
       Install <application>libical</application> by running the
       following commands:
@@ -111,19 +103,22 @@ mv src/test/libical-glib/array.py src/test/libical-glib/arraytest.py</userinput>
 
   <!-- Needs confirmation, but I got a race condition at -j8,
   -j1 allowed the build to pass. Pierre 2019-12-06
-  I always have it actually. Hence the entity.-->
-    &parallel_issues;
+  I always have it actually. Hence the entity.
+
+  Works at -j8 and -j4 for version 3.0.18
+    &parallel_issues;-->
 <screen><userinput>mkdir build &amp;&amp;
 cd    build &amp;&amp;
 
-cmake -DCMAKE_INSTALL_PREFIX=/usr  \
-      -DCMAKE_BUILD_TYPE=Release   \
-      -DSHARED_ONLY=yes            \
-      -DICAL_BUILD_DOCS=false      \
-      -DGOBJECT_INTROSPECTION=true \
-      -DICAL_GLIB_VAPI=true        \
+cmake -D CMAKE_INSTALL_PREFIX=/usr  \
+      -D CMAKE_BUILD_TYPE=Release   \
+      -D SHARED_ONLY=yes            \
+      -D ICAL_BUILD_DOCS=false      \
+      -D ICAL_BUILD_EXAMPLES=false  \
+      -D GOBJECT_INTROSPECTION=true \
+      -D ICAL_GLIB_VAPI=true        \
       .. &amp;&amp;
-make -j1</userinput></screen>
+make</userinput></screen>
 
     <para>
       If you have <xref linkend="doxygen"/>, <xref linkend="graphviz"/>,
@@ -164,33 +159,38 @@ cp -vr apidocs/html/* /usr/share/doc/libical-&libical-version;/html</userinput><
     <title>Command Explanations</title>
 
     <para>
-      <parameter>-DCMAKE_BUILD_TYPE=Release</parameter>: This switch is used
+      <parameter>-D CMAKE_BUILD_TYPE=Release</parameter>: This switch is used
       to apply higher level of the compiler optimizations.
     </para>
 
     <para>
-      <parameter>-DSHARED_ONLY=yes</parameter>: This switch is used
+      <parameter>-D SHARED_ONLY=yes</parameter>: This switch is used
       in order to only build the shared libraries.
     </para>
 
     <para>
-      <parameter>-DICAL_BUILD_DOCS=false</parameter>: This switch prevents
+      <parameter>-D ICAL_BUILD_DOCS=false</parameter>: This switch prevents
       building the <application>GTK</application> documentation. Remove
       if you want to build the documentation.
     </para>
 
     <para>
-      <parameter>-DGOBJECT_INTROSPECTION=true</parameter>: This switch is used
+      <parameter>-D ICAL_BUILD_EXAMPLES=false</parameter>: This switch prevents
+      building examples. Remove if you want to build them.
+    </para>
+
+    <para>
+      <parameter>-D GOBJECT_INTROSPECTION=true</parameter>: This switch is used
       to generate GObject metadata bindings.
     </para>
 
     <para>
-      <parameter>-DICAL_GLIB_VAPI=true</parameter>: This switch is used
+      <parameter>-D ICAL_GLIB_VAPI=true</parameter>: This switch is used
       in order to build bindings for <xref linkend="vala"/>.
     </para>
 
     <para>
-      <option>-DUSE_BUILTIN_TZDATA=yes</option>: This switch is used
+      <option>-D USE_BUILTIN_TZDATA=yes</option>: This switch is used
       in order to build using your own timezone data.
     </para>
 
