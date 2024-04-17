@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="pkgconf" xreflabel="Pkgconf Personalties">
+  <?dbhtml filename="pkgconf.html"?>
+
+
+  <title>Pkgconf Personalties</title>
+
+  <para>
+    The <command>pkgconf</command> compilation in the multilib
+    mirror does not cover <command>pkgconf</command> personalities
+    which are needed for some lib32 variants of packages such as
+    Gstreamer. This part is not necessary if you only intend to
+    follow the Steam chapter and not the Wine chapter.
+  </para>
+
+  <para>
+   The <command>pkgconf</command> personalities allow for
+   <command>pkgconf</command> to be ran without having to specify
+   the pkgconfig path.
+  </para>
+
+  <sect2>
+  <title>Creating the personalites</title>
+
+    <para>
+	Create the following personalties as the
+	<systemitem class="username">root</systemitem>
+	user:
+    </para>
+
+    <screen role="root"><userinput>mkdir -v /usr/share/pkgconfig/personality.d
+
+cat &gt; /usr/share/pkgconfig/x86_64-pc-linux-gnu.personality &lt;&lt; "EOF"
+<literal>Triplet: x86_64-pc-linux-gnu
+SysrootDir: /
+DefaultSearchPaths: /usr/lib/pkgconfig:/usr/share/pkgconfig
+SystemIncludePaths: /usr/include
+SystemLibraryPaths: /usr/lib</literal>
+EOF
+
+cat &gt; /usr/share/pkgconfig/i686-pc-linux-gnu.personality &lt;&lt; "EOF"
+<literal>Triplet: i686-pc-linux-gnu
+SysrootDir: /
+DefaultSearchPaths: /usr/lib32/pkgconfig:/usr/share/pkgconfig
+SystemIncludePaths: /usr/include
+SystemLibraryPaths: /usr/lib32</literal>
+EOF</userinput></screen>
+
+    <para>
+	Again as the <systemitem class="username">root</systemitem> user,
+	create the symlinks that enable pkgconf to find the personalites:
+    </para>
+
+    <screen role="root"><userinput>ln -sv pkgconf /usr/bin/x86_64-pc-linux-gnu-pkg-config
+ln -sv pkgconf /usr/bin/i686-pc-linux-gnu-pkg-config</userinput></screen>
+    
+    <para>
+	Now verify that the x86_64 pkg-config is using the right
+	personality:
+    </para>
+
+    <screen><userinput>x86_64-pc-linux-gnu-pkg-config --dump-personality</userinput></screen>
+    
+    <para>
+	The result should be:
+    </para>
+
+    <screen><computeroutput>Triplet: x86_64-pc-linux-gnu
+SysrootDir: /
+DefaultSearchPaths: /usr/lib/pkgconfig /usr/share/pkgconfig
+SystemIncludePaths: /usr/include
+SystemLibraryPaths: /usr/lib</computeroutput></screen>
+
+    <para>
+	Then verify the i686 pkg-config is using the right personality:
+    </para>
+
+    <screen><userinput>i686-pc-linux-gnu-pkg-config --dump-personality</userinput></screen>
+    
+    <para>
+	The result should be:
+    </para>
+
+    <screen><computeroutput>Triplet: i686-pc-linux-gnu
+SysrootDir: /
+DefaultSearchPaths: /usr/lib32/pkgconfig /usr/share/pkgconfig
+SystemIncludePaths: /usr/include
+SystemLibraryPaths: /usr/lib32</computeroutput></screen>
+
+  </sect2>
+
+
+</sect1>
