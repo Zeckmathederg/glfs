@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../../general.ent">
+  %general-entities;
+
+  <!ENTITY nspr-download-http "&mozilla-http;/nspr/releases/v&nspr-version;/src/nspr-&nspr-version;.tar.gz">
+  <!ENTITY nspr-download-ftp  " ">
+  <!ENTITY nspr-md5sum        "5e0acf9fbdde85181bddd510f4624841">
+  <!ENTITY nspr-size          "1.0 MB">
+  <!ENTITY nspr-buildsize     "9.6 MB">
+  <!ENTITY nspr-time          "less than 0.1 SBU">
+]>
+
+<sect1 id="nspr" xreflabel="NSPR-&nspr-version;">
+	<?dbhtml filename="nspr.html"?>
+
+
+  <title>NSPR-&nspr-version;</title>
+
+  <indexterm zone="nspr">
+    <primary sortas="a-NSPR">NSPR</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to NSPR</title>
+
+    <para>
+      <application>Netscape Portable Runtime</application> (NSPR) provides a
+      platform-neutral API for system level and libc like functions.
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&nspr-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&nspr-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &nspr-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+         Download size: &nspr-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &nspr-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &nspr-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of NSPR</title>
+
+    <para>
+      Install <application>NSPR</application> by running the following commands:
+    </para>
+
+<screen><userinput>cd nspr &amp;&amp;
+
+sed -i '/^RELEASE/s|^|#|' pr/src/misc/Makefile.in &amp;&amp;
+sed -i 's|$(LIBRARY) ||'  config/rules.mk         &amp;&amp;
+
+./configure --prefix=/usr   \
+            --with-mozilla  \
+            --with-pthreads \
+            $([ $(uname -m) = x86_64 ] &amp;&amp; echo --enable-64bit) &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      The test suite is designed for testing changes to nss or nspr and is
+      not particularly useful for checking a released version (e.g. it needs
+      to be run on a non-optimized build with both nss and nspr directories
+      existing alongside each other).
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>sed -ri '/^RELEASE/s/^/#/' pr/src/misc/Makefile.in</command>:
+      This sed disables installing two unneeded scripts.
+    </para>
+
+    <para>
+      <command>sed -i 's#$(LIBRARY) ##' config/rules.mk</command>: This sed disables
+      installing the static libraries.
+    </para>
+
+    <para>
+      <parameter>--with-mozilla</parameter>: This parameter adds Mozilla support
+      to the libraries (required if you want to build any other Mozilla
+      products and link them to these libraries).
+    </para>
+
+    <para>
+      <parameter>--with-pthreads</parameter>: This parameter forces use of the
+      system pthread library.
+    </para>
+
+    <para>
+      <parameter>--enable-64bit</parameter>: The --enable-64bit parameter is
+      <emphasis>required</emphasis> on an x86_64 system to prevent
+      <command>configure</command> failing with a claim that this is a system
+      without pthread support. The [ $(uname -m) = x86_64 ] test ensures it has
+      no effect on a 32 bit system. Keep the line if intending to do multilib,
+      and the lib32 instructions will be down below.
+    </para>
+
+  </sect2>
+
+  <sect2 role="installation">
+     <title>32-bit Installation of NSPR</title>
+
+     <para>
+	Install <application>lib32-NSPR</application> by running the following commands:
+     </para>
+
+<screen><userinput>cd nspr &amp;&amp;
+
+CC="gcc -m32" CXX="g++ -m32"	     \
+PKG_CONFIG_PATH=/usr/lib32/pkgconfig \
+./configure --prefix=/usr	     \
+	    --libdir=/usr/lib32      \
+	    --host=i686-pc-linux-gnu \
+	    --with-mozilla	     \
+            --with-pthreads	     \
+            --disable-64bit &amp;&amp;
+make</userinput></screen>
+
+    <para>
+	Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make DESTDIR=$PWD/DESTDIR install
+cp -vr DESTDIR/usr/lib32/* /usr/lib32
+rm -rf DESTDIR
+ldconfig</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          nspr-config
+        </seg>
+        <seg>
+          libnspr4.so, libplc4.so, and libplds4.so
+        </seg>
+        <seg>
+          /usr/include/nspr
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="nspr-config">
+        <term><command>nspr-config</command></term>
+        <listitem>
+          <para>
+            provides compiler and linker options to other packages that use
+            <application>NSPR</application>
+          </para>
+          <indexterm zone="nspr nspr-config">
+            <primary sortas="b-nspr-config">nspr-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libnspr4">
+        <term><filename class="libraryfile">libnspr4.so</filename></term>
+        <listitem>
+          <para>
+            contains functions that provide platform independence for non-GUI
+            operating system facilities such as threads, thread synchronization,
+            normal file and network I/O, interval timing and calendar time,
+            basic memory management and shared library linking
+          </para>
+          <indexterm zone="nspr libnspr4">
+            <primary sortas="c-libnspr4">libnspr4.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libplc4">
+        <term><filename class="libraryfile">libplc4.so</filename></term>
+        <listitem>
+          <para>
+            contains functions that implement many of the features offered by
+            libnspr4
+          </para>
+          <indexterm zone="nspr libplc4">
+            <primary sortas="c-libplc4">libplc4.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libplds4">
+        <term><filename class="libraryfile">libplds4.so</filename></term>
+        <listitem>
+          <para>
+            contains functions that provide data structures
+          </para>
+          <indexterm zone="nspr libplds4">
+            <primary sortas="c-libplds4">libplds4.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
