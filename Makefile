@@ -31,23 +31,23 @@ ifneq ($(REV), sysv)
 endif
 
 ifeq ($(REV), sysv)
-  BASEDIR         ?= $(HOME)/public_html/blfs-book
-  NOCHUNKS_OUTPUT ?= blfs-book.html
-  DUMPDIR         ?= ~/blfs-commands
-  BLFSHTML        ?= blfs-html.xml
-  BLFSHTML2       ?= blfs-html2.xml
-  BLFSFULL        ?= blfs-full.xml
+  BASEDIR         ?= $(HOME)/public_html/blfs-next
+  NOCHUNKS_OUTPUT ?= blfs-next.html
+  DUMPDIR         ?= ~/blfs-next-commands
+  BLFSHTML        ?= blfs-next-html.xml
+  BLFSHTML2       ?= blfs-next-html2.xml
+  BLFSFULL        ?= blfs-next-full.xml
 else
-  BASEDIR         ?= $(HOME)/public_html/blfs-systemd
-  NOCHUNKS_OUTPUT ?= blfs-sysd-book.html
-  DUMPDIR         ?= ~/blfs-sysd-commands
-  BLFSHTML        ?= blfs-systemd-html.xml
-  BLFSHTML2       ?= blfs-systemd-html2.xml
-  BLFSFULL        ?= blfs-systemd-full.xml
+  BASEDIR         ?= $(HOME)/public_html/blfs-next-systemd
+  NOCHUNKS_OUTPUT ?= blfs-next-sysd.html
+  DUMPDIR         ?= ~/blfs-next-sysd-commands
+  BLFSHTML        ?= blfs-next-systemd-html.xml
+  BLFSHTML2       ?= blfs-next-systemd-html2.xml
+  BLFSFULL        ?= blfs-next-systemd-full.xml
 
 endif
 
-blfs: html wget-list
+blfs-next: html wget-list
 
 help:
 	@echo ""
@@ -62,9 +62,9 @@ help:
 	@echo ""
 	@echo "  BASEDIR=<dir>        Put the output in directory <dir>."
 	@echo "                       Defaults to"
-	@echo "                       'HOME/public_html/blfs-book' if REV=sysv (or unset)"
+	@echo "                       'HOME/public_html/blfs-next' if REV=sysv (or unset)"
 	@echo "                       or to"
-	@echo "                       'HOME/public_html/blfs-book-systemd' if REV=systemd"
+	@echo "                       'HOME/public_html/blfs-next-systemd' if REV=systemd"
 	@echo ""
 	@echo "  V=<val>              If <val> is a non-empty value, all"
 	@echo "                       steps to produce the output is shown."
@@ -73,7 +73,7 @@ help:
 	@echo "Targets:"
 	@echo "  help                 Show this help text."
 	@echo ""
-	@echo "  blfs                 Builds targets 'html' and 'wget-list'."
+	@echo "  blfs-next            Builds targets 'html' and 'wget-list'."
 	@echo ""
 	@echo "  html                 Builds the HTML pages of the book."
 	@echo ""
@@ -95,8 +95,8 @@ help:
 	@echo "                       containing all valid URLs."
 	@echo ""
 
-all: blfs nochunks
-world: all blfs-patch-list dump-commands test-links
+all: blfs-next nochunks
+world: all blfs-next-patch-list dump-commands test-links
 
 html: $(BASEDIR)/index.html
 $(BASEDIR)/index.html: $(RENDERTMP)/$(BLFSHTML) version
@@ -183,13 +183,13 @@ $(RENDERTMP)/$(BLFSHTML): $(RENDERTMP)/$(BLFSFULL) version
                 stylesheets/lfs-xsl/profile.xsl      \
                 $(RENDERTMP)/$(BLFSFULL)
 
-blfs-patch-list: blfs-patches.sh
-	@echo "Generating blfs patch list..."
+blfs-next-patch-list: blfs-patches.sh
+	@echo "Generating blfs-next patch list..."
 	$(Q)awk '{if ($$1 == "copy") {sub(/.*\//, "", $$2); print $$2}}' \
-	  blfs-patches.sh > blfs-patch-list
+	  blfs-patches.sh > blfs-next-patch-list
 
 blfs-patches.sh: $(RENDERTMP)/$(BLFSFULL) version
-	@echo "Generating blfs patch script..."
+	@echo "Generating blfs-next patch script..."
 	$(Q)xsltproc --nonet                     \
                 --output blfs-patches.sh    \
                 stylesheets/patcheslist.xsl \
@@ -267,8 +267,8 @@ $(DUMPDIR): $(RENDERTMP)/$(BLFSFULL) version
                 $(RENDERTMP)/$(BLFSFULL)
 	$(Q)touch $(DUMPDIR)
 
-.PHONY: blfs all world html nochunks tmpdir clean             \
-   validate profile-html blfs-patch-list wget-list test-links \
+.PHONY: blfs-next all world html nochunks tmpdir clean             \
+   validate profile-html blfs-next-patch-list wget-list test-links \
    dump-commands  bootscripts systemd-units version test-options
 
 version:

@@ -345,12 +345,35 @@ install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib/pkgconfig</userinput></sc
     <title>32-bit Installation of NSS</title>
 
     <para>
+	First clean the directory by running the following commands
+	while in the <filename>nss</filename> directory:
+    </para>
+
+    <screen><userinput>make clean &amp;&amp;
+rm -rf ../dist</userinput></screen>
+
+    <note>
+    <para>
+	The command <userinput>make clean</userinput> as of now
+	can fail but the directory in most cases can still be used
+	for 32-bit compilation after a 64-bit compilation. If
+	running the following commands do not work, remove the
+	directory containing <filename>nss</filename>, unpack the
+	tarball, change directory into the resulting directory,
+	and apply the patch by following the command:
+    </para>
+<screen><userinput>patch -Np1 -i ../nss-3.99-standalone-1.patch</userinput></screen>
+    <para>
+	Then finally change directory into <filename>nss</filename>
+	and proceed with the following commands.
+    </para>
+    </note>
+
+    <para>
 	Install <application>lib32-NSS</application> by running the following commands:
     </para>
 
-<screen><userinput>cd nss &amp;&amp;
-
-CC="gcc -m32" CXX="g++ -m32"	      \
+<screen><userinput>CC="gcc -m32" CXX="g++ -m32"	  \
 make BUILD_OPT=1                      \
   NSPR_INCLUDE_DIR=/usr/include/nspr  \
   USE_SYSTEM_ZLIB=1                   \
@@ -368,40 +391,6 @@ install -v -m755 Linux*/lib/*.so              /usr/lib32              &amp;&amp;
 install -v -m644 Linux*/lib/{*.chk,libcrmf.a} /usr/lib32              &amp;&amp;
 sed -i 's/lib/lib32/g' Linux*/lib/pkgconfig/nss.pc		      &amp;&amp;
 install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib32/pkgconfig</userinput></screen>
-
-  </sect2>
-
-  <sect2 role="configuration">
-    <title>Configuring NSS</title>
-
-    <para>
-      If <!-- xref linkend="p11-kit"/ --> is installed, the
-      <application>p11-kit</application> trust module
-      (<filename>/usr/lib/pkcs11/p11-kit-trust.so</filename>) can be used as a
-      drop-in replacement for <filename>/usr/lib/libnssckbi.so</filename> to
-      transparently make the system CAs available to
-      <application>NSS</application> aware applications, rather than the static
-      library provided by <filename>/usr/lib/libnssckbi.so</filename>. As the
-      <systemitem class="username">root</systemitem> user, execute the following
-      command:
-    </para>
-
-<screen role="root"><userinput>ln -sfv ./pkcs11/p11-kit-trust.so /usr/lib/libnssckbi.so</userinput></screen>
-
-    <para>
-	For <application>lib32-NSS</application>, execute the following
-	command as the <systemitem class="username">root</systemitem> user:
-    </para>
-<screen role="root"><userinput>ln -sfv ./pkcs11/p11-kit-trust.so /usr/lib32/libnssckbi.so</userinput></screen>
-
-    <para>
-      Additionally, for dependent applications that do not use the internal
-      database (<filename>/usr/lib/libnssckbi.so</filename>), the
-      <filename>/usr/sbin/make-ca</filename> script included on the
-      <!-- xref linkend="make-ca"/ --> page can generate a system wide NSS DB with the
-      <parameter>-n</parameter> switch, or by modifying the
-      <filename>/etc/make-ca/make-ca.conf</filename> file.
-    </para>
 
   </sect2>
 
