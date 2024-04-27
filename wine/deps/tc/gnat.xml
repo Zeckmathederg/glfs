@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../../general.ent">
+  %general-entities;
+
+  <!ENTITY gnat-download-http "&gnu-http;/gcc/gcc-&gcc-version;/gcc-&gcc-version;.tar.xz">
+  <!ENTITY gnat-download-ftp  " ">
+  <!ENTITY gnat-md5sum        "e0e48554cc6e4f261d55ddee9ab69075">
+  <!ENTITY gnat-size          "UNKNOWN MB">
+  <!ENTITY gnat-buildsize     "UNKNOWN GB">
+  <!ENTITY gnat-time          "UNKNOWN SBU">
+]>
+
+<sect1 id="gnat" xreflabel="GNAT-&gcc-version;">
+  <?dbhtml filename="gnat.html"?>
+
+
+  <title>GNAT-&gcc-version;</title>
+
+  <indexterm zone="gnat">
+    <primary sortas="a-gnat">gnat</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to GNAT</title>
+
+    <para>
+	<application>GNAT</application> is a part of
+	<application>GCC</application>. It is often called
+	GCC-Ada because of this. Not many packages depend
+	on <application>GNAT</application> besides
+	<xref linkend="wine"/>, although some packages
+	optionally depend on it.
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&gnat-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&gnat-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &gnat-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &gnat-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &gnat-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &gnat-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">GNAT Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+	<xref linkend="gnat-binary"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optionnal">
+	<ulink url="https://www.linuxfromscratch.org/blfs/view/svn/general/gdb.html">
+	GDB-&gdb-version;</ulink>,
+	<ulink url="https://www.linuxfromscratch.org/blfs/view/svn/general/valgrind.html">
+	Valgrind-&valgrind-version;</ulink> (for tests), and
+	<ulink url="https://repo.or.cz/isl.git">
+	ISL</ulink> (to enable graphite optimization)
+    </para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of GNAT</title>
+
+    <important>
+    <para>
+	Even if you specify only languages other than Ada, C, and C++
+	to the ./configure command below, the installation process
+	will overwrite your existing GCC C and C++ compilers and
+	libraries. Running the full suite of tests is recommended.
+    </para>
+    <para>
+	Do not continue with the <command>make install</command>
+	command until you are confident the build was successful.
+	You can compare your test results with those found at
+	<ulink url="https://gcc.gnu.org/ml/gcc-testresults/"/>.
+	You may also want to refer to the information found in the
+	GCC section of Chapter 8 in the LFS book
+	(<ulink url="https://www.linuxfromscratch.org/lfs/view/development/chapter08/gcc.html"/>).
+    </para>
+    </important>
+
+  <sect3>
+    <title>Normal Installation of GNAT</title>
+
+    <warning>
+    <para>
+	If you are doing multilib, under no circumstance should you
+	follow the instructions immediately below or else you will
+	lose multilib support in <application>GCC</application>.
+	Skip to the Multilib GNAT section.
+    </para>
+    </warning>
+
+    <para>
+	The instructions below are intentionally performing a
+	“bootstrap” process. Bootstrapping is needed for robustness
+	and is highly recommended when upgrading the compilers version.
+	To disable bootstrap anyway, add <parameter>--disable-bootstrap
+	</parameter> to the <command>./configure</command> options below. 
+    </para>
+
+    <para>
+      Install <application>GNAT</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>case $(uname -m) in
+  x86_64)
+    sed -e '/m64=/s/lib64/lib/' \
+        -i.orig gcc/config/i386/t-linux64
+  ;;
+esac
+
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+../configure               \
+    --prefix=/usr          \
+    --disable-multilib     \
+    --with-system-zlib     \
+    --enable-default-pie   \
+    --enable-default-ssp   \
+    --disable-fixincludes  \
+    --enable-languages=ada &amp;&amp;
+
+make</userinput></screen>
+
+    <para>
+	If you have installed additional packages such as
+	<application>valgrind</application> and <application>gdb
+	</application>, the <application>gcc</application> part of the
+	test suite will run more tests than in LFS. Some of those will
+	report FAIL and others XPASS (pass when expected to FAIL).
+	As of gcc-&gcc-version;, about 65 FAIL occur in the “guality”
+	suite, as well as miscellaneous failures throughout the rest of
+	the test suite. If all the compilers above are built, there will
+	be a little over 80 unexpected failures out of over 546,000 tests.
+	To run the tests, issue:
+    </para>
+
+<screen><userinput>ulimit -s 32768 &amp;&amp;
+make -k check</userinput></screen>
+
+    <para>
+	The tests are very long, and the results may be hard to find in the
+	logs, specially if you use parallel jobs with make. You can get a
+	summary of the tests with:
+    </para>
+
+    <screen><userinput>../contrib/test_summary</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install                                               &amp;&amp;
+mkdir -pv /usr/share/gdb/auto-load/usr/lib                 &amp;&amp;
+mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib    &amp;&amp;
+
+chown -v -R root:root \
+    /usr/lib/gcc/*linux-gnu/7.2.0/include{,-fixed} \
+    /usr/lib/gcc/*linux-gnu/7.2.0/ada{lib,include}</userinput></screen>
+
+  </sect3>
+
+  <sect3>
+    <title>Multilib Installation of GNAT</title>
+
+    <para>
+	The instructions below are intentionally performing a
+	“bootstrap” process. Bootstrapping is needed for robustness
+	and is highly recommended when upgrading the compilers version.
+	To disable bootstrap anyway, add <parameter>--disable-bootstrap
+	</parameter> to the <command>./configure</command> options below. 
+    </para>
+
+    <para>
+	Install Multilib <application>GNAT</application> by running the
+	following commands:
+    </para>
+
+<screen><userinput>case $(uname -m) in
+  x86_64)
+    sed -e '/m64=/s/lib64/lib/' \
+        -i.orig gcc/config/i386/t-linux64
+  ;;
+esac
+
+mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+../configure                     \
+    --prefix=/usr                \
+    --enable-multilib            \
+    --with-multilib-list=m64,m32 \
+    --with-system-zlib           \
+    --enable-default-pie         \
+    --enable-default-ssp         \
+    --disable-fixincludes        \
+    --enable-languages=ada &amp;&amp;
+
+make
+</userinput></screen>
+
+    <para>
+	If you have installed additional packages such as
+	<application>valgrind</application> and <application>gdb
+	</application>, the <application>gcc</application> part of the
+	test suite will run more tests than in LFS. Some of those will
+	report FAIL and others XPASS (pass when expected to FAIL).
+	As of gcc-&gcc-version;, about 65 FAIL occur in the “guality”
+	suite, as well as miscellaneous failures throughout the rest of
+	the test suite. If all the compilers above are built, there will
+	be a little over 80 unexpected failures out of over 546,000 tests.
+	To run the tests, issue:
+    </para>
+
+<screen><userinput>ulimit -s 32768 &amp;&amp;
+make -k check</userinput></screen>
+
+    <para>
+	The tests are very long, and the results may be hard to find in the
+	logs, specially if you use parallel jobs with make. You can get a
+	summary of the tests with:
+    </para>
+
+    <screen><userinput>../contrib/test_summary</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install                                               &amp;&amp;
+mkdir -pv /usr/share/gdb/auto-load/usr/lib                 &amp;&amp;
+mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib    &amp;&amp;
+
+chown -v -R root:root \
+    /usr/lib/gcc/*linux-gnu/7.2.0/include{,-fixed} \
+    /usr/lib/gcc/*linux-gnu/7.2.0/ada{lib,include}</userinput></screen>
+
+  </sect3>
+  </sect2>
+
+  <sect2>
+    <title>Cleaning Up and Testing</title>
+
+    <para>
+	Now that <application>GNAT</application> has been installed,
+	it is time to clean up and test your installation to make sure
+	everything is working as expected.
+    </para>
+
+    <para>
+	Remove the binary installation that was installed earlier
+	as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+    <screen role="root"><userinput>rm -rf /opt/gnat*</userinput></screen>
+
+    <para>
+	Now as the regular user, restore the <filename>PATH</filename>
+	variable to what it was beforehand:
+    </para>
+
+<screen><userinput>export PATH=$PATH_HOLD &amp;&amp;
+unset PATH_HOLD</userinput></screen>
+
+    <para>
+	Now it's time to test the installation. First confirm that the
+	C and C++ compilers are working correctly:
+    </para>
+
+<screen><userinput>echo "int main(){}" >> main.c &amp;&amp;
+cp -v main.c main.cpp &amp;&amp;
+gcc main.c            &amp;&amp;
+./a.out
+
+rm -v a.out           &amp;&amp;
+g++ main.cpp          &amp;&amp;
+./a.out
+
+rm -v a.out main.{c,cpp}</userinput></screen>
+
+    <para>
+	If you're doing multilib:
+    </para>
+
+<screen><userinput>echo "int main(){}" >> main.c &amp;&amp;
+cp -v main.c main.cpp &amp;&amp;
+gcc -m32 main.c            &amp;&amp;
+./a.out
+
+rm -v a.out           &amp;&amp;
+g++ -m32 main.cpp          &amp;&amp;
+./a.out
+
+rm -v a.out main.{c,cpp}</userinput></screen>
+
+    <para>
+	And finally, test the GNAT compiler:
+    </para>
+
+<screen><userinput>cat &gt;&gt; testgnat.adb &lt;&lt; "EOF"
+<literal>with Ada.Text_IO; use Ada.Text_IO;
+procedure Testgnat is
+begin
+   Put_Line("Success!");
+end Testgnat;</literal>
+EOF
+
+gnatmake testgnat.adb &amp;&amp;
+./testgnat
+
+rm -v testgnat*</userinput></screen>
+
+    <para>
+	The commands above should have no errors, otherwise
+	something went wrong with the installation.
+    </para>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <command>mkdir build; cd build</command>: The
+      <application>GCC</application> documentation recommends
+      building the package in a dedicated build directory.
+    </para>
+
+    <para>
+      <parameter>--disable-multilib</parameter>: This parameter ensures
+      that files are created for the specific architecture of your computer.
+    </para>
+
+    <para>
+      <parameter>--enable-multilib</parameter>: This parameter ensures
+      that files are created for both 32-bit and 64-bit despite computer
+      architecture.
+    </para>
+
+    <para>
+      <parameter>--with-system-zlib</parameter>: Uses the system
+      <application>zlib</application> instead of the bundled one.
+      <application>zlib</application> is used for compressing
+      and decompressing <application>GCC</application>'s intermediate
+      language in LTO (Link Time Optimization) object files.
+    </para>
+
+    <para>
+      <parameter>--enable-default-pie</parameter>: Makes the
+      <option>-fpie</option> option the default when compiling programs.
+      Together with the <xref linkend="gASLR"/> feature enabled in the kernel,
+      this defeats some kind of attacks based on known memory layouts.
+    </para>
+
+    <para>
+      <parameter>--enable-default-ssp</parameter>: Makes the
+      <option>-fstack-protector-strong</option> option the default when
+      compiling programs. <xref linkend="gSSP"/> is a technique preventing
+      alteration of the program flow by corrupting the parameter stack.
+    </para>
+
+    <para>
+      <parameter>--enable-languages=ada</parameter>:
+      This command builds support for ada, but will also build support
+      for C and C++. Refer to <ulink
+      url="https://www.linuxfromscratch.org/blfs/view/svn/general/gcc.html"/>
+      to find what other languages are supported. Make sure to add
+      <parameter>ada</parameter> to the option if you recompile <application>
+      GCC</application>.
+    </para>
+
+    <para>
+      <command>ulimit -s 32768</command>: This command prevents several
+      tests from running out of stack space.
+    </para>
+
+    <para>
+      <command>make -k check</command>: This command runs the test suite
+      without stopping if any errors are encountered.
+    </para>
+
+    <para>
+      <command>../contrib/test_summary</command>: This command will produce
+      a summary of the test suite results. You can append <command>| grep
+      -A7 Summ</command> to the command to produce an even more condensed
+      version of the summary. You may also wish to redirect the output
+      to a file for review and comparison later on.
+    </para>
+
+    <para>
+      <command>mv -v /usr/lib/*gdb.py ...</command>: The installation
+      stage puts some files used by <application>gdb</application> under the
+      <filename class="directory">/usr/lib</filename> directory. This generates
+      spurious error messages when performing <command>ldconfig</command>. This
+      command moves the files to another location.
+    </para>
+
+    <para>
+      <command>chown -v -R root:root /usr/lib/gcc/*linux-gnu/...</command>:
+      If the package is built by a user other than root, the ownership of the
+      installed <filename class="directory">include</filename> directory (and
+      its content) will be incorrect. This command changes the ownership to the
+      <systemitem class="username">root</systemitem> user and group.
+    </para>
+
+    <para>
+      <option>--enable-host-shared --enable-languages=jit</option>:
+      Build <systemitem class="library">libgccjit</systemitem>, a library
+      for embedding GCC inside programs and libraries for generating machine
+      code.  Despite <quote>JIT</quote> (just-in-time) in the name, the
+      library can be used for AOT (ahead-of-time) compilation as well.
+      <option>--enable-host-shared</option> is needed for building
+      <systemitem class="library">libgccjit</systemitem>, but it
+      significantly slows down GCC.  So
+      <systemitem class="library">libgccjit</systemitem> should be built and
+      installed separately, not as a part of the <quote>main</quote> GCC
+      installation.  If you need this library, configure GCC with
+      these two options and install the library by running
+      <!-- from Arch, not tested -->
+      <command>make -C gcc jit.install-common jit.install-info</command>
+      as the &root; user.  This library is not used by any BLFS package,
+      nor tested by the BLFS developers.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          gnat, gnatbind, gnatchop, gnatclean, gnatfind, gnatkr,
+          gnatlink, gnatls, gnatmake, gnatname, gnatprep, gnatxref
+        </seg>
+        <seg>
+          libgnarl.{so,a}, libgnat.{so,a} in <filename class="directory">
+          /usr/lib/gcc/&lt;arch-triplet&gt;/&gcc-version;/adalib</filename>
+        </seg>
+        <seg>
+          /usr/lib/gcc/&lt;arch-triplet&gt;/&gcc-version;/ada{include,lib}
+          and /usr/lib/gcc/&lt;arch-triplet&gt;/&gcc-version;/plugin/include/ada
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <para>
+      Only the Ada specific files are listed here. Others can be found at
+      <ulink url="&lfs-root;/chapter06/gcc.html#contents-gcc"/> as they were
+      initially installed during the building of LFS.
+    </para>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="gnat-prog">
+        <term><command>gnat</command></term>
+        <listitem>
+          <para>
+            is a wrapper that accepts a number of commands and calls
+            the corresponding tool from the list below.
+          </para>
+          <indexterm zone="gnat gnat-prog">
+            <primary sortas="b-gnat">gnat</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatbind">
+        <term><command>gnatbind</command></term>
+        <listitem>
+          <para>
+            is used to bind compiled objects.
+          </para>
+          <indexterm zone="gnat gnatbind">
+            <primary sortas="b-gnatbind">gnatbind</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatchop">
+        <term><command>gnatchop</command></term>
+        <listitem>
+          <para>
+            is useful for renaming files to meet the standard
+            <application>Ada</application> default file naming conventions.
+          </para>
+          <indexterm zone="gnat gnatchop">
+            <primary sortas="b-gnatchop">gnatchop</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatclean">
+        <term><command>gnatclean</command></term>
+        <listitem>
+          <para>
+            is used to remove files associated with a
+            <application>GNAT</application> project.
+          </para>
+          <indexterm zone="gnat gnatclean">
+            <primary sortas="b-gnatclean">gnatclean</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatfind">
+        <term><command>gnatfind</command></term>
+        <listitem>
+          <para>
+            is intended for locating definition and/or references to
+            specified entities in a <application>GNAT</application> project.
+          </para>
+          <indexterm zone="gnat gnatfind">
+            <primary sortas="b-gnatfind">gnatfind</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatkr">
+        <term><command>gnatkr</command></term>
+        <listitem>
+          <para>
+            is used to determine the crunched name for a given file, when
+            crunched to a specified maximum length.
+          </para>
+          <indexterm zone="gnat gnatkr">
+            <primary sortas="b-gnatkr">gnatkr</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatlink">
+        <term><command>gnatlink</command></term>
+        <listitem>
+          <para>
+            is used to link programs and build an executable file.
+          </para>
+          <indexterm zone="gnat gnatlink">
+            <primary sortas="b-gnatlink">gnatlink</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatls">
+        <term><command>gnatls</command></term>
+        <listitem>
+          <para>
+            is the compiled unit browser.
+          </para>
+          <indexterm zone="gnat gnatls">
+            <primary sortas="b-gnatls">gnatls</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatmake">
+        <term><command>gnatmake</command></term>
+        <listitem>
+          <para>
+            is the <application>Ada</application> compiler, which performs
+            compilation, binding and linking.
+          </para>
+          <indexterm zone="gnat gnatmake">
+            <primary sortas="b-gnatmake">gnatmake</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatname">
+        <term><command>gnatname</command></term>
+        <listitem>
+          <para>
+            will list the files associated with a
+            <application>GNAT</application> project.
+          </para>
+          <indexterm zone="gnat gnatname">
+            <primary sortas="b-gnatname">gnatname</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatprep">
+        <term><command>gnatprep</command></term>
+        <listitem>
+          <para>
+            is the <application>GNAT</application> external preprocessor.
+          </para>
+          <indexterm zone="gnat gnatprep">
+            <primary sortas="b-gnatprep">gnatprep</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gnatxref">
+        <term><command>gnatxref</command></term>
+        <listitem>
+          <para>
+            is similar to <command>gnatfind</command>, but generates
+            a full report of all cross-references.
+          </para>
+          <indexterm zone="gnat gnatxref">
+            <primary sortas="b-gnatxref">gnatxref</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
