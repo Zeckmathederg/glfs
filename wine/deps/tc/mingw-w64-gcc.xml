@@ -1,34 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  <!ENTITY % general-entities SYSTEM "../../../general.ent">
   %general-entities;
 
-  <!ENTITY libunistring-download-http "&gnu-http;/libunistring/libunistring-&libunistring-version;.tar.xz">
-  <!ENTITY libunistring-download-ftp  " ">
-  <!ENTITY libunistring-md5sum        "6b4ea63617bf09d76e5234379e75e7f9">
-  <!ENTITY libunistring-size          "2.4 MB">
-  <!ENTITY libunistring-buildsize     "54 MB (add 56 MB for tests)">
-  <!ENTITY libunistring-time          "0.5 SBU; add 0.3 SBU for tests; both using parallelism=4">
+  <!ENTITY mingw-w64-gcc-download-http "&gnu-http;/gcc/gcc-&gcc-version;/gcc-&gcc-version;.tar.xz">
+  <!ENTITY mingw-w64-gcc-download-ftp  " ">
+  <!ENTITY mingw-w64-gcc-md5sum        "e0e48554cc6e4f261d55ddee9ab69075">
+  <!ENTITY mingw-w64-gcc-size          "UNKNOWN MB">
+  <!ENTITY mingw-w64-gcc-buildsize     "UNKNOWN GB">
+  <!ENTITY mingw-w64-gcc-time          "UNKNOWN SBU">
 ]>
 
-<sect1 id="libunistring" xreflabel="libunistring-&libunistring-version;">
-  <?dbhtml filename="libunistring.html"?>
+<sect1 id="mingw-w64-gcc" xreflabel="MinGW-w64-GCC-&gcc-version;">
+  <?dbhtml filename="mingw-w64-gcc.html"?>
 
 
-  <title>libunistring-&libunistring-version;</title>
+  <title>MinGW-w64-GCC-&gcc-version;</title>
 
-  <indexterm zone="libunistring">
-    <primary sortas="a-libunistring">libunistring</primary>
+  <indexterm zone="mingw-w64-gcc">
+    <primary sortas="a-mingw-w64-gcc">mingw-w64-gcc</primary>
   </indexterm>
 
   <sect2 role="package">
-    <title>Introduction to libunistring</title>
+    <title>Introduction to MinGW-w64-GCC</title>
 
     <para>
-      <application>libunistring</application> is a library that provides
-      functions for manipulating Unicode strings and for manipulating C
-      strings according to the Unicode standard.
+	<application>MinGW-w64-GCC</application> provides
+	<application>GCC</application> compilers for MinGW-w64,
+	allowing users and applications to compile code targetting
+	Windows.
     </para>
 
     &lfs121_checked;
@@ -37,149 +38,485 @@
     <itemizedlist spacing="compact">
       <listitem>
         <para>
-          Download (HTTP): <ulink url="&libunistring-download-http;"/>
+          Download (HTTP): <ulink url="&mingw-w64-gcc-download-http;"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Download (FTP): <ulink url="&libunistring-download-ftp;"/>
+          Download (FTP): <ulink url="&mingw-w64-gcc-download-ftp;"/>
         </para>
       </listitem>
       <listitem>
         <para>
-          Download MD5 sum: &libunistring-md5sum;
+          Download MD5 sum: &mingw-w64-gcc-md5sum;
         </para>
       </listitem>
       <listitem>
         <para>
-          Download size: &libunistring-size;
+          Download size: &mingw-w64-gcc-size;
         </para>
       </listitem>
       <listitem>
         <para>
-          Estimated disk space required: &libunistring-buildsize;
+          Estimated disk space required: &mingw-w64-gcc-buildsize;
         </para>
       </listitem>
       <listitem>
         <para>
-          Estimated build time: &libunistring-time;
+          Estimated build time: &mingw-w64-gcc-time;
         </para>
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">libunistring Dependencies</bridgehead>
+    <bridgehead renderas="sect3">MinGW-w64-GCC Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+	<xref linkend="mingw-w64-binary"/>,
+	<xref linkend="mingw-w64-binutils"/>,
+	<xref linkend="mingw-w64-crt"/>,
+	<xref linkend="mingw-w64-headers"/>, and
+	<xref linkend="mingw-w64-winpthreads"/>,
+    </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <!-- xref linkend="texlive"/> (or <xref linkend="tl-installer"/ -->)
-      (to rebuild the documentation)
+	<ulink url="https://www.linuxfromscratch.org/blfs/view/svn/general/gdb.html">
+	GDB-&gdb-version;</ulink> and
+	<ulink url="https://www.linuxfromscratch.org/blfs/view/svn/general/valgrind.html">
+	Valgrind-&valgrind-version;</ulink> (for tests)
     </para>
 
   </sect2>
 
   <sect2 role="installation">
-    <title>Installation of libunistring</title>
+    <title>Installation of MinGW-w64-GCC</title>
+
+    <important>
+    <para>
+	Although you are compiling for another host and running
+	<command>make install</command> is generally safe, it is
+	recommended to not run <command>make install</command>
+	until you are confident the build was successful.
+    </para>
+    </important>
 
     <para>
-      Install <application>libunistring</application> by running the following
-      commands:
+	Ensure that on x86_64 that the library directory is /lib:
     </para>
 
-<screen><userinput>./configure --prefix=/usr    \
-            --disable-static \
-            --docdir=/usr/share/doc/libunistring-&libunistring-version; &amp;&amp;
+<screen><userinput>case $(uname -m) in
+  x86_64)
+    sed -e '/m64=/s/lib64/lib/' \
+        -i.orig gcc/config/i386/t-linux64
+  ;;
+esac</userinput></screen>
+
+  <sect3>
+    <title>x86_64 Installation of MinGW-w64-GCC</title>
+
+    <para>
+	The instructions below are intentionally performing a
+	“bootstrap” process. Bootstrapping is needed for robustness
+	and is highly recommended when upgrading the compilers version.
+	To disable bootstrap anyway, add <parameter>--disable-bootstrap
+	</parameter> to the <command>./configure</command> options below. 
+    </para>
+
+    <para>
+	Install x86_64 <application>MinGW-w64-GCC</application> by running the
+	following commands:
+    </para>
+
+<screen><userinput>mkdir build-x86_64-mingw-w64 &amp;&amp;
+cd    build-x86_64-mingw-w64 &amp;&amp;
+
+../configure               		 \
+    --prefix=/usr          		 \
+    --libexecdir=/usr/lib  	 	 \
+    --target=x86_64-w64-mingw32          \
+    --enable-shared        		 \
+    --enable-static        		 \
+    --disable-multilib     		 \
+    --enable-threads=posix 		 \
+    --enable-fully-dynamic-string 	 \
+    --enable-libstdcxx-time=yes		 \
+    --enable-libstdcxx-filesystem-ts=yes \
+    --with-system-zlib     		 \
+    --enable-default-pie   		 \
+    --enable-default-ssp   		 \
+    --disable-fixincludes  		 \
+    --enable-languages=ada,c,c++
+
 make</userinput></screen>
 
     <para>
-      To test the results, issue: <command>make check</command>.
+	If you have installed additional packages such as
+	<application>valgrind</application> and <application>gdb
+	</application>, the <application>gcc</application> part of the
+	test suite will run more tests than in LFS. Some of those will
+	report FAIL and others XPASS (pass when expected to FAIL).
+	As of gcc-&gcc-version;, about 65 FAIL occur in the “guality”
+	suite, as well as miscellaneous failures throughout the rest of
+	the test suite. If all the compilers above are built, there will
+	be a little over 80 unexpected failures out of over 546,000 tests.
+	To run the tests, issue:
     </para>
+
+<screen><userinput>ulimit -s 32768 &amp;&amp;
+make -k check</userinput></screen>
+
+    <para>
+	The tests are very long, and the results may be hard to find in the
+	logs, specially if you use parallel jobs with make. You can get a
+	summary of the tests with:
+    </para>
+
+    <screen><userinput>../contrib/test_summary</userinput></screen>
 
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install</userinput></screen>
+<screen role="root"><userinput>make install
+
+ln -sv x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-cc        &amp;&amp;
+mv -v /usr/x86_64-w64-mingw32/lib/*.dll /usr/x86_64-w64-mingw32/bin
+</userinput></screen>
+
+  </sect3>
+
+  <sect3>
+    <title>i686 Installation of MinGW-w64-GCC</title>
+
+    <para>
+	The instructions below are intentionally performing a
+	“bootstrap” process. Bootstrapping is needed for robustness
+	and is highly recommended when upgrading the compilers version.
+	To disable bootstrap anyway, add <parameter>--disable-bootstrap
+	</parameter> to the <command>./configure</command> options below. 
+    </para>
+
+    <para>
+	Install i686 <application>MinGW-w64-GCC</application> by running the
+	following commands:
+    </para>
+
+<screen><userinput>mkdir build-i686-mingw-w64 &amp;&amp;
+cd    build-i686-mingw-w64 &amp;&amp;
+
+../configure               		 \
+    --prefix=/usr          		 \
+    --libexecdir=/usr/lib  	 	 \
+    --target=i686-w64-mingw32		 \
+    --enable-shared        		 \
+    --enable-static        		 \
+    --disable-multilib     		 \
+    --enable-threads=posix 		 \
+    --enable-fully-dynamic-string 	 \
+    --enable-libstdcxx-time=yes		 \
+    --enable-libstdcxx-filesystem-ts=yes \
+    --with-system-zlib     		 \
+    --enable-default-pie   		 \
+    --enable-default-ssp   		 \
+    --disable-fixincludes  		 \
+    --enable-languages=ada,c,c++
+
+make
+</userinput></screen>
+
+    <para>
+	If you have installed additional packages such as
+	<application>valgrind</application> and <application>gdb
+	</application>, the <application>gcc</application> part of the
+	test suite will run more tests than in LFS. Some of those will
+	report FAIL and others XPASS (pass when expected to FAIL).
+	As of gcc-&gcc-version;, about 65 FAIL occur in the “guality”
+	suite, as well as miscellaneous failures throughout the rest of
+	the test suite. If all the compilers above are built, there will
+	be a little over 80 unexpected failures out of over 546,000 tests.
+	To run the tests, issue:
+    </para>
+
+<screen><userinput>ulimit -s 32768 &amp;&amp;
+make -k check</userinput></screen>
+
+    <para>
+	The tests are very long, and the results may be hard to find in the
+	logs, specially if you use parallel jobs with make. You can get a
+	summary of the tests with:
+    </para>
+
+    <screen><userinput>../contrib/test_summary</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install
+
+ln -sv i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-cc        &amp;&amp;
+mv -v /usr/i686-w64-mingw32/lib/*.dll /usr/i686-w64-mingw32/bin
+</userinput></screen>
+
+  </sect3>
+  </sect2>
+
+  <sect2>
+    <title>Cleaning Up and Testing</title>
+
+    <para>
+	Now that <application>MinGW-w64-GCC</application> and friends
+	have been installed, it is time to clean up and test the <application>
+	MinGW-w64</application> installation to make sure everything is
+	working as expected.
+    </para>
+
+    <para>
+	Remove the binary installation that was installed earlier
+	as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+    <screen role="root"><userinput>rm -rf /opt/mingw-w64*</userinput></screen>
+
+    <para>
+	Now as the regular user, restore the <filename>PATH</filename>
+	variable to what it was beforehand:
+    </para>
+
+<screen><userinput>export PATH=$PATH_HOLD &amp;&amp;
+unset PATH_HOLD</userinput></screen>
+
+    <para>
+	Now it's time to test the installation. First confirm that the
+	regular C and C++ compilers are working correctly:
+    </para>
+
+<screen><userinput>echo "int main(){}" >> main.c &amp;&amp;
+cp -v main.c main.cpp &amp;&amp;
+gcc main.c            &amp;&amp;
+./a.out
+
+rm -v a.out           &amp;&amp;
+g++ main.cpp          &amp;&amp;
+./a.out
+
+rm -v a.out main.{c,cpp}</userinput></screen>
+
+    <para>
+	If you're doing multilib:
+    </para>
+
+<screen><userinput>echo "int main(){}" >> main.c &amp;&amp;
+cp -v main.c main.cpp &amp;&amp;
+gcc -m32 main.c            &amp;&amp;
+./a.out
+
+rm -v a.out           &amp;&amp;
+g++ -m32 main.cpp          &amp;&amp;
+./a.out
+
+rm -v a.out main.{c,cpp}</userinput></screen>
+
+    <para>
+	Test the GNAT compiler:
+    </para>
+
+<screen><userinput>cat &gt;&gt; testgnat.adb &lt;&lt; "EOF"
+<literal>with Ada.Text_IO; use Ada.Text_IO;
+procedure Testgnat is
+begin
+   Put_Line("Success!");
+end Testgnat;</literal>
+EOF
+
+gnatmake testgnat.adb &amp;&amp;
+./testgnat
+
+rm -v testgnat*</userinput></screen>
+
+    <para>
+	Now test the <application>MinGW-w64</application> compilers.
+    </para>
+
+    <para>
+	For x86_64:
+    </para>
+
+<screen><userinput>cat &gt;&gt; main.c &lt;&lt; "EOF"
+<literal>#include &lt;stdio.h&gt;
+int main(){}
+</literal>EOF
+
+cp -v main.c main.cpp                  &amp;&amp;
+sed -i 's/stdio.h/iostream/g' main.cpp &amp;&amp;
+x86_64-w64-mingw32-gcc main.c          &amp;&amp;
+
+rm -v a.exe                            &amp;&amp;
+x86_64-w64-mingw32-g++ main.cpp        &amp;&amp;
+
+rm -v a.exe main.{c,cpp}
+
+cat &gt;&gt; testgnat.adb &lt;&lt; "EOF"
+<literal>with Ada.Text_IO; use Ada.Text_IO;
+procedure Testgnat is
+begin
+   Put_Line("Success!");
+end Testgnat;</literal>
+EOF
+
+x86_64-w64-mingw32-gnatmake testgnat.adb
+
+rm -v testgnat*</userinput></screen>
+
+    <para>
+	For i686:
+    </para>
+
+<screen><userinput>cat &gt;&gt; main.c &lt;&lt; "EOF"
+<literal>#include &lt;stdio.h&gt;
+int main(){}
+</literal>EOF
+
+cp -v main.c main.cpp                  &amp;&amp;
+sed -i 's/stdio.h/iostream/g' main.cpp &amp;&amp;
+i686-w64-mingw32-gcc main.c            &amp;&amp;
+
+rm -v a.exe                            &amp;&amp;
+i686-w64-mingw32-g++ main.cpp          &amp;&amp;
+
+rm -v a.exe main.{c,cpp}
+
+cat &gt;&gt; testgnat.adb &lt;&lt; "EOF"
+<literal>with Ada.Text_IO; use Ada.Text_IO;
+procedure Testgnat is
+begin
+   Put_Line("Success!");
+end Testgnat;</literal>
+EOF
+
+i686-w64-mingw32-gnatmake testgnat.adb
+
+rm -v testgnat*</userinput></screen>
+
+    <para>
+	The commands above should have no errors, otherwise
+	something went wrong with the installation.
+    </para>
 
   </sect2>
 
   <sect2 role="commands">
     <title>Command Explanations</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/static-libraries.xml"/>
-
-  </sect2>
-
-  <sect2>
-    <title>32-bit Installation of lib32-libunistring</title>
-
     <para>
-	First clean the directory by running the following command:
+      <command>mkdir build; cd build</command>: The
+      <application>GCC</application> documentation recommends
+      building the package in a dedicated build directory.
     </para>
 
-    <screen><userinput>make distclean</userinput></screen>
-
     <para>
-	Install <application>lib32-libunistring</application>
-	by running the following commands:
+	<parameter>--enable-shared</parameter>: This option builds needed
+	shared libraries.
     </para>
 
-    <screen><userinput>CC="gcc -m32" CXX="g++ -m32"         \
-PKG_CONFIG_PATH=/usr/lib32/pkgconfig \
-./configure --prefix=/usr	     \
-	    --libdir=/usr/lib32	     \
-	    --host=i686-pc-linux-gnu \
-	    --disable-static &amp;&amp;
-
-make</userinput></screen>
-
     <para>
-	Now as the <systemitem class="username">root</systemitem> user:
+	<parameter>--enable-static</parameter>: This option builds needed
+	static libraries.
     </para>
 
-<screen role="root"><userinput>make DESTDIR=$PWD/DESTDIR install
-cp -vr DESTDIR/usr/lib32/* /usr/lib32
-rm -rf DESTDIR
-ldconfig</userinput></screen>
+    <para>
+      <parameter>--disable-multilib</parameter>: This option ensures
+      that files are created for the specific architecture of your computer.
+    </para>
+
+    <para>
+	<parameter>--enable-threads=posix</parameter>: This option ensures
+	the POSIX threads standard is built in.
+    </para>
+    
+    <para>
+	<parameter>--enable-fully-dynamic-string</parameter>: This option
+	enables a special version of basic_string avoiding the optimization
+	that allocates empty objects in static memory.
+    </para>
+    
+    <para>
+	<parameter>--enable-libstdcxx-time=yes</parameter>: This option
+	enables link-type checks for the availability of the clock_gettime
+	clocks.
+    </para>
+ 
+    <para>
+	<parameter>--enable-libstdcxx-filesystem-ts=yes</parameter>: This
+	option builds <filename>libstdc++fs.a</filename> as well as the
+	usual libstdc++ and libsupc++ libraries.
+    </para>
+
+    <para>
+      <parameter>--with-system-zlib</parameter>: Uses the system
+      <application>zlib</application> instead of the bundled one.
+      <application>zlib</application> is used for compressing
+      and decompressing <application>GCC</application>'s intermediate
+      language in LTO (Link Time Optimization) object files.
+    </para>
+
+    <para>
+      <parameter>--enable-default-pie</parameter>: Makes the
+      <option>-fpie</option> option the default when compiling programs.
+      Together with the <xref linkend="gASLR"/> feature enabled in the kernel,
+      this defeats some kind of attacks based on known memory layouts.
+    </para>
+
+    <para>
+      <parameter>--enable-default-ssp</parameter>: Makes the
+      <option>-fstack-protector-strong</option> option the default when
+      compiling programs. <xref linkend="gSSP"/> is a technique preventing
+      alteration of the program flow by corrupting the parameter stack.
+    </para>
+
+    <para>
+      <parameter>--enable-languages=ada,c,c++</parameter>:
+      This command builds support for ada, C, and C++. Refer to <ulink
+      url="https://www.linuxfromscratch.org/blfs/view/svn/general/gcc.html"/>
+      to find what other languages are supported. Make sure to add
+      <parameter>ada</parameter> to the option if you recompile <application>
+      MinGW-w64-GCC</application>.
+    </para>
+
+    <para>
+      <command>ulimit -s 32768</command>: This command prevents several
+      tests from running out of stack space.
+    </para>
+
+    <para>
+      <command>make -k check</command>: This command runs the test suite
+      without stopping if any errors are encountered.
+    </para>
+
+    <para>
+      <command>../contrib/test_summary</command>: This command will produce
+      a summary of the test suite results. You can append <command>| grep
+      -A7 Summ</command> to the command to produce an even more condensed
+      version of the summary. You may also wish to redirect the output
+      to a file for review and comparison later on.
+    </para>
+
+    <para>
+      <command>mv -v /usr/*/lib/*.dll /usr/*/bin</command>: This command
+      moves dll files to the proper directory.
+    </para>
 
   </sect2>
 
   <sect2 role="content">
     <title>Contents</title>
 
-    <segmentedlist>
-      <segtitle>Installed Programs</segtitle>
-      <segtitle>Installed Libraries</segtitle>
-      <segtitle>Installed Directory</segtitle>
-
-      <seglistitem>
-        <seg>None</seg>
-        <seg>libunistring.so</seg>
-        <seg>
-          /usr/include/unistring and
-          /usr/share/doc/libunistring-&libunistring-version;
-        </seg>
-      </seglistitem>
-    </segmentedlist>
-
-    <variablelist>
-      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
-      <?dbfo list-presentation="list"?>
-      <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="libunistring-lib">
-        <term><command>libunistring.so</command></term>
-        <listitem>
-          <para>
-            provides the unicode string library API
-          </para>
-          <indexterm zone="libunistring libunistring-lib">
-            <primary sortas="c-libunistring-lib">libunistring.so</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
+    <para>
+      There are no binaries specific to this package besides the format
+      the compilers are targetting. For in-depth descriptions, read <ulink
+      url="&lfs-website;/lfs/view/stable/chapter08/gcc.html#contents-gcc"/>
+    </para>
 
   </sect2>
 
