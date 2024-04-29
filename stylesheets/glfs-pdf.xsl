@@ -7,8 +7,8 @@
     <!-- LFS top-level pdf templates. -->
   <xsl:import href="lfs-xsl/pdf.xsl"/>
 
-    <!-- The LFS book type to be processed (lfs, glfs, clfs, or hlfs) -->
-  <xsl:param name="book-type">glfs</xsl:param>
+    <!-- The LFS book type to be processed (lfs, blfs, clfs, or hlfs) -->
+  <xsl:param name="book-type">blfs</xsl:param>
 
     <!-- Are sections enumerated? 1 = yes, 0 = no
            Note: Activating this will increase a lot rendering time. -->
