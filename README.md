@@ -6,7 +6,7 @@ like Steam and Wine after the Linux From Scratch book.
 # Installation
 
 How do I convert these XML files to HTML? You need to have some software
-installed that deal with these conversions. Please read the INSTALL file to
+installed that deal with these conversions. Please read the `INSTALL.md` file to
 determine what programs you need to install and where to get instructions to
 install that software.
 
