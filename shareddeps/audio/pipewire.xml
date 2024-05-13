@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../../general.ent">
+  %general-entities;
+
+  <!ENTITY pipewire-download-http "https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/&pipewire-version;/pipewire-&pipewire-version;.tar.bz2">
+  <!ENTITY pipewire-download-ftp  " ">
+  <!ENTITY pipewire-md5sum        "c60c630dd31d0213a78bcebf06dfc6ed">
+  <!ENTITY pipewire-size          "1.6 MB">
+  <!ENTITY pipewire-buildsize     "75 MB (with tests)">
+  <!ENTITY pipewire-time          "0.6 SBU (with tests, both using parallelism=4)">
+]>
+
+<sect1 id="pipewire" xreflabel="pipewire-&pipewire-version;">
+  <?dbhtml filename="pipewire.html"?>
+
+
+  <title>Pipewire-&pipewire-version;</title>
+
+  <indexterm zone="pipewire">
+    <primary sortas="a-pipewire">pipewire</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Pipewire</title>
+
+    <para>
+      The <application>pipewire</application> package contains a server and
+      userspace API to handle multimedia pipelines. This includes a universal
+      API to connect to multimedia devices, as well as sharing multimedia
+      files between applications.
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&pipewire-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&pipewire-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &pipewire-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &pipewire-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &pipewire-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &pipewire-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+<!--
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Recommended patch:
+          <ulink url="&patch-root;/pipewire-&pipewire-version;-upstream_fix-1.patch"/>
+          (required to fix <quote>could not play camera stream</quote> error
+          from <xref linkend='snapshot'/>)
+        </para>
+      </listitem>
+    </itemizedlist>
+-->
+
+    <bridgehead renderas="sect3">Pipewire Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="bluez"/>,
+      <phrase revision="sysv"><xref linkend="dbus"/>,</phrase>
+      <xref linkend="gstreamer10"/>,
+      <xref linkend="gst10-plugins-base"/>,
+      <xref linkend="pulseaudio"/>,
+      <xref linkend="sbc"/>,
+      <xref linkend="v4l-utils"/>, and
+      <xref role="runtime" linkend="wireplumber"/> (runtime)
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      <xref linkend="alsa-lib"/>,
+      <xref linkend="avahi"/>,
+      <xref linkend="fdk-aac"/>,
+      <xref linkend="ffmpeg"/>,
+      <xref linkend="libcanberra"/>,
+      <xref linkend="libdrm"/> (for one example and libcamera support),
+      <xref linkend="libxcb"/>,
+      <xref linkend="libsndfile"/>,
+      <xref linkend="libusb"/>,
+      <xref linkend="opus"/>,
+      <xref linkend="sdl2"/> (for some examples),
+      <xref linkend="valgrind"/>,
+      <xref linkend="vulkan-loader"/>,
+      <xref linkend="xorg7-lib"/>,
+      <xref linkend="doxygen"/> and
+      <xref linkend="graphviz"/> (for documentation),
+      <ulink url="https://jackaudio.org/">JACK</ulink>,
+      <ulink url="https://github.com/EHfive/ldacBT">ldacBT</ulink>,
+      <ulink url="https://libcamera.org/">libcamera</ulink>,
+      <ulink url="https://github.com/hoene/libmysofa">libmysofa</ulink>, and
+      <!--<ulink url="https://vulkan.lunarg.com/sdk/home/">Vulkan</ulink>, and-->
+      <ulink url="https://sourceforge.net/projects/xmltoman/">xmltoman</ulink>
+    </para>
+
+    <para condition="html" role="usernotes">
+      Editor Notes: <ulink url="&blfs-wiki;/pipewire"/>
+    </para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Pipewire</title>
+
+<!--
+    <para>
+      If building <xref linkend='snapshot'/>, apply a patch to fix an issue
+      causing <xref linkend='snapshot'/> fail to play stream from some
+      cameras:
+    </para>
+
+    <screen><userinput>patch -Np1 -i ../pipewire-&pipewire-version;-upstream_fix-1.patch</userinput></screen>
+-->
+
+    <para>
+      Install <application>pipewire</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>mkdir build &amp;&amp;
+cd    build &amp;&amp;
+
+meson setup ..                \
+      --prefix=/usr           \
+      --buildtype=release     \
+      -Dsession-managers="[]" &amp;&amp;
+ninja</userinput></screen>
+
+    <para>
+      To test the result, issue: <command>ninja test</command>.
+    </para>
+    <!--
+    <para>
+      If upgrading from an earlier release of Pipewire, it's needed to
+      remove any old binary executables that interfere with the
+      installation.  As the &root; user:
+    </para>
+
+<screen role='root'><userinput>rm -vf /usr/bin/pipewire-*</userinput></screen>
+-->
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>ninja install</userinput></screen>
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/meson-buildtype-release.xml"/>
+
+    <para>
+      <parameter>-Dsession-managers="[]"</parameter>: This switch
+      allows specifying the session managers to build as subprojects.
+      We specify an empty list to prevent <command>meson</command> from
+      downloading any external copy of the session managers. A Pipewire
+      session manager recommended by the PipeWire developers for general
+      use, <xref linkend="wireplumber" role="nodep"/>, is available as a
+      separate BLFS package.  Build it after installing Pipewire if you
+      need to run the Pipewire daemon (for example in order to support
+      <xref linkend="snapshot" role="nodep"/>).
+    </para>
+
+    <para>
+      <option>-Ddocs=true</option>: This switch enables the generation of HTML
+      documentation. The optional dependencies for documentation need to be
+      installed for this to work.
+    </para>
+
+    <para>
+      <option>-Dman=true</option>: This switch enables the generation of manual
+      pages. The optional dependencies for documentation need to be installed
+      for this to work.
+    </para>
+
+    <para>
+      <option>-Dffmpeg=enabled</option>: This switch enables using ffmpeg for
+      audio conversion as a SPA backend.
+    </para>
+
+    <para>
+      <option>-Dvulkan=enabled</option>: This switch enables using Vulkan for
+      video rendering as a SPA backend.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          pipewire,
+          pw-cat,
+          pw-cli,
+          pw-config,
+          pw-dot,
+          pw-dump,
+          pw-jack,
+          pw-link,
+          pw-loopback,
+          pw-metadata,
+          pw-mididump,
+          pw-mon,
+          pw-profiler,
+          pw-reserve,
+          pw-top,
+          pw-v4l2,
+          spa-acp-tool,
+          spa-inspect,
+          spa-json-dump,
+          spa-monitor,
+          spa-resample, and
+          pipewire-aes67, pipewire-avb, pipewire-pulse (symlinks to pipewire),
+          pw-dsdplay, pw-encplay, pw-midiplay, pw-midirecord, pw-play,
+          pw-record (symlinks to pw-cat)
+        </seg>
+        <seg>
+          libpipewire-0.3.so and
+          60 modules below /usr/lib/pipewire-0.3 and /usr/lib/spa-0.2
+        </seg>
+        <seg>
+          /usr/include/pipewire-0.3,
+          /usr/include/spa-0.2,
+          /usr/lib/alsa-lib,
+          <!--/usr/lib/gstreamer-1.0, already installed by gstreamer-->
+          /usr/lib/pipewire-0.3,
+          /usr/lib/spa-0.2,
+          /usr/share/alsa-card-profile,
+          /usr/share/pipewire, and
+          /usr/share/spa-0.2
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="pipewire-prog">
+        <term><command>pipewire</command></term>
+        <listitem>
+          <para>
+            is a service that allows access to multimedia devices and allows
+            sharing of multimedia files between applications
+          </para>
+          <indexterm zone="pipewire pipewire-prog">
+            <primary sortas="b-pipewire">pipewire</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pipewire-pulse">
+        <term><command>pipewire-pulse</command></term>
+        <listitem>
+          <para>
+            starts a Pulseaudio-compatible version of
+            the pipewire service
+          </para>
+          <indexterm zone="pipewire pipewire-pulse">
+            <primary sortas="b-pipewire-pulse">pipewire-pulse</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-cat">
+        <term><command>pw-cat</command></term>
+        <listitem>
+          <para>
+            allows you to play or record media using a pipewire instance
+          </para>
+          <indexterm zone="pipewire pw-cat">
+            <primary sortas="b-pw-cat">pw-cat</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-cli">
+        <term><command>pw-cli</command></term>
+        <listitem>
+          <para>
+            allows you to interact with a pipewire instance
+          </para>
+          <indexterm zone="pipewire pw-cli">
+            <primary sortas="b-pw-cli">pw-cli</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-config">
+        <term><command>pw-config</command></term>
+        <listitem>
+          <para>
+            allows you to interact with pipewire's configuration system
+            for debugging purposes or syntax checking
+          </para>
+          <indexterm zone="pipewire pw-config">
+            <primary sortas="b-pw-config">pw-config</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-dot">
+        <term><command>pw-dot</command></term>
+        <listitem>
+          <para>
+            lists all of the daemons and objects in use by pipewire
+          </para>
+          <indexterm zone="pipewire pw-dot">
+            <primary sortas="b-pw-dot">pw-dot</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-dump">
+        <term><command>pw-dump</command></term>
+        <listitem>
+          <para>
+            dumps debug messages from a local or remote pipewire instance to
+            the console
+          </para>
+          <indexterm zone="pipewire pw-dump">
+            <primary sortas="b-pw-dump">pw-dump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-jack">
+        <term><command>pw-jack</command></term>
+        <listitem>
+          <para>
+            runs JACK applications on a pipewire instance
+          </para>
+          <indexterm zone="pipewire pw-jack">
+            <primary sortas="b-pw-jack">pw-jack</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-link">
+        <term><command>pw-link</command></term>
+        <listitem>
+          <para>
+            links pipewire ports together
+          </para>
+          <indexterm zone="pipewire pw-link">
+            <primary sortas="b-pw-link">pw-link</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-loopback">
+        <term><command>pw-loopback</command></term>
+        <listitem>
+          <para>
+            initializes a loopback link between two different pipewire ports.
+            This is useful for testing and debugging
+          </para>
+          <indexterm zone="pipewire pw-loopback">
+            <primary sortas="b-pw-loopback">pw-loopback</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-metadata">
+        <term><command>pw-metadata</command></term>
+        <listitem>
+          <para>
+            inspects, adds, and removes metadata for objects
+          </para>
+          <indexterm zone="pipewire pw-metadata">
+            <primary sortas="b-pw-metadata">pw-metadata</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-mididump">
+        <term><command>pw-mididump</command></term>
+        <listitem>
+          <para>
+            dumps MIDI messages from a file to the screen
+          </para>
+          <indexterm zone="pipewire pw-mididump">
+            <primary sortas="b-pw-mididump">pw-mididump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-mon">
+        <term><command>pw-mon</command></term>
+        <listitem>
+          <para>
+            allows you to monitor pipewire instances
+          </para>
+          <indexterm zone="pipewire pw-mon">
+            <primary sortas="b-pw-mon">pw-mon</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-profiler">
+        <term><command>pw-profiler</command></term>
+        <listitem>
+          <para>
+            tracks memory usage and API calls used by pipewire
+          </para>
+          <indexterm zone="pipewire pw-profiler">
+            <primary sortas="b-pw-profiler">pw-profiler</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-reserve">
+        <term><command>pw-reserve</command></term>
+        <listitem>
+          <para>
+            reserves or monitors a device via D-Bus
+          </para>
+          <indexterm zone="pipewire pw-reserve">
+            <primary sortas="b-pw-reserve">pw-reserve</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-top">
+        <term><command>pw-top</command></term>
+        <listitem>
+          <para>
+            displays real-time performance information from pipewire
+          </para>
+          <indexterm zone="pipewire pw-top">
+            <primary sortas="b-pw-top">pw-top</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="pw-v4l2">
+        <term><command>pw-v4l2</command></term>
+        <listitem>
+          <para>
+            runs v4l2 applications on a pipewire instance
+          </para>
+          <indexterm zone="pipewire pw-v4l2">
+            <primary sortas="b-pw-v4l2">pw-v4l2</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="spa-acp-tool">
+        <term><command>spa-acp-tool</command></term>
+        <listitem>
+          <para>
+            inspects the card profile of a given sound card
+          </para>
+          <indexterm zone="pipewire spa-acp-tool">
+            <primary sortas="b-spa-acp-tool">spa-acp-tool</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="spa-inspect">
+        <term><command>spa-inspect</command></term>
+        <listitem>
+          <para>
+            allows you to inspect pipewire plugins
+          </para>
+          <indexterm zone="pipewire spa-inspect">
+            <primary sortas="b-spa-inspect">spa-inspect</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="spa-json-dump">
+        <term><command>spa-json-dump</command></term>
+        <listitem>
+          <para>
+            dumps the current pipewire configuration in JSON format.
+          </para>
+          <indexterm zone="pipewire spa-json-dump">
+            <primary sortas="b-spa-json-dump">spa-json-dump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="spa-monitor">
+        <term><command>spa-monitor</command></term>
+        <listitem>
+          <para>
+            allows you to monitor pipewire plugins
+          </para>
+          <indexterm zone="pipewire spa-monitor">
+            <primary sortas="b-spa-monitor">spa-monitor</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="spa-resample">
+        <term><command>spa-resample</command></term>
+        <listitem>
+          <para>
+            resamples a given file
+          </para>
+          <indexterm zone="pipewire spa-resample">
+            <primary sortas="b-spa-resample">spa-resample</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libpipewire">
+        <term><filename class="libraryfile">libpipewire-0.3.so</filename></term>
+        <listitem>
+          <para>
+            contains API functions for handling multimedia pipelines
+          </para>
+          <indexterm zone="pipewire libpipewire">
+            <primary sortas="c-libpipewire">libpipewire-0.3.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+      <!-- not in /usr/lib
+      <varlistentry id="libpulse">
+        <term><filename class="libraryfile">libpulse.so</filename></term>
+        <listitem>
+          <para>
+            is a pipewire plugin for pulseaudio.
+          </para>
+          <indexterm zone="pipewire libpulse">
+            <primary sortas="c-libpulse">libpulse.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libpulse-simple">
+        <term><filename class="libraryfile">libpulse-simple.so</filename></term>
+        <listitem>
+          <para>
+            is a simplified version of the pulseaudio plugin for pipewire.
+          </para>
+          <indexterm zone="pipewire libpulse-simple">
+            <primary sortas="c-libpulse-simple">libpulse-simple.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libasound_module_pcm_pipewire">
+        <term><filename class="libraryfile">libasound_module_pcm_pipewire.so</filename></term>
+        <listitem>
+          <para>
+            is an ALSA plugin for pipewire.
+          </para>
+          <indexterm zone="pipewire libasound_module_pcm_pipewire">
+            <primary sortas="c-libasound_module_pcm_pipewire">libasound_module_pcm_pipewire.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libgstpipewire">
+        <term><filename class="libraryfile">libgstpipewire.so</filename></term>
+        <listitem>
+          <para>
+            is a Gstreamer plugin for pipewire.
+          </para>
+          <indexterm zone="pipewire libgstpipewire">
+            <primary sortas="c-libgstpipewire">libgstpipewire.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>-->
+    </variablelist>
+  </sect2>
+
+</sect1>

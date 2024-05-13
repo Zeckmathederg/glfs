@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY alsa-utils-download-http "&alsa-download-http;/utils/alsa-utils-&alsa-utils-version;.tar.bz2">
+  <!ENTITY alsa-utils-download-ftp  " ">
+  <!ENTITY alsa-utils-md5sum        "36676025301315789306e99e39154732">
+  <!ENTITY alsa-utils-size          "1.6 MB">
+  <!ENTITY alsa-utils-buildsize     "16 MB">
+  <!ENTITY alsa-utils-time          "0.2 SBU">
+]>
+
+<sect1 id="alsa-utils" xreflabel="alsa-utils-&alsa-utils-version;">
+  <?dbhtml filename="alsa-utils.html"?>
+
+
+  <title>alsa-utils-&alsa-utils-version;</title>
+
+  <indexterm zone="alsa-utils">
+    <primary sortas="a-alsa-utils">alsa-utils</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to ALSA Utilities</title>
+
+    <para>
+      The <application>ALSA Utilities</application> package contains
+      various utilities which are useful for controlling your sound
+      card.
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&alsa-utils-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&alsa-utils-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &alsa-utils-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &alsa-utils-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &alsa-utils-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &alsa-utils-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">ALSA Utilities Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Required</bridgehead>
+    <para role="required">
+      <xref linkend="alsa-lib"/>
+    </para>
+
+    <bridgehead renderas="sect4">Optional</bridgehead>
+    <para role="optional">
+      
+      <ulink url="&lfs-website;/blfs/view/svn/general/python-modules.html#docutils">
+      docutils</ulink>,
+      <ulink url="&lfs-website;/blfs/view/svn/general/fftw.html">
+      fftw</ulink>,
+      <ulink url="&lfs-website;/blfs/view/svn/multimedia/libsamplerate.html">
+      libsamplerate</ulink>,
+      <ulink url="&lfs-website;/blfs/view/svn/pst/xmlto.html">
+      xmlto</ulink>, and
+      <ulink url="https://hightek.org/projects/dialog/">Dialog</ulink>
+    </para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of ALSA Utilities</title>
+
+<!-- Fixed in 1.2.10
+    <para>
+      This package provides its own implementation of
+      <literal>strlcpy</literal> and <literal>strlcat</literal> functions.
+      But they are provided by Glibc-2.38 now, so we need to remove the
+      custom implementation to avoid a conflict with the Glibc header:
+    </para>
+
+    <screen><userinput>echo '' > alsactl/init_sysdeps.c</userinput></screen>
+-->
+
+    <para>
+      Install <application>ALSA Utilities</application> by
+      running the following commands:
+    </para>
+
+<screen><userinput>./configure --disable-alsaconf \
+            --disable-bat      \
+            --disable-xmlto    \
+            --with-curses=ncursesw &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      To test the results, issue: <command>make check</command>.
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>--disable-alsaconf</parameter>: This switch disables building
+      the <command>alsaconf</command> configuration tool which is incompatible
+      with <application>Udev</application>.
+    </para>
+
+    <para>
+      <parameter>--disable-xmlto</parameter>: Omit this switch if you have
+      installed xmlto and wish to regenerate the man pages.
+    </para>
+
+    <para>
+      <parameter>--disable-bat</parameter>: Omit this switch if you have
+      installed fftw and wish to install the Basic Audio Tester (BAT).
+    </para>
+
+    <para>
+      <parameter>--with-curses=ncursesw</parameter>: This switch forces the
+      use of wide-character ncurses libraries.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration" id="alsa-utils-config-sect">
+    <title>Configuring ALSA Utilities</title>
+
+    <sect3 id="alsa-utils-config">
+      <title>Config Files</title>
+
+      <para>
+        <filename>/var/lib/alsa/asound.state</filename>
+      </para>
+
+      <indexterm zone="alsa-utils alsa-utils-config">
+        <primary sortas="e-var-lib-alsa-asound.state">/var/lib/alsa/asound.state</primary>
+      </indexterm>
+
+    </sect3>
+
+    <sect3>
+      <title>Configuration Information</title>
+
+      <para>
+        As the &root; user, apply the default setting for the sound card.
+        Note that this command may return an exit code of 99 although the
+        card is correctly initialized:
+      </para>
+
+<screen role="nodump"><userinput>alsactl init</userinput></screen>
+
+      <para>
+        Note that all channels of your sound card may be muted by default.
+        You can use the <command>alsamixer</command> program to change
+        this. Use <command>speaker-test</command> to check that your
+        settings have been applied correctly. You should hear
+        <quote>pink noise</quote> on your speakers.
+      </para>
+
+      <para>
+        The <filename>alsactl</filename> program is normally run from a
+        standard <application>udev</application> rule. The first time it
+        is run, it will complain that there is no state in
+        <filename>/var/lib/alsa/asound.state</filename>. You can prevent
+        this by running the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>alsactl -L store</userinput></screen>
+
+      <para>
+        The volume settings should be restored from the saved state by
+        <application>Udev</application> when the device is detected
+        (during boot or when plugged in for USB devices).
+      </para>
+<!-- not needed with elogind or systemd-logind
+      <para>
+        All sound devices are not accessible for any user except
+        <systemitem class="username">root</systemitem> and members of the
+        <systemitem class="groupname">audio</systemitem> group. Add any
+        users that might use the sound devices to that group:
+      </para>
+
+<screen role="root"><userinput>usermod -a -G audio <replaceable>&lt;username&gt;</replaceable></userinput></screen>
+
+      <note>
+        <para>
+          You may need to log out and back in again to refresh your group
+          memberships. '<command>su <replaceable>&lt;username&gt;</replaceable></command>'
+          should work as well.
+        </para>
+      </note>
+-->
+      <para>
+        On systems which have multiple sound cards, you may need to adjust the
+        default audio device so that you can get output from your speakers.
+        To set the default device, first check the
+        <filename>/proc/asound/cards</filename> file to determine which number
+        you need to set. After you know this information, set the default card
+        with the following command as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="nodump"><userinput>cat &gt; /etc/asound.conf &lt;&lt; "EOF"
+<literal># Begin /etc/asound.conf
+
+defaults.pcm.card 1
+defaults.ctl.card 1
+
+# End /etc/asound.conf</literal>
+EOF</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="alsa-utils-init" revision="sysv">
+      <title>Boot Script</title>
+
+      <indexterm zone="alsa-utils alsa-utils-init">
+        <primary sortas="f-alsa">alsa</primary>
+      </indexterm>
+
+      <para>
+        To automatically store and restore volume settings (if the udev rule
+        doesn't work for you) when the system is rebooted, install the
+        <filename>/etc/rc.d/init.d/alsa</filename> boot script from the
+	<ulink url="&lfs-website;/blfs/view/svn/introduction/bootscripts.html"
+	revision="sysv">blfs-bootscripts</ulink> package.
+      </para>
+
+<screen role="root"><userinput>make install-alsa</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          aconnect, alsactl, alsaloop, alsamixer, alsatplg,
+          alsaucm, alsa-info.sh, amidi, amixer, aplay, aplaymidi,
+          arecord (symlink), arecordmidi, aseqdump, aseqnet, axfer,
+          iecset, and speaker-test
+        </seg>
+        <seg>
+          None
+        </seg>
+        <seg>
+          /usr/share/sounds/alsa and /var/lib/alsa
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="aconnect">
+        <term><command>aconnect</command></term>
+        <listitem>
+          <para>
+            is a utility for connecting and disconnecting two
+            existing ports in the ALSA sequencer system
+          </para>
+          <indexterm zone="alsa-utils aconnect">
+            <primary sortas="b-aconnect">aconnect</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="alsactl">
+        <term><command>alsactl</command></term>
+        <listitem>
+          <para>
+            is used to control advanced settings for ALSA sound card drivers.
+            Use this if alsamixer cannot utilize all of your sound card's
+            features
+          </para>
+          <indexterm zone="alsa-utils alsactl">
+            <primary sortas="b-alsactl">alsactl</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="alsaloop">
+        <term><command>alsaloop</command></term>
+        <listitem>
+          <para>
+            allows creation of a PCM loopback between a PCM capture
+            device and a PCM playback device
+          </para>
+          <indexterm zone="alsa-utils alsaloop">
+            <primary sortas="b-alsaloop">alsaloop</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="alsamixer">
+        <term><command>alsamixer</command></term>
+        <listitem>
+          <para>
+            is an Ncurses based mixer program for use with
+            the ALSA sound card drivers
+          </para>
+          <indexterm zone="alsa-utils alsamixer">
+            <primary sortas="b-alsamixer">alsamixer</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="alsatplg">
+        <term><command>alsatplg</command></term>
+        <listitem>
+          <para>
+            is a utility used to compile topology configuration files into
+            binary files for kernel drivers
+          </para>
+          <indexterm zone="alsa-utils alsatplg">
+            <primary sortas="b-alsatplg">alsatplg</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="alsaucm">
+        <term><command>alsaucm</command></term>
+        <listitem>
+          <para>
+          allows applications to access the hardware in an abstracted manner
+          </para>
+          <indexterm zone="alsa-utils alsaucm">
+            <primary sortas="b-alsaucm">alsaucm</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="amidi">
+        <term><command>amidi</command></term>
+        <listitem>
+          <para>
+            is used to read from and write to ALSA
+            RawMIDI ports
+          </para>
+          <indexterm zone="alsa-utils amidi">
+            <primary sortas="b-amidi">amidi</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="amixer">
+        <term><command>amixer</command></term>
+        <listitem>
+          <para>
+            allows command-line control of the mixers for the
+            ALSA sound card drivers
+          </para>
+          <indexterm zone="alsa-utils amixer">
+            <primary sortas="b-amixer">amixer</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="aplay">
+        <term><command>aplay</command></term>
+        <listitem>
+          <para>
+            is a command-line soundfile player for the
+            ALSA sound card drivers
+          </para>
+          <indexterm zone="alsa-utils aplay">
+            <primary sortas="b-aplay">aplay</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="aplaymidi">
+        <term><command>aplaymidi</command></term>
+        <listitem>
+          <para>
+            is a command-line utility that plays the specified
+            MIDI file(s) to one or more ALSA sequencer ports
+          </para>
+          <indexterm zone="alsa-utils aplaymidi">
+            <primary sortas="b-aplaymidi">aplaymidi</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="arecord">
+        <term><command>arecord</command></term>
+        <listitem>
+          <para>
+            is a command-line soundfile recorder for the
+            ALSA sound card drivers
+          </para>
+          <indexterm zone="alsa-utils arecord">
+            <primary sortas="b-arecord">arecord</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="arecordmidi">
+        <term><command>arecordmidi</command></term>
+        <listitem>
+          <para>
+            is a command-line utility that records a standard
+            MIDI file from one or more ALSA sequencer ports
+          </para>
+          <indexterm zone="alsa-utils arecordmidi">
+            <primary sortas="b-arecordmidi">arecordmidi</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="aseqdump">
+        <term><command>aseqdump</command></term>
+        <listitem>
+          <para>
+            is a command-line utility that prints the sequencer events it
+            receives as text
+          </para>
+          <indexterm zone="alsa-utils aseqdump">
+            <primary sortas="b-aseqdump">aseqdump</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="aseqnet">
+        <term><command>aseqnet</command></term>
+        <listitem>
+          <para>
+            is an ALSA sequencer client which sends and
+            receives event packets over a network
+          </para>
+          <indexterm zone="alsa-utils aseqnet">
+            <primary sortas="b-aseqnet">aseqnet</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="axfer">
+        <term><command>axfer</command></term>
+        <listitem>
+          <para>
+            is a command-line recorder and player used to transfer audio frames
+            between sound devices and files
+          </para>
+          <indexterm zone="alsa-utils axfer">
+            <primary sortas="b-axfer">axfer</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="iecset">
+        <term><command>iecset</command></term>
+        <listitem>
+          <para>
+            is a small utility to set or dump the IEC958 (or so-called
+            <quote>S/PDIF</quote>) status bits of the specified sound
+            card via the ALSA control API
+          </para>
+          <indexterm zone="alsa-utils iecset">
+            <primary sortas="b-iecset">iecset</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="speaker-test">
+        <term><command>speaker-test</command></term>
+        <listitem>
+          <para>
+            is a command-line speaker test tone generator for ALSA
+          </para>
+          <indexterm zone="alsa-utils speaker-test">
+            <primary sortas="b-speaker-test">speaker-test</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>
