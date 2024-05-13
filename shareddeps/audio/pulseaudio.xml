@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-  <!ENTITY % general-entities SYSTEM "../../../general.ent">
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
   <!ENTITY pulseaudio-download-http
@@ -81,23 +81,24 @@
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
       <xref linkend="alsa-lib"/>,
-      <xref linkend="dbus"/>,
-      <phrase revision="sysv"><xref linkend="elogind"/>,</phrase>
-      <xref linkend="glib2"/>,
-      <xref linkend="speex"/> and
-      <xref linkend="xorg7-lib"/>
+      <ulink url="&blfs-svn;/general/dbus.html">dbus (ADD DBUS)</ulink>,
+      <ulink url="&blfs-svn;/general/elogind.html">elogind</ulink>
+      if Systemd isn't present,
+      <ulink url="&blfs-svn;glib2.html">GLib</ulink>,
+      <ulink url="&blfs-svn;speex.html">Speex</ulink>, and
+      Xorg Libraries
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="avahi"/>,
-      <xref linkend="bluez"/>,
-      <xref linkend="doxygen"/> (for documentation),
-      <xref linkend="fftw"/>,
-      <xref linkend="gtk3"/>,
-      <xref linkend="libsamplerate"/>,
-      <xref linkend="sbc"/> (Bluetooth support),
-      <xref linkend="valgrind"/>,
+      <ulink url="&blfs-svn;/basicnet/avahi">Avahi</ulink>,
+      <ulink url="&blfs-svn;/general/bluez">BlueZ</ulink>,
+      <ulink url="&blfs-svn;/general/doxygen">Doxygen</ulink> (for documentation),
+      <ulink url="&blfs-svn;/general/fftw">fftw</ulink>,
+      <ulink url="&blfs-svn;/x/gtk3">GTK+-3</ulink>,
+      <ulink url="&blfs-svn;/multimedia/libsamplerate">libsamplerate</ulink>,
+      <ulink url="&blfs-svn;/multimedia/sbc">SBC</ulink> (Bluetooth support),
+      <ulink url="&blfs-svn;/general/valgrind">Valgrind</ulink>,
       <ulink url="https://jackaudio.org/">JACK</ulink>,
       <ulink url="https://0pointer.de/lennart/projects/libasyncns/">libasyncns</ulink>,
       <ulink url="https://www.lirc.org/">LIRC</ulink>,
@@ -162,6 +163,44 @@ ninja</userinput></screen>
 <screen role="root"><userinput>rm /usr/share/dbus-1/system.d/pulseaudio-system.conf</userinput></screen>
 
   </sect2>
+
+  <sect2 role="installation">
+    <title>32-bit Installation of PulseAudio</title>
+
+    <para>
+      First clean the build directory:
+    </para>
+
+    <screen><userinput>rm -rf *</userinput></screen>
+
+    <para>
+      Install lib32-<application>PulseAudio</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>CC="gcc -m32" CXX="g++ -m32"         \
+PKG_CONFIG_PATH=/usr/lib32/pkgconfig \
+meson setup --prefix=/usr            \
+            --libdir=/usr/lib32      \
+            --buildtype=release      \
+            -Ddatabase=gdbm          \
+            -Ddoxygen=false          \
+            -Dbluez5=disabled        \
+	    ..
+
+ninja</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>DESTDIR=$PWD/DESTDIR ninja install
+cp -vr DESTDIR/usr/lib32/* /usr/lib32
+rm -rf DESTDIR
+ldconfig</userinput></screen>
+  
+  </sect2>
+
   <sect2 role="commands">
     <title>Command Explanations</title>
 
@@ -170,14 +209,14 @@ ninja</userinput></screen>
 
     <para>
       <parameter>-Dbluez5=disabled</parameter>: This switch prevents
-      a runtime error if <xref linkend="dbus"/> and <xref linkend="sbc"/>
-      are both installed but <xref linkend="bluez"/> is not installed.
+      a runtime error if dbus and SBC
+      are both installed but BlueZ is not installed.
       Remove this if you have installed all three packages.
     </para>
 
     <para>
       <parameter>-Ddoxygen=false</parameter>: This allows the package to
-      compile if <xref linkend="doxygen"/> is not installed. Remove this
+      compile if Doxygen is not installed. Remove this
       if you have installed this and wish to build the documentation.
     </para>
 <!--
@@ -488,7 +527,7 @@ ninja</userinput></screen>
           <para>
             is an equalizer interface for
             <application>PulseAudio</application> equalizer sinks
-            (Requires <xref linkend="fftw"/> at build time)
+            (Requires fftw at build time)
           </para>
           <indexterm zone="pulseaudio qpaeq">
             <primary sortas="b-qpaeq">qpaeq</primary>
