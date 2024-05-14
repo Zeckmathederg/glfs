@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="gpuconfig" xreflabel="GPU Kernel Options and Firmware">
+  <?dbhtml filename="gpuconfig.html"?>
+
+
+  <title>GPU Kernel Options and Firmware</title>
+
+  <para>
+    The Linux kernel has multiple drivers for all sorts of hardware,
+    including GPUs, and most open source drivers are in the kernel.
+    This includes AMD, i915, and Nouveau. There are other drivers
+    as well that can be useful for certain users. Firmware is also
+    necessary for many drivers.
+  </para>
+
+  <sect2 role="kernel" id="gpu-kernel" xreflabel='GPU Kernel Configuration'>
+    <title>Kernel Configuration</title>
+
+    <para>
+	The kernel options below enable GPU and virtual GPU drivers.
+	Enable the ones you need and recompile the kernel if necessary.
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="gpu-kernel.xml"/>
+
+    <note>
+    <para>
+	There are comments for the options above, corresponding with Mesa's
+	Gallium3D dri driver names.
+    </para>
+
+    <para>
+	Selecting <option>CONFIG_DRM_RADEON</option> or
+	<option>CONFIG_DRM_AMDGPU</option> as
+	<quote><literal>y</literal></quote> is not recommended. If it is, any
+	required firmware must be built as a part of the kernel image or the
+	initramfs for the driver to function correctly.
+    </para>
+
+    <para>
+	The sub-entries under <option>CONFIG_DRM_AMDGPU</option> are used
+	to ensure the AMDGPU kernel driver supports all GPUs using the
+	<literal>radeonsi</literal> driver.  They are not needed if you
+	won't need <option>CONFIG_DRM_AMDGPU</option> itself. They
+	may be unneeded for some GPU models.
+    </para>
+
+    <para>
+	For <literal>swrast</literal>, <option>CONFIG_DRM_VGEM</option>
+	is not strictly needed but recommended as an optimization.
+    </para>
+    </note>
+
+    <indexterm zone="gpuconfig gpu-kernel">
+      <primary sortas="d-gpuconfig">gpuconfig</primary>
+    </indexterm>
+
+  </sect2>
+
+  <sect2>
+    <title>Firmware</title>
+
+    <sect3>
+      <title>ATI Firmware</title>
+
+      <para>
+	ATI Radeon GPUs require firmware to be able to use KMS (kernel
+	modesetting - the preferred option) as well as for Xorg. For
+	older Radeon chips before r600, the firmware is in the kernel
+	source. Later GPUs have their firmware in <application>
+	linux-firmware</application>.
+      </para>
+
+      <para>
+	In order to save space, it is recommended to use
+	<xref linkend="pciutils"/> and it's packaged binary <command>
+	lspci</command> to identify what the VGA controller is. After
+	you find out that, check the RadeonFeature page of the Xorg
+	wiki for 
+	<ulink url="https://wiki.x.org/wiki/RadeonFeature/#index5h2">
+	Decoder ring for engineering vs marketing names</ulink> to
+	identify the family (you may need to know this for the Xorg
+	driver — Southern Islands and Sea Islands use the radeonsi
+	driver) and the specific model.
+      </para>
+
+      <para>
+	Now that you know which controller you are using, consult the
+	<ulink url="https://wiki.gentoo.org/wiki/Radeon#Firmware">
+	Radeon Firmware</ulink> page of the Gentoo wiki which has a
+	table listing the required firmware blobs for the various
+	chipsets. Note that Southern Islands and Sea Islands chips
+	use different firmware for kernel 3.17 and later compared to
+	earlier kernels. Identify and download the required blobs
+	then install them:
+      </para>
+
+<screen><userinput>mkdir -pv /lib/firmware/radeon
+cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
+
+
+    </sect3>
+
+    <sect3>
+      <title>RadeonSI Firmware</title>
+
+      <para>
+	AMDGPU devices require firmware in order to be used in general.
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>i915 Firmware</title>
+
+      <para>
+	Intel integrated GPUs from Skylake onwards can use firmware for
+	GuC (the Graphics microcontroller), and also for the HuC
+	(HEVC/H265 microcontroller which offloads to the GPU) and the
+	DMC (Display Microcontroller) to provide additional low-power
+	states. The GuC and HuC have had a chequered history in the
+	kernel and updated firmware may be disabled by default,
+	depending on your kernel version.Further details may be found at
+	<ulink url="https://01.org/linuxgraphics/downloads/firmware/"/> and
+	<ulink url="https://wiki.archlinux.org/index.php/intel_graphics"/>.
+      </para>
+
+    </sect3>
+
+    <sect3>
+      <title>Nouveau Firmware</title>
+
+      <para>
+	Nvidia GPUs from Kepler onwards require signed firmware, otherwise
+	the nouveau driver is unable to provide hardware acceleration.
+	Nvidia has now released firmware up to Ampere (GeForce30 series) to
+	<application>linux-firmware</application>. Note that faster clocks
+	than the default are not enabled by the released firmware.
+      </para>
+
+    </sect3>
+
+  </sect2>
+
+</sect1>
