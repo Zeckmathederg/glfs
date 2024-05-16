@@ -1,0 +1,524 @@
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="xorg-config">
+  <?dbhtml filename="xorg-config.html"?>
+
+
+  <title>Xorg-&xorg-version; Testing and Configuration</title>
+
+  <indexterm zone="xorg-config">
+    <primary sortas="g-configuring-xorg">Configuring Xorg</primary>
+  </indexterm>
+
+  <sect2 id='X11-testing' xreflabel="Testing Xorg">
+    <title>Testing Xorg</title>
+
+    <note>
+      <para>
+        Before starting Xorg for the first time, is useful to
+        rebuild the library cache by running <userinput>ldconfig</userinput>
+        as the <systemitem class="username">root</systemitem> user.
+      </para>
+    </note>
+
+    <note>
+      <para>
+        Before starting Xorg for the first time, is often needed to
+        reboot the system to ensure all appropriate daemons are started
+        and appropriate security issues are properly set.
+        As an alternative, logging out and logging back in may work, but as
+        of this writing has not been tested.
+      </para>
+    </note>
+
+    <warning>
+      <para>
+        If Xorg hangs for some reason (for example, lacking a proper
+        input driver), the system may stop responding to any user input.
+        As a precaution, you can enable a magic <keycap>SysRq</keycap> key
+        before testing Xorg.  As the
+        <systemitem class="username">root</systemitem> user, issue:
+      </para>
+
+<screen><userinput>echo 4 > /proc/sys/kernel/sysrq</userinput></screen>
+
+      <para>
+        Then if Xorg hangs, it's possible to use
+        <keycombo>
+          <keycap>Alt</keycap>
+          <keycap>SysRq</keycap>
+          <keycap>R</keycap>
+        </keycombo>
+        to reset the keyboard mode.  Now it should be able to use
+        <keycombo>
+          <keycap>Ctrl</keycap>
+          <keycap>Alt</keycap>
+          <keycap>Fx</keycap>
+        </keycombo>
+        (replace x with a VT number) to switch to another VT.
+        If it works, login and kill Xorg using command line in the new VT.
+      </para>
+    </warning>
+
+    <para>
+      To test the <application>Xorg</application> installation, issue
+      <command>startx</command>. This command brings up a rudimentary window
+      manager called <emphasis>twm</emphasis> with three xterm windows and one
+      xclock window.  The xterm window in the upper left is a login terminal and
+      running <emphasis>exit</emphasis> from this terminal will exit the
+      <application>X Window</application> session.  The third xterm window may
+      be obscured on your system by the other two xterms.
+    </para>
+
+    <note>
+      <para>
+        When testing <application>Xorg</application> with the
+        <application>twm</application> window manager, there will be several
+        warnings in the Xorg log file, <!--<filename revision="sysv">
+        /var/log/Xorg.0.log</filename><filename revision="systemd">-->
+        $HOME/.local/share/xorg/Xorg.0.log<!--</filename>-->, about missing font
+        files. In addition, there will be several warnings on the text mode
+        terminal (usually tty1) about missing fonts. These warnings do not
+        affect functionality, but can be removed if desired by installing
+        the <xref linkend="xorg7-legacy"/>.
+      </para>
+    </note>
+
+    <note>
+      <para>
+        On systems with NVIDIA GPUs which are using the Nouveau kernel driver,
+        you may encounter occasional GPU crashes and hangs. If this problem
+        occurs, downgrade to the latest version of the Linux 6.1 kernel.
+        <!--https://gitlab.freedesktop.org/drm/nouveau/-/issues/257-->
+      </para>
+    </note>
+
+    <para>
+      Generally, there is no specific configuration required for
+      <application>Xorg</application>, but customization is possible. For
+      details, see <xref linkend='xconfig'/> below.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration" id="checking-dri" xreflabel="Checking the DRI
+  installation">
+    <title>Checking the Direct Rendering Infrastructure (DRI)
+    Installation</title>
+
+    <para>
+      DRI is a framework for allowing software to access graphics hardware in
+      a safe and efficient manner. It is installed in
+      <application>X</application> by default (using
+      <application>Mesa</application>) if you have a supported video card.
+    </para>
+
+    <para>
+      To check if DRI drivers are installed properly, check the log file
+      <filename>$HOME/.local/share/xorg/Xorg.0.log</filename> (or
+      <filename>/var/log/Xorg.0.log</filename> if you have
+      built <xref linkend="xorg-server"/> with the suid bit) for
+      statements such as:
+    </para>
+
+<screen><literal>(II) modeset(0): [DRI2] Setup complete
+(II) modeset(0): [DRI2]   DRI driver: crocus
+(II) modeset(0): [DRI2]   VDPAU driver: va_gl</literal></screen>
+
+    <note>
+      <para>
+        DRI configuration may differ if you are using alternate drivers, such
+        as traditional DDX drivers, or the proprietary drivers from
+        <ulink url="https://www.nvidia.com/page/home.html">NVIDIA</ulink> or
+        <ulink url="https://www.amd.com/">AMD</ulink>.
+      </para>
+    </note>
+
+<!-- With elogind, this is not needed anymore
+    <para>
+      Although all users can use software acceleration, any hardware
+      acceleration (DRI2) is only available to <systemitem
+      class="username">root</systemitem> and members of the <systemitem
+      class="groupname">video</systemitem> group, but
+      <phrase revision="sysv"><emphasis>ConsoleKit2</emphasis></phrase>
+      <phrase revision="systemd"><emphasis>systemd-logind</emphasis></phrase>
+      takes care of adding any logged in user to the user ACL's of
+      <filename>/dev/dri/card*</filename>, the special file(s) allowing access
+      to hardware acceleration.<phrase revision="systemd"> So, no further
+      configuration is needed.</phrase>
+    </para>
+
+    <para revision="sysv">
+      If your driver is supported and <emphasis>ConsoleKit2</emphasis> is not
+      installed, add any users that might use X to the <systemitem
+      class="groupname">video</systemitem> group:
+    </para>
+
+<screen role="root" revision="sysv"><userinput>usermod -a -G video <replaceable>&lt;username&gt;</replaceable></userinput></screen>
+-->
+    <para>
+      Another way to determine if DRI is working properly is to use one of the
+      two optionally installed OpenGL demo programs in <xref
+      linkend="mesa"/>. From an X terminal, run <command>glxinfo -B</command>
+      and look for the phrase:
+    </para>
+
+<screen><computeroutput>name of display: :0
+display: :0  screen: 0
+direct rendering: Yes</computeroutput></screen>
+
+    <para>
+      If direct rendering is enabled, you can add verbosity by running
+      <command>LIBGL_DEBUG=verbose glxinfo</command>. This will show the
+      drivers, device nodes and files used by the DRI system.
+    </para>
+
+    <para>
+      To confirm that DRI2 hardware acceleration is working, you can (still in
+      the X terminal) run the command <command>glxinfo | grep -E "(OpenGL
+      vendor|OpenGL renderer|OpenGL version)"</command>.
+      If that reports something <emphasis>other than</emphasis>
+      <literal>Software Rasterizer</literal> then you have working
+      acceleration for the user who ran the command.
+    </para>
+
+    <para>
+      If your hardware does not have any DRI2 driver available, it will use a
+      Software Rasterizer for Direct Rendering. In such cases, you can use a
+      new, LLVM-accelerated, Software Rasterizer called LLVMPipe. In order to
+      build LLVMPipe just make sure that <xref linkend="llvm"/> is present at
+      Mesa build time. Note that all decoding is done on the CPU instead of
+      the GPU, so the display will run slower than with hardware acceleration.
+      To check if you are using LLVMpipe, review the output of the glxinfo
+      command above.  An example of the output using the Software Rasterizer
+      is shown below:
+    </para>
+
+<screen><computeroutput>OpenGL vendor string: VMware, Inc.
+OpenGL renderer string: Gallium 0.4 on llvmpipe (LLVM 3.5, 256 bits)
+OpenGL version string: 3.0 Mesa 10.4.5</computeroutput></screen>
+
+    <para>
+      You can also force LLVMPipe by exporting the
+      <envar>LIBGL_ALWAYS_SOFTWARE=1</envar> environment variable when
+      starting Xorg.
+    </para>
+
+    <para>
+      Again, if you have built the Mesa OpenGL demos, you can also run the test
+      program <command>glxgears</command>. This program brings up a window with
+      three gears turning. The X terminal will display how many frames were
+      drawn every five seconds, so this will give a rough benchmark. The window
+      is scalable, and the frames drawn per second is highly dependent on the
+      size of the window. On some hardware, <command>glxgears</command> will
+      run synchronized with the vertical refresh signal and the frame rate will
+      be approximately the same as the monitor refresh rate.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration" id="xorg-debug" xreflabel="Debugging Xorg">
+    <title>Debugging Xorg</title>
+
+    <para>
+      When starting xorg, there are a couple of ways to check what any
+      issues you may have.  If the system comes up, you can see what driver
+      is being used by running <command>xdriinfo</command>. If there are
+      issues or you just want to check, look at <filename>Xorg.0.log</filename>.
+    </para>
+
+    <para>
+      The location of <filename>Xorg.0.log</filename> depends on how Xorg is
+      installed.  If the instructions in the book are followed closely and
+      Xorg is started from the command line, it will be located in the
+      <filename class="directory">$HOME/.local/share/xorg/</filename> directory.
+      If Xorg is started by a display manager (e.g. <xref linkend='lightdm'/>,
+      <xref linkend='sddm'/>, or <xref linkend='gdm'/>) or if
+      <filename>$XORG_PREFIX/bin/Xorg</filename> has the suid bit set,
+      it will be located in the <filename class="directory">/var/log/</filename>
+      directory.
+    </para>
+
+    <bridgehead renderas="sect3">Xorg.0.log Issues</bridgehead>
+
+    <para>
+      When you look at Xorg.0.log, check for entries like (EE) or (WW).
+      Below are some common entries:
+    </para>
+
+    <bridgehead renderas="sect5">(WW) Open ACPI failed (/var/run/acpid.socket)</bridgehead>
+
+    <para>
+      This warning is because <xref linkend='acpid'/> is not installed. If you
+      are not on a laptop, it can be safely ignored. On a laptop, install
+      <xref linkend='acpid'/> to enable actions like recognizing when the lid is
+      closed.
+    </para>
+
+    <bridgehead renderas="sect5">(WW) VGA arbiter: cannot open kernel arbiter, no multi-card support</bridgehead>
+
+    <para>
+      This warning is displayed when a regular user starts Xorg.  The library
+      <filename>libpciaccess.so</filename> issues this warning when it
+      tries to open <filename>/dev/vga_arbiter</filename>.  If there is no
+      more than one legacy PCI (not PCIe) graphic cards on the system, it
+      can safely be ignored.  If really necessary, the
+      permissions of this device can be changed by adding a udev rule and
+      adding the local user to the video group. As the &root; user:
+    </para>
+
+<screen role="root"><userinput>cat > /etc/udev/rules.d/99-vga-arbiter.rules &lt;&lt; EOF
+# /etc/udev/rules.d/99-vga-arbiter.rules: Set vga_arbiter group/mode
+
+ACTION=="add", KERNEL=="vga_arbiter", GROUP="video" MODE="0660"
+EOF
+
+usermod -a -G video &lt;user running xorg&gt;</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="configuration" id="hybrid-graphics" xreflabel="Hybrid Graphics">
+    <title>Hybrid Graphics</title>
+
+    <para>
+      Hybrid Graphics is still in experimental state for Linux. Xorg Developers
+      have developed a technology called PRIME that can be used for switching
+      between integrated and muxless discrete GPU at will. Automatic switching
+      is not possible at the moment.
+    </para>
+
+    <para>
+      In order to use PRIME for GPU switching, make sure that you are using
+      Linux Kernel 3.4 or later (recommended). You will need latest DRI and
+      DDX drivers for your hardware and <application>Xorg Server</application>
+      1.13 or later.
+    </para>
+
+    <para>
+      <application>Xorg Server</application> should load both GPU drivers
+      automatically. You can check that by running:
+    </para>
+
+<screen><userinput>xrandr --listproviders</userinput></screen>
+
+    <para>
+      There should be two (or more) providers listed, for example:
+    </para>
+
+<screen><computeroutput>Providers: number : 2
+Provider 0: id: 0x7d cap: 0xb, Source Output, Sink Output, Sink Offload crtcs: 3 outputs: 4 associated providers: 1 name:modesetting
+Provider 1: id: 0x56 cap: 0xf, Source Output, Sink Output, Source Offload, Sink Offload crtcs: 6 outputs: 1 associated providers: 1 name:modesetting</computeroutput></screen>
+
+    <!-- Well, both "id" and "name" are supposed to work here but after
+         the xf86-video-* removal all the names will be modesetting unless
+         a proprietary driver used... -->
+    <para>
+      In order to be able to run a GLX application on a discrete GPU, you will
+      need to run the following command, where &lt;provider&gt; is the id of
+      the more powerful discrete card, and &lt;sink&gt; is the id of card
+      which has a display connected:
+    </para>
+
+<screen><userinput>xrandr --setprovideroffloadsink <replaceable>&lt;provider&gt; &lt;sink&gt;</replaceable></userinput></screen>
+
+    <note>
+      <para>
+        With the <application>Xorg</application> modesetting driver,
+        which is DRI3 capable, the above command is no longer
+        necessary. It does no harm however.
+      </para>
+    </note>
+
+    <para>
+      Then, you will need to export the <envar>DRI_PRIME=1</envar> environment
+      variable each time you want the powerful GPU to be used. For example,
+
+<screen><userinput>DRI_PRIME=1 glxinfo | grep -E "(OpenGL vendor|OpenGL renderer|OpenGL version)"</userinput></screen>
+
+      will show OpenGL vendor, renderer and version for the discrete GPU.
+    </para>
+
+    <para>
+      If the last command reports same OpenGL renderer with and without
+      <envar>DRI_PRIME=1</envar>, you will need to check your installation.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration" id='xconfig'>
+    <title>Setting up Xorg Devices</title>
+
+    <para>
+      For most hardware configurations, modern Xorg will automatically
+      get the server configuration correct without any user intervention. There
+      are, however, some cases where auto-configuration will be incorrect.
+      Following are some example manual configuration items that may be of use
+      in these instances.
+    </para>
+
+    <sect3 id="xinput">
+      <title>Setting up X Input Devices</title>
+      <para>
+        For most input devices, no additional configuration will be
+        necessary. This section is provided for informational purposes only.
+      </para>
+
+      <para>
+        A sample default XKB setup could look like the following (executed as
+        the <systemitem class="username">root</systemitem> user):
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/X11/xorg.conf.d/xkb-defaults.conf &lt;&lt; "EOF"
+<literal>Section "InputClass"
+    Identifier "XKB Defaults"
+    MatchIsKeyboard "yes"
+    Option "XkbLayout" "fr"
+    Option "XkbOptions" "terminate:ctrl_alt_bksp"
+EndSection</literal>
+EOF</userinput></screen>
+
+      <para>
+        The <quote>XkbLayout</quote> line is an example for a French (AZERTY)
+        keyboard. Change it to your keyboard model. That line is not needed for
+        a QWERTY (US) keyboard.
+      </para>
+    </sect3>
+
+    <sect3 id="xdisplay">
+      <title>Fine Tuning Display Settings</title>
+
+      <para>
+        If you want to set the monitor resolution for Xorg, first run
+        <command>xrandr</command> in a X terminal to list the supported
+        resolutions and the corresponding refresh rates.  For example, it
+        outputs the following for one monitor:
+      </para>
+
+<screen><computeroutput>Screen 0: minimum 16 x 16, current 5760 x 2160, maximum 32767 x 32767
+DP-1 connected primary 3840x2160+0+0 (normal left inverted right x axis y axis) 600mm x 340mm
+   3840x2160     59.98*+
+   2048x1536     59.95
+   1920x1440     59.90
+   1600x1200     59.87
+   1440x1080     59.99
+   1400x1050     59.98
+   1280x1024     59.89
+   1280x960      59.94
+   1152x864      59.96
+   1024x768      59.92
+   800x600       59.86
+   640x480       59.38</computeroutput></screen>
+
+      <para>
+        From the output we can see the monitor is identified
+        <literal>DP-1</literal>.  Select a suitable resolution from the
+        output list, for example <literal>1920x1440</literal>.  Then
+        as the &root; user, create a configuration file for the Xorg server:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/X11/xorg.conf.d/monitor-DP-1.conf &lt;&lt; "EOF"
+<literal>Section "Monitor"
+    Identifier  "DP-1"
+    Option      "PerferredMode" "1920x1440"
+EndSection</literal>
+EOF</userinput></screen>
+
+      <para>
+        Sometimes <command>xrandr</command> may fail to detect some
+        resolution settings supported by the monitor.  It usually happens
+        with virtual monitors of virtual machine managers like
+        <xref linkend='qemu'/> or VMWare: a virtual monitor actually
+        supports all pairs of integers in a range as the resolution, but
+        <command>xrandr</command> will only list a few.  To use a
+        resolution not listed by <command>xrandr</command>, first run
+        <command>cvt</command> to get the mode line for the resolution.
+        For example:
+      </para>
+
+      <screen><userinput>cvt 1600 900</userinput>
+<computeroutput><literal># 1600x900 59.95 Hz (CVT 1.44M9) hsync: 55.99 kHz; pclk: 118.25 MHz
+Modeline "1600x900_60.00"  118.25  1600 1696 1856 2112  900 903 908 934 -hsync +vsync</literal></computeroutput></screen>
+
+      <para>
+        As the &root; user, create a Xorg server configuration file
+        containing this mode line, and specify the mode as preferred mode:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/X11/xorg.conf.d/monitor-DP-1.conf &lt;&lt; "EOF"
+<literal>Section "Monitor"
+    Identifier  "DP-1"
+    Modeline    "1600x900_60.00"  118.25  1600 1696 1856 2112  900 903 908 934 -hsync +vsync
+    Option      "PerferredMode"   "1600x900_60.00"
+EndSection</literal>
+EOF</userinput></screen>
+
+      <para>
+        Some high-end LCD monitors support a refresh rate higher than 100 Hz
+        but <command>xrandr</command> may fail to recognize the supported
+        refresh rate and use 60 Hz instead.  This issue would prevent you
+        from utilizing the full capability of the monitor, and may cause
+        the screen to flicker or show <quote>artifacts</quote> like meshes
+        or grids.  To resolve the issue, again use <command>cvt</command>
+        to get the mode line with a custom refresh rate:
+      </para>
+
+      <screen><userinput>cvt 3840 2160 144</userinput>
+<computeroutput><literal># 3840x2160 143.94 Hz (CVT) hsync: 338.25 kHz; pclk: 1829.25 MHz
+Modeline "3840x2160_144.00"  1829.25  3840 4200 4624 5408  2160 2163 2168 2350 -hsync +vsync</literal></computeroutput></screen>
+
+      <para>
+        Then paste it into the Xorg server configuration file and set it
+        as the preferred mode.
+      </para>
+
+      <para>
+        Another common setup is having multiple server layouts for use in
+        different environments. Though the server will automatically detect the
+        presence of another monitor, it may get the order incorrect:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/X11/xorg.conf.d/server-layout.conf &lt;&lt; "EOF"
+<literal>Section "ServerLayout"
+    Identifier     "DefaultLayout"
+    Screen      0  "Screen0" 0 0
+    Screen      1  "Screen1" LeftOf "Screen0"
+    Option         "Xinerama"
+EndSection</literal>
+EOF</userinput></screen>
+
+      <para>
+        When you drag a window in twm (or any non-compositing window
+        manager) horizontally, you may observe that the vertical borders
+        of the window are broken into multiple segments.  This is an example
+        of the visual artifacts called <emphasis>screen tearing</emphasis>.
+        To resolve the screen tearing problems, create a configuration file
+        that enables the TearFree option. Note that you must have the
+        Tearfree patch applied from <xref role="nodep"
+        linkend="xorg-server"/> for this to function properly, and it may
+        increase memory allocation and reduce performance.
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/X11/xorg.conf.d/20-tearfree.conf &lt;&lt; "EOF"
+<literal>Section "Device"
+   Identifier "Graphics Adapter"
+   Driver     "modesetting"
+   Option     "TearFree" "true"
+EndSection</literal>
+EOF</userinput></screen>
+
+      <para>
+        With modern Xorg, little or no additional graphic card configuration
+        is necessary. If you should need extra options passed to your video
+        driver, add them into the <literal>Device</literal> section as well.
+        The options supported by the modesetting driver are documented in
+        the man page <ulink role='man'
+        url='&man;modesetting.4'>modesetting(4)</ulink>.
+      </para>
+
+    </sect3>
+  </sect2>
+</sect1>

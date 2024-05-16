@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  <!ENTITY % general-entities SYSTEM "../../../general.ent">
   %general-entities;
 
   <!ENTITY xwayland-download-http "&xorg-download-http;/xserver/xwayland-&xwayland-version;.tar.xz">
@@ -81,22 +81,8 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref linkend="libepoxy"/>,
-      <xref linkend="libtirpc"/>, and
+      <xref linkend="libepoxy"/> and
       <xref linkend="mesa"/>
-    </para>
-
-    <bridgehead renderas="sect4">Optional</bridgehead>
-    <para role="optional">
-      <xref linkend="git"/> (to download packages needed for the tests),
-      <xref linkend="libei"/>,
-      <xref linkend="libgcrypt"/>,
-      <xref linkend="nettle"/>,
-      <xref linkend="xmlto"/>,
-      <xref linkend="xorg7-legacy"/>
-         (only bdftopcf, for building fonts required for the tests),
-      <ulink url="https://gitlab.freedesktop.org/xorg/test/rendercheck">rendercheck</ulink> (for tests), and
-      <ulink url="https://wayland.pages.freedesktop.org/weston/">weston</ulink> (for tests)
     </para>
 
   </sect2>
@@ -120,61 +106,6 @@ meson setup --prefix=$XORG_PREFIX         \
             ..                            &amp;&amp;
 ninja</userinput></screen>
 
-    <para>
-      Building the test framework needs some work. First,
-      <ulink url="https://wayland.pages.freedesktop.org/weston/">weston</ulink>
-      brings in several dependencies, but the number can be reduced by
-      disabling unneeded features. The <command>meson</command> command
-      for a stripped down build of <application>weston</application> is shown
-      in <ulink
-      url="https://gitlab.freedesktop.org/xorg/xserver/-/blob/xwayland-22.1/.gitlab-ci/debian-install.sh">
-      Upstream continuous integration build</ulink>.
-<!-- keep 22.1 above: they used to build it in gitlab-ci because debian
-     had an obsolete version of weston, but now they take weston from
-     debian so the command to build it has been removed. -->
-    </para>
-<!--
-    <para>
-      Furthermore, an X server needs to be running during the build of
-      <application>xts</application>. If not running the tests in a
-      graphical environment, you'll need to enable <command>Xvfb</command>
-      by removing the <parameter>-Dxvfb=false</parameter> above. The
-      instructions below expect this has been done.
-    </para>
--->
-    <para>
-      Running the tests involves downloading two other frameworks, in addition
-      to the mentioned optional dependencies:
-    </para>
-
-<screen remap="test"><userinput>mkdir tools &amp;&amp;
-pushd tools &amp;&amp;
-
-git clone https://gitlab.freedesktop.org/mesa/piglit.git --depth 1 &amp;&amp;
-cat &gt; piglit/piglit.conf &lt;&lt; EOF                                    &amp;&amp;
-<literal>[xts]
-path=$(pwd)/xts
-EOF</literal>
-
-git clone https://gitlab.freedesktop.org/xorg/test/xts --depth 1   &amp;&amp;
-
-export DISPLAY=:22           &amp;&amp;
-../hw/vfb/Xvfb $DISPLAY &amp;
-VFB_PID=$!                   &amp;&amp;
-cd xts                       &amp;&amp;
-CFLAGS=-fcommon ./autogen.sh &amp;&amp;
-make                         &amp;&amp;
-kill $VFB_PID                &amp;&amp;
-unset DISPLAY VFB_PID        &amp;&amp;
-popd</userinput></screen>
-
-    <para>
-      Then the tests can be run with:
-    </para>
-
-<screen remap="test"><userinput>XTEST_DIR=$(pwd)/tools/xts PIGLIT_DIR=$(pwd)/tools/piglit ninja test</userinput></screen>
-
-    <!-- The xfontset tests fail on my system -renodr -->
     <para>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
@@ -208,7 +139,7 @@ EOF</userinput></screen>
     </para>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../xincludes/meson-buildtype-release.xml"/>
+      href="../../../xincludes/meson-buildtype-release.xml"/>
 <!--
     <para>
       <parameter>-Dxvfb=false</parameter>: Prevents building the
