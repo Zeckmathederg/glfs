@@ -163,12 +163,6 @@
       <xref linkend="fontconfig"/> and
       <xref linkend="libxcb"/>
     </para>
-    <!-- not needed for libraries, only used by xorg-server later
-    <bridgehead renderas="sect4" revision="sysv">Recommended</bridgehead>
-    <para role="recommended" revision="sysv">
-      <xref linkend="elogind"/>
-    </para>
-    -->
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
       <ulink url="https://github.com/vapier/ncompress">ncompress</ulink> (for some tests) and
@@ -322,6 +316,82 @@ do
 done</userinput></screen>
 
     <para>
+      For multilib, install all of the lib32 variants of the packages by
+      running the following commands:
+    </para>
+
+<screen><userinput>for package in $(grep -v '^#' ../lib-&xorg-version;.md5 | awk '{print $2}')
+do
+  packagedir=${package%.tar.?z*}
+  echo "Building lib32-$packagedir"
+
+  tar -xf $package
+  pushd $packagedir
+  libdir="--libdir=$XORG_PREFIX/lib32"
+  docdir="--docdir=$XORG_PREFIX/share/doc/$packagedir"
+  host="--host=i686-pc-linux-gnu"
+  
+  case $packagedir in
+    libXfont2-[0-9]* )
+      CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig  \
+      ./configure $XORG_CONFIG $libdir $host $docdir --disable-devel-docs
+    ;;
+
+    libXt-[0-9]* )
+      CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig \
+      ./configure $XORG_CONFIG $libdir $host $docdir                    \
+                  --with-appdefaultdir=/etc/X11/app-defaults
+    ;;
+
+    libXpm-[0-9]* )
+      CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig  \
+      ./configure $XORG_CONFIG $libdir $host $docdir --disable-open-zfile
+    ;;
+  
+    libpciaccess* )
+      mkdir build
+      cd    build
+        CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig \
+        meson setup --prefix=$XORG_PREFIX $libdir --buildtype=release ..
+        ninja
+        #ninja test
+        DESTDIR=$PWD/DESTDIR ninja install
+        as_root cp -vr DESTDIR/$XORG_PREFIX/lib32/* $XORG_PREFIX/lib32
+        rm -rf DESTDIR
+        as_root /sbin/ldconfig
+      popd     # $packagedir
+      continue # for loop
+    ;;
+
+    xtrans* )
+        CC="gcc -m32" CXX="g++ -m32" PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig \
+        ./configure $XORG_CONFIG $libdir $host $docdir
+        make
+        make DESTDIR=$PWD/DESTDIR install
+        as_root cp -vr DESTDIR/$XORG_PREFIX/share/pkgconfig/* $XORG_PREFIX/lib32/pkgconfig
+        rm -rf DESTDIR
+      popd
+      continue
+    ;;
+
+    * )
+      CC="gcc -m32" CXX="g++ -m32"                   \
+      PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig   \
+      ./configure $XORG_CONFIG $libdir $host $docdir
+    ;;
+  esac
+
+  make
+  #make check 2>&amp;1 | tee ../$packagedir-make_check.log
+  make DESTDIR=$PWD/DESTDIR install
+  as_root cp -vr DESTDIR/$XORG_PREFIX/lib32/* $XORG_PREFIX/lib32
+  rm -rf DESTDIR
+  popd
+  rm -rf $packagedir
+  as_root /sbin/ldconfig
+done</userinput></screen>
+
+    <para>
       Finally, exit the shell that was started earlier:
     </para>
 
@@ -368,11 +438,19 @@ done</userinput></screen>
       configuration is necessary and you can skip the rest of this section.
       If you've opted for an alternate prefix, you should create two symlinks
       to satisfy the expected environment of several packages.
-      Execute the following commands as the root user:
+      Execute the following commands as the <systemitem class="username">root
+      </systemitem> user:
     </para>
 
 <screen role="root"><userinput>ln -sv $XORG_PREFIX/lib/X11 /usr/lib/X11 &amp;&amp;
 ln -sv $XORG_PREFIX/include/X11 /usr/include/X11</userinput></screen>
+
+    <para>
+      If you are doing multilib, create another symlink as the <systemitem
+      class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>ln -sv $XORG_PREFIX/lib32/X11 /usr/lib32/X11</userinput></screen>
 
   </sect2>
 

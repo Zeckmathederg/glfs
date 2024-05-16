@@ -25,8 +25,9 @@
     <title>Introduction to Mesa</title>
 
     <para>
-      <application>Mesa</application> is an OpenGL compatible 3D graphics
-      library.
+      <application>Mesa</application> offers a wide variety of graphic
+      software, offering the OpenGL library, OpenGL drivers, Vulkan drivers,
+      and so forth.
     </para>
 
     <note>
@@ -92,13 +93,15 @@
     <para role="required">
       <xref linkend="xorg7-lib"/>,
       <xref linkend="libdrm"/>, and
-      <xref linkend="Mako"/>
+      <xref linkend="mako"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
 
       <xref linkend="glslang"/> (required for Vulkan support),
+
+      <xref linkend="libglvnd"/> (Required for <xref linkend="steam"/>),
 
       <xref role="first" linkend="libva"/> (to provide VA-API support for some
       gallium drivers, note that there is a circular dependency. You must
@@ -111,20 +114,26 @@
       drivers, and the LLVMpipe software rasterizer which can make the
       swrast driver much faster),
 
-      <xref linkend="wayland-protocols"/> (required for
-        <xref role="nodep" linkend='plasma-build'/>,
-        GNOME, and recommended for <xref role="nodep" linkend='gtk3'/>), and
+      <xref linkend="rust"/>, <xref linkend="cbindgen"/>, and
+      <xref linkend="rust-bindgen"/> (required for NVK),
+
+      <xref linkend="mesoncross"/> (required for multilib lib32-NVK),
+
+      Wayland-Protocols (required for
+        KDE Plasma,
+        GNOME,
+        and recommended for GTK), and
 
       <xref linkend="libvk"/> (required for Vulkan support)
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
     <para role="optional">
-      <xref linkend="libgcrypt"/>,
+      libgcrypt,
       <xref linkend="libunwind"/>,
-      <xref linkend="lm_sensors"/> <!-- for libsensors according to Meson -->,
-      <xref linkend="nettle"/>,
-      <xref linkend="valgrind"/>,
+      lm_sensors <!-- for libsensors according to Meson -->,
+      nettle,
+      valgrind,
       <ulink url="https://archive.mesa3d.org/demos/">mesa-demos</ulink>
       (provides more than 300 extra demos to test
       <application>Mesa</application>; this includes the same programs added by
@@ -153,9 +162,21 @@
 
   <sect2 role="installation">
     <title>Installation of Mesa</title>
+    
+    <note>
+      <para>
+        Don't apply the xdemos patch if you are doing multilib and are going
+	to be compiling the 32-bit variant, as the build fails. If you want to
+	apply the patch for the 64-bit build, do so then remove the Mesa
+	directory and unpack the tarball and create the build directory again.
+	Then skip the step where you clean the build directory and follow the
+	directions as normal.
+      </para>
+    </note>
+
     <para>
       If you have downloaded the xdemos patch (needed if testing the Xorg
-      installation per BLFS instructions), apply it by running the following
+      installation per GLFS instructions), apply it by running the following
       command:
     </para>
 
@@ -241,6 +262,7 @@ meson setup                   \
       -Dvulkan-drivers=auto   \
       -Dvalgrind=disabled     \
       -Dlibunwind=disabled    \
+      -Dglvnd=enabled         \
       ..                      &amp;&amp;
 
 ninja</userinput></screen>
@@ -272,6 +294,124 @@ ninja</userinput></screen>
 
   </sect2>
 
+  <sect2 role="installation">
+    <title>32-bit Installation of Mesa</title>
+
+    <para>
+      First clean the build directory:
+    </para>
+
+    <screen><userinput>rm -rf *</userinput></screen>
+
+    <para>
+      Install lib32-<application>Mesa</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>CC="gcc -m32" CXX="g++ -m32"                           \
+PKG_CONFIG_PATH=$XORG_PREFIX/lib32/pkgconfig           \
+meson setup                                            \
+      --prefix=$XORG_PREFIX                            \
+      --libdir=$XORG_PREFIX/lib32                      \
+      --buildtype=release                              \
+      -Dplatforms=x11,wayland                          \
+      -Dgallium-drivers=auto                           \
+      -Dvulkan-drivers=auto                            \
+      -Dvalgrind=disabled                              \
+      -Dlibunwind=disabled                             \
+      -Dglvnd=enabled                                  \
+      ..                                               &amp;&amp;
+sed -i 's/\/usr\/lib\//\/usr\/lib32\//g' ./build.ninja &amp;&amp;
+
+ninja</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>DESTDIR=$PWD/DESTDIR ninja install
+cp -vr DESTDIR/$XORG_PREFIX/lib32/* $XORG_PREFIX/lib32
+rm -rf DESTDIR
+ldconfig</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>32-bit Installation of NVK</title>
+
+    <note>
+      <para>
+        Feel free to skip this section if you don't want to install the
+	Nouveau Vulkan driver (NVK).
+      </para>
+    </note>
+
+    <para>
+      NVK has special requirements to be configured and compiled, requiring
+      extra steps. You are going to need to modify a few paths in a personality
+      file used by <application>Pkgconf</application>, as it searches in
+      <filename>/usr</filename> rather than 
+      <envar>$XORG_PREFIX</envar>. If the expanded
+      path is <filename>/usr</filename>, skip to the NVK compilation
+      instructions. 
+    </para>
+
+    <para>
+      Change the paths in the <application>Pkgconf</application> personality
+      file as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen><userinput>sed -i 's/\/usr/\$XORG_PREFIX/g' \
+    /usr/share/pkgconfig/personality.d/i686-pc-linux-gnu.personality</userinput></screen>
+
+    <para>
+      Now clean the build directory:
+    </para>
+
+    <screen><userinput>rm -rf *</userinput></screen>
+
+    <para>
+      Install lib32-NVK by following the commands:
+    </para>
+
+<screen><userinput>meson setup                                       \
+            --cross-file lib32                    \
+            --prefix=$XORG_PREFIX	          \
+            --libdir=$XORG_PREFIX/lib32           \
+            --buildtype=release                   \
+            -Dplatforms=x11,wayland               \
+            -Dgallium-drivers=                    \
+            -Dvulkan-drivers=nouveau-experimental \
+            -Dglx=disabled                        \
+            -Degl=disabled                        \
+            -Dopengl=false                        \
+            -Dgles1=disabled                      \
+            -Dgles2=disabled                      \
+            -Dvalgrind=disabled                   \
+            -Dlibunwind=disabled                  \
+            ..                                    &amp;&amp;
+ninja</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen><userinput>DESTDIR=$PWD/DESTDIR ninja install
+cp -vr DESTDIR/$XORG_PREFIX/lib32/* $XORG_PREFIX/lib32
+rm -rf DESTDIR
+ldconfig</userinput></screen>
+
+    <para>
+      If you modified the <application>Pkgconf</application> personality,
+      you can change it back by doing the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen><userinput>sed -i 's/\$XORG_PREFIX/\/usr/g' \
+    /usr/share/pkgconfig/personality.d/i686-pc-linux-gnu.personality</userinput></screen>
+
+  </sect2>
+
   <sect2 role="commands">
     <title>Command Explanations</title>
 
@@ -286,31 +426,52 @@ ninja</userinput></screen>
       <anchor id='mesa-gallium-drivers' xreflabel='Mesa Gallium3D Drivers'/>
       <parameter>-Dgallium-drivers=auto</parameter>: This parameter
       controls which Gallium3D drivers should be built.
+      
       <literal>auto</literal> selects all Gallium3D drivers available
-      for x86: <literal>r300</literal> (for ATI Radeon 9000 or Radeon X
-      series), <literal>r600</literal> (for AMD/ATI Radeon HD 2000-6000
-      series), <literal>radeonsi</literal> (for AMD Radeon HD 7000 or newer
-      AMD GPU models), <literal>nouveau</literal>
+      for x86: 
+
+      <literal>r300</literal> (for ATI Radeon 9000 or Radeon X
+      series), 
+
+      <literal>r600</literal> (for AMD/ATI Radeon HD 2000-6000
+      series), 
+
+      <literal>radeonsi</literal> (for AMD Radeon HD 7000 or newer
+      AMD GPU models), 
+
+      <literal>nouveau</literal>
       (for Supported NVIDIA GPUs, they are listed as all
       <quote>3D features</quote> either <quote>DONE</quote> or
       <quote>N/A</quote> in <ulink
       url='https://nouveau.freedesktop.org/FeatureMatrix.html'>the Nouveau
-      status page</ulink>), <literal>virgl</literal> (for QEMU virtual GPU
-      with <application>virglrender</application> support; note that BLFS
-      <xref linkend='qemu'/> is not built with
-      <application>virglrender</application>), <literal>svga</literal>
-      (for VMWare virtual GPU), <literal>swrast</literal> (using CPU for 3D
-      rasterisation; note that it's much slower than using a modern
-      3D-capable GPU, so it should be only used if the GPU is not supported
-      by other drivers), <literal>iris</literal> (for Intel GPUs shipped
-      with Broadwell or newer CPUs), <literal>crocus</literal> (for Intel
-      GMA 3000, X3000 series, 4000 series, or X4000 series GPUs shipped with
-      chipsets, or Intel HD GPUs shipped with pre-Broadwell CPUs),
+      status page</ulink>), 
+
+      <literal>virgl</literal> (for QEMU virtual GPU
+      with <application>virglrender</application> support), 
+      
+      <literal>svga</literal> (for VMWare virtual GPU),
+      
+      <literal>swrast</literal> (using CPU for 3D rasterisation; note that
+      it's much slower than using a modern 3D-capable GPU, so it should be
+      only used if the GPU is not supported by other drivers),
+
+      <literal>zink</literal> (a driver converting Vulkan calls to OpenGL;
+      however, it is unstable and a lot of applications can't use it besides
+      demos),
+
+      <literal>iris</literal> (for Intel GPUs shipped with Broadwell or newer
+      CPUs),
+
+      <literal>crocus</literal> (for Intel GMA 3000, X3000 series, 4000 series,
+      or X4000 series GPUs shipped with chipsets, or Intel HD GPUs shipped with
+      pre-Broadwell CPUs),
+
       <literal>i915</literal> (for Intel GMA 900, 950, 3100, or 3150 GPUs
-      shipped with chipsets or Atom D/N 4xx/5xx CPUs).  You may replace
-      <literal>auto</literal> with a comma-separated list to build only
-      a subset of these drivers if you precisely know which drivers you
-      need, for example
+      shipped with chipsets or Atom D/N 4xx/5xx CPUs). 
+
+      You may replace <literal>auto</literal> with a comma-separated list to
+      build only a subset of these drivers if you precisely know which drivers
+      you need, for example:
       <option>-Dgallium-drivers=radeonsi,iris,swrast</option>.
     </para>
 <!--
@@ -331,8 +492,8 @@ ninja</userinput></screen>
       <parameter>-Dvulkan-drivers=auto</parameter>: This switch enables support
       for the Vulkan graphics API. It automatically builds all graphics drivers
       that are available for Vulkan. If you wish to build specific drivers,
-      valid options include 'amd', 'intel', 'intel_hasvk', and 'swrast'. If you
-      do not want Vulkan support, change 'auto' to "".
+      valid options include 'amd', 'intel', 'intel_hasvk', 'nouveau-experimental'
+      and 'swrast'. If you do not want Vulkan support, change 'auto' to "".
     </para>
 
     <para>
@@ -347,6 +508,14 @@ ninja</userinput></screen>
     </para>
 
     <para>
+      <parameter>-Dglvnd=enabled</parameter>: This parameter disables this
+      package from building its own OpenGL library and uses the libraries
+      provided by <xref linkend="libglvnd"/>. Omit parameter if you do not
+      want to use <xref linkend="steam"/>. Otherwise, keep the parameter and
+      install <xref linkend="libglvnd"/> before compiling this package.
+    </para>
+
+    <para>
       <command>meson configure -Dbuild-tests=true</command>: This command will
       reconfigure the build to set <option>-Dbuild-tests=true</option>, but
       keep the other options specified in the <command>meson setup</command>
@@ -358,6 +527,13 @@ ninja</userinput></screen>
       <option>-Degl-native-platform="..."</option>: This parameter
       controls which Embedded Graphics Library support will be built. Available
       linux options are auto (default), x11, wayland, surfaceless, and drm.
+    </para>
+
+    <para>
+      <command>sed -i 's/\/usr\/lib\//\/usr\/lib32\//g' ./build.ninja</command>:
+      This package is stubborn and likes to link against LLVM libraries in
+      <filename>/lib</filename>, even on a multilib installation, so this command
+      tells this package to link against libraries in the proper directory.
     </para>
 
   </sect2>
@@ -406,8 +582,9 @@ ninja</userinput></screen>
           radeonsi_drv_video.so,
           swrast_dri.so,
           virtio_gpu_dri.so,
-          virtio_gpu_drv_video.so, and
-          vmwgfx_dri.so
+          virtio_gpu_drv_video.so,
+	  vmwgfx_dri.so, and
+          zink_dri.so
           <!-- End DRI Drivers -->
         </seg>
         <seg>
@@ -424,6 +601,7 @@ ninja</userinput></screen>
           libvulkan_intel_hasvk.so,
           libvulkan_intel.so,
           libvulkan_lvp.so, and
+          libvulkan_nouveau.so, and
           libvulkan_radeon.so
         </seg>
         <seg>

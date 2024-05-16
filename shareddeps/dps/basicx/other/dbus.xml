@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../../../general.ent">
+  %general-entities;
+
+  <!ENTITY dbus-download-http "https://dbus.freedesktop.org/releases/dbus/dbus-&dbus-version;.tar.xz">
+  <!ENTITY dbus-download-ftp  " ">
+  <!ENTITY dbus-md5sum        "46070a3487817ff690981f8cd2ba9376">
+  <!ENTITY dbus-size          "1.3 MB">
+  <!ENTITY dbus-buildsize     "23 MB (add 25 MB for tests)">
+  <!ENTITY dbus-time          "0.2 SBU (add 1.5 SBU for tests)">
+  <!-- The former value was 0.8 SBU, which was far more sensible. -->
+  <!-- I got 'real  0m14.355s' for make check at -j1; bdubbs dbus-1.14.2 -->
+  <!-- Now 'real 2m51.642ss' for make check at -j1; bdubbs dbus-1.14.6
+# TOTAL: 217
+# PASS:  217
+
+Sane test results for 1.14.8.  -bdubbs
+
+For 1.14.10:
+# TOTAL: 219
+# PASS:  218
+# FAIL:  1
+
+not ok 2 test-autolaunch
+  -->
+]>
+
+<sect1 id="dbus" xreflabel="dbus-&dbus-version;">
+  <?dbhtml filename="dbus.html"?>
+
+
+  <title>dbus-&dbus-version;</title>
+
+  <indexterm zone="dbus">
+    <primary sortas="a-D-Bus">D-Bus</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to D-Bus</title>
+
+    <para revision="sysv">
+      <application>D-Bus</application> is a message bus system, a simple way
+      for applications to talk to one another.
+      <application>D-Bus</application> supplies both a system daemon (for
+      events such as <quote>new hardware device added</quote> or <quote>printer
+      queue changed</quote>) and a per-user-login-session daemon (for general
+      IPC needs among user applications). Also, the message bus is built on top
+      of a general one-to-one message passing framework, which can be used by
+      any two applications to communicate directly (without going through the
+      message bus daemon).
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&dbus-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&dbus-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &dbus-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &dbus-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &dbus-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &dbus-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">D-Bus Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="xorg7-lib"/> (for <command>dbus-launch</command> program)
+      <!-- elogind cannot be used by dbus: dbus only uses the systemd service,
+      not the logind one
+      <phrase revision="sysv">and <xref linkend="elogind"/> (These are
+      circular dependencies. First build without them, and then again after
+      both packages are installed.)</phrase>-->
+    </para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of D-Bus</title>
+    <!--
+    <para revision="sysv">
+      If they do not already exist,
+      as the <systemitem class="username">root</systemitem> user, create a
+      system user and group to handle the system message bus activity:
+    </para>
+
+<screen role="root" revision="sysv"><userinput>groupadd -g 18 messagebus &amp;&amp;
+useradd -c "D-Bus Message Daemon User" -d /var/run/dbus \
+        -u 18 -g messagebus -s /bin/false messagebus</userinput></screen>
+    -->
+
+    <para>
+      Install <application>D-Bus</application> by running the following
+      commands (you may wish to review the output from <command>./configure
+      --help</command> first and add any desired parameters to the
+      <command>configure</command> command shown below):
+    </para>
+
+    <!-- Only usefull for systemd: it installs the services files in the
+    systemd/user
+    - -enable-user-session                \ -->
+<screen><userinput>./configure --prefix=/usr                        \
+            --sysconfdir=/etc                    \
+            --localstatedir=/var                 \
+            --runstatedir=/run                   \
+            --disable-doxygen-docs               \
+            --disable-xml-docs                   \
+            --disable-static                     \
+            --with-systemduserunitdir=no         \
+            --with-systemdsystemunitdir=no       \
+            --docdir=/usr/share/doc/dbus-&dbus-version;  \
+            --with-system-socket=/run/dbus/system_bus_socket &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+<!-- FIXME: No longer needed with usr merge
+    <para>
+      The shared library needs to be moved to
+      <filename class="directory">/lib</filename>, and as a result the
+      <filename class="extension">.so</filename> file in
+      <filename class="directory">/usr/lib</filename> will need to be
+      recreated. Run the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>mv -v /usr/lib/libdbus-1.so.* /lib &amp;&amp;
+ln -sfv ../../lib/$(readlink /usr/lib/libdbus-1.so) /usr/lib/libdbus-1.so</userinput></screen>
+-->
+
+    <para>
+      If you are using a DESTDIR install,
+      <command>dbus-daemon-launch-helper</command> needs to be fixed
+      afterwards. Issue, as <systemitem class="username">root</systemitem>
+      user:
+    </para>
+
+<screen role="root"><userinput>chown -v root:messagebus /usr/libexec/dbus-daemon-launch-helper &amp;&amp;
+chmod -v      4750       /usr/libexec/dbus-daemon-launch-helper</userinput></screen>
+
+    <para>
+      If you are still building your system in chroot or you did not start the
+      daemon yet, but you want to compile some packages that require
+      <application>D-Bus</application>, generate the
+      <application>D-Bus</application> UUID to avoid warnings when compiling
+      some packages with the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>dbus-uuidgen --ensure</userinput></screen>
+
+    <para>
+      If using elogind, create a symlink to the
+      <filename>/var/lib/dbus/machine-id</filename> file:
+    </para>
+
+<screen role="root"><userinput>ln -sfv /var/lib/dbus/machine-id /etc</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>--disable-doxygen-docs</parameter>: This switch disables
+      doxygen documentation build and install, if you have
+      <application>doxygen</application> installed. If
+      <application>doxygen</application> is installed, and you wish to build
+      them, remove this parameter.
+    </para>
+
+    <para>
+      <parameter>--disable-xml-docs</parameter>: This switch disables html
+      documentation build and install, if you have
+      <application>xmlto</application> installed. If
+      <application>xmlto</application> is installed, and you wish to build
+      them, remove this parameter.
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../../../xincludes/static-libraries.xml"/>
+
+    <para>
+      <parameter>--with-systemd{user,system}unitdir=no</parameter>: These
+      switches disable installation of systemd units on elogind based systems.
+    </para>
+   
+    <para>
+      <parameter>--with-system-socket=/run/dbus/system_bus_socket</parameter>:
+      This parameter specifies the location of the system bus socket.
+    </para>
+
+    <para>
+      <parameter>--enable-tests</parameter>: Builds extra parts of the code to
+      support all tests. Do not use on a production build.
+    </para>
+
+    <para>
+      <option>--enable-embedded-tests</option>: Builds extra parts of the
+      code to support only unit tests. Do not use on a production build.
+    </para>
+
+    <para>
+      <parameter>--enable-asserts</parameter>: Enables debugging code to run
+      assertions for statements normally assumed to be true. This prevents a
+      warning that '<parameter>--enable-tests</parameter>' on its own is only
+      useful for profiling and might not give true results for all tests, but
+      adds its own NOTE that this should not be used in a production build.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring D-Bus</title>
+
+    <sect3 id="dbus-config">
+      <title>Config Files</title>
+
+      <para>
+        <filename>/etc/dbus-1/session.conf</filename>,
+        <filename>/etc/dbus-1/system.conf</filename> and
+        <filename>/etc/dbus-1/system.d/*</filename>
+      </para>
+
+      <indexterm zone="dbus dbus-config">
+        <primary sortas="e-etc-dbus-1-session.conf">/etc/dbus-1/session.conf</primary>
+      </indexterm>
+
+      <indexterm zone="dbus dbus-config">
+        <primary sortas="e-etc-dbus-1/system.conf">/etc/dbus-1/system.conf</primary>
+      </indexterm>
+
+      <indexterm zone="dbus dbus-config">
+        <primary sortas="e-etc-dbus-1-system.d-star">/etc/dbus-1/system.d/*</primary>
+      </indexterm>
+
+    </sect3>
+
+    <sect3 id="dbus-session-config" xreflabel="D-Bus custom services directory">
+      <title>Configuration Information</title>
+
+      <para>
+        The configuration files listed above should probably not be
+        modified. If changes are required, you should create
+        <filename>/etc/dbus-1/session-local.conf</filename> and/or
+        <filename>/etc/dbus-1/system-local.conf</filename> and make any
+        desired changes to these files.
+     </para>
+
+      <para>
+        If any packages install a
+        <application>D-Bus</application> <filename>.service</filename>
+        file outside of the standard <filename
+        class="directory">/usr/share/dbus-1/services</filename> directory,
+        that directory should be added to the local session configuration.
+        For instance, <filename
+        class="directory">/usr/local/share/dbus-1/services</filename> can
+        be added by performing the following commands as the
+        <systemitem class="username">root</systemitem> user:
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/dbus-1/session-local.conf &lt;&lt; "EOF"
+<literal>&lt;!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
+&lt;busconfig&gt;
+
+  &lt;!-- Search for .service files in /usr/local --&gt;
+  &lt;servicedir&gt;/usr/local/share/dbus-1/services&lt;/servicedir&gt;
+
+&lt;/busconfig&gt;</literal>
+EOF</userinput></screen>
+
+    </sect3>
+
+    <sect3  id="dbus-session">
+      <title>D-Bus Session Daemon</title>
+
+      <para>
+        To automatically start <command>dbus-daemon</command> when the
+        system is rebooted, install the
+        <filename>/etc/rc.d/init.d/dbus</filename> bootscript from the
+        blfs-bootscripts package.
+      </para>
+
+      <indexterm zone="dbus dbus-session">
+        <primary sortas="f-dbus">dbus</primary>
+      </indexterm>
+
+<screen role="root"><userinput>make install-dbus</userinput></screen>
+
+      <para>
+        If this is the first time to install
+        <application>D-Bus</application> on the system and you are not
+        operating in a chroot environment, you can immediately start
+        <command>dbus-daemon</command> without rebooting the system:
+      </para>
+
+      <!-- nodump because maybe the user is building in chroot -->
+      <screen role="nodump"><userinput>/etc/init.d/dbus start</userinput></screen>
+
+      <para>
+        Note that this boot script only starts the system-wide
+        <application>D-Bus</application> daemon. Each user requiring access to
+        <application>D-Bus</application> services will also need to run a
+        session daemon as well. There are many methods you can use to start a
+        session daemon using the <command>dbus-launch</command> command. Review
+        the <command>dbus-launch</command> man page for details about the
+        available parameters and options. Here are some suggestions and
+        examples:
+      </para>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Library</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          dbus-cleanup-sockets, dbus-daemon, dbus-launch, dbus-monitor,
+          dbus-run-session, dbus-send, dbus-test-tool,
+          dbus-update-activation-environment, and dbus-uuidgen
+        </seg>
+        <seg>
+           libdbus-1.so
+        </seg>
+        <seg>
+          /etc/dbus-1,
+          /usr/{include,lib}/dbus-1.0,
+          /usr/lib/cmake/DBus1,
+          /usr/share/dbus-1,
+          /usr/share/xml/dbus-1,
+          /usr/share/doc/dbus-&dbus-version;, and
+          /var/{lib,run}/dbus
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="dbus-cleanup-sockets">
+        <term><command>dbus-cleanup-sockets</command></term>
+        <listitem>
+          <para>
+            is used to clean up leftover sockets in a directory
+          </para>
+          <indexterm zone="dbus dbus-cleanup-sockets">
+            <primary sortas="b-dbus-cleanup-sockets">dbus-cleanup-sockets</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-daemon">
+        <term><command>dbus-daemon</command></term>
+        <listitem>
+          <para>
+            is the <application>D-Bus</application> message bus daemon
+          </para>
+          <indexterm zone="dbus dbus-daemon">
+            <primary sortas="b-dbus-daemon">dbus-daemon</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-launch">
+        <term><command>dbus-launch</command></term>
+        <listitem>
+          <para>
+            is used to start <command>dbus-daemon</command> from a shell
+            script. It  would  normally be called from a user's login
+            scripts
+          </para>
+          <indexterm zone="dbus dbus-launch">
+            <primary sortas="b-dbus-launch">dbus-launch</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-monitor">
+        <term><command>dbus-monitor</command></term>
+        <listitem>
+          <para>
+            is used to monitor messages going through a
+            <application>D-Bus</application> message bus
+          </para>
+          <indexterm zone="dbus dbus-monitor">
+            <primary sortas="b-dbus-monitor">dbus-monitor</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-run-session">
+        <term><command>dbus-run-session</command></term>
+        <listitem>
+          <para>
+            starts a process as a new <application>D-Bus</application> session
+          </para>
+          <indexterm zone="dbus dbus-run-session">
+            <primary sortas="b-dbus-run-session">dbus-run-session</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-send">
+        <term><command>dbus-send</command></term>
+        <listitem>
+          <para>
+            is used to send a message to a <application>D-Bus</application>
+            message bus
+          </para>
+          <indexterm zone="dbus dbus-send">
+            <primary sortas="b-dbus-send">dbus-send</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-test-tool">
+        <term><command>dbus-test-tool</command></term>
+        <listitem>
+          <para>
+            is a <application>D-Bus</application> traffic generator and test
+            tool; it is a multi-purpose tool for debugging and profiling
+            <application>D-Bus</application>
+          </para>
+          <indexterm zone="dbus dbus-test-tool">
+            <primary sortas="b-dbus-test-tool">dbus-test-tool</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-update-activation-environment">
+        <term><command>dbus-update-activation-environment</command></term>
+        <listitem>
+          <para>
+            is used to update the environment used for
+            <application>D-Bus</application> session services;
+            it updates the list of environment variables used by
+            <command>dbus-daemon --session</command> when it activates session
+            services without using systemd
+          </para>
+          <indexterm zone="dbus dbus-update-activation-environment">
+            <primary sortas="b-dbus-update-activation-environment">
+            dbus-update-activation-environment</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="dbus-uuidgen">
+        <term><command>dbus-uuidgen</command></term>
+        <listitem>
+          <para>
+            is used to generate a universally unique ID
+          </para>
+          <indexterm zone="dbus dbus-uuidgen">
+            <primary sortas="b-dbus-uuidgen">dbus-uuidgen</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libdbus-1">
+        <term><filename class="libraryfile">libdbus-1.so</filename></term>
+        <listitem>
+          <para>
+            contains the API functions used by the
+            <application>D-Bus</application> message daemon.
+            <application>D-Bus</application> is first a library that provides
+            one-to-one communication between any two applications;
+            <command>dbus-daemon</command> is an application that uses this
+            library to implement a message bus daemon
+          </para>
+          <indexterm zone="dbus libdbus-1">
+            <primary sortas="c-libdbus-1">libdbus-1.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect2>
+
+</sect1>

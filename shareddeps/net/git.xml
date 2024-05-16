@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY git-root "&kernel-dl;/software/scm/git" >
+
+  <!ENTITY git-download-http "&git-root;/git-&git-version;.tar.xz">
+  <!ENTITY git-download-ftp  " ">
+  <!ENTITY git-md5sum        "1daf15b08a3ef7bc58510ab75f5f1851">
+
+  <!ENTITY git-size          "7.1 MB">
+  <!-- but people keep forgetting that an install not only needs the net build
+       space, it also needs the install space (or DESTDIR) -->
+  <!ENTITY git-buildsize     "307 MB (with downloaded documentation; add 18 MB for building docs)">
+  <!-- With 2.23.0, there was a large increase in time for tests. Possibly disk related? -->
+  <!-- Confirmed that it is disk related.-->
+  <!ENTITY git-time          "0.3 SBU (with parallelism=4; add 0.4 SBU for building doc, and up to 5 SBU (disk speed dependent) for tests)">
+]>
+
+<sect1 id="git" xreflabel="git-&git-version;">
+  <?dbhtml filename="git.html"?>
+
+
+  <title>Git-&git-version;</title>
+
+  <indexterm zone="git">
+    <primary sortas="a-Git">Git</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to Git</title>
+
+    <para>
+      <application>Git</application> is a free and open source, distributed
+      version control system designed to handle everything from small to very
+      large projects with speed and efficiency. Every
+      <application>Git</application> clone is a full-fledged repository with
+      complete history and full revision tracking capabilities, not dependent
+      on network access or a central server. Branching and merging are fast and
+      easy to do. <application>Git</application> is used for version control of
+      files, much like tools such as <application>Mercurial</application>,
+      <application>Bazaar</application>, <application>Subversion</application>,
+      <ulink url="https://www.nongnu.org/cvs/">CVS</ulink>,
+      <application>Perforce</application>, and
+      <application>Team Foundation Server</application>.
+    </para>
+
+    &lfs121_checked;
+
+    <bridgehead renderas="sect3">Package Information</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&git-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&git-download-ftp;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download MD5 sum: &git-md5sum;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download size: &git-size;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated disk space required: &git-buildsize;
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Estimated build time: &git-time;
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          <ulink url="&git-root;/git-manpages-&git-version;.tar.xz">
+          &git-root;/git-manpages-&git-version;.tar.xz</ulink>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="&git-root;/git-htmldocs-&git-version;.tar.xz">
+          &git-root;/git-htmldocs-&git-version;.tar.xz</ulink>
+          and other docs
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <bridgehead renderas="sect3">Git Dependencies</bridgehead>
+
+    <bridgehead renderas="sect4">Recommended</bridgehead>
+    <para role="recommended">
+      <xref linkend="curl"/> (needed to use <application>Git</application> over
+      http, https, ftp or ftps)
+    </para>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of Git</title>
+
+    <para>
+      Install <application>Git</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>./configure --prefix=/usr \
+            --with-gitconfig=/etc/gitconfig \
+            --with-python=python3 &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      The test suite can be run in parallel mode. To run the test suite, issue:
+      <command>make test -k |&amp; tee test.log</command>.  If some test
+      fails, the list of failed tests can be shown via
+      <command>grep '^not ok' test.log | grep -v TODO</command>.
+      <!-- It looks like I'd misdiagnosed the issue.  -->
+      <!--phrase revision='systemd'>One test named <literal>start and stop
+      Linux/systemd maintenance</literal> is known to fail if the current
+      login session is not started after rebuilding
+      <xref linkend='systemd'/> with <xref linkend='linux-pam'/>
+      support, or it's a SSH session but the SSH server is not configured
+      with <option>UsePAM</option> enabled.</phrase-->
+    </para>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem>
+      user:
+    </para>
+
+<screen role="root"><userinput>make perllibdir=/usr/lib/perl5/&lfs-perl-version;/site_perl install</userinput></screen>
+
+    <bridgehead renderas="sect3">If you downloaded the man pages and/or html docs</bridgehead>
+
+    <para>
+      If you downloaded the man pages untar them as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>tar -xf ../git-manpages-&git-version;.tar.xz \
+    -C /usr/share/man --no-same-owner --no-overwrite-dir</userinput></screen>
+
+    <para>
+      If you downloaded the html docs untar them as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>mkdir -vp   /usr/share/doc/git-&git-version; &amp;&amp;
+tar   -xf   ../git-htmldocs-&git-version;.tar.xz \
+      -C    /usr/share/doc/git-&git-version; --no-same-owner --no-overwrite-dir &amp;&amp;
+
+find        /usr/share/doc/git-&git-version; -type d -exec chmod 755 {} \; &amp;&amp;
+find        /usr/share/doc/git-&git-version; -type f -exec chmod 644 {} \;</userinput></screen>
+
+<!-- ==== Reorganize docs ====== -->
+    <bridgehead renderas="sect3">Reorganize text and html in the html-docs</bridgehead>
+
+    <para>
+      The html-docs include a lot of plain text files.
+      Reorganize the files as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>mkdir -vp /usr/share/doc/git-&git-version;/man-pages/{html,text}         &amp;&amp;
+mv        /usr/share/doc/git-&git-version;/{git*.txt,man-pages/text}     &amp;&amp;
+mv        /usr/share/doc/git-&git-version;/{git*.,index.,man-pages/}html &amp;&amp;
+
+mkdir -vp /usr/share/doc/git-&git-version;/technical/{html,text}         &amp;&amp;
+mv        /usr/share/doc/git-&git-version;/technical/{*.txt,text}        &amp;&amp;
+mv        /usr/share/doc/git-&git-version;/technical/{*.,}html           &amp;&amp;
+
+mkdir -vp /usr/share/doc/git-&git-version;/howto/{html,text}             &amp;&amp;
+mv        /usr/share/doc/git-&git-version;/howto/{*.txt,text}            &amp;&amp;
+mv        /usr/share/doc/git-&git-version;/howto/{*.,}html               &amp;&amp;
+
+sed -i '/^&lt;a href=/s|howto/|&amp;html/|' /usr/share/doc/git-&git-version;/howto-index.html &amp;&amp;
+sed -i '/^\* link:/s|howto/|&amp;html/|' /usr/share/doc/git-&git-version;/howto-index.txt</userinput></screen>
+
+  </sect2>
+
+  <sect2>
+    <title>Using Git</title>
+
+    <para>
+      This Git installation doesn't have the full power Git can provide, such
+      as scheduling and the like. If you want even more features, check
+      <ulink url="&blfs-svn;/general/git.html"/>. However, this installation
+      if you installed <xref linkend="curl"/> can provide enough features to
+      be of good use for you, such as the ability to clone repos. This is
+      sometimes a necessity when developers don't publish releases or haven't
+      in a long time, so the repo is the only way to obtain the (hopefully) up
+      to date package. In order to clone a repo, simply invoke:
+    </para>
+
+    <screen><userinput>git clone https://path/to/repo.git</userinput></screen>
+
+    <para>
+      The above command will then clone the entire repository besides
+      subprojects, something that some projects do and require special instructions.
+      A directory will be created, called <filename>repo</filename>, in the current
+      working directory, with all the repo's files being in that just created
+      directory. If you want to for some reason change the directory name, you
+      can do it when you clone the repo, like so:
+    </para>
+
+<screen><userinput>git clone https://path/to/repo.git newname</userinput></screen>
+
+    <para>
+      The above command will create the directory called <filename>newname
+      </filename> and put all the repo's files in that directory. Eventually you'll
+      come across a repository that has some subprojects, for instance an
+      emulator that depends on graphic libraries and intends to compile a static
+      version of it. In order to pull in those subprojects, you must also
+      invoke the <parameter>--recurse-submodules</parameter> option. This will
+      clone all the subprojects and check them out.
+    </para>
+
+  </sect2>
+
+  <sect2>
+    <title>Git Repo vs Release Archives</title>
+
+    <para>
+      All of the packages in GLFS, except for when obtaing firmware, have you
+      download tarballs or zipfiles. These tarballs and zipfiles were created
+      as part of a release, and often include files not found in the repo
+      equivalent where the package development happens. Usually the extra included
+      files are the configure scripts you should now be used to using. They are
+      generated manually using <command>aclocal</command>, <command>autoconf
+      </command>, and <command>automake</command>. The configure scripts are often
+      not in the repos, so if the git repo gets cloned, you will have to generate
+      the configure script yourself if you find <filename>configure.ac</filename>,
+      <filename>Makefile.am</filename>, and possibly <filename>autogen.sh
+      </filename>. You won't need to do this if you find the repo has a
+      <filename>Makefile</filename> or has <filename>meson_options.txt</filename>
+      or <filename>CMakeLists.txt</filename>.
+    </para>
+
+    <para>
+      Another big difference between the repo and the release package is that
+      the repo probably has had commits after the last release if it had any,
+      and new commits can introduce bugs or prevent compilation. When developers
+      prepare a new release, often they search for issues, bugs, and compilation
+      errors, making it stable before they publish the release and its related
+      package files. Release packages aren't entirely safe from issues and can
+      help with causing issues as files can be added. Sometimes you can tell
+      if something is wrong, sometimes you can't. It's always important to be
+      up to date with security news to prevent damage.
+    </para>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>--with-gitconfig=/etc/gitconfig</parameter>: This sets
+      <filename>/etc/gitconfig</filename> as the file that stores
+      the default, system wide, <application>Git</application>
+      settings.
+    </para>
+
+    <para>
+      <parameter>--with-python=python3</parameter>: Use this switch to use
+      <application>Python 3</application>, instead of the EOL'ed
+      <application>Python 2</application>. Python is used for the
+      <command>git p4</command> interface to Perforce repositories,
+      and also used in some tests.
+    </para>
+
+    <para>
+      <option>--with-libpcre2</option>: Use this switch if
+      <application>PCRE2</application> is installed.
+    </para>
+
+    <para>
+      <command>tar -xf ../git-manpages-&git-version;.tar.gz -C
+      /usr/share/man --no-same-owner</command>: This untars
+      <filename>git-manpages-&git-version;.tar.gz</filename>. The
+      <option>-C</option> option makes tar change directory to
+      <filename class="directory">/usr/share/man</filename> before
+      it starts to decompress the docs. The <option>--no-same-owner</option>
+      option stops tar from preserving the user and group details of the
+      files. This is useful as that user or group may not exist on your
+      system; this could (potentially) be a security risk.
+    </para>
+
+    <para>
+      <command>mv /usr/share/doc/git-&git-version; ...</command>: These
+      commands move some of the files into subfolders to make it easier to sort
+      through the docs and find what you're looking for.
+    </para>
+
+    <para>
+      <command>find ... chmod ...</command>: These commands correct the
+      permissions in the shipped documentation tar file.
+    </para>
+
+  </sect2>
+
+  <sect2 role="configuration">
+    <title>Configuring Git</title>
+
+    <sect3 id="git-config">
+      <title>Config Files</title>
+      <para>
+        <filename>~/.gitconfig</filename> and
+        <filename>/etc/gitconfig</filename>
+      </para>
+
+      <indexterm zone="git git-config">
+        <primary sortas="e-AA.gitconfig">~/.gitconfig</primary>
+      </indexterm>
+
+      <indexterm zone="git git-config">
+        <primary sortas="e-etc-gitconfig">/etc/gitconfig</primary>
+      </indexterm>
+
+    </sect3>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <segmentedlist>
+      <segtitle>Installed Programs</segtitle>
+      <segtitle>Installed Libraries</segtitle>
+      <segtitle>Installed Directories</segtitle>
+
+      <seglistitem>
+        <seg>
+          git, git-receive-pack, git-upload-archive, and
+          git-upload-pack (hardlinked to each
+          other), git-cvsserver, git-shell, gitk, and scalar
+        </seg>
+        <seg>
+          None
+        </seg>
+        <seg>
+          /usr/libexec/git-core,
+          /usr/lib/perl5/&lfs-perl-version;/site_perl/Git, and
+          /usr/share/{doc/git-&git-version;,git-core,git-gui,gitk,gitweb}
+        </seg>
+      </seglistitem>
+    </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="git-prog">
+        <term><command>git</command></term>
+        <listitem>
+          <para>
+            is the stupid content tracker
+          </para>
+          <indexterm zone="git git-prog">
+            <primary sortas="b-git">git</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="git-cvsserver">
+        <term><command>git-cvsserver</command></term>
+        <listitem>
+          <para>
+            is a CVS server emulator for <application>Git</application>
+          </para>
+          <indexterm zone="git git-cvsserver">
+            <primary sortas="b-git-cvsserver">git-cvsserver</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="gitk">
+        <term><command>gitk</command></term>
+        <listitem>
+          <para>
+            is a graphical <application>Git</application> repository browser
+	    (needs <ulink url="&blfs-svn;/general/tk.html">Tk</ulink>)
+          </para>
+          <indexterm zone="git gitk">
+            <primary sortas="b-gitk">gitk</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="git-receive-pack">
+        <term><command>git-receive-pack</command></term>
+        <listitem>
+          <para>
+            is invoked by <command>git send-pack</command> and updates the
+            repository with the information fed from the remote end
+          </para>
+          <indexterm zone="git git-receive-pack">
+            <primary sortas="b-git-receive-pack">git-receive-pack</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="git-shell">
+        <term><command>git-shell</command></term>
+        <listitem>
+          <para>
+            is a login shell for SSH accounts to provide restricted Git
+            access
+          </para>
+          <indexterm zone="git git-shell">
+            <primary sortas="b-git-shell">git-shell</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="git-upload-archive">
+        <term><command>git-upload-archive</command></term>
+        <listitem>
+          <para>
+            is invoked by <command>git archive --remote</command> and sends
+            a generated archive to the other end over the git protocol
+          </para>
+          <indexterm zone="git git-upload-archive">
+            <primary sortas="b-git-upload-archive">git-upload-archive</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="git-upload-pack">
+        <term><command>git-upload-pack</command></term>
+        <listitem>
+          <para>
+            is invoked by <command>git fetch-pack</command>, it discovers
+            what objects the other side is missing, and sends them after
+            packing
+          </para>
+          <indexterm zone="git git-upload-pack">
+            <primary sortas="b-git-upload-pack">git-upload-pack</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="scalar">
+        <term><command>scalar</command></term>
+        <listitem>
+          <para>
+            is a repository management tool that optimizes Git for use in
+            large repositories
+          </para>
+          <indexterm zone="git scalar">
+            <primary sortas="b-scalar">scalar</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </sect2>
+
+</sect1>
