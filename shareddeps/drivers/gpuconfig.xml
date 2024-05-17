@@ -104,7 +104,6 @@
 <screen><userinput>mkdir -pv /lib/firmware/radeon
 cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
 
-
     </sect3>
 
     <sect3>
@@ -112,6 +111,34 @@ cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
 
       <para>
 	AMDGPU devices require firmware in order to be used in general.
+        Install <xref linkend="pciutils"/> to check the model name of
+	your card, and look for 'VGA compatible controller:'. If you have
+	an APU (Accelerated Processing Unit, i.e. CPU and video on the same
+	chip) that will probably tell you the name. If you have a separate
+	amdgpu video card you will need to search to determine which name it
+	uses (e.g. a card described as Advanced Micro Devices, Inc. [AMD/ATI]
+	Baffin [Radeon RX 550 640SP / RX 560/560X] need Polaris11 firmware.
+	There is a table of "Family, Chipset name, Product name and Firmware"
+	at the end of the Kernel sections in <ulink
+	url="https://wiki.gentoo.org/wiki/AMDGPU#Known_firmware_blobs">AMDGPU
+        </ulink> page of the Gentoo wiki.
+      </para>
+
+      <para>
+        Once you have identified the firmware name, install all the relevant
+	files for it. For example, the Baffin card mentioned above has 21
+	different polaris11* files, APUs such as renoir and picasso have at
+	least 12 files and might gain more in future updates (e.g. the raven
+	APU now has a 13th file, raven_ta.bin).
+      </para>
+
+<screen><userinput>mkdir -pv /lib/firmware/amdgpu
+cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/amdgpu</userinput></screen>
+
+      <para>
+        If disk space is not a problem, you could install all the current
+	amdgpu firmware files and not worry about exactly which chipset is
+	installed.
       </para>
 
     </sect3>
@@ -143,6 +170,34 @@ cp -v &lt;YOUR_BLOBS&gt; /lib/firmware/radeon</userinput></screen>
 	<application>linux-firmware</application>. Note that faster clocks
 	than the default are not enabled by the released firmware.
       </para>
+
+      <para>
+        For older chips, it might be necessary to extract firmware from the
+	NVIDIA runfile directly:
+      </para>
+
+<screen><userinput>wget https://anduin.linuxfromscratch.org/BLFS/nvidia-firmware/extract_firmware.py
+wget https://us.download.nvidia.com/XFree86/Linux-x86/340.32/NVIDIA-Linux-x86-340.32.run
+sh NVIDIA-Linux-x86-340.32.run --extract-only
+python3 extract_firmware.py
+mkdir -p /lib/firmware/nouveau
+cp -d nv* vuc-* /lib/firmware/nouveau/</userinput></screen>
+
+      <para>
+        For newer chips, the nouveau driver searches in multiple paths,
+	and simply grabbing firmware you find in the linux-firmware repository
+	won't do any good probably. There are plenty of symlinks that need to
+	be made. Follow the instructions below in order to install the newer
+	firmware properly:
+      </para>
+
+<screen><userinput>git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/
+cd linux-firmware
+mkdir -pv /lib/firmware/nvidia
+mkdir -pv DESTDIR/lib/firmware
+sh copy-firmware.sh --ignore-duplicates DESTDIR/lib/firmware
+cp -vr DESTDIR/lib/firmware/nvidia/* /lib/firmware/nvidia
+rm -rf DESTDIR</userinput></screen>
 
     </sect3>
 
