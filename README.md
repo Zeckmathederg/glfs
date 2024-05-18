@@ -36,6 +36,9 @@ The default target builds the html in `$(HOME)/public_html/glfs.`
 For all targets, setting the parameter `REV=systemd` is needed to build the
 systemd version of the book.
 
+Furthermore, the dark theme is the default, but you can switch the theme by
+running `switch-theme` with the parameter `light` or `dark`.
+
 Other Makefile targets are: `pdf`, `nochunks`, `validate`, and `glfs-patch-list`.
 
 `pdf`: builds GLFS as a PDF file.
