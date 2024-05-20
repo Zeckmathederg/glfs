@@ -5,7 +5,7 @@ like Steam and Wine after the Linux From Scratch book.
 
 # Where to Read
 
-Go to https://Zeckmathederg.github.io/glfs/ and start going through the book!
+Go to https://zeckmathederg.github.io/glfs/ and start going through the book!
 
 # Installation
 
