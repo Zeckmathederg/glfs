@@ -55,6 +55,7 @@
                   or contains(@url, '.tgz') or contains(@url, '.tar')
                   or contains(@url, 'patch.txt') or contains(@url, '.zip')
                   or contains(@url, '.patch') or contains(@url, '/patch.'))
+                  or contains (@url, '.run')
                   and not(ancestor-or-self::*/@condition = 'pdf')">
       <xsl:choose>
         <!-- Fix SourceForge links-->
@@ -79,7 +80,7 @@
                   or contains(@url, '.txt') or contains(@url, 'compressdoc')
                   or contains(@url, '.zip') or contains(@url, '.patch')
                   or contains(@url, '/patch.') or contains(@url, 'md5sums')
-                  or contains(@url, 'mozconfig'))
+                  or contains(@url, 'mozconfig')) or contains(@url, '.run')
                   and not(contains(@url, '?url'))
                   and not(ancestor-or-self::*/@condition = 'pdf')">
       <!-- To list all URls, included html files, wiki pages, home pages, and
