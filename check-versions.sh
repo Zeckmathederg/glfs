@@ -103,7 +103,6 @@ lynx-version
 links-version
 gdb-version
 valgrind-version
-binutils
 gcc
 libxkbcommon
 sdl2-version
@@ -119,12 +118,24 @@ xcb
 wayland
 "
 
+BLFS_ONLY_PACKAGES="
+xfce4
+balsa
+dbus-glib
+xdg-dbus
+dbus-python
+dbusmock
+libdbusmenu
+plasma
+"
+
 GLFS_PACKAGES="
 libglvnd
 nvidia
 rust-bindgen
 seatd
 steam
+binutils
 wine
 "
 
@@ -133,7 +144,11 @@ check_blfs_simple_packages() {
 		diff -Naur <(grep $package $GLFS_DIR/packages.ent) \
 			<(grep $package $BLFS_DIR/packages.ent)  | \
 			grep -v fd | grep -v '^@' | grep ENTITY  | \
-     			grep '^\(+\|-\)'
+     			grep '^\(+\|-\)'                         | \
+			grep -v xfce4 | grep -v balsa            | \
+			grep -v dbus-glib | grep -v xdg-dbus     | \
+			grep -v dbus-python | grep -v dbusmock   | \
+			grep -v libdbusmenu | grep -v plasma
 		if [[ "$?" = 0 ]]; then
 			echo " "
 		fi
@@ -144,7 +159,11 @@ check_blfs_complex_packages() {
 		diff -Naur <(grep $package $GLFS_DIR/packages.ent) \
 			<(grep $package $BLFS_DIR/packages.ent)  | \
 			grep -v fd | grep -v '^@' | grep ENTITY  | \
-     			grep '^\(+\|-\)'
+     			grep '^\(+\|-\)'                         | \
+			grep -v xfce4 | grep -v balsa            | \
+			grep -v dbus-glib | grep -v xdg-dbus     | \
+			grep -v dbus-python | grep -v dbusmock   | \
+			grep -v libdbusmenu | grep -v plasma
 		if [[ "$?" = 0 ]]; then
 			echo " "
 		fi
