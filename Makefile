@@ -123,8 +123,7 @@ $(BASEDIR)/index.html: $(RENDERTMP)/$(GLFSHTML) version
 	$(Q)if [ ! -e $(BASEDIR)/images ]; then \
       mkdir -p $(BASEDIR)/images;          \
    fi;
-	$(Q)cp images/*.png $(BASEDIR)/images
-	$(Q)cp favicon.ico $(BASEDIR)
+	$(Q)cp images/*.{png,ico} $(BASEDIR)/images
 
 	$(Q)cd $(BASEDIR)/; sed -e "s@../images@images@g"           \
                            -i *.html

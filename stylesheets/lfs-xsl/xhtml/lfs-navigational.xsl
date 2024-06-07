@@ -9,13 +9,20 @@
 
     <!-- html.head:
            Drop all navigational links from inside head xhtml output. -->
-    <!-- The original template is in {docbook-xsl}/xhtml/chunk-common.xsl -->
+   <!-- The original template is in {docbook-xsl}/xhtml/chunk-common.xsl -->
   <xsl:template name="html.head">
     <head>
       <xsl:call-template name="system.head.content"/>
       <xsl:call-template name="head.content"/>
       <xsl:call-template name="user.head.content"/>
-      <link rel="icon" href="favicon.ico" type="image/x-icon"/>  
+      <xsl:variable name="up" select="parent::*"/>
+      <xsl:variable name="home" select="/*[1]"/>
+      <xsl:if test="$home != .">
+	<link rel="icon" href="../images/favicon.ico" type="image/x-icon"/>
+      </xsl:if>
+      <xsl:if test="$home = .">
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
+      </xsl:if>
     </head>
   </xsl:template>
 
