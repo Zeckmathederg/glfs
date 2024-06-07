@@ -15,6 +15,7 @@
       <xsl:call-template name="system.head.content"/>
       <xsl:call-template name="head.content"/>
       <xsl:call-template name="user.head.content"/>
+      <link rel="icon" href="favicon.ico" type="image/x-icon"/>  
     </head>
   </xsl:template>
 
