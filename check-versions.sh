@@ -92,7 +92,8 @@ nettle
 gnutls
 pixman
 vulkan
-spirv
+spirv-headers
+spirv-tools
 glslang
 pciutils
 hwdata
@@ -150,6 +151,7 @@ spirv-llvm-translator
 nvidia
 rust-bindgen
 libclc
+ply
 seatd
 steam
 binutils
@@ -163,11 +165,11 @@ check_blfs_simple_packages() {
 			<(grep $package $BLFS_DIR/packages.ent)  | \
 			grep -v fd | grep -v '^@' | grep ENTITY  | \
      			grep '^\(+\|-\)'                         | \
-			grep -v xfce4 | grep -v balsa            | \
-			grep -v dbus-glib | grep -v xdg-dbus     | \
+			grep -v xfce4       | grep -v balsa      | \
+			grep -v dbus-glib   | grep -v xdg-dbus   | \
 			grep -v dbus-python | grep -v dbusmock   | \
 			grep -v libdbusmenu | grep -v plasma     | \
-			grep -v mingw-w64
+			grep -v mingw-w64   | grep -v spirv-llvm
 		if [[ "$?" = 0 ]]; then
 			echo " "
 		fi
@@ -179,11 +181,11 @@ check_blfs_complex_packages() {
 			<(grep $package $BLFS_DIR/packages.ent)  | \
 			grep -v fd | grep -v '^@' | grep ENTITY  | \
      			grep '^\(+\|-\)'                         | \
-			grep -v xfce4 | grep -v balsa            | \
-			grep -v dbus-glib | grep -v xdg-dbus     | \
+			grep -v xfce4       | grep -v balsa      | \
+			grep -v dbus-glib   | grep -v xdg-dbus   | \
 			grep -v dbus-python | grep -v dbusmock   | \
 			grep -v libdbusmenu | grep -v plasma     | \
-			grep -v mingw-w64
+			grep -v mingw-w64   | grep -v spirv-llvm
 		if [[ "$?" = 0 ]]; then
 			echo " "
 		fi
@@ -240,6 +242,20 @@ check_glfs_packages() {
 			diff -Naur <(grep spirv-llvm-trans $GLFS_DIR/packages.ent | \
 				awk -F'"' '{print $2}')                             \
 				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/$package/-/raw/main/PKGBUILD" | \
+				grep "pkgver=" | sed 's/pkgver=//')               | \
+				grep -v fd | grep -v '^@' > glfsvarch-version.log
+			if [[ "$?" != 0 ]]; then
+				rm glfsvarch-version.log
+			else
+				echo "$package:"
+				cat glfsvarch-version.log
+				rm glfsvarch-version.log
+				echo " "
+			fi
+		elif [[ $package == "ply" ]]; then
+			diff -Naur <(grep $package $GLFS_DIR/packages.ent | \
+				awk -F'"' '{print $2}')                             \
+				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/python-$package/-/raw/main/PKGBUILD" | \
 				grep "pkgver=" | sed 's/pkgver=//')               | \
 				grep -v fd | grep -v '^@' > glfsvarch-version.log
 			if [[ "$?" != 0 ]]; then
