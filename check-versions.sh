@@ -146,8 +146,10 @@ x7driver-wacom
 
 GLFS_PACKAGES="
 libglvnd
+spirv-llvm-translator
 nvidia
 rust-bindgen
+libclc
 seatd
 steam
 binutils
@@ -229,12 +231,25 @@ check_glfs_packages() {
 			if [[ "$?" != 0 ]]; then
 				rm glfsvarch-version.log
 			else
-				echo "mingw-w64:"
+				echo "$package:"
 				cat glfsvarch-version.log
 				rm glfsvarch-version.log
 				echo " "
 			fi
-			continue
+		elif [[ $package == "spirv-llvm-translator" ]]; then
+			diff -Naur <(grep spirv-llvm-trans $GLFS_DIR/packages.ent | \
+				awk -F'"' '{print $2}')                             \
+				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/$package/-/raw/main/PKGBUILD" | \
+				grep "pkgver=" | sed 's/pkgver=//')               | \
+				grep -v fd | grep -v '^@' > glfsvarch-version.log
+			if [[ "$?" != 0 ]]; then
+				rm glfsvarch-version.log
+			else
+				echo "$package:"
+				cat glfsvarch-version.log
+				rm glfsvarch-version.log
+				echo " "
+			fi
 		else
 			diff -Naur <(grep $package $GLFS_DIR/packages.ent | \
 				grep -v wine-major                        | \
