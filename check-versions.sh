@@ -118,15 +118,16 @@ xcb
 wayland
 "
 
-BLFS_ONLY_PACKAGES="
-xfce4
-balsa
-dbus-glib
-xdg-dbus
-dbus-python
-dbusmock
-libdbusmenu
-plasma
+XORG_XML="
+x7lib
+x7app
+x7font
+libevdev
+x7driver-evdev
+libinput
+x7driver-libinput
+x7driver-synaptics
+x7driver-wacom
 "
 
 GLFS_PACKAGES="
@@ -136,6 +137,7 @@ rust-bindgen
 seatd
 steam
 binutils
+mingw-w64
 wine
 "
 
@@ -148,7 +150,8 @@ check_blfs_simple_packages() {
 			grep -v xfce4 | grep -v balsa            | \
 			grep -v dbus-glib | grep -v xdg-dbus     | \
 			grep -v dbus-python | grep -v dbusmock   | \
-			grep -v libdbusmenu | grep -v plasma
+			grep -v libdbusmenu | grep -v plasma     | \
+			grep -v mingw-w64
 		if [[ "$?" = 0 ]]; then
 			echo " "
 		fi
@@ -163,19 +166,77 @@ check_blfs_complex_packages() {
 			grep -v xfce4 | grep -v balsa            | \
 			grep -v dbus-glib | grep -v xdg-dbus     | \
 			grep -v dbus-python | grep -v dbusmock   | \
-			grep -v libdbusmenu | grep -v plasma
+			grep -v libdbusmenu | grep -v plasma     | \
+			grep -v mingw-w64
 		if [[ "$?" = 0 ]]; then
 			echo " "
 		fi
 	done
 }
+check_xorg_xml() {
+	for xml in $XORG_XML; do
+		if [[ $xml == "x7lib" ]]; then
+			diff -Naur $GLFS_DIR/shareddeps/dps/basicx/x/$xml.xml   \
+				$BLFS_DIR/x/installing/$xml.xml               | \
+				grep version | grep ENTITY | grep -v download | \
+				grep '^\(+\|-\) ' > check-versions-xml.log
+			if [[ "$?" != 0 ]]; then
+				rm check-versions-xml.log
+			else
+				echo "In glfs/shareddeps/dps/basicx/x/$xml.xml:"
+				cat check-versions-xml.log
+				rm check-versions-xml.log
+				echo " "
+			fi
+		else
+			diff -Naur $GLFS_DIR/shareddeps/dps/x/$xml.xml          \
+				$BLFS_DIR/x/installing/$xml.xml               | \
+				grep version | grep ENTITY | grep -v download | \
+				grep '^\(+\|-\) ' > check-versions-xml.log
+			if [[ "$?" != 0 ]]; then
+				rm check-versions-xml.log
+			else
+				echo "In glfs/shareddeps/dps/x/$xml.xml:"
+				cat check-versions-xml.log
+				rm check-versions-xml.log
+				echo " "
+			fi
+		fi
+	done
+}
 check_glfs_packages() {
 	for package in $GLFS_PACKAGES; do
-		echo "$package on GLFS:"
-		grep $package $GLFS_DIR/packages.ent
-		echo "$package on Arch:"
-		curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/$package/-/raw/main/PKGBUILD" | grep "pkgver=" | sed 's/pkgver=//'
-		echo " "
+		if [[ $package == "mingw-w64" ]]; then
+			diff -Naur <(grep mingw-w64 $GLFS_DIR/packages.ent | \
+				grep -v gcc | awk -F'"' '{print $2}')        \
+				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/mingw-w64-crt/-/raw/main/PKGBUILD" | \
+				grep "pkgver=" | sed 's/pkgver=//')        | \
+				grep -v fd | grep -v '^@' > glfsvarch-version.log
+			if [[ "$?" != 0 ]]; then
+				rm glfsvarch-version.log
+			else
+				echo "mingw-w64:"
+				cat glfsvarch-version.log
+				rm glfsvarch-version.log
+				echo " "
+			fi
+			continue
+		else
+			diff -Naur <(grep $package $GLFS_DIR/packages.ent | \
+				grep -v wine-major                        | \
+				awk -F'"' '{print $2}')                     \
+				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/$package/-/raw/main/PKGBUILD" | \
+				grep "pkgver=" | sed 's/pkgver=//')       | \
+				grep -v fd | grep -v '^@' > glfsvarch-version.log
+			if [[ "$?" != 0 ]]; then
+				rm glfsvarch-version.log
+			else
+				echo "$package:"
+				cat glfsvarch-version.log
+				rm glfsvarch-version.log
+				echo " "
+			fi
+		fi
 	done
 }
 
@@ -186,92 +247,6 @@ check_blfs_simple_packages
 
 echo " "
 echo " "
-echo 'Checking versions in files other than "packages.ent"'
-echo "----------------------------------------------------"
-
-echo "In glfs/shareddeps/dps/basicx/x/x7lib.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/basicx/x/x7lib.xml \
-     $BLFS_DIR/x/installing/x7lib.xml |                \
-     grep version                     |                \
-     grep ENTITY                      |                \
-     grep -v download                 |                \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/x7app.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/x7app.xml \
-     $BLFS_DIR/x/installing/x7app.xml |         \
-     grep version                     |         \
-     grep ENTITY                      |         \
-     grep -v download                 |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/x7font.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/x7font.xml \
-     $BLFS_DIR/x/installing/x7font.xml |         \
-     grep version                      |         \
-     grep ENTITY                       |         \
-     grep -v download                  |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/libevdev.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/libevdev.xml \
-     $BLFS_DIR/x/installing/libevdev.xml |         \
-     grep version                        |         \
-     grep ENTITY                         |         \
-     grep -v download                    |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/x7driver-evdev.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/x7driver-evdev.xml \
-     $BLFS_DIR/x/installing/x7driver-evdev.xml |         \
-     grep version                              |         \
-     grep ENTITY                               |         \
-     grep -v download                          |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/libinput.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/libinput.xml \
-     $BLFS_DIR/x/installing/libinput.xml |         \
-     grep version                        |         \
-     grep ENTITY                         |         \
-     grep -v download                    |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/x7driver-libinput.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/x7driver-libinput.xml \
-     $BLFS_DIR/x/installing/x7driver-libinput.xml |         \
-     grep version                                 |         \
-     grep ENTITY                                  |         \
-     grep -v download                             |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/x7driver-synaptics.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/x7driver-synaptics.xml \
-     $BLFS_DIR/x/installing/x7driver-synaptics.xml |         \
-     grep version                                  |         \
-     grep ENTITY                                   |         \
-     grep -v download                              |         \
-     grep '^\(+\|-\) '
-echo " "
-
-echo "In glfs/shareddeps/dps/x/x7driver-wacom.xml:"
-diff -Naur $GLFS_DIR/shareddeps/dps/x/x7driver-wacom.xml \
-     $BLFS_DIR/x/installing/x7driver-wacom.xml |         \
-     grep version                              |         \
-     grep ENTITY                               |         \
-     grep -v download                          |         \
-     grep '^\(+\|-\) '
-echo " "
-
-
-echo " "
 echo "The next section will likely have a lot of diffs."
 echo "This is normal and you might not have to do anything."
 echo "-----------------------------------------------------"
@@ -279,16 +254,19 @@ check_blfs_complex_packages
 
 echo " "
 echo " "
+echo 'Checking versions in Xorg XML files...'
+echo "----------------------------------------------------"
+check_xorg_xml
+
+echo " "
+echo " "
 echo "Lastly, GLFS packages not in BLFS. The method of finding"
 echo "new package versions is pulling from Arch PKGBUILD files."
 echo "Arch is notorious for having out of date packages so be"
 echo "warned that this info may not be up to date."
+echo "NOTE: This might take a while..."
 echo "--------------------------------------------------------"
 check_glfs_packages
-echo "mingw-w64 on GLFS:"
-grep mingw-w64 $GLFS_DIR/packages.ent
-echo "mingw-w64 on Arch:"
-curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/mingw-w64-crt/-/raw/main/PKGBUILD" | grep "pkgver=" | sed 's/pkgver=//'
 
 echo " "
 echo "Done! If there were no diffs, then nothing needs to be done :)"
