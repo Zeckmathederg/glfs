@@ -1,9 +1,14 @@
 #!/bin/sh
 
 echo " "
-echo "Make sure BLFS is updated or else the check"
-echo "involving BLFS will be pointless!"
-echo " "
+if [[ $UPDATE_BLFS != "y" ]]; then
+	echo 'UPDATE_BLFS is not set to "y"; Not updating BLFS.'
+	echo "Make sure BLFS is updated or else the check"
+	echo "involving BLFS will be pointless!"
+	echo "You can update BLFS automatically by setting"
+	echo "UPDATE_BLFS=y"
+	echo " "
+fi
 
 if [[ $BLFS_DIR == "" ]]; then
 	echo 'BLFS_DIR not set, defaulting to "blfs"'
@@ -39,6 +44,15 @@ if [[ "$?" != 0 ]]; then
 	exit 1
 fi
 rm findbooks.log
+
+if [[ $UPDATE_BLFS == "y" ]]; then
+	pushd $BLFS_DIR
+	echo "Assuming BLFS_DIR is a git repository..."
+	echo "Updating BLFS..."
+	git pull
+	echo "Done."
+	popd
+fi
 
 BLFS_SIMPLE_PACKAGES="
 libtasn1
