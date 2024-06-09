@@ -147,9 +147,9 @@ x7driver-wacom
 
 GLFS_PACKAGES="
 libglvnd
-spirv-llvm-translator
 nvidia
 rust-bindgen
+spirv-llvm-translator
 libclc
 ply
 seatd
