@@ -1,8 +1,3 @@
-# This Project is Now Archived
-
-I cannot maintain this book. I do not feel I have the knowledge, skills, and effort
-to work on this project. Sorry. - Zeckma
-
 # Gaming Linux From Scatch (GLFS)
 
 Gaming Linux From Scratch is a book that covers how to install packages
