@@ -5,11 +5,11 @@
   %general-entities;
 ]>
 
-<sect1 id="mesonnative" xreflabel="Meson Native Toolchain File">
-  <?dbhtml filename="mesonnative.html"?>
+<sect1 id="mesonfiles" xreflabel="Meson Toolchain Files">
+  <?dbhtml filename="mesonfiles.html"?>
 
 
-  <title>Meson Native Toolchain File</title>
+  <title>Meson Toolchain Files</title>
 
   <para>
     Most applications that rely on the <application>Meson</application>
@@ -20,26 +20,63 @@
     </userinput> command to compile 32-bit binaries on a 64-bit system.
     However, some projects are more complicated for many different
     reasons, leading to the necessity of a <application>Meson
-    </application> native toolchain file. It specifies the compilers,
+    </application> toolchain files. They specify compilers,
     options that should be invoked, the <application>pkg-conf</application>
     binary (or rather symlink that uses a certain personality file) to use,
-    <command>llvm-config</command> to use, etc. This isn't required for
-    <xref linkend="steam"/> unless you want to install Mesa's NVK driver,
-    which isn't in the book at the moment. It is needed for Gstreamer which
-    is a recommended dependency of <xref linkend="wine"/>.
+    <command>llvm-config</command> to use, etc. This is required for Mesa's
+    Nouveau and/or Swrast Vulkan drivers. It is also needed for Gstreamer
+    (not in the book), which is a recommended dependency of
+    <xref linkend="wine"/>.
   </para>
 
   <para>
-    There exists another type of <application>Meson</application> file
-    called a cross toolchain file. However, it equates to pretending
-    that cross compilation is happening, leading to build failures.
-    Native toolchain files are the solution to this.
+    There are two <application>Meson</application> files: the cross
+    toolchain file and the native toolchain file. There are different situations
+    for using either.
   </para>
 
   <para>
-    The instructions below will show how to create and use the file if
+    The instructions below will show how to create and use the files if
     necessary.
   </para>
+
+  <sect2 role="installation">
+    <title>Creating the Cross Toolchain File</title>
+
+    <para>
+	Create the following toolchain file by running the following
+	commands as the <systemitem class="username">root</systemitem>
+	user:
+    </para>
+
+<screen role="root"><userinput>mkdir -v /usr/share/meson/cross
+
+cat &gt; /usr/share/meson/cross/lib32 &lt;&lt; "EOF"
+<literal>[binaries]
+c = ['gcc', '-m32']
+cpp = ['g++', '-m32']
+rust = ['rustc', '--target', 'i686-unknown-linux-gnu']
+pkg-config = 'i686-pc-linux-gnu-pkg-config'
+ar = '/usr/bin/ar'
+strip = '/usr/bin/strip'
+cups-config = 'cups-config'
+llvm-config = 'llvm-config'
+exe_wrapper = ''
+
+[properties]
+sizeof_void* = 4
+sizeof_long = 4
+
+[host_machine]
+system = 'linux'
+subsystem = 'linux'
+kernel = 'linux'
+cpu_family = 'x86'
+cpu = 'i686'
+endian = 'little'</literal>
+EOF</userinput></screen>
+
+  </sect2>
 
   <sect2 role="installation">
     <title>Creating the Native Toolchain File</title>
@@ -70,6 +107,8 @@ sizeof_long = 4
 
 [host_machine]
 system = 'linux'
+subsystem = 'linux'
+kernel = 'linux'
 cpu_family = 'x86'
 cpu = 'i686'
 endian = 'little'</literal>
@@ -85,8 +124,14 @@ EOF</userinput></screen>
 	<userinput>meson setup ..</userinput>, you can simply do:
     </para>
 
+<screen><userinput>meson setup .. --cross-file lib32 &lt;other-options&gt;</userinput></screen>
+
+    <para>
+      Or...
+    </para>
+
 <screen><userinput>meson setup .. --native-file x86 &lt;other-options&gt;</userinput></screen>
-    
+
   </sect2>
 
 </sect1>
