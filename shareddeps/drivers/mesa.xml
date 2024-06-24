@@ -79,10 +79,6 @@
           <para>
             <xref linkend="cbindgen"/>, <xref linkend="rust-bindgen"/>,
 	    and <xref linkend="rust"/> (required for NVK and Vulkan swrast)
-	    <!-- Good news, Vulkan swrast 32-bit compiles just fine.
-                 It is unfortunately specific to NVK.
-                 - Zeckma
-	    -->
           </para>
         </listitem>
         <listitem>
@@ -93,8 +89,7 @@
         </listitem>
         <listitem>
           <para>
-            <xref linkend="libclc"/> and
-            <xref linkend="ply"/> (required for Intel Vulkan)
+            <xref linkend="libclc"/> (required for Intel Iris Gallium)
 	  </para>
 	</listitem>
         <listitem>
@@ -126,6 +121,11 @@
           <para>
             <xref linkend="mesonfiles"/> (required for multilib 32-bit Nouveau and
             Swrast Vulkan)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <xref linkend="ply"/> (required for Intel Vulkan)
           </para>
         </listitem>
         <listitem>
@@ -166,6 +166,13 @@
       </para>
     </note>
 -->
+
+    <note>
+      <para>
+        An Internet connection is needed for building the Nouveau Vulkan driver.
+      </para>
+    </note>
+
   </sect2>
 
   <sect2 role="installation">
@@ -449,51 +456,90 @@ ldconfig</userinput></screen>
     </para>
 
     <para>
-      <anchor id='mesa-gallium-drivers' xreflabel='Mesa Gallium3D Drivers'/>
       <parameter>-Dgallium-drivers=auto</parameter>: This parameter
-      controls which Gallium3D drivers should be built.
+      controls which Gallium3D drivers should be built. Gallium drivers
+      are essentially OpenGL drivers. If you wish to build
+      specific drivers, valid options include:
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>
+            <literal>auto</literal> selects all Gallium3D drivers available
+            for x86
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>r300</literal> (for ATI Radeon 9000 or Radeon X
+            series)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>r600</literal> (for AMD/ATI Radeon HD 2000-6000
+            series) 
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>radeonsi</literal> (for AMD Radeon HD 7000 or newer
+            AMD GPU models)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>nouveau</literal>
+            (for Supported NVIDIA GPUs, they are listed as all
+            <quote>3D features</quote> either <quote>DONE</quote> or
+            <quote>N/A</quote> in <ulink
+            url='https://nouveau.freedesktop.org/FeatureMatrix.html'>the Nouveau
+            status page</ulink>)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>virgl</literal> (for QEMU virtual GPU
+            with <application>virglrender</application> support)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>svga</literal> (for VMWare virtual GPU)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>swrast</literal> (using CPU for 3D rasterisation; needed for
+            OSMesa which provides OpenGL bitmap support)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>zink</literal> (a driver converting Vulkan calls to OpenGL;
+            however, it is unstable and a lot of applications can't use it besides
+            demos)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>iris</literal> (for Intel GPUs shipped with Broadwell or newer
+            CPUs)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>crocus</literal> (for Intel GMA 3000, X3000 series, 4000 series,
+            or X4000 series GPUs shipped with chipsets, or Intel HD GPUs shipped with
+            pre-Broadwell CPUs)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>i915</literal> (for Intel GMA 900, 950, 3100, or 3150 GPUs
+            shipped with chipsets or Atom D/N 4xx/5xx CPUs)
+          </para>
+        </listitem>
+      </itemizedlist>
       
-      <literal>auto</literal> selects all Gallium3D drivers available
-      for x86: 
-
-      <literal>r300</literal> (for ATI Radeon 9000 or Radeon X
-      series), 
-
-      <literal>r600</literal> (for AMD/ATI Radeon HD 2000-6000
-      series), 
-
-      <literal>radeonsi</literal> (for AMD Radeon HD 7000 or newer
-      AMD GPU models), 
-
-      <literal>nouveau</literal>
-      (for Supported NVIDIA GPUs, they are listed as all
-      <quote>3D features</quote> either <quote>DONE</quote> or
-      <quote>N/A</quote> in <ulink
-      url='https://nouveau.freedesktop.org/FeatureMatrix.html'>the Nouveau
-      status page</ulink>), 
-
-      <literal>virgl</literal> (for QEMU virtual GPU
-      with <application>virglrender</application> support), 
-      
-      <literal>svga</literal> (for VMWare virtual GPU),
-      
-      <literal>swrast</literal> (using CPU for 3D rasterisation; needed for
-      OSMesa which provides OpenGL bitmap support),
-
-      <literal>zink</literal> (a driver converting Vulkan calls to OpenGL;
-      however, it is unstable and a lot of applications can't use it besides
-      demos),
-
-      <literal>iris</literal> (for Intel GPUs shipped with Broadwell or newer
-      CPUs),
-
-      <literal>crocus</literal> (for Intel GMA 3000, X3000 series, 4000 series,
-      or X4000 series GPUs shipped with chipsets, or Intel HD GPUs shipped with
-      pre-Broadwell CPUs),
-
-      <literal>i915</literal> (for Intel GMA 900, 950, 3100, or 3150 GPUs
-      shipped with chipsets or Atom D/N 4xx/5xx CPUs). 
-
       You may replace <literal>auto</literal> with a comma-separated list to
       build only a subset of these drivers if you precisely know which drivers
       you need, for example:
@@ -517,8 +563,42 @@ ldconfig</userinput></screen>
       <parameter>-Dvulkan-drivers=auto</parameter>: This switch enables support
       for the Vulkan graphics API. It automatically builds all graphics drivers
       that are available for Vulkan. If you wish to build specific drivers,
-      valid options include 'amd', 'intel', 'intel_hasvk', 'nouveau',
-      and 'swrast'. If you do not want Vulkan support, change 'auto' to "".
+      valid options include:
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>
+            <literal>amd</literal> (for AMD Radeon HD 7730 or newer AMD GPUs)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>intel</literal> (for Intel GPUs shipped with Skylake or newer
+	    CPUs, or as a dedicated PCIe card)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>intel_hasvk</literal> (for Intel GPUs shipped with Ivy Bridge,
+            Haswell, or Broadwell CPUs)
+          </para>
+	</listitem>
+        <listitem>
+          <para>
+            <literal>nouveau</literal> (for GTX 16XX, RTX 20XX, or newer NVIDIA GPUs)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <literal>swrast</literal> (using CPU for 3D rasterisation. Note that it's
+	    much slower than using a modern 3D-capable GPU)
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      You may replace <literal>auto</literal> with a comma-separated list to
+      build only a subset of these drivers if you precisely know which drivers
+      you need, for example:
+      <option>-Dvulkan-drivers=amd,nouveau,swrast</option>.
     </para>
 
     <para>
