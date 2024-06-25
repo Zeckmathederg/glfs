@@ -1,3 +1,5 @@
+![image](images/glfs-logo.png)
+
 # Gaming Linux From Scatch (GLFS)
 
 Gaming Linux From Scratch is a book that covers how to install packages
