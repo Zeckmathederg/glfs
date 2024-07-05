@@ -1,6 +1,3 @@
-<img src="images/glfs-logo.png"
-alt="GLFS Logo" height="130" width="150"/>
-
 # Gaming Linux From Scatch (GLFS)
 
 Gaming Linux From Scratch is a book that covers how to install packages
