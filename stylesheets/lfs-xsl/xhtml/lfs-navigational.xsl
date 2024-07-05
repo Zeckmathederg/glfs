@@ -24,7 +24,7 @@
         <link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
         <div class="book">
           <div class="titlepage">
-            <img src="images/glfs-logo.png" alt="GLFS Logo" width="150" height="150"/>
+            <img src="images/glfs-logo.png" alt="GLFS Logo" width="150" height="130"/>
           </div>
         </div>
       </xsl:if>
