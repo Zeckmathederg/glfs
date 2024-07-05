@@ -1,4 +1,5 @@
-![image](images/glfs-logo.png)
+<img src="images/glfs-logo.png"
+alt="GLFS Logo" height="130" width="150"/>
 
 # Gaming Linux From Scatch (GLFS)
 
