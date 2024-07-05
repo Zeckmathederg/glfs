@@ -21,7 +21,12 @@
 	<link rel="icon" href="../images/favicon.ico" type="image/x-icon"/>
       </xsl:if>
       <xsl:if test="$home = .">
-	<link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
+        <link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
+        <div class="book">
+          <div class="titlepage">
+            <img src="images/glfs-logo.png" alt="GLFS Logo" width="150" height="150"/>
+          </div>
+        </div>
       </xsl:if>
     </head>
   </xsl:template>
