@@ -160,101 +160,116 @@ wine
 "
 
 check_blfs_simple_packages() {
-	for package in $BLFS_SIMPLE_PACKAGES; do
-		diff -Naur <(grep $package $GLFS_DIR/packages.ent) \
-			<(grep $package $BLFS_DIR/packages.ent)  | \
-			grep -v fd | grep -v '^@' | grep ENTITY  | \
-     			grep '^\(+\|-\)'                         | \
-			grep -v xfce4       | grep -v balsa      | \
-			grep -v dbus-glib   | grep -v xdg-dbus   | \
-			grep -v dbus-python | grep -v dbusmock   | \
-			grep -v libdbusmenu | grep -v plasma     | \
-			grep -v mingw-w64   | grep -v md5
-		if [[ "$?" = 0 ]]; then
-			echo " "
-		fi
-	done
+  for package in $BLFS_SIMPLE_PACKAGES; do
+    diff -Naur <(grep $package $GLFS_DIR/packages.ent) \
+      <(grep $package $BLFS_DIR/packages.ent)  | \
+      grep -v fd | grep -v '^@' | grep ENTITY  | \
+      grep '^\(+\|-\)'                         | \
+      grep -v xfce4       | grep -v balsa      | \
+      grep -v dbus-glib   | grep -v xdg-dbus   | \
+      grep -v dbus-python | grep -v dbusmock   | \
+      grep -v libdbusmenu | grep -v plasma     | \
+      grep -v mingw-w64   | grep -v md5
+    if [[ "$?" = 0 ]]; then
+      echo " "
+    fi
+  done
 }
 check_blfs_complex_packages() {
-	for package in $BLFS_COMPLEX_PACKAGES; do
-		diff -Naur <(grep $package $GLFS_DIR/packages.ent) \
-			<(grep $package $BLFS_DIR/packages.ent)  | \
-			grep -v fd | grep -v '^@' | grep ENTITY  | \
-     			grep '^\(+\|-\)'                         | \
-			grep -v xfce4       | grep -v balsa      | \
-			grep -v dbus-glib   | grep -v xdg-dbus   | \
-			grep -v dbus-python | grep -v dbusmock   | \
-			grep -v libdbusmenu | grep -v plasma     | \
-			grep -v mingw-w64   | grep -v spirv
-		if [[ "$?" = 0 ]]; then
-			echo " "
-		fi
-	done
+  for package in $BLFS_COMPLEX_PACKAGES; do
+    diff -Naur <(grep $package $GLFS_DIR/packages.ent) \
+      <(grep $package $BLFS_DIR/packages.ent)  | \
+      grep -v fd | grep -v '^@' | grep ENTITY  | \
+      grep '^\(+\|-\)'                         | \
+      grep -v xfce4       | grep -v balsa      | \
+      grep -v dbus-glib   | grep -v xdg-dbus   | \
+      grep -v dbus-python | grep -v dbusmock   | \
+      grep -v libdbusmenu | grep -v plasma     | \
+      grep -v mingw-w64   | grep -v spirv
+    if [[ "$?" = 0 ]]; then
+      echo " "
+    fi
+  done
 }
 check_xorg_xml() {
-	for xml in $XORG_XML; do
-		if [[ $xml == "x7lib" ]]; then
-			diff -Naur $GLFS_DIR/shareddeps/dps/basicx/x/$xml.xml   \
-				$BLFS_DIR/x/installing/$xml.xml               | \
-				grep version | grep ENTITY | grep -v download | \
-				grep '^\(+\|-\) ' > check-versions-xml.log
-			if [[ "$?" != 0 ]]; then
-				rm check-versions-xml.log
-			else
-				echo "In glfs/shareddeps/dps/basicx/x/$xml.xml:"
-				cat check-versions-xml.log
-				rm check-versions-xml.log
-				echo " "
-			fi
-		else
-			diff -Naur $GLFS_DIR/shareddeps/dps/x/$xml.xml          \
-				$BLFS_DIR/x/installing/$xml.xml               | \
-				grep version | grep ENTITY | grep -v download | \
-				grep '^\(+\|-\) ' > check-versions-xml.log
-			if [[ "$?" != 0 ]]; then
-				rm check-versions-xml.log
-			else
-				echo "In glfs/shareddeps/dps/x/$xml.xml:"
-				cat check-versions-xml.log
-				rm check-versions-xml.log
-				echo " "
-			fi
-		fi
-	done
+  for xml in $XORG_XML; do
+    if [[ $xml == "x7lib" ]]; then
+      diff -Naur $GLFS_DIR/shareddeps/dps/basicx/x/$xml.xml   \
+        $BLFS_DIR/x/installing/$xml.xml                     | \
+        grep version | grep ENTITY | grep -v download       | \
+        grep '^\(+\|-\) ' > check-versions-xml.log
+      if [[ "$?" != 0 ]]; then
+        rm check-versions-xml.log
+      else
+        echo "In glfs/shareddeps/dps/basicx/x/$xml.xml:"
+        cat check-versions-xml.log
+        rm check-versions-xml.log
+        echo " "
+      fi
+    else
+      diff -Naur $GLFS_DIR/shareddeps/dps/x/$xml.xml          \
+        $BLFS_DIR/x/installing/$xml.xml                     | \
+        grep version | grep ENTITY | grep -v download       | \
+        grep '^\(+\|-\) ' > check-versions-xml.log
+      if [[ "$?" != 0 ]]; then
+        rm check-versions-xml.log
+      else
+        echo "In glfs/shareddeps/dps/x/$xml.xml:"
+        cat check-versions-xml.log
+        rm check-versions-xml.log
+        echo " "
+      fi
+    fi
+  done
 }
 check_glfs_packages() {
-	for package in $GLFS_PACKAGES; do
-		if [[ $package == "mingw-w64" ]]; then
-			diff -Naur <(grep mingw-w64 $GLFS_DIR/packages.ent | \
-				grep -v gcc | awk -F'"' '{print $2}')        \
-				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/mingw-w64-crt/-/raw/main/PKGBUILD" | \
-				grep "pkgver=" | sed 's/pkgver=//')        | \
-				grep -v fd | grep -v '^@' > glfsvarch-version.log
-			if [[ "$?" != 0 ]]; then
-				rm glfsvarch-version.log
-			else
-				echo "$package:"
-				cat glfsvarch-version.log
-				rm glfsvarch-version.log
-				echo " "
-			fi
-		else
-			diff -Naur <(grep $package $GLFS_DIR/packages.ent | \
-				grep -v wine-major                        | \
-				awk -F'"' '{print $2}')                     \
-				<(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/$package/-/raw/main/PKGBUILD" | \
-				grep "pkgver=" | sed 's/pkgver=//')       | \
-				grep -v fd | grep -v '^@' > glfsvarch-version.log
-			if [[ "$?" != 0 ]]; then
-				rm glfsvarch-version.log
-			else
-				echo "$package:"
-				cat glfsvarch-version.log
-				rm glfsvarch-version.log
-				echo " "
-			fi
-		fi
-	done
+  for package in $GLFS_PACKAGES; do
+#    if [[ $package == "amdgpu-pro" ]]; then
+#      diff -Naur <(grep amdgpu-pro $GLFS_DIR/packages.ent | \
+#        awk -F'"' '{print $2}')              \
+#        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+#        grep "major="  | sed 's/major=//')             | \
+#        grep -v fd | grep -v '^@' > glfsvarch-version.log
+#      if [[ "$?" != 0 ]]; then
+#        rm glfsvarch-version.log
+#      else
+#        echo "$package:"
+#        cat glfsvarch-version.log
+#        rm glfsvarch-version.log
+#        echo " "
+#      fi
+#    else [[ $package == "mingw-w64" ]]; then
+    if [[ $package == "mingw-w64" ]]; then
+      diff -Naur <(grep mingw-w64 $GLFS_DIR/packages.ent | \
+        grep -v gcc | awk -F'"' '{print $2}')              \
+        <(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/mingw-w64-crt/-/raw/main/PKGBUILD" | \
+        grep "pkgver="  | sed 's/pkgver=//')             | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+    else
+      diff -Naur <(grep $package $GLFS_DIR/packages.ent | \
+        grep -v wine-major                        | \
+        awk -F'"' '{print $2}')                     \
+        <(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/$package/-/raw/main/PKGBUILD" | \
+        grep "pkgver=" | sed 's/pkgver=//')       | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+    fi
+  done
 }
 
 echo " "
