@@ -151,6 +151,7 @@ x7driver-wacom
 
 GLFS_PACKAGES="
 libglvnd
+amdgpu-pro
 nvidia
 seatd
 steam
@@ -224,22 +225,89 @@ check_xorg_xml() {
 }
 check_glfs_packages() {
   for package in $GLFS_PACKAGES; do
-#    if [[ $package == "amdgpu-pro" ]]; then
-#      diff -Naur <(grep amdgpu-pro $GLFS_DIR/packages.ent | \
-#        awk -F'"' '{print $2}')              \
-#        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
-#        grep "major="  | sed 's/major=//')             | \
-#        grep -v fd | grep -v '^@' > glfsvarch-version.log
-#      if [[ "$?" != 0 ]]; then
-#        rm glfsvarch-version.log
-#      else
-#        echo "$package:"
-#        cat glfsvarch-version.log
-#        rm glfsvarch-version.log
-#        echo " "
-#      fi
-#    else [[ $package == "mingw-w64" ]]; then
-    if [[ $package == "mingw-w64" ]]; then
+    if [[ $package == "amdgpu-pro" ]]; then
+      diff -Naur <(grep amdgpu-pro-major $GLFS_DIR/packages.ent | \
+        awk -F'"' '{print $2}')              \
+        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+        grep "major=" | sed 's/major=//' | sed 's/major_short=//') | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package - major{,-short}:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+      diff -Naur <(grep amdgpu-pro-minor $GLFS_DIR/packages.ent | \
+        awk -F'"' '{print $2}')              \
+        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+	grep "minor=" | sed 's/minor=//') | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package - minor:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+      diff -Naur <(grep amdgpu-pro-ubuntu $GLFS_DIR/packages.ent | \
+        awk -F'"' '{print $2}')              \
+        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+	grep "ubuntu_ver=" | sed 's/ubuntu_ver=//') | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package - ubuntu:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+      diff -Naur <(grep amdgpu-pro-repo-folder $GLFS_DIR/packages.ent | \
+        awk -F'"' '{print $2}')              \
+        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+	grep "repo_folder_ver=" | sed 's/repo_folder_ver=//') | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package - repo-folder:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+      diff -Naur <(grep amdgpu-pro-amf $GLFS_DIR/packages.ent | \
+        awk -F'"' '{print $2}')              \
+        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+	grep "amf-amdgpu-pro_" | \
+	sed -n 's/.*amf-amdgpu-pro_\([0-9]*\.[0-9]*\.[0-9]*\)-.*/\1/p') | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package - amf:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+      diff -Naur <(grep amdgpu-pro-libamdenc $GLFS_DIR/packages.ent | \
+        awk -F'"' '{print $2}')              \
+        <(curl --silent "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=amdgpu-pro-installer" | \
+	grep "libamdenc-amdgpu-pro" | \
+	sed -n 's/.*libamdenc-amdgpu-pro_\([0-9]*\.[0-9]*\)-.*/\1/p') | \
+        grep -v fd | grep -v '^@' > glfsvarch-version.log
+      if [[ "$?" != 0 ]]; then
+        rm glfsvarch-version.log
+      else
+        echo "$package - libamdenc:"
+        cat glfsvarch-version.log
+        rm glfsvarch-version.log
+        echo " "
+      fi
+
+    elif [[ $package == "mingw-w64" ]]; then
       diff -Naur <(grep mingw-w64 $GLFS_DIR/packages.ent | \
         grep -v gcc | awk -F'"' '{print $2}')              \
         <(curl --silent "https://gitlab.archlinux.org/archlinux/packaging/packages/mingw-w64-crt/-/raw/main/PKGBUILD" | \

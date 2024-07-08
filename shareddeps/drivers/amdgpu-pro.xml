@@ -31,7 +31,7 @@
     <para role="required">
       <xref linkend="xorg7-lib"/>,
       <xref linkend="gpuconfig"/>, and
-      <xref linkend="curl"/> (for getting the .deb files in the installation
+      <xref linkend="wget"/> (for getting the .deb files in the installation
       instructions)
     </para>
 
@@ -55,28 +55,144 @@
     <title>x86_64 Installation of AMDGPU PRO</title>
 
     <para>
+      First create a list of all the files to download that will be downloaded
+      using <xref linkend="wget"/>:
+    </para>
+
+<screen><userinput>cat &gt;&gt; x86_64-amdgpu-pro-wget-list &lt;&lt; "EOF"
+<literal>https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/a/amf-amdgpu-pro/amf-amdgpu-pro_&amdgpu-pro-amf-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/liba/libamdenc-amdgpu-pro/libamdenc-amdgpu-pro_&amdgpu-pro-libamdenc-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libegl1-amdgpu-pro-oglp_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-dri_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-ext_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-gbm_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-glx_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles1-amdgpu-pro-oglp_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles2-amdgpu-pro-oglp_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/v/vulkan-amdgpu-pro/vulkan-amdgpu-pro_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_amd64.deb</literal>
+EOF</userinput></screen>
+
+    <para>
       Download and unpack the drivers by following the instructions below:
     </para>
 
-<screen><userinput>
-</userinput></screen>
+<screen><userinput>mkdir -pv x86_64-amdgpu-pro
+cd x86_64-amdgpu-pro
+
+wget --continue --input-file=../x86_64-amdgpu-pro-wget-list
+for deb in *.deb; do
+  ar x $deb
+  tar -xf data.tar.xz
+  rm -rf *.tar.xz debian-binary dists
+done
+
+install -d usr/lib/amdgpu-pro
+install -d usr/share/drirc.d
+cp -r opt/amdgpu-pro/lib/x86_64-linux-gnu/* usr/lib
+cp -r usr/lib/x86_64-linux-gnu/* usr/lib
+cp -r opt/amdgpu-pro/lib/x86_64-linux-gnu/* usr/lib/amdgpu-pro
+mv opt/amdgpu-pro/lib/xorg usr/lib/amdgpu-pro
+cp -r opt/amdgpu/share/drirc.d/* usr/share/drirc.d
+cp -r usr/lib/amdgpu-pro/* usr/lib
+cp -r opt/amdgpu-pro/etc/vulkan usr/share
+mv usr/share/vulkan/icd.d/amd_icd64.json usr/share/vulkan/icd.d/amd_pro_icd64.json
+mv usr/lib/amdvlk64.so usr/lib/amdvlkpro64.so
+sed -i "s#/opt/amdgpu-pro/lib/x86_64-linux-gnu/amdvlk64.so#/usr/lib/amdvlkpro64.so#" \
+    usr/share/vulkan/icd.d/amd_pro_icd64.json
+rm -rf opt/amdgpu-pro/lib/x86_64-linux-gnu
+rm -rf usr/lib/x86_64-linux-gnu
+rm -rf opt/amdgpu-pro/lib/x86_64-linux-gnu
+rm -rf opt/amdgpu-pro/share/drirc.d
+rm -rf usr/lib/amdgpu-pro
+rm -rf opt/amdgpu-pro/etc/vulkan
+rm -rf etc opt</userinput></screen>
+
+  <para>
+    Now install the driver by running the following commands as the
+    <systemitem class="username">root</systemitem> user:
+  </para>
+
+<screen role="root"><userinput>cp -Rv usr/* /usr
+ldconfig</userinput></screen>
 
   </sect2>
 
   <sect2 role="installation">
     <title>i686 Installation of AMDGPU PRO</title>
 
+    <note>
+      <para>
+        When using a 32-bit CPU, you will lose support for AMF and AMDENC
+        support, which is a big reason to use the proprietary driver in the
+        first place. Consider upgrading your CPU to the x86_64 architecture.
+      </para>  
+    </note>
+
+    <para>
+      First create a list of all the files to download that will be downloaded
+      using <xref linkend="wget"/>:
+    </para>
+
+<screen><userinput>cat &gt;&gt; i386-amdgpu-pro-wget-list &lt;&lt; "EOF"
+<literal>https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libegl1-amdgpu-pro-oglp_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_i386.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-dri_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_i386.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-glx_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_i386.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles1-amdgpu-pro-oglp_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_i386.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles2-amdgpu-pro-oglp_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_i386.deb
+https://repo.radeon.com/amdgpu/&amdgpu-pro-repo-folder-version;/ubuntu/pool/proprietary/v/vulkan-amdgpu-pro/vulkan-amdgpu-pro_&amdgpu-pro-major-short-version;-&amdgpu-pro-minor-version;.&amdgpu-pro-ubuntu-version;_i386.deb</literal>
+EOF</userinput></screen>
+
     <para>
       Download and unpack the drivers by following the instructions below:
     </para>
 
-<screen><userinput>
-</userinput></screen>
+<screen><userinput>mkdir -pv i386-amdgpu-pro
+cd i386-amdgpu-pro
+
+wget --continue --input-file=../i386-amdgpu-pro-wget-list
+for deb in *.deb; do
+  ar x $deb
+  tar -xf data.tar.xz
+  rm -rf *.tar.xz debian-binary dists
+done
+
+install -d usr/lib32/amdgpu-pro
+install -d usr/share/drirc.d
+cp -r opt/amdgpu-pro/lib/i386-linux-gnu/* usr/lib32
+cp -r usr/lib/i386-linux-gnu/* usr/lib32
+cp -r opt/amdgpu-pro/lib/i386-linux-gnu/* usr/lib32/amdgpu-pro
+cp -r opt/amdgpu/share/drirc.d/* usr/share/drirc.d
+cp -r usr/lib32/amdgpu-pro/* usr/lib32
+cp -r opt/amdgpu-pro/etc/vulkan usr/share
+mv usr/share/vulkan/icd.d/amd_icd32.json usr/share/vulkan/icd.d/amd_pro_icd32.json
+mv usr/lib32/amdvlk32.so usr/lib32/amdvlkpro32.so
+sed -i "s#/opt/amdgpu-pro/lib/i386-linux-gnu/amdvlk32.so#/usr/lib32/amdvlkpro32.so#" \
+    usr/share/vulkan/icd.d/amd_pro_icd32.json
+rm -rf usr/lib
+rm -rf usr/lib32/amdgpu-pro
+rm -rf etc opt</userinput></screen>
+
+  <para>
+    Now install the driver by running the following commands as the
+    <systemitem class="username">root</systemitem> user:
+  </para>
+
+<screen role="root"><userinput>cp -Rv usr/* /usr
+ldconfig</userinput></screen>
 
   </sect2>
 
   <sect2 role="content">
     <title>Contents</title>
+
+    <note>
+      <para>
+        There are many libraries provided by this package that have the same
+        name and serve the same purpose. The info below covers the unique
+        libraries. Check the <quote>Contents</quote> section of either
+        <xref linkend="libglvnd"/> and/or <xref linkend="mesa"/>.
+      </para>
+    </note>
 
     <segmentedlist>
       <segtitle>Installed Programs</segtitle>
@@ -88,13 +204,87 @@
           None
         </seg>
         <seg>
-          None
+          amdgpu_dri.so,
+          amdvlkpro{64,32}.so,
+          libamdenc64.so,
+          libamfrt64.so, and
+          libGLX_amd.so
         </seg>
         <seg>
-          None
+          /usr/share/doc/{libegl1-amdgpu-pro-oglp,libgl1-amdgpu-pro-oglp-glx,libgles2-amdgpu-pro-oglp,libgl1-amdgpu-pro-oglp-dri,libgles1-amdgpu-pro-oglp,vulkan-amdgpu-pro},
+          /usr/share/drirc.d, and
+          /usr/share/vulkan/icd.d
 	</seg>
       </seglistitem>
     </segmentedlist>
+
+    <variablelist>
+      <bridgehead renderas="sect3">Short Descriptions</bridgehead>
+      <?dbfo list-presentation="list"?>
+      <?dbhtml list-presentation="table"?>
+
+      <varlistentry id="amdgpu_dri">
+      <term><filename class="libraryfile">amdgpu_dri.so</filename></term>
+        <listitem>
+          <para>
+            is the AMDGPU DRI driver
+          </para>
+          <indexterm zone="amdgpu-pro amdgpu_dri">
+            <primary sortas="c-amdgpu_dri">amdgpu_dri.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="amdvlkpro">
+      <term><filename class="libraryfile">amdvlkpro{64,32}.so</filename></term>
+        <listitem>
+          <para>
+            is the AMDGPU Vulkan driver
+          </para>
+          <indexterm zone="amdgpu-pro amdvlkpro">
+            <primary sortas="c-amdvlkpro">amdvlkpro{64,32}.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libamdenc64">
+      <term><filename class="libraryfile">libamdenc64.so</filename></term>
+        <listitem>
+          <para>
+            handles encoding for AMDGPU cards
+          </para>
+          <indexterm zone="amdgpu-pro libamdenc64">
+            <primary sortas="c-libamdenc64">libamdenc64.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libamfrt64">
+      <term><filename class="libraryfile">libamfrt64.so</filename></term>
+        <listitem>
+          <para>
+            provides the Advanced Media Framework, allowing better multimedia
+            processing on AMD GPUs
+          </para>
+          <indexterm zone="amdgpu-pro libamfrt64">
+            <primary sortas="c-libamfrt64">libamfrt64.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="libGLX_amd">
+      <term><filename class="libraryfile">libGLX_amd.so</filename></term>
+        <listitem>
+          <para>
+            is the AMD version of GLX
+          </para>
+          <indexterm zone="amdgpu-pro libGLX_amd">
+            <primary sortas="c-libGLX_amd">libGLX_amd.so</primary>
+          </indexterm>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
 
   </sect2>
 
