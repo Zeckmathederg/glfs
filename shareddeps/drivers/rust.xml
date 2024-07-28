@@ -366,7 +366,14 @@ EOF</userinput></screen>
     </para>
 
 <screen role='root'><userinput>python3 x.py install rustc std &amp;&amp;
-python3 x.py install --stage=1 cargo clippy rustfmt</userinput></screen>
+install -vm755 \
+  build/host/stage1-tools/*/*/{cargo{,-clippy,-fmt},clippy-driver,rustfmt} \
+  /opt/rustc-&rust-version;/bin &amp;&amp;
+install -vDm644 \
+  src/tools/cargo/src/etc/_cargo \
+  /opt/rustc-&rust-version;/share/zsh/site-functions/_cargo &amp;&amp;
+install -vm644 src/tools/cargo/src/etc/man/* \
+  /opt/rustc-1.80.0/share/man/man1</userinput></screen>
 
     <para>
       Still as the &root; user, fix the installation of documentations
@@ -428,30 +435,6 @@ ln -sfv /opt/rustc/share/zsh/site-functions/_cargo \
       on 32-bit x86. This whole section may be omitted if you wish to build
       against the shipped llvm, or do not have clang, but the resulting build will
       be larger and take longer.
-    </para>
-
-    <!-- https://github.com/alexcrichton/openssl-probe/issues/25 -->
-    <para>
-      <envar>SSL_CERT_DIR=/etc/ssl/certs</envar>: Work around an issue
-      causing test failures with the CA certificate store layout used by
-      <xref linkend='make-ca'/>.
-    </para>
-
-    <para>
-      <parameter>--verbose</parameter>: this switch can sometimes provide more
-      information about a test which fails.
-    </para>
-
-    <para>
-      <parameter>--no-fail-fast</parameter>: this switch ensures that the test suite
-      will not stop at the first error.
-    </para>
-
-    <!-- https://github.com/rust-lang/rust/issues/94147 -->
-    <para>
-      <parameter>--stage=1</parameter>: this switch works around an issue
-      causing some Rustc components unnecessarily rebuilt running
-      <command>python3 x.py install</command>.
     </para>
 
   </sect2>
