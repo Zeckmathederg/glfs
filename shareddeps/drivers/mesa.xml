@@ -48,27 +48,14 @@
       </listitem>
     </itemizedlist>
 
-    <bridgehead renderas="sect3">Additional Downloads</bridgehead>
-    <itemizedlist spacing="compact">
-    <!-- 9 Apr 23.  Change to unversioned patch since it never changes. -->
-      <listitem>
-        <para>
-          Recommended patch:
-          <ulink url="&patch-root;/mesa-add_xdemos-2.patch"/>
-          (installs 2 demo programs for testing Mesa - not needed if you
-          install the <ulink url="https://archive.mesa3d.org/demos/">
-          mesa-demos</ulink> package)
-        </para>
-      </listitem>
-    </itemizedlist>
-
     <bridgehead renderas="sect3">Mesa Dependencies</bridgehead>
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
       <xref linkend="xorg7-lib"/>,
-      <xref linkend="libdrm"/>, and
-      <xref linkend="mako"/>
+      <xref linkend="libdrm"/>,
+      <xref linkend="mako"/>, and
+      <xref linkend="pyyaml"/>
     </para>
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
@@ -112,8 +99,8 @@
         <listitem>
           <para>
             <xref linkend="llvm"/> (required for the r300, r600, and radeonsi
-            drivers, and the LLVMpipe software rasterizer which can make the
-            Swrast driver much faster... also Clang is required for Vulkan Swrast)
+            drivers, and the LLVMpipe software rasterizer; Clang in LLVM is
+            required for Vulkan Swrast)
           </para>
         </listitem>
         <listitem>
@@ -150,9 +137,7 @@
       <xref linkend="nettle"/>,
       <ulink url="&blfs-svn;/general/valgrind.html">valgrind</ulink>,
       <ulink url="https://archive.mesa3d.org/demos/">mesa-demos</ulink>
-      (provides more than 300 extra demos to test
-      <application>Mesa</application>; this includes the same programs added by
-      the patch above),
+      (provides more than 300 demos to test <application>Mesa</application>),
       <ulink url="https://omxil.sourceforge.net/">Bellagio OpenMAX Integration
       Layer</ulink> (for mobile platforms), and
       <ulink url="https://github.com/tizonia/tizonia-openmax-il/wiki/Tizonia-OpenMAX-IL/">
@@ -182,25 +167,6 @@
   <sect2 role="installation">
     <title>Installation of Mesa</title>
     
-    <note>
-      <para>
-        If you applied the patch and encounter errors about missing
-        GLX extensions, then remove the extracted directory from
-        the tarball, extract it again, don't apply the patch, then follow
-        the rest of the instructions. Later on, you can install the mesa-demos
-        package separately.
-      </para>
-    </note>
-
-    <para>
-      If you have downloaded the xdemos patch (needed if testing the Xorg
-      installation per GLFS instructions), apply it by running the following
-      command:
-    </para>
-
-<!--<screen><userinput>patch -Np1 -i ../mesa-&mesa-version;-add_xdemos-1.patch</userinput></screen>-->
-<screen><userinput>patch -Np1 -i ../mesa-add_xdemos-2.patch</userinput></screen>
-
     <note>
       <para>
         If you are using <xref linkend="nvidia"/> and wish to use
@@ -240,7 +206,7 @@ ninja</userinput></screen>
 
     <para>
       To test the results, issue:
-      <command>meson configure -Dbuild-tests=true &amp;&amp; ninja test</command>.
+      <command>meson configure -D build-tests=true &amp;&amp; ninja test</command>.
     </para>
 <!-- All 88 tests passed for me for 22.3.3 [pierre]
      All 90 tests passed for me for 23.1.0 [bdubbs]
@@ -348,21 +314,21 @@ ldconfig</userinput></screen>
       Install lib32-NVK and/or Vulkan swrast by following the commands:
     </para>
 
-<screen><userinput>meson setup                                 \
-            --cross-file lib32               \
-            --prefix=$XORG_PREFIX	     \
-            --libdir=$XORG_PREFIX/lib32      \
-            --buildtype=release              \
-            -D platforms=x11,wayland         \
-            -D gallium-drivers=swrast        \
-            -D vulkan-drivers=nouveau,swrast \
-            -D glx=disabled                  \
-            -D egl=disabled                  \
-            -D opengl=false                  \
-            -D gles1=disabled                \
-            -D gles2=disabled                \
-            -D valgrind=disabled             \
-            -D libunwind=disabled            \
+<screen><userinput>meson setup                                     \
+            --cross-file lib32                   \
+            --prefix=$XORG_PREFIX	         \
+            --libdir=$XORG_PREFIX/lib32          \
+            --buildtype=release                  \
+            -D platforms=x11,wayland             \
+            -D gallium-drivers=softpipe,llvmpipe \
+            -D vulkan-drivers=nouveau,swrast     \
+            -D glx=disabled                      \
+            -D egl=disabled                      \
+            -D opengl=false                      \
+            -D gles1=disabled                    \
+            -D gles2=disabled                    \
+            -D valgrind=disabled                 \
+            -D libunwind=disabled                \
             .. &amp;&amp;
             sed -i 's/\/usr\/lib\//\/usr\/lib32\//g' ./build.ninja &amp;&amp;
 
@@ -452,10 +418,16 @@ ldconfig</userinput></screen>
         </listitem>
         <listitem>
           <para>
-            <literal>swrast</literal> (using CPU for 3D rasterization; needed for
+            <literal>softpipe</literal> (using CPU for 3D rasterization; needed for
             OSMesa which provides OpenGL bitmap support)
           </para>
         </listitem>
+        <listitem>
+          <para>
+            <literal>llvmpipe</literal> (<literal>softpipe</literal> but uses
+            <application>LLVM</application> to increase performance)
+          </para>
+	</listitem>
         <listitem>
           <para>
             <literal>zink</literal> (a driver converting Vulkan calls to OpenGL;
@@ -491,7 +463,7 @@ ldconfig</userinput></screen>
     </para>
 
     <para>
-      <parameter>-Dosmesa=true</parameter>: This switch enables building
+      <parameter>-D osmesa=true</parameter>: This switch enables building
       the <filename class="libraryfile">libOSMesa</filename> library and
       provides Gallium3D support in it. It requires the swrast gallium driver.
     </para>
@@ -567,7 +539,7 @@ ldconfig</userinput></screen>
 
     <para>
       <command>meson configure -D build-tests=true</command>: This command will
-      reconfigure the build to set <option>-Dbuild-tests=true</option>, but
+      reconfigure the build to set <option>-D build-tests=true</option>, but
       keep the other options specified in the <command>meson setup</command>
       command unchanged.  It allows <command>ninja test</command> to build and
       run unit tests.
@@ -601,7 +573,7 @@ ldconfig</userinput></screen>
 
       <seglistitem>
         <seg>
-          glxgears and glxinfo
+          None
         </seg>
         <seg>
           libEGL.so,
@@ -609,7 +581,8 @@ ldconfig</userinput></screen>
           libGLESv1_CM.so,
           libGLESv2.so,
           libgbm.so,
-          libglapi.so, and
+          libglapi.so,
+          libOSMesa.so, and
           libxatracker.so
         </seg>
         <seg>
@@ -623,6 +596,7 @@ ldconfig</userinput></screen>
           i915_dri.so,
           iris_dri.so,
           kms_swrast_dri.so,
+          libdril_dri.so
           nouveau_dri.so,
           nouveau_drv_video.so,
           r300_dri.so,
@@ -670,32 +644,6 @@ ldconfig</userinput></screen>
       <bridgehead renderas="sect3">Short Descriptions</bridgehead>
       <?dbfo list-presentation="list"?>
       <?dbhtml list-presentation="table"?>
-
-      <varlistentry id="glxgears">
-        <term><command>glxgears</command></term>
-        <listitem>
-          <para>
-            is a GL demo useful for troubleshooting graphics
-            problems
-          </para>
-          <indexterm zone="mesa glxgears">
-            <primary sortas="b-glxgears">glxgears</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry id="glxinfo">
-        <term><command>glxinfo</command></term>
-        <listitem>
-          <para>
-            is a diagnostic program that displays information about the
-            graphics hardware and installed GL libraries
-          </para>
-          <indexterm zone="mesa glxinfo">
-            <primary sortas="b-glxinfo">glxinfo</primary>
-          </indexterm>
-        </listitem>
-      </varlistentry>
 
       <varlistentry id="libEGL">
         <term><filename class="libraryfile">libEGL.so</filename></term>
