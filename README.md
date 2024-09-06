@@ -1,3 +1,8 @@
+# NOTICE
+
+Development will eventually switch to https://github.com/glfs-book/glfs.
+Please read the announcement in the Bulletin section of the book.
+
 # Gaming Linux From Scatch (GLFS)
 
 Gaming Linux From Scratch is a book that covers how to install packages
