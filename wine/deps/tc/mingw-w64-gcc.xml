@@ -85,11 +85,9 @@ cd    build-x86_64-mingw-w64 &amp;&amp;
 ../configure                             \
     --prefix=/usr                        \
     --target=x86_64-w64-mingw32          \
-    --disable-shared                     \
+    --enable-shared                      \
     --disable-multilib                   \
-    --disable-threads                    \
-    --disable-libstdcxx                  \
-    --disable-libatomic                  \
+    --enable-threads                     \
     --enable-languages=c,c++ &amp;&amp;
 
 make</userinput></screen>
@@ -124,7 +122,7 @@ make -k check</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 
-ln -sv x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-cc &amp;&amp;
+ln -sfv x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-cc &amp;&amp;
 strip /usr/libexec/gcc/x86_64-w64-mingw32/&mingw-w64-gcc-version;/{cc1*,collect2,lto*}</userinput></screen>
 
   </sect3>
@@ -143,11 +141,9 @@ cd    build-i686-mingw-w64 &amp;&amp;
 ../configure                             \
     --prefix=/usr                        \
     --target=i686-w64-mingw32            \
-    --disable-shared                     \
+    --enable-shared                      \
     --disable-multilib                   \
-    --disable-threads                    \
-    --disable-libstdcxx                  \
-    --disable-libatomic                  \
+    --enable-threads=posix               \
     --enable-languages=c,c++ &amp;&amp;
 
 make</userinput></screen>
@@ -182,7 +178,7 @@ make -k check</userinput></screen>
 
 <screen role="root"><userinput>make install &amp;&amp;
 
-ln -sv i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-cc &amp;&amp;
+ln -sfv i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-cc &amp;&amp;
 strip /usr/libexec/gcc/i686-w64-mingw32/&mingw-w64-gcc-version;/{cc1*,collect2,lto*}</userinput></screen>
 
     </sect3>
@@ -259,8 +255,13 @@ rm -v testgnat*</userinput></screen>
 int main(){}
 </literal>EOF
 
-x86_64-w64-mingw32-gcc main.c &amp;&amp;
-rm -v a.exe main.c</userinput></screen>
+cp main.{c,cpp} &amp;&amp;
+sed -i 's/stdio.h/iostream/g' main.cpp
+
+x86_64-w64-mingw32-gcc main.c   &amp;&amp;
+rm -v a.exe                     &amp;&amp;
+x86_64-w64-mingw32-g++ main.cpp &amp;&amp;
+rm -v a.exe main.{c,cpp}</userinput></screen>
 
     <para>
 	For i686:
@@ -271,8 +272,13 @@ rm -v a.exe main.c</userinput></screen>
 int main(){}
 </literal>EOF
 
-i686-w64-mingw32-gcc main.c &amp;&amp;
-rm -v a.exe main.c</userinput></screen>
+cp main.{c,cpp}               &amp;&amp;
+sed -i 's/stdio.h/iostream/g' main.cpp
+
+i686-w64-mingw32-gcc main.c   &amp;&amp;
+rm -v a.exe                   &amp;&amp;
+i686-w64-mingw32-g++ main.cpp &amp;&amp;
+rm -v a.exe main.{c,cpp}</userinput></screen>
 
     <para>
 	The commands above should have no errors, otherwise
@@ -291,7 +297,7 @@ rm -v a.exe main.c</userinput></screen>
     </para>
 
     <para>
-	<parameter>--disable-shared</parameter>: This option disables building
+	<parameter>--enable-shared</parameter>: This option enables building
 	shared libraries.
     </para>
 
@@ -301,22 +307,10 @@ rm -v a.exe main.c</userinput></screen>
     </para>
 
     <para>
-	<parameter>--disable-threads</parameter>: This option disables
-	support for threads due to build errors in GCC.
+	<parameter>--enable-threads</parameter>: This option enables
+	support for POSIX threads via the winpthreads library.
     </para>
 
-    <para>
-      <parameter>--disable-libstdcxx</parameter>: This option disables
-      building libstdcxx, which would potentially cause issues in a build
-      like this.
-    </para>
-
-    <para>
-      <parameter>--disable-libatomic</parameter>: This option disables building
-      libatomic. Disabled for the same reason as the
-      <parameter>--disable-libstdcxx</parameter> switch.
-    </para>
-    
     <para>
       <parameter>--enable-languages=c,c++</parameter>:
       This command builds support for C and C++. Refer to <ulink
