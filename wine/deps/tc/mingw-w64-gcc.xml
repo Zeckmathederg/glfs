@@ -22,10 +22,9 @@
     <title>Introduction to MinGW-w64-GCC</title>
 
     <para>
-	<application>MinGW-w64-GCC</application> provides
-	<application>GCC</application> compilers for MinGW-w64,
-	allowing users and applications to compile code targetting
-	Windows.
+	<application>MinGW-w64-GCC</application> has been built statically
+	beforehand, and it should be rebuilt to ensure robustness. This section
+	will be dedicated to finishing the MinGW-w64 toolchain.
     </para>
 
     &lfs121_checked;
@@ -47,11 +46,7 @@
 
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-	<xref linkend="mingw-w64-binary"/>,
-	<xref linkend="mingw-w64-binutils"/>,
-	<xref linkend="mingw-w64-crt"/>,
-	<xref linkend="mingw-w64-headers"/>, and
-	<xref linkend="mingw-w64-winpthreads"/>,
+	<xref linkend="mingw-w64"/>
     </para>
 
     <bridgehead renderas="sect4">Optional</bridgehead>
@@ -76,27 +71,8 @@
     </para>
     </important>
 
-    <para>
-	Ensure that on x86_64 that the library directory is /lib:
-    </para>
-
-<screen><userinput>case $(uname -m) in
-  x86_64)
-    sed -e '/m64=/s/lib64/lib/' \
-        -i.orig gcc/config/i386/t-linux64
-  ;;
-esac</userinput></screen>
-
   <sect3>
     <title>x86_64 Installation of MinGW-w64-GCC</title>
-
-    <para>
-	The instructions below are intentionally performing a
-	“bootstrap” process. Bootstrapping is needed for robustness
-	and is highly recommended when upgrading the compilers version.
-	To disable bootstrap anyway, add <parameter>--disable-bootstrap
-	</parameter> to the <command>./configure</command> options below. 
-    </para>
 
     <para>
 	Install x86_64 <application>MinGW-w64-GCC</application> by running the
@@ -106,23 +82,17 @@ esac</userinput></screen>
 <screen><userinput>mkdir build-x86_64-mingw-w64 &amp;&amp;
 cd    build-x86_64-mingw-w64 &amp;&amp;
 
-../configure               		 \
-    --prefix=/usr          		 \
-    --libexecdir=/usr/lib  	 	 \
+../configure                             \
+    --prefix=/usr                        \
     --target=x86_64-w64-mingw32          \
-    --enable-shared        		 \
-    --enable-static        		 \
-    --disable-multilib     		 \
-    --enable-threads=posix 		 \
-    --enable-fully-dynamic-string 	 \
-    --enable-libstdcxx-time=yes		 \
-    --enable-libstdcxx-filesystem-ts=yes \
-    --with-system-zlib     		 \
-    --enable-default-pie   		 \
-    --enable-default-ssp   		 \
-    --enable-languages=c,c++
+    --disable-shared                     \
+    --disable-multilib                   \
+    --disable-threads                    \
+    --disable-libstdcxx                  \
+    --disable-libatomic                  \
+    --enable-languages=c,c++ &amp;&amp;
 
-make -j1</userinput></screen>
+make</userinput></screen>
 
     <para>
 	If you have installed additional packages such as
@@ -152,24 +122,15 @@ make -k check</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install
+<screen role="root"><userinput>make install &amp;&amp;
 
-ln -sv x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-cc        &amp;&amp;
-mv -v /usr/x86_64-w64-mingw32/lib/*.dll /usr/x86_64-w64-mingw32/bin
-</userinput></screen>
+ln -sv x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-cc &amp;&amp;
+strip /usr/libexec/gcc/x86_64-w64-mingw32/&mingw-w64-gcc-version;/{cc1*,collect2,lto*}</userinput></screen>
 
   </sect3>
 
   <sect3>
     <title>i686 Installation of MinGW-w64-GCC</title>
-
-    <para>
-	The instructions below are intentionally performing a
-	“bootstrap” process. Bootstrapping is needed for robustness
-	and is highly recommended when upgrading the compilers version.
-	To disable bootstrap anyway, add <parameter>--disable-bootstrap
-	</parameter> to the <command>./configure</command> options below. 
-    </para>
 
     <para>
 	Install i686 <application>MinGW-w64-GCC</application> by running the
@@ -179,23 +140,17 @@ mv -v /usr/x86_64-w64-mingw32/lib/*.dll /usr/x86_64-w64-mingw32/bin
 <screen><userinput>mkdir build-i686-mingw-w64 &amp;&amp;
 cd    build-i686-mingw-w64 &amp;&amp;
 
-../configure               		 \
-    --prefix=/usr          		 \
-    --libexecdir=/usr/lib  	 	 \
-    --target=i686-w64-mingw32		 \
-    --enable-shared        		 \
-    --enable-static        		 \
-    --disable-multilib     		 \
-    --enable-threads=posix 		 \
-    --enable-fully-dynamic-string 	 \
-    --enable-libstdcxx-time=yes		 \
-    --enable-libstdcxx-filesystem-ts=yes \
-    --with-system-zlib     		 \
-    --enable-default-pie   		 \
-    --enable-default-ssp   		 \
-    --enable-languages=c,c++
+../configure                             \
+    --prefix=/usr                        \
+    --target=i686-w64-mingw32            \
+    --disable-shared                     \
+    --disable-multilib                   \
+    --disable-threads                    \
+    --disable-libstdcxx                  \
+    --disable-libatomic                  \
+    --enable-languages=c,c++ &amp;&amp;
 
-make -j1</userinput></screen>
+make</userinput></screen>
 
     <para>
 	If you have installed additional packages such as
@@ -225,13 +180,13 @@ make -k check</userinput></screen>
       Now, as the <systemitem class="username">root</systemitem> user:
     </para>
 
-<screen role="root"><userinput>make install
+<screen role="root"><userinput>make install &amp;&amp;
 
-ln -sv i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-cc        &amp;&amp;
-mv -v /usr/i686-w64-mingw32/lib/*.dll /usr/i686-w64-mingw32/bin
-</userinput></screen>
+ln -sv i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-cc &amp;&amp;
+strip /usr/libexec/gcc/i686-w64-mingw32/&mingw-w64-gcc-version;/{cc1*,collect2,lto*}</userinput></screen>
 
-  </sect3>
+    </sect3>
+
   </sect2>
 
   <sect2>
@@ -239,29 +194,13 @@ mv -v /usr/i686-w64-mingw32/lib/*.dll /usr/i686-w64-mingw32/bin
 
     <para>
 	Now that <application>MinGW-w64-GCC</application> and friends
-	have been installed, it is time to clean up and test the <application>
+	have been installed, it is time to test the <application>
 	MinGW-w64</application> installation to make sure everything is
 	working as expected.
     </para>
 
     <para>
-	Remove the binary installation that was installed earlier
-	as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-    <screen role="root"><userinput>rm -rf /opt/mingw-w64*</userinput></screen>
-
-    <para>
-	Now as the regular user, restore the <filename>PATH</filename>
-	variable to what it was beforehand:
-    </para>
-
-<screen><userinput>export PATH=$PATH_HOLD &amp;&amp;
-unset PATH_HOLD</userinput></screen>
-
-    <para>
-	Now it's time to test the installation. Confirm that the
-	regular C and C++ compilers are working correctly:
+	Confirm that the regular C and C++ compilers are working correctly:
     </para>
 
 <screen><userinput>echo "int main(){}" >> main.c &amp;&amp;
@@ -281,11 +220,11 @@ rm -v a.out main.{c,cpp}</userinput></screen>
 
 <screen><userinput>echo "int main(){}" >> main.c &amp;&amp;
 cp -v main.c main.cpp &amp;&amp;
-gcc -m32 main.c            &amp;&amp;
+gcc -m32 main.c       &amp;&amp;
 ./a.out
 
 rm -v a.out           &amp;&amp;
-g++ -m32 main.cpp          &amp;&amp;
+g++ -m32 main.cpp     &amp;&amp;
 ./a.out
 
 rm -v a.out main.{c,cpp}</userinput></screen>
@@ -320,14 +259,8 @@ rm -v testgnat*</userinput></screen>
 int main(){}
 </literal>EOF
 
-cp -v main.c main.cpp                  &amp;&amp;
-sed -i 's/stdio.h/iostream/g' main.cpp &amp;&amp;
-x86_64-w64-mingw32-gcc main.c          &amp;&amp;
-
-rm -v a.exe                            &amp;&amp;
-x86_64-w64-mingw32-g++ main.cpp        &amp;&amp;
-
-rm -v a.exe main.{c,cpp}</userinput></screen>
+x86_64-w64-mingw32-gcc main.c &amp;&amp;
+rm -v a.exe main.c</userinput></screen>
 
     <para>
 	For i686:
@@ -338,14 +271,8 @@ rm -v a.exe main.{c,cpp}</userinput></screen>
 int main(){}
 </literal>EOF
 
-cp -v main.c main.cpp                  &amp;&amp;
-sed -i 's/stdio.h/iostream/g' main.cpp &amp;&amp;
-i686-w64-mingw32-gcc main.c            &amp;&amp;
-
-rm -v a.exe                            &amp;&amp;
-i686-w64-mingw32-g++ main.cpp          &amp;&amp;
-
-rm -v a.exe main.{c,cpp}</userinput></screen>
+i686-w64-mingw32-gcc main.c &amp;&amp;
+rm -v a.exe main.c</userinput></screen>
 
     <para>
 	The commands above should have no errors, otherwise
@@ -364,13 +291,8 @@ rm -v a.exe main.{c,cpp}</userinput></screen>
     </para>
 
     <para>
-	<parameter>--enable-shared</parameter>: This option builds needed
+	<parameter>--disable-shared</parameter>: This option disables building
 	shared libraries.
-    </para>
-
-    <para>
-	<parameter>--enable-static</parameter>: This option builds needed
-	static libraries.
     </para>
 
     <para>
@@ -379,61 +301,27 @@ rm -v a.exe main.{c,cpp}</userinput></screen>
     </para>
 
     <para>
-	<parameter>--enable-threads=posix</parameter>: This option ensures
-	the POSIX threads standard is built in.
+	<parameter>--disable-threads</parameter>: This option disables
+	support for threads due to build errors in GCC.
+    </para>
+
+    <para>
+      <parameter>--disable-libstdcxx</parameter>: This option disables
+      building libstdcxx, which would potentially cause issues in a build
+      like this.
+    </para>
+
+    <para>
+      <parameter>--disable-libatomic</parameter>: This option disables building
+      libatomic. Disabled for the same reason as the
+      <parameter>--disable-libstdcxx</parameter> switch.
     </para>
     
-    <para>
-	<parameter>--enable-fully-dynamic-string</parameter>: This option
-	enables a special version of basic_string avoiding the optimization
-	that allocates empty objects in static memory.
-    </para>
-    
-    <para>
-	<parameter>--enable-libstdcxx-time=yes</parameter>: This option
-	enables link-type checks for the availability of the clock_gettime
-	clocks.
-    </para>
- 
-    <para>
-	<parameter>--enable-libstdcxx-filesystem-ts=yes</parameter>: This
-	option builds <filename>libstdc++fs.a</filename> as well as the
-	usual libstdc++ and libsupc++ libraries.
-    </para>
-
-    <para>
-      <parameter>--with-system-zlib</parameter>: Uses the system
-      <application>zlib</application> instead of the bundled one.
-      <application>zlib</application> is used for compressing
-      and decompressing <application>GCC</application>'s intermediate
-      language in LTO (Link Time Optimization) object files.
-    </para>
-
-    <para>
-      <parameter>--enable-default-pie</parameter>: Makes the
-      <option>-fpie</option> option the default when compiling programs.
-      Together with the <xref linkend="gASLR"/> feature enabled in the kernel,
-      this defeats some kind of attacks based on known memory layouts.
-    </para>
-
-    <para>
-      <parameter>--enable-default-ssp</parameter>: Makes the
-      <option>-fstack-protector-strong</option> option the default when
-      compiling programs. <xref linkend="gSSP"/> is a technique preventing
-      alteration of the program flow by corrupting the parameter stack.
-    </para>
-
     <para>
       <parameter>--enable-languages=c,c++</parameter>:
       This command builds support for C and C++. Refer to <ulink
       url="https://www.linuxfromscratch.org/blfs/view/svn/general/gcc.html"/>
       to find what other languages are supported.
-    </para>
-
-    <para>
-      <command>make -j1</command>: Using more than one thread can lead to
-      a race condition and cause the compilation to fail, so this option
-      prevents that by using only one thread.
     </para>
 
     <para>
@@ -452,11 +340,6 @@ rm -v a.exe main.{c,cpp}</userinput></screen>
       -A7 Summ</command> to the command to produce an even more condensed
       version of the summary. You may also wish to redirect the output
       to a file for review and comparison later on.
-    </para>
-
-    <para>
-      <command>mv -v /usr/*/lib/*.dll /usr/*/bin</command>: This command
-      moves dll files to the proper directory.
     </para>
 
   </sect2>
