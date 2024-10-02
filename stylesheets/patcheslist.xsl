@@ -95,7 +95,7 @@ exit</xsl:text>
           <xsl:text>/node</xsl:text>
         </xsl:when>
           <!-- nss -->
-        <xsl:when test="contains($patch.name, 'nss')">
+        <xsl:when test="contains($patch.name, 'nss-standalone')">
           <xsl:text>/nss</xsl:text>
         </xsl:when>
           <!-- General rule -->
