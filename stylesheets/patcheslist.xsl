@@ -94,6 +94,10 @@ exit</xsl:text>
         <xsl:when test="contains($patch.name, 'node')">
           <xsl:text>/node</xsl:text>
         </xsl:when>
+          <!-- nss -->
+        <xsl:when test="contains($patch.name, 'nss')">
+          <xsl:text>/nss</xsl:text>
+        </xsl:when>
           <!-- General rule -->
         <xsl:otherwise>
           <xsl:variable name="cut"
