@@ -44,8 +44,8 @@ esac
 
 full_date="$month $day$suffix, $year"
 
-sha="$(git describe --abbrev=1 --always)"
-version=$(echo "$sha" | sed 's/-g[^-]*$//')
+sha="$(git describe --abbrev=1 --always --exclude '*')"
+version=$(echo -n "#" && echo -n "$sha")
 
 if [ "$(git diff HEAD | wc -l)" != "0" ]; then
     version="$version"
