@@ -113,7 +113,7 @@ make BUILD_OPT=1                      \
   ZLIB_LIBS=-lz                       \
   NSS_ENABLE_WERROR=0                 \
   $([ $(uname -m) = x86_64 ] &amp;&amp; echo USE_64=1) \
-  $([ -f /usr/include/sqlite3.h ] &amp;&amp; echo NSS_USE_SYSTEM_SQLITE=1)</userinput></screen>
+  $([ -f /usr/lib/libsqlite3.so ] &amp;&amp; echo NSS_USE_SYSTEM_SQLITE=1)</userinput></screen>
 
     <para>
       <!-- the unittest files get compiled automatically since nss-3.31.0 -->
@@ -202,6 +202,104 @@ install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib/pkgconfig</userinput></sc
 
   </sect2>
 
+  <sect2 role="installation">
+    <title>32-bit Installation of NSS</title>
+
+    <note><para>
+      Cleaning the directory doesn't work with NSS, so you will need to delete
+      the extracted folder from the tarball, extract it again, apply the patch
+      again as detailed in the normal installation, then change directory into
+      <filename>nss</filename>.
+    </para></note>
+
+    <para>
+	Install <application>lib32-NSS</application> by running the following commands:
+    </para>
+
+<screen><userinput>CC="gcc -m32" CXX="g++ -m32"	  \
+make BUILD_OPT=1                      \
+  NSPR_INCLUDE_DIR=/usr/include/nspr  \
+  USE_SYSTEM_ZLIB=1                   \
+  ZLIB_LIBS=-lz                       \
+  NSS_ENABLE_WERROR=0                 \
+$([ -f /usr/lib32/libsqlite3.so ] &amp;&amp; echo NSS_USE_SYSTEM_SQLITE=1)</userinput></screen>
+
+    <para>
+	Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>cd ../dist &amp;&amp;
+
+install -v -m755 Linux*/lib/*.so              /usr/lib32              &amp;&amp;
+install -v -m644 Linux*/lib/{*.chk,libcrmf.a} /usr/lib32              &amp;&amp;
+sed -i 's/lib/lib32/g' Linux*/lib/pkgconfig/nss.pc		      &amp;&amp;
+install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib32/pkgconfig</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="possible">
+    <title>Possible Parameter</title>
+
+    <note>
+      <para>
+        If a parameter has the option to be set as <option>0</option> and
+	<option>1</option>, <option>0</option> means false and
+	<option>1</option> means true.
+      </para>
+    </note>
+
+    <para>
+      <option>NSS_DISABLE_GTESTS={0,1}</option>: This parameter changes if
+      the NSS test suite will be built (0 by default).
+    </para>
+
+    <para>
+      <option>BUILD_OPT={0,1}</option>: This parameter changes whether debug
+      symbols will be built in (0 by default).
+    </para>
+
+    <para>
+      <option>USE_X32={0,1}</option>: This parameter changes if the binaries
+      will be built in the x32 ABI, not be confused with 32-bit. Meant for
+      64-bit systems (0 by default).
+    </para>
+
+    <para>
+      <option>USE_64={0,1}</option>: This parameter changes if the binaries
+      will be built in the 64-bit ABI. Meant for 64-bit systems (0 by default
+      but will be detected).
+    </para>
+
+    <para>
+      <option>USE_DEBUG_RTL={0,1}</option>: This parameter changes if the debug
+      Register Transfer Level will be built in (0 by default).
+    </para>
+
+    <para>
+      <option>USE_STATIC_RTL={0,1}</option>: This parameter changes if the
+      Register Transfer Level will be built statically (0 by default).
+    </para>
+
+    <para>
+      <option>NS_USE_GCC={0,1}</option>: This parameter changes if GCC will be
+      used (0 by default but will be detected).
+    </para>
+
+    <para>
+      <option>NSS_DISABLE_NSPR_TESTS={0,1}</option>: This parameter changes
+      if basic NSPR tests will be built (0 by default).
+    </para>
+
+    <note>
+      <para>
+        There are many more parameters that can be set, all of which can be
+        viewed in the many various files in
+        <filename>nss-&nss-version;/nss/coreconf/</filename>.
+      </para>
+    </note>
+
+  </sect2>
+
   <sect2 role="commands">
     <title>Command Explanations</title>
 
@@ -239,7 +337,12 @@ install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib/pkgconfig</userinput></sc
     </para>
 
     <para>
-      <command>([ -f /usr/include/sqlite3.h ] &amp;&amp; echo
+      <parameter>NSS_ENABLE_WERROR=0</parameter>: This option disables
+      -Werror (warnings being counted as errors).
+    </para>
+
+    <para>
+      <command>$([ -f /usr/lib{,32}/libsqlite3.so ] &amp;&amp; echo
       NSS_USE_SYSTEM_SQLITE=1)</command>: This tests if
       <application>sqlite</application> is installed and if so it
       <command>echo</command>s the option NSS_USE_SYSTEM_SQLITE=1 to
@@ -247,47 +350,6 @@ install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib/pkgconfig</userinput></sc
       <filename class="libraryfile">libsoftokn3.so</filename> will link against
       the system version of sqlite.
     </para>
-
-    <para>
-      <option>NSS_DISABLE_GTESTS=1</option>: If you don't need to run
-      NSS test suite, append this option to <command>make</command> command,
-      to prevent the compilation of tests and save some build time.
-    </para>
-
-  </sect2>
-
-  <sect2 role="installation">
-    <title>32-bit Installation of NSS</title>
-
-    <note><para>
-      Cleaning the directory doesn't work with NSS, so you will need to delete
-      the extracted folder from the tarball, extract it again, apply the patch
-      again as detailed in the normal installation, then change directory into
-      <filename>nss</filename>.
-    </para></note>
-
-    <para>
-	Install <application>lib32-NSS</application> by running the following commands:
-    </para>
-
-<screen><userinput>CC="gcc -m32" CXX="g++ -m32"	  \
-make BUILD_OPT=1                      \
-  NSPR_INCLUDE_DIR=/usr/include/nspr  \
-  USE_SYSTEM_ZLIB=1                   \
-  ZLIB_LIBS=-lz                       \
-  NSS_ENABLE_WERROR=0                 \
-$([ -f /usr/lib32/libsqlite3.so ] &amp;&amp; echo NSS_USE_SYSTEM_SQLITE=1)</userinput></screen>
-
-    <para>
-	Now, as the <systemitem class="username">root</systemitem> user:
-    </para>
-
-<screen role="root"><userinput>cd ../dist &amp;&amp;
-
-install -v -m755 Linux*/lib/*.so              /usr/lib32              &amp;&amp;
-install -v -m644 Linux*/lib/{*.chk,libcrmf.a} /usr/lib32              &amp;&amp;
-sed -i 's/lib/lib32/g' Linux*/lib/pkgconfig/nss.pc		      &amp;&amp;
-install -v -m644 Linux*/lib/pkgconfig/nss.pc  /usr/lib32/pkgconfig</userinput></screen>
 
   </sect2>
 
