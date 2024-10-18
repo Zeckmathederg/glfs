@@ -214,82 +214,38 @@ ln -svfn rustc-&rust-version; /opt/rustc</userinput></screen>
       configure the build.
     </para>
 
-<screen><userinput>cat &lt;&lt; EOF &gt; config.toml
+<screen><userinput>cat &gt; config.toml &lt;&lt; "EOF"
 <literal># see config.toml.example for more possible options.
 # Tell x.py the editors have reviewed the content of this file
 # and updated it to follow the major changes of the building system,
 # so x.py will not warn us to do such a review.
 change-id = &change-id;
 
-[llvm]
-targets = "X86"
-
-# When using system llvm prefer shared libraries
+[llvm]</literal>
+EOF
+if [ ! -f /usr/lib32/libc.so.6 ]; then
+cat &gt;&gt; config.toml &lt;&lt; "EOF"
+<literal>targets = "X86"
+</literal>
+EOF
+fi
+cat &gt;&gt; config.toml &lt;&lt; "EOF"
+<literal># When using system llvm prefer shared libraries
 link-shared = true
-
-[build]
-# omit docs to save time and space (default is to build them)
-docs = false
-
-# install extended tools: cargo, clippy, etc
-extended = true
-
-# Do not query new versions of dependencies online.
-locked-deps = true
-
-# Specify which extended tools (those from the default install).
-tools = ["cargo", "clippy", "rustdoc", "rustfmt"]
-
-# Use the source code shipped in the tarball for the dependencies.
-# The combination of this and the "locked-deps" entry avoids downloading
-# many crates from Internet, and makes the Rustc build more stable.
-vendor = true
-
-[install]
-prefix = "/opt/rustc-&rust-version;"
-docdir = "share/doc/rustc-&rust-version;"
-
-[rust]
-channel = "stable"
-description = "for GLFS &version;"
-
-# Uncomment if FileCheck has been installed.
-#codegen-tests = false
-
-# Enable the same optimizations as the official upstream build.
-lto = "thin"
-codegen-units = 1
-
-[target.x86_64-unknown-linux-gnu]
-llvm-config = "/usr/bin/llvm-config"
-
-[target.i686-unknown-linux-gnu]
-llvm-config = "/usr/bin/llvm-config"</literal>
-EOF</userinput></screen>
-
-    <para>
-      Or create a <filename>config.toml</filename> tailored for multilib:
-    </para>
-
-<screen><userinput>cat &lt;&lt; EOF &gt; config.toml
-<literal># see config.toml.example for more possible options.
-# Tell x.py the editors have reviewed the content of this file
-# and updated it to follow the major changes of the building system,
-# so x.py will not warn us to do such a review.
-change-id = &change-id;
-
-[llvm]
-# When using system llvm prefer shared libraries
-link-shared = true
-
-[build]
-# Enable which targets to build.
+</literal>
+EOF
+if [ -f /usr/lib32/libc.so.6 ]; then
+cat &gt;&gt; config.toml &lt;&lt; "EOF"
+<literal>[build]
 target = [
   "x86_64-unknown-linux-gnu",
   "i686-unknown-linux-gnu",
 ]
-
-# omit docs to save time and space (default is to build them)
+</literal>
+EOF
+fi
+cat &gt;&gt; config.toml &lt;&lt; "EOF"
+<literal># omit docs to save time and space (default is to build them)
 docs = false
 
 # install extended tools: cargo, clippy, etc
@@ -320,8 +276,11 @@ description = "for GLFS &version;"
 # Enable the same optimizations as the official upstream build.
 lto = "thin"
 codegen-units = 1
-
-[target.x86_64-unknown-linux-gnu]
+</literal>
+EOF
+if [ -f /usr/lib32/libc.so.6 ]; then
+cat &gt;&gt; config.toml &lt;&lt; "EOF"
+<literal>[target.x86_64-unknown-linux-gnu]
 cc = "/usr/bin/gcc"
 cxx = "/usr/bin/g++"
 ar = "/usr/bin/gcc-ar"
@@ -333,7 +292,23 @@ cc = "/usr/bin/gcc"
 cxx = "/usr/bin/g++"
 ar = "/usr/bin/gcc-ar"
 ranlib = "/usr/bin/gcc-ranlib"</literal>
-EOF</userinput></screen>
+EOF
+else
+cat &gt;&gt; config.toml &lt;&lt; "EOF"
+<literal>[target.x86_64-unknown-linux-gnu]
+llvm-config = "/usr/bin/llvm-config"
+
+[target.i686-unknown-linux-gnu]
+llvm-config = "/usr/bin/llvm-config"</literal>
+EOF
+fi</userinput></screen>
+
+    <note>
+      <para>
+        The above commands will create config.toml differently depending
+        on if a few checks pass/fail. This was done to avoid confusion.
+      </para>
+    </note>
 
     <note>
       <para>
