@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+]>
+
+<sect1 id="bash-profile" xreflabel="The Bash Shell Startup Files">
+  <?dbhtml filename="bash-profile.html"?>
+
+
+  <title>The Bash Shell Startup Files</title>
+
+  <para>
+    Bash, or the shell, can source a file at startup that applies for all
+    users, which can be very helpful for many different purposes. This can
+    involve setting many useful variables to adding new functionality to the
+    shell, usually for convenience. This section is therefore recommended and
+    setting up packages in this book will rely on this section and the created
+    files. There is little downside to following this section unless you are
+    not able to copy and paste the following commands, in which case there will
+    be a lot of typing involved. Doing this in a chroot is recommended before
+    booting back into your LFS system.
+  </para>
+
+  <note>
+    <para>
+      Most of the instructions below are used to create files located in the
+      <filename class='directory'>/etc</filename> directory structure which
+      requires you to execute the commands as the <systemitem
+      class='username'>root</systemitem> user. If you elect to create the
+      files in user's home directories instead, you should run the commands
+      as an unprivileged user.
+    </para>
+  </note>
+
+  <note>
+    <para>
+      There are more startup files that can be made. The ones here establish
+      a basic setup while offering convenience. For more startup files, see
+      <ulink url="&blfs-svn;/postlfs/profile.html">BLFS Bash Startup Files.
+      </ulink>
+    </para>
+  </note>
+
+  <sect2 id="etc-profile-profile">
+    <title>/etc/profile</title>
+
+    <indexterm zone="bash-profile etc-profile-profile">
+      <primary sortas="e-etc-profile">/etc/profile</primary>
+    </indexterm>
+
+    <para>
+      Here is a base <filename>/etc/profile</filename>. This file starts by
+      setting up some helper functions and some basic parameters. It specifies
+      some <command>bash</command> history parameters and, for security
+      purposes, disables keeping a permanent history file for the <systemitem
+      class="username">root</systemitem> user.  It also sets a default user
+      prompt.  It then calls small, single purpose scripts in the <filename
+      class='directory'>/etc/profile.d</filename> directory to provide most
+      of the initialization.
+    </para>
+
+    <para>
+      For more information on the escape sequences you can use for your prompt
+      (i.e., the <envar>PS1</envar> environment variable) see <command>info
+      bash</command> -- <emphasis role="strong">Node: Printing a
+      Prompt</emphasis>.
+    </para>
+
+<screen role="root"><?dbfo keep-together="auto"?><userinput>cat &gt; /etc/profile &lt;&lt; "EOF"
+<literal># Begin /etc/profile
+# Written for Beyond Linux From Scratch
+# by James Robertson &lt;jameswrobertson@earthlink.net&gt;
+# modifications by Dagmar d'Surreal &lt;rivyqntzne@pbzpnfg.arg&gt;
+
+# System wide environment variables and startup programs.
+
+# System wide aliases and functions should go in /etc/bashrc.  Personal
+# environment variables and startup programs should go into
+# ~/.bash_profile.  Personal aliases and functions should go into
+# ~/.bashrc.
+
+# Functions to help us manage paths.  Second argument is the name of the
+# path variable to be modified (default: PATH)
+pathremove () {
+        local IFS=':'
+        local NEWPATH
+        local DIR
+        local PATHVARIABLE=${2:-PATH}
+        for DIR in ${!PATHVARIABLE} ; do
+                if [ "$DIR" != "$1" ] ; then
+                  NEWPATH=${NEWPATH:+$NEWPATH:}$DIR
+                fi
+        done
+        export $PATHVARIABLE="$NEWPATH"
+}
+
+pathprepend () {
+        pathremove $1 $2
+        local PATHVARIABLE=${2:-PATH}
+        export $PATHVARIABLE="$1${!PATHVARIABLE:+:${!PATHVARIABLE}}"
+}
+
+pathappend () {
+        pathremove $1 $2
+        local PATHVARIABLE=${2:-PATH}
+        export $PATHVARIABLE="${!PATHVARIABLE:+${!PATHVARIABLE}:}$1"
+}
+
+export -f pathremove pathprepend pathappend
+
+# Set the initial path
+export PATH=/usr/bin
+
+# Attempt to provide backward compatibility with LFS earlier than 11
+if [ ! -L /bin ]; then
+        pathappend /bin
+fi
+
+if [ $EUID -eq 0 ] ; then
+        pathappend /usr/sbin
+        if [ ! -L /sbin ]; then
+                pathappend /sbin
+        fi
+        unset HISTFILE
+fi
+
+# Set up some environment variables.
+export HISTSIZE=1000
+export HISTIGNORE="&amp;:[bf]g:exit"
+
+# Set some defaults for graphical systems
+export XDG_DATA_DIRS=${XDG_DATA_DIRS:-/usr/share}
+export XDG_CONFIG_DIRS=${XDG_CONFIG_DIRS:-/etc/xdg}
+export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/xdg-$USER}
+
+# Set up a red prompt for root and a green one for users.
+NORMAL="\[\e[0m\]"
+RED="\[\e[1;31m\]"
+GREEN="\[\e[1;32m\]"
+if [[ $EUID == 0 ]] ; then
+  PS1="$RED\u [ $NORMAL\w$RED ]# $NORMAL"
+else
+  PS1="$GREEN\u [ $NORMAL\w$GREEN ]\$ $NORMAL"
+fi
+
+for script in /etc/profile.d/*.sh ; do
+        if [ -r $script ] ; then
+                . $script
+        fi
+done
+
+unset script RED GREEN NORMAL
+
+# End /etc/profile</literal>
+EOF</userinput></screen>
+
+    <sect3 id="etc-profile.d">
+      <title>The /etc/profile.d Directory</title>
+
+      <indexterm zone="bash-profile etc-profile.d">
+        <primary sortas="e-etc-profile.d">/etc/profile.d</primary>
+      </indexterm>
+
+      <para>
+        Now create the <filename class='directory'>/etc/profile.d</filename>
+        directory, where the individual initialization scripts are placed:
+      </para>
+
+<screen role="root"><userinput>install --directory --mode=0755 --owner=root --group=root /etc/profile.d</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="extrapaths.sh">
+      <title>/etc/profile.d/extrapaths.sh</title>
+
+      <indexterm zone="bash-profile extrapaths.sh">
+        <primary sortas="e-etc-profile.d-extrapaths.sh">/etc/profile.d/extrapaths.sh</primary>
+      </indexterm>
+
+      <para>
+        This script adds some useful paths to the <envar>PATH</envar> and
+        can be used to customize other PATH related environment variables
+        (e.g. LD_LIBRARY_PATH, etc) that may be needed for all users.
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/profile.d/extrapaths.sh &lt;&lt; "EOF"
+<literal>if [ -d /usr/local/lib/pkgconfig ] ; then
+        pathappend /usr/local/lib/pkgconfig PKG_CONFIG_PATH
+fi
+if [ -d /usr/local/bin ]; then
+        pathprepend /usr/local/bin
+fi
+if [ -d /usr/local/sbin -a $EUID -eq 0 ]; then
+        pathprepend /usr/local/sbin
+fi
+
+if [ -d /usr/local/share ]; then
+        pathprepend /usr/local/share XDG_DATA_DIRS
+fi
+
+# Set some defaults before other applications add to these paths.
+pathappend /usr/share/info INFOPATH</literal>
+EOF</userinput></screen>
+
+      <note>
+        <para>
+          The <command>man</command> program automatically deduce the search
+          path for man pages by examining the content of the
+          <envar>PATH</envar> variable, see
+          <ulink role='man' url='&man;manpath.5'>manpath(5)</ulink> for
+          details.  Setting the <envar>MANPATH</envar> variable may override
+          the automatic deduction, so the BLFS editors do not recommend to
+          set it.  If you must set it for any reason, it's better to start
+          its value with a colon (<literal>:</literal>), for example
+          <command>MANPATH=:/opt/somepkg/share/man:/opt/otherpkg/share/man</command>
+          so the paths listed in the <envar>MANPATH</envar> variable will
+          be appended to the automatically deduced value instead of
+          overriding it.
+        </para>
+      </note>
+
+    </sect3>
+
+    <sect3 id="umask.sh">
+      <title>/etc/profile.d/umask.sh</title>
+
+      <indexterm zone="bash-profile umask.sh">
+        <primary sortas="e-etc-profile.d-umask.sh">/etc/profile.d/umask.sh</primary>
+      </indexterm>
+
+      <para>
+        Setting the <command>umask</command> value is important for security.
+        Here the default group write permissions are turned off for system
+        users and when the user name and group name are not the same.
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/profile.d/umask.sh &lt;&lt; "EOF"
+<literal># By default, the umask should be set.
+if [ "$(id -gn)" = "$(id -un)" -a $EUID -gt 99 ] ; then
+  umask 002
+else
+  umask 022
+fi</literal>
+EOF</userinput></screen>
+
+    </sect3>
+
+    <sect3 id="i18n.sh">
+    <!-- This is handled system wide on systemd but LANG is not exported to
+         the environment, hence it's return...need to add additional text for
+         systemd only -->
+      <title>/etc/profile.d/i18n.sh</title>
+
+    <indexterm zone="bash-profile i18n.sh">
+      <primary sortas="e-etc-profile.d-i18n.sh">/etc/profile.d/i18n.sh</primary>
+    </indexterm>
+
+      <para>
+        This script sets an environment variable necessary for
+        native language support. A full discussion on determining this
+        variable can be found on the <ulink
+	url="&lfs-website;/~thomas/multilib/chapter09/locale.html">
+	Configuring the System Locale</ulink> page.
+      </para>
+
+<screen role="root"><userinput>cat &gt; /etc/profile.d/i18n.sh &lt;&lt; "EOF"
+<literal># Set up i18n variables
+for i in $(locale); do
+  unset ${i%=*}
+done
+
+if [[ "$TERM" = linux ]]; then
+  export LANG=C.UTF-8
+else
+  export LANG=<replaceable>&lt;ll&gt;</replaceable>_<replaceable>&lt;CC&gt;</replaceable>.<replaceable>&lt;charmap&gt;</replaceable><replaceable>&lt;@modifiers&gt;</replaceable>
+fi</literal>
+EOF</userinput></screen>
+
+    </sect3>
+
+  </sect2>
+
+</sect1>
