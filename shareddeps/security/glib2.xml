@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
    "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-  <!ENTITY % general-entities SYSTEM "../../../../general.ent">
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
   %general-entities;
 
   <!ENTITY glib2-download-http "&gnome-download-http;/glib/&glib2-minor;/glib-&glib2-version;.tar.xz">
@@ -28,8 +28,6 @@
       event loop, threads, dynamic loading and an object system.
     </para>
 
-    
-
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -40,6 +38,18 @@
       <listitem>
         <para>
           Download (FTP): <ulink url="&glib2-download-ftp;"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      <emphasis role="strong">GObject Introspection (Recommended)</emphasis>
+    </para>
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download:
+          <ulink url="&gnome-download-http;/gobject-introspection/1.82/gobject-introspection-&gobject-introspection-version;.tar.xz"/>
         </para>
       </listitem>
     </itemizedlist>
@@ -57,12 +67,11 @@
     </itemizedlist>
 
     <bridgehead renderas="sect3">GLib Dependencies</bridgehead>
-<!--
+
     <bridgehead renderas="sect4">Required</bridgehead>
     <para role="required">
-      <xref linkend='packaging'/>
+      <xref linkend="mesonfiles"/> (for lib32)
     </para>
--->
 
     <bridgehead renderas="sect4">Additional Runtime Dependencies</bridgehead>
     <para role="recommended">
@@ -74,16 +83,6 @@
 
   <sect2 role="installation">
     <title>Installation of GLib</title>
-
-    <important>
-      <para>
-        This installation disables building GObject Introspection support.
-        After you are done with GLFS, follow the installation instructions of
-        <ulink url="&blfs-svn;/general/glib2.html">GLib</ulink> and
-        <ulink url="&blfs-svn;/postlfs/polkit.html">Polkit</ulink> in the
-        development version of BLFS to enable that support.
-      </para>
-    </important>
 
     <para>
       If desired, apply the optional patch. In many cases, applications that
@@ -138,19 +137,84 @@ meson setup ..                  \
       -D glib_debug=disabled    \
       -D man-pages=disabled     \
       -D sysprof=disabled       &amp;&amp;
+
 ninja</userinput></screen>
 
     <para>
       As the <systemitem class="username">root</systemitem> user,
-      install this package:
+      install this package for the first time to allow building GObject
+      Introspection:
     </para>
 
     <screen role="root"><userinput>ninja install</userinput></screen>
 
     <para>
-      You should now install <xref linkend="desktop-file-utils"/> and
-      <xref linkend="shared-mime-info"/>.
+      Build GObject Introspection:
     </para>
+
+<screen><userinput>tar xf ../../gobject-introspection-1.82.0.tar.xz &amp;&amp;
+
+meson setup gobject-introspection-1.82.0 gi-build \
+            --prefix=/usr --buildtype=release     &amp;&amp;
+ninja -C gi-build</userinput></screen>
+
+    <para>
+      As the &root; user, install GObject Introspection for generating the
+      introspection data of GLib libraries (required by various packages using
+      Glib, especially some GNOME packages):
+    </para>
+
+<screen role="root"><userinput>ninja -C gi-build install</userinput></screen>
+
+    <para>
+      Now generate the introspection data:
+    </para>
+
+<screen><userinput>meson configure -D introspection=enabled &amp;&amp;
+ninja</userinput></screen>
+
+    <para>
+      As the &root; user, install this package again for the introspection
+      data:
+    </para>
+
+<screen role="root"><userinput>ninja install</userinput></screen>
+
+  </sect2>
+
+  <sect2>
+    <title>32-bit Installation of GLib</title>
+
+    <para>
+      First clean the build directory:
+    </para>
+
+    <screen><userinput>rm -rf *</userinput></screen>
+
+    <para>
+      Now install GLib by running the following commands:
+    </para>
+
+<screen><userinput>meson setup ..                  \
+      --cross-file lib32        \
+      --prefix=/usr             \
+      --libdir=/usr/lib32       \
+      --buildtype=release       \
+      -D introspection=disabled \
+      -D glib_debug=disabled    \
+      -D man-pages=disabled     \
+      -D sysprof=disabled       &amp;&amp;
+
+ninja</userinput></screen>
+
+    <para>
+      Now, as the &root; user:
+    </para>
+
+<screen role="root"><userinput>DESTDIR=$PWD/DESTDIR ninja install    &amp;&amp;
+cp -vR DESTDIR/usr/lib32/* /usr/lib32 &amp;&amp;
+rm -rf DESTDIR                        &amp;&amp;
+ldconfig</userinput></screen>
 
   </sect2>
 
@@ -158,7 +222,7 @@ ninja</userinput></screen>
     <title>Command Explanations</title>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../../../../xincludes/meson-buildtype-release.xml"/>
+      href="../../xincludes/meson-buildtype-release.xml"/>
 
     <para>
       <parameter>-D man-pages=disabled</parameter>: This switch causes the
