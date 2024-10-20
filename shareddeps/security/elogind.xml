@@ -33,8 +33,6 @@
       <filename class="directory">/run/systemd</filename> layout.
     </para>
 
-    
-
     <bridgehead renderas="sect3">Package Information</bridgehead>
     <itemizedlist spacing="compact">
       <listitem>
@@ -53,7 +51,7 @@
 
     <bridgehead renderas="sect4">Recommended</bridgehead>
     <para role="recommended">
-      <xref role="runtime" linkend="dbus"/> (runtime),
+      <xref role="runtime" linkend="dbus-pass1"/> (runtime),
       <xref linkend="linux-pam"/>, and
       <xref role="runtime" linkend="polkit"/> (runtime)
     </para>
@@ -103,6 +101,43 @@ ninja</userinput></screen>
 <screen role="root"><userinput>ninja install                                           &amp;&amp;
 ln -sfv  libelogind.pc /usr/lib/pkgconfig/libsystemd.pc &amp;&amp;
 ln -sfvn elogind /usr/include/systemd</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>32-bit Installation of elogind</title>
+
+    <para>
+      First clean the build directory:
+    </para>
+
+    <screen><userinput>rm -rf *</userinput></screen>
+
+    <para>
+      Install lib32-<application>elogind</application> by running the following
+      commands:
+    </para>
+
+<screen><userinput>CC="gcc -m32" CXX="g++ -m32"                 \
+PKG_CONFIG_PATH="/usr/lib32/pkgconfig"       \
+meson setup ..                               \
+      --prefix=/usr                          \
+      --libdir=/usr/lib32                    \
+      --buildtype=release                    \
+      -D cgroup-controller=elogind           \
+      -D dev-kvm-mode=0660                   \
+      -D dbuspolicydir=/etc/dbus-1/system.d &amp;&amp;
+ninja</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>DESTDIR=$PWD/DESTDIR ninja install                       &amp;&amp;
+cp -vR DESTDIR/usr/lib32/* /usr/lib32                    &amp;&amp;
+rm -rf DESTDIR                                           &amp;&amp;
+ln -sfv libelogind.pc /usr/lib32/pkgconfig/libsystemd.pc &amp;&amp;
+ldconfig</userinput></screen>
 
   </sect2>
 
@@ -229,12 +264,9 @@ password required    pam_deny.so
 EOF</userinput></screen>
 
     <note>
-      <para>After completion of <application>elogind</application>, 
-      you should check that it functions properly.  First ensure that
-      <application>dbus</application> is running.  It may be easiest
-      to do this by rebooting the system.  After logging in again, run 
-      the command <command>loginctl</command>.  The result should indicate 
-      that a SESSION and a SEAT have been created.</para>
+      <para>Now continue on until you reach <xref linkend="dbus-pass2"/>,
+      install it, and follow the configuration instructions on that page to see
+      if elogind is working properly.</para>
     </note>
 
     </sect3>

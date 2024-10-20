@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sect1 PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % general-entities SYSTEM "../../general.ent">
+  %general-entities;
+
+  <!ENTITY dbus-download-http "https://dbus.freedesktop.org/releases/dbus/dbus-&dbus-version;.tar.xz">
+  <!ENTITY dbus-download-ftp  " ">
+]>
+
+<sect1 id="dbus-pass1" xreflabel="dbus-&dbus-version; - Pass 1">
+  <?dbhtml filename="dbus-pass1.html"?>
+
+  <title>dbus-&dbus-version; - Pass 1</title>
+  
+  <indexterm zone="dbus-pass1">
+    <primary sortas="a-dbus-pass1">dbus-pass1</primary>
+  </indexterm>
+
+  <sect2 role="package">
+    <title>Introduction to D-Bus</title>
+
+    <para>
+      <application>D-Bus</application> is a message bus system, a simple way
+      for applications to talk to one another.
+      <application>D-Bus</application> supplies both a system daemon (for
+      events such as <quote>new hardware device added</quote> or <quote>printer
+      queue changed</quote>) and a per-user-login-session daemon (for general
+      IPC needs among user applications). Also, the message bus is built on top
+      of a general one-to-one message passing framework, which can be used by
+      any two applications to communicate directly (without going through the
+      message bus daemon).
+    </para>
+
+    <para>
+      This is the first pass. A useful program, <command>dbus-launch</command>,
+      will be compiled later, but is not needed now. It depends on Xorg
+      libraries being installed beforehand.
+    </para>
+
+    <itemizedlist spacing="compact">
+      <listitem>
+        <para>
+          Download (HTTP): <ulink url="&dbus-download-http;"/>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Download (FTP): <ulink url="&dbus-download-ftp;"/>
+        </para>
+      </listitem>
+    </itemizedlist>
+
+  </sect2>
+
+  <sect2 role="installation">
+    <title>Installation of D-Bus - Pass 1</title>
+
+    <para>
+      Install <application>D-Bus</application> by running the following
+      commands (you may wish to review the output from <command>./configure
+      --help</command> first and add any desired parameters to the
+      <command>configure</command> command shown below):
+    </para>
+
+<screen><userinput>./configure --prefix=/usr                        \
+            --sysconfdir=/etc                    \
+            --localstatedir=/var                 \
+            --runstatedir=/run                   \
+            --disable-doxygen-docs               \
+            --disable-xml-docs                   \
+            --disable-static                     \
+            --with-systemduserunitdir=no         \
+            --with-systemdsystemunitdir=no       \
+            --docdir=/usr/share/doc/dbus-&dbus-version;  \
+            --with-system-socket=/run/dbus/system_bus_socket &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      Now, as the <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>make install</userinput></screen>
+
+<!-- FIXME: No longer needed with usr merge
+    <para>
+      The shared library needs to be moved to
+      <filename class="directory">/lib</filename>, and as a result the
+      <filename class="extension">.so</filename> file in
+      <filename class="directory">/usr/lib</filename> will need to be
+      recreated. Run the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>mv -v /usr/lib/libdbus-1.so.* /lib &amp;&amp;
+ln -sfv ../../lib/$(readlink /usr/lib/libdbus-1.so) /usr/lib/libdbus-1.so</userinput></screen>
+-->
+
+    <para>
+      If you are using a DESTDIR install,
+      <command>dbus-daemon-launch-helper</command> needs to be fixed
+      afterwards. Issue, as <systemitem class="username">root</systemitem>
+      user:
+    </para>
+
+<screen role="root"><userinput>chown -v root:messagebus /usr/libexec/dbus-daemon-launch-helper &amp;&amp;
+chmod -v      4750       /usr/libexec/dbus-daemon-launch-helper</userinput></screen>
+
+    <para>
+      Generate the <application>D-Bus</application> UUID to avoid
+      warnings when compiling some packages with the following command as the
+      <systemitem class="username">root</systemitem> user:
+    </para>
+
+<screen role="root"><userinput>dbus-uuidgen --ensure</userinput></screen>
+
+    <para>
+      If using elogind, create a symlink to the
+      <filename>/var/lib/dbus/machine-id</filename> file:
+    </para>
+
+<screen role="root"><userinput>ln -sfv /var/lib/dbus/machine-id /etc</userinput></screen>
+
+  </sect2>
+
+  <sect2>
+    <title>32-bit Installation of D-Bus</title>
+
+    <note>
+      <para>
+        The program <command>dbus-launch</command> will not need to have a
+        32-bit version, so this 32-bit compilation will be the first and only
+        needed pass unless you are upgrading D-Bus.
+      </para>
+    </note>
+
+    <para>
+      First clean the directory:
+    </para>
+
+    <screen><userinput>make distclean</userinput></screen>
+
+    <para>
+      Now install lib32-D-Bus by running the following commands:
+    </para>
+
+<screen><userinput>CC="gcc -m32" CXX="g++ -m32"                     \
+PKG_CONFIG_PATH="/usr/lib32/pkgconfig"           \
+./configure --prefix=/usr                        \
+            --libdir=/usr/lib32                  \
+            --host=i686-pc-linux-gnu             \
+            --sysconfdir=/etc                    \
+            --localstatedir=/var                 \
+            --runstatedir=/run                   \
+            --disable-doxygen-docs               \
+            --disable-xml-docs                   \
+            --disable-static                     \
+            --with-systemduserunitdir=no         \
+            --with-systemdsystemunitdir=no       \
+            --with-system-socket=/run/dbus/system_bus_socket &amp;&amp;
+make</userinput></screen>
+
+    <para>
+      Now as the &root; user:
+    </para>
+
+<screen role="root"><userinput>make DESTDIR=$PWD/DESTDIR install
+cp -vR DESTDIR/usr/lib32/* /usr/lib32
+rm -rf DESTDIR
+ldconfig</userinput></screen>
+
+  </sect2>
+
+  <sect2 role="commands">
+    <title>Command Explanations</title>
+
+    <para>
+      <parameter>--disable-doxygen-docs</parameter>: This switch disables
+      doxygen documentation build and install, if you have
+      <application>doxygen</application> installed. If
+      <application>doxygen</application> is installed, and you wish to build
+      them, remove this parameter.
+    </para>
+
+    <para>
+      <parameter>--disable-xml-docs</parameter>: This switch disables html
+      documentation build and install, if you have
+      <application>xmlto</application> installed. If
+      <application>xmlto</application> is installed, and you wish to build
+      them, remove this parameter.
+    </para>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../xincludes/static-libraries.xml"/>
+
+    <para>
+      <parameter>--with-systemd{user,system}unitdir=no</parameter>: These
+      switches disable installation of systemd units on elogind based systems.
+    </para>
+   
+    <para>
+      <parameter>--with-system-socket=/run/dbus/system_bus_socket</parameter>:
+      This parameter specifies the location of the system bus socket.
+    </para>
+
+    <para>
+      <parameter>--enable-tests</parameter>: Builds extra parts of the code to
+      support all tests. Do not use on a production build.
+    </para>
+
+    <para>
+      <option>--enable-embedded-tests</option>: Builds extra parts of the
+      code to support only unit tests. Do not use on a production build.
+    </para>
+
+    <para>
+      <parameter>--enable-asserts</parameter>: Enables debugging code to run
+      assertions for statements normally assumed to be true. This prevents a
+      warning that '<parameter>--enable-tests</parameter>' on its own is only
+      useful for profiling and might not give true results for all tests, but
+      adds its own NOTE that this should not be used in a production build.
+    </para>
+
+  </sect2>
+
+  <sect2 role="content">
+    <title>Contents</title>
+
+    <para>
+      See the full list of contents at <xref linkend="dbus-pass2"/>.
+    </para>
+
+  </sect2>
+
+</sect1>
