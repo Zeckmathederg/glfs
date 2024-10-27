@@ -1,7 +1,7 @@
 # NOTICE
 
-Development will eventually switch to https://github.com/glfs-book/glfs.
-Please read the announcement in the Bulletin section of the book.
+This repo is now archived, and development has switched to
+https://github.com/glfs-book/glfs.
 
 # Gaming Linux From Scatch (GLFS)
 
@@ -10,7 +10,7 @@ like Steam and Wine after the Linux From Scratch book.
 
 # Where to Read
 
-Go to https://zeckmathederg.github.io/glfs/ and start going through the book!
+Go to https://glfs-book.github.io/glfs/ and start going through the book!
 
 # Installation
 
